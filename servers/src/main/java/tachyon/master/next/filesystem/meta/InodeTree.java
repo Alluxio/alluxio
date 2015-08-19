@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.block.ContainerIdGenerator;
@@ -50,11 +49,9 @@ public final class InodeTree {
   private final Set<Long> mPinnedInodeFileIds;
 
   /**
-   * Inode id management. Inode ids are essentially block ids.
-   * inode files: Each file id will be composed of a unique block container id, with the maximum
-   *              sequence number.
-   * inode directories: Each directory id will be a unique block id, in order to avoid any collision
-   *                    with file ids.
+   * Inode id management. Inode ids are essentially block ids. inode files: Each file id will be
+   * composed of a unique block container id, with the maximum sequence number. inode directories:
+   * Each directory id will be a unique block id, in order to avoid any collision with file ids.
    */
   private final ContainerIdGenerator mContainerIdGenerator;
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
@@ -77,12 +74,11 @@ public final class InodeTree {
   }
 
   public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
-    Pair<Inode, Integer> inodeTraversal =
-        traverseToInode(PathUtils.getPathComponents(path.toString()));
-    if (!traversalSucceeded(inodeTraversal)) {
+    TraverseResult traversalResult = traverseToInode(PathUtils.getPathComponents(path.toString()));
+    if (!traversalResult.isFound()) {
       throw new InvalidPathException("Could not find path: " + path);
     }
-    return inodeTraversal.getFirst();
+    return traversalResult.getInode();
   }
 
   public boolean isRootId(long id) {
@@ -100,8 +96,8 @@ public final class InodeTree {
   }
 
   public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory) throws FileAlreadyExistException, BlockInfoException,
-      InvalidPathException {
+      boolean directory)
+          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
 
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
@@ -122,35 +118,34 @@ public final class InodeTree {
 
     long creationTimeMs = System.currentTimeMillis();
 
-    Pair<Inode, Integer> inodeTraversal = traverseToInode(parentPath);
+    TraverseResult traversalResult = traverseToInode(parentPath);
     // pathIndex is the index into pathComponents where we start filling in the path from the inode.
     int pathIndex = parentPath.length;
-    if (!traversalSucceeded(inodeTraversal)) {
+    if (!traversalResult.isFound()) {
       // Then the path component at errorInd k doesn't exist. If it's not recursive, we throw an
       // exception here. Otherwise we add the remaining path components to the list of components
       // to create.
       if (!recursive) {
-        final String msg =
-            "File " + path + " creation failed. Component " + inodeTraversal.getSecond() + "("
-                + parentPath[inodeTraversal.getSecond()] + ") does not exist";
+        final String msg = "File " + path + " creation failed. Component "
+            + traversalResult.getNonexistentPathIndex() + "("
+            + parentPath[traversalResult.getNonexistentPathIndex()] + ") does not exist";
         LOG.info("InvalidPathException: " + msg);
         throw new InvalidPathException(msg);
       } else {
         // We will start filling in the path from inodeTraversal.getSecond()
-        pathIndex = inodeTraversal.getSecond();
+        pathIndex = traversalResult.getNonexistentPathIndex();
       }
     }
 
-    if (!inodeTraversal.getFirst().isDirectory()) {
+    if (!traversalResult.getInode().isDirectory()) {
       throw new InvalidPathException("Could not traverse to parent directory of path " + path
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
-    InodeDirectory currentInodeDirectory = (InodeDirectory) inodeTraversal.getFirst();
+    InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
-      Inode dir =
-          new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
-              currentInodeDirectory.getId(), creationTimeMs);
+      Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
+          currentInodeDirectory.getId(), creationTimeMs);
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
@@ -170,13 +165,11 @@ public final class InodeTree {
       throw new FileAlreadyExistException(path.toString());
     }
     if (directory) {
-      ret =
-          new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
-              currentInodeDirectory.getId(), creationTimeMs);
+      ret = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
+          currentInodeDirectory.getId(), creationTimeMs);
     } else {
-      ret =
-          new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
-              currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
+      ret = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
+          currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
         mPinnedInodeFileIds.add(ret.getId());
@@ -255,57 +248,87 @@ public final class InodeTree {
     return Sets.newHashSet(mPinnedInodeFileIds);
   }
 
-
-
-  // TODO: make this into a result class
-  private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
-    return inodeTraversal.getSecond() == -1;
-  }
-
-  // TODO: improve inode traversing
-  private Pair<Inode, Integer> traverseToInode(String[] pathComponents)
-      throws InvalidPathException {
-    if (pathComponents == null || pathComponents.length == 0) {
-      throw new InvalidPathException("passed-in pathComponents is null or empty");
-    }
-    if (pathComponents.length == 1) {
+  private TraverseResult traverseToInode(String[] pathComponents) throws InvalidPathException {
+    if (pathComponents == null) {
+      throw new InvalidPathException("passed-in pathComponents is null");
+    } else if (pathComponents.length == 0) {
+      throw new InvalidPathException("passed-in pathComponents is empty");
+    } else if (pathComponents.length == 1) {
       if (pathComponents[0].equals("")) {
-        return new Pair<Inode, Integer>(mRoot, -1);
+        return TraverseResult.createFoundResult(mRoot);
       } else {
-        final String msg = "File name starts with " + pathComponents[0];
-        LOG.info("InvalidPathException: " + msg);
-        throw new InvalidPathException(msg);
+        throw new InvalidPathException("File name starts with " + pathComponents[0]);
       }
     }
 
-    Pair<Inode, Integer> ret = new Pair<Inode, Integer>(mRoot, -1);
+    Inode current = mRoot;
 
-    for (int k = 1; k < pathComponents.length; k ++) {
-      Inode next = ((InodeDirectory) ret.getFirst()).getChild(pathComponents[k]);
+    for (int i = 1; i < pathComponents.length; i ++) {
+      Inode next = ((InodeDirectory) current).getChild(pathComponents[i]);
       if (next == null) {
-        // The user might want to create the nonexistent directories, so we leave ret.getFirst()
-        // as the last Inode taken. We set nonexistentInd to k, to indicate that the kth path
+        // The user might want to create the nonexistent directories, so return the current inode
+        // directory
+        // as the last Inode taken. Also set nonexistentInd to k, to indicate that the kth path
         // component was the first one that couldn't be found.
-        ret.setSecond(k);
-        break;
-      }
-      ret.setFirst(next);
-      if (!ret.getFirst().isDirectory()) {
+        return TraverseResult.createNotFoundResult(current, i);
+      } else if (next.isFile()) {
         // The inode can't have any children. If this is the last path component, we're good.
         // Otherwise, we can't traverse further, so we clean up and throw an exception.
-        if (k == pathComponents.length - 1) {
-          break;
+        if (i == pathComponents.length - 1) {
+          return TraverseResult.createFoundResult(next);
         } else {
-          final String msg =
-              "Traversal failed. Component " + k + "(" + ret.getFirst().getName() + ") is a file";
-          LOG.info("InvalidPathException: " + msg);
-          throw new InvalidPathException(msg);
+          throw new InvalidPathException(
+              "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
         }
+      } else {
+        // next is a directory and keep navigating
+        current = next;
       }
     }
-    return ret;
+    return TraverseResult.createFoundResult(current);
   }
 
+  private static final class TraverseResult {
+    private final boolean mFound;
+    /**
+     * when the path is not found in a traversal, the index of the last navigated step in the path
+     * components
+     */
+    private final int mNonexistentIndex;
+    /**
+     * the found inode when the traversal succeeds; otherwise the last path component navigated
+     */
+    private final Inode mInode;
+
+    static TraverseResult createFoundResult(Inode inode) {
+      return new TraverseResult(true, -1, inode);
+    }
+
+    static TraverseResult createNotFoundResult(Inode inode, int nonexistentIndex) {
+      return new TraverseResult(false, nonexistentIndex, inode);
+    }
+
+    private TraverseResult(boolean found, int nonexistentIndex, Inode inode) {
+      mFound = found;
+      mNonexistentIndex = nonexistentIndex;
+      mInode = inode;
+    }
+
+    boolean isFound() {
+      return mFound;
+    }
+
+    int getNonexistentPathIndex() {
+      if (mFound) {
+        throw new UnsupportedOperationException("The trasveral is successful");
+      }
+      return mNonexistentIndex;
+    }
+
+    Inode getInode() {
+      return mInode;
+    }
+  }
   /**
    * Inode id management for directory inodes. Keep track of a block container id, along with a
    * block sequence number. If the block sequence number reaches the limit, a new block container id
