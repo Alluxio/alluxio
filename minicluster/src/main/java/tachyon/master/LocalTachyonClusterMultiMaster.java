@@ -44,15 +44,15 @@ public class LocalTachyonClusterMultiMaster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    CommonUtils.sleepMs(Constants.SECOND_MS);
     cluster.stop();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    CommonUtils.sleepMs(Constants.SECOND_MS);
 
     cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    CommonUtils.sleepMs(Constants.SECOND_MS);
     cluster.stop();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    CommonUtils.sleepMs(Constants.SECOND_MS);
   }
 
   private TestingServer mCuratorServer = null;
