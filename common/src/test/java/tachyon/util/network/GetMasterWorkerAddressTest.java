@@ -26,7 +26,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.network.NetworkAddressUtils;
 
 public class GetMasterWorkerAddressTest {
   private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
@@ -67,7 +66,6 @@ public class GetMasterWorkerAddressTest {
   @Test
   public void getMasterAddressTest() {
     String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
-    int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
     InetSocketAddress masterAddress = NetworkAddressUtils.getMasterAddress(mCustomPropsTachyonConf);
     Assert.assertNotNull(masterAddress);
@@ -76,28 +74,15 @@ public class GetMasterWorkerAddressTest {
     masterAddress = NetworkAddressUtils.getMasterAddress(mNullMasterHostNameTachyonConf);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
-
-    masterAddress = NetworkAddressUtils.getMasterAddress(mNullMasterPortTachyonConf);
-    Assert.assertNotNull(masterAddress);
-    Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
-
-    masterAddress = NetworkAddressUtils.getMasterAddress(mNullTachyonConf);
-    Assert.assertNotNull(masterAddress);
-    Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
 
   @Test
   public void getWorkerAddressTest() {
     String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
-    int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
     InetSocketAddress workerAddress =
         NetworkAddressUtils.getLocalWorkerAddress(mCustomPropsTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
-
-    workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mNullTachyonConf);
-    Assert.assertNotNull(workerAddress);
-    Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
   }
 }
