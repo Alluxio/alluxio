@@ -104,6 +104,14 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
+  public boolean completeFileCheckpoint(long workerId, long fileId, long length,
+      String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
+          BlockInfoException, TException {
+    return mFileSystemMaster.completeFileCheckpoint(workerId, fileId, length,
+        new TachyonURI(checkpointPath));
+  }
+
+  @Override
   public long loadFileFromUfs(long fileId, String ufsPath, boolean recursive)
       throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
       TachyonException, TException {
@@ -141,16 +149,8 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public boolean free(long fileId, boolean recursive)
-      throws FileDoesNotExistException, TException {
+  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException, TException {
     return mFileSystemMaster.free(fileId, recursive);
-  }
-
-  @Override
-  public boolean addCheckpoint(long workerId, long fileId, long length, String checkpointPath)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
-    // TODO
-    return false;
   }
 
   @Override
