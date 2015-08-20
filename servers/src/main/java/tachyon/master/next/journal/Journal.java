@@ -17,8 +17,13 @@ package tachyon.master.next.journal;
 
 import tachyon.conf.TachyonConf;
 
-import javax.swing.plaf.TableHeaderUI;
-
+/**
+ * This encapsulates the journal for a master. The journal is made up of 2 components:
+ * - The checkpoint:
+ * - The entries
+ *
+ * To construct the full state of the master, the
+ */
 public class Journal {
   private String mJournalPath;
   private TachyonConf mTachyonConf;
@@ -30,5 +35,9 @@ public class Journal {
 
   public JournalWriter getNewWriter() {
     return new JournalWriter(this);
+  }
+
+  public JournalReader getNewReader() {
+    return new JournalReader(this);
   }
 }

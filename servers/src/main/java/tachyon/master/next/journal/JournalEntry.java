@@ -15,22 +15,5 @@
 
 package tachyon.master.next.journal;
 
-public class JournalWriter {
-  private final Journal mJournal;
-
-  JournalWriter(Journal journal) {
-    mJournal = journal;
-  }
-
-  public void writeCheckpoint(JournalEntry entry) {
-    // TODO
-  }
-
-  public void writeEvent(JournalEntry entry) {
-    // TODO
-  }
-
-  public void flush() {
-    // TODO
-  }
+public interface JournalEntry {
 }
