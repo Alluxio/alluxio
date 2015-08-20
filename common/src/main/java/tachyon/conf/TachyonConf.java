@@ -252,7 +252,7 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  private long getLong(String key, final long defaultValue) {
+  public long getLong(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
@@ -261,7 +261,8 @@ public class TachyonConf {
         LOG.warn("Configuration cannot evaluate key " + key + " as long.");
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   public double getDouble(String key) {
