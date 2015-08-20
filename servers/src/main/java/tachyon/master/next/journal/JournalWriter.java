@@ -15,23 +15,50 @@
 
 package tachyon.master.next.journal;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 
-import java.io.IOException;
-
 public class JournalWriter {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final Journal mJournal;
   private final TachyonConf mTachyonConf;
+  private final String mJournalDirectory;
+  private final String mCheckpointPath;
   private final UnderFileSystem mUfs;
 
   JournalWriter(Journal journal, TachyonConf tachyonConf) {
     mJournal = journal;
     mTachyonConf = tachyonConf;
-    mUfs = UnderFileSystem.get(mJournal.getDirectory(), mTachyonConf);
+    mJournalDirectory = mJournal.getDirectory();
+    mCheckpointPath = mJournalDirectory + mJournal.getCheckpointFilename();
+    mUfs = UnderFileSystem.get(mJournalDirectory, mTachyonConf);
   }
 
-  public void writeCheckpoint(JournalEntry entry) {
+  public void writeCheckpoint(JournalEntry entry) throws IOException {
+    String tmpCheckpointPath = mCheckpointPath + ".tmp";
+    LOG.info("Creating tmp checkpoint file: " + tmpCheckpointPath);
+    if (!mUfs.exists(mJournalDirectory)) {
+      LOG.info("Creating journal folder: " + mJournalDirectory);
+      mUfs.mkdirs(mJournalDirectory, true);
+    }
+    DataOutputStream dos = new DataOutputStream(mUfs.create(tmpCheckpointPath));
+    mJournal.getJournalFormatter().serialize(entry, dos);
+    dos.flush();
+    dos.close();
+
+    LOG.info("Successfully created tmp checkpoint file: " + tmpCheckpointPath);
+    mUfs.delete(mCheckpointPath, false);
+    mUfs.rename(tmpCheckpointPath, mCheckpointPath);
+    mUfs.delete(tmpCheckpointPath, false);
+    LOG.info("Renamed checkpoint file " + tmpCheckpointPath + " to " + mCheckpointPath);
   }
 
   public void writeEntry(JournalEntry entry) {
