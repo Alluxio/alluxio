@@ -28,6 +28,10 @@ import tachyon.conf.TachyonConf;
  * completed entry files are in the "completed/" sub-directory.
  */
 public class Journal {
+  /** The filename of the checkpoint file. */
+  private final String mCheckpointFilename = "checkpoint.data";
+  /** The base of the entry log filenames, without the file extension. */
+  private final String mEntryLogFilenameBase = "log";
   private final String mDirectory;
   private final TachyonConf mTachyonConf;
   private final JournalFormatter mJournalFormatter;
@@ -45,6 +49,14 @@ public class Journal {
 
   public String getDirectory() {
     return mDirectory;
+  }
+
+  public String getCheckpointFilename() {
+    return mCheckpointFilename;
+  }
+
+  public String getEntryLogFilenameBase() {
+    return mEntryLogFilenameBase;
   }
 
   public JournalFormatter getJournalFormatter() {
