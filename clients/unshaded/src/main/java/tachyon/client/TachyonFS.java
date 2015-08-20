@@ -180,7 +180,7 @@ public class TachyonFS extends AbstractTachyonFS {
     int masterPort = tachyonConf.getInt(Constants.MASTER_PORT);
 
     mMasterAddress = new InetSocketAddress(masterHost, masterPort);
-    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
     mMasterClient =

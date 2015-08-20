@@ -95,7 +95,7 @@ public final class MasterClient implements Closeable {
   public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
@@ -227,7 +227,7 @@ public final class MasterClient implements Closeable {
   /**
    * Reset the connection with the Tachyon Master.
    * <p>
-   * Mainly used for worker to master syncer (e.g., BlockMasterSyncer, PinListSyncer, etc.) 
+   * Mainly used for worker to master syncer (e.g., BlockMasterSyncer, PinListSyncer, etc.)
    * to recover from Exception while running in case the master changes.
    */
   public synchronized void resetConnection() {
