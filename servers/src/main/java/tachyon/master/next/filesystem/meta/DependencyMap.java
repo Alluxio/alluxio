@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.master.Dependency;
 
 /**
  * This class maintains the dependency related metadata information for the lineage feature.
