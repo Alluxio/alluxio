@@ -15,15 +15,23 @@
 
 package tachyon.master.next.journal;
 
+import tachyon.conf.TachyonConf;
+import tachyon.underfs.UnderFileSystem;
+
+import java.io.IOException;
+
 public class JournalWriter {
   private final Journal mJournal;
+  private final TachyonConf mTachyonConf;
+  private final UnderFileSystem mUfs;
 
-  JournalWriter(Journal journal) {
+  JournalWriter(Journal journal, TachyonConf tachyonConf) {
     mJournal = journal;
+    mTachyonConf = tachyonConf;
+    mUfs = UnderFileSystem.get(mJournal.getDirectory(), mTachyonConf);
   }
 
   public void writeCheckpoint(JournalEntry entry) {
-    // TODO
   }
 
   public void writeEntry(JournalEntry entry) {
@@ -32,5 +40,9 @@ public class JournalWriter {
 
   public void flush() {
     // TODO
+  }
+
+  public void close() throws IOException {
+    mUfs.close();
   }
 }
