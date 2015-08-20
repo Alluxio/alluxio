@@ -23,9 +23,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-
 /**
  * Common utilities shared by all components in Tachyon.
  */
@@ -47,6 +44,10 @@ public final class CommonUtils {
   public static String[] toStringArray(ArrayList<String> src) {
     String[] ret = new String[src.size()];
     return src.toArray(ret);
+  }
+
+  public static void sleepMs(long timeMs) {
+    sleepMs(null, timeMs);
   }
 
   public static void sleepMs(Logger logger, long timeMs) {
