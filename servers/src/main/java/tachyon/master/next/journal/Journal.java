@@ -27,12 +27,16 @@ import tachyon.conf.TachyonConf;
  * completed entry files are in the "completed/" sub-directory.
  */
 public class Journal {
-  private String mJournalPath;
-  private TachyonConf mTachyonConf;
+  private final String mDirectory;
+  private final TachyonConf mTachyonConf;
 
-  public Journal(String journalPath, TachyonConf tachyonConf) {
-    mJournalPath = journalPath;
+  public Journal(String directory, TachyonConf tachyonConf) {
+    mDirectory = directory;
     mTachyonConf = tachyonConf;
+  }
+
+  public String getDirectory() {
+    return mDirectory;
   }
 
   public JournalWriter getNewWriter() {
