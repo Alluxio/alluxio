@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
@@ -76,6 +77,17 @@ public class BlockMetadataManagerView {
   }
 
   /**
+   * Clear all marks of blocks to move in/out in all dir views.
+   */
+  public void clearBlockMarks() {
+    for (StorageTierView tierView : mTierViews) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        dirView.clearBlockMarks();
+      }
+    }
+  }
+
+  /**
    * Test if the block is pinned.
    *
    * @param blockId to be tested
@@ -107,7 +119,24 @@ public class BlockMetadataManagerView {
    * @return boolean, true if the block can be evicted
    */
   public boolean isBlockEvictable(long blockId) {
-    return (!isBlockPinned(blockId) && !isBlockLocked(blockId));
+    return (!isBlockPinned(blockId) && !isBlockLocked(blockId) && !isBlockMarked(blockId));
+  }
+
+  /**
+   * Test if the block is marked to move out of its current dir in this view.
+   *
+   * @param blockId the Id of the block
+   * @return boolean, true if the block is marked to move out
+   */
+  public boolean isBlockMarked(long blockId) {
+    for (StorageTierView tierView : mTierViews) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (dirView.isMarkedToMoveOut(blockId)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -145,6 +174,20 @@ public class BlockMetadataManagerView {
   public List<StorageTierView> getTierViewsBelow(int tierAlias) {
     int level = getTierView(tierAlias).getTierViewLevel();
     return mTierViews.subList(level + 1, mTierViews.size());
+  }
+
+  /**
+   * Get the next storage tier view.
+   *
+   * @param tierView the storage tier view
+   * @return the next storage tier view, null if this is the last tier view.
+   */
+  public StorageTierView getNextTier(StorageTierView tierView) {
+    int nextLevel = tierView.getTierViewLevel() + 1;
+    if (nextLevel < mTierViews.size()) {
+      return mTierViews.get(nextLevel);
+    }
+    return null;
   }
 
   /**

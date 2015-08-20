@@ -27,6 +27,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
@@ -41,7 +42,7 @@ public class GreedyEvictor implements Evictor {
   /**
    * GreedyEvictor does not need BlockMetadataManagerView
    */
-  public GreedyEvictor(BlockMetadataManagerView view) {}
+  public GreedyEvictor(BlockMetadataManagerView view, Allocator allocator) {}
 
   @Override
   public EvictionPlan freeSpaceWithView(long availableBytes, BlockStoreLocation location,
