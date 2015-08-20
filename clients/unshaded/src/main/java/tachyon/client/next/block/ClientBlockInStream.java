@@ -44,6 +44,12 @@ public class ClientBlockInStream extends BlockInStream {
       mBlockInStream = new RemoteBlockInStream(mBlockInfo, options);
     }
 
+    // Failed to get a remote stream, use under storage
+    if (null == mBlockInStream) {
+      // TODO: Investigate how to get the ufs path
+      mBlockInStream = new UnderStoreBlockInStream(null);
+    }
+
     if (mCacheToLocal) {
       // TODO: Investigate if this should be done lazily
       mLocalBlockOutStream = new LocalBlockOutStream(blockInfo.getBlockId(), options);
