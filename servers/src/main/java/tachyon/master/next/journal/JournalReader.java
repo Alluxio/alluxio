@@ -41,7 +41,7 @@ public class JournalReader {
     return null;
   }
 
-  public List<JournalEntry> readEvents() {
+  public List<JournalEntry> readEntries() {
     // TODO
     return Collections.emptyList();
   }
