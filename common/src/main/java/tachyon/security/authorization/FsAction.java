@@ -30,13 +30,17 @@ public enum FsAction {
   ALL("rwx");
 
   /** Symbolic representation */
-  public final String mSymbol;
+  private final String mSymbol;
 
   /** Retain reference to value array. */
   private static final FsAction[] SVALS = values();
 
   private FsAction(String s) {
     mSymbol = s;
+  }
+
+  public String getSymbol() {
+    return mSymbol;
   }
 
   /**
@@ -54,10 +58,12 @@ public enum FsAction {
   public FsAction and(FsAction that) {
     return SVALS[ordinal() & that.ordinal()];
   }
+
   /** OR operation. */
   public FsAction or(FsAction that) {
     return SVALS[ordinal() | that.ordinal()];
   }
+
   /** NOT operation. */
   public FsAction not() {
     return SVALS[7 - ordinal()];

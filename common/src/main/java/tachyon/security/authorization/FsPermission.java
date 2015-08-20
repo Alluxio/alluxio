@@ -110,7 +110,8 @@ public class FsPermission {
 
   @Override
   public String toString() {
-    return mUseraction.mSymbol + mGroupaction.mSymbol + mOtheraction.mSymbol;
+    return mUseraction.getSymbol() + mGroupaction.getSymbol()
+        + mOtheraction.getSymbol();
   }
 
   /** Apply a umask to this permission and return a new one */
