@@ -291,6 +291,15 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
+  public boolean getBoolean(String key) {
+    if (mProperties.containsKey(key)) {
+      String rawValue = mProperties.getProperty(key);
+      return Boolean.parseBoolean(lookup(rawValue));
+    }
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
+  }
+
   public boolean getBoolean(String key, boolean defaultValue) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
