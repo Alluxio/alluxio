@@ -235,7 +235,7 @@ public final class LocalTachyonCluster {
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
     // Disable hdfs client caching to avoid file system close() affecting other clients
-    // System.setProperty("fs.hdfs.impl.disable.cache", "true");
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
     startMaster(conf);
 
@@ -258,7 +258,7 @@ public final class LocalTachyonCluster {
     stopUFS();
 
     // clear HDFS client caching
-    //System.clearProperty("fs.hdfs.impl.disable.cache");
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   /**
