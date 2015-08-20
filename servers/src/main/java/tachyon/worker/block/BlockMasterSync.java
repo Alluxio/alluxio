@@ -46,7 +46,7 @@ import tachyon.util.CommonUtils;
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
-public class BlockMasterSync implements Runnable {
+public final class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
