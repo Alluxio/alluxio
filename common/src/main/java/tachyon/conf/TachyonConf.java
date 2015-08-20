@@ -300,14 +300,6 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public boolean getBoolean(String key, boolean defaultValue) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
-      return Boolean.parseBoolean(lookup(rawValue));
-    }
-    return defaultValue;
-  }
-
   public List<String> getList(String key, String delimiter) {
     Preconditions.checkArgument(delimiter != null, "Illegal separator for Tachyon properties as "
         + "list");
