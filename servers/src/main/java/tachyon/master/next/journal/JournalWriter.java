@@ -26,7 +26,7 @@ public class JournalWriter {
     // TODO
   }
 
-  public void writeEvent(JournalEntry entry) {
+  public void writeEntry(JournalEntry entry) {
     // TODO
   }
 
