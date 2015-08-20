@@ -19,10 +19,12 @@ import tachyon.conf.TachyonConf;
 
 /**
  * This encapsulates the journal for a master. The journal is made up of 2 components:
- * - The checkpoint:
- * - The entries
+ * - The checkpoint: the full state of the master
+ * - The entries: incremental entries to apply to the checkpoint.
  *
- * To construct the full state of the master, the
+ * To construct the full state of the master, all the entries must be applied to the checkpoint in
+ * order. The entry file most recently being written to is in the base journal folder, where the
+ * completed entry files are in the "completed/" sub-directory.
  */
 public class Journal {
   private String mJournalPath;
