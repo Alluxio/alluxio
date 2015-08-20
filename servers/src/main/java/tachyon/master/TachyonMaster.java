@@ -117,7 +117,7 @@ public class TachyonMaster {
       addressListening = new InetSocketAddress(hostnameListening, port);
     }
 
-    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
 
     mIsStarted = false;
     mWebPort = webPort;
