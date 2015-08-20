@@ -158,8 +158,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       }
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
-      request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT,
-          Constants.DEFAULT_WORKER_WEB_PORT));
+      request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
       if (!currentFileInfo.getIsDirectory()) {
         String offsetParam = request.getParameter("offset");
         long relativeOffset = 0;

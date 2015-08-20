@@ -60,8 +60,8 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
-    int quietPeriodSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, 2);
-    int timeoutSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, 15);
+    int quietPeriodSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD);
+    int timeoutSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT);
     mChannelFuture.channel().close().awaitUninterruptibly();
     mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
     mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
@@ -83,15 +83,15 @@ public final class NettyDataServer implements DataServer {
         (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_WATERMARK_LOW));
 
     // more buffer settings
-    final int optBacklog = mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG, -1);
+    final int optBacklog = mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG);
     if (optBacklog > 0) {
       boot.option(ChannelOption.SO_BACKLOG, optBacklog);
     }
-    final int optSendBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_SEND_BUFFER, -1);
+    final int optSendBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_SEND_BUFFER);
     if (optSendBuffer > 0) {
       boot.option(ChannelOption.SO_SNDBUF, optSendBuffer);
     }
-    final int optReceiveBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_RECEIVE_BUFFER, -1);
+    final int optReceiveBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_RECEIVE_BUFFER);
     if (optReceiveBuffer > 0) {
       boot.option(ChannelOption.SO_RCVBUF, optReceiveBuffer);
     }
