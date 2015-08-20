@@ -10,6 +10,7 @@ NO_COLOR='\033[0m'
 error() {
  echo -e "${BOLD_RED}>>> $1${NO_COLOR}"
 }
+
 info() {
  echo -e "${GREEN}>>> $1${NO_COLOR}"
 }
@@ -54,7 +55,7 @@ done
 echo "TachyonMaster" >> files/workers
 
 # create virtual machine without provisioning
-[[ "$PROVIDER" == "aws" ]] && sgid=`python bin/init_aws.py|tail -n 1`
+[[ "$PROVIDER" == "aws" ]] && sgid=`python bin/init_aws.py | tail -n 1`
 # pass security group id to vagrant up
 export AWS_SECURITY_GROUP_ID_TACH=$sgid
 IS_SPOT=`python bin/is_aws_spot.py`
@@ -64,7 +65,10 @@ if [[ "$PROVIDER" == "aws" && "$IS_SPOT" == 0 ]]; then
  python bin/spot_request.py --submit
 else
  FULL_PROVIDER_NAME=$PROVIDER
- [[ "$FULL_PROVIDER_NAME" == "vb" ]] && FULL_PROVIDER_NAME=virtualbox
+ if [[ "$FULL_PROVIDER_NAME" == "vb" ]]; then
+   FULL_PROVIDER_NAME=virtualbox
+   ./vbox/buildbox.sh
+ fi 
  VUP="vagrant up --provider=$FULL_PROVIDER_NAME --no-provision"
  [[ "$PROVIDER" == "aws" ]] && VUP="${VUP} --parallel"
  $VUP

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 OLD_BOX=$(vagrant box list | grep tachyon-dev | cut -d ' ' -f1)
 if [[ "$OLD_BOX" != '' ]]; then
  echo "$OLD_BOX exists"
@@ -12,6 +14,7 @@ if [ -f tachyon-dev.box ]; then
   rm -f tachyon-dev.box
 fi
 
+echo "Generating 'tachyon-dev.box' ..."
 vagrant up
 vagrant package --output tachyon-dev.box default
 vagrant destroy -f
