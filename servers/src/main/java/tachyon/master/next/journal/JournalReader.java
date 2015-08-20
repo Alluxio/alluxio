@@ -15,6 +15,9 @@
 
 package tachyon.master.next.journal;
 
+import java.util.Collections;
+import java.util.List;
+
 public class JournalReader {
   private final Journal mJournal;
 
@@ -33,11 +36,13 @@ public class JournalReader {
     return false;
   }
 
-  public void readCheckpoint() {
+  public JournalEntry readCheckpoint() {
     // TODO
+    return null;
   }
 
-  public void readEvents() {
+  public List<JournalEntry> readEvents() {
     // TODO
+    return Collections.emptyList();
   }
 }
