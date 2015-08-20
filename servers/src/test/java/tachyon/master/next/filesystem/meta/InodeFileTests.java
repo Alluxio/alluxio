@@ -19,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.master.block.BlockId;
 
 /**
  * Unit tests for tachyon.InodeFile
@@ -34,6 +35,16 @@ public final class InodeFileTests {
     Assert.assertEquals(inode1, inode2);
     InodeFile inode3 = createInodeFile(3);
     Assert.assertFalse(inode1.equals(inode3));
+  }
+
+  @Test
+  public void getIdTest() {
+    InodeFile inode1 = createInodeFile(1);
+    Assert.assertEquals(createBlockId(1), inode1.getId());
+  }
+
+  private long createBlockId(long containerId) {
+    return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
   }
 
   private static InodeFile createInodeFile(long id) {
