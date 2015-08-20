@@ -121,12 +121,8 @@ public class TachyonMaster {
 
     mIsStarted = false;
     mWebPort = webPort;
-    mMinWorkerThreads =
-        mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, Runtime.getRuntime()
-            .availableProcessors());
-
-    mMaxWorkerThreads =
-        mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
+    mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
+    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         Constants.MASTER_MAX_WORKER_THREADS + " can not be less than "
             + Constants.MASTER_MIN_WORKER_THREADS);

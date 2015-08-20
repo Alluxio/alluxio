@@ -57,8 +57,7 @@ public final class NetworkAddressUtils {
     if (sLocalHost != null) {
       return sLocalHost;
     }
-    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
-        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalHostName(hostResolutionTimeout);
   }
 
@@ -94,8 +93,7 @@ public final class NetworkAddressUtils {
     if (sLocalIP != null) {
       return sLocalIP;
     }
-    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
-        Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalIpAddress(hostResolutionTimeout);
   }
 
@@ -245,7 +243,7 @@ public final class NetworkAddressUtils {
         conf.get(Constants.MASTER_HOSTNAME, getLocalHostName(conf));
     // Cannot rely on tachyon-default.properties because GetMasterWorkerAddressTest will test with
     // fake conf
-    int masterPort = conf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+    int masterPort = conf.getInt(Constants.MASTER_PORT);
     return new InetSocketAddress(masterHostname, masterPort);
   }
 
@@ -261,7 +259,7 @@ public final class NetworkAddressUtils {
     String workerHostname = getLocalHostName(conf);
     // Cannot rely on tachyon-default.properties because GetMasterWorkerAddressTest will test with
     // fake conf
-    int workerPort = conf.getInt(Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT);
+    int workerPort = conf.getInt(Constants.WORKER_PORT);
     return new InetSocketAddress(workerHostname, workerPort);
   }
 
