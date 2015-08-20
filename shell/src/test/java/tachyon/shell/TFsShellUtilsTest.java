@@ -17,6 +17,7 @@ package tachyon.shell;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -69,11 +70,12 @@ public class TFsShellUtilsTest {
       Assert.assertEquals(expected, result);
     }
   }
-  
-  private void assertFilePath(File file, String path) {
-    Assert.assertEquals(file.getAbsolutePath().compareTo(path), 0);
+
+  public enum FsType {
+    TFS, 
+    LOCAL
   }
-  
+
   public static Comparator<File> createFilePathComparator() { 
     return  new Comparator<File>() {
       public int compare(File file1, File file2) {
@@ -92,7 +94,7 @@ public class TFsShellUtilsTest {
     };
   }
   
-  public int[] resetTachyonFileHierarchy() throws IOException {
+  public String resetTachyonFileHierarchy() throws IOException {
     /**
      * Generate such local structure
      *  /testWildCards
@@ -103,66 +105,20 @@ public class TFsShellUtilsTest {
      *  |    └── foobar3
      *  └── foobar4
      */
-    int[] fileIds = new int[4];
     mTfs.delete(new TachyonURI("/testWildCards"), true);
     mTfs.mkdir(new TachyonURI("/testWildCards"));
     mTfs.mkdir(new TachyonURI("/testWildCards/foo"));
     mTfs.mkdir(new TachyonURI("/testWildCards/bar"));
-    fileIds[0] = 
-        TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar1", 
-            WriteType.MUST_CACHE, 10);
-    fileIds[1] =
-        TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar2", 
-            WriteType.MUST_CACHE, 20);
-    fileIds[2] =
-        TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/bar/foobar3", 
-            WriteType.MUST_CACHE, 30);
-    fileIds[3] =
-        TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foobar4", 
-            WriteType.MUST_CACHE, 40);
-    return fileIds;
+    
+    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
+    
+    return "/testWildCards";
   }
   
-  @Test
-  public void getTachyonURIsTest() throws IOException {
-    resetTachyonFileHierarchy();   
-    String rootDir = "/testWildCards";
-    
-    List<TachyonURI> tl1 = TFsShellUtils.getTachyonURIs(mTfs, new TachyonURI(rootDir + "/foo"));
-    Collections.sort(tl1, createTachyonURIComparator());
-    Assert.assertEquals(tl1.size(), 1);
-    Assert.assertEquals(tl1.get(0).getPath(), rootDir + "/foo");
-
-    // Trailing slash
-    List<TachyonURI> tl2 = TFsShellUtils.getTachyonURIs(mTfs, new TachyonURI(rootDir + "/foo/"));
-    Collections.sort(tl2, createTachyonURIComparator());
-    Assert.assertEquals(tl2.size(), 1);
-    Assert.assertEquals(tl2.get(0).getPath(), rootDir + "/foo");
-    
-    // Wildcard
-    List<TachyonURI> tl3 = TFsShellUtils.getTachyonURIs(mTfs, new TachyonURI(rootDir + "/foo/*"));
-    Collections.sort(tl3, createTachyonURIComparator());
-    Assert.assertEquals(tl3.size(), 2);
-    Assert.assertEquals(tl3.get(0).getPath(), rootDir + "/foo/foobar1");
-    Assert.assertEquals(tl3.get(1).getPath(), rootDir + "/foo/foobar2");
-
-    // Trailing slash + wildcard
-    List<TachyonURI> tl4 = TFsShellUtils.getTachyonURIs(mTfs, new TachyonURI(rootDir + "/foo/*/"));
-    Collections.sort(tl4, createTachyonURIComparator());
-    Assert.assertEquals(tl4.size(), 2);
-    Assert.assertEquals(tl4.get(0).getPath(), rootDir + "/foo/foobar1");
-    Assert.assertEquals(tl4.get(1).getPath(), rootDir + "/foo/foobar2");
-
-    // Multiple wildcards
-    List<TachyonURI> tl5 = TFsShellUtils.getTachyonURIs(mTfs, new TachyonURI(rootDir + "/*/foo*"));
-    Collections.sort(tl5, createTachyonURIComparator());
-    Assert.assertEquals(tl5.size(), 3);
-    Assert.assertEquals(tl5.get(0).getPath(), rootDir + "/bar/foobar3");
-    Assert.assertEquals(tl5.get(1).getPath(), rootDir + "/foo/foobar1");
-    Assert.assertEquals(tl5.get(2).getPath(), rootDir + "/foo/foobar2");
-  }
-  
-  public void resetLocalFileHierarchy() throws IOException {
+  public String resetLocalFileHierarchy() throws IOException {
     /**
      * Generate such local structure
      *  /testWildCards
@@ -182,46 +138,72 @@ public class TFsShellUtilsTest {
     new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar2").createNewFile();
     new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/bar/foobar3").createNewFile();
     new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foobar4").createNewFile();
+    
+    return mLocalTachyonCluster.getTachyonHome() + "/testWildCards";
   }
   
+  public List<String> getPaths(String path, FsType fsType) throws IOException {
+    List<String> ret = null;
+    if (fsType == FsType.TFS) {
+      List<TachyonURI> tPaths = TFsShellUtils.getTachyonURIs(mTfs, new TachyonURI(path));
+      ret = new ArrayList<String>(tPaths.size());
+      for (TachyonURI tPath : tPaths) {
+        ret.add(tPath.getPath());
+      }
+    } else if (fsType == FsType.LOCAL) {
+      List<File> tPaths = TFsShellUtils.getFiles(path);
+      ret = new ArrayList<String>(tPaths.size());
+      for (File tPath : tPaths) {
+        ret.add(tPath.getPath());
+      }
+    }
+    Collections.sort(ret);
+    return ret;
+  }
+  
+  public String resetFsHierarchy(FsType fsType) throws IOException {
+    if (fsType == FsType.TFS) {
+      return resetTachyonFileHierarchy();
+    } else if (fsType == FsType.LOCAL) {
+      return resetLocalFileHierarchy();
+    } else {
+      return null;
+    }
+  }
   
   @Test
-  public void getFilesTest() throws IOException {
-    resetLocalFileHierarchy();   
-    String rootDir = mLocalTachyonCluster.getTachyonHome() + "/testWildCards";
-    
-    List<File> fl1 = TFsShellUtils.getFiles(rootDir + "/foo");
-    Collections.sort(fl1, createFilePathComparator());
-    Assert.assertEquals(fl1.size(), 1);
-    assertFilePath(fl1.get(0), rootDir + "/foo");
+  public void getPathTest() throws IOException {
+    for (FsType fsType : FsType.values()) {
+      String rootDir = resetFsHierarchy(fsType);
+       
+      List<String> tl1 = getPaths(rootDir + "/foo", fsType);
+      Assert.assertEquals(tl1.size(), 1);
+      Assert.assertEquals(tl1.get(0), rootDir + "/foo");
 
-    // Trailing slash
-    List<File> fl2 = TFsShellUtils.getFiles(rootDir + "/foo/");
-    Collections.sort(fl2, createFilePathComparator());
-    Assert.assertEquals(fl2.size(), 1);
-    assertFilePath(fl2.get(0), rootDir + "/foo");
-    
-    // Wildcard
-    List<File> fl3 = TFsShellUtils.getFiles(rootDir + "/foo/*");
-    Collections.sort(fl3, createFilePathComparator());
-    Assert.assertEquals(fl3.size(), 2);
-    assertFilePath(fl3.get(0), rootDir + "/foo/foobar1");
-    assertFilePath(fl3.get(1), rootDir + "/foo/foobar2");
+      // Trailing slash
+      List<String> tl2 = getPaths(rootDir + "/foo/", fsType);
+      Assert.assertEquals(tl2.size(), 1);
+      Assert.assertEquals(tl2.get(0), rootDir + "/foo");
+      
+      // Wildcard
+      List<String> tl3 = getPaths(rootDir + "/foo/*", fsType);
+      Assert.assertEquals(tl3.size(), 2);
+      Assert.assertEquals(tl3.get(0), rootDir + "/foo/foobar1");
+      Assert.assertEquals(tl3.get(1), rootDir + "/foo/foobar2");
 
-    // Trailing slash + wildcard
-    List<File> fl4 = TFsShellUtils.getFiles(rootDir + "/foo/*/");
-    Collections.sort(fl4, createFilePathComparator());
-    Assert.assertEquals(fl4.size(), 2);
-    assertFilePath(fl4.get(0), rootDir + "/foo/foobar1");
-    assertFilePath(fl4.get(1), rootDir + "/foo/foobar2");
+      // Trailing slash + wildcard
+      List<String> tl4 = getPaths(rootDir + "/foo/*/", fsType);
+      Assert.assertEquals(tl4.size(), 2);
+      Assert.assertEquals(tl4.get(0), rootDir + "/foo/foobar1");
+      Assert.assertEquals(tl4.get(1), rootDir + "/foo/foobar2");
 
-    // Multiple wildcards
-    List<File> fl5 = TFsShellUtils.getFiles(rootDir + "/*/foo*");
-    Collections.sort(fl5, createFilePathComparator());
-    Assert.assertEquals(fl5.size(), 3);
-    assertFilePath(fl5.get(0), rootDir + "/bar/foobar3");
-    assertFilePath(fl5.get(1), rootDir + "/foo/foobar1");
-    assertFilePath(fl5.get(2), rootDir + "/foo/foobar2");
+      // Multiple wildcards
+      List<String> tl5 = getPaths(rootDir + "/*/foo*", fsType);
+      Assert.assertEquals(tl5.size(), 3);
+      Assert.assertEquals(tl5.get(0), rootDir + "/bar/foobar3");
+      Assert.assertEquals(tl5.get(1), rootDir + "/foo/foobar1");
+      Assert.assertEquals(tl5.get(2), rootDir + "/foo/foobar2");
+    }
   }
   
   @Test
@@ -239,5 +221,8 @@ public class TFsShellUtilsTest {
     
     Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/b/*"), false);
     Assert.assertEquals(TFsShellUtils.match("/", "/*/*"), false);
+    
+    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "*"), true);
+    Assert.assertEquals(TFsShellUtils.match("/", "/*"), true);
   }
 }

@@ -172,7 +172,7 @@ public class TFsShellUtils {
    * @param parent The directory in which we are searching matched files 
    * @return A list of files that matches the input path in the parent directory
    */
-  protected static List<File> getFiles(String inputPath, String parent) {
+  private static List<File> getFiles(String inputPath, String parent) {
     List<File> res = new LinkedList<File>();
     File pFile = new File(parent);
     if (!pFile.exists() || !pFile.isDirectory()) {
@@ -223,7 +223,7 @@ public class TFsShellUtils {
    * @param patternURI The URI that can contain wildcards
    * @return true if matches; false if not
    */
-  protected static boolean match(TachyonURI fileURI, TachyonURI patternURI) {
+  private static boolean match(TachyonURI fileURI, TachyonURI patternURI) {
     return escape(fileURI.getPath()).matches(replaceWildcards(patternURI.getPath()));
   }
   
