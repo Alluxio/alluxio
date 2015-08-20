@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import tachyon.client.next.ClientOptions;
 import tachyon.master.MasterClient;
+import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileBlockInfo;
 
 /**
@@ -72,18 +73,15 @@ public class TachyonBS implements Closeable {
     }
   }
 
-  public BlockInStream getInStream(long blockId, ClientOptions options) throws IOException {
-    // No specified location to read from
-    if (null == options.getLocation()) {
-      // If a local worker exists, use short circuit read
-      // TODO: Add check on configuration
-      if (mContext.hasLocalWorker()) {
-        return new LocalBlockInStream(blockId, options);
-      }
-      return new RemoteBlockInStream();
+  public BlockInputStream getInStream(long blockId, ClientOptions options) throws IOException {
+    MasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      // TODO: Fix this RPC
+      BlockInfo blockInfo = masterClient.user_getClientBlockInfo(blockId);
+      return new BlockInputStream(blockInfo, options);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
     }
-    // TODO: Handle the case when a location is specified
-    return null;
   }
 
   public BlockOutStream getOutStream(long blockId, ClientOptions options) throws IOException {
@@ -91,7 +89,7 @@ public class TachyonBS implements Closeable {
     if (null == options.getLocation()) {
       // Local client, attempt to do direct write to local storage
       if (mContext.hasLocalWorker()) {
-        return new LocalBlockOutStream();
+        return new LocalBlockOutStream(blockId, options);
       }
       // Client is not local or the data is not available on the local worker, use remote stream
       return new RemoteBlockOutStream();
