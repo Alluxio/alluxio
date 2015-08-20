@@ -32,7 +32,6 @@ import tachyon.worker.next.WorkerClient;
  * from the local machine's storage.
  */
 public class LocalBlockInStream extends BlockInStream {
-
   private final long mBlockId;
   private final BSContext mContext;
   private final WorkerClient mWorkerClient;
