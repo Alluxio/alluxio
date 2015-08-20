@@ -9,6 +9,7 @@
 .metadata/
 .project
 .settings/
+/journal/
 conf/tachyon-env.sh
 data/
 dependency-reduced-pom.xml
@@ -26,7 +27,6 @@ deploy/vagrant/.request_ids
 docs/_site
 docs/api
 docs/serve/
-journal/
 logs/
 script/
 target/
