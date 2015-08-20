@@ -23,14 +23,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.master.next.Master;
 import tachyon.master.next.PeriodicTask;
+import tachyon.master.next.filesystem.FileSystemMaster;
+import tachyon.master.next.rawtable.meta.RawTables;
 
-// TODO: implement this master, but should be deprecated.
 public class RawTableMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public RawTableMaster() {
+  private final TachyonConf mTachyonConf;
+
+  private final FileSystemMaster mFileSystemMaster;
+  private final RawTables mRawTables;
+
+  public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster) {
+    mTachyonConf = tachyonConf;
+    mFileSystemMaster = fileSystemMaster;
+
+    mRawTables = new RawTables(mTachyonConf);
   }
 
   @Override
