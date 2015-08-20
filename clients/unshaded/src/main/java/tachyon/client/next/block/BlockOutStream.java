@@ -29,6 +29,5 @@ import java.io.OutputStream;
  * returned which will write the data through a Tachyon worker.
  */
 public abstract class BlockOutStream extends OutputStream {
-  // TODO: Implement me
   public abstract void cancel() throws IOException;
 }

@@ -2,12 +2,19 @@ package tachyon.client.next.block;
 
 import tachyon.client.next.ClientOptions;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockLocation;
 import tachyon.util.io.BufferUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
-public class BlockInputStream extends InputStream {
+/**
+ * A wrapper on local, remote, or under file system streams. This class takes care of managing
+ * which stream to use for reading and storing the file to local Tachyon storage.
+ */
+// TODO: Find a better name for this
+public class ClientBlockInStream extends BlockInStream {
   private final BlockInfo mBlockInfo;
   private final BSContext mContext;
 
@@ -15,7 +22,7 @@ public class BlockInputStream extends InputStream {
   private BlockInStream mBlockInStream;
   private BlockOutStream mLocalBlockOutStream;
 
-  public BlockInputStream(BlockInfo blockInfo, ClientOptions options) throws IOException {
+  public ClientBlockInStream(BlockInfo blockInfo, ClientOptions options) throws IOException {
     mBlockInfo = blockInfo;
     mContext = BSContext.INSTANCE;
 
@@ -32,12 +39,13 @@ public class BlockInputStream extends InputStream {
       // TODO: Log the error here
     }
 
-    // Failed to get a local stream
+    // Failed to get a local stream, try remote
     if (null == mBlockInStream) {
       mBlockInStream = new RemoteBlockInStream(mBlockInfo, options);
     }
 
     if (mCacheToLocal) {
+      // TODO: Investigate if this should be done lazily
       mLocalBlockOutStream = new LocalBlockOutStream(blockInfo.getBlockId(), options);
     }
   }

@@ -15,11 +15,13 @@
 
 package tachyon.client.next.block;
 
+import tachyon.client.*;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
 import tachyon.thrift.BlockInfo;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
@@ -29,16 +31,19 @@ public class RemoteBlockInStream extends BlockInStream {
   private final long mBlockId;
   private final BSContext mContext;
   private final long mBlockSize;
-  private final boolean mCacheToLocal;
 
   private long mPos;
-  private LocalBlockOutStream mCacheToLocalStream;
+  private String mRemoteHost;
+  private int mRemotePort;
 
+  // TODO: Make sure there is a valid Tachyon location
   public RemoteBlockInStream(BlockInfo blockInfo, ClientOptions options) {
     mBlockId = blockInfo.getBlockId();
     mContext = BSContext.INSTANCE;
     mBlockSize = blockInfo.getLength();
-    mCacheToLocal = options.getCacheType().shouldCache() && mContext.hasLocalWorker();
+    // TODO: Clean this up
+    mRemoteHost = blockInfo.getLocations().get(0).getWorkerAddress().mHost;
+    mRemotePort = blockInfo.getLocations().get(0).getWorkerAddress().mPort;
   }
 
   @Override
@@ -57,7 +62,49 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   @Override
+  public int read(byte[] b, int off, int len) throws IOException {
+    if (b == null) {
+      throw new NullPointerException();
+    } else if (off < 0 || len < 0 || len > b.length - off) {
+      throw new IndexOutOfBoundsException();
+    } else if (len == 0) {
+      return 0;
+    } else if (mPos == mBlockSize) {
+      return -1;
+    }
+
+    // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
+    // read up to the end of the block
+    int lengthToRead = (int) Math.min(len, mBlockSize - mPos);
+    int bytesLeft = lengthToRead;
+
+    while (bytesLeft > 0) {
+      // TODO: Fix needing to recreate reader each time
+      RemoteBlockReader reader =
+          RemoteBlockReader.Factory.createRemoteBlockReader(ClientContext.getConf());
+      ByteBuffer data = reader.readRemoteBlock(mRemoteHost, mRemotePort, mBlockId, mPos, bytesLeft);
+      int bytesToRead = Math.min(bytesLeft, data.remaining());
+      data.get(b, off, bytesToRead);
+      reader.close();
+      mPos += bytesToRead;
+      bytesLeft -= bytesToRead;
+    }
+
+    return lengthToRead;
+  }
+
+  @Override
   public void seek(long pos) throws IOException {
     // TODO: Implement me
+  }
+
+  @Override
+  public long skip(long n) throws IOException {
+    if (n <= 0) {
+      return 0;
+    }
+    long skipped = Math.min(n, mBlockSize - mPos);
+    mPos += skipped;
+    return skipped;
   }
 }

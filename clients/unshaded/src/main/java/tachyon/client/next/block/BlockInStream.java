@@ -29,6 +29,5 @@ import java.io.InputStream;
  * {@link RemoteBlockInStream} will be returned which will read the data through a Tachyon worker.
  */
 public abstract class BlockInStream extends InputStream {
-  // TODO: Implement me
   public abstract void seek(long pos) throws IOException;
 }
