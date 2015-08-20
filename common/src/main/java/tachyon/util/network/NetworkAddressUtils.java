@@ -334,18 +334,18 @@ public final class NetworkAddressUtils {
       // Make sure that the address is actually reachable since in some network configurations
       // it is possible for the InetAddress.getLocalHost() call to return a non-reachable
       // address e.g. a broadcast address
-      if (!isValidedAddress(address, timeout)) {
+      if (!isValidAddress(address, timeout)) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 
         // Make getNetworkInterfaces have the same order of network interfaces as listed on
         // unix-like systems. This optimization can help avoid to get some special addresses, such
         // as loopback address"127.0.0.1", virtual bridge address "192.168.122.1" as far as
         // possible.
-//        if (!WINDOWS) {
-//          List<NetworkInterface> netIFs = Collections.list(networkInterfaces);
-//          Collections.reverse(netIFs);
-//          networkInterfaces = Collections.enumeration(netIFs);
-//        }
+        if (!WINDOWS) {
+          List<NetworkInterface> netIFs = Collections.list(networkInterfaces);
+          Collections.reverse(netIFs);
+          networkInterfaces = Collections.enumeration(netIFs);
+        }
 
         while (networkInterfaces.hasMoreElements()) {
           NetworkInterface ni = networkInterfaces.nextElement();
@@ -354,7 +354,7 @@ public final class NetworkAddressUtils {
             address = addresses.nextElement();
 
             // Address must not be link local or loopback. And it must be reachable
-            if (isValidedAddress(address, timeout)) {
+            if (isValidAddress(address, timeout)) {
               sLocalIP = address.getHostAddress();
               return sLocalIP;
             }
@@ -385,9 +385,10 @@ public final class NetworkAddressUtils {
    *         address.
    * @throws IOException
    */
-  private static boolean isValidedAddress(InetAddress address, int timeout) throws IOException {
+  private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
     return (!address.isAnyLocalAddress() && !address.isLinkLocalAddress()
-        && !address.isLoopbackAddress() && !(address instanceof Inet4Address));
+        && !address.isLoopbackAddress() && address.isReachable(timeout)
+        && (address instanceof Inet4Address));
   }
 
   /**
