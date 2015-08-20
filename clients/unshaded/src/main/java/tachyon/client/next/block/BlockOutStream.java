@@ -15,6 +15,7 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -29,4 +30,5 @@ import java.io.OutputStream;
  */
 public abstract class BlockOutStream extends OutputStream {
   // TODO: Implement me
+  public abstract void cancel() throws IOException;
 }

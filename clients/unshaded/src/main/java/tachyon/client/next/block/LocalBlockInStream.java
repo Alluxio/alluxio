@@ -49,6 +49,7 @@ public class LocalBlockInStream extends BlockInStream {
 
     if (null == blockPath) {
       // TODO: Handle this error case better
+      mContext.releaseWorkerClient(mWorkerClient);
       throw new IOException("Block is not available on local machine");
     }
 

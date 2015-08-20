@@ -15,6 +15,7 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -29,4 +30,5 @@ import java.io.InputStream;
  */
 public abstract class BlockInStream extends InputStream {
   // TODO: Implement me
+  public abstract void seek(long pos) throws IOException;
 }

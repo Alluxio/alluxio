@@ -68,14 +68,15 @@ public class LocalBlockOutStream extends BlockOutStream {
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     // TODO: Get the initial size from the configuration
-    mBlockPath = mWorkerClient.requestBlockLocation(blockId, Constants.MB * 8);
+    long initialSize = Constants.MB * 8;
+    mBlockPath = mWorkerClient.requestBlockLocation(blockId, initialSize);
+    mAvailableBytes += initialSize;
 
     mLocalFile = mCloser.register(new RandomAccessFile(mBlockPath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
     // change the permission of the temporary file in order that the worker can move it.
     FileUtils.changeLocalFileToFullPermission(mBlockPath);
     // TODO: Add a log message to indicate the file creation
-    mAvailableBytes += Constants.MB * 8;
   }
 
   private void failIfClosed() throws IOException {
@@ -84,6 +85,7 @@ public class LocalBlockOutStream extends BlockOutStream {
     }
   }
 
+  @Override
   public void cancel() throws IOException {
     if (mClosed) {
       return;
