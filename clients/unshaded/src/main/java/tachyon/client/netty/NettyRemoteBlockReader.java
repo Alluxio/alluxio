@@ -53,9 +53,9 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   }
 
   @Override
-  public ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset, long length)
+  public ByteBuffer readRemoteBlock(InetSocketAddress address,
+                                    long blockId, long offset, long length)
       throws IOException {
-    InetSocketAddress address = new InetSocketAddress(host, port);
 
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
