@@ -28,12 +28,12 @@ import tachyon.util.CommonUtils;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,
- * and save the new pinned inodes to the BlockDataManager.
+ * and saves the new pinned inodes to the BlockDataManager.
  * The syncing parameters (intervals, timeouts) adopt directly from worker-to-master heartbeat
  * configurations.
  *
  */
-public class PinListSync implements Runnable {
+public final class PinListSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
