@@ -41,15 +41,15 @@ public final class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    CommonUtils.sleepMs(Constants.SECOND_MS);
     cluster.stop();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    CommonUtils.sleepMs(Constants.SECOND_MS);
 
     cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    CommonUtils.sleepMs(Constants.SECOND_MS);
     cluster.stop();
-    CommonUtils.sleepMs(null, Constants.SECOND_MS);
+    CommonUtils.sleepMs(Constants.SECOND_MS);
   }
 
   private BlockWorker mWorker = null;

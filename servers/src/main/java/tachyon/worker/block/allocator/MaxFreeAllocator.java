@@ -15,8 +15,10 @@
 
 package tachyon.worker.block.allocator;
 
+import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
 import tachyon.worker.block.meta.TempBlockMeta;
@@ -33,10 +35,10 @@ public class MaxFreeAllocator implements Allocator {
   }
 
   @Override
-  public TempBlockMeta allocateBlockWithView(long userId, long blockId, long blockSize,
+  public StorageDirView allocateBlockWithView(long userId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
     mManagerView = view;
-    return allocateBlock(userId, blockId, blockSize, location);
+    return allocateBlock(userId, blockSize, location);
   }
 
   /**
@@ -45,21 +47,19 @@ public class MaxFreeAllocator implements Allocator {
    * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
    *
    * @param userId the ID of user to apply for the block allocation
-   * @param blockId the ID of the block
    * @param blockSize the size of block in bytes
    * @param location the location in block store
-   * @return a temp block meta if success, null otherwise
+   * @return a StorageDirView in which to create the temp block meta if success, null otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
-  private TempBlockMeta allocateBlock(long userId, long blockId, long blockSize,
-      BlockStoreLocation location) {
+  private StorageDirView allocateBlock(long userId, long blockSize, BlockStoreLocation location) {
     StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         candidateDirView = getCandidateDirInTier(tierView, blockSize);
         if (candidateDirView != null) {
-          return candidateDirView.createTempBlockMeta(userId, blockId, blockSize);
+          break;
         }
       }
     } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
@@ -73,8 +73,7 @@ public class MaxFreeAllocator implements Allocator {
       }
     }
 
-    return candidateDirView != null
-        ? candidateDirView.createTempBlockMeta(userId, blockId, blockSize) : null;
+    return candidateDirView;
   }
 
   /**

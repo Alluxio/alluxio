@@ -11,12 +11,11 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Preconditions;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
@@ -161,8 +160,8 @@ public class TachyonConf {
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.USE_ZOOKEEPER));
-    String masterAddress = (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":"
-        + masterPort;
+    String masterAddress =
+        (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
   }
 
@@ -253,7 +252,7 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  private long getLong(String key, final long defaultValue) {
+  public long getLong(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
@@ -262,7 +261,8 @@ public class TachyonConf {
         LOG.warn("Configuration cannot evaluate key " + key + " as long.");
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   public double getDouble(String key) {
@@ -299,15 +299,15 @@ public class TachyonConf {
     return defaultValue;
   }
 
-  public List<String> getList(String key, String delimiter, List<String> defaultValue) {
-    if (delimiter == null) {
-      throw new IllegalArgumentException("Illegal separator for Tachyon properties as list");
-    }
+  public List<String> getList(String key, String delimiter) {
+    Preconditions.checkArgument(delimiter != null, "Illegal separator for Tachyon properties as "
+        + "list");
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       return Lists.newLinkedList(Splitter.on(',').trimResults().omitEmptyStrings().split(rawValue));
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   public <T extends Enum<T>> T getEnum(String key, T defaultValue) {

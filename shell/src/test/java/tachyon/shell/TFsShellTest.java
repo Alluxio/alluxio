@@ -35,9 +35,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
-import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -631,9 +631,9 @@ public class TFsShellTest {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils
-        .sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
-            Constants.SECOND_MS) * 2 + 10);
+    CommonUtils.sleepMs(
+        tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)
+            * 2 + 10);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
 
