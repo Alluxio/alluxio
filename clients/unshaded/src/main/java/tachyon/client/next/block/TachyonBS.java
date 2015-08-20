@@ -73,12 +73,12 @@ public class TachyonBS implements Closeable {
     }
   }
 
-  public BlockInputStream getInStream(long blockId, ClientOptions options) throws IOException {
+  public ClientBlockInStream getInStream(long blockId, ClientOptions options) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Fix this RPC
       BlockInfo blockInfo = masterClient.user_getClientBlockInfo(blockId);
-      return new BlockInputStream(blockInfo, options);
+      return new ClientBlockInStream(blockInfo, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
