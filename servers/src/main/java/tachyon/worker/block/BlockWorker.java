@@ -27,6 +27,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.metrics.MetricsSystem;
+import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
@@ -227,7 +229,7 @@ public class BlockWorker {
    *
    * @return a thrift server
    */
-  private TThreadPoolServer createThriftServer() {
+  private TThreadPoolServer createThriftServer() throws IOException {
     int minWorkerThreads =
         mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
@@ -235,9 +237,11 @@ public class BlockWorker {
         mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
+    TTransportFactory tTransportFactory = new AuthenticationFactory(mTachyonConf)
+        .getServerTransportFactory();
     return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
-        .transportFactory(new TFramedTransport.Factory())
+        .transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
   }
 
