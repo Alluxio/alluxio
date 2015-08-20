@@ -30,18 +30,25 @@ import tachyon.conf.TachyonConf;
 public class Journal {
   private final String mDirectory;
   private final TachyonConf mTachyonConf;
+  private final JournalFormatter mJournalFormatter;
 
-  public Journal(String directory, TachyonConf tachyonConf) {
+  public Journal(String directory, TachyonConf tachyonConf, JournalFormatter journalFormatter) {
     if (!directory.endsWith(TachyonURI.SEPARATOR)) {
       // Ensure directory format.
       directory += TachyonURI.SEPARATOR;
     }
     mDirectory = directory;
     mTachyonConf = tachyonConf;
+    // TODO: maybe this can be constructed, specified by a parameter in tachyonConf.
+    mJournalFormatter = journalFormatter;
   }
 
   public String getDirectory() {
     return mDirectory;
+  }
+
+  public JournalFormatter getJournalFormatter() {
+    return mJournalFormatter;
   }
 
   public JournalWriter getNewWriter() {
