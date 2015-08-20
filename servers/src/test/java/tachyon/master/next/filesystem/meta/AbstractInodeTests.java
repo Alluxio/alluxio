@@ -15,28 +15,23 @@
 
 package tachyon.master.next.filesystem.meta;
 
-import org.junit.Assert;
-import org.junit.Test;
+import tachyon.Constants;
+import tachyon.master.block.BlockId;
 
 /**
- * Unit tests for tachyon.InodeFile
+ * Abstract class for serving inode tests.
  */
-public final class InodeFileTests extends AbstractInodeTests {
-  @Test
-  public void equalsTest() {
-    InodeFile inode1 = createInodeFile(1);
-    // self equal
-    Assert.assertEquals(inode1, inode1);
-    InodeFile inode2 = new InodeFile("test2", 1, 0, 1000, System.currentTimeMillis());
-    // equal with same id
-    Assert.assertEquals(inode1, inode2);
-    InodeFile inode3 = createInodeFile(3);
-    Assert.assertFalse(inode1.equals(inode3));
+public abstract class AbstractInodeTests {
+
+  protected long createBlockId(long containerId) {
+    return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
   }
 
-  @Test
-  public void getIdTest() {
-    InodeFile inode1 = createInodeFile(1);
-    Assert.assertEquals(createBlockId(1), inode1.getId());
+  protected static InodeDirectory createInodeDirectory() {
+    return new InodeDirectory("test1", 1, 0, System.currentTimeMillis());
+  }
+
+  protected InodeFile createInodeFile(long id) {
+    return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis());
   }
 }
