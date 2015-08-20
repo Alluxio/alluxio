@@ -76,7 +76,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Test if the block is pinned.
+   * Tests if the block is pinned.
    *
    * @param blockId to be tested
    * @return boolean, true if block is pinned
@@ -86,7 +86,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Test if the block is locked.
+   * Tests if the block is locked.
    *
    * @param blockId to be tested
    * @return boolean, true if block is locked
@@ -101,7 +101,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Test if the block is evictable.
+   * Tests if the block is evictable.
    *
    * @param blockId to be tested
    * @return boolean, true if the block can be evicted
@@ -111,7 +111,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Provide StorageTierView given tierAlias.
+   * Provides StorageTierView given tierAlias.
    *
    * @param tierAlias the alias of this tierView
    * @return the StorageTierView object associated with the alias
@@ -127,7 +127,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get all tierViews under this managerView.
+   * Gets all tierViews under this managerView.
    *
    * @return the list of StorageTierViews
    */
@@ -136,7 +136,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get all tierViews before certain tierView.
+   * Gets all tierViews before certain tierView.
    *
    * @param tierAlias the alias of a tierView
    * @return the list of StorageTierView
@@ -148,7 +148,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get available bytes given certain location Redirecting to
+   * Gets available bytes given certain location Redirecting to
    * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}.
    *
    * @param location location the check available bytes
@@ -160,7 +160,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Return null if block is pinned or currently being locked, otherwise return
+   * Returns null if block is pinned or currently being locked, otherwise returns
    * {@link BlockMetadataManager#getBlockMeta(long)}.
    *
    * @param blockId the block ID
