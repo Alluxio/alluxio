@@ -124,7 +124,7 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    boolean asyncEnabled = mTachyonConf.getBoolean(Constants.ASYNC_ENABLED, true);
+    boolean asyncEnabled = mTachyonConf.getBoolean(Constants.ASYNC_ENABLED);
     if (!asyncEnabled) {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       if (mTFS.exist(path)) {
