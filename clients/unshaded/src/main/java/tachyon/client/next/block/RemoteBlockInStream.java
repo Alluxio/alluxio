@@ -15,6 +15,7 @@
 
 package tachyon.client.next.block;
 
+import com.google.common.base.Preconditions;
 import tachyon.client.*;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
@@ -37,6 +38,7 @@ public class RemoteBlockInStream extends BlockInStream {
   private int mRemotePort;
 
   // TODO: Make sure there is a valid Tachyon location
+  // TODO: Modify the locking so the stream owns the lock instead of the data server
   public RemoteBlockInStream(BlockInfo blockInfo, ClientOptions options) {
     mBlockId = blockInfo.getBlockId();
     mContext = BSContext.INSTANCE;
@@ -95,7 +97,10 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public void seek(long pos) throws IOException {
-    // TODO: Implement me
+    Preconditions.checkArgument(pos > 0, "Seek position is negative: " + pos);
+    Preconditions.checkArgument(pos < mBlockSize, "Seek position: " + pos + " is past block size: "
+        + mBlockSize);
+    mPos = pos;
   }
 
   @Override
