@@ -54,7 +54,7 @@ public class TachyonConf {
   public static void assertValidPort(final int port, TachyonConf tachyonConf) {
     Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
 
-    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE, false)) {
+    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
       Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
     }
   }
@@ -291,12 +291,13 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public boolean getBoolean(String key, boolean defaultValue) {
+  public boolean getBoolean(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       return Boolean.parseBoolean(lookup(rawValue));
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   public List<String> getList(String key, String delimiter) {
