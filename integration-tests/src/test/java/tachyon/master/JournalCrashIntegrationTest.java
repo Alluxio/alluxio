@@ -45,7 +45,7 @@ public class JournalCrashIntegrationTest {
    */
   class ClientThread implements Runnable {
     /** The number of successfully created files/tables. */
-    public int mSuccessNum = 0;
+    private int mSuccessNum = 0;
 
     private final int mOpType;  //0:create file; 1:create raw table.
     private final TachyonFS mTfs;
@@ -53,6 +53,10 @@ public class JournalCrashIntegrationTest {
     public ClientThread(int opType, TachyonFS tfs) {
       mOpType = opType;
       mTfs = tfs;
+    }
+
+    public int getSuccessNum() {
+      return mSuccessNum;
     }
 
     /**
@@ -85,7 +89,7 @@ public class JournalCrashIntegrationTest {
 
   private static final int TEST_BLOCK_SIZE = 128;
   private static final String TEST_FILE_DIR = "/files/";
-  private static final int TEST_MASTERS = 3;
+  private static final int TEST_NUM_MASTERS = 3;
   private static final String TEST_TABLE_DIR = "/tables/";
   private static final long TEST_TIME_MS = Constants.SECOND_MS;
 
@@ -159,7 +163,7 @@ public class JournalCrashIntegrationTest {
       InterruptedException {
     // Setup the cluster with the specified ThreadGroup.
     final LocalTachyonClusterMultiMaster cluster = new LocalTachyonClusterMultiMaster(100,
-        TEST_MASTERS, TEST_BLOCK_SIZE);
+        TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
     Thread clusterThread = new Thread(mLocalClusterThreadGroup, new Runnable() {
       @Override public void run() {
         try {
@@ -208,7 +212,10 @@ public class JournalCrashIntegrationTest {
     // Crash the cluster. Kill all the threads associated with the cluster.
     mLocalClusterThreadGroup.stop();
     CommonUtils.sleepMs(null, TEST_TIME_MS);
-    reproduceAndCheckState(mCreateFileThread.mSuccessNum, mCreateTableThread.mSuccessNum);
+    // Ensure the client threads are stopped.
+    mExecutorsForClient.shutdown();
+    CommonUtils.sleepMs(null, TEST_TIME_MS);
+    reproduceAndCheckState(mCreateFileThread.getSuccessNum(), mCreateTableThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
   }
@@ -217,7 +224,7 @@ public class JournalCrashIntegrationTest {
   public void multiMasterJournalCrashIntegrationTest()  throws Exception {
     LocalTachyonClusterMultiMaster cluster = setupMultiMasterCluster();
     // Kill the masters one by one except the last one. The last one is killed by crashing.
-    for (int kills = 0; kills < TEST_MASTERS - 1; kills ++) {
+    for (int kills = 0; kills < TEST_NUM_MASTERS - 1; kills ++) {
       CommonUtils.sleepMs(null, TEST_TIME_MS);
       Assert.assertTrue(cluster.killLeader());
     }
@@ -225,7 +232,10 @@ public class JournalCrashIntegrationTest {
     // Crash the cluster. Kill all the threads associated with the cluster.
     mLocalClusterThreadGroup.stop();
     CommonUtils.sleepMs(null, TEST_TIME_MS);
-    reproduceAndCheckState(mCreateFileThread.mSuccessNum, mCreateTableThread.mSuccessNum);
+    // Ensure the client threads are stopped.
+    mExecutorsForClient.shutdown();
+    CommonUtils.sleepMs(null, TEST_TIME_MS);
+    reproduceAndCheckState(mCreateFileThread.getSuccessNum(), mCreateTableThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
   }
