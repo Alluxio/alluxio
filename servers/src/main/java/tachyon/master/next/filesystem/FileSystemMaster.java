@@ -15,7 +15,6 @@
 
 package tachyon.master.next.filesystem;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,11 +30,11 @@ import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.Dependency;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
 import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
@@ -96,9 +95,9 @@ public class FileSystemMaster implements Master {
     return Collections.emptyList();
   }
 
-  public boolean addCheckpoint(long workerId, int fileId, long length, TachyonURI checkpointPath)
-      throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException,
-      FileDoesNotExistException {
+  public boolean completeFileCheckpoint(long workerId, long fileId, long length,
+      TachyonURI checkpointPath)
+          throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
     // TODO: metrics
     long opTimeMs = System.currentTimeMillis();
     LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
@@ -111,7 +110,7 @@ public class FileSystemMaster implements Master {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
-        throw new FileNotFoundException("File id " + fileId + " is a directory, not a file.");
+        throw new FileDoesNotExistException("File id " + fileId + " is a directory, not a file.");
       }
 
       InodeFile tFile = (InodeFile) inode;
@@ -143,7 +142,7 @@ public class FileSystemMaster implements Master {
         }
       }
       mDependencyMap.addFileCheckpoint(fileId);
-      tFile.setComplete();
+      tFile.setComplete(length);
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
@@ -203,9 +202,11 @@ public class FileSystemMaster implements Master {
       }
 
       // Verify that all the blocks (except the last one) is the same size as the file block size.
+      long fileLength = 0;
       long fileBlockSize = fileInode.getBlockSizeBytes();
       for (int i = 0; i < blockInfoList.size() - 1; i ++) {
         BlockInfo blockInfo = blockInfoList.get(i);
+        fileLength += blockInfo.getLength();
         if (blockInfo.getLength() != fileBlockSize) {
           throw new BlockInfoException(
               "Block index " + i + " has a block size smaller than the file block size ("
@@ -214,7 +215,7 @@ public class FileSystemMaster implements Master {
       }
 
       mDependencyMap.addFileCheckpoint(fileId);
-      ((InodeFile) inode).setComplete();
+      ((InodeFile) inode).setComplete(fileLength);
       inode.setLastModificationTimeMs(opTimeMs);
       // TODO: write to journal
     }
@@ -244,28 +245,6 @@ public class FileSystemMaster implements Master {
     }
 
     return ((InodeFile) inode).getNewBlockId();
-  }
-
-  // TODO: dont commit blocks at the file system level.
-  public void commitFileBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
-      long length) throws FileDoesNotExistException, BlockInfoException {
-    // TODO: metrics
-    synchronized (mInodeTree) {
-      long fileId = BlockId.getContainerId(blockId);
-      Inode inode = mInodeTree.getInodeById(fileId);
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("File " + fileId + " is a directory.");
-      }
-
-      // TODO: allow "committing" existing blocks, for lineage.
-      // Try to commit this block.
-      ((InodeFile) inode).commitBlock(blockId, length);
-
-      // Commit the block in the block master.
-      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
-
-      // TODO: write to journal
-    }
   }
 
   public boolean deleteFile(long fileId, boolean recursive)
