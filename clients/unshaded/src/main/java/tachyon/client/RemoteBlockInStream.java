@@ -355,8 +355,7 @@ public class RemoteBlockInStream extends BlockInStream {
     // always clear the previous reader before assigning it to a new one
     closeReader();
     mCurrentReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
-    return mCurrentReader.readRemoteBlock(
-        address.getHostName(), address.getPort(), blockId, offset, length);
+    return mCurrentReader.readRemoteBlock(address, blockId, offset, length);
   }
 
   @Override
