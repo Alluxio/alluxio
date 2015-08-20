@@ -15,6 +15,7 @@
 
 package tachyon.master.next.journal;
 
+import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -31,6 +32,10 @@ public class Journal {
   private final TachyonConf mTachyonConf;
 
   public Journal(String directory, TachyonConf tachyonConf) {
+    if (!directory.endsWith(TachyonURI.SEPARATOR)) {
+      // Ensure directory format.
+      directory += TachyonURI.SEPARATOR;
+    }
     mDirectory = directory;
     mTachyonConf = tachyonConf;
   }
@@ -40,7 +45,7 @@ public class Journal {
   }
 
   public JournalWriter getNewWriter() {
-    return new JournalWriter(this);
+    return new JournalWriter(this, mTachyonConf);
   }
 
   public JournalReader getNewReader() {
