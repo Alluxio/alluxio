@@ -25,15 +25,22 @@ public abstract class JournalFormatter implements tachyon.master.next.journal.Jo
   public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {
     switch (entry.type()) {
       case INODE_FILE:
-        // TODO
+        serializeInodeFileEntry((InodeFileEntry) entry, outputStream);
         break;
       case ADD_CHECKPOINT:
-        // TODO
+        serializeAddCheckpointEntry((AddCheckpointEntry) entry, outputStream);
         break;
       default:
         throw new IOException("Unsupported entry type: " + entry.type());
     }
   }
+
+  protected abstract void serializeInodeFileEntry(InodeFileEntry entry, OutputStream os)
+      throws IOException;
+
+
+  protected abstract void serializeAddCheckpointEntry(AddCheckpointEntry entry, OutputStream os)
+      throws IOException;
 
   @Override
   public void deserialize() throws IOException {

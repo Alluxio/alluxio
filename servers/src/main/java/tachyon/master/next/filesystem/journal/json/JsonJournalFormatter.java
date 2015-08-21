@@ -15,7 +15,21 @@
 
 package tachyon.master.next.filesystem.journal.json;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
+import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.InodeFileEntry;
 import tachyon.master.next.filesystem.journal.JournalFormatter;
 
 public class JsonJournalFormatter extends JournalFormatter {
+  @Override
+  protected void serializeAddCheckpointEntry(AddCheckpointEntry entry, OutputStream os) throws IOException {
+    // TODO
+  }
+
+  @Override
+  protected void serializeInodeFileEntry(InodeFileEntry entry, OutputStream os) throws IOException {
+    // TODO
+  }
 }
