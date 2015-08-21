@@ -220,7 +220,7 @@ public class InodeTree {
 
     mInodes.remove(inode);
     mPinnedInodeFileIds.remove(inode.getId());
-    inode.reverseId();
+    inode.delete();
   }
 
   /**

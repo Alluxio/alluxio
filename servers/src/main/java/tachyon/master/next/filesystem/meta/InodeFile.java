@@ -36,9 +36,6 @@ public final class InodeFile extends Inode {
   // length of inode file in bytes.
   private long mLength = 0;
 
-  // The length in bytes of the last block in this file.
-  private long mLastBlockSizeBytes = -1;
-
   private boolean mIsComplete = false;
   private boolean mCache = false;
   private String mUfsPath = "";
@@ -60,40 +57,6 @@ public final class InodeFile extends Inode {
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = blockContainerId;
     mBlockSizeBytes = blockSizeBytes;
-
-    // The assumption is that only the last block is allowed to be smaller than the file block size.
-    mLastBlockSizeBytes = mBlockSizeBytes;
-  }
-
-  /**
-   * Commit a block to the file. It will check the legality. Cannot add the block if the file is
-   * complete or the block's information doesn't match the file's information.
-   *
-   * @param blockId the id of the block to commit to this file
-   * @param lengthBytes the length of the block in bytes
-   * @throws BlockInfoException
-   */
-  public synchronized void commitBlock(long blockId, long lengthBytes) throws BlockInfoException {
-    if (mIsComplete) {
-      throw new BlockInfoException("The file is complete: " + this);
-    }
-    if (mBlocks.size() > 0 && mLastBlockSizeBytes != mBlockSizeBytes) {
-      throw new BlockInfoException("Only the last file block can be less than the file block size. "
-          + "file block size: " + mBlockSizeBytes + ", previous block size: " + mLastBlockSizeBytes
-          + ", this block size: " + lengthBytes);
-    }
-    long blockIndex = BlockId.getSequenceNumber(blockId);
-    if (blockIndex != mBlocks.size()) {
-      throw new BlockInfoException(
-          "block index mismatch: expected index: " + mBlocks.size() + " this index: " + blockIndex);
-    }
-    if (lengthBytes > mBlockSizeBytes) {
-      throw new BlockInfoException("Block length is too large: file block size: " + mBlockSizeBytes
-          + " this block size: " + lengthBytes);
-    }
-    mLength += lengthBytes;
-    mLastBlockSizeBytes = lengthBytes;
-    mBlocks.add(blockId);
   }
 
   @Override
@@ -263,9 +226,11 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * The file is complete. Set the complete flag true.
+   * The file is complete. Set the complete flag true, and set the length
+   *
+   * @param length the length of the complete file
    */
-  public synchronized void setComplete() {
+  public synchronized void setComplete(long length) {
     mIsComplete = true;
   }
 
@@ -286,12 +251,12 @@ public final class InodeFile extends Inode {
       throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
     }
     mLength = 0;
+    mBlocks.clear();
     while (length > 0) {
       long blockSize = Math.min(length, mBlockSizeBytes);
-      commitBlock(BlockId.createBlockId(mBlockContainerId, mBlocks.size()), blockSize);
+      getNewBlockId();
       length -= blockSize;
     }
-    mIsComplete = true;
   }
 
   @Override
