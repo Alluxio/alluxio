@@ -15,11 +15,45 @@
 
 package tachyon.master.next.filesystem.journal;
 
-import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
 
-public class InodeFileEntry implements JournalEntry {
-  // TODO add fields necessary for serializing InodeFile
+public class InodeFileEntry extends InodeEntry {
+  private final long mBlockSizeBytes;
+  private final long mLength;
+  private final boolean mIsComplete;
+  private final boolean mIsCache;
+  private final String mUfsPath;
+
+  public InodeFileEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
+      long lastModificationTimeMs, long blockSizeBytes, long length, boolean isComplete,
+      boolean isCache, String ufsPath) {
+    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
+    mBlockSizeBytes = blockSizeBytes;
+    mLength = length;
+    mIsComplete = isComplete;
+    mIsCache = isCache;
+    mUfsPath = ufsPath;
+  }
+
+  public long blockSizeBytes() {
+    return mBlockSizeBytes;
+  }
+
+  public long length() {
+    return mLength;
+  }
+
+  public boolean isComplete() {
+    return mIsComplete;
+  }
+
+  public boolean isCache() {
+    return mIsCache;
+  }
+
+  public String ufsPath() {
+    return mUfsPath;
+  }
 
   @Override
   public JournalEntryType type() {
