@@ -104,11 +104,18 @@ public class JournalWriter {
     // TODO: Probably should only be able to write if the checkpoint was written previously.
   }
 
-  public void flush() {
-    // TODO
+  public void flush() throws IOException {
+    if (mOutputStream != null) {
+      mOutputStream.flush();
+    }
   }
 
   public void close() throws IOException {
+    if (mOutputStream != null) {
+      // Close the current log file.
+      mOutputStream.close();
+    }
+    // Close the ufs.
     mUfs.close();
   }
 
