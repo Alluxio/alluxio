@@ -15,21 +15,40 @@
 
 package tachyon.master.next.filesystem.journal.json;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
 import tachyon.master.next.filesystem.journal.JournalFormatter;
+import tachyon.master.next.journal.JournalEntryType;
 
 public class JsonJournalFormatter extends JournalFormatter {
+  private ObjectWriter mWriter = JsonObject.createObjectMapper().writer();
+  private long mEventId = 0;
+
   @Override
-  protected void serializeAddCheckpointEntry(AddCheckpointEntry entry, OutputStream os) throws IOException {
-    // TODO
+  protected void serializeAddCheckpointEntry(AddCheckpointEntry entry, OutputStream os)
+      throws IOException {
+    EventEntry event =
+        new EventEntry(JournalEntryType.ADD_CHECKPOINT, ++mEventId)
+            .withParameter("fileId", entry.fileId()).withParameter("length", entry.length())
+            .withParameter("path", entry.checkpointPath().toString())
+            .withParameter("opTimeMs", entry.opTimeMs());
+
+    writeEvent(event, os);
   }
 
   @Override
   protected void serializeInodeFileEntry(InodeFileEntry entry, OutputStream os) throws IOException {
     // TODO
+  }
+
+  private void writeEvent(EventEntry event, OutputStream os) throws IOException {
+    mWriter.writeValue(os, event);
+    (new DataOutputStream(os)).writeByte('\n');
   }
 }
