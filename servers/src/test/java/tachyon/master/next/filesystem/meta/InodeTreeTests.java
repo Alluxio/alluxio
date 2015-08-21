@@ -38,6 +38,7 @@ public final class InodeTreeTests {
   private static String TEST_PATH = "test";
   private static TachyonURI TEST_URI = new TachyonURI("/test");
   private static TachyonURI NESTED_URI = new TachyonURI("/nested/test");
+  private static TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
   private InodeTree mTree;
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -142,11 +143,11 @@ public final class InodeTreeTests {
   }
 
   @Test
-  public void getInodeChildrenRecursive() throws Exception {
+  public void getInodeChildrenRecursiveTest() throws Exception {
     mTree.createPath(TEST_URI, Constants.KB, false, true);
     mTree.createPath(NESTED_URI, Constants.KB, true, true);
     // add nested file
-    mTree.createPath(new TachyonURI("/nested/test/file"), Constants.KB, true, false);
+    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
 
     // all inodes under root
     List<Inode> inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
@@ -155,7 +156,7 @@ public final class InodeTreeTests {
   }
 
   @Test
-  public void deleteInode() throws Exception {
+  public void deleteInodeTest() throws Exception {
     Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true);
 
     // all inodes under root
@@ -170,11 +171,29 @@ public final class InodeTreeTests {
   }
 
   @Test
-  public void deleteNoexistingInode() throws Exception {
+  public void deleteNoexistingInodeTest() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
     Inode testFile = new InodeFile("testFile1", 1, 1, Constants.KB, System.currentTimeMillis());
     mTree.deleteInode(testFile);
+  }
+
+  @Test
+  public void setPinnedTest() throws Exception {
+    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+
+    // no inodes pinned
+    Assert.assertEquals(0, mTree.getPinIdSet().size());
+
+    // pin nested folder
+    mTree.setPinned(nested, true);
+    // nested file pinned
+    Assert.assertEquals(1, mTree.getPinIdSet().size());
+
+    // unpin nested folder
+    mTree.setPinned(nested, false);
+    Assert.assertEquals(0, mTree.getPinIdSet().size());
   }
 }
