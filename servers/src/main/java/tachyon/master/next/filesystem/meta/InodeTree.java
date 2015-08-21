@@ -100,6 +100,24 @@ public class InodeTree {
     return getPath(mInodes.getFirstByField(mIdIndex, inode.getParentId())).join(inode.getName());
   }
 
+  /**
+   * Create a file or directory at path.
+   *
+   * @param path the path
+   * @param blockSizeBytes block size in bytes, if it is to create a file, the blockSizeBytes should
+   *        not be fewer than 1, otherwise, it is ignored, can be set to 0
+   * @param recursive if it is true, create any necessary but nonexistent parent directories of the
+   *        path, otherwise, throw InvalidPathException if there some necessary parent directories
+   *        is nonexistent
+   * @param directory if it is true, create a directory, otherwise, create a file
+   * @return the Inode of the file or directory
+   * @throws FileAlreadyExistException when there is already a file at path if we want to create a
+   *         directory there
+   * @throws BlockInfoException when blockSizeBytes is invalid
+   * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
+   *         necessary parent directories and recursive is false, (2) when one of the necessary
+   *         parent directories is actually a file
+   */
   public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
