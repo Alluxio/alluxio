@@ -26,6 +26,7 @@ import tachyon.TachyonURI;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 
 /**
@@ -99,5 +100,21 @@ public final class InodeTreeTests {
 
     mTree.createPath(NESTED_URI, Constants.KB, true, false);
     mTree.createPath(new TachyonURI("/nested/test/test"), Constants.KB, true, false);
+  }
+
+  @Test
+  public void getInodeByNonexistingPathTest() throws Exception {
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Could not find path: /test");
+
+    mTree.getInodeByPath(TEST_URI);
+  }
+
+  @Test
+  public void getInodeByInvalidIdTest() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mThrown.expectMessage("Inode id 1 does not exist");
+
+    mTree.getInodeById(1);
   }
 }
