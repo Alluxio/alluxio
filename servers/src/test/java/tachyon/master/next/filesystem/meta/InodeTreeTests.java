@@ -123,4 +123,19 @@ public final class InodeTreeTests {
     Assert.assertTrue(mTree.isRootId(0));
     Assert.assertFalse(mTree.isRootId(1));
   }
+
+  @Test
+  public void getPathTest() throws Exception {
+    Inode root = mTree.getInodeById(0);
+    // test root path
+    Assert.assertEquals(new TachyonURI("/"), mTree.getPath(root));
+
+    // test one level
+    Inode test = mTree.createPath(TEST_URI, Constants.KB, false, true);
+    Assert.assertEquals(new TachyonURI("/test"), mTree.getPath(test));
+
+    // test nesting
+    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    Assert.assertEquals(new TachyonURI("/nested/test"), mTree.getPath(nested));
+  }
 }
