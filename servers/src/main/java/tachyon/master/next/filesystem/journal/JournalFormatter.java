@@ -24,10 +24,10 @@ public abstract class JournalFormatter implements tachyon.master.next.journal.Jo
   @Override
   public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {
     switch (entry.type()) {
-      case INODE_FILE_CHECKPOINT:
+      case INODE_FILE:
         // TODO
         break;
-      case ADD_CHECKPOINT_ENTRY:
+      case ADD_CHECKPOINT:
         // TODO
         break;
       default:
