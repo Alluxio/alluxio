@@ -130,10 +130,10 @@ public class FsPermission {
    * Get the file/directory creation umask
    */
   public static FsPermission getUMask(TachyonConf conf) {
-    int umask = Constants.DEFAULT_FS_PERMISSIONS_UMASK;
+    int umask = Constants.DEFAULT_TFS_PERMISSIONS_UMASK;
     if (conf != null) {
-      umask = conf.getInt(Constants.FS_PERMISSIONS_UMASK_KEY,
-          Constants.DEFAULT_FS_PERMISSIONS_UMASK);
+      umask = conf.getInt(Constants.TFS_PERMISSIONS_UMASK_KEY,
+          Constants.DEFAULT_TFS_PERMISSIONS_UMASK);
     }
     return new FsPermission((short)umask);
   }

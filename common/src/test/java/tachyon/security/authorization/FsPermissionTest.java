@@ -59,7 +59,7 @@ public class FsPermissionTest {
   public void umaskTest() throws Exception {
     short umask = 0022;
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.FS_PERMISSIONS_UMASK_KEY, Short.valueOf(umask).toString());
+    conf.set(Constants.TFS_PERMISSIONS_UMASK_KEY, Short.valueOf(umask).toString());
     FsPermission umaskPermission = FsPermission.getUMask(conf);
     // after umask 0022, 0777 should change to 0755
     FsPermission permission = FsPermission.getDefault().applyUMask(umaskPermission);

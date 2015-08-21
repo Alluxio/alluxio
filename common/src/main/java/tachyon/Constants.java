@@ -249,6 +249,6 @@ public class Constants {
   public static final String TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS =
       "tachyon.authentication.provider.custom.class";
   // Authorization
-  public static final String FS_PERMISSIONS_UMASK_KEY = "tachyon.tfs.permission.umask";
-  public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
+  public static final String TFS_PERMISSIONS_UMASK_KEY = "tachyon.tfs.permission.umask";
+  public static final int DEFAULT_TFS_PERMISSIONS_UMASK = 0022;
 }
