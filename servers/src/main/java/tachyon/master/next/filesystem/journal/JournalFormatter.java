@@ -20,6 +20,7 @@ import java.io.OutputStream;
 
 import tachyon.master.next.journal.JournalEntry;
 
+// TODO
 public abstract class JournalFormatter implements tachyon.master.next.journal.JournalFormatter {
   @Override
   public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {
@@ -44,6 +45,6 @@ public abstract class JournalFormatter implements tachyon.master.next.journal.Jo
 
   @Override
   public void deserialize() throws IOException {
-
+    // TODO
   }
 }

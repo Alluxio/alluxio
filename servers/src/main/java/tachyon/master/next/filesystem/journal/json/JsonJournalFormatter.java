@@ -26,6 +26,7 @@ import tachyon.master.next.filesystem.journal.InodeFileEntry;
 import tachyon.master.next.filesystem.journal.JournalFormatter;
 import tachyon.master.next.journal.JournalEntryType;
 
+// TODO
 public class JsonJournalFormatter extends JournalFormatter {
   private ObjectWriter mWriter = JsonObject.createObjectMapper().writer();
   private long mEventId = 0;
