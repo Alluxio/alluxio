@@ -36,6 +36,17 @@ public class Journal {
   private final TachyonConf mTachyonConf;
   private final JournalFormatter mJournalFormatter;
 
+  /**
+   * Returns the log filename with the file extension for a particular log number.
+   *
+   * @param logPathBase the base filename of the log.
+   * @param logNumber the log number to generate the extension for.
+   * @return The filename of the log for a given log number.
+   */
+  public static String addLogExtension(String logPathBase, int logNumber) {
+    return String.format("%s.%7d", logPathBase, logNumber);
+  }
+
   public Journal(String directory, TachyonConf tachyonConf, JournalFormatter journalFormatter) {
     if (!directory.endsWith(TachyonURI.SEPARATOR)) {
       // Ensure directory format.
