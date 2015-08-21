@@ -16,6 +16,7 @@
 package tachyon.client.next.block;
 
 import com.google.common.base.Preconditions;
+import tachyon.Constants;
 import tachyon.client.RemoteBlockWriter;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
@@ -24,6 +25,7 @@ import tachyon.worker.next.WorkerClient;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write
@@ -33,10 +35,12 @@ public class RemoteBlockOutStream extends BlockOutStream {
   private final long mBlockId;
   private final long mBlockSize;
   private final BSContext mContext;
-  private final WorkerClient mWorkerClient;
+  private final ByteBuffer mBuffer;
   private final RemoteBlockWriter mRemoteWriter;
+  private final WorkerClient mWorkerClient;
 
   private boolean mClosed;
+  private long mFlushedBytes;
   private long mWrittenBytes;
 
   public RemoteBlockOutStream(long blockId, ClientOptions options) throws IOException {
@@ -45,6 +49,8 @@ public class RemoteBlockOutStream extends BlockOutStream {
     mBlockId = blockId;
     mBlockSize = options.getBlockSize();
     mContext = BSContext.INSTANCE;
+    // TODO: Get this value from the conf
+    mBuffer = ByteBuffer.allocate(Constants.MB * 8);
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
     // TODO: This should be specified outside of options
     InetSocketAddress workerAddr =
@@ -72,7 +78,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
       return;
     }
     mRemoteWriter.close();
-    if (mWrittenBytes == mBlockSize) {
+    if (mFlushedBytes == mBlockSize) {
       mWorkerClient.cacheBlock(mBlockId);
     } else {
       mWorkerClient.cancelBlock(mBlockId);
@@ -87,11 +93,22 @@ public class RemoteBlockOutStream extends BlockOutStream {
     if (mWrittenBytes + 1 > mBlockSize) {
       throw new IOException("Out of capacity.");
     }
+    if (mBuffer.position() >= mBuffer.limit()) {
+      flushBufferToRemote();
+    }
+    BufferUtils.putIntByteBuffer(mBuffer, b);
+    mWrittenBytes ++;
   }
 
   private void failIfClosed() throws IOException {
     if (mClosed) {
       throw new IOException("Cannot do operations on a closed RemoteBlockOutStream");
     }
+  }
+
+  private void flushBufferToRemote() throws IOException {
+    mRemoteWriter.write(mBuffer.array(), 0, mBuffer.position());
+    mFlushedBytes += mBuffer.position();
+    mBuffer.clear();
   }
 }
