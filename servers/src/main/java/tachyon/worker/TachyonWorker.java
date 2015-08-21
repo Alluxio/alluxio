@@ -19,14 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockWorker;
 
 /**
  * Entry point for the Tachyon Worker. This class is responsible for initializing the different
  * workers that are configured to run.
  */
-public class TachyonWorker {
+public final class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
