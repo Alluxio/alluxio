@@ -18,6 +18,8 @@ package tachyon.master.next.block.meta;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -58,4 +60,17 @@ public final class MasterBlockInfoTests {
     assertEquals(3, mInfo.getNumLocations());
   }
 
+  @Test
+  public void getBlockLocations() {
+    mInfo.addWorker(3, StorageLevelAlias.HDD.getValue());
+    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
+    mInfo.addWorker(2, StorageLevelAlias.MEM.getValue());
+
+    List<MasterBlockLocation> locations = mInfo.getBlockLocations();
+    assertEquals(3, mInfo.getNumLocations());
+    // mem in the top of the list
+    assertEquals(1, locations.get(0).mWorkerId);
+    assertEquals(2, locations.get(1).mWorkerId);
+    assertEquals(3, locations.get(2).mWorkerId);
+  }
 }
