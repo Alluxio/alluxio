@@ -100,6 +100,49 @@ public class RemoteBlockOutStream extends BlockOutStream {
     mWrittenBytes ++;
   }
 
+  @Override
+  public void write(byte[] b) throws IOException {
+    write(b, 0, b.length);
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    failIfClosed();
+    if (b == null) {
+      throw new NullPointerException();
+    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
+        || ((off + len) < 0)) {
+      throw new IndexOutOfBoundsException(String.format("Buffer length (%d), offset(%d), len(%d)",
+          b.length, off, len));
+    }
+    if (mWrittenBytes + len > mBlockSize) {
+      throw new IOException("Out of capacity.");
+    }
+    if (len == 0) {
+      return;
+    }
+
+    if (mBuffer.position() > 0 && mBuffer.position() + len > mBuffer.limit()) {
+      // Write the non-empty buffer if the new write will overflow it.
+      flushBufferToRemote();
+    }
+
+    if (len > mBuffer.limit() / 2) {
+      // This write is "large", so do not write it to the buffer, but write it out directly to the
+      // remote block.
+      if (mBuffer.position() > 0) {
+        // Make sure all bytes in the buffer are written out first, to prevent out-of-order writes.
+        flushBufferToRemote();
+      }
+      writeToRemoteBlock(b, off, len);
+    } else {
+      // Write the data to the buffer, and not directly to the remote block.
+      mBuffer.put(b, off, len);
+    }
+
+    mWrittenBytes += len;
+  }
+
   private void failIfClosed() throws IOException {
     if (mClosed) {
       throw new IOException("Cannot do operations on a closed RemoteBlockOutStream");
@@ -107,8 +150,12 @@ public class RemoteBlockOutStream extends BlockOutStream {
   }
 
   private void flushBufferToRemote() throws IOException {
-    mRemoteWriter.write(mBuffer.array(), 0, mBuffer.position());
-    mFlushedBytes += mBuffer.position();
+    writeToRemoteBlock(mBuffer.array(), 0, mBuffer.position());
     mBuffer.clear();
+  }
+
+  private void writeToRemoteBlock(byte[] b, int off, int len) throws IOException {
+    mRemoteWriter.write(b, off, len);
+    mFlushedBytes += len;
   }
 }
