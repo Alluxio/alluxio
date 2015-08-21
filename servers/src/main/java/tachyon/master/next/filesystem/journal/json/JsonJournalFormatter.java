@@ -13,14 +13,9 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.filesystem.journal.json;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import tachyon.master.next.filesystem.journal.JournalFormatter;
 
-// TODO
-public interface JournalFormatter {
-  void serialize(JournalEntry entry, OutputStream outputStream) throws IOException;
-
-  void deserialize() throws IOException;
+public class JsonJournalFormatter extends JournalFormatter {
 }

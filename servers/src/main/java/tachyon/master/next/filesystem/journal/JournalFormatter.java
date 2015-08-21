@@ -13,14 +13,30 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.filesystem.journal;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-// TODO
-public interface JournalFormatter {
-  void serialize(JournalEntry entry, OutputStream outputStream) throws IOException;
+import tachyon.master.next.journal.JournalEntry;
 
-  void deserialize() throws IOException;
+public abstract class JournalFormatter implements tachyon.master.next.journal.JournalFormatter {
+  @Override
+  public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {
+    switch (entry.type()) {
+      case INODE_FILE_CHECKPOINT:
+        // TODO
+        break;
+      case ADD_CHECKPOINT_ENTRY:
+        // TODO
+        break;
+      default:
+        throw new IOException("Unsupported entry type: " + entry.type());
+    }
+  }
+
+  @Override
+  public void deserialize() throws IOException {
+
+  }
 }
