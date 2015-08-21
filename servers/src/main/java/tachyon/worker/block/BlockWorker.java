@@ -96,6 +96,8 @@ public final class BlockWorker {
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
+  /** Shared executor service */
+  private ExecutorService mSharedExecutor;
 
   /**
    * @return the worker service handler
@@ -167,6 +169,11 @@ public final class BlockWorker {
     mFileSystemMasterClient = new WorkerFileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
         mMasterClientExecutorService, mTachyonConf);
+
+    // Set up ExecutorService
+    mSharedExecutor = Executors.newFixedThreadPool(
+        mTachyonConf.getInt(Constants.WORKER_SHARED_EXECUTOR_CORES),
+        ThreadFactoryUtils.build("shared-executor-%d", false));
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
