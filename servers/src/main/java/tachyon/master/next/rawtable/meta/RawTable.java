@@ -17,25 +17,15 @@ package tachyon.master.next.rawtable.meta;
 
 import java.nio.ByteBuffer;
 
-import tachyon.thrift.TachyonException;
 import tachyon.util.io.BufferUtils;
 
 public class RawTable {
   /** Table ID */
   private final int mId;
-  /** Maximum number of columns */
-  private final long mMaxColumns;
   /** Number of columns */
   private final int mColumns;
   /** Table metadata */
   private ByteBuffer mMetadata;
-
-  private RawTable(int id, int columns, long maxColumns) {
-    mId = id;
-    mColumns = columns;
-    mMaxColumns = maxColumns;
-    mMetadata = null;
-  }
 
   /**
    * Create a new RawTable with metadata set to null. metadata can later be set via
@@ -43,10 +33,11 @@ public class RawTable {
    *
    * @param id table id
    * @param columns number of columns
-   * @param maxColumns maximum number of columns
    */
-  public static RawTable newRawTable(int id, int columns, long maxColumns) {
-    return new RawTable(id, columns, maxColumns);
+  public RawTable(int id, int columns) {
+    mId = id;
+    mColumns = columns;
+    mMetadata = null;
   }
 
   /**
@@ -54,17 +45,14 @@ public class RawTable {
    *
    * @param id table id
    * @param columns number of columns
-   * @param maxColumns maximum number of columns
    * @param metadata table metadata, if is null, the internal metadata is set to an empty buffer,
    *        otherwise, the provided buffer will be copied into the internal buffer.
    * @return the created RawTable
-   * @throws TachyonException when metadata is larger than the configured maximum size
    */
-  public static RawTable newRawTable(int id, int columns, long maxColumns, ByteBuffer metadata)
-      throws TachyonException {
-    RawTable ret = new RawTable(id, columns, maxColumns);
-    ret.setMetadata(metadata);
-    return ret;
+  public RawTable(int id, int columns, ByteBuffer metadata) {
+    mId = id;
+    mColumns = columns;
+    setMetadata(metadata);
   }
 
   public int getId() {
@@ -84,22 +72,8 @@ public class RawTable {
    * an empty byte buffer, otherwise, the provided metadata will be copied into the internal buffer.
    *
    * @param metadata the metadata to be set
-   * @throws TachyonException when metadata is larger than the configured maximum size
    */
-  public void setMetadata(ByteBuffer metadata) throws TachyonException {
-    validateMetadataSize(metadata);
+  public void setMetadata(ByteBuffer metadata) {
     mMetadata = BufferUtils.cloneByteBuffer(metadata);
-  }
-
-  /**
-   * Validate size of metadata is smaller than the configured maximum size.
-   *
-   * @param metadata the metadata to be validated
-   * @throws TachyonException if the metadata is too large
-   */
-  private void validateMetadataSize(ByteBuffer metadata) throws TachyonException {
-    if (metadata.limit() - metadata.position() >= mMaxColumns) {
-      throw new TachyonException("Too big table metadata: " + metadata.toString());
-    }
   }
 }

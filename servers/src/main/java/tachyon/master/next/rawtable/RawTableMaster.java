@@ -15,6 +15,7 @@
 
 package tachyon.master.next.rawtable;
 
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,20 +29,21 @@ import tachyon.master.next.Master;
 import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.rawtable.meta.RawTables;
+import tachyon.thrift.TachyonException;
 
 public class RawTableMaster implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
+  private final long mMaxTableMetadataBytes;
 
   private final FileSystemMaster mFileSystemMaster;
-  private final RawTables mRawTables;
+  private final RawTables mRawTables = new RawTables();
 
   public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster) {
     mTachyonConf = tachyonConf;
+    mMaxTableMetadataBytes = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     mFileSystemMaster = fileSystemMaster;
-
-    mRawTables = new RawTables(mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE));
   }
 
   @Override
@@ -57,5 +59,18 @@ public class RawTableMaster implements Master {
   public List<PeriodicTask> getPeriodicTaskList() {
     // TODO
     return Collections.emptyList();
+  }
+
+  /**
+   * Validate size of metadata is smaller than the configured maximum size. This should be called
+   * whenever a metadata wants to be set.
+   *
+   * @param metadata the metadata to be validated
+   * @throws TachyonException if the metadata is too large
+   */
+  private void validateMetadataSize(ByteBuffer metadata) throws TachyonException {
+    if (metadata.limit() - metadata.position() >= mMaxTableMetadataBytes) {
+      throw new TachyonException("Too big table metadata: " + metadata.toString());
+    }
   }
 }
