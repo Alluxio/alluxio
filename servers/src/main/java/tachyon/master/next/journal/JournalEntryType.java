@@ -15,12 +15,8 @@
 
 package tachyon.master.next.journal;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-// TODO
-public interface JournalFormatter {
-  void serialize(JournalEntry entry, OutputStream outputStream) throws IOException;
-
-  void deserialize() throws IOException;
+public enum JournalEntryType {
+  INODE_FILE,
+  ADD_CHECKPOINT,
+  // TODO
 }

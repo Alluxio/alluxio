@@ -16,4 +16,5 @@
 package tachyon.master.next.journal;
 
 public interface JournalEntry {
+  JournalEntryType type();
 }
