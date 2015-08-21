@@ -69,8 +69,8 @@ public final class MasterBlockInfoTests {
     List<MasterBlockLocation> locations = mInfo.getBlockLocations();
     assertEquals(3, mInfo.getNumLocations());
     // mem in the top of the list
-    assertEquals(1, locations.get(0).mWorkerId);
-    assertEquals(2, locations.get(1).mWorkerId);
-    assertEquals(3, locations.get(2).mWorkerId);
+    assertEquals(1, locations.get(0).getWorkerId());
+    assertEquals(2, locations.get(1).getWorkerId());
+    assertEquals(3, locations.get(2).getWorkerId());
   }
 }
