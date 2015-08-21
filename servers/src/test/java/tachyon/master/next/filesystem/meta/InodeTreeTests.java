@@ -148,8 +148,33 @@ public final class InodeTreeTests {
     // add nested file
     mTree.createPath(new TachyonURI("/nested/test/file"), Constants.KB, true, false);
 
+    // all inodes under root
     List<Inode> inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
-    // /test, /nested/, /nested/test, /nested/test/file
+    // /test, /nested, /nested/test, /nested/test/file
     Assert.assertEquals(4, inodes.size());
+  }
+
+  @Test
+  public void deleteInode() throws Exception {
+    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+
+    // all inodes under root
+    List<Inode> inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
+    // /nested, /nested/test
+    Assert.assertEquals(2, inodes.size());
+    // delete the nested inode
+    mTree.deleteInode(nested);
+    inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
+    // only /nested left
+    Assert.assertEquals(1, inodes.size());
+  }
+
+  @Test
+  public void deleteNoexistingInode() throws Exception {
+    mThrown.expect(FileDoesNotExistException.class);
+    mThrown.expectMessage("Inode id 1 does not exist");
+
+    Inode testFile = new InodeFile("testFile1", 1, 1, Constants.KB, System.currentTimeMillis());
+    mTree.deleteInode(testFile);
   }
 }
