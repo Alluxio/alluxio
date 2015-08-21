@@ -49,4 +49,13 @@ public final class MasterBlockInfoTests {
     mInfo.removeWorker(1);
     assertEquals(0, mInfo.getWorkers().size());
   }
+
+  @Test
+  public void getNumLocationsTest() {
+    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
+    mInfo.addWorker(2, StorageLevelAlias.MEM.getValue());
+    mInfo.addWorker(3, StorageLevelAlias.HDD.getValue());
+    assertEquals(3, mInfo.getNumLocations());
+  }
+
 }
