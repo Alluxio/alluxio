@@ -27,7 +27,7 @@ usage() {
   echo -e "${BOLD_RED}>>> \tMachine Number:\t Must be at least 2${NO_COLOR}"
   echo -e "${BOLD_RED}>>> \tProvider:\t ${PROVIDERS[@]}${NO_COLOR}"
   echo -e "${BOLD_RED}>>> \tOptions:${NO_COLOR}"
-  echo -e "${BOLD_RED}>>> \t -a, --alias-ip\t Add IP aliases(e.g., TachyonMaster) into /etc/hosts${NO_COLOR}"
+  echo -e "${BOLD_RED}>>> \t -a, --alias-ip\t Add aws IP aliases(e.g., TachyonMaster) into /etc/hosts${NO_COLOR}"
   exit
 }
 
