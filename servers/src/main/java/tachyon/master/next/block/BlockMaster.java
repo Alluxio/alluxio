@@ -63,13 +63,13 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   };
   private final IndexedSet.FieldIndex mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
-    @Override
-    public Object getFieldValue(MasterWorkerInfo o) {
-      return o.getAddress();
-    }
-  };
-  private final IndexedSet<MasterWorkerInfo> mWorkers = new IndexedSet<MasterWorkerInfo>(mIdIndex,
-      mAddressIndex);
+        @Override
+        public Object getFieldValue(MasterWorkerInfo o) {
+          return o.getAddress();
+        }
+      };
+  private final IndexedSet<MasterWorkerInfo> mWorkers =
+      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   private final AtomicInteger mWorkerCounter;
 
   public BlockMaster() {
@@ -189,11 +189,11 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         // "Join" to get all the addresses of the workers.
         List<BlockLocation> locations = new ArrayList<BlockLocation>();
         for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
-          MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex,
-              masterBlockLocation.getWorkerId());
+          MasterWorkerInfo workerInfo =
+              mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
           if (workerInfo != null) {
-            locations.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
-                masterBlockLocation.getTier()));
+            locations.add(new BlockLocation(masterBlockLocation.getWorkerId(),
+                workerInfo.getAddress(), masterBlockLocation.getTier()));
           }
         }
         BlockInfo retInfo =
