@@ -17,7 +17,6 @@ package tachyon.master.next.rawtable.meta;
 
 import java.nio.ByteBuffer;
 
-import tachyon.conf.TachyonConf;
 import tachyon.master.next.IndexedSet;
 import tachyon.thrift.TachyonException;
 import tachyon.util.io.BufferUtils;
@@ -35,10 +34,10 @@ public class RawTables {
   /** A set of TableInfo indexed by table id */
   private final IndexedSet<RawTable> mTables = new IndexedSet<RawTable>(mIdIndex);
 
-  private final TachyonConf mTachyonConf;
+  private final long mMaxColumns;
 
-  public RawTables(TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+  public RawTables(long maxColumns) {
+    mMaxColumns = maxColumns;
   }
 
   /**
@@ -55,7 +54,7 @@ public class RawTables {
     if (mTables.contains(mIdIndex, tableId)) {
       return false;
     }
-    mTables.add(RawTable.newRawTable(mTachyonConf, tableId, columns, metadata));
+    mTables.add(RawTable.newRawTable(tableId, columns, mMaxColumns, metadata));
     return true;
   }
 

@@ -41,7 +41,7 @@ public class RawTableMaster implements Master {
     mTachyonConf = tachyonConf;
     mFileSystemMaster = fileSystemMaster;
 
-    mRawTables = new RawTables(mTachyonConf);
+    mRawTables = new RawTables(mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE));
   }
 
   @Override
