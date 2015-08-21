@@ -20,5 +20,6 @@ import java.io.OutputStream;
 // TODO
 public interface JournalFormatter {
   void serialize(JournalEntry entry, OutputStream outputStream);
+
   void deserialize();
 }
