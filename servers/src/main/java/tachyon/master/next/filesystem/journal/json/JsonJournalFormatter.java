@@ -39,16 +39,27 @@ public class JsonJournalFormatter extends JournalFormatter {
             .withParameter("path", entry.checkpointPath().toString())
             .withParameter("opTimeMs", entry.opTimeMs());
 
-    writeEvent(event, os);
+    writeEntry(event, os);
   }
 
   @Override
   protected void serializeInodeFileEntry(InodeFileEntry entry, OutputStream os) throws IOException {
-    // TODO
+    CheckpointEntry checkpoint =
+        new CheckpointEntry(JournalEntryType.INODE_FILE)
+            .withParameter("creationTimeMs", entry.creationTimeMs())
+            .withParameter("id", entry.id()).withParameter("name", entry.name())
+            .withParameter("parentId", entry.parentId())
+            .withParameter("blockSizeBytes", entry.blockSizeBytes())
+            .withParameter("length", entry.length()).withParameter("complete", entry.isComplete())
+            .withParameter("pin", entry.isPinned()).withParameter("cache", entry.isCache())
+            .withParameter("ufsPath", entry.ufsPath())
+            .withParameter("lastModificationTimeMs", entry.lastModificationTimeMs());
+
+    writeEntry(checkpoint, os);
   }
 
-  private void writeEvent(EventEntry event, OutputStream os) throws IOException {
-    mWriter.writeValue(os, event);
+  private void writeEntry(JsonObject entry, OutputStream os) throws IOException {
+    mWriter.writeValue(os, entry);
     (new DataOutputStream(os)).writeByte('\n');
   }
 }
