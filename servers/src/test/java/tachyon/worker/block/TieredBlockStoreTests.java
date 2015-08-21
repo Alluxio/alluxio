@@ -354,6 +354,7 @@ public final class TieredBlockStoreTests {
     mBlockStore.moveBlock(USER_ID1, TEMP_BLOCK_ID, mTestDir2.toBlockStoreLocation());
   }
 
+  // TACHYON-825
   @Ignore
   @Test
   public void moveBlockToTheLocationWithExistingIdTest() throws Exception {
