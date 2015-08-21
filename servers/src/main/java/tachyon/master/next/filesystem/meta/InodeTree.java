@@ -324,7 +324,7 @@ public final class InodeTree {
 
     int getNonexistentPathIndex() {
       if (mFound) {
-        throw new UnsupportedOperationException("The trasversal is successful");
+        throw new UnsupportedOperationException("The traversal is successful");
       }
       return mNonexistentIndex;
     }
