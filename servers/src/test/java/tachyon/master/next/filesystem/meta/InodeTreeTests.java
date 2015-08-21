@@ -15,6 +15,8 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -137,5 +139,17 @@ public final class InodeTreeTests {
     // test nesting
     Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true);
     Assert.assertEquals(new TachyonURI("/nested/test"), mTree.getPath(nested));
+  }
+
+  @Test
+  public void getInodeChildrenRecursive() throws Exception {
+    mTree.createPath(TEST_URI, Constants.KB, false, true);
+    mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    // add nested file
+    mTree.createPath(new TachyonURI("/nested/test/file"), Constants.KB, true, false);
+
+    List<Inode> inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
+    // /test, /nested/, /nested/test, /nested/test/file
+    Assert.assertEquals(4, inodes.size());
   }
 }
