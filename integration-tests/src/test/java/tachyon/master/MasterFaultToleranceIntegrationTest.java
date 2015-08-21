@@ -107,7 +107,7 @@ public class MasterFaultToleranceIntegrationTest {
 
     for (int kills = 0; kills < 1; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(null, Constants.SECOND_MS * 3);
+      CommonUtils.sleepMs(Constants.SECOND_MS * 3);
       faultTestDataCheck(answer);
     }
 

@@ -37,6 +37,7 @@ import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
@@ -68,12 +69,14 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   // In the range of [2, INF]
   private final double mAttenuationFactor;
   private final TachyonConf mTachyonConf;
+  private final Allocator mAllocator;
 
   //logic time count
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
-  public LRFUEvictor(BlockMetadataManagerView view) {
+  public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     mManagerView = view;
+    mAllocator = allocator;
     mTachyonConf = new TachyonConf();
     mStepFactor = mTachyonConf
         .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR);

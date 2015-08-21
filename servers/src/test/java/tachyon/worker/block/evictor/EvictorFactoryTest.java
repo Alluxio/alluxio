@@ -29,6 +29,8 @@ import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
+import tachyon.worker.block.allocator.Allocator;
+import tachyon.worker.block.allocator.MaxFreeAllocator;
 
 /**
  * Test {@link Evictor.Factory} by passing in different evictor strategy class names through the
@@ -58,7 +60,9 @@ public class EvictorFactoryTest {
   public void createGreedyEvictorTest() {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, GreedyEvictor.class.getName());
-    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
+    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof GreedyEvictor);
   }
 
@@ -66,14 +70,18 @@ public class EvictorFactoryTest {
   public void createLRUEvictorTest() {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class.getName());
-    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
+    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 
   @Test
   public void createDefaultEvictorTest() {
     TachyonConf conf = new TachyonConf();
-    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView);
+    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
+    Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
   }
 }
