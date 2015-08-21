@@ -24,6 +24,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -35,12 +39,14 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
@@ -101,8 +107,9 @@ public final class TieredBlockStore implements BlockStore {
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
   /** WriteLock provided by {@link #mMetadataReadLock} to guard metadata write operations */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
+  private final AsyncEvictor mAsyncEvictor;
 
-  public TieredBlockStore() {
+  public TieredBlockStore(ExecutorService executorService) {
     mTachyonConf = WorkerContext.getConf();
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
     mLockManager = new BlockLockManager();
@@ -119,6 +126,14 @@ public final class TieredBlockStore implements BlockStore {
     mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
+    }
+
+    if (mTachyonConf.getBoolean(Constants.WORKER_EVICT_ASYNC_ENABLE)) {
+      mAsyncEvictor = new AsyncEvictor(executorService);
+      mAsyncEvictor.initialize();
+      LOG.info("asynchronous evictor is started!");
+    } else {
+      mAsyncEvictor = null;
     }
   }
 
@@ -899,6 +914,92 @@ public final class TieredBlockStore implements BlockStore {
 
     BlockStoreLocation dstLocation() {
       return mDstLocation;
+    }
+  }
+
+  private class AsyncEvictor implements Runnable {
+    // Alias of the storage tier and reserved space on it
+    private final List<Pair<Integer, Long>> mReservedBytesOnTiers =
+        new ArrayList<Pair<Integer, Long>>();
+    private final Timer mTimer;
+    private final Semaphore mSemaphore = new Semaphore(1);
+    private final Thread mEvictorThread;
+    private final TachyonConf mConf;
+    private final ExecutorService mExecutorService;
+    
+    public AsyncEvictor(ExecutorService executorService) {
+      mConf = WorkerContext.getConf();
+      List<StorageTier> tiers = mMetaManager.getTiers();
+      long lastTierReservedBytes = 0;
+      for (StorageTier tier : tiers) {
+        String tierReservedSpaceProp =
+            String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT,
+                tier.getTierLevel());
+        long reservedSpaceBytes =
+            (long)(tier.getCapacityBytes() * mConf.getDouble(tierReservedSpaceProp));
+        mReservedBytesOnTiers.add(new Pair<Integer, Long>(tier.getTierAlias(),
+            reservedSpaceBytes + lastTierReservedBytes));
+        lastTierReservedBytes += reservedSpaceBytes;
+      }
+      mEvictorThread = new Thread(this);
+      mEvictorThread.setDaemon(true);
+      mEvictorThread.setName("async-evictor");
+      mTimer = new Timer(true);
+      mExecutorService = executorService;
+    }
+
+    private EvictionPlan getEvictionPlanOnTier(long reservedBytes, BlockStoreLocation location) {
+      EvictionPlan plan = null;
+      mMetadataReadLock.lock();
+      try {
+        BlockMetadataManagerView updatedView = getUpdatedView();
+        long availableBytes = updatedView.getAvailableBytes(location);
+        if (availableBytes <= reservedBytes) {
+          plan = mEvictor.freeSpaceWithView(reservedBytes - availableBytes, location, updatedView);
+          // Absent plan means failed to evict enough space.
+          if (null == plan) {
+            LOG.error("Failed to free space: no eviction plan by evictor");
+          }
+        }
+      } finally {
+        mMetadataReadLock.unlock();
+      }
+      return plan;
+    }
+
+    public void initialize() {
+      mEvictorThread.start();
+      mTimer.schedule(new TimerTask() {
+        public void run() {
+          mSemaphore.release();
+        }
+      }, 0L, mConf.getLong(Constants.WORKER_TIERED_STORAGE_ASYNCEVICTION_PERIOD_MS_FORMAT));
+    }
+
+    @Override
+    public void run() {
+      try {
+        while (true) {
+          mSemaphore.acquire();
+          for (int tierIdx = mReservedBytesOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
+            Pair<Integer, Long> bytesReservedOnTier = mReservedBytesOnTiers.get(tierIdx);
+            int tierAlias = bytesReservedOnTier.getFirst();
+            long bytesReserved = bytesReservedOnTier.getSecond();
+            BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
+            EvictionPlan plan = getEvictionPlanOnTier(bytesReserved, location);
+            for (Pair<Long, BlockStoreLocation> toMoveBlock : plan.toMove()) {
+              mExecutorService.execute(new BlockMover(TieredBlockStore.this,
+                  Users.MIGRATE_DATA_USER_ID, toMoveBlock.getFirst(), toMoveBlock.getSecond()));
+            }
+            for (long toEvictBlock : plan.toEvict()) {
+              mExecutorService.execute(new BlockMover(TieredBlockStore.this,
+                  Users.MIGRATE_DATA_USER_ID, toEvictBlock, null));
+            }
+          }
+        }
+      } catch (InterruptedException e) {
+        LOG.info("Asynchronous evictor exits!");
+      }
     }
   }
 }

@@ -18,6 +18,7 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
 
@@ -311,6 +312,15 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     FileUtils.createBlockPath(createdBlock.getPath());
+  }
+
+  /**
+   * Gets the block store which contains all blocks in the manager.
+   *
+   * @return the block store
+   */
+  public BlockStore getBlockStore() {
+    return mBlockStore;
   }
 
   /**

@@ -17,7 +17,6 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,7 @@ import tachyon.worker.WorkerContext;
  */
 public final class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
+//  private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
   /** The net address of the worker */
@@ -86,6 +85,7 @@ public final class BlockMasterSync implements Runnable {
 
     mRunning = true;
     mWorkerId = 0;
+    mExecutorService = executorService;
   }
 
   /**
