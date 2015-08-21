@@ -49,11 +49,11 @@ public class WebInterfaceDependencyServlet extends HttpServlet {
     List<String> childrenFileNames = new ArrayList<String>();
     try {
       DependencyInfo dependencyInfo = mMasterInfo.getClientDependencyInfo(dependencyId);
-      for (int pId : dependencyInfo.parents) {
-        parentFileNames.add(mMasterInfo.getPath(pId).toString());
+      for (long pId : dependencyInfo.parents) {
+        parentFileNames.add(mMasterInfo.getPath((int) pId).toString());
       }
-      for (int cId : dependencyInfo.children) {
-        childrenFileNames.add(mMasterInfo.getPath(cId).toString());
+      for (long cId : dependencyInfo.children) {
+        childrenFileNames.add(mMasterInfo.getPath((int) cId).toString());
       }
     } catch (DependencyDoesNotExistException ddnee) {
       request.setAttribute("error", ddnee.getMessage());
