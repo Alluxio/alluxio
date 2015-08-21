@@ -18,6 +18,7 @@ package tachyon.master.next.journal;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,8 @@ import tachyon.underfs.UnderFileSystem;
 
 public class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  // TODO: make this a config parameter.
+  private static final int MAX_LOG_SIZE = 10 * Constants.MB;
   private static final String COMPLETED_DIRECTORY = "completed/";
   private static final String CURRENT_LOG_EXTENSION = ".out";
   private static final int FIRST_COMPLETED_LOG_NUMBER = 1;
@@ -107,6 +110,15 @@ public class JournalWriter {
   public void flush() throws IOException {
     if (mOutputStream != null) {
       mOutputStream.flush();
+      if (mOutputStream instanceof FSDataOutputStream) {
+        ((FSDataOutputStream) mOutputStream).sync();
+      }
+      if (mOutputStream.size() > MAX_LOG_SIZE) {
+        // rotate the current log.
+        mOutputStream.close();
+        completeCurrentLog();
+        openCurrentLog();
+      }
     }
   }
 
