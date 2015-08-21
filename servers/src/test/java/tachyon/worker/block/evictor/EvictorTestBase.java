@@ -26,6 +26,8 @@ import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
+import tachyon.worker.block.allocator.Allocator;
+import tachyon.worker.block.allocator.MaxFreeAllocator;
 import tachyon.worker.block.meta.StorageDir;
 
 /**
@@ -42,6 +44,7 @@ public class EvictorTestBase {
   protected BlockMetadataManager mMetaManager;
   protected BlockMetadataManagerView mManagerView;
   protected Evictor mEvictor;
+  protected Allocator mAllocator;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -79,6 +82,8 @@ public class EvictorTestBase {
             Collections.<Long>emptySet());
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, evictorClassName);
-    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
+    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
+    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView, mAllocator);
   }
 }

@@ -315,9 +315,7 @@ public class MasterInfo extends ImageWriter {
     mStartTimeNSPrefix = mStartTimeMs - (mStartTimeMs % 1000000);
     mJournal = journal;
 
-    mWhitelist =
-        new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ",",
-            new LinkedList<String>()));
+    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
     mPinnedInodeFileIds = Collections.synchronizedSet(new HashSet<Integer>());
 
     mJournal.loadImage(this);
