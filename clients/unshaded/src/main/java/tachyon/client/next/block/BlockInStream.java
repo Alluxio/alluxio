@@ -23,11 +23,17 @@ import java.io.InputStream;
  * obtained by calling {@link TachyonBS#getInStream}. Multiple BlockInStreams can be opened for a
  * block. This class is thread safe.
  *
- * The type of BlockInStream returned will depend on the data location and user configuration. A
- * {@link LocalBlockInStream} is returned if the data can be directly read from the local storage
- * of the machine the client is on and the user has enabled this optimization. Otherwise, a
- * {@link RemoteBlockInStream} will be returned which will read the data through a Tachyon worker.
+ * This class provides the same methods as a Java {@link InputStream} with an additional seek
+ * method. Currently the only implementation of this class which should be used by a client is
+ * the {@link ClientBlockInStream}.
  */
 public abstract class BlockInStream extends InputStream {
+  /**
+   * Moves the starting read position of the block to the specified position which is relative to
+   * the start of the block. Seeking to a position before the current read position is supported.
+   *
+   * @param pos The position to seek to, it must be between 0 and the size of the block.
+   * @throws IOException if the seek fails due to an error accessing the stream at the position
+   */
   public abstract void seek(long pos) throws IOException;
 }
