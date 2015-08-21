@@ -18,6 +18,7 @@ package tachyon.master.next.rawtable.meta;
 import java.nio.ByteBuffer;
 
 import tachyon.master.next.IndexedSet;
+import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.io.BufferUtils;
 
@@ -34,12 +35,6 @@ public class RawTables {
   /** A set of TableInfo indexed by table id */
   private final IndexedSet<RawTable> mTables = new IndexedSet<RawTable>(mIdIndex);
 
-  private final long mMaxColumns;
-
-  public RawTables(long maxColumns) {
-    mMaxColumns = maxColumns;
-  }
-
   /**
    * Add a raw table.
    *
@@ -54,7 +49,7 @@ public class RawTables {
     if (mTables.contains(mIdIndex, tableId)) {
       return false;
     }
-    mTables.add(RawTable.newRawTable(tableId, columns, mMaxColumns, metadata));
+    mTables.add(new RawTable(tableId, columns, metadata));
     return true;
   }
 
@@ -116,15 +111,14 @@ public class RawTables {
    *
    * @param tableId The id of the raw table
    * @param metadata The new metadata of the raw table
-   * @throws TachyonException when the table does not exist or the metadata size is larger than the
-   *         configured maximum size
+   * @throws TableDoesNotExistException when the table does not exist
    */
   public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
-      throws TachyonException {
+      throws TableDoesNotExistException {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
 
     if (null == table) {
-      throw new TachyonException("The raw table " + tableId + " does not exist.");
+      throw new TableDoesNotExistException("The raw table " + tableId + " does not exist.");
     }
 
     table.setMetadata(metadata);
