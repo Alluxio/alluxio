@@ -56,12 +56,14 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   // Worker metadata management.
   private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+    @Override
     public Object getFieldValue(MasterWorkerInfo o) {
       return o.getId();
     }
   };
   private final IndexedSet.FieldIndex mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+    @Override
     public Object getFieldValue(MasterWorkerInfo o) {
       return o.getAddress();
     }
@@ -88,6 +90,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     return "BlockMaster";
   }
 
+  @Override
   public List<PeriodicTask> getPeriodicTaskList() {
     // TODO: return tasks for detecting lost workers
     return Collections.emptyList();
@@ -187,10 +190,10 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         List<BlockLocation> locations = new ArrayList<BlockLocation>();
         for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
           MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex,
-              masterBlockLocation.mWorkerId);
+              masterBlockLocation.getWorkerId());
           if (workerInfo != null) {
-            locations.add(new BlockLocation(masterBlockLocation.mWorkerId, workerInfo.getAddress(),
-                masterBlockLocation.mTier));
+            locations.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
+                masterBlockLocation.getTier()));
           }
         }
         BlockInfo retInfo =
