@@ -15,12 +15,9 @@
 
 package tachyon.master.next.block.meta;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,17 +37,17 @@ public final class MasterBlockInfoTests {
 
   @Test
   public void addWorkerTest() {
-    assertEquals(0, mInfo.getWorkers().size());
+    Assert.assertEquals(0, mInfo.getWorkers().size());
     mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
-    assertTrue(mInfo.getWorkers().contains(1L));
+    Assert.assertTrue(mInfo.getWorkers().contains(1L));
   }
 
   @Test
   public void removeWorkerTest() {
     mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
-    assertTrue(mInfo.getWorkers().contains(1L));
+    Assert.assertTrue(mInfo.getWorkers().contains(1L));
     mInfo.removeWorker(1);
-    assertEquals(0, mInfo.getWorkers().size());
+    Assert.assertEquals(0, mInfo.getWorkers().size());
   }
 
   @Test
@@ -58,7 +55,7 @@ public final class MasterBlockInfoTests {
     mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
     mInfo.addWorker(2, StorageLevelAlias.MEM.getValue());
     mInfo.addWorker(3, StorageLevelAlias.HDD.getValue());
-    assertEquals(3, mInfo.getNumLocations());
+    Assert.assertEquals(3, mInfo.getNumLocations());
   }
 
   @Test
@@ -68,18 +65,18 @@ public final class MasterBlockInfoTests {
     mInfo.addWorker(2, StorageLevelAlias.MEM.getValue());
 
     List<MasterBlockLocation> locations = mInfo.getBlockLocations();
-    assertEquals(3, mInfo.getNumLocations());
+    Assert.assertEquals(3, mInfo.getNumLocations());
     // mem in the top of the list
-    assertEquals(1, locations.get(0).getWorkerId());
-    assertEquals(2, locations.get(1).getWorkerId());
-    assertEquals(3, locations.get(2).getWorkerId());
+    Assert.assertEquals(1, locations.get(0).getWorkerId());
+    Assert.assertEquals(2, locations.get(1).getWorkerId());
+    Assert.assertEquals(3, locations.get(2).getWorkerId());
   }
 
   @Test
   public void isInMemoryTest() {
     mInfo.addWorker(3, StorageLevelAlias.HDD.getValue());
-    assertFalse(mInfo.isInMemory());
+    Assert.assertFalse(mInfo.isInMemory());
     mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
-    assertTrue(mInfo.isInMemory());
+    Assert.assertTrue(mInfo.isInMemory());
   }
 }
