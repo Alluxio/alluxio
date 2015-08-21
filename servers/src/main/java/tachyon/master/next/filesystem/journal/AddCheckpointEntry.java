@@ -15,11 +15,38 @@
 
 package tachyon.master.next.filesystem.journal;
 
+import tachyon.TachyonURI;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
 
 public class AddCheckpointEntry implements JournalEntry {
-  // TODO add necessary fields for serializing the addCheckpoint operation on FileSystemMaster
+  private final int mFileId;
+  private final long mLength;
+  private final TachyonURI mCheckpointPath;
+  private final long mOpTimeMs;
+
+  public AddCheckpointEntry(int fileId, long length, TachyonURI checkpointPath, long opTimeMs) {
+    mFileId = fileId;
+    mLength = length;
+    mCheckpointPath = checkpointPath;
+    mOpTimeMs = opTimeMs;
+  }
+
+  public int fileId() {
+    return mFileId;
+  }
+
+  public long length() {
+    return mLength;
+  }
+
+  public TachyonURI checkpointPath() {
+    return mCheckpointPath;
+  }
+
+  public long opTimeMs() {
+    return mOpTimeMs;
+  }
 
   @Override
   public JournalEntryType type() {
