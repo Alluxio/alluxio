@@ -16,12 +16,11 @@
 package tachyon.master.next;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Set;
-import java.util.HashSet;
-import java.lang.reflect.Field;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,7 +138,7 @@ public class IndexedSet<T> {
   }
 
   /**
-   * Get a subset of objects with the specified field value. If there is no object withthe specified
+   * Get a subset of objects with the specified field value. If there is no object with the specified
    * field value, a newly created empty set is returned. Otherwise, the returned set is backed up by
    * an internal set, so changes in internal set will be reflected in returned set and vice-versa.
    *

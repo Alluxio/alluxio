@@ -28,8 +28,8 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
-import tachyon.master.next.IndexedSet;
 import tachyon.master.block.BlockId;
+import tachyon.master.next.IndexedSet;
 import tachyon.master.next.block.ContainerIdGenerator;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -38,16 +38,18 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-public class InodeTree {
+public final class InodeTree {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final InodeDirectory mRoot;
 
-  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+  private final IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+    @Override
     public Object getFieldValue(Inode o) {
       return o.getId();
     }
   };
+  @SuppressWarnings("unchecked")
   private final IndexedSet<Inode> mInodes = new IndexedSet<Inode>(mIdIndex);
   /** A set of inode ids representing pinned inode files */
   private final Set<Long> mPinnedInodeFileIds = new HashSet<Long>();
