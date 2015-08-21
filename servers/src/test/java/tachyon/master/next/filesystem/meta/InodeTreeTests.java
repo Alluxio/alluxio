@@ -117,4 +117,10 @@ public final class InodeTreeTests {
 
     mTree.getInodeById(1);
   }
+
+  @Test
+  public void isRootIdTest() throws Exception {
+    Assert.assertTrue(mTree.isRootId(0));
+    Assert.assertFalse(mTree.isRootId(1));
+  }
 }
