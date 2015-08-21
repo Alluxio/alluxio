@@ -18,7 +18,7 @@ package tachyon.master.next.block.meta;
 /**
  * The location of the block.
  */
-public class MasterBlockLocation {
+public final class MasterBlockLocation {
   public long mWorkerId;
   public int mTier;
 
