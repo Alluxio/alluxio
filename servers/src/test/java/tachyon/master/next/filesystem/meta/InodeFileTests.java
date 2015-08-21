@@ -18,7 +18,7 @@ package tachyon.master.next.filesystem.meta;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.thrift.BlockInfoException;
+import tachyon.Constants;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
@@ -46,7 +46,7 @@ public final class InodeFileTests extends AbstractInodeTests {
   }
 
   @Test
-  public void setLengthTest() throws SuspectedFileSizeException, BlockInfoException {
+  public void setLengthTest() throws Exception {
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
     Assert.assertEquals(LENGTH, inodeFile.getLength());
@@ -69,5 +69,20 @@ public final class InodeFileTests extends AbstractInodeTests {
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
     inodeFile.setLength(LENGTH);
+  }
+
+  @Test
+  public void getBlockSizeBytesTest() {
+    InodeFile inode1 = createInodeFile(1);
+    Assert.assertEquals(Constants.KB, inode1.getBlockSizeBytes());
+  }
+
+  @Test
+  public void isFullyInMemoryTest() throws Exception {
+    InodeFile inode1 = createInodeFile(1);
+    Assert.assertTrue(inode1.isFullyInMemory());
+
+    inode1.setLength(LENGTH);
+    Assert.assertFalse(inode1.isFullyInMemory());
   }
 }
