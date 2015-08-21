@@ -16,15 +16,15 @@
 package tachyon.master.next.block.meta;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Lists;
+import java.util.Set;
 
 import tachyon.StorageLevelAlias;
 
-public class MasterBlockInfo {
+public final class MasterBlockInfo {
   private final long mBlockId;
   private final long mLength;
 
@@ -57,12 +57,12 @@ public class MasterBlockInfo {
     mWorkerIdToAlias.put(workerId, tierAlias);
   }
 
-  public void removeWorker(long workerId) {
-    mWorkerIdToAlias.remove(workerId);
+  public int removeWorker(long workerId) {
+    return mWorkerIdToAlias.remove(workerId);
   }
 
-  public List<Long> getWorkers() {
-    return Lists.newArrayList(mWorkerIdToAlias.keySet());
+  public Set<Long> getWorkers() {
+    return Collections.unmodifiableSet(mWorkerIdToAlias.keySet());
   }
 
   public int getNumLocations() {
@@ -71,8 +71,8 @@ public class MasterBlockInfo {
 
   /**
    * Get the locations of the block, which are the workers' net address who has the data of the
-   * block in its tiered storage. The list is sorted by the storage level alias(MEM, SSD, HDD).
-   * That is, the worker who has the data of the block in its memory is in the top of the list.
+   * block in its tiered storage. The list is sorted by the storage level alias(MEM, SSD, HDD). That
+   * is, the worker who has the data of the block in its memory is in the top of the list.
    *
    * @return the net addresses of the locations
    */
