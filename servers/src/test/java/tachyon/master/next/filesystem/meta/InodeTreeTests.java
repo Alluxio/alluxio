@@ -35,10 +35,10 @@ import tachyon.thrift.InvalidPathException;
  * Unit tests for InodeTree.
  */
 public final class InodeTreeTests {
-  private static String TEST_PATH = "test";
-  private static TachyonURI TEST_URI = new TachyonURI("/test");
-  private static TachyonURI NESTED_URI = new TachyonURI("/nested/test");
-  private static TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
+  private static final String TEST_PATH = "test";
+  private static final TachyonURI TEST_URI = new TachyonURI("/test");
+  private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
+  private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
   private InodeTree mTree;
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -98,8 +98,8 @@ public final class InodeTreeTests {
   @Test
   public void createFileUnderFileTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage(
-        "Could not traverse to parent directory of path /nested/test/test. Component test is not a directory.");
+    mThrown.expectMessage("Could not traverse to parent directory of path /nested/test/test."
+        + " Component test is not a directory.");
 
     mTree.createPath(NESTED_URI, Constants.KB, true, false);
     mTree.createPath(new TachyonURI("/nested/test/test"), Constants.KB, true, false);
