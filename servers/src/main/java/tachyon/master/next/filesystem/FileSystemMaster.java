@@ -155,6 +155,24 @@ public class FileSystemMaster implements Master {
 
   }
 
+  /**
+   * Whether the filesystem contains a directory with the id.
+   *
+   * @param id id of the directory
+   * @return true if there is such a directory, otherwise false
+   */
+  public boolean isDirectory(long id) {
+    synchronized (mInodeTree) {
+      Inode inode;
+      try {
+        inode = mInodeTree.getInodeById(id);
+      } catch (FileDoesNotExistException fne) {
+        return false;
+      }
+      return inode.isDirectory();
+    }
+  }
+
   public long getFileId(TachyonURI path) throws InvalidPathException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeByPath(path);
