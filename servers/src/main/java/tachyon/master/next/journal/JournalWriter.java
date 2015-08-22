@@ -118,7 +118,6 @@ public class JournalWriter {
       }
       if (mOutputStream.size() > MAX_LOG_SIZE) {
         // rotate the current log.
-        mOutputStream.close();
         completeCurrentLog();
         openCurrentLog();
       }
@@ -160,7 +159,9 @@ public class JournalWriter {
   }
 
   private void completeCurrentLog() throws IOException {
-    // TODO: close the current writer to the current log, if it exists.
+    if (mOutputStream != null) {
+      mOutputStream.close();
+    }
     if (!mUfs.exists(mCurrentLogPath)) {
       // All logs are already complete, so nothing to do.
       return;
