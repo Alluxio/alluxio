@@ -228,7 +228,7 @@ public class Performance {
 
     public void readPartition() throws IOException {
       if (sDebugMode) {
-        ByteBuffer buf = ByteBuffer.allocateDirect((int) sBlockSizeBytes);
+        ByteBuffer buf = ByteBuffer.allocate((int) sBlockSizeBytes);
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
