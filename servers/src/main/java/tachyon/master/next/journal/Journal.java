@@ -79,6 +79,6 @@ public class Journal {
   }
 
   public JournalReader getNewReader() {
-    return new JournalReader(this);
+    return new JournalReader(this, mTachyonConf);
   }
 }
