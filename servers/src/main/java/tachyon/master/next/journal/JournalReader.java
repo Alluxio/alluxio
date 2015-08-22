@@ -18,11 +18,21 @@ package tachyon.master.next.journal;
 import java.util.Collections;
 import java.util.List;
 
-public class JournalReader {
-  private final Journal mJournal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-  JournalReader(Journal journal) {
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+
+public class JournalReader {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private final Journal mJournal;
+  private final TachyonConf mTachyonConf;
+
+  JournalReader(Journal journal, TachyonConf tachyonConf) {
     mJournal = journal;
+    mTachyonConf = tachyonConf;
   }
 
   /**
