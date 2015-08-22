@@ -103,8 +103,11 @@ public class JournalWriter {
     openCurrentLog();
   }
 
-  public void writeEntry(JournalEntry entry) {
-    // TODO: Probably should only be able to write if the checkpoint was written previously.
+  public void writeEntry(JournalEntry entry) throws IOException {
+    if (mOutputStream != null) {
+      throw new IOException("The journal checkpoint must be written before writing entries.");
+    }
+    mJournal.getJournalFormatter().serialize(entry, mOutputStream);
   }
 
   public void flush() throws IOException {
@@ -126,6 +129,7 @@ public class JournalWriter {
     if (mOutputStream != null) {
       // Close the current log file.
       mOutputStream.close();
+      mOutputStream = null;
     }
     // Close the ufs.
     mUfs.close();
