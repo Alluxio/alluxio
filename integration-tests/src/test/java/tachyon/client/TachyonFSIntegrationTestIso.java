@@ -124,8 +124,8 @@ public class TachyonFSIntegrationTestIso {
       Assert.assertTrue(tFile.isInMemory());
       is = tFile.getInStream(ReadType.CACHE);
       buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
-      is.read(buf.array());
-      Assert.assertNotNull(buf);
+      int r = is.read(buf.array());
+      Assert.assertTrue(r != -1);
       is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
@@ -158,9 +158,9 @@ public class TachyonFSIntegrationTestIso {
       Assert.assertTrue(tFile.isInMemory());
       is = tFile.getInStream(ReadType.CACHE);
       buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
-      is.read(buf.array());
+      int r = is.read(buf.array());
       if (k < numOfFiles - 1) {
-        Assert.assertNotNull(buf);
+        Assert.assertTrue(r != -1);
       }
       is.close();
     }
@@ -192,36 +192,28 @@ public class TachyonFSIntegrationTestIso {
           fileSize));
     }
 
-    // TODO: test cache stream, since file.recache() is to be removed
     for (int k = 0; k <= numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
+      CommonUtils.sleepMs(null, getSleepMs());
       Assert.assertFalse(tFile.isInMemory());
       is = tFile.getInStream(ReadType.NO_CACHE);
       buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
-      CommonUtils.sleepMs(null, getSleepMs());
-      if (is.markSupported()) {
-        is.mark((int) tFile.getBlockSizeByte());
-      }
       if (k < numOfFiles) {
-        is.read(buf.array());
-        Assert.assertNull(buf);
+        int r = is.read(buf.array());
+        Assert.assertEquals(-1, r);
         Assert.assertTrue(tFile.recache());
-        if (is.markSupported()) {
-          is.reset();
-          buf.clear();
-          is.read(buf.array());
-          Assert.assertNotNull(buf);
-        }
+        is.seek(0);
+        buf.clear();
+        r = is.read(buf.array());
+        Assert.assertTrue(r != -1);
       } else {
-        is.read(buf.array());
-        Assert.assertNull(buf);
+        int r = is.read(buf.array());
+        Assert.assertTrue(r == -1);
         Assert.assertFalse(tFile.recache());
-        if (is.markSupported()) {
-          is.reset();
-          buf.clear();
-          is.read(buf.array());
-          Assert.assertNull(buf);
-        }
+        is.seek(0);
+        buf.clear();
+        r = is.read(buf.array());
+        Assert.assertEquals(-1, r);
       }
       is.close();
     }
@@ -245,8 +237,8 @@ public class TachyonFSIntegrationTestIso {
       is = tFile.getInStream(ReadType.CACHE);
       buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
       Assert.assertTrue(tFile.isInMemory());
-      is.read(buf.array());
-      Assert.assertNotNull(buf);
+      int r = is.read(buf.array());
+      Assert.assertTrue(r != -1);
       is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
@@ -278,18 +270,13 @@ public class TachyonFSIntegrationTestIso {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
       is = tFile.getInStream(ReadType.CACHE);
-      if (is.markSupported()) {
-        is.mark((int) tFile.getBlockSizeByte());
-      }
       buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
-      is.read(buf.array());
-      Assert.assertNotNull(buf);
-      if (is.markSupported()) {
-        is.reset();
-        buf.clear();
-        is.read(buf.array());
-        Assert.assertNotNull(buf);
-      }
+      int r = is.read(buf.array());
+      Assert.assertTrue(r != -1);
+      is.seek(0);
+      buf.clear();
+      r = is.read(buf.array());
+      Assert.assertNotNull(r != -1);
       is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
@@ -322,18 +309,13 @@ public class TachyonFSIntegrationTestIso {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
       is = tFile.getInStream(ReadType.CACHE);
-      if (is.markSupported()) {
-        is.mark((int) tFile.getBlockSizeByte());
-      }
       buf1 = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
-      is.read(buf1.array());
-      Assert.assertNotNull(buf1);
-      if (is.markSupported()) {
-        buf2 = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
-        is.reset();
-        is.read(buf2.array());
-        Assert.assertNotNull(buf2);
-      }
+      int r = is.read(buf1.array());
+      Assert.assertTrue(r != -1);
+      buf2 = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      is.seek(0);
+      r = is.read(buf2.array());
+      Assert.assertTrue(r != -1);
       is.close();
     }
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,

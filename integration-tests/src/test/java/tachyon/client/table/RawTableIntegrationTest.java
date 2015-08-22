@@ -180,7 +180,7 @@ public class RawTableIntegrationTest {
       TachyonFile file = rawCol.getPartition(0, true);
       InStream is = file.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate(10);
-      is.read(buf.array(), 0, 10);
+      is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
       is.close();
     }
@@ -190,7 +190,7 @@ public class RawTableIntegrationTest {
       TachyonFile file = rawCol.getPartition(0, true);
       InStream is = file.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate(10);
-      is.read(buf.array(), 0, 10);
+      is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
       is.close();
     }
