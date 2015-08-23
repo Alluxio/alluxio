@@ -54,12 +54,21 @@ public final class InodeTreeTests {
     mTree.createPath(TEST_URI, Constants.KB, false, true);
     Inode test = mTree.getInodeByPath(TEST_URI);
     Assert.assertEquals(TEST_PATH, test.getName());
+    Assert.assertTrue(test.isDirectory());
 
     // create nested directory
     mTree.createPath(NESTED_URI, Constants.KB, true, true);
     Inode nested = mTree.getInodeByPath(NESTED_URI);
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
+    Assert.assertTrue(test.isDirectory());
+
+    // created nested file
+    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    Inode nestedFile = mTree.getInodeByPath(NESTED_FILE_URI);
+    Assert.assertEquals("file", nestedFile.getName());
+    Assert.assertEquals(3, nestedFile.getParentId());
+    Assert.assertTrue(nestedFile.isFile());
   }
 
   @Test
@@ -71,7 +80,7 @@ public final class InodeTreeTests {
   }
 
   @Test
-  public void createEmptyFileTest() throws Exception {
+  public void createFileWithInvalidBlockSizeTest() throws Exception {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size 0");
 
@@ -171,7 +180,7 @@ public final class InodeTreeTests {
   }
 
   @Test
-  public void deleteNoexistingInodeTest() throws Exception {
+  public void deleteNonexistingInodeTest() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
