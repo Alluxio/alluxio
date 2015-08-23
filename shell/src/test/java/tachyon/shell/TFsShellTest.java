@@ -650,7 +650,7 @@ public class TFsShellTest {
   
   @Test
   public void catWildcardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     // the expect contents
     byte[] exp1 = BufferUtils.getIncreasingByteArray(10);
@@ -668,13 +668,12 @@ public class TFsShellTest {
   
   @Test
   public void freeWildCardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     
     int ret = mFsShell.run(new String[] {"free", "/testWild*/foo/*"});
-    CommonUtils
-    .sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+    CommonUtils.sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
         Constants.SECOND_MS) * 2 + 10);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")).isInMemory());
@@ -683,8 +682,7 @@ public class TFsShellTest {
     Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")).isInMemory());
     
     ret = mFsShell.run(new String[] {"free", "/testWild*/*/"});
-    CommonUtils
-    .sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
+    CommonUtils.sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
         Constants.SECOND_MS) * 2 + 10);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")).isInMemory());
@@ -693,7 +691,7 @@ public class TFsShellTest {
   
   @Test
   public void lsWildcardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     TachyonURI expf1 = new TachyonURI("/testWildCards/foo/foobar1");
     TachyonURI expf2 = new TachyonURI("/testWildCards/foo/foobar2");
@@ -741,7 +739,7 @@ public class TFsShellTest {
   
   @Test
   public void rmWildCardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     mFsShell.run(new String[] {"rm", "/testWildCards/foo/foo*"});
     Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")));
@@ -757,7 +755,7 @@ public class TFsShellTest {
   
   @Test
   public void rmrWildCardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     mFsShell.run(new String[] {"rmr", "/testWildCards/foo/foo*"});
     Assert.assertNull(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")));
@@ -778,7 +776,7 @@ public class TFsShellTest {
   
   @Test
   public void tailWildcardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     // the expect contents
     byte[] exp1 = BufferUtils.getIncreasingByteArray(10);
@@ -796,7 +794,7 @@ public class TFsShellTest {
   
   @Test
   public void fileinfoWildCardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     mFsShell.run(new String[] {"fileinfo", "/testWildCards/*"});
     String res1 = mOutput.toString();
@@ -817,7 +815,7 @@ public class TFsShellTest {
   
   @Test
   public void reportWildcardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     mFsShell.run(new String[] {"report", "/testWildCards/*/foo*"});
     String expectedOutput = "";
@@ -851,7 +849,7 @@ public class TFsShellTest {
   
   @Test
   public void locationWildcardTest() throws IOException {
-    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs);
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
     mFsShell.run(new String[] {"location", "/testWildCards/*/foo*"});
     
@@ -863,5 +861,24 @@ public class TFsShellTest {
     locationResults += getLocationResultStr("/testWildCards/bar/foobar3", 
         mTfs.getFileId(new TachyonURI("/testWildCards/bar/foobar3")), mTfs);
     Assert.assertEquals(locationResults, mOutput.toString());
+  }
+  
+  @Test
+  public void loadWildcardTest() throws IOException {
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.THROUGH);
+    
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")).isInMemory());
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar2")).isInMemory());
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")).isInMemory());
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")).isInMemory());
+    
+    mFsShell.run(new String[] {"load", "/testWildCards/*/foo*"});
+    
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")).isInMemory());
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar2")).isInMemory());
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")).isInMemory());
+    
+    mFsShell.run(new String[] {"load", "/testWildCards/*"});
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")).isInMemory());
   }
 }
