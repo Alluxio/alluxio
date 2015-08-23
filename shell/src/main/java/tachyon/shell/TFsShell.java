@@ -226,7 +226,7 @@ public class TFsShell implements Closeable {
       System.out.format(format, "File Count", "Folder Count", "Total Bytes");
       System.out.format(format, values[0], values[1], values[2]);
     } catch (FileDoesNotExistException e) {
-      System.out.println(e.getMessage() + " does not exist.");
+      System.out.println("'" + e.getMessage() + "' does not exist.");
       return -1;
     }
     return 0;
@@ -265,6 +265,10 @@ public class TFsShell implements Closeable {
    */
   public int fileinfo(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
+    if(tachyonClient.getFile(path).isDirectory()) {
+      System.out.println(path + " is a directory path so does not have file blocks.");
+      return -1;
+    }
     int fileId = tachyonClient.getFileId(path);
     if (fileId == -1) {
       System.out.println(path + " does not exist.");
@@ -641,59 +645,55 @@ public class TFsShell implements Closeable {
         }
       } else if (numOfArgs == 1) { // commands need 1 argument
         TachyonURI argp = new TachyonURI(argv[1]);
-        List<TachyonURI> paths = TFsShellUtils.getTachyonURIs(createFS(argp), argp);
         
-        // mkdir & touch is special because the input path does not need to exist
+        // mkdir & touch & count does not support wildcard by semantics
         if (cmd.equals("mkdir")) {
-          // mkdir does not support wildcard
           return mkdir(argp);
         } else if(cmd.equals("touch")) {
-          if (paths.size() == 0) {
-            return touch(argp);
-          } else {
-            int exitCode = 0;
-            for (TachyonURI path : paths) {
-              exitCode |= touch(path);
-            }
-            return exitCode;
-          }
+          return touch(argp);
+        } else if(cmd.equals("count")) {
+          return count(argp);
         }
         
-        // A unified sanity check on the paths
-        if (paths.size() == 0) {
+        List<TachyonURI> paths = TFsShellUtils.getTachyonURIs(createFS(argp), argp);
+        if (paths.size() == 0) { // A unified sanity check on the paths
           System.out.println("'" + argp + "' does not exist.");
+          return -1;
         }
         
         int exitCode = 0;
         for (TachyonURI path : paths) {
-          if (cmd.equals("cat")) {
-            exitCode |= cat(path);
-          } else if (cmd.equals("count")) {
-            exitCode |= count(path);
-          } else if (cmd.equals("ls")) {
-            exitCode |= ls(path);
-          } else if (cmd.equals("lsr")) {
-            exitCode |= lsr(path);
-          } else if (cmd.equals("rm")) {
-            exitCode |= rm(path);
-          } else if (cmd.equals("rmr")) {
-            exitCode |= rmr(path);
-          } else if (cmd.equals("tail")) {
-            exitCode |= tail(path);
-          } else if (cmd.equals("fileinfo")) {
-            exitCode |= fileinfo(path);
-          } else if (cmd.equals("location")) {
-            exitCode |= location(path);
-          } else if (cmd.equals("report")) {
-            exitCode |= report(path);
-          } else if (cmd.equals("pin")) {
-            exitCode |= pin(path);
-          } else if (cmd.equals("unpin")) {
-            exitCode |= unpin(path);
-          } else if (cmd.equals("free")) {
-            exitCode |= free(path);
-          } else if (cmd.equals("du")) {
-            exitCode |= du(path);
+          try {
+            if (cmd.equals("cat")) {
+              exitCode |= cat(path);
+            } else if (cmd.equals("ls")) {
+              exitCode |= ls(path);
+            } else if (cmd.equals("lsr")) {
+              exitCode |= lsr(path);
+            } else if (cmd.equals("rm")) {
+              exitCode |= rm(path);
+            } else if (cmd.equals("rmr")) {
+              exitCode |= rmr(path);
+            } else if (cmd.equals("tail")) {
+              exitCode |= tail(path);
+            } else if (cmd.equals("fileinfo")) {
+              exitCode |= fileinfo(path);
+            } else if (cmd.equals("location")) {
+              exitCode |= location(path);
+            } else if (cmd.equals("report")) {
+              exitCode |= report(path);
+            } else if (cmd.equals("pin")) {
+              exitCode |= pin(path);
+            } else if (cmd.equals("unpin")) {
+              exitCode |= unpin(path);
+            } else if (cmd.equals("free")) {
+              exitCode |= free(path);
+            } else if (cmd.equals("du")) {
+              exitCode |= du(path);
+            }
+          } catch (IOException ioe) {
+            System.out.println(ioe.getMessage());
+            exitCode |= -1;
           }
         }
         return exitCode;
@@ -708,13 +708,12 @@ public class TFsShell implements Closeable {
         } else if (cmd.equals("mv")) {
           return rename(argv);
         }
-      } 
+      }
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
     }
-
     return -1;
-  }
+  }   
 
   /**
    * Prints the file's last 1KB of contents to the console.
