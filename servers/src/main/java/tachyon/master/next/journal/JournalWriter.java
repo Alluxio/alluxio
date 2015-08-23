@@ -30,7 +30,6 @@ public class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make this a config parameter.
   private static final int MAX_LOG_SIZE = 10 * Constants.MB;
-  private static final int FIRST_COMPLETED_LOG_NUMBER = 1;
 
   private final Journal mJournal;
   private final TachyonConf mTachyonConf;
@@ -41,7 +40,7 @@ public class JournalWriter {
   private final UnderFileSystem mUfs;
 
   /** The log number to assign to the next complete log. */
-  private int mNextCompleteLogNumber = FIRST_COMPLETED_LOG_NUMBER;
+  private int mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
   /** The output stream for the current log. */
   private DataOutputStream mOutputStream = null;
@@ -137,7 +136,7 @@ public class JournalWriter {
     LOG.info("Deleting all completed log files");
     // Loop over all complete logs starting from the beginning.
     // TODO: should the deletes start from the end?
-    int logNumber = FIRST_COMPLETED_LOG_NUMBER;
+    int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
       LOG.info("Deleting completed log: " + logFilename);
@@ -148,7 +147,7 @@ public class JournalWriter {
     }
 
     // All complete logs are deleted. Reset the log number counter.
-    mNextCompleteLogNumber = FIRST_COMPLETED_LOG_NUMBER;
+    mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
   }
 
   private void completeCurrentLog() throws IOException {
