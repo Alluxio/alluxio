@@ -28,6 +28,7 @@ import tachyon.conf.TachyonConf;
  * completed entry files are in the "completed/" sub-directory.
  */
 public class Journal {
+  public static final int FIRST_COMPLETED_LOG_NUMBER = 1;
   private static final String COMPLETED_DIRECTORY = "completed/";
   private static final String CURRENT_LOG_EXTENSION = ".out";
 
