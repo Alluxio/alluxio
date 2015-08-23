@@ -475,7 +475,7 @@ public class TFsShell implements Closeable {
   public int getNumOfArgs(String cmd) {
     if (cmd.equals("getUsedBytes") 
         || cmd.equals("getCapacityBytes")) {
-      return 1;
+      return 0;
     } else if (cmd.equals("cat") 
         || cmd.equals("count") 
         || cmd.equals("ls") 
@@ -492,12 +492,12 @@ public class TFsShell implements Closeable {
         || cmd.equals("unpin") 
         || cmd.equals("free")
         || cmd.equals("du")) {
-      return 2;
+      return 1;
     } else if (cmd.equals("copyFromLocal") 
         || cmd.equals("copyToLocal") 
         || cmd.equals("request")
         || cmd.equals("mv")) {
-      return 3;
+      return 2;
     } else {
       return -1;
     }
@@ -617,79 +617,102 @@ public class TFsShell implements Closeable {
 
     // Sanity check on the number of arguments
     String cmd = argv[0];
-    int numOfArgs = getNumOfArgs(cmd);    
-    if (numOfArgs != argv.length) {
+    int numOfArgs = getNumOfArgs(cmd);
+    
+    if (numOfArgs == -1) { // Unknown command (we didn't find the cmd in our dict)
+      System.out.println(cmd + " is an unknown command.\n");
+      printUsage();
+      return -1;
+    }
+    
+    if (numOfArgs != argv.length - 1) {
       System.out.println(cmd + " takes " + numOfArgs + " arguments.\n");
       printUsage();
       return -1;
     }
     
-    TachyonURI path = new TachyonURI(argv[1]);
-    int exitCode = -1;
+    // Handle the command
     try {
-      // Commands need 0 argument
-      if (cmd.equals("getUsedBytes")) {
-        return getUsedBytes();
-      } else if (cmd.equals("getCapacityBytes")) {
-        return getCapacityBytes();
-      }  
-            
-      //Commands need 1 argument
-      if (cmd.equals("cat")) {
-        return cat(path);
-      } else if (cmd.equals("count")) {
-        return count(path);
-      } else if (cmd.equals("ls")) {
-        return ls(path);
-      } else if (cmd.equals("lsr")) {
-        return lsr(path);
-      } else if (cmd.equals("mkdir")) {
-        return mkdir(path);
-      } else if (cmd.equals("rm")) {
-        return rm(path);
-      } else if (cmd.equals("rmr")) {
-        return rmr(path);
-      } else if (cmd.equals("tail")) {
-        return tail(path);
-      } else if (cmd.equals("touch")) {
-        return touch(path);
-      } else if (cmd.equals("fileinfo")) {
-        return fileinfo(path);
-      } else if (cmd.equals("location")) {
-        return location(path);
-      } else if (cmd.equals("report")) {
-        return report(path);
-      } else if (cmd.equals("pin")) {
-        return pin(path);
-      } else if (cmd.equals("unpin")) {
-        return unpin(path);
-      } else if (cmd.equals("free")) {
-        return free(path);
-      } else if (cmd.equals("du")) {
-        return du(path);
-      }
-      
-      // Commands need 2 arguments
-      if (cmd.equals("copyFromLocal")) {
-        return copyFromLocal(argv);
-      } else if (cmd.equals("copyToLocal")) {
-        return copyToLocal(argv);
-      } else if (cmd.equals("request")) {
-        return request(argv);
-      } else if (cmd.equals("mv")) {
-        return rename(argv);
-      }
-      
-      // Unknown command
-      System.out.println(cmd + " is an unknown command.\n");
-      printUsage();
-      return -1;
-      
+      if (numOfArgs == 0) { // commands need 0 argument
+        if (cmd.equals("getUsedBytes")) {
+          return getUsedBytes();
+        } else if (cmd.equals("getCapacityBytes")) {
+          return getCapacityBytes();
+        }
+      } else if (numOfArgs == 1) { // commands need 1 argument
+        TachyonURI argp = new TachyonURI(argv[1]);
+        List<TachyonURI> paths = TFsShellUtils.getTachyonURIs(createFS(argp), argp);
+        
+        // mkdir & touch is special because the input path does not need to exist
+        if (cmd.equals("mkdir")) {
+          // mkdir does not support wildcard
+          return mkdir(argp);
+        } else if(cmd.equals("touch")) {
+          if (paths.size() == 0) {
+            return touch(argp);
+          } else {
+            int exitCode = 0;
+            for (TachyonURI path : paths) {
+              exitCode |= touch(path);
+            }
+            return exitCode;
+          }
+        }
+        
+        // A unified sanity check on the paths
+        if (paths.size() == 0) {
+          System.out.println("'" + argp + "' does not exist.");
+        }
+        
+        int exitCode = 0;
+        for (TachyonURI path : paths) {
+          if (cmd.equals("cat")) {
+            exitCode |= cat(path);
+          } else if (cmd.equals("count")) {
+            exitCode |= count(path);
+          } else if (cmd.equals("ls")) {
+            exitCode |= ls(path);
+          } else if (cmd.equals("lsr")) {
+            exitCode |= lsr(path);
+          } else if (cmd.equals("rm")) {
+            exitCode |= rm(path);
+          } else if (cmd.equals("rmr")) {
+            exitCode |= rmr(path);
+          } else if (cmd.equals("tail")) {
+            exitCode |= tail(path);
+          } else if (cmd.equals("fileinfo")) {
+            exitCode |= fileinfo(path);
+          } else if (cmd.equals("location")) {
+            exitCode |= location(path);
+          } else if (cmd.equals("report")) {
+            exitCode |= report(path);
+          } else if (cmd.equals("pin")) {
+            exitCode |= pin(path);
+          } else if (cmd.equals("unpin")) {
+            exitCode |= unpin(path);
+          } else if (cmd.equals("free")) {
+            exitCode |= free(path);
+          } else if (cmd.equals("du")) {
+            exitCode |= du(path);
+          }
+          return exitCode;
+        }
+      } else if (numOfArgs == 2) { // commands need 2 arguments
+        if (cmd.equals("copyFromLocal")) {
+          return copyFromLocal(argv);
+        } else if (cmd.equals("copyToLocal")) {
+          return copyToLocal(argv);
+        } else if (cmd.equals("request")) {
+          return request(argv);
+        } else if (cmd.equals("mv")) {
+          return rename(argv);
+        }
+      } 
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
     }
 
-    return exitCode;
+    return -1;
   }
 
   /**
