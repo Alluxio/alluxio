@@ -25,15 +25,15 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * Tachyon file system's file representation in master.
  */
-public class InodeFile extends Inode {
+public final class InodeFile extends Inode {
   /**
    * Create a new InodeFile from an image JSON element
    *

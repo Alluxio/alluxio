@@ -21,12 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.master.block.BlockId;
 
 /**
- * Unit tests for tachyon.InodeDirectory
+ * Unit tests for tachyon.InodeDirectory.
  */
-public final class InodeDirectoryTests {
+public final class InodeDirectoryTests extends AbstractInodeTests {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Test
@@ -177,15 +176,4 @@ public final class InodeDirectoryTests {
         System.currentTimeMillis() - start));
   }
 
-  private long createBlockId(long containerId) {
-    return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
-  }
-
-  private static InodeDirectory createInodeDirectory() {
-    return new InodeDirectory("test1", 1, 0, System.currentTimeMillis());
-  }
-
-  private InodeFile createInodeFile(long id) {
-    return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis());
-  }
 }
