@@ -695,8 +695,9 @@ public class TFsShell implements Closeable {
           } else if (cmd.equals("du")) {
             exitCode |= du(path);
           }
-          return exitCode;
         }
+        return exitCode;
+        
       } else if (numOfArgs == 2) { // commands need 2 arguments
         if (cmd.equals("copyFromLocal")) {
           return copyFromLocal(argv);
