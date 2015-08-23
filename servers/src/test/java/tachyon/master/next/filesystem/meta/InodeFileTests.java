@@ -18,10 +18,15 @@ package tachyon.master.next.filesystem.meta;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.SuspectedFileSizeException;
+
 /**
  * Unit tests for tachyon.InodeFile
  */
 public final class InodeFileTests extends AbstractInodeTests {
+  private static long LENGTH = 100;
+
   @Test
   public void equalsTest() {
     InodeFile inode1 = createInodeFile(1);
@@ -38,5 +43,31 @@ public final class InodeFileTests extends AbstractInodeTests {
   public void getIdTest() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertEquals(createBlockId(1), inode1.getId());
+  }
+
+  @Test
+  public void setLengthTest() throws SuspectedFileSizeException, BlockInfoException {
+    InodeFile inodeFile = createInodeFile(1);
+    inodeFile.setLength(LENGTH);
+    Assert.assertEquals(LENGTH, inodeFile.getLength());
+  }
+
+  @Test
+  public void setNegativeLengthTest() throws Exception {
+    mThrown.expect(SuspectedFileSizeException.class);
+    mThrown.expectMessage("InodeFile new length " + -1 + " is negative.");
+
+    InodeFile inodeFile = createInodeFile(1);
+    inodeFile.setLength(-1);
+  }
+
+  @Test
+  public void setLengthAfterCompleteTest() throws Exception {
+    mThrown.expect(SuspectedFileSizeException.class);
+    mThrown.expectMessage("InodeFile length was set previously.");
+
+    InodeFile inodeFile = createInodeFile(1);
+    inodeFile.setLength(LENGTH);
+    inodeFile.setLength(LENGTH);
   }
 }
