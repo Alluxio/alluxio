@@ -94,11 +94,12 @@ public class TFsShellUtilsTest {
     };
   }
   
-  public String resetTachyonFileHierarchy() throws IOException {
-    return resetTachyonFileHierarchy(mTfs);
+  public String resetTachyonFileHierarchy(WriteType writeType) throws IOException {
+    return resetTachyonFileHierarchy(mTfs, writeType);
   }
   
-  public static String resetTachyonFileHierarchy(TachyonFS tfs) throws IOException {
+  public static String resetTachyonFileHierarchy(TachyonFS tfs, WriteType writeType) 
+      throws IOException {
     /**
      * Generate such local structure
      *  /testWildCards
@@ -114,10 +115,10 @@ public class TFsShellUtilsTest {
     tfs.mkdir(new TachyonURI("/testWildCards/foo"));
     tfs.mkdir(new TachyonURI("/testWildCards/bar"));
     
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
-    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", writeType, 10);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", writeType, 20);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", writeType, 30);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", writeType, 40);
     
     return "/testWildCards";
   }
@@ -172,7 +173,7 @@ public class TFsShellUtilsTest {
   
   public String resetFsHierarchy(FsType fsType) throws IOException {
     if (fsType == FsType.TFS) {
-      return resetTachyonFileHierarchy();
+      return resetTachyonFileHierarchy(WriteType.MUST_CACHE);
     } else if (fsType == FsType.LOCAL) {
       return resetLocalFileHierarchy();
     } else {
