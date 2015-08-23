@@ -31,6 +31,11 @@ import tachyon.thrift.InvalidPathException;
  * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.
  */
 public class PathUtils {
+
+  private PathUtils() {
+    // util class
+  }
+
   /**
    * Checks and normalizes the given path
    *

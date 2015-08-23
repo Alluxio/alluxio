@@ -95,7 +95,7 @@ public final class MasterClient implements Closeable {
   public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
@@ -174,7 +174,7 @@ public final class MasterClient implements Closeable {
     }
 
     Exception lastException = null;
-    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29);
+    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT);
     RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, maxConnectsTry);
     do {
       mMasterAddress = getMasterAddress();
@@ -193,7 +193,7 @@ public final class MasterClient implements Closeable {
 
         String threadName = "master-heartbeat-" + mMasterAddress;
         int interval =
-            mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+            mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(threadName, heartBeater, interval / 2));
       } catch (TTransportException e) {
@@ -222,6 +222,21 @@ public final class MasterClient implements Closeable {
     // Reaching here indicates that we did not successfully connect.
     throw new IOException("Failed to connect with master @ " + mMasterAddress + " after "
         + (retry.getRetryCount()) + " attempts", lastException);
+  }
+
+  /**
+   * Reset the connection with the Tachyon Master.
+   * <p>
+   * Mainly used for worker to master syncer (e.g., BlockMasterSyncer, PinListSyncer, etc.)
+   * to recover from Exception while running in case the master changes.
+   */
+  public synchronized void resetConnection() {
+    disconnect();
+    try {
+      connect();
+    } catch (IOException e) {
+      LOG.error("Failed to reset the connection with tachyon master.", e);
+    }
   }
 
   /**
@@ -285,8 +300,8 @@ public final class MasterClient implements Closeable {
     }
 
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null),
-            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
+        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS),
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
@@ -303,12 +318,11 @@ public final class MasterClient implements Closeable {
    * @throws IOException
    */
   public synchronized long getUserId() throws IOException {
-    while (!mIsClosed) {
-      connect();
-      return mUserId;
+    if (mIsClosed) {
+      return -1;
     }
-
-    return -1;
+    connect();
+    return mUserId;
   }
 
   /**

@@ -73,16 +73,16 @@ public class TFsShellUtils {
       }
     } else {
       String hostname = tachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-      if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false)) {
+      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
+      if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);
     }
   }
-  
+
   /**
-   * Get all the TachyonURIs that match inputURI. 
+   * Get all the TachyonURIs that match inputURI.
    * If the path is a regular path, the returned list only contains the corresponding URI;
    * Else if the path contains wildcards, the returned list contains all the matched URIs
    * It supports any number of wildcards in inputURI
@@ -92,7 +92,7 @@ public class TFsShellUtils {
    * @throws IOException
    */
   public static List<TachyonURI> getTachyonURIs(TachyonFS tachyonClient, TachyonURI inputURI)
-      throws IOException {    
+      throws IOException {
     if (!inputURI.getPath().contains(TachyonURI.WILDCARD)) {
       List<TachyonURI> res = new LinkedList<TachyonURI>();
       if (tachyonClient.getFileId(inputURI) != -1) {
@@ -101,13 +101,13 @@ public class TFsShellUtils {
       return res;
     } else {
       String inputPath = inputURI.getPath();
-      TachyonURI parentURI = 
+      TachyonURI parentURI =
           new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(),
               inputPath.substring(0, inputPath.indexOf(TachyonURI.WILDCARD) + 1)).getParent();
       return getTachyonURIs(tachyonClient, inputURI, parentURI);
     }
   }
-  
+
   /**
    * The utility function used to implement getTachyonURIs
    * Basically, it recursively iterates through the directory from the parent directory of inputURI
@@ -142,9 +142,9 @@ public class TFsShellUtils {
     }
     return res;
   }
-  
+
   /**
-   * Get the Files (on the local filesystem) that matches input path. 
+   * Get the Files (on the local filesystem) that matches input path.
    * If the path is a regular path, the returned list only contains the corresponding file;
    * Else if the path contains wildcards, the returned list contains all the matched Files
    * @param inputPath The input file path (could contain wildcards)
@@ -164,12 +164,12 @@ public class TFsShellUtils {
       return getFiles(inputPath, parent);
     }
   }
-  
+
   /**
    * The utility function used to implement getFiles
    * It follows the same algorithm as getTachyonURIs
    * @param inputPath The input file path (could contain wildcards)
-   * @param parent The directory in which we are searching matched files 
+   * @param parent The directory in which we are searching matched files
    * @return A list of files that matches the input path in the parent directory
    */
   private static List<File> getFiles(String inputPath, String parent) {
@@ -195,12 +195,12 @@ public class TFsShellUtils {
     }
     return res;
   }
-  
+
   /**
    * The characters that have special regex semantics
    */
   private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
-  
+
   /**
    * Escape the special characters in a given string
    * @param str Input string
@@ -209,14 +209,14 @@ public class TFsShellUtils {
   private static String escape(String str) {
     return SPECIAL_REGEX_CHARS.matcher(str).replaceAll("\\\\$0");
   }
-  
+
   /**
    * Replace the wildcards with Java's regex semantics
    */
   private static String replaceWildcards(String text) {
     return escape(text).replace("\\*", ".*");
   }
-  
+
   /**
    * Return whether or not fileURI matches the patternURI
    * @param fileURI The TachyonURI of a particular file
@@ -226,7 +226,7 @@ public class TFsShellUtils {
   private static boolean match(TachyonURI fileURI, TachyonURI patternURI) {
     return escape(fileURI.getPath()).matches(replaceWildcards(patternURI.getPath()));
   }
-  
+
   /**
    * Return whether or not filePath matches patternPath
    * @param filePath Path of a given file

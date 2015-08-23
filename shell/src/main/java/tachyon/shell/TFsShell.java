@@ -113,6 +113,55 @@ public class TFsShell implements Closeable {
   }
 
   /**
+   * Load a file or directory in Tachyon space, makes it resident in memory.
+   *
+   * @param filePath The TachyonURI path to load into Tachyon memory
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */ 
+  public int load(TachyonURI filePath) throws IOException {
+    TachyonFS tachyonClient = createFS(filePath);
+    int ret = loadPath(tachyonClient, filePath);
+    if (ret == 0) {
+      System.out.println(filePath + " loaded");
+    } else {
+      System.out.println("Loading " + filePath + " failed");
+    }
+    return ret;
+  }
+
+  private int loadPath(TachyonFS tachyonClient, TachyonURI filePath) throws IOException {
+    TachyonFile tFile = tachyonClient.getFile(filePath);
+    if (tFile == null) {
+      return -1;
+    }
+    if (tFile.isDirectory()) {
+      List<ClientFileInfo> files = tachyonClient.listStatus(filePath); 
+      Collections.sort(files);
+      for (ClientFileInfo file : files) {
+        TachyonURI newPath = new TachyonURI(file.getPath());
+        if (loadPath(tachyonClient, newPath) == -1) {
+          return -1;
+        }
+      }
+      return 0;
+    } else {
+      Closer closer = Closer.create();
+      InStream in = closer.register(tFile.getInStream(ReadType.CACHE));
+      byte[] buf = new byte[8 * Constants.MB];
+      try {
+        while (in.read(buf) != -1) {
+        }
+        return 0;
+      } catch (Throwable e) {
+        throw closer.rethrow(e);
+      } finally {
+        closer.close();
+      }
+    }
+  }
+
+  /**
    * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
    * fail if the path given already exists in the filesystem.
    *
@@ -265,7 +314,7 @@ public class TFsShell implements Closeable {
    */
   public int fileinfo(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    if(tachyonClient.getFile(path).isDirectory()) {
+    if (tachyonClient.getFile(path).isDirectory()) {
       System.out.println(path + " is a directory path so does not have file blocks.");
       return -1;
     }
@@ -457,6 +506,7 @@ public class TFsShell implements Closeable {
     System.out.println("       [tail <path>]");
     System.out.println("       [touch <path>]");
     System.out.println("       [mv <src> <dst>]");
+    System.out.println("       [load <path>]");
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
     System.out.println("       [fileinfo <path>]");
@@ -489,6 +539,7 @@ public class TFsShell implements Closeable {
         || cmd.equals("rmr") 
         || cmd.equals("tail")
         || cmd.equals("touch") 
+        || cmd.equals("load")
         || cmd.equals("fileinfo") 
         || cmd.equals("location")
         || cmd.equals("report") 
@@ -649,9 +700,9 @@ public class TFsShell implements Closeable {
         // mkdir & touch & count does not support wildcard by semantics
         if (cmd.equals("mkdir")) {
           return mkdir(argp);
-        } else if(cmd.equals("touch")) {
+        } else if (cmd.equals("touch")) {
           return touch(argp);
-        } else if(cmd.equals("count")) {
+        } else if (cmd.equals("count")) {
           return count(argp);
         }
         
@@ -676,6 +727,8 @@ public class TFsShell implements Closeable {
               exitCode |= rmr(path);
             } else if (cmd.equals("tail")) {
               exitCode |= tail(path);
+            } else if (cmd.equals("load")) {
+              exitCode |= load(path);
             } else if (cmd.equals("fileinfo")) {
               exitCode |= fileinfo(path);
             } else if (cmd.equals("location")) {

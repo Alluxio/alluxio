@@ -11,12 +11,11 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Preconditions;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
@@ -55,7 +54,7 @@ public class TachyonConf {
   public static void assertValidPort(final int port, TachyonConf tachyonConf) {
     Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
 
-    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE, false)) {
+    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
       Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
     }
   }
@@ -161,8 +160,8 @@ public class TachyonConf {
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.USE_ZOOKEEPER));
-    String masterAddress = (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":"
-        + masterPort;
+    String masterAddress =
+        (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
   }
 
@@ -220,6 +219,10 @@ public class TachyonConf {
     return updated;
   }
 
+  public String get(String key) {
+    return get(key, null);
+  }
+
   public boolean containsKey(String key) {
     return mProperties.containsKey(key);
   }
@@ -236,7 +239,20 @@ public class TachyonConf {
     return defaultValue;
   }
 
-  public long getLong(String key, final long defaultValue) {
+  public int getInt(String key) {
+    if (mProperties.containsKey(key)) {
+      String rawValue = mProperties.getProperty(key);
+      try {
+        return Integer.parseInt(lookup(rawValue));
+      } catch (NumberFormatException e) {
+        throw new RuntimeException("Configuration cannot evaluate key " + key + " as integer.");
+      }
+    }
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
+  }
+
+  public long getLong(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
@@ -245,22 +261,24 @@ public class TachyonConf {
         LOG.warn("Configuration cannot evaluate key " + key + " as long.");
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public double getDouble(String key, final double defaultValue) {
+  public double getDouble(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
         return Double.parseDouble(lookup(rawValue));
       } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as double.");
+        throw new RuntimeException("Configuration cannot evaluate key " + key + " as double.");
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public float getFloat(String key, final float defaultValue) {
+  public float getFloat(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
@@ -269,26 +287,28 @@ public class TachyonConf {
         LOG.warn("Configuration cannot evaluate key " + key + " as float.");
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public boolean getBoolean(String key, boolean defaultValue) {
+  public boolean getBoolean(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       return Boolean.parseBoolean(lookup(rawValue));
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public List<String> getList(String key, String delimiter, List<String> defaultValue) {
-    if (delimiter == null) {
-      throw new IllegalArgumentException("Illegal separator for Tachyon properties as list");
-    }
+  public List<String> getList(String key, String delimiter) {
+    Preconditions.checkArgument(delimiter != null, "Illegal separator for Tachyon properties as "
+        + "list");
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       return Lists.newLinkedList(Splitter.on(',').trimResults().omitEmptyStrings().split(rawValue));
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   public <T extends Enum<T>> T getEnum(String key, T defaultValue) {
@@ -299,16 +319,19 @@ public class TachyonConf {
     return defaultValue;
   }
 
-  public long getBytes(String key, long defaultValue) {
-    String rawValue = get(key, "");
-    try {
-      return FormatUtils.parseSpaceSize(rawValue);
-    } catch (Exception ex) {
-      return defaultValue;
+  public long getBytes(String key) {
+    if (mProperties.containsKey(key)) {
+      String rawValue = get(key);
+      try {
+        return FormatUtils.parseSpaceSize(rawValue);
+      } catch (Exception ex) {
+        throw new RuntimeException("Configuration cannot evaluate key " + key + " as bytes.");
+      }
     }
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public <T> Class<T> getClass(String key, Class<T> defaultValue) {
+  public <T> Class<T> getClass(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
       try {
@@ -318,7 +341,8 @@ public class TachyonConf {
         LOG.error("{} : {} , {}", msg, rawValue, e);
       }
     }
-    return defaultValue;
+    // if key is not found among the default properties
+    throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
   /**

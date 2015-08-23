@@ -96,8 +96,8 @@ public class TachyonMaster {
   public TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
 
-    int port = mTachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT, Constants.DEFAULT_MASTER_WEB_PORT);
+    int port = mTachyonConf.getInt(Constants.MASTER_PORT);
+    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT);
 
     TachyonConf.assertValidPort(port, mTachyonConf);
     TachyonConf.assertValidPort(webPort, mTachyonConf);
@@ -117,7 +117,7 @@ public class TachyonMaster {
       addressListening = new InetSocketAddress(hostnameListening, port);
     }
 
-    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
 
     mIsStarted = false;
     mWebPort = webPort;
@@ -126,8 +126,7 @@ public class TachyonMaster {
             .availableProcessors());
 
     mMaxWorkerThreads =
-        mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS,
-            Constants.DEFAULT_MASTER_MAX_WORKER_THREADS);
+        mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         Constants.MASTER_MAX_WORKER_THREADS + " can not be less than "
             + Constants.MASTER_MIN_WORKER_THREADS);
@@ -141,11 +140,10 @@ public class TachyonMaster {
       mServerTServerSocket = new TServerSocket(addressListening);
       mPort = NetworkAddressUtils.getPort(mServerTServerSocket);
 
-      String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
       String journalFolder =
-          mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, tachyonHome + "/journal/");
+          mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
       String formatFilePrefix =
-          mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX, Constants.FORMAT_FILE_PREFIX);
+          mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
       UnderFileSystem ufs = UnderFileSystem.get(journalFolder, mTachyonConf);
       if (ufs.providesStorage()) {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
@@ -161,9 +159,9 @@ public class TachyonMaster {
         // InetSocketAddress.toString causes test issues, so build the string by hand
         String zkName =
             NetworkAddressUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
-        String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null);
-        String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
-        String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
+        String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS);
+        String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH);
+        String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH);
         mLeaderSelectorClient =
             new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
         mEditLogProcessor =
@@ -239,9 +237,8 @@ public class TachyonMaster {
   }
 
   private void connectToUFS() throws IOException {
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     String ufsAddress =
-        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getFqdnHost(mMasterAddress));
   }

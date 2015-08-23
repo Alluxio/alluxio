@@ -15,20 +15,17 @@
 
 package tachyon.worker;
 
-import java.io.IOException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockWorker;
 
 /**
  * Entry point for the Tachyon Worker. This class is responsible for initializing the different
  * workers that are configured to run.
  */
-public class TachyonWorker {
+public final class TachyonWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -39,11 +36,10 @@ public class TachyonWorker {
    */
   public static void main(String[] args) {
     checkArgs(args);
-    TachyonConf tachyonConf = new TachyonConf();
     BlockWorker worker = null;
 
     try {
-      worker = new BlockWorker(tachyonConf);
+      worker = new BlockWorker();
     } catch (Exception e) {
       LOG.error("Failed to initialize the block worker, exiting.", e);
       System.exit(-1);

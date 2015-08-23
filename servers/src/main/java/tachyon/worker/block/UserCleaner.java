@@ -27,7 +27,7 @@ import tachyon.util.CommonUtils;
  * associated data when necessary. The syncing parameters (intervals) adopt directly from
  * worker-to-master heartbeat configurations.
  */
-public class UserCleaner implements Runnable {
+public final class UserCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
@@ -49,7 +49,7 @@ public class UserCleaner implements Runnable {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mCheckIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;
   }
