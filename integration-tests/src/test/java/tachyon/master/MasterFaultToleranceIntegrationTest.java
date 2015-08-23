@@ -44,12 +44,10 @@ public class MasterFaultToleranceIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonClusterMultiMaster.stop();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
   public final void before() throws Exception {
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonClusterMultiMaster =
         new LocalTachyonClusterMultiMaster(10000, MASTERS, BLOCK_SIZE);
     mLocalTachyonClusterMultiMaster.start();
@@ -109,7 +107,7 @@ public class MasterFaultToleranceIntegrationTest {
 
     for (int kills = 0; kills < 1; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(null, Constants.SECOND_MS * 3);
+      CommonUtils.sleepMs(Constants.SECOND_MS * 3);
       faultTestDataCheck(answer);
     }
 

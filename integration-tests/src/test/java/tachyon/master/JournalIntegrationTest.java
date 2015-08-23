@@ -28,9 +28,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
-import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.ClientFileInfo;
@@ -75,7 +75,7 @@ public class JournalIntegrationTest {
   private void AddBlockTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     String masterJournal =
-        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
+        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info =
         new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
@@ -112,8 +112,7 @@ public class JournalIntegrationTest {
 
   private void AddCheckpointTestUtil(ClientFileInfo fileInfo, ClientFileInfo ckFileInfo)
       throws IOException, InvalidPathException, FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
@@ -137,12 +136,10 @@ public class JournalIntegrationTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     mExecutorService.shutdown();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
   public final void before() throws Exception {
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 100, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -201,8 +198,7 @@ public class JournalIntegrationTest {
 
   private void DeleteTestUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
@@ -220,8 +216,7 @@ public class JournalIntegrationTest {
   @Test
   public void EmptyImageTest() throws Exception {
     mLocalTachyonCluster.stopTFS();
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
@@ -254,7 +249,7 @@ public class JournalIntegrationTest {
   private void FileFolderUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
     String masterJournal =
-        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
+        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info =
         new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
@@ -288,8 +283,7 @@ public class JournalIntegrationTest {
 
   private void FileTestUtil(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
@@ -324,8 +318,7 @@ public class JournalIntegrationTest {
 
   private void PinTestUtil(ClientFileInfo folder, ClientFileInfo file0, ClientFileInfo file1)
       throws IOException, InvalidPathException, FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
@@ -365,7 +358,7 @@ public class JournalIntegrationTest {
   private void FolderTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     String masterJournal =
-        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
+        mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info =
         new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
@@ -396,8 +389,7 @@ public class JournalIntegrationTest {
 
   private void ManyFileTestUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
@@ -431,8 +423,7 @@ public class JournalIntegrationTest {
 
   private void MultiEditLogTestUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
@@ -519,8 +510,7 @@ public class JournalIntegrationTest {
 
   private void RenameTestUtil()
       throws IOException, InvalidPathException, FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);
@@ -554,8 +544,7 @@ public class JournalIntegrationTest {
 
   private void TableTest(ClientFileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER,
-        Constants.DEFAULT_JOURNAL_FOLDER);
+    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
         mMasterTachyonConf);

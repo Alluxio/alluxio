@@ -97,7 +97,7 @@ public class MasterInfo extends ImageWriter {
       synchronized (mWorkers) {
         for (Entry<Long, MasterWorkerInfo> worker : mWorkers.entrySet()) {
           int masterWorkerTimeoutMs =
-              mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+              mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
           if (CommonUtils.getCurrentMs()
               - worker.getValue().getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
@@ -150,7 +150,7 @@ public class MasterInfo extends ImageWriter {
                 dep.addLostFile(tFile.getId());
                 LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                     + " . Trying to recompute it using dependency " + dep.mId);
-                String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER, "/tmp");
+                String tmp = mTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER);
                 if (!getPath(tFile).toString().startsWith(tmp)) {
                   mMustRecomputedDpendencies.add(depId);
                 }
@@ -165,7 +165,7 @@ public class MasterInfo extends ImageWriter {
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers.");
         try {
-          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
           java.lang.Runtime.getRuntime()
               .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
         } catch (IOException e) {
@@ -226,7 +226,7 @@ public class MasterInfo extends ImageWriter {
         }
 
         for (String cmd : cmds) {
-          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
           String filePath = tachyonHome + "/logs/rerun-" + mRerunCounter.incrementAndGet();
           // TODO use bounded threads (ExecutorService)
           Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
@@ -315,9 +315,7 @@ public class MasterInfo extends ImageWriter {
     mStartTimeNSPrefix = mStartTimeMs - (mStartTimeMs % 1000000);
     mJournal = journal;
 
-    mWhitelist =
-        new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ",",
-            new LinkedList<String>()));
+    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
     mPinnedInodeFileIds = Collections.synchronizedSet(new HashSet<Integer>());
 
     mJournal.loadImage(this);
@@ -1076,7 +1074,7 @@ public class MasterInfo extends ImageWriter {
       TachyonException {
     LOG.info("createRawTable" + FormatUtils.parametersToString(path, columns));
 
-    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     if (columns <= 0 || columns >= maxColumns) {
       throw new TableColumnException("Column " + columns + " should between 0 to " + maxColumns);
     }
@@ -1874,7 +1872,7 @@ public class MasterInfo extends ImageWriter {
     mHeartbeat =
         mExecutorService.submit(new HeartbeatThread("Master Heartbeat",
             new MasterInfoHeartbeatExecutor(), mTachyonConf.getInt(
-                Constants.MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)));
+                Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
 
     mRecompute = mExecutorService.submit(new RecomputationScheduler());
   }

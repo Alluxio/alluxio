@@ -35,9 +35,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
-import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -121,6 +121,27 @@ public class TFsShellTest {
     byte[] read = new byte[SIZE_BYTES];
     tfis.read(read);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+  }
+
+  @Test
+  public void loadFileTest() throws IOException {
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.THROUGH, 10);
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
+    // Testing loading of a single file
+    mFsShell.run(new String[] {"load", "/testFile"});
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
+  }
+
+  @Test
+  public void loadDirTest() throws IOException {
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.THROUGH, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testRoot/testFileB")).isInMemory());
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testRoot/testFileA")).isInMemory());
+    // Testing loading of a directory
+    mFsShell.run(new String[] {"load", "/testRoot"});
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testRoot/testFileA")).isInMemory());
+    Assert.assertTrue(mTfs.getFile(new TachyonURI("/testRoot/testFileB")).isInMemory());
   }
 
   @Test
@@ -599,9 +620,9 @@ public class TFsShellTest {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils
-        .sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
-            Constants.SECOND_MS) * 2 + 10);
+    CommonUtils.sleepMs(
+        tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)
+            * 2 + 10);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
 

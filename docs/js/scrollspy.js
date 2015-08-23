@@ -55,7 +55,7 @@ if (toc !== null) { // checks to see if table of contents exists in page
                 }
             }
 
-            if (tocEl[active].children[1] !== null && tocEl[active].children[1].nodeName == "UL") {
+            if (tocEl[active].children[1] != null && tocEl[active].children[1].nodeName == "UL") {
                 // this list item has a nested list so a sublist has been entered
                 sublist = active;
                 sublistChildren = tocEl[active].children[1].childElementCount;

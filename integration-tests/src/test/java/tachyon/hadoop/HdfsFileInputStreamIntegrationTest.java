@@ -53,14 +53,10 @@ public class HdfsFileInputStreamIntegrationTest {
   @AfterClass
   public static final void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
     sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     sLocalTachyonCluster.start();
@@ -79,12 +75,12 @@ public class HdfsFileInputStreamIntegrationTest {
   public final void before() throws IOException {
     ClientFileInfo fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile1"));
     mInMemInputStream = new HdfsFileInputStream(sTFS, fileInfo.getId(),
-        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
+        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE, null,
         sLocalTachyonCluster.getMasterTachyonConf());
 
     fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile2"));
     mUfsInputStream = new HdfsFileInputStream(sTFS, fileInfo.getId(),
-        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE,
+        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE, null,
         sLocalTachyonCluster.getMasterTachyonConf());
   }
 
