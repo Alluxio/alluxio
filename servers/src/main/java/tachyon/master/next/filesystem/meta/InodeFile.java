@@ -248,15 +248,16 @@ public final class InodeFile extends Inode {
       throw new SuspectedFileSizeException("InodeFile length was set previously.");
     }
     if (length < 0) {
-      throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
+      throw new SuspectedFileSizeException("InodeFile new length " + length + " is negative.");
     }
-    mLength = 0;
+    mLength = length;
     mBlocks.clear();
     while (length > 0) {
       long blockSize = Math.min(length, mBlockSizeBytes);
       getNewBlockId();
       length -= blockSize;
     }
+    setComplete(length);
   }
 
   @Override

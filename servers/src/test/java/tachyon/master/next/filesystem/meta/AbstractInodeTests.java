@@ -15,6 +15,9 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
+
 import tachyon.Constants;
 import tachyon.master.block.BlockId;
 
@@ -22,6 +25,9 @@ import tachyon.master.block.BlockId;
  * Abstract class for serving inode tests.
  */
 public abstract class AbstractInodeTests {
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   protected long createBlockId(long containerId) {
     return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
