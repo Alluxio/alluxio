@@ -95,6 +95,10 @@ public class TFsShellUtilsTest {
   }
   
   public String resetTachyonFileHierarchy() throws IOException {
+    return resetTachyonFileHierarchy(mTfs);
+  }
+  
+  public static String resetTachyonFileHierarchy(TachyonFS tfs) throws IOException {
     /**
      * Generate such local structure
      *  /testWildCards
@@ -105,20 +109,25 @@ public class TFsShellUtilsTest {
      *  |    └── foobar3
      *  └── foobar4
      */
-    mTfs.delete(new TachyonURI("/testWildCards"), true);
-    mTfs.mkdir(new TachyonURI("/testWildCards"));
-    mTfs.mkdir(new TachyonURI("/testWildCards/foo"));
-    mTfs.mkdir(new TachyonURI("/testWildCards/bar"));
+    tfs.delete(new TachyonURI("/testWildCards"), true);
+    tfs.mkdir(new TachyonURI("/testWildCards"));
+    tfs.mkdir(new TachyonURI("/testWildCards/foo"));
+    tfs.mkdir(new TachyonURI("/testWildCards/bar"));
     
-    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
     
     return "/testWildCards";
   }
   
   public String resetLocalFileHierarchy() throws IOException {
+    return resetLocalFileHierarchy(mLocalTachyonCluster);
+  }
+  
+  public static String resetLocalFileHierarchy(LocalTachyonCluster localTachyonCluster) 
+      throws IOException {
     /**
      * Generate such local structure
      *  /testWildCards
@@ -129,17 +138,17 @@ public class TFsShellUtilsTest {
      *  |    └── foobar3
      *  └── foobar4
      */
-    FileUtils.deleteDirectory(new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards"));
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo").mkdir();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/bar").mkdir();
+    FileUtils.deleteDirectory(new File(localTachyonCluster.getTachyonHome() + "/testWildCards"));
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo").mkdir();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/bar").mkdir();
     
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar1").createNewFile();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar2").createNewFile();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/bar/foobar3").createNewFile();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foobar4").createNewFile();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar1").createNewFile();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar2").createNewFile();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/bar/foobar3").createNewFile();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foobar4").createNewFile();
     
-    return mLocalTachyonCluster.getTachyonHome() + "/testWildCards";
+    return localTachyonCluster.getTachyonHome() + "/testWildCards";
   }
   
   public List<String> getPaths(String path, FsType fsType) throws IOException {
