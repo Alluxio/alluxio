@@ -78,7 +78,7 @@ public final class InodeTree {
   }
 
   public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
-    TraverseResult traversalResult = traverseToInode(PathUtils.getPathComponents(path.toString()));
+    TraversalResult traversalResult = traverseToInode(PathUtils.getPathComponents(path.toString()));
     if (!traversalResult.isFound()) {
       throw new InvalidPathException("Could not find path: " + path);
     }
@@ -122,7 +122,7 @@ public final class InodeTree {
 
     long creationTimeMs = System.currentTimeMillis();
 
-    TraverseResult traversalResult = traverseToInode(parentPath);
+    TraversalResult traversalResult = traverseToInode(parentPath);
     // pathIndex is the index into pathComponents where we start filling in the path from the inode.
     int pathIndex = parentPath.length;
     if (!traversalResult.isFound()) {
@@ -136,7 +136,7 @@ public final class InodeTree {
         LOG.info("InvalidPathException: " + msg);
         throw new InvalidPathException(msg);
       } else {
-        // We will start filling in the path from inodeTraversal.getSecond()
+        // We will start filling at the index of the non-existing step found by the traveral
         pathIndex = traversalResult.getNonexistentPathIndex();
       }
     }
@@ -252,14 +252,14 @@ public final class InodeTree {
     return Sets.newHashSet(mPinnedInodeFileIds);
   }
 
-  private TraverseResult traverseToInode(String[] pathComponents) throws InvalidPathException {
+  private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {
     if (pathComponents == null) {
       throw new InvalidPathException("passed-in pathComponents is null");
     } else if (pathComponents.length == 0) {
       throw new InvalidPathException("passed-in pathComponents is empty");
     } else if (pathComponents.length == 1) {
       if (pathComponents[0].equals("")) {
-        return TraverseResult.createFoundResult(mRoot);
+        return TraversalResult.createFoundResult(mRoot);
       } else {
         throw new InvalidPathException("File name starts with " + pathComponents[0]);
       }
@@ -267,19 +267,19 @@ public final class InodeTree {
 
     Inode current = mRoot;
 
+    // iterate from 1, because 0 is root and it's already added
     for (int i = 1; i < pathComponents.length; i ++) {
       Inode next = ((InodeDirectory) current).getChild(pathComponents[i]);
       if (next == null) {
-        // The user might want to create the nonexistent directories, so return the current inode
-        // directory
-        // as the last Inode taken. Also set nonexistentInd to k, to indicate that the kth path
-        // component was the first one that couldn't be found.
-        return TraverseResult.createNotFoundResult(current, i);
+        // The user might want to create the nonexistent directories, so return the traversal result
+        // current inode with the last Inode taken, and the index of the first path component that
+        // couldn't be found.
+        return TraversalResult.createNotFoundResult(current, i);
       } else if (next.isFile()) {
         // The inode can't have any children. If this is the last path component, we're good.
         // Otherwise, we can't traverse further, so we clean up and throw an exception.
         if (i == pathComponents.length - 1) {
-          return TraverseResult.createFoundResult(next);
+          return TraversalResult.createFoundResult(next);
         } else {
           throw new InvalidPathException(
               "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
@@ -289,14 +289,14 @@ public final class InodeTree {
         current = next;
       }
     }
-    return TraverseResult.createFoundResult(current);
+    return TraversalResult.createFoundResult(current);
   }
 
-  private static final class TraverseResult {
+  private static final class TraversalResult {
     private final boolean mFound;
     /**
-     * when the path is not found in a traversal, the index of the last navigated step in the path
-     * components
+     * when the path is not found in a traversal, the index of the first path component that
+     * couldn't be found
      */
     private final int mNonexistentIndex;
     /**
@@ -304,15 +304,15 @@ public final class InodeTree {
      */
     private final Inode mInode;
 
-    static TraverseResult createFoundResult(Inode inode) {
-      return new TraverseResult(true, -1, inode);
+    static TraversalResult createFoundResult(Inode inode) {
+      return new TraversalResult(true, -1, inode);
     }
 
-    static TraverseResult createNotFoundResult(Inode inode, int nonexistentIndex) {
-      return new TraverseResult(false, nonexistentIndex, inode);
+    static TraversalResult createNotFoundResult(Inode inode, int nonexistentIndex) {
+      return new TraversalResult(false, nonexistentIndex, inode);
     }
 
-    private TraverseResult(boolean found, int nonexistentIndex, Inode inode) {
+    private TraversalResult(boolean found, int nonexistentIndex, Inode inode) {
       mFound = found;
       mNonexistentIndex = nonexistentIndex;
       mInode = inode;
@@ -324,7 +324,7 @@ public final class InodeTree {
 
     int getNonexistentPathIndex() {
       if (mFound) {
-        throw new UnsupportedOperationException("The trasveral is successful");
+        throw new UnsupportedOperationException("The traversal is successful");
       }
       return mNonexistentIndex;
     }
