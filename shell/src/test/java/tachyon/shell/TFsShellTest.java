@@ -215,7 +215,7 @@ public class TFsShellTest {
   @Test
   public void countNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"count", "/NotExistFile"});
-    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals("'/NotExistFile' does not exist.\n", mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -236,7 +236,7 @@ public class TFsShellTest {
   @Test
   public void fileinfoNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"fileinfo", "/NotExistFile"});
-    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals("'/NotExistFile' does not exist.\n", mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -313,7 +313,7 @@ public class TFsShellTest {
   @Test
   public void locationNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"location", "/NotExistFile"});
-    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals("'/NotExistFile' does not exist.\n", mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -487,7 +487,7 @@ public class TFsShellTest {
   @Test
   public void rmNotExistingFileTest() throws IOException {
     mFsShell.run(new String[] {"rm", "/testFile"});
-    String expected = "rm: cannot remove '/testFile': No such file or directory\n";
+    String expected = "'/testFile' does not exist.\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -627,7 +627,7 @@ public class TFsShellTest {
     String expected = "";
     // du a non-existing file
     mFsShell.run(new String[] {"du", "/testRoot/noneExisting"});
-    expected += "/testRoot/noneExisting does not exist\n";
+    expected += "'/testRoot/noneExisting' does not exist.\n";
     // du a file
     mFsShell.run(new String[] {"du", "/testRoot/testFileA"});
     expected += "/testRoot/testFileA is 10 bytes\n";
