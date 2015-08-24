@@ -27,7 +27,7 @@ import tachyon.thrift.FileInfo;
  * Tachyon files. An instance of this class can be obtained via {@link TachyonFS#get}. This class
  * is thread safe.
  */
-public class TachyonFS implements Closeable {
+public class TachyonFS implements Closeable, TachyonFSCore {
 
   public static TachyonFS get() {
     // TODO: Implement me
