@@ -114,6 +114,11 @@ public class LocalBlockInStream extends BlockInStream {
     return ret;
   }
 
+  @Override
+  public long remaining() {
+    return mData.remaining();
+  }
+
   public void seek(long pos) throws IOException {
     failIfClosed();
     if (pos < 0) {

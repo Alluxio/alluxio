@@ -103,6 +103,11 @@ public class ClientBlockInStream extends BlockInStream {
   }
 
   @Override
+  public long remaining() {
+    return mBlockInStream.remaining();
+  }
+
+  @Override
   public void seek(long pos) throws IOException {
     // No longer cache the block if the read is not a full sequential read
     cancelCacheToLocal();
