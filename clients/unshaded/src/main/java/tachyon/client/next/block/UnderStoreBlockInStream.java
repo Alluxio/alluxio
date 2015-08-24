@@ -21,6 +21,11 @@ import java.io.InputStream;
 import tachyon.client.next.ClientContext;
 import tachyon.underfs.UnderFileSystem;
 
+/**
+ * This class provides a streaming API to read from the under storage system. The under storage
+ * system read does not guarantee any locality and is dependent on the implementation of the
+ * under storage client.
+ */
 public class UnderStoreBlockInStream extends BlockInStream {
   private final String mUfsPath;
 
