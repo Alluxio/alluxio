@@ -28,13 +28,12 @@ import tachyon.thrift.FileBlockInfo;
  */
 public class TachyonBS implements Closeable {
 
-  public static TachyonBS sCachedClient = null;
+  private static TachyonBS sCachedClient = null;
 
   public static synchronized TachyonBS get() {
-    if (sCachedClient != null) {
-      return sCachedClient;
+    if (null == sCachedClient) {
+      sCachedClient = new TachyonBS();
     }
-    sCachedClient = new TachyonBS();
     return sCachedClient;
   }
 

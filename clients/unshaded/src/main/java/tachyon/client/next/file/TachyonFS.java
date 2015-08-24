@@ -28,10 +28,17 @@ import tachyon.thrift.FileInfo;
  * is thread safe.
  */
 public class TachyonFS implements Closeable, TachyonFSCore {
+  private static TachyonFS sCachedClient;
 
-  public static TachyonFS get() {
-    // TODO: Implement me
-    return null;
+  public static synchronized TachyonFS get() {
+    if (null == sCachedClient) {
+      sCachedClient = new TachyonFS();
+    }
+    return sCachedClient;
+  }
+
+  private TachyonFS() {
+
   }
 
   public void close() {
