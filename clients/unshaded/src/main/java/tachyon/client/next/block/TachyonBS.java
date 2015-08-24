@@ -45,8 +45,10 @@ public class TachyonBS implements Closeable {
     mContext = BSContext.INSTANCE;
   }
 
-  public void close() {
-
+  @Override
+  // TODO: Evaluate the necessity of this method
+  public synchronized void close() {
+    sCachedClient = null;
   }
 
   /**
