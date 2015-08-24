@@ -21,7 +21,7 @@ import tachyon.util.io.BufferUtils;
 
 public class RawTable {
   /** Table ID */
-  private final int mId;
+  private final long mId;
   /** Number of columns */
   private final int mColumns;
   /** Table metadata */
@@ -34,7 +34,7 @@ public class RawTable {
    * @param id table id
    * @param columns number of columns
    */
-  public RawTable(int id, int columns) {
+  public RawTable(long id, int columns) {
     mId = id;
     mColumns = columns;
     mMetadata = null;
@@ -49,13 +49,13 @@ public class RawTable {
    *        otherwise, the provided buffer will be copied into the internal buffer.
    * @return the created RawTable
    */
-  public RawTable(int id, int columns, ByteBuffer metadata) {
+  public RawTable(long id, int columns, ByteBuffer metadata) {
     mId = id;
     mColumns = columns;
     setMetadata(metadata);
   }
 
-  public int getId() {
+  public long getId() {
     return mId;
   }
 
