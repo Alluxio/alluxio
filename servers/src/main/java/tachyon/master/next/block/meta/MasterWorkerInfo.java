@@ -77,6 +77,14 @@ public final class MasterWorkerInfo {
    */
   public Set<Long> register(List<Long> totalBytesOnTiers, List<Long> usedBytesOnTiers,
       Set<Long> newBlocks) {
+    // validate the number of tiers
+    if (totalBytesOnTiers.size() != usedBytesOnTiers.size()) {
+      throw new IllegalArgumentException(
+          "totalBytesOnTiers should have the same number of tiers as usedBytesOnTiers,"
+              + " but totalBytesOnTiers has " + totalBytesOnTiers.size()
+              + " tiers, while usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
+    }
+
     mTotalBytesOnTiers = totalBytesOnTiers;
     mUsedBytesOnTiers = usedBytesOnTiers;
     mCapacityBytes = 0;

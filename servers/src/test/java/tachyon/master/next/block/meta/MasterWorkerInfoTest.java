@@ -20,7 +20,9 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -39,6 +41,9 @@ public final class MasterWorkerInfoTest {
   private static final List<Long> USED_BYTES_ON_TIERS =
       Lists.newArrayList(Constants.KB * 1L, Constants.KB * 1L);
   private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(1L, 2L);
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() {
@@ -62,6 +67,16 @@ public final class MasterWorkerInfoTest {
     Set<Long> removedBlocks = mInfo.register(TOTAL_BYTES_ON_TIERS, USED_BYTES_ON_TIERS, newBlocks);
     Assert.assertEquals(NEW_BLOCKS, removedBlocks);
     Assert.assertEquals(newBlocks, mInfo.getBlocks());
+  }
+
+  @Test
+  public void registerWithDifferentNumberOfTiersTest() {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown
+        .expectMessage("totalBytesOnTiers should have the same number of tiers as usedBytesOnTiers,"
+            + " but totalBytesOnTiers has 2 tiers, while usedBytesOnTiers has 1 tiers");
+
+    mInfo.register(TOTAL_BYTES_ON_TIERS, Lists.newArrayList(Constants.KB * 1L), NEW_BLOCKS);
   }
 
   @Test
