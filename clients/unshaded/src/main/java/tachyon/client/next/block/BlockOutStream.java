@@ -29,5 +29,12 @@ import java.io.OutputStream;
  * returned which will write the data through a Tachyon worker.
  */
 public abstract class BlockOutStream extends OutputStream {
+  /**
+   * Cancels the write to Tachyon storage. This will delete all the temporary data and metadata
+   * that has been written to the worker. This method should be called when a write is aborted or
+   * if the write is not a complete write of the block.
+   *
+   * @throws IOException if there is a failure when the worker invalidates the cache attempt
+   */
   public abstract void cancel() throws IOException;
 }
