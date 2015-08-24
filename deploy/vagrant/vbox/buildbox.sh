@@ -3,6 +3,7 @@
 OLD_BOX=$(vagrant box list | grep tachyon-dev | cut -d ' ' -f1)
 if [[ "$OLD_BOX" != '' ]]; then
   echo "Tachyon base image $OLD_BOX exists."
+  echo "If you want to remove image $OLD_BOX, please run: vagrant box remove $OLD_BOX"
   exit 0
 fi
 
