@@ -40,6 +40,7 @@ import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
+import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
@@ -79,8 +80,8 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   @Override
   public TProcessor getProcessor() {
-    // TODO
-    return null;
+    return new BlockMasterService.Processor<BlockMasterServiceHandler>(
+        new BlockMasterServiceHandler(this));
   }
 
   @Override
