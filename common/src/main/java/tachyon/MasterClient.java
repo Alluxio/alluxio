@@ -54,7 +54,7 @@ public abstract class MasterClient implements Closeable {
   public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
