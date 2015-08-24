@@ -1041,9 +1041,9 @@ public final class MasterClient implements Closeable {
         mClient.worker_cacheBlock(workerId, usedBytesOnTier, storageDirId, blockId, length);
         return;
       } catch (FileDoesNotExistException e) {
-        throw IOException(e);
+        throw new IOException(e);
       } catch (BlockInfoException e) {
-        throw IOException(e);
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

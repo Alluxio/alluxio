@@ -109,9 +109,9 @@ public final class BlockMasterSync implements Runnable {
       mWorkerId =
           mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    } catch (BlockInfoException bie) {
-      LOG.error("Failed to register with master.", bie);
-      throw new IOException(bie);
+    } catch (IOException e) {
+      LOG.error("Failed to register with master.", e);
+      throw e;
     }
   }
 
