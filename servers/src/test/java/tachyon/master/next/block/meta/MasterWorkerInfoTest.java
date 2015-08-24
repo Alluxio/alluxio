@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 
 /**
  * Unit tests for MasterWorkerInfo.
@@ -73,5 +74,16 @@ public final class MasterWorkerInfoTest {
     // remove block
     mInfo.removeBlock(3L);
     Assert.assertFalse(mInfo.getBlocks().contains(3L));
+  }
+
+  @Test
+  public void workerInfoGenerationTest(){
+    WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
+    Assert.assertEquals(mInfo.getId(), workerInfo.id);
+    Assert.assertEquals(mInfo.getAddress(), workerInfo.address);
+    Assert.assertEquals("In Service", workerInfo.state);
+    Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.capacityBytes);
+    Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.usedBytes);
+    Assert.assertEquals(mInfo.getStartTime(), workerInfo.starttimeMs);
   }
 }
