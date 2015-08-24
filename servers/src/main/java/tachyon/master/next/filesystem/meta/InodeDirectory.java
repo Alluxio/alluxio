@@ -136,7 +136,7 @@ public final class InodeDirectory extends Inode {
    * @return an unmodifiable set of the children inodes.
    */
   public synchronized Set<Inode> getChildren() {
-    return ImmutableSet.copyOf(mChildren.all());
+    return ImmutableSet.copyOf(mChildren.iterator());
   }
 
   /**
@@ -145,10 +145,9 @@ public final class InodeDirectory extends Inode {
    * @return the ids of the children
    */
   public synchronized List<Long> getChildrenIds() {
-    Set<Inode> children = mChildren.all();
-    List<Long> ret = new ArrayList<Long>(children.size());
-    for (Inode inode : children) {
-      ret.add(inode.getId());
+    List<Long> ret = new ArrayList<Long>(mChildren.size());
+    for (Inode child : mChildren) {
+      ret.add(child.getId());
     }
     return ret;
   }
@@ -185,7 +184,7 @@ public final class InodeDirectory extends Inode {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFolder(");
-    sb.append(super.toString()).append(",").append(mChildren.all()).append(")");
+    sb.append(super.toString()).append(",").append(getChildren()).append(")");
     return sb.toString();
   }
 }

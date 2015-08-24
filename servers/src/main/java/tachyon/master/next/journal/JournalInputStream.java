@@ -15,12 +15,9 @@
 
 package tachyon.master.next.journal;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+public interface JournalInputStream {
 
-// TODO
-public interface JournalFormatter {
-  void serialize(JournalEntry entry, OutputStream outputStream);
+  JournalEntry getNextEvent();
 
-  JournalInputStream deserialize(InputStream inputStream);
+  void close();
 }
