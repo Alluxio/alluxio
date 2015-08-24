@@ -105,12 +105,13 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Add a checkpoint.
+   * Add a checkpoint; an exception is thrown if the file does not
+   * exist, has the wrong size, or its block information is corrupted.
    *
    * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
-   * @param fileId
-   * @param length
-   * @param checkpointPath
+   * @param fileId The file to add the checkpoint.
+   * @param length The length of the checkpoint.
+   * @param checkpointPath The path of the checkpoint.
    * @return true if checkpoint is added for the <code>fileId</code> and false otherwise
    * @throws IOException
    */
@@ -238,7 +239,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the client dependency info from master server.
+   * Get the client dependency info from master server; an exception
+   * is thrown if the dependency does not exist.
    *
    * @param depId Dependency id
    * @return ClientDependencyInfo returned from master
@@ -261,8 +263,9 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the file status from master server. If fileId is not -1, check the file status by its
-   * fileId, otherwise check the file status by path.
+   * Get the file status from master server. If fileId is not -1,
+   * check the file status by its fileId, otherwise check the file
+   * status by path; an exception is thrown if the path is invalid.
    *
    * @param fileId The id of the file
    * @param path The path of the file
@@ -397,8 +400,10 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its ClientFileInfo.
+   * If the <code>path</code> is a directory, return all the direct
+   * entries in it. If the <code>path</code> is a file, return its
+   * ClientFileInfo. An exception is thrown if the path is invalid or
+   * points to a non-existing object.
    *
    * @param path the target directory/file path
    * @return A list of ClientFileInfo, null if the file or folder does not exist.
@@ -448,7 +453,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * The file is complete.
+   * The file is complete; an exception is thrown if the file does not exist.
    *
    * @param fileId the file id
    * @throws IOException
@@ -470,15 +475,16 @@ public final class MasterClient implements Closeable {
   }
   
   /**
-   * Create a Dependency.
+   * Create a Dependency; an exception is thrown if an event that
+   * prevent the dependency from being created is encountered.
    *
    * @param parents the dependency's input files
    * @param children the dependency's output files
-   * @param commandPrefix
-   * @param data
-   * @param comment
-   * @param framework
-   * @param frameworkVersion
+   * @param commandPrefix identifies a command prefix
+   * @param data stores dependency data
+   * @param comment records a dependency comment
+   * @param framework identifies the framework
+   * @param frameworkVersion identifies the framework version
    * @param dependencyType the dependency's type, Wide or Narrow
    * @param childrenBlockSizeByte the block size of the dependency's output files
    * @return the dependency's id
@@ -512,7 +518,9 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create a new file in the file system.
+   * Create a new file in the file system; an exception is thrown if
+   * an event that prevents the file from being created is
+   * encountered.
    *
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
@@ -555,7 +563,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create a new block for the given file.
+   * Create a new block for the given file; an exception if thrown if
+   * the file does not exist.
    *
    * @param fileId The id of the file
    * @return the block id.
@@ -578,7 +587,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create a RawTable and return its id.
+   * Create a RawTable and return its id; an exception is thrown if an
+   * event that prevents the table from being created is encountered.
    *
    * @param path the RawTable's path
    * @param columns number of columns it has
@@ -614,7 +624,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Delete a file or folder.
+   * Delete a file or folder; an exception is thrown if an event that
+   * prevent the file / folder from being deleted is encountered.
    *
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
@@ -642,8 +653,9 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the block id by the file id and block index. it will check whether the file and the block
-   * exist.
+   * Get the block id by the file id and block index. It will check
+   * whether the file and the block exist. An exception is thrown if
+   * the file does not exist.
    *
    * @param fileId the file id
    * @param blockIndex The index of the block in the file.
@@ -666,7 +678,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get a ClientBlockInfo by blockId.
+   * Get a ClientBlockInfo by blockId. An exception is thrown if the
+   * file does not exist or its block information is corrupted.
    *
    * @param blockId the id of the block
    * @return the ClientBlockInfo of the specified block
@@ -691,7 +704,9 @@ public final class MasterClient implements Closeable {
   }
   
   /**
-   * Get the raw table info associated with the given id and / or path.
+   * Get the raw table info associated with the given id and / or
+   * path. An exception is thrown if the table does not exist or the
+   * path is invalid.
    *
    * @param path The path of the table
    * @param inode The id of the table
@@ -723,7 +738,8 @@ public final class MasterClient implements Closeable {
 
   /**
    * Get the block infos of a file with the given id or path. Throws
-   * an exception if the id names a directory.
+   * an exception if the id names a directory. An exception is thrown
+   * if the file does not exist or the path is invalid.
    *
    * @param fileId The id of the file to look up
    * @param path The path of the file to look up
@@ -752,7 +768,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the id of the table at the given path.
+   * Get the id of the table at the given path. An exception is thrown
+   * if the path is invalid.
    *
    * @param path The path of the table
    * @return the id of the table
@@ -795,7 +812,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the address of a worker.
+   * Get the address of a worker. An exception is thrown if there is
+   * no available worker.
    *
    * @param random If true, select a random worker
    * @param host If <code>random</code> is false, select a worker on this host
@@ -839,7 +857,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Creates a folder.
+   * Creates a folder. An exception is thrown if an event that
+   * prevents the folder from being created is encountered.
    *
    * @param path the path of the folder to be created
    * @param recursive Creates necessary parent folders if true, not otherwise.
@@ -866,7 +885,9 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Rename a file or folder to the indicated new path.
+   * Rename a file or folder to the indicated new path. An exception
+   * is thrown if an event that prevents the file / folder from being
+   * renamed is encountered.
    *
    * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the srcPath parameter.
@@ -899,7 +920,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Report the lost file to master
+   * Report the lost file to master. An exception is thrown if the file does not exist.
    *
    * @param fileId the lost file id
    * @throws IOException
@@ -921,7 +942,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Request the dependency's needed files.
+   * Request the dependency's needed files. An exception is thrown if
+   * the dependency does not exist.
    *
    * @param depId the dependency id
    * @throws IOException
@@ -943,11 +965,13 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Sets the "pinned" flag for the given file. Pinned files are never evicted by Tachyon until they
-   * are unpinned.
+   * Sets the "pinned" flag for the given file. Pinned files are never
+   * evicted by Tachyon until they are unpinned. An exception is
+   * thrown if the file does not exist.
    *
-   * Calling setPinned() on a folder will recursively set the "pinned" flag on all of that folder's
-   * children. This may be an expensive operation for folders with many files/subfolders.
+   * Calling setPinned() on a folder will recursively set the "pinned"
+   * flag on all of that folder's children. This may be an expensive
+   * operation for folders with many files/subfolders.
    *
    * @param id id of the file
    * @param pinned value to set
@@ -996,7 +1020,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Frees an in-memory file or folder
+   * Frees an in-memory file or folder. An exception is thrown if the
+   * file / folder does not exist.
    *
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
@@ -1023,7 +1048,9 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * A worker cache a block in its memory.
+   * Cache a block in worker's memory. An exception is thrown if an
+   * event that prevents the worker from caching the block is
+   * encountered.
    *
    * @param workerId
    * @param usedBytesOnTier
@@ -1091,8 +1118,9 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * The heartbeat of the worker. It updates the information of the worker and removes the given
-   * block id's.
+   * The heartbeat of the worker. It updates the information of the
+   * worker and removes the given block id's. An exception is thrown
+   * if corrupted block information is encountered.
    *
    * @param workerId The id of the worker to deal with
    * @param usedBytesOnTiers Used bytes on each storage tier
@@ -1119,7 +1147,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Register the worker to the master.
+   * Register the worker to the master. An exception is thrown if
+   * corrupted block information is encountered.
    *
    * @param workerNetAddress Worker's NetAddress
    * @param totalBytesOnTiers Total bytes on each storage tier
