@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import tachyon.client.next.ClientOptions;
 import tachyon.master.MasterClient;
-import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileBlockInfo;
 
 /**
@@ -80,7 +79,7 @@ public class TachyonBS implements Closeable {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Fix this RPC
-      BlockInfo blockInfo = masterClient.user_getClientBlockInfo(blockId);
+      FileBlockInfo blockInfo = masterClient.user_getClientBlockInfo(blockId);
       return new ClientBlockInStream(blockInfo, options);
     } finally {
       mContext.releaseMasterClient(masterClient);

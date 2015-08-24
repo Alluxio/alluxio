@@ -16,10 +16,10 @@
 package tachyon.client.next.block;
 
 import com.google.common.base.Preconditions;
-import tachyon.client.*;
+import tachyon.client.RemoteBlockReader;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
-import tachyon.thrift.BlockInfo;
+import tachyon.thrift.FileBlockInfo;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -39,13 +39,13 @@ public class RemoteBlockInStream extends BlockInStream {
 
   // TODO: Make sure there is a valid Tachyon location
   // TODO: Modify the locking so the stream owns the lock instead of the data server
-  public RemoteBlockInStream(BlockInfo blockInfo, ClientOptions options) {
+  public RemoteBlockInStream(FileBlockInfo blockInfo, ClientOptions options) {
     mBlockId = blockInfo.getBlockId();
     mContext = BSContext.INSTANCE;
     mBlockSize = blockInfo.getLength();
     // TODO: Clean this up
-    mRemoteHost = blockInfo.getLocations().get(0).getWorkerAddress().mHost;
-    mRemotePort = blockInfo.getLocations().get(0).getWorkerAddress().mPort;
+    mRemoteHost = blockInfo.getLocations().get(0).mHost;
+    mRemotePort = blockInfo.getLocations().get(0).mPort;
   }
 
   @Override

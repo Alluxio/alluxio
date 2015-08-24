@@ -17,7 +17,6 @@ package tachyon.client.next.block;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import tachyon.client.next.ResourcePool;
 import tachyon.conf.TachyonConf;

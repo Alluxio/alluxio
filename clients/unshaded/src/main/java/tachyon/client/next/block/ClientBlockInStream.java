@@ -1,13 +1,9 @@
 package tachyon.client.next.block;
 
 import tachyon.client.next.ClientOptions;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockLocation;
-import tachyon.util.io.BufferUtils;
+import tachyon.thrift.FileBlockInfo;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 /**
  * A wrapper on local, remote, or under file system streams. This class takes care of managing
@@ -15,14 +11,14 @@ import java.util.List;
  */
 // TODO: Find a better name for this
 public class ClientBlockInStream extends BlockInStream {
-  private final BlockInfo mBlockInfo;
+  private final FileBlockInfo mBlockInfo;
   private final BSContext mContext;
 
   private boolean mCacheToLocal;
   private BlockInStream mBlockInStream;
   private BlockOutStream mLocalBlockOutStream;
 
-  public ClientBlockInStream(BlockInfo blockInfo, ClientOptions options) throws IOException {
+  public ClientBlockInStream(FileBlockInfo blockInfo, ClientOptions options) throws IOException {
     mBlockInfo = blockInfo;
     mContext = BSContext.INSTANCE;
 
