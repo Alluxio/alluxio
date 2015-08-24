@@ -75,8 +75,8 @@ public final class MasterWorkerInfo {
    * @param newBlocks
    * @return A Set of blocks removed (or lost) from this worker.
    */
-  public Set<Long> register(List<Long> totalBytesOnTiers, List<Long> usedBytesOnTiers,
-      Set<Long> newBlocks) {
+  public Set<Long> register(final List<Long> totalBytesOnTiers, final List<Long> usedBytesOnTiers,
+      final Set<Long> newBlocks) {
     // validate the number of tiers
     if (totalBytesOnTiers.size() != usedBytesOnTiers.size()) {
       throw new IllegalArgumentException(
@@ -85,8 +85,9 @@ public final class MasterWorkerInfo {
               + " tiers, while usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
     }
 
-    mTotalBytesOnTiers = totalBytesOnTiers;
-    mUsedBytesOnTiers = usedBytesOnTiers;
+    // defensive copy
+    mTotalBytesOnTiers = new ArrayList<Long>(totalBytesOnTiers);
+    mUsedBytesOnTiers = new ArrayList<Long>(usedBytesOnTiers);
     mCapacityBytes = 0;
     for (long bytes : mTotalBytesOnTiers) {
       mCapacityBytes += bytes;
@@ -109,7 +110,7 @@ public final class MasterWorkerInfo {
     }
 
     // Set the new block information.
-    mBlocks = newBlocks;
+    mBlocks = new HashSet<Long>(newBlocks);
 
     mIsRegistered = true;
     return removedBlocks;
