@@ -162,7 +162,7 @@ public class TachyonConfTest {
   public void testWorkerDefault() {
     String value = sDefaultTachyonConf.get(Constants.WORKER_DATA_FOLDER);
     Assert.assertTrue(value != null);
-    Assert.assertTrue(("/mnt/ramdisk").equals(value));
+    Assert.assertTrue(("/tachyonworker/").equals(value));
 
     int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT);
     Assert.assertTrue(intValue == 29998);
