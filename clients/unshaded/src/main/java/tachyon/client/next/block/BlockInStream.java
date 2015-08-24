@@ -15,6 +15,8 @@
 
 package tachyon.client.next.block;
 
+import tachyon.client.next.InStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,13 +29,6 @@ import java.io.InputStream;
  * method. Currently the only implementation of this class which should be used by a client is
  * the {@link ClientBlockInStream}.
  */
-public abstract class BlockInStream extends InputStream {
-  /**
-   * Moves the starting read position of the block to the specified position which is relative to
-   * the start of the block. Seeking to a position before the current read position is supported.
-   *
-   * @param pos The position to seek to, it must be between 0 and the size of the block.
-   * @throws IOException if the seek fails due to an error accessing the stream at the position
-   */
-  public abstract void seek(long pos) throws IOException;
+public abstract class BlockInStream extends InStream {
+  // TODO: Add block stream common logic here
 }

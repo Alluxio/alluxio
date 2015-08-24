@@ -15,6 +15,8 @@
 
 package tachyon.client.next.file;
 
+import tachyon.client.next.InStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -23,6 +25,6 @@ import java.io.InputStream;
  * calling {@link TachyonFS#getInStream}. Multiple FileInStreams can be opened for a
  * {@link TachyonFile}. This class is not thread safe and should only be used by one thread.
  */
-public abstract class FileInStream extends InputStream {
-  public abstract void seek(long pos) throws IOException;
+public abstract class FileInStream extends InStream {
+  // TODO: Add FileInStream specific logic here
 }

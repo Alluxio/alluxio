@@ -97,6 +97,11 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   @Override
+  public long remaining() {
+    return mBlockSize - mPos;
+  }
+
+  @Override
   public void seek(long pos) throws IOException {
     Preconditions.checkArgument(pos > 0, "Seek position is negative: " + pos);
     Preconditions.checkArgument(pos < mBlockSize, "Seek position: " + pos + " is past block size: "
