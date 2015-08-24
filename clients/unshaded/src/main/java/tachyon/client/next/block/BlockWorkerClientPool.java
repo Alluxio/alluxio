@@ -27,8 +27,9 @@ import tachyon.worker.ClientMetrics;
 import tachyon.worker.next.WorkerClient;
 
 /**
- * Class for managing block master clients. After obtaining a client with Acquire, Release must
- * be called when the thread is done using the client.
+ * Class for managing block worker clients. After obtaining a client with {@link
+ * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
+ * using the client.
  */
 public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   private final ExecutorService mExecutorService;
@@ -42,14 +43,6 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
         "block-master-heartbeat-%d", true));
     mWorkerNetAddress = workerNetAddress;
     mTachyonConf = conf;
-
-    // Initialize Clients
-    for (int i = 0; i < mResources.size(); i ++) {
-      // TODO: Get a real client ID
-      long clientID = Math.round(Math.random() * 100000);
-      mResources.add(new WorkerClient(workerNetAddress, mExecutorService, conf, clientID, new
-          ClientMetrics()));
-    }
   }
 
   @Override
