@@ -36,7 +36,8 @@ public final class MasterWorkerInfoTest {
   private MasterWorkerInfo mInfo;
   private static final List<Long> TOTAL_BYTES_ON_TIERS =
       Lists.newArrayList(Constants.KB * 3L, Constants.KB * 3L);
-  private static final List<Long> USED_BYTES_ON_TIERS = Lists.newArrayList(Constants.KB * 1L);
+  private static final List<Long> USED_BYTES_ON_TIERS =
+      Lists.newArrayList(Constants.KB * 1L, Constants.KB * 1L);
   private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(1L, 2L);
 
   @Before
@@ -52,7 +53,7 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals(TOTAL_BYTES_ON_TIERS, mInfo.getTotalBytesOnTiers());
     Assert.assertEquals(Constants.KB * 6L, mInfo.getCapacityBytes());
     Assert.assertEquals(USED_BYTES_ON_TIERS, mInfo.getUsedBytesOnTiers());
-    Assert.assertEquals(Constants.KB * 1L, mInfo.getUsedBytes());
+    Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
   }
 
   @Test
@@ -77,7 +78,7 @@ public final class MasterWorkerInfoTest {
   }
 
   @Test
-  public void workerInfoGenerationTest(){
+  public void workerInfoGenerationTest() {
     WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
     Assert.assertEquals(mInfo.getId(), workerInfo.id);
     Assert.assertEquals(mInfo.getAddress(), workerInfo.address);
@@ -85,5 +86,11 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.capacityBytes);
     Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.usedBytes);
     Assert.assertEquals(mInfo.getStartTime(), workerInfo.starttimeMs);
+  }
+
+  @Test
+  public void getFreeBytesOnTiersTest() {
+    Assert.assertEquals(Lists.newArrayList(Constants.KB * 2L, Constants.KB * 2L),
+        mInfo.getFreeBytesOnTiers());
   }
 }
