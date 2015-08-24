@@ -110,7 +110,7 @@ public class IndexedSetTest {
 
   @Test
   public void removeTest() {
-    Pair toRemove = mSet.all().iterator().next();
+    Pair toRemove = mSet.getFirstByField(mLongIndex, 1L);
     Assert.assertEquals(3, mSet.getByField(mLongIndex, toRemove.longValue()).size());
     Assert.assertEquals(9, mSet.size());
     Assert.assertTrue(mSet.remove(toRemove));
