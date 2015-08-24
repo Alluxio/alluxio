@@ -63,7 +63,6 @@ CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
   -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
-  -Dtachyon.worker.tieredstore.level.max=1
   -Dtachyon.worker.tieredstore.level0.alias=MEM
   -Dtachyon.worker.tieredstore.level0.dirs.path=$TACHYON_RAM_FOLDER
   -Dtachyon.worker.tieredstore.level0.dirs.quota=$TACHYON_WORKER_MEMORY_SIZE
