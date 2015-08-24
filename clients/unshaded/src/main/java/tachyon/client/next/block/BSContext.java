@@ -13,8 +13,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * A shared context in each client JVM for common Block Store client functionality such as Master
- * client pools.
+ * A shared context in each client JVM for common Block Store client functionality such as a pool
+ * of master clients and a pool of local worker clients. Any remote clients will be created and
+ * destroyed on a per use basis.
  */
 public enum BSContext {
   INSTANCE;
@@ -80,6 +81,15 @@ public enum BSContext {
     }
   }
 
+  /**
+   * Obtains a worker client to the worker with the given hostname in the system, or throws
+   * exception if the worker is not available.
+   * available.
+   *
+   * @param hostname the hostname of the worker to get a client to, empty String indicates all
+   *                 workers are eligible
+   * @return a WorkerClient connected to the worker with the given hostname
+   */
   public WorkerClient acquireWorkerClient(String hostname) {
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       if (mLocalBlockWorkerClientPool != null) {
@@ -108,6 +118,12 @@ public enum BSContext {
         clientId, new ClientMetrics());
   }
 
+  /**
+   * Releases the WorkerClient back to the client pool, or destroys it if it was a remote client
+   *
+   * @param workerClient the worker client to release, the client should not be accessed after
+   *                     this method is called
+   */
   public void releaseWorkerClient(WorkerClient workerClient) {
     // If the client is local and the pool exists, release the client to the pool, otherwise just
     // close the client
@@ -118,6 +134,13 @@ public enum BSContext {
     }
   }
 
+  /**
+   * Determines if a local worker was available during the initialization of the client.
+   *
+   * @return true if there was a local worker, false otherwise
+   */
+  // TODO: Handle the case when the local worker starts up after the client or shuts down before
+  // TODO: the client does
   public boolean hasLocalWorker() {
     return mLocalBlockWorkerClientPool != null;
   }
