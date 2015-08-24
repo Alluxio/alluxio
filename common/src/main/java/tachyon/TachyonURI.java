@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 /**
  * It uses a hierarchical URI internally. URI requires that String is escaped, TachyonURI does not.
@@ -33,7 +34,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   public static final TachyonURI EMPTY_URI = new TachyonURI("");
 
-  private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
+  private static final boolean WINDOWS = SystemUtils.IS_OS_WINDOWS;
 
   // a hierarchical uri
   private final URI mUri;
