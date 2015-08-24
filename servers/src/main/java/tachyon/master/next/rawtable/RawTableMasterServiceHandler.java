@@ -49,11 +49,14 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public RawTableInfo userGetClientRawTableInfo(long id, String path)
+  public RawTableInfo userGetClientRawTableInfoById(long id) throws TableDoesNotExistException,
+      TException {
+    return mRawTableMaster.getClientRawTableInfo(id);
+  }
+
+  @Override
+  public RawTableInfo userGetClientRawTableInfoByPath(String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
-    if (id != -1) {
-      return mRawTableMaster.getClientRawTableInfo(id);
-    }
     return mRawTableMaster.getClientRawTableInfo(new TachyonURI(path));
   }
 
