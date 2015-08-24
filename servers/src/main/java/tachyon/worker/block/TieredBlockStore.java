@@ -52,6 +52,7 @@ import tachyon.worker.block.io.LocalFileBlockReader;
 import tachyon.worker.block.io.LocalFileBlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
@@ -81,7 +82,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
-public class TieredBlockStore implements BlockStore {
+public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: change maxRetry to be configurable.
   private static final int MAX_RETRIES = 3;
@@ -118,7 +119,7 @@ public class TieredBlockStore implements BlockStore {
     initManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
             Collections.<Long>emptySet());
-    mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView);
+    mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
@@ -413,8 +414,8 @@ public class TieredBlockStore implements BlockStore {
   private void checkTempBlockOwnedByUser(long userId, long blockId) throws NotFoundException,
       AlreadyExistsException, InvalidStateException {
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("checkTempBlockOwnedByUser failed: blockId " + blockId + ""
-          + " is committed");
+      throw new AlreadyExistsException(
+          "checkTempBlockOwnedByUser failed: blockId " + blockId + " is committed");
     }
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     long ownerUserId = tempBlockMeta.getUserId();
@@ -542,13 +543,15 @@ public class TieredBlockStore implements BlockStore {
       if (newBlock) {
         checkTempBlockIdAvailable(blockId);
       }
-      TempBlockMeta tempBlock =
-          mAllocator.allocateBlockWithView(userId, blockId, initialBlockSize, location,
-              getUpdatedView());
-      if (tempBlock == null) {
+      StorageDirView dirView =
+          mAllocator.allocateBlockWithView(userId, initialBlockSize, location, getUpdatedView());
+      if (dirView == null) {
         // Allocator fails to find a proper place for this new block.
         return null;
       }
+      // TODO: Add tempBlock to corresponding storageDir and remove the use of
+      // StorageDirView.createTempBlockMeta
+      TempBlockMeta tempBlock = dirView.createTempBlockMeta(userId, blockId, initialBlockSize);
       try {
         // Add allocated temp block to metadata manager. This should never fail if allocator
         // correctly assigns a StorageDir.

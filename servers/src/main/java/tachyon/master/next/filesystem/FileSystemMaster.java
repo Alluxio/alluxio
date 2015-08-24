@@ -78,8 +78,8 @@ public class FileSystemMaster implements Master {
     mInodeTree = new InodeTree(mBlockMaster);
     mDependencyMap = new DependencyMap();
 
-    mWhitelist = new PrefixList(
-        mTachyonConf.getList(Constants.MASTER_WHITELIST, ",", new LinkedList<String>()));
+    // TODO: handle default config value for whitelist.
+    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
   }
 
   @Override
