@@ -30,8 +30,10 @@ public final class HeartbeatThread implements Runnable {
   private final long mFixedExecutionIntervalMs;
 
   /**
-   * @param threadName
-   * @param hbExecutor
+   * @param threadName Identifies the heartbeat thread name.
+   * @param hbExecutor Identifies the heartbeat thread executor; an
+   *        instance of a class that implements the HeartbeatExecutor
+   *        interface.
    * @param fixedExecutionIntervalMs Sleep time between different heartbeat.
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
