@@ -69,9 +69,14 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     }
   }
 
-  public FileInfo getInfo(TachyonFile file) {
-    // TODO: Implement me
-    return null;
+  // TODO: Consider FileInfo caching
+  public FileInfo getInfo(TachyonFile file) throws IOException {
+    MasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.getFileStatus(file.getFileId(), "");
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 
   public FileInStream getInStream(TachyonFile file, ClientOptions options) {
@@ -84,23 +89,43 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     return null;
   }
 
-  public List<FileInfo> listStatus(TachyonFile file) {
-    // TODO: Implement me
-    return null;
+  public List<FileInfo> listStatus(TachyonFile file) throws IOException {
+    MasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      // TODO: Change this RPC
+      return masterClient.listStatus(null);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 
-  public boolean mkdirs(TachyonFile file) {
-    // TODO: Implement me
-    return false;
+  public boolean mkdirs(TachyonFile file) throws IOException {
+    MasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      // TODO: Change this RPC
+      return masterClient.user_mkdirs(null, true);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 
-  public TachyonFile open(TachyonURI path) {
-    // TODO: Implement me
-    return null;
+  public TachyonFile open(TachyonURI path) throws IOException {
+    MasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      // TODO: Remove path from this RPC
+      return new TachyonFile(masterClient.getFileStatus(-1, path.getPath()).getFileId());
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 
-  public boolean rename(TachyonFile file, TachyonURI dst) {
-    // TODO: Implement me
-    return false;
+  public boolean rename(TachyonFile file, TachyonURI dst) throws IOException {
+    MasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      // TODO: Remove path from this RPC
+      return masterClient.user_rename(file.getFileId(), "", dst.getPath());
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 }
