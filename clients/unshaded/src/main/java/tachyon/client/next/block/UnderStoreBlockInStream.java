@@ -40,20 +40,6 @@ public class UnderStoreBlockInStream extends BlockInStream {
   }
 
   @Override
-  public void seek(long pos) throws IOException {
-    if (pos < mPos) {
-      resetUnderStoreStream();
-      if (skip(pos) != pos) {
-        throw new IOException("Failed to seek backward to " + pos);
-      }
-    } else {
-      if (skip(mPos - pos) != mPos - pos) {
-        throw new IOException("Failed to seek forward to " + pos);
-      }
-    }
-  }
-
-  @Override
   public int read(byte[] b) throws IOException {
     int data = mUnderStoreStream.read(b);
     mPos ++;
@@ -65,6 +51,20 @@ public class UnderStoreBlockInStream extends BlockInStream {
     int bytesRead = mUnderStoreStream.read(b, off, len);
     mPos += bytesRead;
     return bytesRead;
+  }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    if (pos < mPos) {
+      resetUnderStoreStream();
+      if (skip(pos) != pos) {
+        throw new IOException("Failed to seek backward to " + pos);
+      }
+    } else {
+      if (skip(mPos - pos) != mPos - pos) {
+        throw new IOException("Failed to seek forward to " + pos);
+      }
+    }
   }
 
   @Override

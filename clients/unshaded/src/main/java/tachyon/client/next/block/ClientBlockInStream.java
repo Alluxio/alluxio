@@ -68,6 +68,13 @@ public class ClientBlockInStream extends BlockInStream {
   }
 
   @Override
+  public void close() throws IOException {
+    mLocalBlockOutStream.close();
+    // TODO: Check that written bytes == block size
+    mBlockInStream.close();
+  }
+
+  @Override
   public int read() throws IOException {
     int data = mBlockInStream.read();
     // TODO: Investigate asnyc cache to local
@@ -75,13 +82,6 @@ public class ClientBlockInStream extends BlockInStream {
       mLocalBlockOutStream.write(data);
     }
     return data;
-  }
-
-  @Override
-  public void close() throws IOException {
-    mLocalBlockOutStream.close();
-    // TODO: Check that written bytes == block size
-    mBlockInStream.close();
   }
 
   @Override
