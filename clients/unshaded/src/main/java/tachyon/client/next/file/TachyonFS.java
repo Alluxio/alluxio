@@ -56,7 +56,7 @@ public class TachyonFS implements Closeable {
     return null;
   }
 
-  public FileOutStream getOutStream(TachyonFile file, ClientOptions options) {
+  public FileOutStream getOutStream(TachyonURI path, ClientOptions options) {
     // TODO: Implement me
     return null;
   }
@@ -74,11 +74,6 @@ public class TachyonFS implements Closeable {
   public TachyonFile open(TachyonURI path) {
     // TODO: Implement me
     return null;
-  }
-
-  public boolean promote(TachyonFile file) {
-    // TODO: Implement me
-    return false;
   }
 
   public boolean rename(TachyonFile file, TachyonURI dst) {
