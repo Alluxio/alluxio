@@ -15,8 +15,7 @@
 
 package tachyon.master.next.filesystem.meta;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -144,8 +143,8 @@ public final class InodeDirectory extends Inode {
    *
    * @return the ids of the children
    */
-  public synchronized List<Long> getChildrenIds() {
-    List<Long> ret = new ArrayList<Long>(mChildren.size());
+  public synchronized Set<Long> getChildrenIds() {
+    Set<Long> ret = new HashSet<Long>(mChildren.size());
     for (Inode child : mChildren) {
       ret.add(child.getId());
     }

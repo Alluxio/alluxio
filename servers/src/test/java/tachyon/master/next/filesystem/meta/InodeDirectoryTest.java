@@ -117,7 +117,7 @@ public final class InodeDirectoryTest {
     InodeFile inodeFile1 = createInodeFile(1);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile1);
-    Assert.assertTrue(inodeDirectory.getChildrenIds().get(0) == createBlockId(1));
+    Assert.assertTrue(inodeDirectory.getChildrenIds().contains(createBlockId(1)));
     Assert.assertEquals(1, inodeDirectory.getNumberOfChildren());
   }
 
