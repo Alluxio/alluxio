@@ -36,8 +36,8 @@ public final class InodeDirectoryTest {
     InodeFile inodeFile2 = createInodeFile(3);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile2);
-    Assert.assertEquals(createBlockId(2), (long) inodeDirectory.getChildrenIds().get(0));
-    Assert.assertEquals(createBlockId(3), (long) inodeDirectory.getChildrenIds().get(1));
+    Assert.assertTrue(inodeDirectory.getChildrenIds().contains(createBlockId(2)));
+    Assert.assertTrue(inodeDirectory.getChildrenIds().contains(createBlockId(3)));
   }
 
   @Test
