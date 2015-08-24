@@ -93,4 +93,21 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals(Lists.newArrayList(Constants.KB * 2L, Constants.KB * 2L),
         mInfo.getFreeBytesOnTiers());
   }
+
+  @Test
+  public void updateToRemovedBlockTest() {
+    // remove a non-existing block
+    mInfo.updateToRemovedBlock(true, 10L);
+    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+    // remove block 1
+    mInfo.updateToRemovedBlock(true, 1L);
+    Assert.assertTrue(mInfo.getToRemoveBlocks().contains(1L));
+    // cancel the removal
+    mInfo.updateToRemovedBlock(false, 1L);
+    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+    // actually remove 1 for real
+    mInfo.updateToRemovedBlock(true, 1L);
+    mInfo.removeBlock(1L);
+    Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
+  }
 }
