@@ -19,12 +19,14 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
+import org.apache.commons.lang3.SystemUtils;
+
 /**
  * Unit tests for tachyon.TachyonURITest
  */
 public class TachyonURITest {
 
-  private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
+  private static final boolean WINDOWS = SystemUtils.IS_OS_WINDOWS;
 
   @Test
   public void basicTest1() {
