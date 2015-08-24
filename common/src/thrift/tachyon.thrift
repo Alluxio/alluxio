@@ -254,10 +254,10 @@ service RawTableMasterService {
   i64 userGetRawTableId(1: string path)
     throws (1: InvalidPathException ipe, 2: TableDoesNotExistException tdnee)
 
-  /**
-   * When id not -1, get RawTableInfo for table with id, otherwise get that for table at path.
-   */
-  RawTableInfo userGetClientRawTableInfo(1: i64 id, 2: string path)
+  RawTableInfo userGetClientRawTableInfo(1: i64 id)
+    throws (1: TableDoesNotExistException tdnee)
+    
+  RawTableInfo userGetClientRawTableInfo(1: string path)
     throws (1: TableDoesNotExistException tdnee, 2: InvalidPathException ipe)
 
   void userUpdateRawTableMetadata(1: i64 tableId, 2: binary metadata)
