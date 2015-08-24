@@ -31,12 +31,12 @@ import tachyon.thrift.NetAddress;
 /**
  * Unit tests for MasterWorkerInfo.
  */
-public final class MasterWorkerInfoTests {
+public final class MasterWorkerInfoTest {
   private MasterWorkerInfo mInfo;
   private static final List<Long> TOTAL_BYTES_ON_TIERS =
       Lists.newArrayList(Constants.KB * 3L, Constants.KB * 3L);
   private static final List<Long> USED_BYTES_ON_TIERS = Lists.newArrayList(Constants.KB * 1L);
-  private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(Constants.KB * 1L, Constants.KB * 1L);
+  private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(1L, 2L);
 
   @Before
   public void before() {
@@ -56,9 +56,22 @@ public final class MasterWorkerInfoTests {
 
   @Test
   public void registerAgainTest() {
-    Set<Long> newBlocks = Sets.newHashSet(Constants.KB * 2L);
+    Set<Long> newBlocks = Sets.newHashSet(3L);
     Set<Long> removedBlocks = mInfo.register(TOTAL_BYTES_ON_TIERS, USED_BYTES_ON_TIERS, newBlocks);
     Assert.assertEquals(NEW_BLOCKS, removedBlocks);
     Assert.assertEquals(newBlocks, mInfo.getBlocks());
+  }
+
+  @Test
+  public void blockOperationTest() {
+    // add existing block
+    mInfo.addBlock(1L);
+    Assert.assertEquals(NEW_BLOCKS, mInfo.getBlocks());
+    // add a new block
+    mInfo.addBlock(3L);
+    Assert.assertTrue(mInfo.getBlocks().contains(3L));
+    // remove block
+    mInfo.removeBlock(3L);
+    Assert.assertFalse(mInfo.getBlocks().contains(3L));
   }
 }
