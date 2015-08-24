@@ -240,16 +240,16 @@ public final class MasterClient implements Closeable {
   /**
    * Get the client dependency info from master server.
    *
-   * @param did Dependency id
+   * @param depId Dependency id
    * @return ClientDependencyInfo returned from master
    * @throws IOException
    */
-  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
+  public synchronized ClientDependencyInfo getClientDependencyInfo(int depId) throws IOException {
     while (!mIsClosed) {
       connect();
 
       try {
-        return mClient.user_getClientDependencyInfo(did);
+        return mClient.user_getClientDependencyInfo(depId);
       } catch (DependencyDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -397,10 +397,11 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * List status of a path.
+   * If the <code>path</code> is a directory, return all the direct entries in it. If the
+   * <code>path</code> is a file, return its ClientFileInfo.
    *
-   * @param path for which to list status
-   * @return 
+   * @param path the target directory/file path
+   * @return A list of ClientFileInfo, null if the file or folder does not exist.
    * @throws IOException
    */
   public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
@@ -423,8 +424,8 @@ public final class MasterClient implements Closeable {
   /**
    * Check parameters.
    *
-   * @param id bla bla
-   * @param path bla bla
+   * @param id to check
+   * @param path to check
    * @throws IOException
    */
   private synchronized void parameterCheck(int id, String path) throws IOException {
@@ -447,17 +448,17 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * ...
+   * The file is complete.
    *
-   * @param fId ...
+   * @param fileId the file id
    * @throws IOException
    */
-  public synchronized void user_completeFile(int fId) throws IOException {
+  public synchronized void user_completeFile(int fileId) throws IOException {
     while (!mIsClosed) {
       connect();
 
       try {
-        mClient.user_completeFile(fId);
+        mClient.user_completeFile(fileId);
         return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
@@ -467,7 +468,22 @@ public final class MasterClient implements Closeable {
       }
     }
   }
-
+  
+  /**
+   * Create a Dependency.
+   *
+   * @param parents the dependency's input files
+   * @param children the dependency's output files
+   * @param commandPrefix
+   * @param data
+   * @param comment
+   * @param framework
+   * @param frameworkVersion
+   * @param dependencyType the dependency's type, Wide or Narrow
+   * @param childrenBlockSizeByte the block size of the dependency's output files
+   * @return the dependency's id
+   * @throws IOException
+   */
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
@@ -495,6 +511,17 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
+  /**
+   * Create a new file in the file system.
+   *
+   * @param path The path of the file
+   * @param ufsPath The path of the file in the under file system. If this is empty, the file does
+   *        not exist in the under file system yet.
+   * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
+   * @param recursive Creates necessary parent folders if true, not otherwise.
+   * @return The file id, which is globally unique.
+   * @throws IOException
+   */
   public synchronized int user_createFile(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
     if (path == null || !path.startsWith(TachyonURI.SEPARATOR)) {
@@ -527,12 +554,19 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
-  public synchronized long user_createNewBlock(int fId) throws IOException {
+  /**
+   * Create a new block for the given file.
+   *
+   * @param fileId The id of the file
+   * @return the block id.
+   * @throws IOException
+   */
+  public synchronized long user_createNewBlock(int fileId) throws IOException {
     while (!mIsClosed) {
       connect();
 
       try {
-        return mClient.user_createNewBlock(fId);
+        return mClient.user_createNewBlock(fileId);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -543,6 +577,15 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
+  /**
+   * Create a RawTable and return its id.
+   *
+   * @param path the RawTable's path
+   * @param columns number of columns it has
+   * @param metadata the meta data of the RawTable
+   * @return the id if succeed, -1 otherwise
+   * @throws IOException
+   */
   public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws IOException {
     if (metadata == null) {
@@ -570,6 +613,17 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
+  /**
+   * Delete a file or folder.
+   *
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty iff id is not -1.
+   * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
+   *        or not
+   * @return true if deletes successfully, false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean user_delete(int fileId, String path, boolean recursive)
       throws IOException {
     while (!mIsClosed) {
@@ -587,11 +641,20 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized long user_getBlockId(int fId, int index) throws IOException {
+  /**
+   * Get the block id by the file id and block index. it will check whether the file and the block
+   * exist.
+   *
+   * @param fileId the file id
+   * @param blockIndex The index of the block in the file.
+   * @return the block id if exists
+   * @throws IOException if the file does not exist, or connection issue.
+   */
+  public synchronized long user_getBlockId(int fileId, int blockIndex) throws IOException {
     while (!mIsClosed) {
       connect();
       try {
-        return mClient.user_getBlockId(fId, index);
+        return mClient.user_getBlockId(fileId, blockIndex);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -602,6 +665,13 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
+  /**
+   * Get a ClientBlockInfo by blockId.
+   *
+   * @param blockId the id of the block
+   * @return the ClientBlockInfo of the specified block
+   * @throws IOException
+   */  
   public synchronized ClientBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -619,7 +689,15 @@ public final class MasterClient implements Closeable {
     }
     return null;
   }
-
+  
+  /**
+   * Get the raw table info associated with the given id and / or path.
+   *
+   * @param path The path of the table
+   * @param inode The id of the table
+   * @return the table info
+   * @throws IOException
+   */
   public synchronized ClientRawTableInfo user_getClientRawTableInfo(int id, String path)
       throws IOException {
     parameterCheck(id, path);
@@ -643,6 +721,15 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  /**
+   * Get the block infos of a file with the given id or path. Throws
+   * an exception if the id names a directory.
+   *
+   * @param fileId The id of the file to look up
+   * @param path The path of the file to look up
+   * @return the block infos of the file
+   * @throws IOException
+   */
   public synchronized List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
       throws IOException {
     parameterCheck(fileId, path);
@@ -664,6 +751,13 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  /**
+   * Get the id of the table at the given path.
+   *
+   * @param path The path of the table
+   * @return the id of the table
+   * @throws IOException
+   */  
   public synchronized int user_getRawTableId(String path) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -679,6 +773,13 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
+  
+  /**
+   * Get the address of the under FS.
+   *
+   * @return the address of the under FS
+   * @throws IOException
+   */  
   public synchronized String user_getUfsAddress() throws IOException {
     while (!mIsClosed) {
       connect();
@@ -693,6 +794,15 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  /**
+   * Get the address of a worker.
+   *
+   * @param random If true, select a random worker
+   * @param host If <code>random</code> is false, select a worker on this host
+   * @return the address of the selected worker, or null if no address could be found
+   * @throws NoWorkerExceptiona
+   * @throws IOException
+   */
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoWorkerException, IOException {
     while (!mIsClosed) {
@@ -709,7 +819,12 @@ public final class MasterClient implements Closeable {
     }
     return null;
   }
-
+  
+  /**
+   * Heartbeat.
+   *
+   * @throws IOException
+   */
   public synchronized void user_heartbeat() throws IOException {
     while (!mIsClosed) {
       connect();
@@ -723,6 +838,14 @@ public final class MasterClient implements Closeable {
     }
   }
 
+  /**
+   * Creates a folder.
+   *
+   * @param path the path of the folder to be created
+   * @param recursive Creates necessary parent folders if true, not otherwise.
+   * @return true if the folder is created successfully or already existing. false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean user_mkdirs(String path, boolean recursive) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -742,6 +865,16 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
+  /**
+   * Rename a file or folder to the indicated new path.
+   *
+   * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the srcPath parameter.
+   * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
+   * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
+   * @return true if renames successfully, false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean user_rename(int fileId, String srcPath, String dstPath)
       throws IOException {
     parameterCheck(fileId, srcPath);
@@ -765,6 +898,12 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
+  /**
+   * Report the lost file to master
+   *
+   * @param fileId the lost file id
+   * @throws IOException
+   */
   public synchronized void user_reportLostFile(int fileId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -781,6 +920,12 @@ public final class MasterClient implements Closeable {
     }
   }
 
+  /**
+   * Request the dependency's needed files.
+   *
+   * @param depId the dependency id
+   * @throws IOException
+   */
   public synchronized void user_requestFilesInDependency(int depId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -797,6 +942,17 @@ public final class MasterClient implements Closeable {
     }
   }
 
+  /**
+   * Sets the "pinned" flag for the given file. Pinned files are never evicted by Tachyon until they
+   * are unpinned.
+   *
+   * Calling setPinned() on a folder will recursively set the "pinned" flag on all of that folder's
+   * children. This may be an expensive operation for folders with many files/subfolders.
+   *
+   * @param id id of the file
+   * @param pinned value to set
+   * @throws IOException
+   */  
   public synchronized void user_setPinned(int id, boolean pinned) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -813,6 +969,13 @@ public final class MasterClient implements Closeable {
     }
   }
 
+  /**
+   * Update the RawTable's meta data
+   *
+   * @param id the raw table's id
+   * @param metadata the new meta data
+   * @throws IOException
+   */  
   public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
       throws IOException {
     while (!mIsClosed) {
@@ -832,6 +995,17 @@ public final class MasterClient implements Closeable {
     }
   }
 
+  /**
+   * Frees an in-memory file or folder
+   *
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty iff id is not -1.
+   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+   *        or not
+   * @return true if in-memory free successfully, false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean user_freepath(int fileId, String path, boolean recursive)
       throws IOException {
     while (!mIsClosed) {
@@ -848,8 +1022,18 @@ public final class MasterClient implements Closeable {
     return false;
   }
 
+  /**
+   * A worker cache a block in its memory.
+   *
+   * @param workerId
+   * @param usedBytesOnTier
+   * @param storageDirId
+   * @param blockId
+   * @param length
+   * @throws IOException
+   */
   public synchronized void worker_cacheBlock(long workerId, long usedBytesOnTier, long storageDirId,
-      long blockId, long length) throws IOException, FileDoesNotExistException, BlockInfoException {
+      long blockId, long length) throws IOException {
     while (!mIsClosed) {
       connect();
 
@@ -857,9 +1041,9 @@ public final class MasterClient implements Closeable {
         mClient.worker_cacheBlock(workerId, usedBytesOnTier, storageDirId, blockId, length);
         return;
       } catch (FileDoesNotExistException e) {
-        throw e;
+        throw IOException(e);
       } catch (BlockInfoException e) {
-        throw e;
+        throw IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -867,6 +1051,12 @@ public final class MasterClient implements Closeable {
     }
   }
 
+  /**
+   * Get a list of the pin id's.
+   *
+   * @return a list of pin id's
+   * @throws IOException
+   */
   public synchronized Set<Integer> worker_getPinIdList() throws IOException {
     while (!mIsClosed) {
       connect();
@@ -881,6 +1071,12 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  /**
+   * Creates a list of high priority dependencies, which don't yet have checkpoints.
+   *
+   * @return the list of dependency ids
+   * @throws IOException
+   */
   public synchronized List<Integer> worker_getPriorityDependencyList() throws IOException {
     while (!mIsClosed) {
       connect();
@@ -894,6 +1090,17 @@ public final class MasterClient implements Closeable {
     return new ArrayList<Integer>();
   }
 
+  /**
+   * The heartbeat of the worker. It updates the information of the worker and removes the given
+   * block id's.
+   *
+   * @param workerId The id of the worker to deal with
+   * @param usedBytesOnTiers Used bytes on each storage tier
+   * @param removedBlockIds The list of removed block ids
+   * @param addedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
+   * @return a command specifying an action to take
+   * @throws BlockInfoException
+   */
   public synchronized Command worker_heartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) throws IOException {
     while (!mIsClosed) {
