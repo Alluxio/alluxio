@@ -62,6 +62,12 @@ public final class MasterWorkerInfoTest {
   }
 
   @Test
+  public void getFreeBytesOnTiersTest() {
+    Assert.assertEquals(Lists.newArrayList(Constants.KB * 2L, Constants.KB * 2L),
+        mInfo.getFreeBytesOnTiers());
+  }
+
+  @Test
   public void registerAgainTest() {
     Set<Long> newBlocks = Sets.newHashSet(3L);
     Set<Long> removedBlocks = mInfo.register(TOTAL_BYTES_ON_TIERS, USED_BYTES_ON_TIERS, newBlocks);
@@ -101,12 +107,6 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.capacityBytes);
     Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.usedBytes);
     Assert.assertEquals(mInfo.getStartTime(), workerInfo.starttimeMs);
-  }
-
-  @Test
-  public void getFreeBytesOnTiersTest() {
-    Assert.assertEquals(Lists.newArrayList(Constants.KB * 2L, Constants.KB * 2L),
-        mInfo.getFreeBytesOnTiers());
   }
 
   @Test
