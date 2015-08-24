@@ -35,6 +35,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.RawTableInfo;
+import tachyon.thrift.RawTableMasterService;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
@@ -58,7 +59,8 @@ public class RawTableMaster implements Master {
 
   @Override
   public TProcessor getProcessor() {
-    return null;
+    return new RawTableMasterService.Processor<RawTableMasterServiceHandler>(
+        new RawTableMasterServiceHandler(this));
   }
 
   @Override
