@@ -40,6 +40,7 @@ public final class InodeTreeTest {
   private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
   private InodeTree mTree;
+
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -88,6 +89,14 @@ public final class InodeTreeTest {
   }
 
   @Test
+  public void createFileWithNegativeBlockSizeTest() throws Exception {
+    mThrown.expect(BlockInfoException.class);
+    mThrown.expectMessage("Invalid block size -1");
+
+    mTree.createPath(TEST_URI, -1, false, false);
+  }
+
+  @Test
   public void createFileUnderNonexistingDirTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("File /nested/test creation failed. Component 1(nested) does not exist");
@@ -120,6 +129,15 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Could not find path: /test");
 
     mTree.getInodeByPath(TEST_URI);
+  }
+
+  @Test
+  public void getInodeByNonexistingNestedPathTest() throws Exception {
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Could not find path: /nested/test/file");
+
+    mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    mTree.getInodeByPath(NESTED_FILE_URI);
   }
 
   @Test
