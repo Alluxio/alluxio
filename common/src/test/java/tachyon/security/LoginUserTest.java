@@ -65,6 +65,8 @@ public class LoginUserTest {
   public void getCustomLoginUserTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //instead of System.getProperty for retrieving user name.
     System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon-user");
 
     User loginUser = LoginUser.get(conf);
@@ -82,12 +84,14 @@ public class LoginUserTest {
   public void getLoginUserWhenCustomIsEmpty() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //instead of System.getProperty for retrieving user name.
     System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
 
     User loginUser = LoginUser.get(conf);
 
     Assert.assertNotNull(loginUser);
-    Assert.assertFalse(loginUser.getName().isEmpty());
+    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
   }
 
   // TODO: getKerberosLoginUserTest()
