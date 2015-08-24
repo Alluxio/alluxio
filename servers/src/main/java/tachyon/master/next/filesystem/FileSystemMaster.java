@@ -51,6 +51,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -83,8 +84,8 @@ public class FileSystemMaster implements Master {
 
   @Override
   public TProcessor getProcessor() {
-    // TODO
-    return null;
+    return new FileSystemMasterService.Processor<FileSystemMasterServiceHandler>(
+        new FileSystemMasterServiceHandler(this));
   }
 
   @Override
