@@ -26,7 +26,10 @@ import tachyon.Constants;
 
 /**
  * A custom login module that creates a user based on the user name provided through application
- * configuration.
+ * configuration. Specifically, through Java system property tachyon.security.username.
+ * This module is useful if multiple Tachyon clients running under same OS user name
+ * want to get different identifies (for resource and data management), or if Tachyon clients
+ * running under different OS user names want to get same identify.
  */
 public class CustomLoginModule implements LoginModule {
   private Subject mSubject;
@@ -41,7 +44,7 @@ public class CustomLoginModule implements LoginModule {
   /**
    * Retrieve the user name by querying the property of Constants.TACHYON_SECURITY_USERNAME.
    *
-   * @return true if customized user name is not null or empty
+   * @return true if customized user name is set and not empty.
    * @throws javax.security.auth.login.LoginException
    */
   @Override
@@ -49,7 +52,7 @@ public class CustomLoginModule implements LoginModule {
     //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
     String userName = System.getProperty(Constants.TACHYON_SECURITY_USERNAME, "");
-    if (userName != "") {
+    if (!userName.isEmpty()) {
       mUser = new User(userName);
       return true;
     }
