@@ -30,9 +30,6 @@ public class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make this a config parameter.
   private static final int MAX_LOG_SIZE = 10 * Constants.MB;
-  private static final String COMPLETED_DIRECTORY = "completed/";
-  private static final String CURRENT_LOG_EXTENSION = ".out";
-  private static final int FIRST_COMPLETED_LOG_NUMBER = 1;
 
   private final Journal mJournal;
   private final TachyonConf mTachyonConf;
@@ -40,14 +37,10 @@ public class JournalWriter {
   private final String mJournalDirectory;
   /** Absolute path to the directory storing all completed logs. */
   private final String mCompletedDirectory;
-  /** Absolute path to the checkpoint file. */
-  private final String mCheckpointPath;
-  /** Absolute path to the current log file. */
-  private final String mCurrentLogPath;
   private final UnderFileSystem mUfs;
 
   /** The log number to assign to the next complete log. */
-  private int mNextCompleteLogNumber = FIRST_COMPLETED_LOG_NUMBER;
+  private int mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
   /** The output stream for the current log. */
   private DataOutputStream mOutputStream = null;
@@ -56,10 +49,7 @@ public class JournalWriter {
     mJournal = journal;
     mTachyonConf = tachyonConf;
     mJournalDirectory = mJournal.getDirectory();
-    mCompletedDirectory = mJournalDirectory + COMPLETED_DIRECTORY;
-    mCheckpointPath = mJournalDirectory + mJournal.getCheckpointFilename();
-    mCurrentLogPath =
-        mJournalDirectory + mJournal.getEntryLogFilenameBase() + CURRENT_LOG_EXTENSION;
+    mCompletedDirectory = mJournal.getCompletedDirectory();
     mUfs = UnderFileSystem.get(mJournalDirectory, mTachyonConf);
   }
 
@@ -76,7 +66,8 @@ public class JournalWriter {
    * @throws IOException
    */
   public void writeCheckpoint(JournalEntry entry) throws IOException {
-    String tmpCheckpointPath = mCheckpointPath + ".tmp";
+    String checkpointPath = mJournal.getCheckpointFilePath();
+    String tmpCheckpointPath = checkpointPath + ".tmp";
     LOG.info("Creating tmp checkpoint file: " + tmpCheckpointPath);
     if (!mUfs.exists(mJournalDirectory)) {
       LOG.info("Creating journal folder: " + mJournalDirectory);
@@ -88,10 +79,11 @@ public class JournalWriter {
     dos.close();
 
     LOG.info("Successfully created tmp checkpoint file: " + tmpCheckpointPath);
-    mUfs.delete(mCheckpointPath, false);
-    mUfs.rename(tmpCheckpointPath, mCheckpointPath);
+    mUfs.delete(checkpointPath, false);
+    mUfs.rename(tmpCheckpointPath, checkpointPath);
     mUfs.delete(tmpCheckpointPath, false);
-    LOG.info("Renamed checkpoint file " + tmpCheckpointPath + " to " + mCheckpointPath);
+    LOG.info("Renamed checkpoint file " + tmpCheckpointPath + " to " + checkpointPath);
+    // TODO: the real checkpoint should not be overwritten here, but after all operations.
 
     // The checkpoint already reflects the information in the completed logs.
     deleteCompletedLogs();
@@ -103,8 +95,11 @@ public class JournalWriter {
     openCurrentLog();
   }
 
-  public void writeEntry(JournalEntry entry) {
-    // TODO: Probably should only be able to write if the checkpoint was written previously.
+  public void writeEntry(JournalEntry entry) throws IOException {
+    if (mOutputStream != null) {
+      throw new IOException("The journal checkpoint must be written before writing entries.");
+    }
+    mJournal.getJournalFormatter().serialize(entry, mOutputStream);
   }
 
   public void flush() throws IOException {
@@ -115,7 +110,6 @@ public class JournalWriter {
       }
       if (mOutputStream.size() > MAX_LOG_SIZE) {
         // rotate the current log.
-        mOutputStream.close();
         completeCurrentLog();
         openCurrentLog();
       }
@@ -126,38 +120,42 @@ public class JournalWriter {
     if (mOutputStream != null) {
       // Close the current log file.
       mOutputStream.close();
+      mOutputStream = null;
     }
     // Close the ufs.
     mUfs.close();
   }
 
   private void openCurrentLog() throws IOException {
-    mOutputStream = new DataOutputStream(mUfs.create(mCurrentLogPath));
-    LOG.info("Created new current log file: " + mCheckpointPath);
+    String currentLogFile = mJournal.getCurrentLogFilePath();
+    mOutputStream = new DataOutputStream(mUfs.create(currentLogFile));
+    LOG.info("Created new current log file: " + currentLogFile);
   }
 
   private void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files");
-    String completedLogPathBase = mCompletedDirectory + mJournal.getEntryLogFilenameBase();
-
     // Loop over all complete logs starting from the beginning.
     // TODO: should the deletes start from the end?
-    int logNumber = FIRST_COMPLETED_LOG_NUMBER;
-    String logFilename = Journal.addLogExtension(completedLogPathBase, logNumber);
+    int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
+    String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
       LOG.info("Deleting completed log: " + logFilename);
       mUfs.delete(logFilename, true);
       logNumber ++;
-      logFilename = Journal.addLogExtension(completedLogPathBase, logNumber);
+      // generate the next completed log filename in the sequence.
+      logFilename = mJournal.getCompletedLogFilePath(logNumber);
     }
 
     // All complete logs are deleted. Reset the log number counter.
-    mNextCompleteLogNumber = FIRST_COMPLETED_LOG_NUMBER;
+    mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
   }
 
   private void completeCurrentLog() throws IOException {
-    // TODO: close the current writer to the current log, if it exists.
-    if (!mUfs.exists(mCurrentLogPath)) {
+    if (mOutputStream != null) {
+      mOutputStream.close();
+    }
+    String currentLog = mJournal.getCurrentLogFilePath();
+    if (!mUfs.exists(currentLog)) {
       // All logs are already complete, so nothing to do.
       return;
     }
@@ -166,10 +164,9 @@ public class JournalWriter {
       mUfs.mkdirs(mCompletedDirectory, true);
     }
 
-    String completedLog = Journal.addLogExtension(
-        mCompletedDirectory + mJournal.getEntryLogFilenameBase(), mNextCompleteLogNumber);
-    mUfs.rename(mCurrentLogPath, completedLog);
-    LOG.info("Completed current log: " + mCurrentLogPath + " to completed log: " + completedLog);
+    String completedLog = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
+    mUfs.rename(currentLog, completedLog);
+    LOG.info("Completed current log: " + currentLog + " to completed log: " + completedLog);
 
     mNextCompleteLogNumber ++;
   }

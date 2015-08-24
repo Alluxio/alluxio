@@ -96,7 +96,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public List<WorkerInfo> getWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<WorkerInfo>(mWorkers.size());
     synchronized (mWorkers) {
-      for (MasterWorkerInfo masterWorkerInfo : mWorkers.all()) {
+      for (MasterWorkerInfo masterWorkerInfo : mWorkers) {
         workerInfoList.add(masterWorkerInfo.generateClientWorkerInfo());
       }
     }
@@ -106,7 +106,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long getCapacityBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers.all()) {
+      for (MasterWorkerInfo worker : mWorkers) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -116,7 +116,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers.all()) {
+      for (MasterWorkerInfo worker : mWorkers) {
         ret += worker.getUsedBytes();
       }
     }
