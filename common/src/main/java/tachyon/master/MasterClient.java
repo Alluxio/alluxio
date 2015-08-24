@@ -112,9 +112,7 @@ public final class MasterClient implements Closeable {
    * @param length
    * @param checkpointPath
    * @return true if checkpoint is added for the <code>fileId</code> and false otherwise
-   * @throws FileDoesNotExistException
-   * @throws SuspectedFileSizeException
-   * @throws BlockInfoException
+   * @throws IOException
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
       String checkpointPath) throws IOException {
@@ -242,7 +240,7 @@ public final class MasterClient implements Closeable {
   /**
    * Get the client dependency info from master server.
    *
-   * @param did Dependency id.
+   * @param did Dependency id
    * @return ClientDependencyInfo returned from master
    * @throws IOException
    */
@@ -294,6 +292,11 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  /**
+   * Get the master address.
+   *
+   * @return InetSocketAddress storing master address
+   */
   private synchronized InetSocketAddress getMasterAddress() {
     if (!mUseZookeeper) {
       return mMasterAddress;
@@ -383,10 +386,23 @@ public final class MasterClient implements Closeable {
     return -1;
   }
 
+  /**
+   * Return a connection status.
+   *
+   * @return connection status
+   * @throws IOException
+   */
   public synchronized boolean isConnected() {
     return mConnected;
   }
 
+  /**
+   * List status of a path.
+   *
+   * @param path for which to list status
+   * @return 
+   * @throws IOException
+   */
   public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -404,6 +420,13 @@ public final class MasterClient implements Closeable {
     return null;
   }
 
+  /**
+   * Check parameters.
+   *
+   * @param id bla bla
+   * @param path bla bla
+   * @throws IOException
+   */
   private synchronized void parameterCheck(int id, String path) throws IOException {
     if (path == null) {
       throw new NullPointerException("Paths may not be null; empty is the null state");
@@ -423,6 +446,12 @@ public final class MasterClient implements Closeable {
     mIsClosed = true;
   }
 
+  /**
+   * ...
+   *
+   * @param fId ...
+   * @throws IOException
+   */
   public synchronized void user_completeFile(int fId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -888,14 +917,13 @@ public final class MasterClient implements Closeable {
    * @param workerNetAddress Worker's NetAddress
    * @param totalBytesOnTiers Total bytes on each storage tier
    * @param usedBytesOnTiers Used bytes on each storage tier
-   * @param currentBlockList Blocks in worker's space.
-   * @return the worker id assigned by the master.
-   * @throws BlockInfoException
-   * @throws TException
+   * @param currentBlockList Blocks in worker's space
+   * @return the worker id assigned by the master
+   * @throws IOException
    */
   public synchronized long worker_register(NetAddress workerNetAddress,
       List<Long> totalBytesOnTiers, List<Long> usedBytesOnTiers,
-      Map<Long, List<Long>> currentBlockList) throws BlockInfoException, IOException {
+      Map<Long, List<Long>> currentBlockList) throws IOException {
     while (!mIsClosed) {
       connect();
 
