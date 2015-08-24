@@ -26,8 +26,9 @@ import tachyon.master.MasterClient;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
- * Class for managing block master clients. After obtaining a client with Acquire, Release must
- * be called when the thread is done using the client.
+ * Class for managing block master clients. After obtaining a client with {@link
+ * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
+ * using the client.
  */
 public class BlockMasterClientPool extends ResourcePool<MasterClient> {
   private final ExecutorService mExecutorService;
