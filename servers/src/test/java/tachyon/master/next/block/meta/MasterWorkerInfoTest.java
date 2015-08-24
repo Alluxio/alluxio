@@ -119,4 +119,12 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals(usedBytesOnTiers, mInfo.getUsedBytesOnTiers());
     Assert.assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
   }
+
+  @Test
+  public void updateUsedBytesInTierTest() {
+    Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
+    mInfo.updateUsedBytes(1, Constants.KB * 2L);
+    Assert.assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
+    Assert.assertEquals(Constants.KB * 2L, (long) mInfo.getUsedBytesOnTiers().get(0));
+  }
 }
