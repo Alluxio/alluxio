@@ -26,7 +26,7 @@ import tachyon.master.block.BlockId;
 /**
  * Unit tests for tachyon.InodeDirectory
  */
-public final class InodeDirectoryTests {
+public final class InodeDirectoryTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Test

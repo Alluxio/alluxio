@@ -34,7 +34,7 @@ import tachyon.thrift.InvalidPathException;
 /**
  * Unit tests for InodeTree.
  */
-public final class InodeTreeTests {
+public final class InodeTreeTest {
   private static final String TEST_PATH = "test";
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
   private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
