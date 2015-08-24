@@ -75,8 +75,8 @@ public final class MasterWorkerInfo {
    * @param newBlocks
    * @return A Set of blocks removed (or lost) from this worker.
    */
-  public Set<Long> register(List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Set<Long> newBlocks) {
+  public Set<Long> register(List<Long> totalBytesOnTiers, List<Long> usedBytesOnTiers,
+      Set<Long> newBlocks) {
     mTotalBytesOnTiers = totalBytesOnTiers;
     mUsedBytesOnTiers = usedBytesOnTiers;
     mCapacityBytes = 0;
@@ -210,6 +210,13 @@ public final class MasterWorkerInfo {
    */
   public synchronized List<Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
+  }
+
+  /**
+   * @return the start time in milliseconds.
+   */
+  public long getStartTime() {
+    return mStartTimeMs;
   }
 
   /**
