@@ -15,7 +15,14 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+
 import com.google.common.io.Closer;
+
 import tachyon.Constants;
 import tachyon.client.next.CacheType;
 import tachyon.client.next.ClientContext;
@@ -25,12 +32,6 @@ import tachyon.util.io.BufferUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.next.WorkerClient;
-
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will directly write

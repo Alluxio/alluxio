@@ -15,12 +15,11 @@
 
 package tachyon.client.next.file;
 
-import tachyon.TachyonURI;
-import tachyon.client.next.ClientOptions;
-import tachyon.thrift.FileInfo;
-
 import java.io.IOException;
 import java.util.List;
+
+import tachyon.TachyonURI;
+import tachyon.thrift.FileInfo;
 
 /**
  * User facing interface for the Tachyon File System client APIs. File refers to any type of inode,

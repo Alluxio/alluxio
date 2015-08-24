@@ -15,7 +15,11 @@
 
 package tachyon.client.next.block;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.google.common.base.Preconditions;
+
 import tachyon.client.next.ClientContext;
 import tachyon.master.MasterClient;
 import tachyon.thrift.NetAddress;
@@ -23,9 +27,6 @@ import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.next.WorkerClient;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * A shared context in each client JVM for common Block Store client functionality such as a pool

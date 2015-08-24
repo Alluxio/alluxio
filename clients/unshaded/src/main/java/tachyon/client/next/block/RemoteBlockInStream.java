@@ -15,14 +15,15 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import com.google.common.base.Preconditions;
+
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
 import tachyon.thrift.FileBlockInfo;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred

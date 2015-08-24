@@ -15,17 +15,18 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+
 import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.client.RemoteBlockWriter;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
 import tachyon.util.io.BufferUtils;
 import tachyon.worker.next.WorkerClient;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write
