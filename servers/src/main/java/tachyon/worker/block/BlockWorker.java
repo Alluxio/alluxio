@@ -41,6 +41,8 @@ import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
@@ -83,6 +85,8 @@ public final class BlockWorker {
   private final TachyonConf mTachyonConf;
   /** Server socket for thrift */
   private final TServerSocket mThriftServerSocket;
+  /** RPC local port for thrift */
+  private final int mPort;
   /** Thread pool for thrift */
   private final TThreadPoolServer mThriftServer;
   /** Worker start time in milliseconds */
@@ -105,8 +109,10 @@ public final class BlockWorker {
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient = new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+    mMasterClient =
+        new MasterClient(
+            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
+            mMasterClientExecutorService, mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
@@ -118,27 +124,29 @@ public final class BlockWorker {
     mWorkerMetricsSystem.registerSource(workerSource);
 
     // Set up DataServer
-    int dataServerPort =
-        mTachyonConf.getInt(Constants.WORKER_DATA_PORT);
-    InetSocketAddress dataServerAddress =
-        new InetSocketAddress(NetworkAddressUtils.getLocalHostName(mTachyonConf), dataServerPort);
     mDataServer =
-        DataServer.Factory.createDataServer(dataServerAddress, mBlockDataManager, mTachyonConf);
+        DataServer.Factory.createDataServer(
+            NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
+            mBlockDataManager, mTachyonConf);
+    // reset data server port
+    mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
-    int thriftServerPort = NetworkAddressUtils.getPort(mThriftServerSocket);
+    mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
+    // reset worker RPC port
+    mTachyonConf.set(Constants.WORKER_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf).getAddress()
-            .getHostAddress(), thriftServerPort, mDataServer.getPort());
+        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
+            mPort, mDataServer.getPort());
 
     // Set up web server
-    int webPort = mTachyonConf.getInt(Constants.WORKER_WEB_PORT);
     mWebServer =
-        new WorkerUIWebServer("Tachyon Worker", new InetSocketAddress(mWorkerNetAddress.getMHost(),
-            webPort), mBlockDataManager, NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf),
+        new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
+            ServiceType.WORKER_WEB, mTachyonConf), mBlockDataManager,
+            NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
             mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
@@ -260,7 +268,8 @@ public final class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf));
+      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
+          mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
@@ -270,5 +279,48 @@ public final class BlockWorker {
   // For unit test purposes only
   public BlockServiceHandler getWorkerServiceHandler() {
     return mServiceHandler;
+  }
+
+  /**
+   * Get the actual bind hostname on RPC service (used by unit test only).
+   */
+  public String getRPCBindHost() {
+    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
+        .toString();
+  }
+
+  /**
+   * Get the actual port that the Data service is listening on (used by unit test only)
+   */
+  public int getRPCLocalPort() {
+    return mPort;
+  }
+
+  /**
+   * Get the actual bind hostname on Data service (used by unit test only).
+   */
+  public String getDataBindHost() {
+    return mDataServer.getBindHost();
+  }
+
+  /**
+   * Get the actual port that the RPC service is listening on (used by unit test only)
+   */
+  public int getDataLocalPort() {
+    return mDataServer.getPort();
+  }
+
+  /**
+   * Get the actual bind hostname on web service (used by unit test only).
+   */
+  public String getWebBindHost() {
+    return mWebServer.getBindHost();
+  }
+
+  /**
+   * Get the actual port that the web service is listening on (used by unit test only)
+   */
+  public int getWebLocalPort() {
+    return mWebServer.getLocalPort();
   }
 }
