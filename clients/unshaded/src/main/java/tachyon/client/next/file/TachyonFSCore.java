@@ -16,11 +16,19 @@ interface TachyonFSCore {
   /**
    * Deletes a file. If the file is a folder, its contents will be deleted recursively.
    *
-   * @param file The handler of the file to delete.
-   * @return true if deletes successfully, false otherwise.
+   * @param file the handler of the file to delete.
    * @throws IOException if the master is unable to delete the file
    */
   void delete(TachyonFile file) throws IOException;
+
+  /**
+   * Removes the file from Tachyon Storage. The underlying under storage system file will not be
+   * removed. If the file is a folder, its contents will be freed recursively.
+   *
+   * @param file the handler for the file
+   * @throws IOException if the master is unable to free the file
+   */
+  void free(TachyonFile file) throws IOException;
 
   /**
    * Gets the FileInfo object that represents the Tachyon file
