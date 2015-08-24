@@ -110,4 +110,13 @@ public final class MasterWorkerInfoTest {
     mInfo.removeBlock(1L);
     Assert.assertTrue(mInfo.getToRemoveBlocks().isEmpty());
   }
+
+  @Test
+  public void updateUsedBytesTest() {
+    Assert.assertEquals(Constants.KB * 2L, mInfo.getUsedBytes());
+    List<Long> usedBytesOnTiers = Lists.newArrayList(Constants.KB * 2L, Constants.KB * 1L);
+    mInfo.updateUsedBytes(usedBytesOnTiers);
+    Assert.assertEquals(usedBytesOnTiers, mInfo.getUsedBytesOnTiers());
+    Assert.assertEquals(Constants.KB * 3L, mInfo.getUsedBytes());
+  }
 }
