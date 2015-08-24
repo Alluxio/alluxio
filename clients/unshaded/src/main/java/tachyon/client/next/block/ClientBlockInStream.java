@@ -15,10 +15,10 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
+
 import tachyon.client.next.ClientOptions;
 import tachyon.thrift.FileBlockInfo;
-
-import java.io.IOException;
 
 /**
  * A wrapper on local, remote, or under file system streams. This class takes care of managing

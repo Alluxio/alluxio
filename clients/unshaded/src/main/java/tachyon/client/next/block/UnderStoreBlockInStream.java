@@ -15,11 +15,11 @@
 
 package tachyon.client.next.block;
 
-import tachyon.client.next.ClientContext;
-import tachyon.underfs.UnderFileSystem;
-
 import java.io.IOException;
 import java.io.InputStream;
+
+import tachyon.client.next.ClientContext;
+import tachyon.underfs.UnderFileSystem;
 
 public class UnderStoreBlockInStream extends BlockInStream {
   private final String mUfsPath;
