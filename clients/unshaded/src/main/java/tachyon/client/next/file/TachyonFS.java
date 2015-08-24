@@ -79,9 +79,15 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     }
   }
 
-  public FileInStream getInStream(TachyonFile file, ClientOptions options) {
-    // TODO: Implement me
-    return null;
+  public FileInStream getInStream(TachyonFile file, ClientOptions options) throws IOException {
+    MasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      // TODO: Make sure the file is not a folder
+      FileInfo info = masterClient.getFileStatus(file.getFileId(), "");
+      return new ClientFileInStream(info, options);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 
   public FileOutStream getOutStream(TachyonURI path, TachyonURI ufsPath, ClientOptions options) {
