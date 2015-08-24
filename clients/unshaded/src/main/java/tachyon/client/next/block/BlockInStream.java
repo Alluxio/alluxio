@@ -21,7 +21,7 @@ import java.io.InputStream;
 /**
  * Provides a stream API to read a block from Tachyon. An instance of this extending class can be
  * obtained by calling {@link TachyonBS#getInStream}. Multiple BlockInStreams can be opened for a
- * block. This class is thread safe.
+ * block. This class is not thread safe and should only be used by one thread.
  *
  * This class provides the same methods as a Java {@link InputStream} with an additional seek
  * method. Currently the only implementation of this class which should be used by a client is
