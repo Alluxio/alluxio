@@ -50,32 +50,6 @@ public class TachyonBS implements Closeable {
   }
 
   /**
-   * Deletes a block from Tachyon space and under storage space.
-   *
-   * @param blockId the blockId of the block to delete
-   */
-  // TODO: Evaluate if this is necessary for now, or if file level delete is sufficient
-  public void delete(long blockId) {
-    MasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      // TODO: Implement delete RPC
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
-  }
-
-  /**
-   * Frees a block from Tachyon space by removing it from all the workers which currently own a
-   * copy of the block. This does not remove the block from under storage.
-   *
-   * @param blockId the blockId of the block to free
-   */
-  // TODO: Evaluate if this is necessary for now, or if file level free is sufficient
-  public void free(long blockId) {
-    // TODO: Implement free RPC
-  }
-
-  /**
    * Gets the block info of a block, if it exists.
    *
    * @param blockId the blockId to obtain information about
@@ -131,11 +105,5 @@ public class TachyonBS implements Closeable {
     }
     // TODO: Handle the case when a location is specified
     return null;
-  }
-
-  // TODO: Evaluate if this is necessary for now, or if file level promote is sufficient
-  public boolean promote(long blockId) {
-    // TODO: Implement me
-    return false;
   }
 }
