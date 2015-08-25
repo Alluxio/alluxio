@@ -17,9 +17,6 @@ package tachyon.client.next.file;
 
 import tachyon.client.next.InStream;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
  * Provides a stream API to read a file from Tachyon. An instance of this class can be obtained by
  * calling {@link TachyonFS#getInStream}. Multiple FileInStreams can be opened for a

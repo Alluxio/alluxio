@@ -15,13 +15,14 @@
 
 package tachyon.client.next.file;
 
+import java.io.IOException;
+import java.util.List;
+
 import com.google.common.base.Preconditions;
+
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.block.BlockInStream;
 import tachyon.thrift.FileInfo;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Provides a streaming API to read a file. This class wraps the BlockInStreams for each of the

@@ -17,9 +17,6 @@ package tachyon.client.next.block;
 
 import tachyon.client.next.OutStream;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 /**
  * Provides a stream API to write a block to Tachyon. An instance of this class can be obtained by
  * calling {@link TachyonBS#getOutStream}. Only one BlockOutStream should be opened for a

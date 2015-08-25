@@ -137,8 +137,7 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    * @return an output stream to write the file
    * @throws IOException if the file already exists or if the stream cannot be opened
    */
-  public FileOutStream getOutStream(TachyonURI path, ClientOptions options)
-      throws IOException{
+  public FileOutStream getOutStream(TachyonURI path, ClientOptions options) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
       int fileId = masterClient.user_createFile(path.getPath(), "", options.getBlockSize(), true);
@@ -156,6 +155,7 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    * @return a list of FileInfos representing the files which are children of the given file
    * @throws IOException if the file does not exist
    */
+  @Override
   public List<FileInfo> listStatus(TachyonFile file) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -173,6 +173,7 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    * @return true if the folder is created successfully or already existing, false otherwise.
    * @throws IOException if the master cannot create the folder under the specified path
    */
+  @Override
   public boolean mkdirs(TachyonURI path) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -190,6 +191,7 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    * @return a TachyonFile which acts as a file handler for the path
    * @throws IOException if the path does not exist in Tachyon space
    */
+  @Override
   public TachyonFile open(TachyonURI path) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -208,6 +210,7 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    * @return true if successful, false otherwise
    * @throws IOException if the destination already exists or is invalid
    */
+  @Override
   public boolean rename(TachyonFile src, TachyonURI dst) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
