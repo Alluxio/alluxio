@@ -64,35 +64,35 @@ public class TachyonConfTest {
   @Test
   public void testCommonDefault() {
     String tachyonHome = sDefaultTachyonConf.get(Constants.TACHYON_HOME);
-    Assert.assertNotEquals(tachyonHome, null);
+    Assert.assertNotNull(tachyonHome);
     Assert.assertEquals("/mnt/tachyon_default_home", tachyonHome);
 
     String ufsAddress = sDefaultTachyonConf.get(Constants.UNDERFS_ADDRESS);
-    Assert.assertNotEquals(ufsAddress, null);
+    Assert.assertNotNull(ufsAddress);
     Assert.assertEquals(tachyonHome + "/underFSStorage", ufsAddress);
 
     String value = sDefaultTachyonConf.get(Constants.WEB_RESOURCES);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(tachyonHome + "/servers/src/main/webapp", value);
 
     value = sDefaultTachyonConf.get(Constants.UNDERFS_HDFS_IMPL);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", value);
 
     value = sDefaultTachyonConf.get(Constants.UNDERFS_HADOOP_PREFIXS);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(DEFAULT_HADOOP_UFS_PREFIX, value);
 
     value = sDefaultTachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals("org.apache.hadoop.fs.glusterfs.GlusterFileSystem", value);
 
     value = sDefaultTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(ufsAddress + "/tachyon/data", value);
 
     value = sDefaultTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(ufsAddress + "/tachyon/workers", value);
 
     boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
@@ -117,37 +117,37 @@ public class TachyonConfTest {
   @Test
   public void testMasterDefault() {
     String tachyonHome = sDefaultTachyonConf.get(Constants.TACHYON_HOME);
-    Assert.assertNotEquals(tachyonHome, null);
+    Assert.assertNotNull(tachyonHome);
     Assert.assertEquals("/mnt/tachyon_default_home", tachyonHome);
 
     String value = sDefaultTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(tachyonHome + "/journal/", value);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_HOSTNAME);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.getLocalHostName(100), value);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals("/tmp", value);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(Constants.FORMAT_FILE_PREFIX, value);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_ADDRESS);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_BIND_HOST);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_PORT);
     Assert.assertEquals(intValue, 19998);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_WEB_BIND_HOST);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_PORT);
@@ -169,25 +169,25 @@ public class TachyonConfTest {
   @Test
   public void testWorkerDefault() {
     String value = sDefaultTachyonConf.get(Constants.WORKER_DATA_FOLDER);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals("/mnt/ramdisk", value);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_BIND_HOST);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT);
     Assert.assertEquals(intValue, 29998);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_DATA_BIND_HOST);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_DATA_PORT);
     Assert.assertEquals(intValue, 29999);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_WEB_BIND_HOST);
-    Assert.assertNotEquals(value, null);
+    Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_WEB_PORT);
@@ -275,7 +275,7 @@ public class TachyonConfTest {
   @Test
   public void testSystemVariableSubstitutionSample() {
     String masterAddress = mSystemPropsTachyonConf.get(Constants.MASTER_ADDRESS);
-    Assert.assertNotEquals(masterAddress, null);
+    Assert.assertNotNull(masterAddress);
     Assert.assertEquals("tachyon-ft://master:20001", masterAddress);
   }
 }
