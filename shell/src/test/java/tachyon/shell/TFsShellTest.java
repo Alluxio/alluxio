@@ -450,9 +450,8 @@ public class TFsShellTest {
   @Test
   public void mkdirTest() throws IOException {
     String qualifiedPath =
-        "tachyon://"
-            + NetworkAddressUtils.getLocalHostName(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS)
-            + ":" + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
+        "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
+            + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.run(new String[] {"mkdir", qualifiedPath});
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/root/testFile1"));
     Assert.assertNotNull(tFile);
@@ -631,9 +630,9 @@ public class TFsShellTest {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils
-        .sleepMs(null, tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
-            Constants.SECOND_MS) * 2 + 10);
+    CommonUtils.sleepMs(
+        tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)
+            * 2 + 10);
     Assert.assertFalse(mTfs.getFile(new TachyonURI("/testFile")).isInMemory());
   }
 

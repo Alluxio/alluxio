@@ -128,4 +128,77 @@ public class LRUEvictorTestBase extends EvictorTestBase {
       access(blockIdEvictedInSecondTier);
     }
   }
+
+  @Test
+  public void cascadingEvictionTest3() throws Exception {
+    // First Tier 2000, 3000
+    // Second Tier 10000, 20000, 30000
+    int blockSize = 1000;
+    cache(USER_ID, 101, blockSize, 0, 0);
+    cache(USER_ID, 102, blockSize, 0, 0);
+    cache(USER_ID, 103, blockSize, 0, 1);
+    cache(USER_ID, 104, blockSize, 0, 1);
+    cache(USER_ID, 105, blockSize, 0, 1);
+    cache(USER_ID, 106, 9500, 1, 2);
+
+    // After caching blocks, the free space looks like
+    // First Tier 0, 0
+    // Second Tier 10000, 20000, 200500
+    BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier(1);
+    BlockStoreLocation firstDirSecondTier = new BlockStoreLocation(2, 1, 0);
+    BlockStoreLocation secondDirSecondTier = new BlockStoreLocation(2, 1, 1);
+    BlockStoreLocation thirdDirSecondTier = new BlockStoreLocation(2, 1, 2);
+
+    EvictionPlan plan = mEvictor.freeSpaceWithView(blockSize * 2, anyDirInFirstTier, mManagerView);
+    Assert.assertNotNull(plan);
+    Assert.assertEquals(0, plan.toEvict().size());
+    Assert.assertEquals(2, plan.toMove().size());
+
+    // 2 blocks to move. The first one should be moved the 3rd dir as it has max free space.
+    long blockId = plan.toMove().get(0).getFirst();
+    Assert.assertEquals(101, blockId);
+    BlockStoreLocation dstLocation = plan.toMove().get(0).getSecond();
+    Assert.assertEquals(thirdDirSecondTier, dstLocation);
+
+    // The second one should be moved the 2nd dir because after the first move the second dir
+    // has the max free space.
+    blockId = plan.toMove().get(1).getFirst();
+    Assert.assertEquals(102, blockId);
+    dstLocation = plan.toMove().get(1).getSecond();
+    Assert.assertEquals(secondDirSecondTier, dstLocation);
+
+    cache(USER_ID, 107, 10000, 1, 0);
+    cache(USER_ID, 108, 20000, 1, 1);
+    cache(USER_ID, 109, 19000, 1, 2);
+    access(106);
+
+    // After caching more blocks, the free space looks like
+    // First Tier 0, 0
+    // Second Tier 0, 0, 1500
+    plan = mEvictor.freeSpaceWithView(blockSize * 3, anyDirInFirstTier, mManagerView);
+    Assert.assertNotNull(plan);
+    Assert.assertEquals(1, plan.toEvict().size());
+    Assert.assertEquals(3, plan.toMove().size());
+
+    blockId = plan.toEvict().get(0);
+    Assert.assertEquals(107, blockId);
+
+    // 3 blocks to move. The first one should be moved the 3rd dir as it has max free space.
+    blockId = plan.toMove().get(0).getFirst();
+    Assert.assertEquals(103, blockId);
+    dstLocation = plan.toMove().get(0).getSecond();
+    Assert.assertEquals(thirdDirSecondTier, dstLocation);
+
+    // The other two should be moved the 1st dir because the 1st dir has the max free space
+    // after evicting block 107.
+    blockId = plan.toMove().get(1).getFirst();
+    Assert.assertEquals(104, blockId);
+    dstLocation = plan.toMove().get(1).getSecond();
+    Assert.assertEquals(firstDirSecondTier, dstLocation);
+
+    blockId = plan.toMove().get(2).getFirst();
+    Assert.assertEquals(105, blockId);
+    dstLocation = plan.toMove().get(1).getSecond();
+    Assert.assertEquals(firstDirSecondTier, dstLocation);
+  }
 }
