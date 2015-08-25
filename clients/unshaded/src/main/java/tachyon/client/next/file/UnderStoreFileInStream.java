@@ -13,31 +13,39 @@
  * the License.
  */
 
-package tachyon.client.next.block;
+package tachyon.client.next.file;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import tachyon.client.next.ClientContext;
-import tachyon.thrift.FileBlockInfo;
+import tachyon.client.next.block.BlockInStream;
 import tachyon.underfs.UnderFileSystem;
 
 /**
- * This class provides a streaming API to read from the under storage system. The under storage
- * system read does not guarantee any locality and is dependent on the implementation of the
- * under storage client.
+ * This class provides a streaming API to read a fixed chunk from a file in the under storage
+ * system. The user may freely seek and skip within the fixed chunk of data. The under storage
+ * system read does not guarantee any locality and is dependent on the implementation of the under
+ * storage client.
  */
-public class UnderStoreBlockInStream extends BlockInStream {
-  private final long mBlockSize;
+public class UnderStoreFileInStream extends BlockInStream {
+  private final long mInitPos;
+  private final long mLength;
   private final String mUfsPath;
 
   private long mPos;
   private InputStream mUnderStoreStream;
 
-  public UnderStoreBlockInStream(FileBlockInfo info, String ufsPath) throws IOException {
-    mBlockSize = info.getLength();
+  public UnderStoreFileInStream(long initPos, long length, String ufsPath) throws IOException {
+    mInitPos = initPos;
+    mLength = length;
     mUfsPath = ufsPath;
-    resetUnderStoreStream();
+    setUnderStoreStream(initPos);
+  }
+
+  @Override
+  public void close() throws IOException {
+    mUnderStoreStream.close();
   }
 
   @Override
@@ -63,16 +71,13 @@ public class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public long remaining() {
-    return mBlockSize - mPos;
+    return mInitPos + mLength - mPos;
   }
 
   @Override
   public void seek(long pos) throws IOException {
     if (pos < mPos) {
-      resetUnderStoreStream();
-      if (skip(pos) != pos) {
-        throw new IOException("Failed to seek backward to " + pos);
-      }
+      setUnderStoreStream(pos);
     } else {
       if (skip(mPos - pos) != mPos - pos) {
         throw new IOException("Failed to seek forward to " + pos);
@@ -82,17 +87,29 @@ public class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public long skip(long n) throws IOException {
-    long skipped = mUnderStoreStream.skip(n);
+    // Negative skip returns 0
+    if (n <= 0) {
+      return 0;
+    }
+    // Cannot skip beyond boundary
+    long toSkip = Math.min(mInitPos + mLength, mPos + n);
+    long skipped = mUnderStoreStream.skip(toSkip);
+    if (toSkip != skipped) {
+      throw new IOException("Failed to skip " + toSkip);
+    }
     mPos += skipped;
     return skipped;
   }
 
-  private void resetUnderStoreStream() throws IOException {
+  private void setUnderStoreStream(long pos) throws IOException {
     if (null != mUnderStoreStream) {
       mUnderStoreStream.close();
     }
     UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
     mUnderStoreStream = ufs.open(mUfsPath);
     mPos = 0;
+    if (pos != skip(pos)) {
+      throw new IOException("Failed to skip: " + pos);
+    }
   }
 }
