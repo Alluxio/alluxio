@@ -15,10 +15,9 @@
 
 package tachyon.client.next.block;
 
-import tachyon.client.next.InStream;
-
-import java.io.IOException;
 import java.io.InputStream;
+
+import tachyon.client.next.InStream;
 
 /**
  * Provides a stream API to read a block from Tachyon. An instance of this extending class can be
