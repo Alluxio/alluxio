@@ -29,9 +29,9 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import tachyon.Constants;
 
 /**
- * Simple Netty decoder which converts the input ByteBuf into an RPCMessage.
- * The frame decoder should have already run earlier in the Netty pipeline, and split up the stream
- * into individual encoded messages.
+ * Simple Netty decoder which converts the input ByteBuf into an RPCMessage. The frame decoder
+ * should have already run earlier in the Netty pipeline, and split up the stream into individual
+ * encoded messages.
  */
 @ChannelHandler.Sharable
 public class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
@@ -49,8 +49,7 @@ public class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     LOG.error("Error in decoding message. Possible Client/DataServer version incompatibility: "
         + cause.getMessage());
     // Return an error message to the client.
-    ctx.channel()
-        .writeAndFlush(new RPCErrorResponse(RPCResponse.Status.DECODE_ERROR))
+    ctx.channel().writeAndFlush(new RPCErrorResponse(RPCResponse.Status.DECODE_ERROR))
         .addListener(ChannelFutureListener.CLOSE);
   }
 }

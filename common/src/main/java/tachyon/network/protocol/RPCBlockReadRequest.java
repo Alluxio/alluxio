@@ -33,10 +33,6 @@ public class RPCBlockReadRequest extends RPCRequest {
     mLength = length;
   }
 
-  public Type getType() {
-    return Type.RPC_BLOCK_READ_REQUEST;
-  }
-
   /**
    * Decode the input {@link ByteBuf} into a {@link RPCBlockReadRequest} object and return it.
    *
@@ -48,6 +44,10 @@ public class RPCBlockReadRequest extends RPCRequest {
     long offset = in.readLong();
     long length = in.readLong();
     return new RPCBlockReadRequest(blockId, offset, length);
+  }
+
+  public Type getType() {
+    return Type.RPC_BLOCK_READ_REQUEST;
   }
 
   @Override

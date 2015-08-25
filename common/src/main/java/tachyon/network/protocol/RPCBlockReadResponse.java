@@ -43,16 +43,12 @@ public class RPCBlockReadResponse extends RPCResponse {
     mStatus = status;
   }
 
-  public Type getType() {
-    return Type.RPC_BLOCK_READ_RESPONSE;
-  }
-
   /**
    * Creates a {@link RPCBlockReadResponse} object that indicates an error for the given
    * {@link RPCBlockReadRequest}.
    *
-   * @param request The {@link RPCBlockReadRequest} to generated
-   * the {@link RPCBlockReadResponse} for.
+   * @param request The {@link RPCBlockReadRequest} to generated the {@link RPCBlockReadResponse}
+   *        for.
    * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response.
    * @return The generated {@link RPCBlockReadResponse} object.
    */
@@ -83,6 +79,10 @@ public class RPCBlockReadResponse extends RPCResponse {
     return new RPCBlockReadResponse(blockId, offset, length, data, Status.fromShort(status));
   }
 
+  public Type getType() {
+    return Type.RPC_BLOCK_READ_RESPONSE;
+  }
+
   @Override
   public int getEncodedLength() {
     // 3 longs (mBLockId, mOffset, mLength) + 1 short (mStatus)
@@ -106,8 +106,8 @@ public class RPCBlockReadResponse extends RPCResponse {
 
   @Override
   public String toString() {
-    return "RPCBlockReadResponse(" + mBlockId + ", " + mOffset
-        + ", " + mLength + ", " + mStatus + ")";
+    return "RPCBlockReadResponse(" + mBlockId + ", " + mOffset + ", " + mLength + ", " + mStatus
+        + ")";
   }
 
   public long getBlockId() {

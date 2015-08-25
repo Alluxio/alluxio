@@ -56,9 +56,11 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  */
 public class WorkerClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final MasterClient mMasterClient;
   private static final int CONNECTION_RETRY_TIMES = 5;
-
+  private final MasterClient mMasterClient;
+  private final ExecutorService mExecutorService;
+  private final TachyonConf mTachyonConf;
+  private final ClientMetrics mClientMetrics;
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
   private InetSocketAddress mWorkerAddress;
@@ -70,12 +72,8 @@ public class WorkerClient implements Closeable {
   // independent from thrift exceptions.
   private boolean mConnected = false;
   private boolean mIsLocal = false;
-  private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
   private HeartbeatExecutor mHeartbeatExecutor;
-
-  private final TachyonConf mTachyonConf;
-  private final ClientMetrics mClientMetrics;
 
   /**
    * Create a WorkerClient, with a given MasterClient.
@@ -85,8 +83,8 @@ public class WorkerClient implements Closeable {
    * @param conf the Tachyon Configuration to use
    * @param clientMetrics metrics collection object for this client's operations
    */
-  public WorkerClient(MasterClient masterClient, ExecutorService executorService,
-      TachyonConf conf, ClientMetrics clientMetrics) {
+  public WorkerClient(MasterClient masterClient, ExecutorService executorService, TachyonConf conf,
+      ClientMetrics clientMetrics) {
     mMasterClient = masterClient;
     mExecutorService = executorService;
     mTachyonConf = conf;
@@ -257,8 +255,7 @@ public class WorkerClient implements Closeable {
       mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
-      mHeartbeatExecutor =
-          new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId());
+      mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this, mMasterClient.getUserId());
       String threadName = "worker-heartbeat-" + mWorkerAddress;
       int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
       mHeartbeat =

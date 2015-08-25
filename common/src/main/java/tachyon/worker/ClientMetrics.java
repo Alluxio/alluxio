@@ -45,8 +45,8 @@ public class ClientMetrics {
   }
 
   public synchronized void incBlocksReadLocal(long n) {
-    mMetrics.set(Constants.BLOCKS_READ_LOCAL_INDEX,
-        mMetrics.get(Constants.BLOCKS_READ_LOCAL_INDEX) + n);
+    mMetrics.set(Constants.BLOCKS_READ_LOCAL_INDEX, mMetrics.get(Constants.BLOCKS_READ_LOCAL_INDEX)
+        + n);
   }
 
   public synchronized void incBlocksReadRemote(long n) {
@@ -65,13 +65,13 @@ public class ClientMetrics {
   }
 
   public synchronized void incBytesReadLocal(long n) {
-    mMetrics.set(Constants.BYTES_READ_LOCAL_INDEX,
-        mMetrics.get(Constants.BYTES_READ_LOCAL_INDEX) + n);
+    mMetrics.set(Constants.BYTES_READ_LOCAL_INDEX, mMetrics.get(Constants.BYTES_READ_LOCAL_INDEX)
+        + n);
   }
 
   public synchronized void incBytesReadRemote(long n) {
-    mMetrics.set(Constants.BYTES_READ_REMOTE_INDEX,
-        mMetrics.get(Constants.BYTES_READ_REMOTE_INDEX) + n);
+    mMetrics.set(Constants.BYTES_READ_REMOTE_INDEX, mMetrics.get(Constants.BYTES_READ_REMOTE_INDEX)
+        + n);
   }
 
   public synchronized void incBytesReadUfs(long n) {
@@ -89,7 +89,7 @@ public class ClientMetrics {
   }
 
   public synchronized void incBytesWrittenUfs(long n) {
-    mMetrics.set(Constants.BYTES_WRITTEN_UFS_INDEX,
-        mMetrics.get(Constants.BYTES_WRITTEN_UFS_INDEX) + n);
+    mMetrics.set(Constants.BYTES_WRITTEN_UFS_INDEX, mMetrics.get(Constants.BYTES_WRITTEN_UFS_INDEX)
+        + n);
   }
 }

@@ -37,6 +37,9 @@ public class LeaderInquireClient {
 
   private static HashMap<String, LeaderInquireClient> sCreatedClients =
       new HashMap<String, LeaderInquireClient>();
+  private final String mZookeeperAddress;
+  private final String mLeaderPath;
+  private final CuratorFramework mCLient;
 
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
       String leaderPath) {
@@ -46,10 +49,6 @@ public class LeaderInquireClient {
     }
     return sCreatedClients.get(key);
   }
-
-  private final String mZookeeperAddress;
-  private final String mLeaderPath;
-  private final CuratorFramework mCLient;
 
   private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
@@ -76,8 +75,7 @@ public class LeaderInquireClient {
             long maxTime = 0;
             String leader = "";
             for (String master : masters) {
-              Stat stat = mCLient.checkExists().forPath(
-                  PathUtils.concatPath(mLeaderPath, master));
+              Stat stat = mCLient.checkExists().forPath(PathUtils.concatPath(mLeaderPath, master));
               if (stat != null && stat.getCtime() > maxTime) {
                 maxTime = stat.getCtime();
                 leader = master;

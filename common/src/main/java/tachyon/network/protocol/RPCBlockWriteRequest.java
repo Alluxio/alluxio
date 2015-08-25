@@ -43,10 +43,6 @@ public class RPCBlockWriteRequest extends RPCRequest {
     mData = data;
   }
 
-  public Type getType() {
-    return Type.RPC_BLOCK_WRITE_REQUEST;
-  }
-
   /**
    * Decode the input {@link ByteBuf} into a {@link RPCBlockWriteRequest} object and return it.
    *
@@ -66,6 +62,10 @@ public class RPCBlockWriteRequest extends RPCRequest {
       data = new DataByteBuffer(buffer, (int) length);
     }
     return new RPCBlockWriteRequest(userId, blockId, offset, length, data);
+  }
+
+  public Type getType() {
+    return Type.RPC_BLOCK_WRITE_REQUEST;
   }
 
   @Override

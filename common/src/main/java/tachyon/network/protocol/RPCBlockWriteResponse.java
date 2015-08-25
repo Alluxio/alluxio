@@ -43,8 +43,8 @@ public class RPCBlockWriteResponse extends RPCResponse {
    * Creates a {@link RPCBlockWriteResponse} object that indicates an error for the given
    * {@link RPCBlockWriteRequest}.
    *
-   * @param request The {@link RPCBlockWriteRequest} to generated
-   *        the {@link RPCBlockReadResponse} for.
+   * @param request The {@link RPCBlockWriteRequest} to generated the {@link RPCBlockReadResponse}
+   *        for.
    * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response.
    * @return The generated {@link RPCBlockWriteResponse} object.
    */
@@ -52,12 +52,8 @@ public class RPCBlockWriteResponse extends RPCResponse {
       final Status status) {
     Preconditions.checkArgument(status != Status.SUCCESS);
     // The response has no payload, so length must be 0.
-    return new RPCBlockWriteResponse(request.getUserId(), request.getBlockId(), request.getOffset(),
-        request.getLength(), status);
-  }
-
-  public Type getType() {
-    return Type.RPC_BLOCK_WRITE_RESPONSE;
+    return new RPCBlockWriteResponse(request.getUserId(), request.getBlockId(),
+        request.getOffset(), request.getLength(), status);
   }
 
   /**
@@ -73,6 +69,10 @@ public class RPCBlockWriteResponse extends RPCResponse {
     long length = in.readLong();
     short status = in.readShort();
     return new RPCBlockWriteResponse(userId, blockId, offset, length, Status.fromShort(status));
+  }
+
+  public Type getType() {
+    return Type.RPC_BLOCK_WRITE_RESPONSE;
   }
 
   @Override

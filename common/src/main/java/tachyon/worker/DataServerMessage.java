@@ -43,6 +43,29 @@ public class DataServerMessage {
   private static final int RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 26;
   // The error response header is: HEADER_PREFIX, status (short)
   private static final int ERROR_RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 2;
+  private final boolean mToSendData;
+  private final RPCMessage.Type mMessageType;
+  private boolean mIsMessageReady;
+  private ByteBuffer mHeader;
+  private long mBlockId;
+  private long mOffset;
+  private long mLength;
+  private RPCResponse.Status mStatus;
+  // TODO: Investigate how to remove this since it is not transferred over the wire.
+  private long mLockId = -1L;
+  private ByteBuffer mData = null;
+
+  /**
+   * New a DataServerMessage. Notice that it's not ready.
+   *
+   * @param isToSendData true if this is a send message, otherwise this is a recv message
+   * @param msgType The message type
+   */
+  private DataServerMessage(boolean isToSendData, RPCMessage.Type msgType) {
+    mToSendData = isToSendData;
+    mMessageType = msgType;
+    mIsMessageReady = false;
+  }
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -152,37 +175,6 @@ public class DataServerMessage {
     return ret;
   }
 
-  private final boolean mToSendData;
-  private final RPCMessage.Type mMessageType;
-  private boolean mIsMessageReady;
-
-  private ByteBuffer mHeader;
-
-  private long mBlockId;
-
-  private long mOffset;
-
-  private long mLength;
-
-  private RPCResponse.Status mStatus;
-
-  // TODO: Investigate how to remove this since it is not transferred over the wire.
-  private long mLockId = -1L;
-
-  private ByteBuffer mData = null;
-
-  /**
-   * New a DataServerMessage. Notice that it's not ready.
-   *
-   * @param isToSendData true if this is a send message, otherwise this is a recv message
-   * @param msgType The message type
-   */
-  private DataServerMessage(boolean isToSendData, RPCMessage.Type msgType) {
-    mToSendData = isToSendData;
-    mMessageType = msgType;
-    mIsMessageReady = false;
-  }
-
   /**
    * Check if the message is ready. If not ready, it will throw a runtime exception.
    */
@@ -193,8 +185,7 @@ public class DataServerMessage {
   /**
    * Close the message.
    */
-  public void close() {
-  }
+  public void close() {}
 
   /**
    * Return whether the message finishes sending or not. It will check if the message is a send
@@ -259,6 +250,15 @@ public class DataServerMessage {
    */
   public long getLockId() {
     return mLockId;
+  }
+
+  /**
+   * Set the id of the block's locker.
+   *
+   * @param lockId The id of the block's locker
+   */
+  public void setLockId(long lockId) {
+    mLockId = lockId;
   }
 
   /**
@@ -355,8 +355,8 @@ public class DataServerMessage {
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
-        Preconditions.checkState(mLength < Integer.MAX_VALUE,
-            "received length is too large: " + mLength);
+        Preconditions.checkState(mLength < Integer.MAX_VALUE, "received length is too large: "
+            + mLength);
         if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
           // The response message has a status.
           mStatus = RPCResponse.Status.fromShort(mHeader.getShort());
@@ -399,14 +399,5 @@ public class DataServerMessage {
     if (mHeader.remaining() == 0) {
       socketChannel.write(mData);
     }
-  }
-
-  /**
-   * Set the id of the block's locker.
-   *
-   * @param lockId The id of the block's locker
-   */
-  public void setLockId(long lockId) {
-    mLockId = lockId;
   }
 }

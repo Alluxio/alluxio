@@ -40,8 +40,8 @@ public final class NettyUtils {
    * @param numThreads
    * @param threadPrefix name pattern for each thread. should contain '%d' to distinguish between
    *        threads.
-   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create
-   *                 daemon threads.
+   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create daemon
+   *        threads.
    */
   public static EventLoopGroup createEventLoop(ChannelType type, int numThreads,
       String threadPrefix, boolean isDaemon) {

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -38,6 +38,14 @@ public class ExponentialBackoffRetry extends SleepingRetry {
     mMaxSleepMs = maxSleepMs;
   }
 
+  private static int abs(int value, int defaultValue) {
+    int result = Math.abs(value);
+    if (result == Integer.MIN_VALUE) {
+      result = defaultValue;
+    }
+    return result;
+  }
+
   @Override
   protected long getSleepTime() {
     int count = getRetryCount();
@@ -48,13 +56,5 @@ public class ExponentialBackoffRetry extends SleepingRetry {
       int sleepMs = mBaseSleepTimeMs * Math.max(1, mRandom.nextInt(1 << (count + 1)));
       return Math.min(abs(sleepMs, mMaxSleepMs), mMaxSleepMs);
     }
-  }
-
-  private static int abs(int value, int defaultValue) {
-    int result = Math.abs(value);
-    if (result == Integer.MIN_VALUE) {
-      result = defaultValue;
-    }
-    return result;
   }
 }

@@ -51,18 +51,6 @@ public class TachyonConf {
 
   private final Properties mProperties = new Properties();
 
-  public static void assertValidPort(final int port, TachyonConf tachyonConf) {
-    Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
-
-    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
-      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
-    }
-  }
-
-  public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
-    assertValidPort(address.getPort(), tachyonConf);
-  }
-
   /**
    * Copy constructor to merge the properties of the incoming <code>TachyonConf</code>.
    *
@@ -107,10 +95,12 @@ public class TachyonConf {
    * Test constructor for TachyonConfTest class.
    *
    * Here is the order of the sources to load the properties:
-   *   -) System properties if desired
-   *   -) Environment variables via tachyon-env.sh or from OS settings
-   *   -) Site specific properties via tachyon-site.properties file
-   *   -) Default properties via tachyon-default.properties file
+   * <ul>
+   * <li>System properties if desired</li>
+   * <li>Environment variables via tachyon-env.sh or from OS settings</li>
+   * <li>Site specific properties via tachyon-site.properties file</li>
+   * <li>Default properties via tachyon-default.properties file</li>
+   * </ul>
    */
   TachyonConf(boolean includeSystemProperties) {
     // Load default
@@ -164,6 +154,18 @@ public class TachyonConf {
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
     mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+  }
+
+  public static void assertValidPort(final int port, TachyonConf tachyonConf) {
+    Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
+
+    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
+      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
+    }
+  }
+
+  public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
+    assertValidPort(address.getPort(), tachyonConf);
   }
 
   @Override
