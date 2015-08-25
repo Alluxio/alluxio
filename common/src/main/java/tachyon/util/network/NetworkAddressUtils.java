@@ -232,7 +232,7 @@ public final class NetworkAddressUtils {
    * @return the service port number.
    */
   public static int getPort(ServiceType service, TachyonConf conf) {
-    return conf.getInt(service.mPortKey, service.mDefaultPort);
+    return conf.getInt(service.mPortKey);
   }
 
   /**
