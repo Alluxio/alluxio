@@ -38,6 +38,14 @@ public class ExponentialBackoffRetry extends SleepingRetry {
     mMaxSleepMs = maxSleepMs;
   }
 
+  private static int abs(int value, int defaultValue) {
+    int result = Math.abs(value);
+    if (result == Integer.MIN_VALUE) {
+      result = defaultValue;
+    }
+    return result;
+  }
+
   @Override
   protected long getSleepTime() {
     int count = getRetryCount();
@@ -48,13 +56,5 @@ public class ExponentialBackoffRetry extends SleepingRetry {
       int sleepMs = mBaseSleepTimeMs * Math.max(1, mRandom.nextInt(1 << (count + 1)));
       return Math.min(abs(sleepMs, mMaxSleepMs), mMaxSleepMs);
     }
-  }
-
-  private static int abs(int value, int defaultValue) {
-    int result = Math.abs(value);
-    if (result == Integer.MIN_VALUE) {
-      result = defaultValue;
-    }
-    return result;
   }
 }
