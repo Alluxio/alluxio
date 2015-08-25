@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.evictor;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,7 +68,8 @@ public class EvictorContractTestBase extends EvictorTestBase {
       for (ClassPath.ClassInfo clazz : clazzInPackage) {
         Set<Class<?>> interfaces =
             new HashSet<Class<?>>(Arrays.asList(clazz.load().getInterfaces()));
-        if (interfaces.size() > 0 && interfaces.contains(Evictor.class)) {
+        if (!Modifier.isAbstract(clazz.load().getModifiers()) && interfaces.size() > 0
+            && interfaces.contains(Evictor.class)) {
           list.add(new Object[] {clazz.getName()});
         }
       }
