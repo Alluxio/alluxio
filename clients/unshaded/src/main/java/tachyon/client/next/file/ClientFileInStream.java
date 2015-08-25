@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.block.BlockInStream;
+import tachyon.client.next.block.BlockOutStream;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -32,20 +33,21 @@ import tachyon.thrift.FileInfo;
 public class ClientFileInStream extends FileInStream {
   private final long mBlockSize;
   private final long mFileLength;
-  private final ClientOptions mOptions;
   private final FSContext mContext;
   private final List<Long> mBlockIds;
 
   private boolean mClosed;
+  private boolean mShouldCache;
   private long mPos;
   private BlockInStream mCurrentBlockInStream;
+  private BlockOutStream mCurrentBlockOutStream;
 
   public ClientFileInStream(FileInfo info, ClientOptions options) {
     mBlockSize = info.getBlockSizeByte();
     mFileLength = info.getLength();
     mBlockIds = info.getBlockIds();
     mContext = FSContext.INSTANCE;
-    mOptions = options;
+    mShouldCache = options.getCacheType().shouldCache();
     mClosed = false;
   }
 
@@ -148,15 +150,20 @@ public class ClientFileInStream extends FileInStream {
   }
 
   private void checkAndAdvanceBlockInStream() throws IOException {
+    long currentBlockId = getBlockCurrentBlockId();
     if (mCurrentBlockInStream == null) {
-      mCurrentBlockInStream =
-          mContext.getTachyonBS().getInStream(getBlockCurrentBlockId(), mOptions);
-      return;
+      mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+      if (mShouldCache) {
+        mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
+      }
     }
     if (mCurrentBlockInStream.remaining() == 0) {
       mCurrentBlockInStream.close();
-      mCurrentBlockInStream =
-          mContext.getTachyonBS().getInStream(getBlockCurrentBlockId(), mOptions);
+      mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+      if (mShouldCache) {
+        mCurrentBlockOutStream.close();
+        mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
+      }
     }
   }
 
@@ -173,7 +180,7 @@ public class ClientFileInStream extends FileInStream {
     if (oldBlockId != getBlockCurrentBlockId()) {
       mCurrentBlockInStream.close();
       mCurrentBlockInStream =
-          mContext.getTachyonBS().getInStream(getBlockCurrentBlockId(), mOptions);
+          mContext.getTachyonBS().getInStream(getBlockCurrentBlockId());
     }
   }
 }
