@@ -19,9 +19,9 @@ import java.util.List;
 
 import org.apache.thrift.TProcessor;
 
-import tachyon.master.next.journal.Serializable;
+import tachyon.master.next.journal.JournalSerializable;
 
-public interface Master extends Serializable {
+public interface Master extends JournalSerializable {
   TProcessor getProcessor();
 
   String getProcessorName();

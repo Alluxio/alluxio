@@ -49,17 +49,21 @@ public class JsonJournalFormatter implements JournalFormatter {
     public static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
     public static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writer();
 
-    public Map<String, JsonNode> mParameters = Maps.newHashMap();
+    public final long mSequenceNumber;
     public final JournalEntryType mType;
+    public Map<String, JsonNode> mParameters = Maps.newHashMap();
 
-    public JsonEntry(JournalEntryType type) {
+    public JsonEntry(long SequenceNumber, JournalEntryType type) {
+      mSequenceNumber = SequenceNumber;
       mType = type;
     }
 
     /** Constructor used for deserializing the entry. */
     @JsonCreator
-    public JsonEntry(@JsonProperty("type") JournalEntryType type,
+    public JsonEntry(@JsonProperty("sequenceNumber") long SequenceNumber,
+        @JsonProperty("type") JournalEntryType type,
         @JsonProperty("parameters") Map<String, JsonNode> parameters) {
+      mSequenceNumber = SequenceNumber;
       mType = type;
       mParameters = parameters;
     }
@@ -174,19 +178,15 @@ public class JsonJournalFormatter implements JournalFormatter {
   }
 
   @Override
-  public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {
+  public void serialize(SerializableJournalEntry entry, OutputStream outputStream)
+      throws IOException {
     // serialize parameters
     Map<String, Object> parameters = entry.getParameters();
-    JsonEntry jsonEntry = new JsonEntry(entry.type());
+    JsonEntry jsonEntry = new JsonEntry(entry.getSequenceNumber(), entry.getType());
     for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
       jsonEntry.withParameter(parameter.getKey(), parameter.getValue());
     }
     writeEntry(jsonEntry, outputStream);
-
-    // serialize each contained entry
-    for (JournalEntry subEntry : entry.getEntries()) {
-      serialize(subEntry, outputStream);
-    }
   }
 
   private void writeEntry(JsonEntry entry, OutputStream os) throws IOException {

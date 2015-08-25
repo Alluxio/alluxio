@@ -15,6 +15,35 @@
 
 package tachyon.master.next.journal;
 
-public interface Serializable {
-  JournalEntry toJournalEntry();
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
+
+/**
+ * This kind of JournalEntry will have a parameter field named transactionId.
+ */
+public class SerializableJournalEntry implements JournalEntry {
+  private final long mSequenceNumber;
+  private final JournalEntry mEntry;
+
+  protected SerializableJournalEntry(long sequenceNumber, JournalEntry entry) {
+    mSequenceNumber = sequenceNumber;
+    mEntry = entry;
+  }
+
+  public long getSequenceNumber() {
+    return mSequenceNumber;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return mEntry.getType();
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    return mEntry.getParameters();
+  }
+
 }

@@ -17,7 +17,7 @@ package tachyon.master.next.journal;
 
 public interface JournalInputStream {
 
-  JournalEntry getNextEvent();
+  JournalEntry getNextEntry();
 
   void close();
 }
