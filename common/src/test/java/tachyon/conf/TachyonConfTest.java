@@ -96,22 +96,22 @@ public class TachyonConfTest {
     Assert.assertEquals(ufsAddress + "/tachyon/workers", value);
 
     boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
-    Assert.assertEquals(booleanValue, false);
+    Assert.assertEquals(false, booleanValue);
 
     booleanValue = sDefaultTachyonConf.getBoolean(Constants.IN_TEST_MODE);
-    Assert.assertEquals(booleanValue, false);
+    Assert.assertEquals(false, booleanValue);
 
     booleanValue = sDefaultTachyonConf.getBoolean(Constants.ASYNC_ENABLED);
-    Assert.assertEquals(booleanValue, false);
+    Assert.assertEquals(false, booleanValue);
 
     int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS);
-    Assert.assertEquals(intValue, 1000);
+    Assert.assertEquals(1000, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS, intValue);
 
     long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
-    Assert.assertEquals(longBytesValue, Constants.MB * 5);
+    Assert.assertEquals(Constants.MB * 5, longBytesValue);
   }
 
   @Test
@@ -144,26 +144,26 @@ public class TachyonConfTest {
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     int intValue = sDefaultTachyonConf.getInt(Constants.MASTER_PORT);
-    Assert.assertEquals(intValue, 19998);
+    Assert.assertEquals(19998, intValue);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_WEB_BIND_HOST);
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WEB_PORT);
-    Assert.assertEquals(intValue, 19999);
+    Assert.assertEquals(19999, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WEB_THREAD_COUNT);
-    Assert.assertEquals(intValue, 1);
+    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS);
-    Assert.assertEquals(intValue, Constants.SECOND_MS);
+    Assert.assertEquals(Constants.SECOND_MS, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
-    Assert.assertEquals(intValue, Runtime.getRuntime().availableProcessors());
+    Assert.assertEquals(Runtime.getRuntime().availableProcessors(), intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-    Assert.assertEquals(intValue, 10 * Constants.SECOND_MS);
+    Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
   }
 
   @Test
@@ -177,66 +177,66 @@ public class TachyonConfTest {
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     int intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PORT);
-    Assert.assertEquals(intValue, 29998);
+    Assert.assertEquals(29998, intValue);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_DATA_BIND_HOST);
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_DATA_PORT);
-    Assert.assertEquals(intValue, 29999);
+    Assert.assertEquals(29999, intValue);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_WEB_BIND_HOST);
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_WEB_PORT);
-    Assert.assertEquals(intValue, 30000);
+    Assert.assertEquals(30000, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
-    Assert.assertEquals(intValue, 10 * Constants.SECOND_MS);
+    Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    Assert.assertEquals(intValue, Constants.SECOND_MS);
+    Assert.assertEquals(Constants.SECOND_MS, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
-    Assert.assertEquals(intValue, Runtime.getRuntime().availableProcessors());
+    Assert.assertEquals(Runtime.getRuntime().availableProcessors(), intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
-    Assert.assertEquals(intValue, 10 * Constants.SECOND_MS);
+    Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS);
-    Assert.assertEquals(intValue, 1);
+    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
-    Assert.assertEquals(intValue, 1000);
+    Assert.assertEquals(1000, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS);
-    Assert.assertEquals(intValue, 1);
+    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS);
-    Assert.assertEquals(intValue, 0);
+    Assert.assertEquals(0, intValue);
 
     long longValue = sDefaultTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE);
-    Assert.assertEquals(longValue, 128 * Constants.MB);
+    Assert.assertEquals(128 * Constants.MB, longValue);
   }
 
   @Test
   public void testUserDefault() {
     int intValue = sDefaultTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
-    Assert.assertEquals(intValue, 3);
+    Assert.assertEquals(3, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
-    Assert.assertEquals(intValue, Constants.SECOND_MS);
+    Assert.assertEquals(Constants.SECOND_MS, intValue);
 
     long longValue = sDefaultTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES);
-    Assert.assertEquals(longValue, 8 * Constants.MB);
+    Assert.assertEquals(8 * Constants.MB, longValue);
 
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
-    Assert.assertEquals(longValue, Constants.MB);
+    Assert.assertEquals(Constants.MB, longValue);
 
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
-    Assert.assertEquals(longValue, 8 * Constants.MB);
+    Assert.assertEquals(8 * Constants.MB, longValue);
   }
 
   @Test
