@@ -319,7 +319,7 @@ public final class MasterClient implements Closeable {
    * Get the id of this master client.
    *
    * @return the id of this client
-   * @throws IOException
+   * @throws IOException if the connection fails
    */
   public synchronized long getUserId() throws IOException {
     if (mIsClosed) {
@@ -333,7 +333,7 @@ public final class MasterClient implements Closeable {
    * Get the info of a list of workers.
    *
    * @return A list of worker info returned by master
-   * @throws IOException
+   * @throws IOException if the connection fails
    */
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
     while (!mIsClosed) {
@@ -353,7 +353,7 @@ public final class MasterClient implements Closeable {
    * Get the total capacity in bytes.
    *
    * @return capacity in bytes
-   * @throws IOException
+   * @throws IOException if the connection fails
    */
   public synchronized long getCapacityBytes() throws IOException {
     while (!mIsClosed) {
@@ -372,7 +372,7 @@ public final class MasterClient implements Closeable {
    * Get the amount of used space in bytes.
    *
    * @return amount of used space in bytes
-   * @throws IOException
+   * @throws IOException if the connection fails
    */
   public synchronized long getUsedBytes() throws IOException {
     while (!mIsClosed) {
@@ -391,7 +391,6 @@ public final class MasterClient implements Closeable {
    * Return a connection status.
    *
    * @return connection status
-   * @throws IOException
    */
   public synchronized boolean isConnected() {
     return mConnected;
@@ -427,7 +426,7 @@ public final class MasterClient implements Closeable {
    *
    * @param id to check
    * @param path to check
-   * @throws IOException
+   * @throws IOException if the path is null or contains an illegal parameter
    */
   private synchronized void parameterCheck(int id, String path) throws IOException {
     if (path == null) {
@@ -449,10 +448,10 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * The file is complete; an exception is thrown if the file does not exist.
+   * The file is complete.
    *
    * @param fileId the file id
-   * @throws IOException
+   * @throws IOException if the file does not exist
    */
   public synchronized void user_completeFile(int fileId) throws IOException {
     while (!mIsClosed) {
@@ -780,7 +779,7 @@ public final class MasterClient implements Closeable {
    * Get the address of the under FS.
    *
    * @return the address of the under FS
-   * @throws IOException
+   * @throws IOException if the connection fails
    */
   public synchronized String user_getUfsAddress() throws IOException {
     while (!mIsClosed) {
@@ -802,8 +801,8 @@ public final class MasterClient implements Closeable {
    * @param random If true, select a random worker
    * @param host If <code>random</code> is false, select a worker on this host
    * @return the address of the selected worker, or null if no address could be found
-   * @throws NoWorkerExceptiona
-   * @throws IOException if there is no available worker.
+   * @throws NoWorkerException if there is no available worker
+   * @throws IOException if the connection fails
    */
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoWorkerException, IOException {
@@ -825,7 +824,7 @@ public final class MasterClient implements Closeable {
   /**
    * Heartbeat.
    *
-   * @throws IOException
+   * @throws IOException if the connection fails
    */
   public synchronized void user_heartbeat() throws IOException {
     while (!mIsClosed) {
@@ -1059,7 +1058,7 @@ public final class MasterClient implements Closeable {
    * Get a list of the pin id's.
    *
    * @return a list of pin id's
-   * @throws IOException
+   * @throws IOException if the connection fails
    */
   public synchronized Set<Integer> worker_getPinIdList() throws IOException {
     while (!mIsClosed) {
@@ -1079,7 +1078,7 @@ public final class MasterClient implements Closeable {
    * Creates a list of high priority dependencies, which don't yet have checkpoints.
    *
    * @return the list of dependency ids
-   * @throws IOException
+   * @throws IOException if the connection fails
    */
   public synchronized List<Integer> worker_getPriorityDependencyList() throws IOException {
     while (!mIsClosed) {
@@ -1103,7 +1102,7 @@ public final class MasterClient implements Closeable {
    * @param removedBlockIds The list of removed block ids
    * @param addedBlockIds Mapping from id of the StorageDir and id list of blocks evicted in
    * @return a command specifying an action to take
-   * @throws BlockInfoException if corrupted block information is encountered.
+   * @throws IOException if corrupted block information is encountered.
    */
   public synchronized Command worker_heartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<Long, List<Long>> addedBlockIds) throws IOException {
