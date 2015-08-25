@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.master.next.IndexedSet;
+import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.thrift.FileInfo;
 
@@ -188,7 +189,7 @@ public final class InodeDirectory extends Inode {
 
   @Override
   public JournalEntry toJournalEntry() {
-    // TODO(cc)
-    return null;
+    return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
+        isPinned(), getLastModificationTimeMs(), getChildren());
   }
 }
