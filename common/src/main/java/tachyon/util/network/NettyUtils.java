@@ -34,14 +34,15 @@ public final class NettyUtils {
   private NettyUtils() {}
 
   /**
-   * Creates a Netty EventLoopGroup based on the IOMode.
+   * Creates a Netty EventLoopGroup based on ChannelType.
    *
    * @param type Selector for which form of low-level IO we should use
-   * @param numThreads
+   * @param numThreads target number of threads
    * @param threadPrefix name pattern for each thread. should contain '%d' to distinguish between
    *        threads.
-   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create
-   *                 daemon threads.
+   * @param isDaemon if true, the {@link java.util.concurrent.ThreadFactory} will create daemon
+   *        threads.
+   * @return EventLoopGroup matching the ChannelType
    */
   public static EventLoopGroup createEventLoop(ChannelType type, int numThreads,
       String threadPrefix, boolean isDaemon) {
@@ -61,6 +62,7 @@ public final class NettyUtils {
    * Returns the correct ServerSocketChannel class based on ChannelType.
    *
    * @param type Selector for which form of low-level IO we should use
+   * @return ServerSocketChannel matching the ChannelType
    */
   public static Class<? extends ServerChannel> getServerChannelClass(ChannelType type) {
     switch (type) {
@@ -77,6 +79,7 @@ public final class NettyUtils {
    * Returns the correct SocketChannel class based on ChannelType.
    *
    * @param type Selector for which form of low-level IO we should use
+   * @return SocketChannel matching the ChannelType
    */
   public static Class<? extends SocketChannel> getClientChannelClass(ChannelType type) {
     switch (type) {

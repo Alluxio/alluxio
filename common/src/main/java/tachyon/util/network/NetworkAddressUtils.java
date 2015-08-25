@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -61,7 +61,7 @@ public final class NetworkAddressUtils {
    */
   public enum ServiceType {
     /**
-     * 
+     *
      * Master RPC service (Thrift)
      */
     MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
@@ -119,21 +119,27 @@ public final class NetworkAddressUtils {
     }
 
     /**
-     * Gets service name
+     * Gets service name.
+     *
+     * @return service name
      */
     public String getServiceName() {
       return mServiceName;
     }
 
     /**
-     * Gets the key of connect hostname
+     * Gets the key of connect hostname.
+     *
+     * @return key of connect hostname
      */
     public String getHostNameKey() {
       return mHostNameKey;
     }
 
     /**
-     * Gets the key of bind hostname
+     * Gets the key of bind hostname.
+     *
+     * @return key of bindhostname
      */
     public String getBindHostKey() {
       return mBindHostKey;
@@ -141,6 +147,8 @@ public final class NetworkAddressUtils {
 
     /**
      * Gets the key of service port
+     *
+     * @return key of service port
      */
     public String getPortKey() {
       return mPortKey;
@@ -148,6 +156,8 @@ public final class NetworkAddressUtils {
 
     /**
      * Gets the default port number on service
+     *
+     * @return default port
      */
     public int getDefaultPort() {
       return mDefaultPort;
@@ -383,7 +393,7 @@ public final class NetworkAddressUtils {
    *        reachable
    * @return a <code>boolean</code> indicating if the given address is externally resolvable
    *         address.
-   * @throws IOException
+   * @throws IOException if the address resolution fails
    */
   private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
     return (!address.isAnyLocalAddress() && !address.isLinkLocalAddress()
@@ -462,7 +472,7 @@ public final class NetworkAddressUtils {
    * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used is not
    * exposed in the API, so this function will use reflection to get access to it.
    *
-   * @throws java.lang.RuntimeException if reflection calls fail
+   * @throws RuntimeException if reflection calls fail
    */
   public static ServerSocket getThriftSocket(final TServerSocket thriftSocket) {
     try {
@@ -477,11 +487,11 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Parse InetSocketAddress from a String
+   * Parse InetSocketAddress from a String.
    *
-   * @param address
+   * @param address socket address to parse
    * @return InetSocketAddress of the String
-   * @throws IOException
+   * @throws IOException if the socket address is invalid
    */
   public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
     if (address == null) {
