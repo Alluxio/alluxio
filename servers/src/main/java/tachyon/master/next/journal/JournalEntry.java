@@ -15,6 +15,19 @@
 
 package tachyon.master.next.journal;
 
+import java.util.List;
+import java.util.Map;
+
 public interface JournalEntry {
   JournalEntryType type();
+
+  /**
+   * Gets parameters of this entry which is a map from parameter name to parameter value.
+   */
+  Map<String, Object> getParameters();
+
+  /**
+   * Gets a list of entries contained in this entry.
+   */
+  List<JournalEntry> getEntries();
 }
