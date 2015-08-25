@@ -987,6 +987,9 @@ public final class TieredBlockStore implements BlockStore {
             long bytesReserved = bytesReservedOnTier.getSecond();
             BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
             EvictionPlan plan = getEvictionPlanOnTier(bytesReserved, location);
+            if (null == plan) {
+              continue;
+            }
             for (Pair<Long, BlockStoreLocation> toMoveBlock : plan.toMove()) {
               mExecutorService.execute(new BlockMover(TieredBlockStore.this,
                   Users.MIGRATE_DATA_USER_ID, toMoveBlock.getFirst(), toMoveBlock.getSecond()));
