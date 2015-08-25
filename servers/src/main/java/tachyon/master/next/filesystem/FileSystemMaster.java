@@ -26,6 +26,8 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
@@ -49,6 +51,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -75,14 +78,14 @@ public class FileSystemMaster implements Master {
     mInodeTree = new InodeTree(mBlockMaster);
     mDependencyMap = new DependencyMap();
 
-    mWhitelist = new PrefixList(
-        mTachyonConf.getList(Constants.MASTER_WHITELIST, ",", new LinkedList<String>()));
+    // TODO: handle default config value for whitelist.
+    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
   }
 
   @Override
   public TProcessor getProcessor() {
-    // TODO
-    return null;
+    return new FileSystemMasterService.Processor<FileSystemMasterServiceHandler>(
+        new FileSystemMasterServiceHandler(this));
   }
 
   @Override
@@ -151,6 +154,24 @@ public class FileSystemMaster implements Master {
       return true;
     }
 
+  }
+
+  /**
+   * Whether the filesystem contains a directory with the id.
+   *
+   * @param id id of the directory
+   * @return true if there is such a directory, otherwise false
+   */
+  public boolean isDirectory(long id) {
+    synchronized (mInodeTree) {
+      Inode inode;
+      try {
+        inode = mInodeTree.getInodeById(id);
+      } catch (FileDoesNotExistException fne) {
+        return false;
+      }
+      return inode.isDirectory();
+    }
   }
 
   public long getFileId(TachyonURI path) throws InvalidPathException {
@@ -344,12 +365,27 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public boolean mkdirs(TachyonURI path, boolean recursive)
-      throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+  /**
+   * Create a directory at path.
+   *
+   * @param path the path of the directory
+   * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,
+   *        the parent directories must already exist
+   * @throws InvalidPathException when the path is invalid, please see documentation on
+   *         {@link InodeTree#createPath} for more details
+   * @throws FileAlreadyExistException when there is already a file at path
+   */
+  public void mkdirs(TachyonURI path, boolean recursive) throws InvalidPathException,
+      FileAlreadyExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      mInodeTree.createPath(path, 0, recursive, true);
-      return true;
+      try {
+        mInodeTree.createPath(path, 0, recursive, true);
+      } catch (BlockInfoException bie) {
+        // Since we are creating a directory, the block size is ignored, no such exception should
+        // happen.
+        Throwables.propagate(bie);
+      }
       // TODO: write to journal
     }
 

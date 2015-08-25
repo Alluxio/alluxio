@@ -127,7 +127,7 @@ public class BlockHeartbeatReporterTest {
 
     // The block should not be in the added blocks list
     BlockHeartbeatReport report = mReporter.generateReport();
-    Assert.assertTrue(report.getAddedBlocks().get(MEM_LOC.getStorageDirId()).isEmpty());
+    Assert.assertEquals(null, report.getAddedBlocks().get(MEM_LOC.getStorageDirId()));
 
     // The block should be in the removed blocks list
     List<Long> removedBlocks = report.getRemovedBlocks();

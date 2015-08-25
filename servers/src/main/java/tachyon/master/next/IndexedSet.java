@@ -16,12 +16,12 @@
 package tachyon.master.next;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Set;
-import java.util.HashSet;
-import java.lang.reflect.Field;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +39,7 @@ import tachyon.Constants;
  *
  * This class is thread safe.
  */
-public class IndexedSet<T> {
+public class IndexedSet<T> implements Iterable<T> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** All objects in the set */
@@ -112,16 +112,16 @@ public class IndexedSet<T> {
   }
 
   /**
-   * Return the set of all objects, the returned set is backed up by the internal set, any changes
-   * to the internal set are reflected in the returned set, and vice-versa.
+   * Returns an iterator over the elements in this set. The elements are returned in no particular
+   * order. It is to implement {@link Iterable} so that users can foreach the IndexedSet directly.
+   * The traversal may reflect any modifications subsequent to the construction of the iterator.
    *
-   * @return a set of all objects
+   * @return an iterator over the elements in this IndexedSet
    */
-  // TODO(cc) Let this class implement Iterable to avoid this method, all use cases are to foreach
-  // this set.
-  public Set<T> all() {
+  @Override
+  public Iterator<T> iterator() {
     synchronized (mLock) {
-      return mObjects;
+      return mObjects.iterator();
     }
   }
 
