@@ -53,6 +53,18 @@ public final class Pair<T1, T2> {
   }
 
   /**
+   * @return the second element of the pair.
+   */
+  public T2 getSecond() {
+    return mSecond;
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * mFirst.hashCode() + mSecond.hashCode();
+  }
+
+  /**
    * Set the first value.
    *
    * @param first the value to be set.
@@ -62,24 +74,12 @@ public final class Pair<T1, T2> {
   }
 
   /**
-   * @return the second element of the pair.
-   */
-  public T2 getSecond() {
-    return mSecond;
-  }
-
-  /**
    * Set the second value.
    *
    * @param second the value to be set.
    */
   public void setSecond(T2 second) {
     mSecond = second;
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * mFirst.hashCode() + mSecond.hashCode();
   }
 
   @Override

@@ -41,6 +41,15 @@ public class LeaderInquireClient {
   private final String mLeaderPath;
   private final CuratorFramework mCLient;
 
+  public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
+      String leaderPath) {
+    String key = zookeeperAddress + leaderPath;
+    if (!sCreatedClients.containsKey(key)) {
+      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
+    }
+    return sCreatedClients.get(key);
+  }
+
   private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
@@ -49,15 +58,6 @@ public class LeaderInquireClient {
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
     mCLient.start();
-  }
-
-  public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
-      String leaderPath) {
-    String key = zookeeperAddress + leaderPath;
-    if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
-    }
-    return sCreatedClients.get(key);
   }
 
   public synchronized String getMasterAddress() {

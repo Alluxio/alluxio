@@ -82,20 +82,6 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Construct a Tachyon URI from components.
-   *
-   * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
-   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
-   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
-   */
-  public TachyonURI(String scheme, String authority, String path) {
-    if (path == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
-    }
-    mUri = createURI(scheme, authority, path);
-  }
-
-  /**
    * Resolve a child TachyonURI against a parent TachyonURI.
    *
    * @param parent the parent
@@ -117,9 +103,30 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     mUri = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath());
   }
 
+  /**
+   * Construct a Tachyon URI from components.
+   *
+   * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
+   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
+   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
+   */
+  public TachyonURI(String scheme, String authority, String path) {
+    if (path == null) {
+      throw new IllegalArgumentException("Can not create a uri with a null path.");
+    }
+    mUri = createURI(scheme, authority, path);
+  }
+
   @Override
   public int compareTo(TachyonURI other) {
     return mUri.compareTo(other.mUri);
+  }
+
+  /**
+   * Whether or not the URI contains wildcard(s)
+   */
+  public boolean containsWildcard() {
+    return mUri.getPath().contains(WILDCARD);
   }
 
   /**
@@ -189,6 +196,14 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return depth;
   }
 
+  /**
+   * Gets the host of this TachyonURI.
+   *
+   * @return the host, null if it does not have one.
+   */
+  public String getHost() {
+    return mUri.getHost();
+  }
 
   /**
    * Get the first n component of the TachyonURI path. There is no trailing separator as the path
@@ -218,22 +233,6 @@ public final class TachyonURI implements Comparable<TachyonURI> {
       String[] comp = path.split(SEPARATOR);
       return StringUtils.join(Arrays.asList(comp).subList(0, n + 1), SEPARATOR);
     }
-  }
-
-  /**
-   * Whether or not the URI contains wildcard(s)
-   */
-  public boolean containsWildcard() {
-    return mUri.getPath().contains(WILDCARD);
-  }
-
-  /**
-   * Gets the host of this TachyonURI.
-   *
-   * @return the host, null if it does not have one.
-   */
-  public String getHost() {
-    return mUri.getHost();
   }
 
   /**
@@ -306,11 +305,6 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return mUri.getAuthority() != null;
   }
 
-  @Override
-  public int hashCode() {
-    return mUri.hashCode();
-  }
-
   /**
    * Tells if this TachyonURI has scheme or not.
    *
@@ -335,6 +329,11 @@ public final class TachyonURI implements Comparable<TachyonURI> {
         && path.charAt(start + 1) == ':'
         && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a'
         && path.charAt(start) <= 'z'));
+  }
+
+  @Override
+  public int hashCode() {
+    return mUri.hashCode();
   }
 
   /**
@@ -449,3 +448,4 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return sb.toString();
   }
 }
+
