@@ -29,6 +29,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.next.Master;
 import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.filesystem.FileSystemMaster;
+import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -202,6 +203,12 @@ public class RawTableMaster implements Master {
   public RawTableInfo getClientRawTableInfo(TachyonURI path) throws TableDoesNotExistException,
       InvalidPathException {
     return getClientRawTableInfo(getRawTableId(path));
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
   }
 
   /**

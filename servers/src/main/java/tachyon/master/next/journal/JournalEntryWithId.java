@@ -13,18 +13,31 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.journal;
 
 import java.util.List;
+import java.util.Map;
 
-import org.apache.thrift.TProcessor;
+import com.google.common.collect.Maps;
 
-import tachyon.master.next.journal.Serializable;
+/**
+ * This kind of JournalEntry will have a parameter field named transactionId.
+ */
+public abstract class JournalEntryWithId implements JournalEntry {
+  private long mTransactionId;
 
-public interface Master extends Serializable {
-  TProcessor getProcessor();
+  protected JournalEntryWithId(long transactionId) {
+    mTransactionId = transactionId;
+  }
 
-  String getProcessorName();
+  @Override
+  public Map<String, Object> getParameters() {
+    Map<String, Object> parameters = Maps.newHashMap();
+    parameters.put("transactionId", mTransactionId);
+    return parameters;
+  }
 
-  List<PeriodicTask> getPeriodicTaskList();
+  public abstract JournalEntryType type();
+
+  public abstract List<JournalEntry> getEntries();
 }
