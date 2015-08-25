@@ -70,6 +70,10 @@ public class Constants {
 
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
+  public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
+  public static final String FILE_SYSTEM_MASTER_SERVICE_NAME = "FileSystemMaster";
+  public static final String RAW_TABLE_MASTER_SERVICE_NAME = "RawTableMaster";
+
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
    * Version 2 [0.5.0] Starts to use JSON. <br>
