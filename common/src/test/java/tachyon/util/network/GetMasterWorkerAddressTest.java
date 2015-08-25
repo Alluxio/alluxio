@@ -67,7 +67,7 @@ public class GetMasterWorkerAddressTest {
   @Test
   public void getMasterAddressTest() {
     String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
-
+    int defaultPort = Constants.DEFAULT_MASTER_PORT;
     // connect host and port
     InetSocketAddress masterAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mCustomPropsTachyonConf);
@@ -96,9 +96,9 @@ public class GetMasterWorkerAddressTest {
   @Test
   public void getWorkerAddressTest() {
     String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
-
+    int defaultPort = Constants.DEFAULT_WORKER_PORT;
     // port only
-    InetSocketAddress workerAddress = 
+    InetSocketAddress workerAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mCustomPropsTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
