@@ -13,33 +13,25 @@
  * the License.
  */
 
-package tachyon.worker;
-
-import java.io.IOException;
-
-import com.google.common.base.Throwables;
-
-import tachyon.HeartbeatExecutor;
+package tachyon.client.next;
 
 /**
- * User client sends periodical heartbeats to the worker it is talking to. If it fails to do so, the
- * worker may withdraw the space granted to the particular user.
+ * Specifies the type of data interaction with Tachyon's Under Storage. This is not applicable
+ * for reads.
  */
-class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
-  private final long mUserId;
+public enum UnderStorageType {
+  /** Write to Under Storage synchronously */
+  PERSIST(1),
 
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
-    mWorkerClient = workerClient;
-    mUserId = userId;
+  /** Do not write to Under Storage */
+  NO_PERSIST(2);
+
+  private final int mValue;
+  UnderStorageType(int value) {
+    mValue = value;
   }
 
-  @Override
-  public void heartbeat() {
-    try {
-      mWorkerClient.userHeartbeat(mUserId);
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+  public boolean shouldPersist() {
+    return mValue == PERSIST.mValue;
   }
 }

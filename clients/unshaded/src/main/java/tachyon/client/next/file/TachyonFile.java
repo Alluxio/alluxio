@@ -13,33 +13,19 @@
  * the License.
  */
 
-package tachyon.worker;
-
-import java.io.IOException;
-
-import com.google.common.base.Throwables;
-
-import tachyon.HeartbeatExecutor;
+package tachyon.client.next.file;
 
 /**
- * User client sends periodical heartbeats to the worker it is talking to. If it fails to do so, the
- * worker may withdraw the space granted to the particular user.
+ * A file handler for a file in Tachyon. It is just a wrapper around the file ID for now.
  */
-class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
-  private final long mUserId;
+public class TachyonFile {
+  private final int mFileId;
 
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
-    mWorkerClient = workerClient;
-    mUserId = userId;
+  public TachyonFile(int fileId) {
+    mFileId = fileId;
   }
 
-  @Override
-  public void heartbeat() {
-    try {
-      mWorkerClient.userHeartbeat(mUserId);
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+  public int getFileId() {
+    return mFileId;
   }
 }

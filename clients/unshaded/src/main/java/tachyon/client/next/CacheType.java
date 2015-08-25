@@ -13,33 +13,24 @@
  * the License.
  */
 
-package tachyon.worker;
-
-import java.io.IOException;
-
-import com.google.common.base.Throwables;
-
-import tachyon.HeartbeatExecutor;
+package tachyon.client.next;
 
 /**
- * User client sends periodical heartbeats to the worker it is talking to. If it fails to do so, the
- * worker may withdraw the space granted to the particular user.
+ * Specifies the type of data interaction with Tachyon. Reads may use either cache type.
  */
-class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
-  private final long mUserId;
+public enum CacheType {
+  /** Write to Tachyon */
+  CACHE(1),
 
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
-    mWorkerClient = workerClient;
-    mUserId = userId;
+  /** Do not write to Tachyon */
+  NO_CACHE(2);
+
+  private final int mValue;
+  CacheType(int value) {
+    mValue = value;
   }
 
-  @Override
-  public void heartbeat() {
-    try {
-      mWorkerClient.userHeartbeat(mUserId);
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+  public boolean shouldCache() {
+    return mValue == CACHE.mValue;
   }
 }
