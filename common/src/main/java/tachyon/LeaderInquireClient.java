@@ -40,6 +40,7 @@ public class LeaderInquireClient {
   private final String mZookeeperAddress;
   private final String mLeaderPath;
   private final CuratorFramework mCLient;
+
   private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
