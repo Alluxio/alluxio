@@ -54,39 +54,41 @@ interface TachyonFSCore {
   FileInfo getInfo(TachyonFile file) throws IOException;
 
   /**
-   * If the file is a folder, return the FileInfo of all the direct entries in it. Otherwise return
-   * the FileInfo for the file.
+   * If the file is a folder, return the {@link FileInfo} of all the direct entries in it.
+   * Otherwise return the FileInfo for the file.
    *
    * @param file the handler for the file
-   * @return A list of FileInfo, null if the file or folder does not exist.
-   * @throws IOException if the master is unable to obtain the metadata
+   * @return a list of FileInfos representing the files which are children of the given file
+   * @throws IOException if the file does not exist
    */
   List<FileInfo> listStatus(TachyonFile file) throws IOException;
 
   /**
    * Creates a folder. If the parent folders do not exist, they will be created automatically.
    *
-   * @param file the handler for the file
+   * @param path the handler for the file
    * @return true if the folder is created successfully or already existing, false otherwise.
    * @throws IOException if the master cannot create the folder under the specified path
    */
-  boolean mkdirs(TachyonFile file) throws IOException;
+  boolean mkdirs(TachyonURI path) throws IOException;
 
   /**
-   * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as a handler for the file.
+   * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
+   * non-create operations.
    *
    * @param path the path of the file, this should be in Tachyon space
-   * @return the TachyonFile representation of the file which can be used to reference the file
+   * @return a TachyonFile which acts as a file handler for the path
+   * @throws IOException if the path does not exist in Tachyon space
    */
   TachyonFile open(TachyonURI path) throws IOException;
 
   /**
-   * Renames a file to another path.
+   * Renames an existing file in Tachyon space to another path in Tachyon space.
    *
-   * @param src the handler for the source file.
+   * @param src The file handler for the source file
    * @param dst The path of the destination file, this path should not exist
-   * @return true if renames successfully, false otherwise.
-   * @throws IOException if the master cannot rename the src to dst
+   * @return true if successful, false otherwise
+   * @throws IOException if the destination already exists or is invalid
    */
   boolean rename(TachyonFile src, TachyonURI dst) throws IOException;
 }
