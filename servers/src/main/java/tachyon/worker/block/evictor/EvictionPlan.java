@@ -15,7 +15,6 @@
 
 package tachyon.worker.block.evictor;
 
-import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
@@ -38,11 +37,11 @@ public final class EvictionPlan {
   }
 
   public List<Pair<Long, BlockStoreLocation>> toMove() {
-    return Collections.unmodifiableList(mToMove);
+    return mToMove;
   }
 
   public List<Long> toEvict() {
-    return Collections.unmodifiableList(mToEvict);
+    return mToEvict;
   }
 
   /**
