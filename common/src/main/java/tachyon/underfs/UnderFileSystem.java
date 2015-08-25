@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -40,35 +40,8 @@ public abstract class UnderFileSystem {
    */
   private boolean mProvidesStorage = true;
 
-  public enum SpaceType {
-
-    /**
-     * Indicates the storage capacity of the under file system.
-     */
-    SPACE_TOTAL(0),
-
-    /**
-     * Indicates the amount of free space available in the under file system.
-     */
-    SPACE_FREE(1),
-
-    /**
-     * Indicates the amount of space used in the under file system.
-     */
-    SPACE_USED(2);
-
-    private final int mValue;
-
-    SpaceType(int value) {
-      mValue = value;
-    }
-
-    /**
-     * Get the integer value of this enum value.
-     */
-    public int getValue() {
-      return mValue;
-    }
+  protected UnderFileSystem(TachyonConf tachyonConf) {
+    mTachyonConf = tachyonConf;
   }
 
   /**
@@ -120,13 +93,6 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Checks whether the underFS provides storage
-   */
-  public boolean providesStorage() {
-    return mProvidesStorage;
-  }
-
-  /**
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir into a
    * pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
@@ -160,8 +126,11 @@ public abstract class UnderFileSystem {
     return null;
   }
 
-  protected UnderFileSystem(TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+  /**
+   * Checks whether the underFS provides storage
+   */
+  public boolean providesStorage() {
+    return mProvidesStorage;
   }
 
   /**
@@ -263,6 +232,14 @@ public abstract class UnderFileSystem {
    * @return configuration object used for concrete ufs instance
    */
   public abstract Object getConf();
+
+  /**
+   * To set the configuration object for UnderFileSystem. The conf object is understood by the
+   * concrete underfs's implementation.
+   *
+   * @param conf The configuration object accepted by ufs.
+   */
+  public abstract void setConf(Object conf);
 
   /**
    * Gets the list of locations of the indicated path.
@@ -377,14 +354,6 @@ public abstract class UnderFileSystem {
   public abstract boolean rename(String src, String dst) throws IOException;
 
   /**
-   * To set the configuration object for UnderFileSystem. The conf object is understood by the
-   * concrete underfs's implementation.
-   *
-   * @param conf The configuration object accepted by ufs.
-   */
-  public abstract void setConf(Object conf);
-
-  /**
    * Change posix file permission
    *
    * @param path path of the file
@@ -392,4 +361,35 @@ public abstract class UnderFileSystem {
    * @throws IOException
    */
   public abstract void setPermission(String path, String posixPerm) throws IOException;
+
+  public enum SpaceType {
+
+    /**
+     * Indicates the storage capacity of the under file system.
+     */
+    SPACE_TOTAL(0),
+
+    /**
+     * Indicates the amount of free space available in the under file system.
+     */
+    SPACE_FREE(1),
+
+    /**
+     * Indicates the amount of space used in the under file system.
+     */
+    SPACE_USED(2);
+
+    private final int mValue;
+
+    SpaceType(int value) {
+      mValue = value;
+    }
+
+    /**
+     * Get the integer value of this enum value.
+     */
+    public int getValue() {
+      return mValue;
+    }
+  }
 }
