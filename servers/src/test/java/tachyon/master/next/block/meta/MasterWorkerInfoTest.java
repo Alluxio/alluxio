@@ -35,12 +35,12 @@ import tachyon.thrift.WorkerInfo;
  * Unit tests for MasterWorkerInfo.
  */
 public final class MasterWorkerInfoTest {
-  private MasterWorkerInfo mInfo;
   private static final List<Long> TOTAL_BYTES_ON_TIERS =
       Lists.newArrayList(Constants.KB * 3L, Constants.KB * 3L);
   private static final List<Long> USED_BYTES_ON_TIERS =
       Lists.newArrayList(Constants.KB * 1L, Constants.KB * 1L);
   private static final Set<Long> NEW_BLOCKS = Sets.newHashSet(1L, 2L);
+  private MasterWorkerInfo mInfo;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
