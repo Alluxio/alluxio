@@ -25,6 +25,14 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 
+/**
+ * This class manages reading from the journal. The reading must occur in two phases:
+ *
+ * 1. First the checkpoint file must be written.
+ *
+ * 2. Afterwards, completed entries are read in order. Only completed logs are read, so the last log
+ * currently being written is not read until it is marked as complete.
+ */
 public class JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -61,22 +69,17 @@ public class JournalReader {
     return true;
   }
 
-  public JournalEntry readCheckpoint() throws IOException {
+  public JournalInputStream getCheckpointInputStream() throws IOException {
     if (mCheckpointRead) {
       throw new IOException("Checkpoint file has already been read.");
     }
     mCheckpointOpenedTime = getCheckpointLastModifiedTime();
 
-    DataInputStream inputStream = new DataInputStream(mUfs.open(mCheckpointPath));
-    JournalInputStream jis = mJournal.getJournalFormatter().deserialize(inputStream);
-    // TODO: should the checkpoint be multiple entries?
-    JournalEntry checkpoint = jis.getNextEntry();
-
-    jis.close();
-    inputStream.close();
+    JournalInputStream jis =
+        mJournal.getJournalFormatter().deserialize(new DataInputStream(mUfs.open(mCheckpointPath)));
 
     mCheckpointRead = true;
-    return checkpoint;
+    return jis;
   }
 
   public JournalInputStream getNextInputStream() throws IOException {
