@@ -90,7 +90,7 @@ public class FileSystemMaster implements Master {
 
   @Override
   public String getProcessorName() {
-    return "FileSystemMaster";
+    return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
   }
 
   public List<PeriodicTask> getPeriodicTaskList() {

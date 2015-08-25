@@ -86,7 +86,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   @Override
   public String getProcessorName() {
-    return "BlockMaster";
+    return Constants.BLOCK_MASTER_SERVICE_NAME;
   }
 
   public List<PeriodicTask> getPeriodicTaskList() {
