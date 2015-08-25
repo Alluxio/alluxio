@@ -149,8 +149,8 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   }
 
   /**
-   * Gets the {@link FileInfo} for each file that is an immediate child of the given file. If the
-   * file is not a folder, its file info will be returned.
+   * If the file is a folder, return the {@link FileInfo} of all the direct entries in it.
+   * Otherwise return the FileInfo for the file.
    *
    * @param file the handler for the file
    * @return a list of FileInfos representing the files which are children of the given file
@@ -167,11 +167,11 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   }
 
   /**
-   * Creates the folder and any parent folder required.
+   * Creates a folder. If the parent folders do not exist, they will be created automatically.
    *
-   * @param path the path of the directory to create
-   * @return true if successful, false otherwise
-   * @throws IOException if the path already exists or is invalid
+   * @param path the handler for the file
+   * @return true if the folder is created successfully or already existing, false otherwise.
+   * @throws IOException if the master cannot create the folder under the specified path
    */
   public boolean mkdirs(TachyonURI path) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
