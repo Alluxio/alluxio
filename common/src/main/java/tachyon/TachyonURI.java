@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -189,10 +189,10 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return depth;
   }
 
-  
+
   /**
-   * Get the first n component of the TachyonURI path.
-   * There is no trailing separator as the path will be normalized by normalizePath() 
+   * Get the first n component of the TachyonURI path. There is no trailing separator as the path
+   * will be normalized by normalizePath()
    * 
    * <pre>
    * /a/b/c, 0              -> /
@@ -206,7 +206,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    */
   public String getLeadingPath(int n) {
     String path = mUri.getPath();
-    if (n == 0 && path.indexOf(TachyonURI.SEPARATOR) == 0) { //the special case
+    if (n == 0 && path.indexOf(TachyonURI.SEPARATOR) == 0) { // the special case
       return TachyonURI.SEPARATOR;
     }
     int depth = getDepth();
@@ -219,14 +219,14 @@ public final class TachyonURI implements Comparable<TachyonURI> {
       return StringUtils.join(Arrays.asList(comp).subList(0, n + 1), SEPARATOR);
     }
   }
-  
+
   /**
    * Whether or not the URI contains wildcard(s)
    */
   public boolean containsWildcard() {
     return mUri.getPath().contains(WILDCARD);
   }
-  
+
   /**
    * Gets the host of this TachyonURI.
    *
@@ -333,8 +333,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
         && path.length() >= start + 2
         && (!slashed || path.charAt(0) == '/')
         && path.charAt(start + 1) == ':'
-        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a'
-        && path.charAt(start) <= 'z'));
+        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a' && path
+            .charAt(start) <= 'z'));
   }
 
   /**

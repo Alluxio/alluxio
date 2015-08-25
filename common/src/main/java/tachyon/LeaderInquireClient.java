@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -37,20 +37,9 @@ public class LeaderInquireClient {
 
   private static HashMap<String, LeaderInquireClient> sCreatedClients =
       new HashMap<String, LeaderInquireClient>();
-
-  public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
-      String leaderPath) {
-    String key = zookeeperAddress + leaderPath;
-    if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
-    }
-    return sCreatedClients.get(key);
-  }
-
   private final String mZookeeperAddress;
   private final String mLeaderPath;
   private final CuratorFramework mCLient;
-
   private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
@@ -59,6 +48,15 @@ public class LeaderInquireClient {
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
     mCLient.start();
+  }
+
+  public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
+      String leaderPath) {
+    String key = zookeeperAddress + leaderPath;
+    if (!sCreatedClients.containsKey(key)) {
+      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
+    }
+    return sCreatedClients.get(key);
   }
 
   public synchronized String getMasterAddress() {
@@ -76,8 +74,7 @@ public class LeaderInquireClient {
             long maxTime = 0;
             String leader = "";
             for (String master : masters) {
-              Stat stat = mCLient.checkExists().forPath(
-                  PathUtils.concatPath(mLeaderPath, master));
+              Stat stat = mCLient.checkExists().forPath(PathUtils.concatPath(mLeaderPath, master));
               if (stat != null && stat.getCtime() > maxTime) {
                 maxTime = stat.getCtime();
                 leader = master;
