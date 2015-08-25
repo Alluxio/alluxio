@@ -233,8 +233,8 @@ public final class MasterClient implements Closeable {
     disconnect();
     try {
       connect();
-    } catch (IOException e) {
-      LOG.error("Failed to reset the connection with tachyon master.", e);
+    } catch (IOException ioe) {
+      LOG.error("Failed to reset the connection with tachyon master.", ioe);
     }
   }
 
@@ -309,9 +309,9 @@ public final class MasterClient implements Closeable {
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      throw Throwables.propagate(e);
+    } catch (IOException ioe) {
+      LOG.error(ioe.getMessage(), ioe);
+      throw Throwables.propagate(ioe);
     }
   }
 
