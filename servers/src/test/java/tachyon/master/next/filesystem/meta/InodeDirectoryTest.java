@@ -20,6 +20,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 import tachyon.Constants;
 import tachyon.master.block.BlockId;
 
@@ -36,8 +38,8 @@ public final class InodeDirectoryTest {
     InodeFile inodeFile2 = createInodeFile(3);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile2);
-    Assert.assertTrue(inodeDirectory.getChildrenIds().contains(createBlockId(2)));
-    Assert.assertTrue(inodeDirectory.getChildrenIds().contains(createBlockId(3)));
+    Assert.assertEquals(Sets.newHashSet(createBlockId(2), createBlockId(3)),
+        inodeDirectory.getChildrenIds());
   }
 
   @Test
