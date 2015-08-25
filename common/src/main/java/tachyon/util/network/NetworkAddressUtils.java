@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -61,7 +61,7 @@ public final class NetworkAddressUtils {
    */
   public enum ServiceType {
     /**
-     * 
+     *
      * Master RPC service (Thrift)
      */
     MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
@@ -470,35 +470,6 @@ public final class NetworkAddressUtils {
     } catch (IllegalAccessException e) {
       throw Throwables.propagate(e);
     }
-  }
-
-  /**
-   * Gets the Tachyon master address from the configuration
-   *
-   * @param conf the configuration of Tachyon
-   * @return the InetSocketAddress of the master
-   */
-  public static InetSocketAddress getMasterAddress(TachyonConf conf) {
-    String masterHostname =
-        conf.get(Constants.MASTER_HOSTNAME, getLocalHostName(conf));
-    int masterPort = conf.getInt(Constants.MASTER_PORT);
-    return new InetSocketAddress(masterHostname, masterPort);
-  }
-
-  /**
-   * Gets the {@link java.net.InetSocketAddress} of the local worker.
-   *
-   * Make sure there is a local worker before calling this method.
-   *
-   * @param conf the configuration of Tachyon
-   * @return the worker's address
-   */
-  public static InetSocketAddress getLocalWorkerAddress(TachyonConf conf) {
-    String workerHostname = getLocalHostName(conf);
-    // Cannot rely on tachyon-default.properties because GetMasterWorkerAddressTest will test with
-    // fake conf
-    int workerPort = conf.getInt(Constants.WORKER_PORT);
-    return new InetSocketAddress(workerHostname, workerPort);
   }
 
   /**

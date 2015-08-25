@@ -98,7 +98,6 @@ public class TachyonMaster {
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
 
     mIsStarted = false;
-    mWebPort = webPort;
     mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
     mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
 
