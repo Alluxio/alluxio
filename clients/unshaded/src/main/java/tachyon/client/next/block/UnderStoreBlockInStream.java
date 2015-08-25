@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import tachyon.client.next.ClientContext;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -27,12 +28,14 @@ import tachyon.underfs.UnderFileSystem;
  * under storage client.
  */
 public class UnderStoreBlockInStream extends BlockInStream {
+  private final long mBlockSize;
   private final String mUfsPath;
 
   private long mPos;
   private InputStream mUnderStoreStream;
 
-  public UnderStoreBlockInStream(String ufsPath) throws IOException {
+  public UnderStoreBlockInStream(FileBlockInfo info, String ufsPath) throws IOException {
+    mBlockSize = info.getLength();
     mUfsPath = ufsPath;
     resetUnderStoreStream();
   }
@@ -56,6 +59,11 @@ public class UnderStoreBlockInStream extends BlockInStream {
     int bytesRead = mUnderStoreStream.read(b, off, len);
     mPos += bytesRead;
     return bytesRead;
+  }
+
+  @Override
+  public long remaining() {
+    return mBlockSize - mPos;
   }
 
   @Override

@@ -15,11 +15,13 @@
 
 package tachyon.client.next.file;
 
+import tachyon.client.next.OutStream;
+
 /**
  * Provides a stream API to write a file to Tachyon. An instance of this class can be obtained by
  * calling {@link TachyonFS#getOutStream}. Only one FileOutStream should be opened for a
  * {@link TachyonFile}. This class is not thread safe and should only be used by one thread.
  */
-public class FileOutStream {
-  // TODO: Implement me
+public abstract class FileOutStream extends OutStream {
+  // TODO: Add File specific logic here
 }
