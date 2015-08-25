@@ -188,11 +188,11 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return depth;
   }
 
-  
+
   /**
    * Get the first n component of the TachyonURI path.
-   * There is no trailing separator as the path will be normalized by normalizePath() 
-   * 
+   * There is no trailing separator as the path will be normalized by normalizePath()
+   *
    * <pre>
    * /a/b/c, 0              -> /
    * /a/b/c, 1              -> /a
@@ -200,7 +200,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * /a/b/c, 3              -> /a/b/c
    * /a/b/c, 4              -> null
    * </pre>
-   * 
+   *
    * @return the first n path component, null if the path has less than n components
    */
   public String getLeadingPath(int n) {
@@ -218,14 +218,14 @@ public final class TachyonURI implements Comparable<TachyonURI> {
       return StringUtils.join(Arrays.asList(comp).subList(0, n + 1), SEPARATOR);
     }
   }
-  
+
   /**
    * Whether or not the URI contains wildcard(s)
    */
   public boolean containsWildcard() {
     return mUri.getPath().contains(WILDCARD);
   }
-  
+
   /**
    * Gets the host of this TachyonURI.
    *

@@ -120,7 +120,7 @@ public class PartialLRUEvictor extends LRUEvictor {
 
   /**
    * Get StorageDirView with max free space.
-   * 
+   *
    * @param availableBytes space size to be requested
    * @param location location that the space will be allocated in
    * @return the StorageDirView selected
