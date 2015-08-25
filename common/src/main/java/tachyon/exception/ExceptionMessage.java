@@ -12,6 +12,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.exception;
 
 import java.text.MessageFormat;
@@ -32,16 +33,16 @@ public enum ExceptionMessage {
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
-  private final MessageFormat message;
+  private final MessageFormat mMessage;
 
   ExceptionMessage(String message) {
-    this.message = new MessageFormat(message);
+    this.mMessage = new MessageFormat(message);
   }
 
   public String getMessage(Object... params) {
     // MessageFormat is not thread-safe, so guard it
-    synchronized (message) {
-      return this.message.format(params);
+    synchronized (mMessage) {
+      return this.mMessage.format(params);
     }
   }
 }
