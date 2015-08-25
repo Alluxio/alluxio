@@ -3,7 +3,7 @@
  * {@link tachyon.retry.RetryPolicy} which is designed to work with do/while loops.
  * <p />
  * Example
- * 
+ *
  * <pre>
  * {
  *   &#064;code
@@ -15,4 +15,3 @@
  * </pre>
  */
 package tachyon.retry;
-
