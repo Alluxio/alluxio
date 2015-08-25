@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,8 +34,7 @@ public class RPCBlockReadResponse extends RPCResponse {
   private final DataBuffer mData;
   private final Status mStatus;
 
-  public RPCBlockReadResponse(long blockId, long offset, long length, DataBuffer data,
-      Status status) {
+  public RPCBlockReadResponse(long blockId, long offset, long length, DataBuffer data, Status status) {
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
@@ -43,16 +42,12 @@ public class RPCBlockReadResponse extends RPCResponse {
     mStatus = status;
   }
 
-  public Type getType() {
-    return Type.RPC_BLOCK_READ_RESPONSE;
-  }
-
   /**
    * Creates a {@link RPCBlockReadResponse} object that indicates an error for the given
    * {@link RPCBlockReadRequest}.
    *
-   * @param request The {@link RPCBlockReadRequest} to generated
-   * the {@link RPCBlockReadResponse} for.
+   * @param request The {@link RPCBlockReadRequest} to generated the {@link RPCBlockReadResponse}
+   *        for.
    * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response.
    * @return The generated {@link RPCBlockReadResponse} object.
    */
@@ -83,6 +78,10 @@ public class RPCBlockReadResponse extends RPCResponse {
     return new RPCBlockReadResponse(blockId, offset, length, data, Status.fromShort(status));
   }
 
+  public Type getType() {
+    return Type.RPC_BLOCK_READ_RESPONSE;
+  }
+
   @Override
   public int getEncodedLength() {
     // 3 longs (mBLockId, mOffset, mLength) + 1 short (mStatus)
@@ -106,8 +105,8 @@ public class RPCBlockReadResponse extends RPCResponse {
 
   @Override
   public String toString() {
-    return "RPCBlockReadResponse(" + mBlockId + ", " + mOffset
-        + ", " + mLength + ", " + mStatus + ")";
+    return "RPCBlockReadResponse(" + mBlockId + ", " + mOffset + ", " + mLength + ", " + mStatus
+        + ")";
   }
 
   public long getBlockId() {

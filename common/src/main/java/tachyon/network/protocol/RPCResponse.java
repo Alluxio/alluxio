@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -26,13 +26,9 @@ public abstract class RPCResponse extends RPCMessage {
     // Success.
     SUCCESS(0),
     // Generic errors.
-    UNEXPECTED_STATUS_CODE(1),
-    DECODE_ERROR(2),
-    UNKNOWN_MESSAGE_ERROR(3),
+    UNEXPECTED_STATUS_CODE(1), DECODE_ERROR(2), UNKNOWN_MESSAGE_ERROR(3),
     // Specific errors.
-    FILE_DNE(100),
-    BLOCK_LOCK_ERROR(101),
-    WRITE_ERROR(102);
+    FILE_DNE(100), BLOCK_LOCK_ERROR(101), WRITE_ERROR(102);
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";
     /** Mapping from short id to {@link tachyon.network.protocol.RPCResponse.Status}. */
@@ -51,28 +47,6 @@ public abstract class RPCResponse extends RPCMessage {
 
     Status(int id) {
       mId = (short) id;
-    }
-
-    /**
-     * Returns the short identifier of the status.
-     *
-     * @return the short representing the status.
-     */
-    public short getId() {
-      return mId;
-    }
-
-    /**
-     * Returns the message for the status.
-     *
-     * @return A string representing the status.
-     */
-    public String getMessage() {
-      String message = STATUS_TO_MESSAGE_MAP.get(this);
-      if (message == null) {
-        return DEFAULT_ERROR_STRING;
-      }
-      return message;
     }
 
     /**
@@ -117,6 +91,28 @@ public abstract class RPCResponse extends RPCMessage {
         default:
           return DEFAULT_ERROR_STRING;
       }
+    }
+
+    /**
+     * Returns the short identifier of the status.
+     *
+     * @return the short representing the status.
+     */
+    public short getId() {
+      return mId;
+    }
+
+    /**
+     * Returns the message for the status.
+     *
+     * @return A string representing the status.
+     */
+    public String getMessage() {
+      String message = STATUS_TO_MESSAGE_MAP.get(this);
+      if (message == null) {
+        return DEFAULT_ERROR_STRING;
+      }
+      return message;
     }
   }
 }

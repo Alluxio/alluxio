@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -43,8 +43,8 @@ public class RPCBlockWriteResponse extends RPCResponse {
    * Creates a {@link RPCBlockWriteResponse} object that indicates an error for the given
    * {@link RPCBlockWriteRequest}.
    *
-   * @param request The {@link RPCBlockWriteRequest} to generated
-   *        the {@link RPCBlockReadResponse} for.
+   * @param request The {@link RPCBlockWriteRequest} to generated the {@link RPCBlockReadResponse}
+   *        for.
    * @param status The {@link tachyon.network.protocol.RPCResponse.Status} for the response.
    * @return The generated {@link RPCBlockWriteResponse} object.
    */
@@ -52,12 +52,8 @@ public class RPCBlockWriteResponse extends RPCResponse {
       final Status status) {
     Preconditions.checkArgument(status != Status.SUCCESS);
     // The response has no payload, so length must be 0.
-    return new RPCBlockWriteResponse(request.getUserId(), request.getBlockId(), request.getOffset(),
-        request.getLength(), status);
-  }
-
-  public Type getType() {
-    return Type.RPC_BLOCK_WRITE_RESPONSE;
+    return new RPCBlockWriteResponse(request.getUserId(), request.getBlockId(),
+        request.getOffset(), request.getLength(), status);
   }
 
   /**
@@ -73,6 +69,10 @@ public class RPCBlockWriteResponse extends RPCResponse {
     long length = in.readLong();
     short status = in.readShort();
     return new RPCBlockWriteResponse(userId, blockId, offset, length, Status.fromShort(status));
+  }
+
+  public Type getType() {
+    return Type.RPC_BLOCK_WRITE_RESPONSE;
   }
 
   @Override
