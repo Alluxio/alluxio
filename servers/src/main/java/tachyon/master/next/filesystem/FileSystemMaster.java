@@ -42,6 +42,7 @@ import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
+import tachyon.master.next.journal.JournalEntry;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
@@ -564,6 +565,12 @@ public class FileSystemMaster implements Master {
     synchronized (mDependencyMap) {
       return mDependencyMap.getPriorityDependencyList();
     }
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
   }
 
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
