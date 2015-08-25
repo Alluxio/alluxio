@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.master.block.BlockId;
+import tachyon.master.next.filesystem.journal.InodeFileEntry;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
@@ -271,7 +272,8 @@ public final class InodeFile extends Inode {
 
   @Override
   public JournalEntry toJournalEntry() {
-    // TODO(cc)
-    return null;
+    return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPinned(),
+        getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isComplete(), isCache(),
+        getUfsPath());
   }
 }
