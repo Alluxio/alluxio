@@ -31,16 +31,17 @@ import tachyon.thrift.FileInfo;
  * Tachyon space in the local machine, remote machines, or the under storage system.
  */
 public class ClientFileInStream extends FileInStream {
+  private final boolean mShouldCache;
   private final long mBlockSize;
   private final long mFileLength;
   private final FSContext mContext;
   private final List<Long> mBlockIds;
 
   private boolean mClosed;
-  private boolean mShouldCache;
+  private boolean mShouldCacheCurrentBlock;
   private long mPos;
   private BlockInStream mCurrentBlockInStream;
-  private BlockOutStream mCurrentBlockOutStream;
+  private BlockOutStream mCurrentCacheStream;
 
   public ClientFileInStream(FileInfo info, ClientOptions options) {
     mBlockSize = info.getBlockSizeByte();
@@ -48,6 +49,7 @@ public class ClientFileInStream extends FileInStream {
     mBlockIds = info.getBlockIds();
     mContext = FSContext.INSTANCE;
     mShouldCache = options.getCacheType().shouldCache();
+    mShouldCacheCurrentBlock = mShouldCache;
     mClosed = false;
   }
 
@@ -59,6 +61,7 @@ public class ClientFileInStream extends FileInStream {
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
     }
+    closeCacheStream();
     mClosed = true;
   }
 
@@ -69,9 +72,16 @@ public class ClientFileInStream extends FileInStream {
     }
 
     checkAndAdvanceBlockInStream();
-    // TODO: Determine if this is necessary
     int data = mCurrentBlockInStream.read();
     mPos ++;
+    if (mShouldCacheCurrentBlock) {
+      try {
+        mCurrentCacheStream.write(data);
+      } catch (IOException ioe) {
+        // TODO: Log debug maybe?
+        mShouldCacheCurrentBlock = false;
+      }
+    }
     return data;
   }
 
@@ -99,6 +109,14 @@ public class ClientFileInStream extends FileInStream {
       checkAndAdvanceBlockInStream();
 
       int tRead = mCurrentBlockInStream.read(b, tOff, tLen);
+      if (tRead > 0 && mShouldCacheCurrentBlock) {
+        try {
+          mCurrentCacheStream.write(b, tOff, tRead);
+        } catch (IOException ioe) {
+          // TODO: Log debug maybe?
+          mShouldCacheCurrentBlock = false;
+        }
+      }
       if (tRead == -1) {
         // mCurrentBlockInStream has reached its block boundary
         continue;
@@ -151,19 +169,37 @@ public class ClientFileInStream extends FileInStream {
 
   private void checkAndAdvanceBlockInStream() throws IOException {
     long currentBlockId = getBlockCurrentBlockId();
-    if (mCurrentBlockInStream == null) {
-      mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+    if (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0) {
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.close();
+      }
+      try {
+        mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+      } catch (IOException ioe) {
+        // TODO: Maybe debug log here
+        // TODO: Make UFS Stream here
+      }
       if (mShouldCache) {
-        mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
+        try {
+          closeCacheStream();
+          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
+          mShouldCacheCurrentBlock = true;
+        } catch (IOException ioe) {
+          // TODO: Maybe debug log here
+          mShouldCacheCurrentBlock = false;
+        }
       }
     }
-    if (mCurrentBlockInStream.remaining() == 0) {
-      mCurrentBlockInStream.close();
-      mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
-      if (mShouldCache) {
-        mCurrentBlockOutStream.close();
-        mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
-      }
+  }
+
+  private void closeCacheStream() throws IOException {
+    if (mCurrentCacheStream == null) {
+      return;
+    }
+    if (mCurrentCacheStream.remaining() == 0) {
+      mCurrentCacheStream.close();
+    } else {
+      mCurrentCacheStream.cancel();
     }
   }
 
@@ -173,14 +209,34 @@ public class ClientFileInStream extends FileInStream {
     return mBlockIds.get(index);
   }
 
+  // TODO: This can be combined with check and advance
   private void moveBlockInStream(long newPos) throws IOException {
     long oldBlockId = getBlockCurrentBlockId();
     mPos = newPos;
+    closeCacheStream();
+    long currentBlockId = getBlockCurrentBlockId();
 
-    if (oldBlockId != getBlockCurrentBlockId()) {
+    if (oldBlockId != currentBlockId) {
       mCurrentBlockInStream.close();
-      mCurrentBlockInStream =
-          mContext.getTachyonBS().getInStream(getBlockCurrentBlockId());
+      try {
+        mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+      } catch (IOException ioe) {
+        // TODO: Maybe debug log here
+        // TODO: Make UFS Stream here
+      }
+
+      // Reading next block entirely
+      if (mPos % mBlockSize == 0 && mShouldCache) {
+        try {
+          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
+          mShouldCacheCurrentBlock = true;
+        } catch (IOException ioe) {
+          // TODO: Maybe debug log here
+          mShouldCacheCurrentBlock = false;
+        }
+      } else {
+        mShouldCacheCurrentBlock = false;
+      }
     }
   }
 }
