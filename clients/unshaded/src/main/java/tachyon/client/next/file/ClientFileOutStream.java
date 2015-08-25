@@ -21,7 +21,7 @@ import java.util.List;
  * {@link tachyon.client.next.UnderStorageType} is PERSIST, another stream will write the data to
  * the under storage system.
  */
-public class ClientFileOutStream extends OutStream {
+public class ClientFileOutStream extends FileOutStream {
   private final int mFileId;
   private final ClientOptions mOptions;
   private final long mBlockSize;
