@@ -46,11 +46,22 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     mContext = FSContext.INSTANCE;
   }
 
+  /**
+   * Closes this TachyonFS instance. The next call to get will create a new TachyonFS instance.
+   * Other references to the old client may still be used.
+   */
   // TODO: Evaluate the necessity of this method
   public synchronized void close() {
     sCachedClient = null;
   }
 
+  /**
+   * Deletes a file. If the file is a folder, its contents will be deleted recursively.
+   *
+   * @param file the handler of the file to delete.
+   * @throws IOException if the master is unable to delete the file
+   */
+  @Override
   public void delete(TachyonFile file) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -60,6 +71,14 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     }
   }
 
+  /**
+   * Removes the file from Tachyon Storage. The underlying under storage system file will not be
+   * removed. If the file is a folder, its contents will be freed recursively.
+   *
+   * @param file the handler for the file
+   * @throws IOException if the master is unable to free the file
+   */
+  @Override
   public void free(TachyonFile file) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -69,7 +88,15 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     }
   }
 
+  /**
+   * Gets the FileInfo object that represents the Tachyon file
+   *
+   * @param file the handler for the file.
+   * @return the FileInfo of the file, null if the file does not exist.
+   * @throws IOException if the master is unable to obtain the file's metadata
+   */
   // TODO: Consider FileInfo caching
+  @Override
   public FileInfo getInfo(TachyonFile file) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -79,6 +106,16 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     }
   }
 
+  /**
+   * Gets a {@link FileInStream} for the specified file. The stream's settings can be customized
+   * by setting the options parameter. The user should close the stream after finishing the
+   * operations on it.
+   *
+   * @param file the handler for the file.
+   * @param options the set of options specific to this operation.
+   * @return an input stream to read the file
+   * @throws IOException if the file does not exist or the stream cannot be opened
+   */
   public FileInStream getInStream(TachyonFile file, ClientOptions options) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -90,19 +127,35 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     }
   }
 
-  public FileOutStream getOutStream(TachyonURI path, TachyonURI ufsPath, ClientOptions options)
+  /**
+   * Creates a file and gets the {@link FileOutStream} for the specified file. This should only be
+   * called to write a file that does not exist. Once close is called on the output stream, the
+   * file will be completed. Append or update of a completed file is currently not supported.
+   *
+   * @param path the Tachyon path of the file
+   * @param options the set of options specific to this operation
+   * @return an output stream to write the file
+   * @throws IOException if the file already exists or if the stream cannot be opened
+   */
+  public FileOutStream getOutStream(TachyonURI path, ClientOptions options)
       throws IOException{
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
-      int fileId =
-          masterClient.user_createFile(path.getPath(), ufsPath.getPath(), options.getBlockSize(),
-              true);
+      int fileId = masterClient.user_createFile(path.getPath(), "", options.getBlockSize(), true);
       return new ClientFileOutStream(fileId, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
   }
 
+  /**
+   * Gets the {@link FileInfo} for each file that is an immediate child of the given file. If the
+   * file is not a folder, its file info will be returned.
+   *
+   * @param file the handler for the file
+   * @return a list of FileInfos representing the files which are children of the given file
+   * @throws IOException if the file does not exist
+   */
   public List<FileInfo> listStatus(TachyonFile file) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -113,16 +166,30 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     }
   }
 
-  public boolean mkdirs(TachyonFile file) throws IOException {
+  /**
+   * Creates the folder and any parent folder required.
+   *
+   * @param path the path of the directory to create
+   * @return true if successful, false otherwise
+   * @throws IOException if the path already exists or is invalid
+   */
+  public boolean mkdirs(TachyonURI path) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Change this RPC
-      return masterClient.user_mkdirs(null, true);
+      return masterClient.user_mkdirs(path.getPath(), true);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
   }
 
+  /**
+   * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
+   * non-create operations.
+   *
+   * @param path the path of the file, this should be in Tachyon space
+   * @return a TachyonFile which acts as a file handler for the path
+   * @throws IOException if the path does not exist in Tachyon space
+   */
   public TachyonFile open(TachyonURI path) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -133,11 +200,19 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     }
   }
 
-  public boolean rename(TachyonFile file, TachyonURI dst) throws IOException {
+  /**
+   * Renames an existing file in Tachyon space to another path in Tachyon space.
+   *
+   * @param src The file handler for the source file
+   * @param dst The path of the destination file, this path should not exist
+   * @return true if successful, false otherwise
+   * @throws IOException if the destination already exists or is invalid
+   */
+  public boolean rename(TachyonFile src, TachyonURI dst) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Remove path from this RPC
-      return masterClient.user_rename(file.getFileId(), "", dst.getPath());
+      return masterClient.user_rename(src.getFileId(), "", dst.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
