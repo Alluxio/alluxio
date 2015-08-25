@@ -15,6 +15,8 @@
 
 package tachyon.master.next.journal;
 
-public interface JournalEntry {
-  JournalEntryType type();
+public enum JournalEntryType {
+  INODE_FILE,
+  ADD_CHECKPOINT,
+  // TODO
 }
