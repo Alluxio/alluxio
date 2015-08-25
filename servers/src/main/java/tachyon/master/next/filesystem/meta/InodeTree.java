@@ -30,6 +30,8 @@ import tachyon.TachyonURI;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.block.ContainerIdGenerator;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.Serializable;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -37,7 +39,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-public final class InodeTree {
+public final class InodeTree implements Serializable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final InodeDirectory mRoot;
@@ -268,6 +270,10 @@ public final class InodeTree {
   // TODO: this should return block container ids, not file ids.
   public Set<Long> getPinIdSet() {
     return Sets.newHashSet(mPinnedInodeFileIds);
+  }
+
+  public JournalEntry toJournalEntry() {
+    return mRoot.toJournalEntry();
   }
 
   private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {

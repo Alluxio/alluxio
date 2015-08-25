@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.master.block.BlockId;
+import tachyon.master.next.journal.JournalEntry;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -266,5 +267,11 @@ public final class InodeFile extends Inode {
     sb.append(", UfsPath: ").append(mUfsPath);
     sb.append(", mBlocks: ").append(mBlocks);
     return sb.toString();
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
   }
 }
