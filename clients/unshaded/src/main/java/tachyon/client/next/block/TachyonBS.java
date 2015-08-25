@@ -24,7 +24,8 @@ import tachyon.thrift.FileBlockInfo;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
- * An instance of this class can be obtained via {@link TachyonBS#get}. This class is thread safe.
+ * An instance of this class can be obtained via {@link TachyonBS#get}. The methods in this class
+ * are completely opaque to user input (such as {@link ClientOptions}). This class is thread safe.
  */
 public class TachyonBS implements Closeable {
 
@@ -66,11 +67,9 @@ public class TachyonBS implements Closeable {
   }
 
   /**
-   * Gets a stream to read the data of a block. The stream can be backed by Tachyon storage or
-   * the under storage system.
+   * Gets a stream to read the data of a block. The stream is backed by Tachyon storage.
    *
    * @param blockId the block to read from
-   * @param options the custom options when reading the block
    * @return a BlockInStream which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
@@ -89,7 +88,6 @@ public class TachyonBS implements Closeable {
    * Gets a stream to write data to a block. The stream can only be backed by Tachyon storage.
    *
    * @param blockId the block to write
-   * @param options the custom options when writing the block
    * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
    * @throws IOException if the block cannot be written
    */
