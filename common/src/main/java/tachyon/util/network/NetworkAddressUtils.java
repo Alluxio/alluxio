@@ -58,105 +58,6 @@ public final class NetworkAddressUtils {
   private NetworkAddressUtils() {}
 
   /**
-   * Different types of services that client uses to connect. These types also indicate the service
-   * bind address
-   */
-  public enum ServiceType {
-    /**
-     * 
-     * Master RPC service (Thrift)
-     */
-    MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
-        Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT),
-
-    /**
-     * Master web service (Jetty)
-     */
-    MASTER_WEB("Tachyon Master Web service", Constants.MASTER_WEB_HOSTNAME,
-        Constants.MASTER_WEB_BIND_HOST, Constants.MASTER_WEB_PORT,
-        Constants.DEFAULT_MASTER_WEB_PORT),
-
-    /**
-     * Worker RPC service (Thrift)
-     */
-    WORKER_RPC("Tachyon Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
-        Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT),
-
-    /**
-     * Worker data service (Netty)
-     */
-    WORKER_DATA("Tachyon Worker data service", Constants.WORKER_DATA_HOSTNAME,
-        Constants.WORKER_DATA_BIND_HOST, Constants.WORKER_DATA_PORT,
-        Constants.DEFAULT_WORKER_DATA_PORT),
-
-    /**
-     * Worker web service (Jetty)
-     */
-    WORKER_WEB("Tachyon Worker Web service", Constants.WORKER_WEB_HOSTNAME,
-        Constants.WORKER_WEB_BIND_HOST, Constants.WORKER_WEB_PORT,
-        Constants.DEFAULT_WORKER_WEB_PORT);
-
-    // service name
-    private final String mServiceName;
-
-    // the key of connect hostname
-    private final String mHostNameKey;
-
-    // the key of bind hostname
-    private final String mBindHostKey;
-
-    // the key of service port
-    private final String mPortKey;
-
-    // default port number
-    private final int mDefaultPort;
-
-    ServiceType(String serviceName, String hostNameKey, String bindHostKey, String portKey,
-        int defaultPort) {
-      mServiceName = serviceName;
-      mHostNameKey = hostNameKey;
-      mBindHostKey = bindHostKey;
-      mPortKey = portKey;
-      mDefaultPort = defaultPort;
-    }
-
-    /**
-     * Gets service name
-     */
-    public String getServiceName() {
-      return mServiceName;
-    }
-
-    /**
-     * Gets the key of connect hostname
-     */
-    public String getHostNameKey() {
-      return mHostNameKey;
-    }
-
-    /**
-     * Gets the key of bind hostname
-     */
-    public String getBindHostKey() {
-      return mBindHostKey;
-    }
-
-    /**
-     * Gets the key of service port
-     */
-    public String getPortKey() {
-      return mPortKey;
-    }
-
-    /**
-     * Gets the default port number on service
-     */
-    public int getDefaultPort() {
-      return mDefaultPort;
-    }
-  }
-
-  /**
    * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
    * service.
    *
@@ -389,8 +290,7 @@ public final class NetworkAddressUtils {
    */
   private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
     return (!address.isAnyLocalAddress() && !address.isLinkLocalAddress()
-        && !address.isLoopbackAddress() && address.isReachable(timeout)
-        && (address instanceof Inet4Address));
+        && !address.isLoopbackAddress() && address.isReachable(timeout) && (address instanceof Inet4Address));
   }
 
   /**
@@ -494,5 +394,104 @@ public final class NetworkAddressUtils {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+  }
+
+  /**
+   * Different types of services that client uses to connect. These types also indicate the service
+   * bind address
+   */
+  public enum ServiceType {
+    /**
+     *
+     * Master RPC service (Thrift)
+     */
+    MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
+        Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT),
+
+    /**
+     * Master web service (Jetty)
+     */
+    MASTER_WEB("Tachyon Master Web service", Constants.MASTER_WEB_HOSTNAME,
+        Constants.MASTER_WEB_BIND_HOST, Constants.MASTER_WEB_PORT,
+        Constants.DEFAULT_MASTER_WEB_PORT),
+
+    /**
+     * Worker RPC service (Thrift)
+     */
+    WORKER_RPC("Tachyon Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
+        Constants.WORKER_PORT, Constants.DEFAULT_WORKER_PORT),
+
+    /**
+     * Worker data service (Netty)
+     */
+    WORKER_DATA("Tachyon Worker data service", Constants.WORKER_DATA_HOSTNAME,
+        Constants.WORKER_DATA_BIND_HOST, Constants.WORKER_DATA_PORT,
+        Constants.DEFAULT_WORKER_DATA_PORT),
+
+    /**
+     * Worker web service (Jetty)
+     */
+    WORKER_WEB("Tachyon Worker Web service", Constants.WORKER_WEB_HOSTNAME,
+        Constants.WORKER_WEB_BIND_HOST, Constants.WORKER_WEB_PORT,
+        Constants.DEFAULT_WORKER_WEB_PORT);
+
+    // service name
+    private final String mServiceName;
+
+    // the key of connect hostname
+    private final String mHostNameKey;
+
+    // the key of bind hostname
+    private final String mBindHostKey;
+
+    // the key of service port
+    private final String mPortKey;
+
+    // default port number
+    private final int mDefaultPort;
+
+    ServiceType(String serviceName, String hostNameKey, String bindHostKey, String portKey,
+        int defaultPort) {
+      mServiceName = serviceName;
+      mHostNameKey = hostNameKey;
+      mBindHostKey = bindHostKey;
+      mPortKey = portKey;
+      mDefaultPort = defaultPort;
+    }
+
+    /**
+     * Gets service name
+     */
+    public String getServiceName() {
+      return mServiceName;
+    }
+
+    /**
+     * Gets the key of connect hostname
+     */
+    public String getHostNameKey() {
+      return mHostNameKey;
+    }
+
+    /**
+     * Gets the key of bind hostname
+     */
+    public String getBindHostKey() {
+      return mBindHostKey;
+    }
+
+    /**
+     * Gets the key of service port
+     */
+    public String getPortKey() {
+      return mPortKey;
+    }
+
+    /**
+     * Gets the default port number on service
+     */
+    public int getDefaultPort() {
+      return mDefaultPort;
+    }
   }
 }
