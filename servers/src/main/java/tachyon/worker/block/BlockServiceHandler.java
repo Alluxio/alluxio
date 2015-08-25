@@ -37,7 +37,7 @@ import tachyon.thrift.WorkerService;
  * thread safe.
  */
 // TODO: better exception handling than wrapping into TException
-public class BlockServiceHandler implements WorkerService.Iface {
+public final class BlockServiceHandler implements WorkerService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block data manager that carries out most of the operations **/
@@ -54,6 +54,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId the id of the block to access
    * @throws TException
    */
+  @Override
   public void accessBlock(long blockId) throws TException {
     try {
       mWorker.accessBlock(Users.ACCESS_BLOCK_USER_ID, blockId);
@@ -71,6 +72,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param fileId the id of the file that was written to the under storage system
    * @throws TException
    */
+  @Override
   public void addCheckpoint(long userId, int fileId) throws TException {
     try {
       mWorker.addCheckpoint(userId, fileId);
@@ -80,6 +82,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
   }
 
   // TODO: Make this supported again
+  @Override
   public boolean asyncCheckpoint(int fileId) throws TException {
     return false;
   }
@@ -94,6 +97,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @throws TException
    */
   // TODO: Reconsider this exception handling
+  @Override
   public void cacheBlock(long userId, long blockId) throws TException {
     try {
       mWorker.commitBlock(userId, blockId);
@@ -118,6 +122,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId the id of the block to be aborted
    * @throws TException
    */
+  @Override
   public void cancelBlock(long userId, long blockId) throws TException {
     try {
       mWorker.abortBlock(userId, blockId);
@@ -138,6 +143,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param userId the id of the user requesting the ufs location
    */
+  @Override
   public String getUserUfsTempFolder(long userId) {
     return mWorker.getUserUfsTmpFolder(userId);
   }
@@ -152,6 +158,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @throws FileDoesNotExistException
    * @throws TException
    */
+  @Override
   public String lockBlock(long blockId, long userId) throws FileDoesNotExistException, TException {
     try {
       long lockId = mWorker.lockBlock(userId, blockId);
@@ -173,6 +180,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @throws TException
    */
   // TODO: This may be better as void
+  @Override
   public boolean promoteBlock(long blockId) throws TException {
     try {
       // TODO: Make the top level configurable
@@ -206,6 +214,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @throws TException
    * @throws tachyon.thrift.OutOfSpaceException
    */
+  @Override
   public String requestBlockLocation(long userId, long blockId, long initialBytes)
       throws tachyon.thrift.OutOfSpaceException, TException {
     try {
@@ -234,6 +243,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId the id of the block to add the space to, this must be a temporary block
    * @param requestBytes the amount of bytes to add to the block
    */
+  @Override
   public boolean requestSpace(long userId, long blockId, long requestBytes) {
     try {
       mWorker.requestSpace(userId, blockId, requestBytes);
@@ -253,6 +263,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    * @param userId the id of the client requesting the unlock
    * @throws TException if the block does not exist
    */
+  @Override
   public boolean unlockBlock(long blockId, long userId) throws TException {
     try {
       mWorker.unlockBlock(userId, blockId);
@@ -270,6 +281,7 @@ public class BlockServiceHandler implements WorkerService.Iface {
    *                the last. Each value in the list represents a specific metric based on the
    *                index.
    */
+  @Override
   public void userHeartbeat(long userId, List<Long> metrics) {
     mWorker.userHeartbeat(userId, metrics);
   }

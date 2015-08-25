@@ -19,12 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Users;
@@ -39,6 +35,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
@@ -51,7 +48,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
  * thread-safe.
  */
-public class BlockDataManager {
+public final class BlockDataManager {
   /** Block store delta reporter for master heartbeat */
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
@@ -95,8 +92,8 @@ public class BlockDataManager {
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf);
-    mUfs.connectFromWorker(mTachyonConf, NetworkAddressUtils.getFqdnHost(workerAddress));
+    mUfs.connectFromWorker(mTachyonConf,
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf));
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);

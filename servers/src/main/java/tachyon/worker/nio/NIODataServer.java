@@ -121,6 +121,16 @@ public class NIODataServer implements Runnable, DataServer {
   }
 
   /**
+   * Get the actual bind hostname on DataServer service.
+   *
+   * @return the bind host
+   */
+  @Override
+  public String getBindHost() {
+    return mServerChannel.socket().getLocalSocketAddress().toString();
+  }
+
+  /**
    * Gets the port listening on.
    */
   @Override

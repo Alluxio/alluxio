@@ -31,6 +31,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * BlockInStream for remote block.
@@ -245,6 +246,11 @@ public class RemoteBlockInStream extends BlockInStream {
     if (bytesLeft > 0 && mBlockOutStream == null && mRecache) {
       try {
         mBlockOutStream = BlockOutStream.get(mFile, WriteType.TRY_CACHE, mBlockIndex, mTachyonConf);
+        // We should only cache when we are writing to a local worker
+        if (mBlockOutStream instanceof RemoteBlockOutStream) {
+          LOG.info("Cannot find a local worker to write to, recache attempt cancelled.");
+          cancelRecache();
+        }
       } catch (IOException ioe) {
         LOG.warn("Recache attempt failed.", ioe);
         cancelRecache();
@@ -303,7 +309,7 @@ public class RemoteBlockInStream extends BlockInStream {
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
-      String localhost = NetworkAddressUtils.getLocalHostName(conf);
+      String localhost = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, conf);
 
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;

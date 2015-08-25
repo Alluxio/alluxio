@@ -108,6 +108,7 @@ public class TachyonConf {
    *
    * Here is the order of the sources to load the properties:
    *   -) System properties if desired
+   *   -) Environment variables via tachyon-env.sh or from OS settings
    *   -) Site specific properties via tachyon-site.properties file
    *   -) Default properties via tachyon-default.properties file
    */

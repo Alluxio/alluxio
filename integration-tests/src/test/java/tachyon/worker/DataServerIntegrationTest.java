@@ -57,7 +57,7 @@ public class DataServerIntegrationTest {
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    // Creates a new instance of DataServerTest for different combinations of parameters..
+    // Creates a new instance of DataServerIntegrationTest for different combinations of parameters.
     List<Object[]> list = new ArrayList<Object[]>();
     list.add(new Object[] { IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER,

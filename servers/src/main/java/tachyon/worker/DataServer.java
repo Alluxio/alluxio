@@ -24,7 +24,6 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockDataManager;
-import tachyon.worker.netty.NettyDataServer;
 
 /**
  * Defines how to interact with a server running the data protocol.
@@ -44,6 +43,13 @@ public interface DataServer extends Closeable {
       }
     }
   }
+
+  /**
+   * Get the actual bind hostname on DataServer service.
+   *
+   * @return the bind host
+   */
+  String getBindHost();
 
   /**
    * Gets the port the DataServer is listening on.

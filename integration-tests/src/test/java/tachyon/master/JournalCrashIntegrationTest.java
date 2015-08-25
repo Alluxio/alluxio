@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -205,6 +206,8 @@ public class JournalCrashIntegrationTest {
     return cluster;
   }
 
+  // TODO: Cannot totally crash the cluster by ThreadGroup.stop().
+  @Ignore
   @Test
   public void singleMasterJournalCrashIntegrationTest() throws Exception {
     LocalTachyonCluster cluster = setupSingleMasterCluster();
@@ -220,6 +223,8 @@ public class JournalCrashIntegrationTest {
     cluster.stopUFS();
   }
 
+  // TODO: Cannot totally crash the cluster by ThreadGroup.stop().
+  @Ignore
   @Test
   public void multiMasterJournalCrashIntegrationTest()  throws Exception {
     LocalTachyonClusterMultiMaster cluster = setupMultiMasterCluster();
