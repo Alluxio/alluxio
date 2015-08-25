@@ -38,6 +38,7 @@ import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
+import tachyon.master.next.journal.JournalEntry;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -269,6 +270,12 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       }
       return new Command(CommandType.Free, toRemoveBlocks);
     }
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
   }
 
   /**

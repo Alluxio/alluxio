@@ -13,18 +13,8 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.journal;
 
-import java.util.List;
-
-import org.apache.thrift.TProcessor;
-
-import tachyon.master.next.journal.Serializable;
-
-public interface Master extends Serializable {
-  TProcessor getProcessor();
-
-  String getProcessorName();
-
-  List<PeriodicTask> getPeriodicTaskList();
+public interface Serializable {
+  JournalEntry toJournalEntry();
 }
