@@ -15,6 +15,8 @@
 
 package tachyon.client.next.block;
 
+import tachyon.client.next.OutStream;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -28,13 +30,9 @@ import java.io.OutputStream;
  * the user has enabled this optimization. Otherwise, a {@link RemoteBlockOutStream} will be
  * returned which will write the data through a Tachyon worker.
  */
-public abstract class BlockOutStream extends OutputStream {
+public abstract class BlockOutStream extends OutStream {
   /**
-   * Cancels the write to Tachyon storage. This will delete all the temporary data and metadata
-   * that has been written to the worker. This method should be called when a write is aborted or
-   * if the write is not a complete write of the block.
-   *
-   * @throws IOException if there is a failure when the worker invalidates the cache attempt
+   * Gets the remaining number of bytes that can be written to this block.
    */
-  public abstract void cancel() throws IOException;
+  public abstract long remaining();
 }

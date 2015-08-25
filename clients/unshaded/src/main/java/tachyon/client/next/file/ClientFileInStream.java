@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Provides a streaming API to a file. This class wraps the BlockInStreams for each of the blocks
- * in the file and abstracts the switching between streams. The backing streams can read from
+ * Provides a streaming API to read a file. This class wraps the BlockInStreams for each of the
+ * blocks in the file and abstracts the switching between streams. The backing streams can read from
  * Tachyon space in the local machine, remote machines, or the under storage system.
  */
 public class ClientFileInStream extends FileInStream {

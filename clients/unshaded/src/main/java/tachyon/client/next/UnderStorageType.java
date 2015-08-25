@@ -30,4 +30,8 @@ public enum UnderStorageType {
   UnderStorageType(int value) {
     mValue = value;
   }
+
+  public boolean shouldPersist() {
+    return mValue == PERSIST.mValue;
+  }
 }

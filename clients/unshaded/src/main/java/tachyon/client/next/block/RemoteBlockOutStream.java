@@ -89,6 +89,11 @@ public class RemoteBlockOutStream extends BlockOutStream {
   }
 
   @Override
+  public long remaining() {
+    return mBlockSize - mWrittenBytes;
+  }
+
+  @Override
   public void write(int b) throws IOException {
     failIfClosed();
     if (mWrittenBytes + 1 > mBlockSize) {

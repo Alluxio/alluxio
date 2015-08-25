@@ -39,7 +39,7 @@ import tachyon.worker.next.WorkerClient;
  */
 public class LocalBlockOutStream extends BlockOutStream {
   private final Closer mCloser;
-  private final long mBlockCapacityByte;
+  private final long mBlockSize;
   private final long mBlockId;
   private final CacheType mCacheType;
   private final BSContext mContext;
@@ -60,7 +60,7 @@ public class LocalBlockOutStream extends BlockOutStream {
     }
 
     mCloser = Closer.create();
-    mBlockCapacityByte = options.getBlockSize();
+    mBlockSize = options.getBlockSize();
     mBlockId = blockId;
     mContext = BSContext.INSTANCE;
     mUnderStorageType = options.getUnderStorageType();
@@ -112,6 +112,11 @@ public class LocalBlockOutStream extends BlockOutStream {
   }
 
   @Override
+  public long remaining() {
+    return mBlockSize - mWrittenBytes;
+  }
+
+  @Override
   public void write(byte[] b) throws IOException {
     write(b, 0, b.length);
   }
@@ -143,7 +148,7 @@ public class LocalBlockOutStream extends BlockOutStream {
   @Override
   public void write(int b) throws IOException {
     failIfClosed();
-    if (mWrittenBytes + 1 > mBlockCapacityByte) {
+    if (mWrittenBytes + 1 > mBlockSize) {
       // TODO: Handle this error better
       throw new IOException("Block capacity exceeded.");
     }
