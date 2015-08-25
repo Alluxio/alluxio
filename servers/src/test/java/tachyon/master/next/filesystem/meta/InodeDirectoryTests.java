@@ -35,8 +35,8 @@ public final class InodeDirectoryTests extends AbstractInodeTests {
     InodeFile inodeFile2 = createInodeFile(3);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile2);
-    Assert.assertEquals(createBlockId(2), (long) inodeDirectory.getChildrenIds().get(0));
-    Assert.assertEquals(createBlockId(3), (long) inodeDirectory.getChildrenIds().get(1));
+    Assert.assertEquals(createInodeFileId(2), (long) inodeDirectory.getChildrenIds().get(0));
+    Assert.assertEquals(createInodeFileId(3), (long) inodeDirectory.getChildrenIds().get(1));
   }
 
   @Test
@@ -51,7 +51,7 @@ public final class InodeDirectoryTests extends AbstractInodeTests {
     Assert.assertEquals(3, inodeDirectory.getNumberOfChildren());
     inodeDirectory.removeChild("testFile1");
     Assert.assertEquals(2, inodeDirectory.getNumberOfChildren());
-    Assert.assertFalse(inodeDirectory.getChildrenIds().contains(createBlockId(1)));
+    Assert.assertFalse(inodeDirectory.getChildrenIds().contains(createInodeFileId(1)));
   }
 
   @Test
@@ -116,7 +116,7 @@ public final class InodeDirectoryTests extends AbstractInodeTests {
     InodeFile inodeFile1 = createInodeFile(1);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile1);
-    Assert.assertTrue(inodeDirectory.getChildrenIds().get(0) == createBlockId(1));
+    Assert.assertTrue(inodeDirectory.getChildrenIds().get(0) == createInodeFileId(1));
     Assert.assertEquals(1, inodeDirectory.getNumberOfChildren());
   }
 
@@ -163,7 +163,7 @@ public final class InodeDirectoryTests extends AbstractInodeTests {
 
     long start = System.currentTimeMillis();
     for (int i = 0; i < nFiles; i ++) {
-      Assert.assertEquals(inodes[i], inodeDirectory.getChild(createBlockId(i + 1)));
+      Assert.assertEquals(inodes[i], inodeDirectory.getChild(createInodeFileId(i + 1)));
     }
     LOG.info(String.format("getChild(int fid) called sequentially %d times, cost %d ms", nFiles,
         System.currentTimeMillis() - start));

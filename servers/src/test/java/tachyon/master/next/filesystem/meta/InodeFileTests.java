@@ -42,7 +42,7 @@ public final class InodeFileTests extends AbstractInodeTests {
   @Test
   public void getIdTest() {
     InodeFile inode1 = createInodeFile(1);
-    Assert.assertEquals(createBlockId(1), inode1.getId());
+    Assert.assertEquals(createInodeFileId(1), inode1.getId());
   }
 
   @Test
