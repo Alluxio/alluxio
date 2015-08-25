@@ -58,7 +58,7 @@ public class BlockLockManagerTest {
   public void unlockNonExistingLockTest() throws Exception {
     long badLockId = 1;
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND.getMessage(badLockId));
+    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Unlock a non-existing lockId, expect to see IOException
     mLockManager.unlockBlock(badLockId);
   }
@@ -67,7 +67,7 @@ public class BlockLockManagerTest {
   public void validateLockIdWithNoRecordTest() throws Exception {
     long badLockId = 1;
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND.getMessage(badLockId));
+    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Validate a non-existing lockId, expect to see IOException
     mLockManager.validateLock(TEST_USER_ID, TEST_BLOCK_ID, badLockId);
   }
@@ -101,7 +101,7 @@ public class BlockLockManagerTest {
     long lockId1 = mLockManager.lockBlock(userId1, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(userId2, TEST_BLOCK_ID, BlockLockType.READ);
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND.getMessage(lockId2));
+    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId2));
     mLockManager.cleanupUser(userId2);
     // Expect validating userId1 to get through
     mLockManager.validateLock(userId1, TEST_BLOCK_ID, lockId1);

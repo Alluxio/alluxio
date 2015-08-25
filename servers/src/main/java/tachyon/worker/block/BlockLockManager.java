@@ -120,7 +120,7 @@ public final class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND, lockId);
+        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
       }
       long userId = record.userId();
       lock = record.lock();
@@ -141,7 +141,7 @@ public final class BlockLockManager {
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND, lockId);
+          throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
         }
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -154,7 +154,7 @@ public final class BlockLockManager {
           return;
         }
       }
-      throw new NotFoundException(ExceptionMessage.LOCK_NOT_FOUND_FOR_BLOCK_AND_USER, blockId,
+      throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER, blockId,
           userId);
     }
   }
@@ -174,7 +174,7 @@ public final class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND, lockId);
+        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
       }
       if (userId != record.userId()) {
         throw new InvalidStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_USER, lockId,
@@ -201,7 +201,7 @@ public final class BlockLockManager {
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND.getMessage(lockId));
+          LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
           continue;
         }
         Lock lock = record.lock();
