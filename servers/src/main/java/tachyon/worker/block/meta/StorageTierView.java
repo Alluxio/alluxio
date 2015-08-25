@@ -16,6 +16,7 @@
 package tachyon.worker.block.meta;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
@@ -54,7 +55,7 @@ public class StorageTierView {
    * Get the list of StorageDirView under this TierView
    */
   public List<StorageDirView> getDirViews() {
-    return mDirViews;
+    return Collections.unmodifiableList(mDirViews);
   }
 
   /**
