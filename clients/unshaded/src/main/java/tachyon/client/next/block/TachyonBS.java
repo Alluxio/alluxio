@@ -73,12 +73,13 @@ public class TachyonBS implements Closeable {
    * @return a BlockInStream which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
-  public BlockInStream getInStream(long blockId, ClientOptions options) throws IOException {
+  public BlockInStream getInStream(long blockId) throws IOException {
     MasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Fix this RPC
       FileBlockInfo blockInfo = masterClient.user_getClientBlockInfo(blockId);
-      return new ClientBlockInStream(blockInfo, options);
+      // TODO: Get location via a policy
+      return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0));
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
