@@ -19,6 +19,8 @@ import java.text.MessageFormat;
 
 /**
  * Exception messages used across Tachyon.
+ *
+ * Note: To minimize merge conflicts, please sort alphabetically in this section.
  */
 public enum ExceptionMessage {
   // general
@@ -26,8 +28,8 @@ public enum ExceptionMessage {
   // block manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0} is for block {1}, not {2}"),
   LOCK_ID_FOR_DIFFERENT_USER("lockId {0} is owned by userId {1} not {2}"),
-  LOCK_NOT_FOUND_FOR_BLOCK_AND_USER("no lock is found for blockId {0} for userId {1}"),
-  LOCK_RECORD_NOT_FOUND("lockId {0} has no lock record"),
+  LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER("no lock is found for blockId {0} for userId {1}"),
+  LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0} has no lock record"),
 
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
