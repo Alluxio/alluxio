@@ -23,15 +23,16 @@ import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * A master's UI web server
  */
 public class MasterUIWebServer extends UIWebServer {
 
-  public MasterUIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo,
+  public MasterUIWebServer(ServiceType service, InetSocketAddress address, MasterInfo masterInfo,
       TachyonConf conf) {
-    super(serverName, address, conf);
+    super(service, address, conf);
     Preconditions.checkNotNull(masterInfo, "Master information cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)),
