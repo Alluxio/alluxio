@@ -227,7 +227,7 @@ public final class LocalTachyonCluster {
   public void start() throws IOException {
     start(new TachyonConf());
   }
-  
+
   public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();

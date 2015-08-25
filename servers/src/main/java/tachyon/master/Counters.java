@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -30,7 +30,7 @@ public class Counters implements Serializable, Comparable<Counters> {
   /**
    * Create a new Counters. It contains three counters, the counter for inode's id, the counter for
    * edit transaction's id, and the counter for dependency's id.
-   * 
+   *
    * @param inodeCounter The initial value of the inodeCounter
    * @param editTransactionId The initial value of the editTransactionId
    * @param dependencyCounter The initial value of the dependencyCounter
@@ -83,7 +83,7 @@ public class Counters implements Serializable, Comparable<Counters> {
   /**
    * Update the dependencyCounter. Choose the maximum value between the current counter and the
    * parameter.
-   * 
+   *
    * @param dependencyCounter The input dependencyCounter
    */
   public synchronized void updateDependencyCounter(int dependencyCounter) {
@@ -93,7 +93,7 @@ public class Counters implements Serializable, Comparable<Counters> {
   /**
    * Update the editTransactionId. Choose the maximum value between the current counter and the
    * parameter.
-   * 
+   *
    * @param id The input editTransactionId
    */
   public synchronized void updateEditTransactionCounter(long id) {
@@ -103,7 +103,7 @@ public class Counters implements Serializable, Comparable<Counters> {
   /**
    * Update the inodeCounter. Choose the maximum value between the current counter and the
    * parameter.
-   * 
+   *
    * @param inodeCounter The input inodeCounter
    */
   public synchronized void updateInodeCounter(int inodeCounter) {

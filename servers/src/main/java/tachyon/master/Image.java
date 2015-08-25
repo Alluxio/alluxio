@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -38,7 +38,7 @@ public class Image {
 
   /**
    * Write a new image to path. This method assumes having a lock on the master info.
-   * 
+   *
    * @param info the master info to generate the image
    * @param path the new image path
    * @throws IOException
@@ -71,7 +71,7 @@ public class Image {
 
   /**
    * Load an image into the masterinfo.
-   * 
+   *
    * @param info the masterinfo to fill.
    * @param path the data to load
    * @throws IOException
@@ -93,7 +93,7 @@ public class Image {
 
   /**
    * Rename the src to the dst. Only used to rename the Image.
-   * 
+   *
    * @param src The src image path
    * @param dst The dst image path
    * @param info The MasterInfo used to rename the image
