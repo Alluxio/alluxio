@@ -65,7 +65,7 @@ public class RawTableMaster implements Master {
 
   @Override
   public String getProcessorName() {
-    return "RawTableMaster";
+    return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
   }
 
   public List<PeriodicTask> getPeriodicTaskList() {
