@@ -154,8 +154,8 @@ public final class BlockLockManager {
           return;
         }
       }
-      throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER, blockId,
-          userId);
+      throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER,
+          blockId, userId);
     }
   }
 
