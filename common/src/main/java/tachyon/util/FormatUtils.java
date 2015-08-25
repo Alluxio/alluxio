@@ -29,6 +29,12 @@ import tachyon.Constants;
  * according to a specific format.
  */
 public class FormatUtils {
+  /**
+   * Parse a list of Objects into a String.
+   *
+   * @param objs a list of Objects to convert to a String
+   * @return String representation of the given list of Objects
+   */
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
     for (int k = 0; k < objs.length; k ++) {
@@ -41,19 +47,39 @@ public class FormatUtils {
     return sb.toString();
   }
 
-  public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
+  /**
+   * Print the given buffer.
+   *
+   * @param logger logger to use
+   * @param buf buffer to use
+   */
+  public static void printByteBuffer(Logger logger, ByteBuffer buf) {
     StringBuilder sb = new StringBuilder();
     for (int k = 0; k < buf.limit() / 4; k ++) {
       sb.append(buf.getInt()).append(" ");
     }
 
-    LOG.info(sb.toString());
+    logger.info(sb.toString());
   }
 
+  /**
+   * Print time elapsed since the given start time.
+   *
+   * @param startTimeMs start time in milliseconds
+   * @param logger logger to use
+   * @param message prefix for the message to be printed
+   */
   public static void printTimeTakenMs(long startTimeMs, Logger logger, String message) {
     logger.info(message + " took " + (CommonUtils.getCurrentMs() - startTimeMs) + " ms.");
   }
 
+  /**
+   * Print time elapsed since the given start time.
+   *
+   * @param startTimeNs start time in nanoseconds
+   * @param logger logger to use
+   * @param message prefix for the message to be printed
+   */
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
     logger.info(message + " took " + (System.nanoTime() - startTimeNs) + " ns.");
   }
