@@ -29,7 +29,7 @@ public abstract class AbstractInodeTests {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  protected long createBlockId(long containerId) {
+  protected long createInodeFileId(long containerId) {
     return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
   }
 
