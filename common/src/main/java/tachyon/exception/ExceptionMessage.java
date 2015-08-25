@@ -12,34 +12,29 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package tachyon.exception;
 
+import java.text.MessageFormat;
+
 /**
- * Exception used when the system is not in a state required for the operation.
- *
- * For example:
- * <ul>
- * <li>userId or blockId does not correspond to that in the record of lockId</li>
- * <li>user A wants to commit a temp block owned by user B</li>
- * </ul>
+ * Exception messages used across Tachyon.
  */
-public final class InvalidStateException extends AbstractTachyonException {
-  private static final long serialVersionUID = -7966393090688326795L;
+public enum ExceptionMessage {
+  // general
 
-  public InvalidStateException(String message) {
-    super(message);
+  // SEMICOLON! minimize merge conflicts by putting it on its own line
+  ;
+
+  private final MessageFormat message;
+
+  ExceptionMessage(String message) {
+    this.message = new MessageFormat(message);
   }
 
-  public InvalidStateException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public InvalidStateException(ExceptionMessage message, Object... params) {
-    super(message, params);
-  }
-
-  public InvalidStateException(ExceptionMessage message, Throwable cause, Object... params) {
-    super(message, cause, params);
+  public String getMessage(Object... params) {
+    // MessageFormat is not thread-safe, so guard it
+    synchronized (message) {
+      return this.message.format(params);
+    }
   }
 }
