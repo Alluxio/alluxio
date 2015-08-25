@@ -19,20 +19,19 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Maps;
+
 import tachyon.TachyonURI;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
-import tachyon.master.next.journal.JournalEntryWithId;
 
-public class AddCheckpointEntry extends JournalEntryWithId {
-  private final int mFileId;
+public class AddCheckpointEntry implements JournalEntry {
+  private final long mFileId;
   private final long mLength;
   private final TachyonURI mCheckpointPath;
   private final long mOpTimeMs;
 
-  public AddCheckpointEntry(long transactionId, int fileId, long length, TachyonURI checkpointPath,
-      long opTimeMs) {
-    super(transactionId);
+  public AddCheckpointEntry(long fileId, long length, TachyonURI checkpointPath, long opTimeMs) {
     mFileId = fileId;
     mLength = length;
     mCheckpointPath = checkpointPath;
@@ -40,22 +39,17 @@ public class AddCheckpointEntry extends JournalEntryWithId {
   }
 
   @Override
-  public JournalEntryType type() {
+  public JournalEntryType getType() {
     return JournalEntryType.ADD_CHECKPOINT;
   }
 
   @Override
   public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = super.getParameters();
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(4);
     parameters.put("fileId", mFileId);
     parameters.put("length", mLength);
     parameters.put("checkpointPath", mCheckpointPath);
     parameters.put("operationTimeMs", mOpTimeMs);
     return parameters;
-  }
-
-  @Override
-  public List<JournalEntry> getEntries() {
-    return Collections.emptyList();
   }
 }

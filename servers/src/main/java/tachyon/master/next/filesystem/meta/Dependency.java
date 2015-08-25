@@ -30,14 +30,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.DependencyType;
 import tachyon.master.DependencyVariables;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.Serializable;
+import tachyon.master.next.journal.JournalSerializable;
 import tachyon.thrift.DependencyInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
  * Describe the lineage between files. Used for recomputation.
  */
-public class Dependency implements Serializable {
+public class Dependency implements JournalSerializable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public final int mId;

@@ -15,29 +15,6 @@
 
 package tachyon.master.next.journal;
 
-import java.util.List;
-import java.util.Map;
-
-import com.google.common.collect.Maps;
-
-/**
- * This kind of JournalEntry will have a parameter field named transactionId.
- */
-public abstract class JournalEntryWithId implements JournalEntry {
-  private long mTransactionId;
-
-  protected JournalEntryWithId(long transactionId) {
-    mTransactionId = transactionId;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMap();
-    parameters.put("transactionId", mTransactionId);
-    return parameters;
-  }
-
-  public abstract JournalEntryType type();
-
-  public abstract List<JournalEntry> getEntries();
+public interface JournalSerializable {
+  JournalEntry toJournalEntry();
 }

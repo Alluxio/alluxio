@@ -21,7 +21,7 @@ import java.io.OutputStream;
 
 // TODO
 public interface JournalFormatter {
-  void serialize(JournalEntry entry, OutputStream outputStream) throws IOException;
+  void serialize(SerializableJournalEntry entry, OutputStream outputStream) throws IOException;
 
   JournalInputStream deserialize(InputStream inputStream);
 }

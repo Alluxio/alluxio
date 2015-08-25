@@ -31,7 +31,7 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.block.ContainerIdGenerator;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.Serializable;
+import tachyon.master.next.journal.JournalSerializable;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -39,7 +39,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-public final class InodeTree implements Serializable {
+public final class InodeTree implements JournalSerializable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final InodeDirectory mRoot;

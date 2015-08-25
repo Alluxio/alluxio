@@ -42,7 +42,7 @@ public abstract class InodeEntry implements JournalEntry {
   }
 
   @Override
-  public abstract JournalEntryType type();
+  public abstract JournalEntryType getType();
 
   @Override
   public Map<String, Object> getParameters() {
@@ -55,7 +55,4 @@ public abstract class InodeEntry implements JournalEntry {
     parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
     return parameters;
   }
-
-  @Override
-  public abstract List<JournalEntry> getEntries();
 }

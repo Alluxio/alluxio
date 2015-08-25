@@ -26,36 +26,27 @@ import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
 
 public class InodeDirectoryEntry extends InodeEntry {
-  private Set<Inode> mChildren;
+  private List<Long> mChildrenIds;
 
   public InodeDirectoryEntry(long creationTimeMs, long id, String name, long parentId,
       boolean isPinned, long lastModificationTimeMs, Set<Inode> children) {
     super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
-    mChildren = children;
+
+    mChildrenIds = Lists.newArrayListWithCapacity(children.size());
+    for (Inode child : children) {
+      mChildrenIds.add(child.getId());
+    }
   }
 
   @Override
-  public JournalEntryType type() {
+  public JournalEntryType getType() {
     return JournalEntryType.INODE_DIRECTORY;
   }
 
   @Override
   public Map<String, Object> getParameters() {
     Map<String, Object> parameters = super.getParameters();
-    List<Long> childrenIds = Lists.newArrayListWithCapacity(mChildren.size());
-    for (Inode child : mChildren) {
-      childrenIds.add(child.getId());
-    }
-    parameters.put("childrenIds", childrenIds);
+    parameters.put("childrenIds", mChildrenIds);
     return parameters;
-  }
-
-  @Override
-  public List<JournalEntry> getEntries() {
-    List<JournalEntry> entries = Lists.newArrayListWithCapacity(mChildren.size());
-    for (Inode child : mChildren) {
-      entries.add(child.toJournalEntry());
-    }
-    return entries;
   }
 }

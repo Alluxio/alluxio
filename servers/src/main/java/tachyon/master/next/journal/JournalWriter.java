@@ -17,6 +17,7 @@ package tachyon.master.next.journal;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
@@ -44,6 +45,10 @@ public class JournalWriter {
 
   /** The output stream for the current log. */
   private DataOutputStream mOutputStream = null;
+
+  // TODO: start from the last known sequence number
+  /** The sequence number for the next entry in the log. */
+  private long mNextEntrySequenceNumber = 1;
 
   JournalWriter(Journal journal, TachyonConf tachyonConf) {
     mJournal = journal;
@@ -74,7 +79,8 @@ public class JournalWriter {
       mUfs.mkdirs(mJournalDirectory, true);
     }
     DataOutputStream dos = new DataOutputStream(mUfs.create(tmpCheckpointPath));
-    mJournal.getJournalFormatter().serialize(entry, dos);
+    mJournal.getJournalFormatter()
+        .serialize(new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), dos);
     dos.flush();
     dos.close();
 
@@ -99,7 +105,8 @@ public class JournalWriter {
     if (mOutputStream != null) {
       throw new IOException("The journal checkpoint must be written before writing entries.");
     }
-    mJournal.getJournalFormatter().serialize(entry, mOutputStream);
+    mJournal.getJournalFormatter()
+        .serialize(new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);
   }
 
   public void flush() throws IOException {

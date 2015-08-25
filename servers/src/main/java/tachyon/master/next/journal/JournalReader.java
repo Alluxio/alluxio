@@ -70,7 +70,7 @@ public class JournalReader {
     DataInputStream inputStream = new DataInputStream(mUfs.open(mCheckpointPath));
     JournalInputStream jis = mJournal.getJournalFormatter().deserialize(inputStream);
     // TODO: should the checkpoint be multiple entries?
-    JournalEntry checkpoint = jis.getNextEvent();
+    JournalEntry checkpoint = jis.getNextEntry();
 
     jis.close();
     inputStream.close();

@@ -28,12 +28,12 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.Serializable;
+import tachyon.master.next.journal.JournalSerializable;
 
 /**
  * This class maintains the dependency related metadata information for the lineage feature.
  */
-public class DependencyMap implements Serializable {
+public class DependencyMap implements JournalSerializable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Map<Integer, Dependency> mDependencyMap;

@@ -41,7 +41,7 @@ public class InodeFileEntry extends InodeEntry {
   }
 
   @Override
-  public JournalEntryType type() {
+  public JournalEntryType getType() {
     return JournalEntryType.INODE_FILE;
   }
 
@@ -54,10 +54,5 @@ public class InodeFileEntry extends InodeEntry {
     parameters.put("isCache", mIsCache);
     parameters.put("ufsPath", mUfsPath);
     return parameters;
-  }
-
-  @Override
-  public List<JournalEntry> getEntries() {
-    return Collections.emptyList();
   }
 }
