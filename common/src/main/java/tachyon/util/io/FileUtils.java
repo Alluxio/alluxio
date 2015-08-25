@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -104,12 +104,12 @@ public class FileUtils {
   /**
    * Sticky bit can be set primarily on directories in UNIX / Linux.
    * 
-   * If the sticky bit of is enabled on a directory, only the owner and the root user can 
-   * delete / rename the files or directories within that directory. No one else can delete 
-   * other users data in this directory(Where sticky bit is set).
+   * If the sticky bit of is enabled on a directory, only the owner and the root user can delete /
+   * rename the files or directories within that directory. No one else can delete other users data
+   * in this directory(Where sticky bit is set).
    *
-   * This is a security measure to avoid deletion of folders and their content
-   * (sub-folders and files), though other users have full permissions.
+   * This is a security measure to avoid deletion of folders and their content (sub-folders and
+   * files), though other users have full permissions.
    * 
    * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
    * 
@@ -163,8 +163,8 @@ public class FileUtils {
   /**
    * Delete the file or directory.
    *
-   * Current implementation uses {@link java.io.File#delete()}, may change if
-   * there is a better solution.
+   * Current implementation uses {@link java.io.File#delete()}, may change if there is a better
+   * solution.
    *
    * @param path pathname string of file or directory
    * @throws IOException when fails to delete
@@ -176,10 +176,10 @@ public class FileUtils {
       throw new IOException("Failed to delete " + path);
     }
   }
-  
+
   /**
    * Create the storage directory path, including any necessary but nonexistent parent directories.
-   * If the directory already exists, do nothing. 
+   * If the directory already exists, do nothing.
    * 
    * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
    * 
