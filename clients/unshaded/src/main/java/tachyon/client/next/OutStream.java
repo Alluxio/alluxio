@@ -13,33 +13,21 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.client.next;
 
 import java.io.IOException;
-
-import com.google.common.base.Throwables;
-
-import tachyon.HeartbeatExecutor;
+import java.io.OutputStream;
 
 /**
- * User client sends periodical heartbeats to the worker it is talking to. If it fails to do so, the
- * worker may withdraw the space granted to the particular user.
+ * Provides a stream API to write to Tachyon. Only one OutStream should be opened for a Tachyon
+ * object. This class is not thread safe and should only be used by one thread.
  */
-class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
-  private final long mUserId;
-
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
-    mWorkerClient = workerClient;
-    mUserId = userId;
-  }
-
-  @Override
-  public void heartbeat() {
-    try {
-      mWorkerClient.userHeartbeat(mUserId);
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-  }
+public abstract class OutStream extends OutputStream {
+  /**
+   * Cancels the write to Tachyon storage. This will delete all the temporary data and metadata
+   * that has been written to the worker(s). This method should be called when a write is aborted.
+   *
+   * @throws IOException if there is a failure when the worker invalidates the cache attempt
+   */
+  public abstract void cancel() throws IOException;
 }

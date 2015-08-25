@@ -13,33 +13,15 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.client.next.file;
 
-import java.io.IOException;
-
-import com.google.common.base.Throwables;
-
-import tachyon.HeartbeatExecutor;
+import tachyon.client.next.OutStream;
 
 /**
- * User client sends periodical heartbeats to the worker it is talking to. If it fails to do so, the
- * worker may withdraw the space granted to the particular user.
+ * Provides a stream API to write a file to Tachyon. An instance of this class can be obtained by
+ * calling {@link TachyonFS#getOutStream}. Only one FileOutStream should be opened for a
+ * {@link TachyonFile}. This class is not thread safe and should only be used by one thread.
  */
-class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
-  private final long mUserId;
-
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
-    mWorkerClient = workerClient;
-    mUserId = userId;
-  }
-
-  @Override
-  public void heartbeat() {
-    try {
-      mWorkerClient.userHeartbeat(mUserId);
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-  }
+public abstract class FileOutStream extends OutStream {
+  // TODO: Add File specific logic here
 }

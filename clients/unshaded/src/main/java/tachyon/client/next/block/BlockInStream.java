@@ -13,33 +13,21 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.client.next.block;
 
-import java.io.IOException;
+import java.io.InputStream;
 
-import com.google.common.base.Throwables;
-
-import tachyon.HeartbeatExecutor;
+import tachyon.client.next.InStream;
 
 /**
- * User client sends periodical heartbeats to the worker it is talking to. If it fails to do so, the
- * worker may withdraw the space granted to the particular user.
+ * Provides a stream API to read a block from Tachyon. An instance of this extending class can be
+ * obtained by calling {@link TachyonBS#getInStream}. Multiple BlockInStreams can be opened for a
+ * block. This class is not thread safe and should only be used by one thread.
+ *
+ * This class provides the same methods as a Java {@link InputStream} with an additional seek
+ * method. Currently the only implementation of this class which should be used by a client is
+ * the {@link ClientBlockInStream}.
  */
-class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
-  private final long mUserId;
-
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
-    mWorkerClient = workerClient;
-    mUserId = userId;
-  }
-
-  @Override
-  public void heartbeat() {
-    try {
-      mWorkerClient.userHeartbeat(mUserId);
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-  }
+public abstract class BlockInStream extends InStream {
+  // TODO: Add block stream common logic here
 }
