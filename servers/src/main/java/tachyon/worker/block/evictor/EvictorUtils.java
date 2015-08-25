@@ -56,5 +56,5 @@ public class EvictorUtils {
     StorageDirView dirView = tierView.getDirView(location.dir());
     return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
   }
-  
+
 }
