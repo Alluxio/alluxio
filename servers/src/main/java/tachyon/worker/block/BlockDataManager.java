@@ -150,13 +150,13 @@ public final class BlockDataManager {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
       }
-    } catch (IOException e) {
+    } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
     }
     long fileSize;
     try {
       fileSize = mUfs.getFileSize(dstPath);
-    } catch (IOException e) {
+    } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
     mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
@@ -203,8 +203,8 @@ public final class BlockDataManager {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
-    } catch (IOException e) {
-      throw new IOException("Failed to commit block to master.", e);
+    } catch (IOException ioe) {
+      throw new IOException("Failed to commit block to master.", ioe);
     } finally {
       mBlockStore.unlockBlock(lockId);
     }
