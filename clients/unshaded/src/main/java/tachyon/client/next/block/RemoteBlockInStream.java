@@ -16,14 +16,14 @@
 package tachyon.client.next.block;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.next.ClientContext;
-import tachyon.client.next.ClientOptions;
-import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.NetAddress;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
@@ -33,20 +33,17 @@ public class RemoteBlockInStream extends BlockInStream {
   private final long mBlockId;
   private final BSContext mContext;
   private final long mBlockSize;
+  private final InetSocketAddress mLocation;
 
   private long mPos;
-  private String mRemoteHost;
-  private int mRemotePort;
 
-  // TODO: Make sure there is a valid Tachyon location
   // TODO: Modify the locking so the stream owns the lock instead of the data server
-  public RemoteBlockInStream(FileBlockInfo blockInfo, ClientOptions options) {
-    mBlockId = blockInfo.getBlockId();
+  public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
+    mBlockId = blockId;
     mContext = BSContext.INSTANCE;
-    mBlockSize = blockInfo.getLength();
-    // TODO: Clean this up
-    mRemoteHost = blockInfo.getLocations().get(0).mHost;
-    mRemotePort = blockInfo.getLocations().get(0).mPort;
+    mBlockSize = blockSize;
+    // TODO: Validate these fields
+    mLocation = new InetSocketAddress(location.getMHost(), location.getMSecondaryPort());
   }
 
   @Override
@@ -85,7 +82,9 @@ public class RemoteBlockInStream extends BlockInStream {
       // TODO: Fix needing to recreate reader each time
       RemoteBlockReader reader =
           RemoteBlockReader.Factory.createRemoteBlockReader(ClientContext.getConf());
-      ByteBuffer data = reader.readRemoteBlock(mRemoteHost, mRemotePort, mBlockId, mPos, bytesLeft);
+      ByteBuffer data =
+          reader.readRemoteBlock(mLocation.getHostName(), mLocation.getPort(), mBlockId, mPos,
+              bytesLeft);
       int bytesToRead = Math.min(bytesLeft, data.remaining());
       data.get(b, off, bytesToRead);
       reader.close();
