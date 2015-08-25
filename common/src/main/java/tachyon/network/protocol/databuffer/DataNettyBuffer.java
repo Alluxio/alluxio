@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -30,15 +30,14 @@ public class DataNettyBuffer extends DataBuffer {
   private final ByteBuf mNettyBuf;
 
   /**
-  * Constructor for creating a DataNettyBuffer, by passing a Netty ByteBuf.
-  * This way we avoid one copy from ByteBuf to another ByteBuffer,
-  * and making sure the buffer would not be recycled.
-  * IMPORTANT: {@link #release()} must be called after
-  * reading is finished. Otherwise the memory space for the ByteBuf might never be reclaimed.
-  *
-  * @param bytebuf The ByteBuf having the data
-  * @param length The length of the underlying ByteBuffer data
-  */
+   * Constructor for creating a DataNettyBuffer, by passing a Netty ByteBuf. This way we avoid one
+   * copy from ByteBuf to another ByteBuffer, and making sure the buffer would not be recycled.
+   * IMPORTANT: {@link #release()} must be called after reading is finished. Otherwise the memory
+   * space for the ByteBuf might never be reclaimed.
+   *
+   * @param bytebuf The ByteBuf having the data
+   * @param length The length of the underlying ByteBuffer data
+   */
   public DataNettyBuffer(ByteBuf bytebuf, long length) {
     // throws exception if there are multiple nioBuffers, or reference count is not 1
     Preconditions.checkArgument(bytebuf.nioBufferCount() == 1,
@@ -54,9 +53,8 @@ public class DataNettyBuffer extends DataBuffer {
   }
 
   /**
-   * We would not support this method in DataNettyBuffer because this class is only for
-   * reading netty buffers.
-   * TODO: investigate if using NettyDataBuffer for outgoing message is fine
+   * We would not support this method in DataNettyBuffer because this class is only for reading
+   * netty buffers. TODO: investigate if using NettyDataBuffer for outgoing message is fine
    *
    * @throws UnsupportedOperationException whenever called
    */
