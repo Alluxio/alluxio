@@ -15,9 +15,6 @@
 
 package tachyon.worker.block;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 
@@ -50,7 +47,6 @@ public class TieredBlockStoreTestUtils {
   public static final String[][] TIER_PATH =
       { {"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
   public static final long[][] TIER_CAPACITY = { {2000, 3000}, {10000, 20000, 30000}};
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Create a {@link TachyonConf} for a {@link TieredBlockStore} configured by the parameters. For
