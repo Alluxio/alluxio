@@ -226,6 +226,9 @@ public class BlockWorker {
   /**
    * Helper method to create a {@link org.apache.thrift.server.TThreadPoolServer} for handling
    * incoming RPC requests.
+   * The transport layer used for the thrift server is decided by {@link tachyon.security
+   * .authentication.AuthenticationFactory} based on the configuration. Different transports can
+   * support different security level and authentication methods.
    *
    * @return a thrift server
    */
