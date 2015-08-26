@@ -29,7 +29,7 @@ import tachyon.worker.block.allocator.Allocator;
  */
 public interface Evictor {
 
-  class Factory {
+  public class Factory {
     /**
      *
      * @param conf TachyonConf to determine the evictor type

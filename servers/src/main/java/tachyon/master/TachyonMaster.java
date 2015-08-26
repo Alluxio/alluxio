@@ -178,6 +178,8 @@ public class TachyonMaster {
 
   /**
    * Get the actual bind hostname on RPC service (used by unit test only).
+   *
+   * @return RPC bind hostname
    */
   public String getRPCBindHost() {
     return NetworkAddressUtils.getThriftSocket(mServerTServerSocket).getLocalSocketAddress()
@@ -186,6 +188,8 @@ public class TachyonMaster {
 
   /**
    * Get the actual port that the RPC service is listening on (used by unit test only)
+   *
+   * @return RPC local port
    */
   public int getRPCLocalPort() {
     return mPort;
@@ -193,6 +197,8 @@ public class TachyonMaster {
 
   /**
    * Get the actual bind hostname on web service (used by unit test only).
+   *
+   * @return Web bind hostname
    */
   public String getWebBindHost() {
     return mWebServer.getBindHost();
@@ -200,6 +206,8 @@ public class TachyonMaster {
 
   /**
    * Get the actual port that the web service is listening on (used by unit test only)
+   *
+   * @return Web local port
    */
   public int getWebLocalPort() {
     return mWebServer.getLocalPort();
