@@ -26,8 +26,10 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.Master;
 import tachyon.master.next.filesystem.FileSystemMaster;
+import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
+import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.master.next.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -49,11 +51,21 @@ public class RawTableMaster implements Master {
   private final FileSystemMaster mFileSystemMaster;
   private final RawTables mRawTables = new RawTables();
 
-  public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster) {
+  private final Journal mJournal;
+
+  // true if this master is in standby mode.
+  private boolean mIsStandbyMode = false;
+
+  // The thread that tails the journal when the master is in standby mode.
+  private JournalTailerThread mStandbyJournalTailer = null;
+
+  public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster,
+      Journal journal) {
     mTachyonConf = tachyonConf;
     mMaxTableMetadataBytes = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     mMaxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     mFileSystemMaster = fileSystemMaster;
+    mJournal = journal;
   }
 
   @Override
@@ -79,12 +91,22 @@ public class RawTableMaster implements Master {
 
   @Override
   public void start(boolean asMaster) {
-    // TODO
+    mIsStandbyMode = !asMaster;
+    if (asMaster) {
+      // TODO: start periodic heartbeat threads.
+    } else {
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer.start();
+    }
   }
 
   @Override
   public void stop() {
-    // TODO
+    if (mIsStandbyMode) {
+      mStandbyJournalTailer.shutdownAndJoin();
+    } else {
+      // TODO
+    }
   }
 
   /**
@@ -164,8 +186,8 @@ public class RawTableMaster implements Master {
    * @throws InvalidPathException when path is invalid
    * @throws TableDoesNotExistException when the path does not refer to a table
    */
-  public long getRawTableId(TachyonURI path) throws InvalidPathException,
-      TableDoesNotExistException {
+  public long getRawTableId(TachyonURI path)
+      throws InvalidPathException, TableDoesNotExistException {
     long tableId = mFileSystemMaster.getFileId(path);
     if (!mRawTables.contains(tableId) || !mFileSystemMaster.isDirectory(tableId)) {
       throw new TableDoesNotExistException("Table does not exist at path " + path);
@@ -213,8 +235,8 @@ public class RawTableMaster implements Master {
    * @throws TableDoesNotExistException when the path does not refer to a table
    * @throws InvalidPathException when path is invalid
    */
-  public RawTableInfo getClientRawTableInfo(TachyonURI path) throws TableDoesNotExistException,
-      InvalidPathException {
+  public RawTableInfo getClientRawTableInfo(TachyonURI path)
+      throws TableDoesNotExistException, InvalidPathException {
     return getClientRawTableInfo(getRawTableId(path));
   }
 

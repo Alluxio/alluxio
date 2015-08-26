@@ -38,12 +38,23 @@ public class JournalTailerThread extends Thread {
   }
 
   public void shutdown() {
-    LOG.info("Journal tailer shutdown has been initiated.");
+    LOG.info(mMaster.getProcessorName() + " Journal tailer shutdown has been initiated.");
     mInitiateShutdown = true;
+  }
+
+  public void shutdownAndJoin() {
+    shutdown();
+    try {
+      // Wait for the thread to finish.
+      join();
+    } catch (InterruptedException ie) {
+      LOG.warn("stopping the journal tailer caused exception: " + ie.getMessage());
+    }
   }
 
   @Override
   public void run() {
+    LOG.info(mMaster.getProcessorName() + " Journal tailer started.");
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
     while (true) {
@@ -84,7 +95,7 @@ public class JournalTailerThread extends Thread {
                 // There have been no new logs for some time period. It is safe to stop the tailer
                 // now.
                 // TODO: make the waiting period a configuration parameter.
-                LOG.info("Journal tailer has been shutdown.");
+                LOG.info(mMaster.getProcessorName() + " Journal tailer has been shutdown.");
                 return;
               }
             }
