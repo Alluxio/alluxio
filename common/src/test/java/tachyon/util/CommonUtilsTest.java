@@ -17,6 +17,7 @@ package tachyon.util;
 
 import java.lang.Thread;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,22 +34,19 @@ public class CommonUtilsTest {
     long currentTime = CommonUtils.getCurrentMs();
 
     /* Check that currentTime falls into the interval [startTime + delta; startTime + 2*delta] */
-    Assert.assertTrue(startTime + delta < currentTime);
-    Assert.assertTrue(startTime + 2 * delta > currentTime);
+    Assert.assertTrue(startTime + delta <= currentTime);
+    Assert.assertTrue(currentTime <= 2 * delta + startTime);
   }
 
   @Test
-  public void testListToString() {
+  public void listToStringTest() {
     class TestCase {
       List<Object> mInput;
       String mExpected;
 
       public TestCase(String expected, Object... objs) {
         mExpected = expected;
-        mInput = new LinkedList<Object>();
-        for (int k = 0; k < objs.length; k ++) {
-          mInput.add(objs[k]);
-        }
+        mInput = Arrays.asList(objs);
       }
     }
 
