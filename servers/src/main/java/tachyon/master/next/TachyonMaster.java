@@ -82,9 +82,9 @@ public class TachyonMaster {
   private final FileSystemMaster mFileSystemMaster;
   private final RawTableMaster mRawTableMaster;
 
-  private Journal mBlockMasterJournal;
-  private Journal mFileSystemMasterJournal;
-  private Journal mRawTableMasterJournal;
+  private final Journal mBlockMasterJournal;
+  private final Journal mFileSystemMasterJournal;
+  private final Journal mRawTableMasterJournal;
 
   private UIWebServer mWebServer;
   private TServer mMasterServiceServer;
@@ -131,12 +131,12 @@ public class TachyonMaster {
               mTachyonConf);
       mRawTableMasterJournal = new Journal(
           PathUtils.concatPath(journalDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME),
-              mTachyonConf);
+          mTachyonConf);
 
-      mBlockMaster = new BlockMaster();
-      mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
-          mFileSystemMasterJournal.getNewWriter());
-      mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster);
+      mBlockMaster = new BlockMaster(mBlockMasterJournal);
+      mFileSystemMaster =
+          new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
+      mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
 
       // TODO: implement metrics.
 
@@ -229,6 +229,9 @@ public class TachyonMaster {
             mMasterServiceServer.stop();
             mWebServer.shutdownWebServer();
             // TODO: transition to becoming a standby master.
+
+            // TODO: when transitioning to a standby, master should be constructed again, as a
+            // standby master.
             running = false;
           }
         }

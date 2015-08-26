@@ -36,8 +36,10 @@ import tachyon.master.next.Master;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
+import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
+import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -73,7 +75,16 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   private final AtomicInteger mWorkerCounter;
 
-  public BlockMaster() {
+  private final Journal mJournal;
+
+  // true if this master is in standby mode.
+  private boolean mIsStandbyMode = false;
+
+  // The thread that tails the journal when the master is in standby mode.
+  private JournalTailerThread mStandbyJournalTailer = null;
+
+  public BlockMaster(Journal journal) {
+    mJournal = journal;
     mBlocks = new HashMap<Long, MasterBlockInfo>();
     mBlockIdGenerator = new BlockIdGenerator();
     mWorkerCounter = new AtomicInteger(0);
@@ -103,12 +114,22 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   @Override
   public void start(boolean asMaster) {
-    // TODO
+    mIsStandbyMode = !asMaster;
+    if (asMaster) {
+      // TODO: start periodic heartbeat threads.
+    } else {
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer.start();
+    }
   }
 
   @Override
   public void stop() {
-    // TODO
+    if (mIsStandbyMode) {
+      mStandbyJournalTailer.shutdownAndJoin();
+    } else {
+      // TODO
+    }
   }
 
   public List<WorkerInfo> getWorkerInfoList() {

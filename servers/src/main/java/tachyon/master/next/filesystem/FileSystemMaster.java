@@ -40,8 +40,10 @@ import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
+import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
+import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
@@ -72,10 +74,17 @@ public class FileSystemMaster implements Master {
 
   private final PrefixList mWhitelist;
 
+  private final Journal mJournal;
   private final JournalWriter mJournalWriter;
 
+  // true if this master is in standby mode.
+  private boolean mIsStandbyMode = false;
+
+  // The thread that tails the journal when the master is in standby mode.
+  private JournalTailerThread mStandbyJournalTailer = null;
+
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
-      JournalWriter journalWriter) {
+      Journal journal) {
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
 
@@ -85,7 +94,8 @@ public class FileSystemMaster implements Master {
     // TODO: handle default config value for whitelist.
     mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
 
-    mJournalWriter = journalWriter;
+    mJournal = journal;
+    mJournalWriter = mJournal.getNewWriter();
   }
 
   @Override
@@ -111,12 +121,22 @@ public class FileSystemMaster implements Master {
 
   @Override
   public void start(boolean asMaster) {
-    // TODO
+    mIsStandbyMode = !asMaster;
+    if (asMaster) {
+      // TODO: start periodic heartbeat threads.
+    } else {
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer.start();
+    }
   }
 
   @Override
   public void stop() {
-    // TODO
+    if (mIsStandbyMode) {
+      mStandbyJournalTailer.shutdownAndJoin();
+    } else {
+      // TODO
+    }
   }
 
   public boolean completeFileCheckpoint(long workerId, long fileId, long length,
