@@ -55,7 +55,7 @@ import tachyon.util.UnderFileSystemUtils;
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
-abstract class AbstractTFS extends FileSystem {
+public abstract class AbstractTFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
@@ -362,8 +362,6 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means to
    * make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
-   *
-   * @Override on this method.
    *
    * @return schema hadoop should map to.
    *

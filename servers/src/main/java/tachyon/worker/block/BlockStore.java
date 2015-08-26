@@ -31,7 +31,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-interface BlockStore {
+public interface BlockStore {
 
   /**
    * Locks an existing block and guards subsequent READs on this block.
