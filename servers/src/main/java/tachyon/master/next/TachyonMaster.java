@@ -24,7 +24,6 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,19 +123,19 @@ public class TachyonMaster {
       Preconditions.checkState(isJournalFormatted(journalDirectory),
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
-      // TODO: create journal formatters.
       mBlockMasterJournal =
           new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
-              mTachyonConf, null);
+              mTachyonConf);
       mFileSystemMasterJournal =
           new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
-              mTachyonConf, null);
+              mTachyonConf);
       mRawTableMasterJournal = new Journal(
           PathUtils.concatPath(journalDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME),
-          mTachyonConf, null);
+              mTachyonConf);
 
       mBlockMaster = new BlockMaster();
-      mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster);
+      mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
+          mFileSystemMasterJournal.getNewWriter());
       mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster);
 
       // TODO: implement metrics.
