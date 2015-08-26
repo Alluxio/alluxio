@@ -23,7 +23,7 @@ import tachyon.worker.block.meta.StorageTierView;
 /**
  * Utility functions for the evictor package
  */
-public class EvictorUtils {
+public final class EvictorUtils {
 
   /**
    * @return a StorageDirView in the range of location that already has availableBytes larger than
@@ -57,4 +57,7 @@ public class EvictorUtils {
     return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
   }
 
+  private EvictorUtils() {
+    // util class
+  }
 }

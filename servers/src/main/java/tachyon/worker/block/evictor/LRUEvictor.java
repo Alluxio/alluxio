@@ -25,6 +25,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.Users;
@@ -52,13 +54,13 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * placeholder to occupy the value), acts as a LRU double linked list where most recently accessed
    * element is put at the tail while least recently accessed element is put at the head.
    */
-  protected Map<Long, Boolean> mLRUCache = Collections
-      .synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
+  protected Map<Long, Boolean> mLRUCache =
+      Collections.synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   public LRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
-    mManagerView = view;
-    mAllocator = allocator;
+    mManagerView = Preconditions.checkNotNull(view);
+    mAllocator = Preconditions.checkNotNull(allocator);
 
     // preload existing blocks loaded by StorageDir to Evictor
     for (StorageTierView tierView : mManagerView.getTierViews()) {
@@ -76,6 +78,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    */
   private StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
       BlockStoreLocation location) {
+    Preconditions.checkNotNull(location);
+
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
@@ -106,10 +110,10 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * A recursive implementation of cascading LRU eviction.
    *
    * This method uses a specific eviction strategy to find blocks to evict in the requested
-   * location. After eviction, one StorageDir in the location has the specific amount of free
-   * space. It then uses an allocation strategy to allocate space in the next tier to move each
-   * evicted blocks. If the next tier fails to allocate space for the evicted blocks, the next
-   * tier will continue to evict its blocks to free space.
+   * location. After eviction, one StorageDir in the location has the specific amount of free space.
+   * It then uses an allocation strategy to allocate space in the next tier to move each evicted
+   * blocks. If the next tier fails to allocate space for the evicted blocks, the next tier will
+   * continue to evict its blocks to free space.
    *
    * this method is only used in {@link #freeSpaceWithView}
    *
@@ -122,7 +126,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    */
   protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan) {
-
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
     StorageDirView candidateDirView = selectDirWithRequestedSpace(bytesToBeAvailable, location);
     if (candidateDirView != null) {
@@ -186,9 +189,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
               mAllocator.allocateBlockWithView(Users.MIGRATE_DATA_USER_ID, block.getBlockSize(),
                   BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
           if (nextDirView == null) {
-            nextDirView =
-                cascadingEvict(block.getBlockSize(),
-                    BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
+            nextDirView = cascadingEvict(block.getBlockSize(),
+                BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
           }
           if (nextDirView == null) {
             // If we failed to find a dir in the next tier to move this block, evict it and
@@ -197,8 +199,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             continue;
           }
-          plan.toMove().add(
-              new Pair<Long, BlockStoreLocation>(blockId, nextDirView.toBlockStoreLocation()));
+          plan.toMove()
+              .add(new Pair<Long, BlockStoreLocation>(blockId, nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
         } catch (NotFoundException nfe) {
