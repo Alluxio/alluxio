@@ -184,15 +184,16 @@ public final class NetworkAddressUtils {
    * hostname is not explicitly specified, Tachyon will try to use the bind host. If the bind host
    * is wildcard, Tachyon will automatically determine an appropriate hostname from local machine.
    * The various possibilities shown in the following table:
-   * <P>
    * <table>
+   * <caption>Hostname Scenarios</caption>
    * <thead>
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
    * <th>Returned Connect Host</th>
    * </tr>
-   * <thead> <tbody>
+   * </thead>
+   * <tbody>
    * <tr>
    * <td>hostname</td>
    * <td>hostname</td>
@@ -215,7 +216,6 @@ public final class NetworkAddressUtils {
    * </tr>
    * </tbody>
    * </table>
-   * </P>
    *
    * @param service Service type used to connect
    * @param conf Tachyon configuration used to look up the host resolution timeout
