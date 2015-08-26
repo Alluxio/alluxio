@@ -49,12 +49,12 @@ public class FsPermission {
   /**
    * Copy constructor
    *
-   * @param other other permission
+   * @param otherPermission
    */
-  public FsPermission(FsPermission other) {
-    mUseraction = other.mUseraction;
-    mGroupaction = other.mGroupaction;
-    mOtheraction = other.mOtheraction;
+  public FsPermission(FsPermission otherPermission) {
+    mUseraction = otherPermission.mUseraction;
+    mGroupaction = otherPermission.mGroupaction;
+    mOtheraction = otherPermission.mOtheraction;
   }
 
   /** Return user {@link FsAction}. */
@@ -114,11 +114,26 @@ public class FsPermission {
         + mOtheraction.getSymbol();
   }
 
-  /** Apply a umask to this permission and return a new one */
+  /**
+   * Apply a umask to this permission and return a new one
+   *
+   * @param umask the umask {@code FsPermission}
+   * @return a new FsPermission
+   */
   public FsPermission applyUMask(FsPermission umask) {
     return new FsPermission(mUseraction.and(umask.mUseraction.not()),
         mGroupaction.and(umask.mGroupaction.not()),
         mOtheraction.and(umask.mOtheraction.not()));
+  }
+
+  /**
+   * Apply a umask to this permission and return a new one
+   *
+   * @param conf Get the umask permission from the configuration
+   * @return a new FsPermission
+   */
+  public FsPermission applyUMask(TachyonConf conf) {
+    return applyUMask(getUMask(conf));
   }
 
   /** Get the default permission. */
@@ -128,6 +143,7 @@ public class FsPermission {
 
   /**
    * Get the file/directory creation umask
+   *
    */
   public static FsPermission getUMask(TachyonConf conf) {
     int umask = Constants.DEFAULT_TFS_PERMISSIONS_UMASK;
