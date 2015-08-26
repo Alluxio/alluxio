@@ -77,6 +77,16 @@ public class RawTableMaster implements Master {
     // TODO
   }
 
+  @Override
+  public void start(boolean asMaster) {
+    // TODO
+  }
+
+  @Override
+  public void stop() {
+    // TODO
+  }
+
   /**
    * Create a raw table. A table is a directory with sub-directories representing columns.
    *

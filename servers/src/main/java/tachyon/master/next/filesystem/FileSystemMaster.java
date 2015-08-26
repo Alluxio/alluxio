@@ -102,6 +102,16 @@ public class FileSystemMaster implements Master {
     // TODO
   }
 
+  @Override
+  public void start(boolean asMaster) {
+    // TODO
+  }
+
+  @Override
+  public void stop() {
+    // TODO
+  }
+
   public boolean completeFileCheckpoint(long workerId, long fileId, long length,
       TachyonURI checkpointPath)
           throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {

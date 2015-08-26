@@ -99,6 +99,16 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     // TODO
   }
 
+  @Override
+  public void start(boolean asMaster) {
+    // TODO
+  }
+
+  @Override
+  public void stop() {
+    // TODO
+  }
+
   public List<WorkerInfo> getWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<WorkerInfo>(mWorkers.size());
     synchronized (mWorkers) {
