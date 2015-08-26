@@ -67,7 +67,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       EvictionPlan plan) {
     location = updateBlockStoreLocation(bytesToBeAvailable, location);
 
-    // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
+    // 1. if bytesToBeAvailable can already be satisfied without eviction, return empty plan
     StorageDirView candidateDirView =
         EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
     if (candidateDirView != null) {
@@ -156,7 +156,6 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
     return candidateDirView;
   }
 
-
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataManagerView view) {
@@ -175,10 +174,25 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
     return plan;
   }
 
+  /**
+   * @return an iterator over the blocks in the evictor cache. The key of the map entry is the
+   * block Id.
+   */
   protected abstract Iterator<Map.Entry<Long, Object>> getIterator();
 
+  /**
+   * Perform additional cleanup when a block is removed from the iterator.
+   */
   protected void removeBlock(long blockId) {}
 
+  /**
+   * Update the block store location if the evictor wants to free space in a specific location.
+   * For example, PartialLRUEvictor always evicts blocks from a dir with max free space.
+   *
+   * @param bytesToBeAvailable bytes to be available after eviction
+   * @param location the original block store location
+   * @return the updated block store location
+   */
   protected BlockStoreLocation updateBlockStoreLocation(long bytesToBeAvailable,
       BlockStoreLocation location) {
     return location;

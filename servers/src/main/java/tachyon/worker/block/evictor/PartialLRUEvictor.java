@@ -15,17 +15,10 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.StorageDirView;
-
 
 /**
  * This class is used to evict old blocks in certain StorageDir by LRU. The main difference
@@ -34,8 +27,6 @@ import tachyon.worker.block.meta.StorageDirView;
  * with maximum free space first and evict old blocks in the selected StorageDir by LRU
  */
 public class PartialLRUEvictor extends LRUEvictor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   public PartialLRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
   }

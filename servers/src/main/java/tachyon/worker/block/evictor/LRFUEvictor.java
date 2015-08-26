@@ -85,6 +85,17 @@ public class LRFUEvictor extends EvictorBase {
     }
   }
 
+  /**
+   * Calculate weight of an access, which is the function value of
+   * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
+   *
+   * @param logicTimeInterval time interval since that access to current
+   * @return Function value of F(t)
+   */
+  private double calculateAccessWeight(long logicTimeInterval) {
+    return Math.pow(1.0 / mAttenuationFactor, logicTimeInterval * mStepFactor);
+  }
+
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataManagerView view) {
@@ -135,15 +146,30 @@ public class LRFUEvictor extends EvictorBase {
     return sortedCRF;
   }
 
-  /**
-   * Calculate weight of an access, which is the function value of
-   * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
-   *
-   * @param logicTimeInterval time interval since that access to current
-   * @return Function value of F(t)
-   */
-  private double calculateAccessWeight(long logicTimeInterval) {
-    return Math.pow(1.0 / mAttenuationFactor, logicTimeInterval * mStepFactor);
+  @Override
+  public void onAccessBlock(long userId, long blockId) {
+    updateOnAccessAndCommit(blockId);
+  }
+
+  @Override
+  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
+    updateOnAccessAndCommit(blockId);
+  }
+
+  @Override
+  public void onRemoveBlockByClient(long userId, long blockId) {
+    updateOnRemoveBlock(blockId);
+  }
+
+  @Override
+  public void onRemoveBlockByWorker(long userId, long blockId) {
+    updateOnRemoveBlock(blockId);
+  }
+
+  @Override
+  public void removeBlock(long blockId) {
+    mBlockIdToLastUpdateTime.remove(blockId);
+    mBlockIdToCRFValue.remove(blockId);
   }
 
   /**
@@ -182,8 +208,8 @@ public class LRFUEvictor extends EvictorBase {
       // CRF(currentLogicTime)=CRF(lastUpdateTime)*F(currentLogicTime-lastUpdateTime)+F(0)
       if (mBlockIdToCRFValue.containsKey(blockId)) {
         mBlockIdToCRFValue.put(blockId, mBlockIdToCRFValue.get(blockId)
-            * calculateAccessWeight(currentLogicTime - mBlockIdToLastUpdateTime
-                .get(blockId)) + 1.0);
+            * calculateAccessWeight(currentLogicTime - mBlockIdToLastUpdateTime.get(blockId))
+            + 1.0);
       } else {
         mBlockIdToCRFValue.put(blockId, 1.0);
       }
@@ -204,31 +230,5 @@ public class LRFUEvictor extends EvictorBase {
       mBlockIdToCRFValue.remove(blockId);
       mBlockIdToLastUpdateTime.remove(blockId);
     }
-  }
-
-  @Override
-  public void removeBlock(long blockId) {
-    mBlockIdToLastUpdateTime.remove(blockId);
-    mBlockIdToCRFValue.remove(blockId);
-  }
-
-  @Override
-  public void onAccessBlock(long userId, long blockId) {
-    updateOnAccessAndCommit(blockId);
-  }
-
-  @Override
-  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-    updateOnAccessAndCommit(blockId);
-  }
-
-  @Override
-  public void onRemoveBlockByClient(long userId, long blockId) {
-    updateOnRemoveBlock(blockId);
-  }
-
-  @Override
-  public void onRemoveBlockByWorker(long userId, long blockId) {
-    updateOnRemoveBlock(blockId);
   }
 }
