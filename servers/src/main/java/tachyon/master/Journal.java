@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -35,7 +35,7 @@ public class Journal {
 
   /**
    * Create a Journal manager.
-   * 
+   *
    * @param folder the folder contains image file and edit log files.
    * @param imageFileName image file name
    * @param editLogFileName edit file name
@@ -63,7 +63,7 @@ public class Journal {
 
   /**
    * Create an edit log.
-   * 
+   *
    * @param startingTransactionId the starting transaction id of the edit log.
    * @throws IOException
    */
@@ -74,7 +74,7 @@ public class Journal {
   /**
    * Create a new image of the Master. It will be created at the mImagePath. If the
    * mStandbyImagePath isn't null, it will rename the mStandbyImagePath to the mImagePath.
-   * 
+   *
    * @param info The Master Info
    * @throws IOException
    */
@@ -89,7 +89,7 @@ public class Journal {
 
   /**
    * Create a new image of the Master to the specified path.
-   * 
+   *
    * @param info The Master Info
    * @param imagePath The path of the image to be created
    * @throws IOException
@@ -105,7 +105,7 @@ public class Journal {
 
   /**
    * Get image file's last modification time.
-   * 
+   *
    * @return the last modification time in millisecond.
    * @throws IOException
    */
@@ -119,7 +119,7 @@ public class Journal {
 
   /**
    * Load edit log.
-   * 
+   *
    * @param info The Master Info.
    * @return The last transaction id.
    * @throws IOException
@@ -130,7 +130,7 @@ public class Journal {
 
   /**
    * Load image file.
-   * 
+   *
    * @param info The Master Info.
    * @throws IOException
    */
@@ -140,7 +140,7 @@ public class Journal {
 
   /**
    * Load one log file of the Master
-   * 
+   *
    * @param info The Master Info
    * @param path The path of the edit log
    * @throws IOException
@@ -152,7 +152,7 @@ public class Journal {
 
   /**
    * Changes the max edit log size for testing purposes
-   * 
+   *
    * @param size
    */
   void setMaxLogSize(int size) {
