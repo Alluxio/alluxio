@@ -26,16 +26,15 @@ import org.junit.Test;
 public class CommonUtilsTest {
 
   @Test
-  public void testGetCurrentMs() {
+  public void getCurrentMsAndSleepMsTest() {
+    long delta = 100;
     long startTime = CommonUtils.getCurrentMs();
-    try {
-      Thread.sleep(100);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+    CommonUtils.sleepMs(delta);
     long currentTime = CommonUtils.getCurrentMs();
 
-    Assert.assertTrue(startTime < currentTime);
+    /* Check that currentTime falls into the interval [startTime + delta; startTime + 2*delta] */
+    Assert.assertTrue(startTime + delta < currentTime);
+    Assert.assertTrue(startTime + 2 * delta > currentTime);
   }
 
   @Test
@@ -45,10 +44,10 @@ public class CommonUtilsTest {
       String mExpected;
 
       public TestCase(String expected, Object... objs) {
-        this.mExpected = expected;
-        this.mInput = new LinkedList<Object>();
+        mExpected = expected;
+        mInput = new LinkedList<Object>();
         for (int k = 0; k < objs.length; k ++) {
-          this.mInput.add(objs[k]);
+          mInput.add(objs[k]);
         }
       }
     }
@@ -66,12 +65,12 @@ public class CommonUtilsTest {
   }
 
   @Test
-  public void testToStringArray() {
+  public void toStringArrayTest() {
     class TestCase {
       String[] mExpected;
 
       public TestCase(String... strings) {
-        this.mExpected = strings;
+        mExpected = strings;
       }
     }
 
@@ -94,16 +93,7 @@ public class CommonUtilsTest {
   }
 
   @Test
-  public void testSleepMs() {
-    long startTime = System.currentTimeMillis();
-    long delta = 100;
-    CommonUtils.sleepMs(delta);
-    long currentTime = System.currentTimeMillis();
-    Assert.assertTrue(startTime + delta < currentTime);
-  }
-
-  @Test
-  public void testCreateNewClassInstance() {
+  public void createNewClassInstanceTest() {
     class TestCase {
       Class<?> mCls;
       Class<?>[] mCtorClassArgs;
@@ -111,10 +101,10 @@ public class CommonUtilsTest {
       String mExpected;
 
       public TestCase(String expected, Class<?> cls, Class<?>[] ctorClassArgs, Object... ctorArgs) {
-        this.mCls = cls;
-        this.mCtorClassArgs = ctorClassArgs;
-        this.mCtorArgs = ctorArgs;
-        this.mExpected = expected;
+        mCls = cls;
+        mCtorClassArgs = ctorClassArgs;
+        mCtorArgs = ctorArgs;
+        mExpected = expected;
       }
     }
 
@@ -146,7 +136,7 @@ public class CommonUtilsTest {
     int mX;
 
     public TestClassB(int x) {
-      this.mX = x;
+      mX = x;
     }
 
     public String toString() {
