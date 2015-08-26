@@ -22,6 +22,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -95,6 +96,7 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
+  @Ignore
   @Test
   public void faultTest() throws IOException {
     int clients = 10;
@@ -120,6 +122,7 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
+  @Ignore
   @Test
   public void getClientsTest() throws IOException {
     int clients = 10;
