@@ -18,7 +18,6 @@ package tachyon.master.next.filesystem;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -42,7 +41,7 @@ import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
-import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
@@ -568,9 +567,8 @@ public class FileSystemMaster implements Master {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
+  public void writeCheckpointEntries(JournalWriter writer) throws IOException {
     // TODO(cc)
-    return null;
   }
 
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
