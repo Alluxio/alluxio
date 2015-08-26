@@ -78,9 +78,9 @@ public class TachyonMaster {
   private final TServerSocket mTServerSocket;
   private final InetSocketAddress mMasterAddress;
 
-  private final BlockMaster mBlockMaster;
-  private final FileSystemMaster mFileSystemMaster;
-  private final RawTableMaster mRawTableMaster;
+  private BlockMaster mBlockMaster;
+  private FileSystemMaster mFileSystemMaster;
+  private RawTableMaster mRawTableMaster;
 
   private final Journal mBlockMasterJournal;
   private final Journal mFileSystemMasterJournal;
@@ -230,8 +230,13 @@ public class TachyonMaster {
             mWebServer.shutdownWebServer();
             // TODO: transition to becoming a standby master.
 
-            // TODO: when transitioning to a standby, master should be constructed again, as a
-            // standby master.
+            // When transitioning from master to standby, recreate the masters with a readonly
+            // journal.
+            mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
+            mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
+                mFileSystemMasterJournal.getReadOnlyJournal());
+            mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
+                mRawTableMasterJournal.getReadOnlyJournal());
             running = false;
           }
         }
