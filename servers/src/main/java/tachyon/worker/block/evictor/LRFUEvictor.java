@@ -43,17 +43,17 @@ import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
 
 /**
- * This class is used to evict blocks by LRFU. LRFU evict blocks with minimum CRF, where CRF of a 
+ * This class is used to evict blocks by LRFU. LRFU evict blocks with minimum CRF, where CRF of a
  * block is the sum of F(t) = pow(1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor}).
  * Each access to a block has a F(t) value and t is the time interval since that access to current.
- * As the formula of F(t) shows, when (1.0 / {@link #mStepFactor}) time units passed, F(t) will 
- * cut to the (1.0 / {@link #mAttenuationFactor}) of the old value. So {@link #mStepFactor} 
+ * As the formula of F(t) shows, when (1.0 / {@link #mStepFactor}) time units passed, F(t) will
+ * cut to the (1.0 / {@link #mAttenuationFactor}) of the old value. So {@link #mStepFactor}
  * controls the step and {@link #mAttenuationFactor} controls the attenuation. Actually, LRFU
- * combines LRU and LFU, it evicts blocks with small frequency or large recency. When 
+ * combines LRU and LFU, it evicts blocks with small frequency or large recency. When
  * {@link #mStepFactor} is close to 0, LRFU is close to LFU. Conversely, LRFU is close to LRU
  * when {@link #mStepFactor} is close to 1.
  */
-public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor {
+public final class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final double DEFAULT_STEP_FACTOR = 0.25;
@@ -75,14 +75,14 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
-    mManagerView = view;
-    mAllocator = allocator;
+    mManagerView = Preconditions.checkNotNull(view);
+    mAllocator = Preconditions.checkNotNull(allocator);
     mTachyonConf = new TachyonConf();
     mStepFactor = mTachyonConf
         .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR);
     mAttenuationFactor = mTachyonConf
         .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR);
-    Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0, 
+    Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0,
         "Step factor should be in the range of [0.0, 1.0]");
     Preconditions.checkArgument(mAttenuationFactor >= 2.0,
         "Attenuation factor should be no less than 2.0");
@@ -111,16 +111,15 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
    */
   private StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan, List<Map.Entry<Long, Double>> sortedCRF) {
-
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
     StorageDirView candidateDirView = EvictorUtils
         .selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
     if (candidateDirView != null) {
       return candidateDirView;
     }
-    
+
     // 2. iterate over blocks in increasing order of CRF until we find a dir view that is in
-    // the range of location and can satisfy bytesToBeAvailable after evicting its blocks 
+    // the range of location and can satisfy bytesToBeAvailable after evicting its blocks
     // iterated so far
     EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
     Iterator<Map.Entry<Long, Double>> it = sortedCRF.iterator();
@@ -199,16 +198,17 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
       return plan;
     }
   }
-  
+
   /**
    * Sort all blocks in ascending order of CRF
-   * 
+   *
    * @return the sorted CRF of all blocks
    */
   private List<Map.Entry<Long, Double>> getSortedCRF() {
-    List<Map.Entry<Long, Double>> sortedCRF = 
+    List<Map.Entry<Long, Double>> sortedCRF =
         new ArrayList<Map.Entry<Long, Double>>(mBlockIdToCRFValue.entrySet());
     Collections.sort(sortedCRF, new Comparator<Map.Entry<Long, Double>>() {
+      @Override
       public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {
         double res = o1.getValue() - o2.getValue();
         if (res < 0) {
@@ -226,7 +226,7 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   /**
    * Calculate weight of an access, which is the function value of
    * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
-   * 
+   *
    * @param logicTimeInterval time interval since that access to current
    * @return Function value of F(t)
    */
@@ -237,8 +237,8 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   /**
    * This function is used to update CRF of all the blocks according to current logic time. When
    * some block is accessed in some time, only CRF of that block itself will be updated to current
-   * time, other blocks who are not accessed recently will only be updated until 
-   * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataManagerView)} is called 
+   * time, other blocks who are not accessed recently will only be updated until
+   * {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataManagerView)} is called
    * because blocks need to be sorted in the increasing order of CRF. When this function is called,
    * {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} need to be locked in case
    * of the changing of values.
@@ -260,14 +260,14 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
    * of other blocks will be lazily updated (only when {@link #updateCRFValue()} is called).
    * If the block is updated at the first time, CRF of the block will be set to 1.0, otherwise
    * the CRF of the block will be set to {1.0 + old CRF * F(current time - last update time)}.
-   * 
+   *
    * @param blockId id of the block to be accessed or committed
    */
   private void updateOnAccessAndCommit(long blockId) {
     synchronized (mBlockIdToLastUpdateTime) {
       long currentLogicTime = mLogicTimeCount.incrementAndGet();
       // update CRF value
-      // CRF(currentLogicTime)=CRF(lastUpdateTime)*F(currentLogicTime-lastUpdateTime)+F(0) 
+      // CRF(currentLogicTime)=CRF(lastUpdateTime)*F(currentLogicTime-lastUpdateTime)+F(0)
       if (mBlockIdToCRFValue.containsKey(blockId)) {
         mBlockIdToCRFValue.put(blockId, mBlockIdToCRFValue.get(blockId)
             * calculateAccessWeight(currentLogicTime - mBlockIdToLastUpdateTime
@@ -279,11 +279,11 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
       mBlockIdToLastUpdateTime.put(blockId, currentLogicTime);
     }
   }
-  
+
   /**
    * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
    * removed.
-   * 
+   *
    * @param blockId id of the block to be removed
    */
   private void updateOnRemoveBlock(long blockId) {
@@ -293,7 +293,7 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
       mBlockIdToLastUpdateTime.remove(blockId);
     }
   }
-  
+
   @Override
   public void onAccessBlock(long userId, long blockId) {
     updateOnAccessAndCommit(blockId);

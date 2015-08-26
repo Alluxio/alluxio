@@ -28,7 +28,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFS handler
    * @param fileName the name of the file to be created
-   * @param op WriteType used to create the file 
+   * @param op WriteType used to create the file
    * @param len file size
    * @return Id of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
@@ -43,7 +43,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFS handler
    * @param fileURI URI of the file
-   * @param op WriteType used to create the file 
+   * @param op WriteType used to create the file
    * @param len file size
    * @return Id created file id
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
@@ -67,7 +67,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFS handler
    * @param fileName the name of the file to be created
-   * @param op WriteType used to create the file 
+   * @param op WriteType used to create the file
    * @param len file size
    * @param blockCapacityByte block size of the file
    * @return Id of the created file
@@ -91,7 +91,7 @@ public final class TachyonFSTestUtils {
    * List files at a given <code>path</code>.
    *
    * @param tfs a TachyonFS handler
-   * @param path a path in tachyon file system 
+   * @param path a path in tachyon file system
    * @return a list of stings representing the file names under the given path
    * @throws IOException if <code>path</code> does not exist or is invalid
    */

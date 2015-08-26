@@ -237,8 +237,8 @@ public class DataServerIntegrationTest {
 
     RemoteBlockReader client =
         RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
-    ByteBuffer result = client.readRemoteBlock(block.getLocations().get(0).mHost,
-        block.getLocations().get(0).mSecondaryPort, block.getBlockId(), 0, length);
+    ByteBuffer result = client.readRemoteBlock(new InetSocketAddress(block.getLocations()
+        .get(0).mHost, block.getLocations().get(0).mSecondaryPort), block.getBlockId(), 0, length);
 
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
   }
@@ -262,8 +262,8 @@ public class DataServerIntegrationTest {
 
     RemoteBlockReader client =
         RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
-    ByteBuffer result = client.readRemoteBlock(block.getLocations().get(0).mHost,
-        block.getLocations().get(0).mSecondaryPort, maxBlockId + 1, 0, length);
+    ByteBuffer result = client.readRemoteBlock(new InetSocketAddress(block.getLocations().get(0)
+        .mHost, block.getLocations().get(0).mSecondaryPort), maxBlockId + 1, 0, length);
 
     Assert.assertNull(result);
   }
