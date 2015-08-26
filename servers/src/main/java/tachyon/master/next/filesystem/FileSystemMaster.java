@@ -17,8 +17,6 @@ package tachyon.master.next.filesystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -26,20 +24,25 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
-import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
+import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
@@ -49,6 +52,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -68,31 +72,51 @@ public class FileSystemMaster implements Master {
 
   private final PrefixList mWhitelist;
 
-  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster) {
+  private final JournalWriter mJournalWriter;
+
+  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
+      JournalWriter journalWriter) {
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
 
     mInodeTree = new InodeTree(mBlockMaster);
     mDependencyMap = new DependencyMap();
 
-    mWhitelist = new PrefixList(
-        mTachyonConf.getList(Constants.MASTER_WHITELIST, ",", new LinkedList<String>()));
+    // TODO: handle default config value for whitelist.
+    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
+
+    mJournalWriter = journalWriter;
   }
 
   @Override
   public TProcessor getProcessor() {
-    // TODO
-    return null;
+    return new FileSystemMasterService.Processor<FileSystemMasterServiceHandler>(
+        new FileSystemMasterServiceHandler(this));
   }
 
   @Override
   public String getProcessorName() {
-    return "FileSystemMaster";
+    return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
   }
 
-  public List<PeriodicTask> getPeriodicTaskList() {
-    // TODO: return tasks for periodic detection of required lineage recomputation
-    return Collections.emptyList();
+  @Override
+  public void processJournalCheckpoint(JournalInputStream inputStream) {
+    // TODO
+  }
+
+  @Override
+  public void processJournalEntry(JournalEntry entry) {
+    // TODO
+  }
+
+  @Override
+  public void start(boolean asMaster) {
+    // TODO
+  }
+
+  @Override
+  public void stop() {
+    // TODO
   }
 
   public boolean completeFileCheckpoint(long workerId, long fileId, long length,
@@ -146,11 +170,29 @@ public class FileSystemMaster implements Master {
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
-        // TODO: write to journal.
+        logEvent(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
       }
       return true;
     }
 
+  }
+
+  /**
+   * Whether the filesystem contains a directory with the id.
+   *
+   * @param id id of the directory
+   * @return true if there is such a directory, otherwise false
+   */
+  public boolean isDirectory(long id) {
+    synchronized (mInodeTree) {
+      Inode inode;
+      try {
+        inode = mInodeTree.getInodeById(id);
+      } catch (FileDoesNotExistException fne) {
+        return false;
+      }
+      return inode.isDirectory();
+    }
   }
 
   public long getFileId(TachyonURI path) throws InvalidPathException {
@@ -344,12 +386,27 @@ public class FileSystemMaster implements Master {
     }
   }
 
-  public boolean mkdirs(TachyonURI path, boolean recursive)
-      throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+  /**
+   * Create a directory at path.
+   *
+   * @param path the path of the directory
+   * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,
+   *        the parent directories must already exist
+   * @throws InvalidPathException when the path is invalid, please see documentation on
+   *         {@link InodeTree#createPath} for more details
+   * @throws FileAlreadyExistException when there is already a file at path
+   */
+  public void mkdirs(TachyonURI path, boolean recursive) throws InvalidPathException,
+      FileAlreadyExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      mInodeTree.createPath(path, 0, recursive, true);
-      return true;
+      try {
+        mInodeTree.createPath(path, 0, recursive, true);
+      } catch (BlockInfoException bie) {
+        // Since we are creating a directory, the block size is ignored, no such exception should
+        // happen.
+        Throwables.propagate(bie);
+      }
       // TODO: write to journal
     }
 
@@ -530,6 +587,12 @@ public class FileSystemMaster implements Master {
     }
   }
 
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
+  }
+
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
@@ -573,5 +636,13 @@ public class FileSystemMaster implements Master {
       }
     }
     return fileBlockInfo;
+  }
+
+  private void logEvent(JournalEntry event) {
+    try {
+      mJournalWriter.writeEntry(event);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
   }
 }

@@ -52,8 +52,7 @@ public final class BlockMasterClient extends MasterClient {
 
   @Override
   protected String getServiceName() {
-    // TODO: make this a tachyon constant, here and in the master.
-    return "BlockMaster";
+    return Constants.BLOCK_MASTER_SERVICE_NAME;
   }
 
   @Override

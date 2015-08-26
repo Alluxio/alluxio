@@ -75,7 +75,6 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
         request.setAttribute("blockSizeByte", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
-
         getServletContext().getRequestDispatcher("/worker/viewFileBlocks.jsp").forward(request,
             response);
         return;
@@ -95,6 +94,8 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
+      } finally {
+        tachyonClient.close();
       }
     }
 
@@ -104,6 +105,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      tachyonClient.close();
       return;
     }
 
@@ -139,6 +141,8 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       request.setAttribute("fatalError", nfe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
+    } finally {
+      tachyonClient.close();
     }
 
     getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);

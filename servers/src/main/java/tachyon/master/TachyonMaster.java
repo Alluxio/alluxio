@@ -42,6 +42,7 @@ import tachyon.thrift.MasterService;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
@@ -78,7 +79,6 @@ public class TachyonMaster {
   private MetricsSystem mMasterMetricsSystem;
   private Journal mJournal;
   private EditLogProcessor mEditLogProcessor;
-  private int mWebPort;
 
   private int mMaxWorkerThreads;
   private int mMinWorkerThreads;
@@ -88,39 +88,16 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  /** metadata port */
+  /** metadata port (RPC local port) */
   private final int mPort;
 
   private final TachyonConf mTachyonConf;
 
   public TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
-
-    int port = mTachyonConf.getInt(Constants.MASTER_PORT);
-    int webPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT);
-
-    TachyonConf.assertValidPort(port, mTachyonConf);
-    TachyonConf.assertValidPort(webPort, mTachyonConf);
-
-    String hostnameExternal = mTachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-    // The master listens to the MASTER_HOSTNAME_LISTENING configuration option.
-    // MASTER_HOSTNAME_LISTENING defaults to MASTER_HOSTNAME if unspecified. If set to
-    // MASTER_HOSTNAME_LISTENING_WILDCARD, server listens to all addresses.
-    String hostnameListening =
-        mTachyonConf.get(Constants.MASTER_HOSTNAME_LISTENING, hostnameExternal);
-
-    InetSocketAddress address = new InetSocketAddress(hostnameExternal, port);
-    InetSocketAddress addressListening;
-    if (hostnameListening.equals(Constants.MASTER_HOSTNAME_LISTENING_WILDCARD)) {
-      addressListening = new InetSocketAddress(port);
-    } else {
-      addressListening = new InetSocketAddress(hostnameListening, port);
-    }
-
-    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
 
     mIsStarted = false;
-    mWebPort = webPort;
     mMinWorkerThreads =
         mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS, Runtime.getRuntime()
             .availableProcessors());
@@ -137,8 +114,12 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      mServerTServerSocket = new TServerSocket(addressListening);
-      mPort = NetworkAddressUtils.getPort(mServerTServerSocket);
+      mServerTServerSocket =
+          new TServerSocket(
+              NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, mTachyonConf));
+      mPort = NetworkAddressUtils.getThriftPort(mServerTServerSocket);
+      // reset master port
+      mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(mPort));
 
       String journalFolder =
           mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
@@ -149,7 +130,7 @@ public class TachyonMaster {
         Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
-      mMasterAddress = new InetSocketAddress(NetworkAddressUtils.getFqdnHost(address), mPort);
+      mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf);
       mJournal = new Journal(journalFolder, "image.data", "log.data", mTachyonConf);
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal, mExecutorService, mTachyonConf);
 
@@ -158,7 +139,8 @@ public class TachyonMaster {
       if (mZookeeperMode) {
         // InetSocketAddress.toString causes test issues, so build the string by hand
         String zkName =
-            NetworkAddressUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
+            NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf) + ":"
+                + mMasterAddress.getPort();
         String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS);
         String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH);
         String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH);
@@ -195,10 +177,32 @@ public class TachyonMaster {
   }
 
   /**
-   * Get the port used by unit test only
+   * Get the actual bind hostname on RPC service (used by unit test only).
    */
-  int getMetaPort() {
+  public String getRPCBindHost() {
+    return NetworkAddressUtils.getThriftSocket(mServerTServerSocket).getLocalSocketAddress()
+        .toString();
+  }
+
+  /**
+   * Get the actual port that the RPC service is listening on (used by unit test only)
+   */
+  public int getRPCLocalPort() {
     return mPort;
+  }
+
+  /**
+   * Get the actual bind hostname on web service (used by unit test only).
+   */
+  public String getWebBindHost() {
+    return mWebServer.getBindHost();
+  }
+
+  /**
+   * Get the actual port that the web service is listening on (used by unit test only)
+   */
+  public int getWebLocalPort() {
+    return mWebServer.getLocalPort();
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {
@@ -240,7 +244,8 @@ public class TachyonMaster {
     String ufsAddress =
         mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    ufs.connectFromMaster(mTachyonConf, NetworkAddressUtils.getFqdnHost(mMasterAddress));
+    ufs.connectFromMaster(mTachyonConf,
+        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf));
   }
 
   private void setup() throws IOException, TTransportException {
@@ -251,8 +256,8 @@ public class TachyonMaster {
     mMasterInfo.init();
 
     mWebServer =
-        new MasterUIWebServer("Tachyon Master Server", new InetSocketAddress(
-            NetworkAddressUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo, mTachyonConf);
+        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
+            ServiceType.MASTER_WEB, mTachyonConf), mMasterInfo, mTachyonConf);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =

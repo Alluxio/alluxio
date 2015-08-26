@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.thrift.WorkerInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 
-public class MasterWorkerInfo {
+public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
   public final NetAddress mWorkerAddress;
@@ -75,10 +75,19 @@ public class MasterWorkerInfo {
    * @param newBlocks
    * @return A Set of blocks removed (or lost) from this worker.
    */
-  public Set<Long> register(List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Set<Long> newBlocks) {
-    mTotalBytesOnTiers = totalBytesOnTiers;
-    mUsedBytesOnTiers = usedBytesOnTiers;
+  public Set<Long> register(final List<Long> totalBytesOnTiers, final List<Long> usedBytesOnTiers,
+      final Set<Long> newBlocks) {
+    // validate the number of tiers
+    if (totalBytesOnTiers.size() != usedBytesOnTiers.size()) {
+      throw new IllegalArgumentException(
+          "totalBytesOnTiers should have the same number of tiers as usedBytesOnTiers,"
+              + " but totalBytesOnTiers has " + totalBytesOnTiers.size()
+              + " tiers, while usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
+    }
+
+    // defensive copy
+    mTotalBytesOnTiers = new ArrayList<Long>(totalBytesOnTiers);
+    mUsedBytesOnTiers = new ArrayList<Long>(usedBytesOnTiers);
     mCapacityBytes = 0;
     for (long bytes : mTotalBytesOnTiers) {
       mCapacityBytes += bytes;
@@ -101,7 +110,7 @@ public class MasterWorkerInfo {
     }
 
     // Set the new block information.
-    mBlocks = newBlocks;
+    mBlocks = new HashSet<Long>(newBlocks);
 
     mIsRegistered = true;
     return removedBlocks;
@@ -213,6 +222,13 @@ public class MasterWorkerInfo {
   }
 
   /**
+   * @return the start time in milliseconds.
+   */
+  public long getStartTime() {
+    return mStartTimeMs;
+  }
+
+  /**
    * @return the free bytes on each storage tier
    */
   public synchronized List<Long> getFreeBytesOnTiers() {
@@ -265,7 +281,7 @@ public class MasterWorkerInfo {
 
   /**
    * Set the used space of the worker in bytes.
-   * 
+   *
    * @param usedBytesOnTiers used bytes on each storage tier
    */
   public synchronized void updateUsedBytes(List<Long> usedBytesOnTiers) {
@@ -278,7 +294,7 @@ public class MasterWorkerInfo {
 
   /**
    * Set the used space of the worker in bytes.
-   * 
+   *
    * @param aliasValue value of StorageLevelAlias
    * @param usedBytesOnTier used bytes on certain storage tier.
    */

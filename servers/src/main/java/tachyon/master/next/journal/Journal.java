@@ -28,15 +28,21 @@ import tachyon.conf.TachyonConf;
  * completed entry files are in the "completed/" sub-directory.
  */
 public class Journal {
+  public static final int FIRST_COMPLETED_LOG_NUMBER = 1;
+  private static final String COMPLETED_DIRECTORY = "completed/";
+  private static final String CURRENT_LOG_EXTENSION = ".out";
+
+  // TODO: should this be a config parameter?
   /** The filename of the checkpoint file. */
   private final String mCheckpointFilename = "checkpoint.data";
+  // TODO: should this be a config parameter?
   /** The base of the entry log filenames, without the file extension. */
   private final String mEntryLogFilenameBase = "log";
   private final String mDirectory;
   private final TachyonConf mTachyonConf;
   private final JournalFormatter mJournalFormatter;
 
-  public Journal(String directory, TachyonConf tachyonConf, JournalFormatter journalFormatter) {
+  public Journal(String directory, TachyonConf tachyonConf) {
     if (!directory.endsWith(TachyonURI.SEPARATOR)) {
       // Ensure directory format.
       directory += TachyonURI.SEPARATOR;
@@ -44,19 +50,33 @@ public class Journal {
     mDirectory = directory;
     mTachyonConf = tachyonConf;
     // TODO: maybe this can be constructed, specified by a parameter in tachyonConf.
-    mJournalFormatter = journalFormatter;
+    mJournalFormatter = new JsonJournalFormatter();
   }
 
   public String getDirectory() {
     return mDirectory;
   }
 
-  public String getCheckpointFilename() {
-    return mCheckpointFilename;
+  public String getCompletedDirectory() {
+    return mDirectory + COMPLETED_DIRECTORY;
   }
 
-  public String getEntryLogFilenameBase() {
-    return mEntryLogFilenameBase;
+  public String getCheckpointFilePath() {
+    return mDirectory + mCheckpointFilename;
+  }
+
+  public String getCurrentLogFilePath() {
+    return mDirectory + mEntryLogFilenameBase + CURRENT_LOG_EXTENSION;
+  }
+
+  /**
+   * Returns the completed log filename for a particular log number.
+   *
+   * @param logNumber the log number to get the path for.
+   * @return The absolute path of the completed log for a given log number.
+   */
+  public String getCompletedLogFilePath(int logNumber) {
+    return getCompletedDirectory() + String.format("%s.%7d", mEntryLogFilenameBase, logNumber);
   }
 
   public JournalFormatter getJournalFormatter() {
@@ -68,6 +88,6 @@ public class Journal {
   }
 
   public JournalReader getNewReader() {
-    return new JournalReader(this);
+    return new JournalReader(this, mTachyonConf);
   }
 }

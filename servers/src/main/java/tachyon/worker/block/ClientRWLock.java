@@ -31,7 +31,7 @@ import tachyon.Constants;
  * can be released by a thread different from the one acquiring them (but supposed to be requested
  * by the same client).
  */
-public class ClientRWLock implements ReadWriteLock {
+public final class ClientRWLock implements ReadWriteLock {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make this const a configurable
   /** Total number of permits. This value decides the max number of concurrent readers */
