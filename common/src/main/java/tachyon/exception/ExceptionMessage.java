@@ -31,6 +31,11 @@ public enum ExceptionMessage {
   LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER("no lock is found for blockId {0} for userId {1}"),
   LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0} has no lock record"),
 
+  // block metadata manager
+  BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0}"),
+  GET_DIR_FROM_NON_SPECIFIC_LOCATION("Cannot get path from non-specific dir {0}"),
+  TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0}"),
+  TIER_ALIAS_NOT_FOUND("Tier with alias {0} not found"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
