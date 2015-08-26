@@ -177,9 +177,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * <<<<<<< HEAD Gets available bytes given certain location Redirecting to ||||||| merged common
-   * ancestors Get available bytes given certain location Redirecting to ======= Get the next
-   * storage tier view.
+   * Redirecting to the next storage tier view.
    *
    * @param tierView the storage tier view
    * @return the next storage tier view, null if this is the last tier view.
@@ -193,7 +191,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get available bytes given certain location Redirecting to >>>>>>> master
+   * Get available bytes given certain location
    * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}.
    *
    * @param location location the check available bytes
