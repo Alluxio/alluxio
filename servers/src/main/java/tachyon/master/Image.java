@@ -41,7 +41,7 @@ public class Image {
    *
    * @param info the master info to generate the image
    * @param path the new image path
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public static void create(MasterInfo info, String path) throws IOException {
     String tPath = path + ".tmp";
@@ -74,7 +74,7 @@ public class Image {
    *
    * @param info the masterinfo to fill.
    * @param path the data to load
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public static void load(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path, info.getTachyonConf());
@@ -97,7 +97,7 @@ public class Image {
    * @param src The src image path
    * @param dst The dst image path
    * @param info The MasterInfo used to rename the image
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public static void rename(String src, String dst, MasterInfo info) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(src, info.getTachyonConf());

@@ -30,14 +30,16 @@ import tachyon.conf.TachyonConf;
 
 /**
  * Basic example of using the TachyonFS and TachyonFile for writing to and reading from files.
- * <p />
+ * <p>
  * This class is different from {@link tachyon.examples.BasicOperations} in the way writes happen.
  * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done via
  * input/output streams.
- * <p />
+ * </p>
+ * <p>
  * This example also let users play around with how to work with files a bit more. The
  * {@link tachyon.client.ReadType} is something that can be set, as well as ability to delete file
  * if exists.
+ * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final TachyonURI mMasterLocation;

@@ -45,8 +45,9 @@ public class BufferUtils {
    * <p>
    * NOTE: DirectByteBuffers are not guaranteed to be garbage-collected immediately after their
    * references are released and may lead to OutOfMemoryError. This function helps by calling the
-   * Cleaner method of a DirectByteBuffer explicitly. See <a href=" http://stackoverflow
-   * .com/questions/1854398/how-to-garbage-collect-a-direct-buffer-java">more discussion</a>
+   * Cleaner method of a DirectByteBuffer explicitly. See <a
+   * href="http://stackoverflow.com/questions/1854398/how-to-garbage-collect-a-direct-buffer-java"
+   * >more discussion</a>.
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
