@@ -21,10 +21,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
@@ -33,9 +33,7 @@ import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.BlockMeta;
-import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
-import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
 /**
@@ -51,13 +49,15 @@ public class PartialLRUEvictor extends LRUEvictor {
 
   public PartialLRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
-    mManagerView = view;
-    mAllocator = allocator;
+    mManagerView = Preconditions.checkNotNull(view);
+    mAllocator = Preconditions.checkNotNull(allocator);
   }
 
   @Override
   protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan) {
+    Preconditions.checkNotNull(location);
+    Preconditions.checkNotNull(plan);
 
     // 1. Get StorageDir with max free space. If no such StorageDir, return null. If
     // bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
@@ -120,13 +120,15 @@ public class PartialLRUEvictor extends LRUEvictor {
 
   /**
    * Get StorageDirView with max free space.
-   * 
+   *
    * @param availableBytes space size to be requested
    * @param location location that the space will be allocated in
    * @return the StorageDirView selected
    * @throws IOException
    */
   private StorageDirView getDirWithMaxFreeSpace(long availableBytes, BlockStoreLocation location) {
+    Preconditions.checkNotNull(location);
+
     long maxFreeSize = -1;
     StorageDirView selectedDirView = null;
 

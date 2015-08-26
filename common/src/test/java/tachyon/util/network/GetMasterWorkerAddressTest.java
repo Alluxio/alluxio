@@ -100,7 +100,7 @@ public class GetMasterWorkerAddressTest {
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
     // port only
-    InetSocketAddress workerAddress = 
+    InetSocketAddress workerAddress =
         NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mCustomPropsTachyonConf);
     Assert.assertNotNull(workerAddress);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
