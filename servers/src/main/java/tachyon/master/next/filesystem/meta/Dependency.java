@@ -15,6 +15,7 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,8 +30,8 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.DependencyType;
 import tachyon.master.DependencyVariables;
-import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalSerializable;
+import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.DependencyInfo;
 import tachyon.util.io.BufferUtils;
 
@@ -280,8 +281,7 @@ public class Dependency implements JournalSerializable {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
+  public void writeCheckpointEntries(JournalWriter writer) throws IOException {
     // TODO(cc)
-    return null;
   }
 }
