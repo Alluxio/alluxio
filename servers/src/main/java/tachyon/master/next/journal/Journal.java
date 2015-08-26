@@ -83,6 +83,10 @@ public class Journal {
     return mJournalFormatter;
   }
 
+  public ReadOnlyJournal getReadOnlyJournal() {
+    return new ReadOnlyJournal(mDirectory, mTachyonConf);
+  }
+
   public JournalWriter getNewWriter() {
     return new JournalWriter(this, mTachyonConf);
   }
