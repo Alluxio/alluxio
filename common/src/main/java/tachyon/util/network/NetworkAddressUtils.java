@@ -28,6 +28,8 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.commons.lang3.SystemUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +49,7 @@ public final class NetworkAddressUtils {
   /**
    * Check if the underlying OS is Windows.
    */
-  public static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
+  public static final boolean WINDOWS = SystemUtils.IS_OS_WINDOWS;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;

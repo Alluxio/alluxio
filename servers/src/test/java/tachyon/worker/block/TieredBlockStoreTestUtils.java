@@ -209,10 +209,10 @@ public class TieredBlockStoreTestUtils {
     writer.close();
     return tempBlockMeta;
   }
-  
+
   /**
    * Get the total capacity of all tiers in bytes.
-   * 
+   *
    * @return total capacity of all tiers in bytes
    */
   public static long getDefaultTotalCapacityBytes() {
@@ -224,10 +224,10 @@ public class TieredBlockStoreTestUtils {
     }
     return totalCapacity;
   }
-  
+
   /**
    * Get the number of testing directories of all tiers.
-   * 
+   *
    * @return number of testing directories of all tiers.
    */
   public static long getDefaultDirNum() {

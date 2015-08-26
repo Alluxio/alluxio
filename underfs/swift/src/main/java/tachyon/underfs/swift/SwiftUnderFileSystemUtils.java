@@ -22,7 +22,7 @@ import tachyon.conf.TachyonConf;
 public class SwiftUnderFileSystemUtils {
 
   /**
-   * Replace default key with user provided key 
+   * Replace default key with user provided key
    * @param conf
    * @param key
    */

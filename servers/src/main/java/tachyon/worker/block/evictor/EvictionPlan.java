@@ -25,7 +25,7 @@ import tachyon.worker.block.BlockStoreLocation;
 /**
  * This class provides information about the blocks that need to be moved when evicting.
  */
-public class EvictionPlan {
+public final class EvictionPlan {
   /** A list of pairs of blockId and its location to move to */
   private final List<Pair<Long, BlockStoreLocation>> mToMove;
   /** A list of blockId to remove */
@@ -45,7 +45,7 @@ public class EvictionPlan {
   }
 
   /**
-   * Whether the plan is empty, an empty plan means it is not null and both toMove and toEvict are
+   * Whether the plan is empty, an empty plan means both toMove and toEvict are
    * empty, also, an empty plan indicates no action (move or evict) needs to be taken to meet the
    * requirement.
    *
