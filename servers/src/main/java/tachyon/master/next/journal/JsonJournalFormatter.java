@@ -37,6 +37,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import tachyon.TachyonURI;
+import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+
 public class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
     /** Creates a JSON ObjectMapper configured not to close the underlying stream. */
@@ -214,7 +217,11 @@ public class JsonJournalFormatter implements JournalFormatter {
             break;
           }
           case ADD_CHECKPOINT: {
-            // TODO(cc)
+            return new AddCheckpointEntry(
+                entry.getLong("fileId"),
+                entry.getLong("length"),
+                new TachyonURI(entry.getString("checkpointPath")),
+                entry.getLong("operationTimeMs"));
             break;
           }
           default:
