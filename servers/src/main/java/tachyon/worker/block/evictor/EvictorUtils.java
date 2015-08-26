@@ -31,7 +31,6 @@ public class EvictorUtils {
    * @param bytesToBeAvailable space size to be requested
    * @param location location that the space will be allocated in
    * @return the StorageDirView selected
-   * @throws java.io.IOException
    */
   public static StorageDirView getDirWithMaxFreeSpace(long bytesToBeAvailable,
       BlockStoreLocation location, BlockMetadataManagerView mManagerView) {
@@ -103,5 +102,4 @@ public class EvictorUtils {
     StorageDirView dirView = tierView.getDirView(location.dir());
     return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
   }
-
 }
