@@ -53,7 +53,7 @@ public class TieredBlockStoreTestUtils {
    * simplicity, you can use {@link #defaultTachyonConf(String)} which calls this method with
    * default values.
    *
-   * @param tierLevel like {@link #TIER_LEVEL}, length must be > 0.
+   * @param tierLevel like {@link #TIER_LEVEL}, length must be &gt; 0.
    * @param tierAlias like {@link #TIER_ALIAS}, each corresponds to an element in tierLevel
    * @param tierPath like {@link #TIER_PATH}, each list represents directories of the tier with the
    *        same list index in tierAlias
@@ -209,10 +209,10 @@ public class TieredBlockStoreTestUtils {
     writer.close();
     return tempBlockMeta;
   }
-  
+
   /**
    * Get the total capacity of all tiers in bytes.
-   * 
+   *
    * @return total capacity of all tiers in bytes
    */
   public static long getDefaultTotalCapacityBytes() {
@@ -224,10 +224,10 @@ public class TieredBlockStoreTestUtils {
     }
     return totalCapacity;
   }
-  
+
   /**
    * Get the number of testing directories of all tiers.
-   * 
+   *
    * @return number of testing directories of all tiers.
    */
   public static long getDefaultDirNum() {

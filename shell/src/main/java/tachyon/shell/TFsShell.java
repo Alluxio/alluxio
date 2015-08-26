@@ -118,7 +118,7 @@ public class TFsShell implements Closeable {
    * @param filePath The TachyonURI path to load into Tachyon memory
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
-   */ 
+   */
   public int load(TachyonURI filePath) throws IOException {
     TachyonFS tachyonClient = createFS(filePath);
     int ret = loadPath(tachyonClient, filePath);
@@ -136,7 +136,7 @@ public class TFsShell implements Closeable {
       return -1;
     }
     if (tFile.isDirectory()) {
-      List<ClientFileInfo> files = tachyonClient.listStatus(filePath); 
+      List<ClientFileInfo> files = tachyonClient.listStatus(filePath);
       Collections.sort(files);
       for (ClientFileInfo file : files) {
         TachyonURI newPath = new TachyonURI(file.getPath());
@@ -523,29 +523,29 @@ public class TFsShell implements Closeable {
    * @return The number of argument of the input command
    */
   public int getNumOfArgs(String cmd) {
-    if (cmd.equals("getUsedBytes") 
+    if (cmd.equals("getUsedBytes")
         || cmd.equals("getCapacityBytes")) {
       return 1;
-    } else if (cmd.equals("cat") 
-        || cmd.equals("count") 
-        || cmd.equals("ls") 
+    } else if (cmd.equals("cat")
+        || cmd.equals("count")
+        || cmd.equals("ls")
         || cmd.equals("lsr")
-        || cmd.equals("mkdir") 
-        || cmd.equals("rm") 
-        || cmd.equals("rmr") 
+        || cmd.equals("mkdir")
+        || cmd.equals("rm")
+        || cmd.equals("rmr")
         || cmd.equals("tail")
-        || cmd.equals("touch") 
+        || cmd.equals("touch")
         || cmd.equals("load")
-        || cmd.equals("fileinfo") 
+        || cmd.equals("fileinfo")
         || cmd.equals("location")
-        || cmd.equals("report") 
-        || cmd.equals("pin") 
-        || cmd.equals("unpin") 
+        || cmd.equals("report")
+        || cmd.equals("pin")
+        || cmd.equals("unpin")
         || cmd.equals("free")
         || cmd.equals("du")) {
       return 2;
-    } else if (cmd.equals("copyFromLocal") 
-        || cmd.equals("copyToLocal") 
+    } else if (cmd.equals("copyFromLocal")
+        || cmd.equals("copyToLocal")
         || cmd.equals("request")
         || cmd.equals("mv")) {
       return 3;
@@ -553,7 +553,7 @@ public class TFsShell implements Closeable {
       return -1;
     }
   }
-  
+
   /**
    * Renames a file or directory specified by argv. Will fail if the new path name already exists.
    *
@@ -668,13 +668,13 @@ public class TFsShell implements Closeable {
 
     // Sanity check on the number of arguments
     String cmd = argv[0];
-    int numOfArgs = getNumOfArgs(cmd);    
+    int numOfArgs = getNumOfArgs(cmd);
     if (numOfArgs != argv.length) {
       System.out.println(cmd + " takes " + numOfArgs + " arguments.\n");
       printUsage();
       return -1;
     }
-    
+
     TachyonURI path = new TachyonURI(argv[1]);
     int exitCode = -1;
     try {
@@ -683,8 +683,8 @@ public class TFsShell implements Closeable {
         return getUsedBytes();
       } else if (cmd.equals("getCapacityBytes")) {
         return getCapacityBytes();
-      }  
-            
+      }
+
       //Commands need 1 argument
       if (cmd.equals("cat")) {
         return cat(path);
@@ -721,7 +721,7 @@ public class TFsShell implements Closeable {
       } else if (cmd.equals("du")) {
         return du(path);
       }
-      
+
       // Commands need 2 arguments
       if (cmd.equals("copyFromLocal")) {
         return copyFromLocal(argv);
@@ -732,12 +732,12 @@ public class TFsShell implements Closeable {
       } else if (cmd.equals("mv")) {
         return rename(argv);
       }
-      
+
       // Unknown command
       System.out.println(cmd + " is an unknown command.\n");
       printUsage();
       return -1;
-      
+
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
     }

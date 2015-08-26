@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -63,7 +63,7 @@ public final class NetworkAddressUtils {
    */
   public enum ServiceType {
     /**
-     * 
+     *
      * Master RPC service (Thrift)
      */
     MASTER_RPC("Tachyon Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
@@ -174,15 +174,16 @@ public final class NetworkAddressUtils {
    * hostname is not explicitly specified, Tachyon will try to use the bind host. If the bind host
    * is wildcard, Tachyon will automatically determine an appropriate hostname from local machine.
    * The various possibilities shown in the following table:
-   * <P>
    * <table>
+   * <caption>Hostname Scenarios</caption>
    * <thead>
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
    * <th>Returned Connect Host</th>
    * </tr>
-   * <thead> <tbody>
+   * </thead>
+   * <tbody>
    * <tr>
    * <td>hostname</td>
    * <td>hostname</td>
@@ -205,7 +206,6 @@ public final class NetworkAddressUtils {
    * </tr>
    * </tbody>
    * </table>
-   * </P>
    *
    * @param service Service type used to connect
    * @param conf Tachyon configuration used to look up the host resolution timeout
