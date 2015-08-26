@@ -15,19 +15,32 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 
+import tachyon.client.next.ClientContext;
 import tachyon.client.next.InStream;
+import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.NetAddress;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * Provides a stream API to read a block from Tachyon. An instance of this extending class can be
+ * Provides a stream API to read a block from Tachyon. An instance extending this class can be
  * obtained by calling {@link TachyonBS#getInStream}. Multiple BlockInStreams can be opened for a
  * block. This class is not thread safe and should only be used by one thread.
  *
  * This class provides the same methods as a Java {@link InputStream} with an additional seek
- * method. Currently the only implementation of this class which should be used by a client is
- * the {@link ClientBlockInStream}.
+ * method.
  */
 public abstract class BlockInStream extends InStream {
-  // TODO: Add block stream common logic here
+  public static BlockInStream get(long blockId, long blockSize, NetAddress location)
+      throws IOException {
+    String localHostname = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+    if (location.getMHost().equals(localHostname)) {
+      return new LocalBlockInStream(blockId);
+    } else {
+      return new RemoteBlockInStream(blockId, blockSize, location);
+    }
+  }
 }

@@ -40,7 +40,7 @@ public class LocalBlockInStream extends BlockInStream {
 
   private boolean mClosed;
 
-  public LocalBlockInStream(long blockId, ClientOptions options) throws IOException {
+  public LocalBlockInStream(long blockId) throws IOException {
     mBlockId = blockId;
     mClosed = false;
     mContext = BSContext.INSTANCE;
