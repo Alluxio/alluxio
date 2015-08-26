@@ -126,9 +126,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    */
   protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan) {
-    Preconditions.checkNotNull(location);
-    Preconditions.checkNotNull(plan);
-
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
     StorageDirView candidateDirView = selectDirWithRequestedSpace(bytesToBeAvailable, location);
     if (candidateDirView != null) {

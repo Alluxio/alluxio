@@ -111,10 +111,6 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
    */
   private StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan, List<Map.Entry<Long, Double>> sortedCRF) {
-    Preconditions.checkNotNull(location);
-    Preconditions.checkNotNull(plan);
-    Preconditions.checkNotNull(sortedCRF);
-
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
     StorageDirView candidateDirView = EvictorUtils
         .selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
