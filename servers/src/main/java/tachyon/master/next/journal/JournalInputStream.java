@@ -15,9 +15,11 @@
 
 package tachyon.master.next.journal;
 
+import java.io.IOException;
+
 public interface JournalInputStream {
 
-  JournalEntry getNextEntry();
+  JournalEntry getNextEntry() throws IOException;
 
-  void close();
+  void close() throws IOException;
 }

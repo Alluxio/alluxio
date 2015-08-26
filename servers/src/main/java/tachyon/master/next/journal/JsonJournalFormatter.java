@@ -28,6 +28,7 @@ import org.apache.commons.codec.binary.Base64;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -195,8 +196,36 @@ public class JsonJournalFormatter implements JournalFormatter {
   }
 
   @Override
-  public JournalInputStream deserialize(InputStream inputStream) {
-    // TODO(cc)
-    return null;
+  public JournalInputStream deserialize(final InputStream inputStream) throws IOException {
+    return new JournalInputStream() {
+      private JsonParser mParser = JsonEntry.createObjectMapper().getFactory()
+          .createParser(inputStream);
+
+      @Override
+      public JournalEntry getNextEntry() throws IOException {
+        JsonEntry entry = mParser.readValueAs(JsonEntry.class);
+        switch (entry.mType) {
+          case INODE_FILE: {
+            // TODO(cc)
+            break;
+          }
+          case INODE_DIRECTORY: {
+            // TODO(cc)
+            break;
+          }
+          case ADD_CHECKPOINT: {
+            // TODO(cc)
+            break;
+          }
+          default:
+            throw new IOException("Unknown entry type: " + entry.mType);
+        }
+      }
+
+      @Override
+      public void close() throws IOException {
+        inputStream.close();
+      }
+    };
   }
 }
