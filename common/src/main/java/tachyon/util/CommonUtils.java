@@ -30,8 +30,6 @@ public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
 
   /**
-   * Get the current time in milliseconds.
-   *
    * @return current time in milliseconds
    */
   public static long getCurrentMs() {
@@ -104,7 +102,8 @@ public final class CommonUtils {
   }
 
   /**
-   * Common empty loop utilities to warm up.
+   * Common empty loop utility that serves the purpose of warming up the JVM before performance
+   * microbenchmarks.
    */
   public static void warmUpLoop() {
     for (int k = 0; k < 10000000; k ++) {
