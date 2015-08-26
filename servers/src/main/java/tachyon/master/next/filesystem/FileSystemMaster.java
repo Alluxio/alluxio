@@ -33,6 +33,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -41,6 +42,7 @@ import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
+import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
@@ -70,7 +72,10 @@ public class FileSystemMaster implements Master {
 
   private final PrefixList mWhitelist;
 
-  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster) {
+  private final JournalWriter mJournalWriter;
+
+  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
+      JournalWriter journalWriter) {
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
 
@@ -79,6 +84,8 @@ public class FileSystemMaster implements Master {
 
     // TODO: handle default config value for whitelist.
     mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
+
+    mJournalWriter = journalWriter;
   }
 
   @Override
@@ -163,7 +170,7 @@ public class FileSystemMaster implements Master {
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
-        // TODO: write to journal.
+        logEvent(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
       }
       return true;
     }
@@ -629,5 +636,13 @@ public class FileSystemMaster implements Master {
       }
     }
     return fileBlockInfo;
+  }
+
+  private void logEvent(JournalEntry event) {
+    try {
+      mJournalWriter.writeEntry(event);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
   }
 }
