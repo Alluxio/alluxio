@@ -55,7 +55,7 @@ import tachyon.util.UnderFileSystemUtils;
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
  * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
-public abstract class AbstractTFS extends FileSystem {
+abstract class AbstractTFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
