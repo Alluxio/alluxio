@@ -39,7 +39,8 @@ public class Journal {
    * @param folder the folder contains image file and edit log files.
    * @param imageFileName image file name
    * @param editLogFileName edit file name
-   * @throws IOException
+   * @param conf Tachyon configuration
+   * @throws IOException when the operation fails
    */
   public Journal(String folder, String imageFileName, String editLogFileName, TachyonConf conf)
       throws IOException {
@@ -65,7 +66,7 @@ public class Journal {
    * Create an edit log.
    *
    * @param startingTransactionId the starting transaction id of the edit log.
-   * @throws IOException
+   * @throws IOException when the operations fails
    */
   public void createEditLog(long startingTransactionId) throws IOException {
     mEditLog = new EditLog(mEditLogPath, false, startingTransactionId, mTachyonConf);
@@ -76,7 +77,7 @@ public class Journal {
    * mStandbyImagePath isn't null, it will rename the mStandbyImagePath to the mImagePath.
    *
    * @param info The Master Info
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public void createImage(MasterInfo info) throws IOException {
     if (mStandbyImagePath == null) {
@@ -92,7 +93,7 @@ public class Journal {
    *
    * @param info The Master Info
    * @param imagePath The path of the image to be created
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public void createImage(MasterInfo info, String imagePath) throws IOException {
     Image.create(info, imagePath);
@@ -107,7 +108,7 @@ public class Journal {
    * Get image file's last modification time.
    *
    * @return the last modification time in millisecond.
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public long getImageModTimeMs() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(mImagePath, mTachyonConf);
@@ -122,7 +123,7 @@ public class Journal {
    *
    * @param info The Master Info.
    * @return The last transaction id.
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public long loadEditLog(MasterInfo info) throws IOException {
     return EditLog.load(info, mEditLogPath, mCurrentLogFileNum);
@@ -132,7 +133,7 @@ public class Journal {
    * Load image file.
    *
    * @param info The Master Info.
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public void loadImage(MasterInfo info) throws IOException {
     Image.load(info, mImagePath);
@@ -143,7 +144,7 @@ public class Journal {
    *
    * @param info The Master Info
    * @param path The path of the edit log
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public void loadSingleLogFile(MasterInfo info, String path) throws IOException {
     EditLog.loadSingleLog(info, path);
