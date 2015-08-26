@@ -57,8 +57,8 @@ public final class MasterBlockInfo {
     mWorkerIdToAlias.put(workerId, tierAlias);
   }
 
-  public int removeWorker(long workerId) {
-    return mWorkerIdToAlias.remove(workerId);
+  public void removeWorker(long workerId) {
+    mWorkerIdToAlias.remove(workerId);
   }
 
   public Set<Long> getWorkers() {

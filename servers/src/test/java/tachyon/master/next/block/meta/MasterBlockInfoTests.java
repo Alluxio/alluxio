@@ -40,12 +40,18 @@ public final class MasterBlockInfoTests {
     Assert.assertEquals(0, mInfo.getWorkers().size());
     mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
     Assert.assertTrue(mInfo.getWorkers().contains(1L));
+    mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
+    Assert.assertEquals(1, mInfo.getWorkers().size());
   }
 
   @Test
   public void removeWorkerTest() {
     mInfo.addWorker(1, StorageLevelAlias.MEM.getValue());
     Assert.assertTrue(mInfo.getWorkers().contains(1L));
+    mInfo.removeWorker(1);
+    Assert.assertEquals(0, mInfo.getWorkers().size());
+
+    // remove nonexiting worker.
     mInfo.removeWorker(1);
     Assert.assertEquals(0, mInfo.getWorkers().size());
   }
