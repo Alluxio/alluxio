@@ -38,6 +38,19 @@ public enum ExceptionMessage {
   TIER_ALIAS_NOT_FOUND("Tier with alias {0} not found"),
   TIER_VIEW_ALIAS_NOT_FOUND("Tier view with alias {0} not found"),
 
+  // tieredBlockStore
+  BLOCK_ID_FOR_DIFFERENT_USER("BlockId {0} is owned by userId {1} not {2}"),
+  MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted block {0}"),
+  NO_BLOCK_ID_FOUND("BlockId {0} not found"),
+  NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION("Failed to allocate {0} bytes after {1} retries for blockId {2}"),
+  NO_SPACE_FOR_BLOCK_MOVE("Failed to find space in {0} to move blockId {1} after {2} retries"),
+  REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted block {0}"),
+  TEMP_BLOCK_ID_COMMITTED("Temp blockId {0} is not available, because it is already committed"),
+  TEMP_BLOCK_ID_EXISTS("Temp blockId {0} is not available, because it already exists"),
+
+
+
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
