@@ -25,6 +25,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
@@ -149,7 +150,8 @@ public class BlockMetadataManagerView {
   public StorageTierView getTierView(int tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
     if (null == tierView) {
-      throw new IllegalArgumentException("Cannot find tier view with alias: " + tierAlias);
+      throw new IllegalArgumentException(
+          ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierAlias));
     } else {
       return tierView;
     }
