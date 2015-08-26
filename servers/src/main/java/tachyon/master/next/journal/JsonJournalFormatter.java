@@ -39,6 +39,8 @@ import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
+import tachyon.master.next.filesystem.journal.InodeFileEntry;
 
 public class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -209,12 +211,28 @@ public class JsonJournalFormatter implements JournalFormatter {
         JsonEntry entry = mParser.readValueAs(JsonEntry.class);
         switch (entry.mType) {
           case INODE_FILE: {
-            // TODO(cc)
-            break;
+            return new InodeFileEntry(
+                entry.getLong("creationTimeMs"),
+                entry.getLong("id"),
+                entry.getString("name"),
+                entry.getLong("parentId"),
+                entry.getBoolean("isPinned"),
+                entry.getLong("lastModificationTimeMs"),
+                entry.getLong("blockSizeBytes"),
+                entry.getLong("length"),
+                entry.getBoolean("isComplete"),
+                entry.getBoolean("isCache"),
+                entry.getString("ufsPath"));
           }
           case INODE_DIRECTORY: {
-            // TODO(cc)
-            break;
+            return new InodeDirectoryEntry(
+                entry.getLong("creationTimeMs"),
+                entry.getLong("id"),
+                entry.getString("name"),
+                entry.getLong("parentId"),
+                entry.getBoolean("isPinned"),
+                entry.getLong("lastModificationTimeMs"),
+                entry.get("childrenIds", new TypeReference<List<Long>>() {}));
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(
@@ -222,7 +240,6 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
                 entry.getLong("operationTimeMs"));
-            break;
           }
           default:
             throw new IOException("Unknown entry type: " + entry.mType);
