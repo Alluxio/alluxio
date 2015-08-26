@@ -455,21 +455,21 @@ public final class StorageDir {
     return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
   }
 
-  private void reserveSpace(long size, boolean committed) {
-    Preconditions.checkState(size <= mAvailableBytes.get(),
-        "Available bytes should always be non-negative");
-    mAvailableBytes.addAndGet(-size);
-    if (committed) {
-      mCommittedBytes.addAndGet(size);
-    }
-  }
-
   private void reclaimSpace(long size, boolean committed) {
     Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
         "Available bytes should always be less than total capacity bytes");
     mAvailableBytes.addAndGet(size);
     if (committed) {
       mCommittedBytes.addAndGet(-size);
+    }
+  }
+
+  private void reserveSpace(long size, boolean committed) {
+    Preconditions.checkState(size <= mAvailableBytes.get(),
+        "Available bytes should always be non-negative");
+    mAvailableBytes.addAndGet(-size);
+    if (committed) {
+      mCommittedBytes.addAndGet(size);
     }
   }
 }
