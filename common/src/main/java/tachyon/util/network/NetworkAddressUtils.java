@@ -442,7 +442,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Get FQDN(Full Qualified Domain Name) from representations of network address in Tachyon, except
+   * Get FQDN(Full Qualified Domain Name) from Java representations of network address, except
    * String representation which should be handled by #resolveHostName(String hostname) which will
    * handle the situation where hostname is null.
    *
@@ -453,6 +453,13 @@ public final class NetworkAddressUtils {
     return addr.getAddress().getCanonicalHostName();
   }
 
+  /**
+   * Get FQDN(Full Qualified Domain Name) from Tachyon representation of network address.
+   *
+   * @param addr the input network address representation
+   * @return the resolved FQDN host name
+   * @throws UnknownHostException if the host is not known
+   */
   public static String getFqdnHost(NetAddress addr) throws UnknownHostException {
     return resolveHostName(addr.getMHost());
   }
