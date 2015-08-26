@@ -30,10 +30,11 @@ import tachyon.Constants;
  */
 public class FormatUtils {
   /**
-   * Parse a list of Objects into a String.
+   * Parse a list of <code>Objects</code> into a <code>String</code>.
    *
    * @param objs a list of Objects to convert to a String
-   * @return String representation of the given list of Objects
+   * @return comma-separated concatenation of the string representation returned by Object#toString
+   *         of the individual objects
    */
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
@@ -48,7 +49,8 @@ public class FormatUtils {
   }
 
   /**
-   * Print the given buffer.
+   * Print the given buffer. In particular, the function prints the content of the buffer in 4-byte
+   * increments as space separated integers.
    *
    * @param logger logger to use
    * @param buf buffer to use

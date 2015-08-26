@@ -43,7 +43,7 @@ public final class CommonUtils {
    *
    * @param list list of objects
    * @param <T> type of the objects
-   * @return space separated concatenation of the string representation returned by Object#toString
+   * @return space-separated concatenation of the string representation returned by Object#toString
    *         of the individual objects
    */
   public static <T> String listToString(List<T> list) {
