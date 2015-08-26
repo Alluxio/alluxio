@@ -57,8 +57,7 @@ public final class FileSystemMasterClient extends MasterClient {
 
   @Override
   protected String getServiceName() {
-    // TODO: make this a tachyon constant, here and in the master.
-    return "FileSystemMaster";
+    return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
   }
 
   @Override

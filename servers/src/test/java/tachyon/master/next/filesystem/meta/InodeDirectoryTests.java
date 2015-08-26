@@ -21,12 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.master.block.BlockId;
 
 /**
- * Unit tests for tachyon.InodeDirectory
+ * Unit tests for tachyon.InodeDirectory.
  */
-public final class InodeDirectoryTests {
+public final class InodeDirectoryTests extends AbstractInodeTests {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Test
@@ -36,8 +35,8 @@ public final class InodeDirectoryTests {
     InodeFile inodeFile2 = createInodeFile(3);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile2);
-    Assert.assertEquals(createBlockId(2), (long) inodeDirectory.getChildrenIds().get(0));
-    Assert.assertEquals(createBlockId(3), (long) inodeDirectory.getChildrenIds().get(1));
+    Assert.assertEquals(createInodeFileId(2), (long) inodeDirectory.getChildrenIds().get(0));
+    Assert.assertEquals(createInodeFileId(3), (long) inodeDirectory.getChildrenIds().get(1));
   }
 
   @Test
@@ -52,7 +51,7 @@ public final class InodeDirectoryTests {
     Assert.assertEquals(3, inodeDirectory.getNumberOfChildren());
     inodeDirectory.removeChild("testFile1");
     Assert.assertEquals(2, inodeDirectory.getNumberOfChildren());
-    Assert.assertFalse(inodeDirectory.getChildrenIds().contains(createBlockId(1)));
+    Assert.assertFalse(inodeDirectory.getChildrenIds().contains(createInodeFileId(1)));
   }
 
   @Test
@@ -117,7 +116,7 @@ public final class InodeDirectoryTests {
     InodeFile inodeFile1 = createInodeFile(1);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile1);
-    Assert.assertTrue(inodeDirectory.getChildrenIds().get(0) == createBlockId(1));
+    Assert.assertTrue(inodeDirectory.getChildrenIds().get(0) == createInodeFileId(1));
     Assert.assertEquals(1, inodeDirectory.getNumberOfChildren());
   }
 
@@ -164,7 +163,7 @@ public final class InodeDirectoryTests {
 
     long start = System.currentTimeMillis();
     for (int i = 0; i < nFiles; i ++) {
-      Assert.assertEquals(inodes[i], inodeDirectory.getChild(createBlockId(i + 1)));
+      Assert.assertEquals(inodes[i], inodeDirectory.getChild(createInodeFileId(i + 1)));
     }
     LOG.info(String.format("getChild(int fid) called sequentially %d times, cost %d ms", nFiles,
         System.currentTimeMillis() - start));
@@ -177,15 +176,4 @@ public final class InodeDirectoryTests {
         System.currentTimeMillis() - start));
   }
 
-  private long createBlockId(long containerId) {
-    return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
-  }
-
-  private static InodeDirectory createInodeDirectory() {
-    return new InodeDirectory("test1", 1, 0, System.currentTimeMillis());
-  }
-
-  private InodeFile createInodeFile(long id) {
-    return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis());
-  }
 }

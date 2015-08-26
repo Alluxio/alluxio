@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 
 import tachyon.master.next.IndexedSet;
 import tachyon.thrift.TableDoesNotExistException;
-import tachyon.thrift.TachyonException;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -42,15 +41,12 @@ public class RawTables {
    * @param columns The number of columns in the raw table
    * @param metadata The additional metadata of the raw table
    * @return true if the raw table does not exist before and successfully added, false otherwise
-   * @throws TachyonException when metadata size is larger than maximum configured size
    */
-  public synchronized boolean add(int tableId, int columns, ByteBuffer metadata)
-      throws TachyonException {
+  public synchronized boolean add(long tableId, int columns, ByteBuffer metadata) {
     if (mTables.contains(mIdIndex, tableId)) {
       return false;
     }
-    mTables.add(new RawTable(tableId, columns, metadata));
-    return true;
+    return mTables.add(new RawTable(tableId, columns, metadata));
   }
 
   /**
@@ -59,7 +55,7 @@ public class RawTables {
    * @param tableId The id of the raw table
    * @return true if the table exists and successfully removed, false otherwise
    */
-  public synchronized boolean remove(int tableId) {
+  public synchronized boolean remove(long tableId) {
     return mTables.removeByField(mIdIndex, tableId);
   }
 
@@ -69,7 +65,7 @@ public class RawTables {
    * @param tableId the id of the raw table
    * @return true if the table exists, false otherwise.
    */
-  public synchronized boolean contains(int tableId) {
+  public synchronized boolean contains(long tableId) {
     return mTables.contains(mIdIndex, tableId);
   }
 
@@ -79,7 +75,7 @@ public class RawTables {
    * @param tableId the id of the raw table
    * @return the number of the columns, -1 if the table does not exist.
    */
-  public synchronized int getColumns(int tableId) {
+  public synchronized int getColumns(long tableId) {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
     return null == table ? -1 : table.getColumns();
   }
@@ -90,7 +86,7 @@ public class RawTables {
    * @param tableId The id of the raw table
    * @return null if it has no metadata, or a copy of the internal metadata
    */
-  public synchronized ByteBuffer getMetadata(int tableId) {
+  public synchronized ByteBuffer getMetadata(long tableId) {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
     return null == table ? null : BufferUtils.cloneByteBuffer(table.getMetadata());
   }
@@ -101,7 +97,7 @@ public class RawTables {
    * @param tableId the raw table id.
    * @return the raw table info if the table exists, null otherwise.
    */
-  public synchronized RawTable getTableInfo(int tableId) {
+  public synchronized RawTable getTableInfo(long tableId) {
     return mTables.getFirstByField(mIdIndex, tableId);
   }
 
@@ -113,7 +109,7 @@ public class RawTables {
    * @param metadata The new metadata of the raw table
    * @throws TableDoesNotExistException when the table does not exist
    */
-  public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
+  public synchronized void updateMetadata(long tableId, ByteBuffer metadata)
       throws TableDoesNotExistException {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
 

@@ -21,7 +21,7 @@ import java.util.Arrays;
  * Where to store a block within a block store. Currently, this is a wrapper on an integer
  * representing the tier to put this block.
  */
-public class BlockStoreLocation {
+public final class BlockStoreLocation {
   /** Special value to indicate any tier */
   private static final int ANY_TIER = -1;
   /** Special value to indicate any dir */
@@ -62,8 +62,8 @@ public class BlockStoreLocation {
   }
 
   /**
-   * Gets the storage directory id of the location. The first 8 bits are tier level, next 8 are
-   * the tier alias and last 16 represent the directory index.
+   * Gets the storage directory id of the location. The first 8 bits are tier level, next 8 are the
+   * tier alias and last 16 represent the directory index.
    *
    * @return the storage directory id of the location
    */
@@ -145,13 +145,10 @@ public class BlockStoreLocation {
    */
   @Override
   public boolean equals(Object object) {
-    if (object instanceof BlockStoreLocation
+    return object instanceof BlockStoreLocation
         && ((BlockStoreLocation) object).tierLevel() == tierLevel()
         && ((BlockStoreLocation) object).tierAlias() == tierAlias()
-        && ((BlockStoreLocation) object).dir() == dir()) {
-      return true;
-    }
-    return false;
+        && ((BlockStoreLocation) object).dir() == dir();
   }
 
   @Override

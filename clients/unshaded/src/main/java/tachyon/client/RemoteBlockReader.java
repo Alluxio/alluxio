@@ -33,8 +33,8 @@ public interface RemoteBlockReader extends Closeable {
   class Factory {
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
-        return CommonUtils.createNewClassInstance(conf.getClass(Constants.USER_REMOTE_BLOCK_READER,
-            tachyon.client.netty.NettyRemoteBlockReader.class), null, null);
+        return CommonUtils.createNewClassInstance(
+            conf.<RemoteBlockReader>getClass(Constants.USER_REMOTE_BLOCK_READER), null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

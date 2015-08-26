@@ -13,20 +13,15 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.client.next.file;
 
-import java.util.concurrent.TimeUnit;
+import tachyon.client.next.OutStream;
 
-public interface PeriodicTask extends Runnable {
-  class PeriodicRate {
-    private final long mPeriod;
-    private final TimeUnit mTimeUnit;
-
-    public PeriodicRate(long period, TimeUnit timeUnit) {
-      mPeriod = period;
-      mTimeUnit = timeUnit;
-    }
-  }
-
-  PeriodicRate getPeriodicRate();
+/**
+ * Provides a stream API to write a file to Tachyon. An instance of this class can be obtained by
+ * calling {@link TachyonFS#getOutStream}. Only one FileOutStream should be opened for a
+ * {@link TachyonFile}. This class is not thread safe and should only be used by one thread.
+ */
+public abstract class FileOutStream extends OutStream {
+  // TODO: Add File specific logic here
 }

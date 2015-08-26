@@ -17,7 +17,6 @@ package tachyon.master.next.block;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,12 +33,14 @@ import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.Master;
-import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
+import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
@@ -81,25 +82,39 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   @Override
   public TProcessor getProcessor() {
-    // TODO
-    return null;
+    return new BlockMasterService.Processor<BlockMasterServiceHandler>(
+        new BlockMasterServiceHandler(this));
   }
 
   @Override
   public String getProcessorName() {
-    return "BlockMaster";
+    return Constants.BLOCK_MASTER_SERVICE_NAME;
   }
 
   @Override
-  public List<PeriodicTask> getPeriodicTaskList() {
-    // TODO: return tasks for detecting lost workers
-    return Collections.emptyList();
+  public void processJournalCheckpoint(JournalInputStream inputStream) {
+    // TODO
+  }
+
+  @Override
+  public void processJournalEntry(JournalEntry entry) {
+    // TODO
+  }
+
+  @Override
+  public void start(boolean asMaster) {
+    // TODO
+  }
+
+  @Override
+  public void stop() {
+    // TODO
   }
 
   public List<WorkerInfo> getWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<WorkerInfo>(mWorkers.size());
     synchronized (mWorkers) {
-      for (MasterWorkerInfo masterWorkerInfo : mWorkers.all()) {
+      for (MasterWorkerInfo masterWorkerInfo : mWorkers) {
         workerInfoList.add(masterWorkerInfo.generateClientWorkerInfo());
       }
     }
@@ -109,7 +124,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long getCapacityBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers.all()) {
+      for (MasterWorkerInfo worker : mWorkers) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -119,7 +134,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers.all()) {
+      for (MasterWorkerInfo worker : mWorkers) {
         ret += worker.getUsedBytes();
       }
     }
@@ -271,6 +286,12 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       }
       return new Command(CommandType.Free, toRemoveBlocks);
     }
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
   }
 
   /**

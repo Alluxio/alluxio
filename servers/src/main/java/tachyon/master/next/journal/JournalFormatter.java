@@ -15,11 +15,13 @@
 
 package tachyon.master.next.journal;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 // TODO
 public interface JournalFormatter {
-  void serialize(JournalEntry entry, OutputStream outputStream);
+  void serialize(SerializableJournalEntry entry, OutputStream outputStream) throws IOException;
 
-  void deserialize();
+  JournalInputStream deserialize(InputStream inputStream);
 }

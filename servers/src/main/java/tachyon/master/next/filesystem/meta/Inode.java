@@ -15,12 +15,14 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalSerializable;
 import tachyon.thrift.FileInfo;
 
 /**
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
-public abstract class Inode {
+public abstract class Inode implements JournalSerializable {
   private final long mCreationTimeMs;
   protected final boolean mIsFolder;
 
@@ -222,4 +224,6 @@ public abstract class Inode {
         .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
         .append(")").toString();
   }
+
+  public abstract JournalEntry toJournalEntry();
 }
