@@ -15,6 +15,7 @@
 
 package tachyon.master.next.block;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,7 +39,7 @@ import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
-import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -273,9 +274,8 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
+  public void writeCheckpointEntries(JournalWriter writer) throws IOException {
     // TODO(cc)
-    return null;
   }
 
   /**
