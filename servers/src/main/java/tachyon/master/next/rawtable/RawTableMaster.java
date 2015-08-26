@@ -16,8 +16,6 @@
 package tachyon.master.next.rawtable;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -27,9 +25,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.Master;
-import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -69,9 +67,14 @@ public class RawTableMaster implements Master {
     return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
   }
 
-  public List<PeriodicTask> getPeriodicTaskList() {
+  @Override
+  public void processJournalCheckpoint(JournalInputStream inputStream) {
     // TODO
-    return Collections.emptyList();
+  }
+
+  @Override
+  public void processJournalEntry(JournalEntry entry) {
+    // TODO
   }
 
   /**
