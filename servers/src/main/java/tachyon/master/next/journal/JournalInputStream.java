@@ -17,7 +17,14 @@ package tachyon.master.next.journal;
 
 public interface JournalInputStream {
 
+  /**
+   * Returns the next {@link JournalEntry} in the stream.
+   * @return the next {@link JournalEntry}. returns null if the are no more entries.
+   */
   JournalEntry getNextEntry();
 
+  /**
+   * Closes the stream.
+   */
   void close();
 }
