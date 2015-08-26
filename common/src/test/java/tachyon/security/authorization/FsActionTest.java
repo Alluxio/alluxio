@@ -32,6 +32,14 @@ public class FsActionTest {
     Assert.assertTrue(FsAction.READ_EXECUTE.implies(FsAction.READ));
     Assert.assertTrue(FsAction.READ_EXECUTE.implies(FsAction.EXECUTE));
     Assert.assertFalse(FsAction.READ_EXECUTE.implies(FsAction.WRITE));
+
+    Assert.assertTrue(FsAction.WRITE_EXECUTE.implies(FsAction.WRITE));
+    Assert.assertTrue(FsAction.WRITE_EXECUTE.implies(FsAction.EXECUTE));
+    Assert.assertFalse(FsAction.WRITE_EXECUTE.implies(FsAction.READ));
+
+    Assert.assertTrue(FsAction.READ_WRITE.implies(FsAction.WRITE));
+    Assert.assertTrue(FsAction.READ_WRITE.implies(FsAction.READ));
+    Assert.assertFalse(FsAction.READ_WRITE.implies(FsAction.EXECUTE));
   }
 
   @Test
