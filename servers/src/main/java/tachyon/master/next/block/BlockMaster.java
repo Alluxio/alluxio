@@ -57,18 +57,20 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   // Worker metadata management.
   private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+    @Override
     public Object getFieldValue(MasterWorkerInfo o) {
       return o.getId();
     }
   };
   private final IndexedSet.FieldIndex mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
-    public Object getFieldValue(MasterWorkerInfo o) {
-      return o.getAddress();
-    }
-  };
-  private final IndexedSet<MasterWorkerInfo> mWorkers = new IndexedSet<MasterWorkerInfo>(mIdIndex,
-      mAddressIndex);
+        @Override
+        public Object getFieldValue(MasterWorkerInfo o) {
+          return o.getAddress();
+        }
+      };
+  private final IndexedSet<MasterWorkerInfo> mWorkers =
+      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   private final AtomicInteger mWorkerCounter;
 
   public BlockMaster() {
@@ -202,11 +204,11 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         // "Join" to get all the addresses of the workers.
         List<BlockLocation> locations = new ArrayList<BlockLocation>();
         for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
-          MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex,
-              masterBlockLocation.mWorkerId);
+          MasterWorkerInfo workerInfo =
+              mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
           if (workerInfo != null) {
-            locations.add(new BlockLocation(masterBlockLocation.mWorkerId, workerInfo.getAddress(),
-                masterBlockLocation.mTier));
+            locations.add(new BlockLocation(masterBlockLocation.getWorkerId(),
+                workerInfo.getAddress(), masterBlockLocation.getTier()));
           }
         }
         BlockInfo retInfo =
