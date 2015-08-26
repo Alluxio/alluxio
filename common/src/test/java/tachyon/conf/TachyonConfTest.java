@@ -170,7 +170,7 @@ public class TachyonConfTest {
   public void testWorkerDefault() {
     String value = sDefaultTachyonConf.get(Constants.WORKER_DATA_FOLDER);
     Assert.assertNotNull(value);
-    Assert.assertEquals("/mnt/ramdisk", value);
+    Assert.assertEquals("/tachyonworker/", value);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_BIND_HOST);
     Assert.assertNotNull(value);
