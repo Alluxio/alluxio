@@ -25,8 +25,10 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientFileInfo;
 import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.thrift.ClientFileInfo;
 
 /**
  * Class for convenience methods used by {@link TFsShell}.
@@ -72,8 +74,8 @@ public class TFsShellUtils {
         return path;
       }
     } else {
-      String hostname = tachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
+      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
+      int port =  tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
       if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }

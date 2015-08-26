@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -334,6 +335,37 @@ public final class TieredBlockStoreTests {
     TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
     mBlockStore.abortBlock(USER_ID1, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void moveNonExistingBlockTest() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get BlockMeta: blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
+  }
+
+  @Test
+  public void moveTempBlockTest() throws Exception {
+    mThrown.expect(InvalidStateException.class);
+    mThrown.expectMessage("Failed to move block " + TEMP_BLOCK_ID + ": block is uncommited");
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.moveBlock(USER_ID1, TEMP_BLOCK_ID, mTestDir2.toBlockStoreLocation());
+  }
+
+  // TACHYON-825
+  @Ignore
+  @Test
+  public void moveBlockToTheLocationWithExistingIdTest() throws Exception {
+    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expectMessage("Failed to add BlockMeta: blockId " + BLOCK_ID1 + " exists");
+
+    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mEvictor);
+    mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
   }
 
   @Test

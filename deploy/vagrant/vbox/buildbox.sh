@@ -2,9 +2,9 @@
 
 OLD_BOX=$(vagrant box list | grep tachyon-dev | cut -d ' ' -f1)
 if [[ "$OLD_BOX" != '' ]]; then
- echo "$OLD_BOX exists"
- echo "if you want to remove $OLD_BOX, use command: vagrant box remove $OLD_BOX"
- exit 0
+  echo "Tachyon base image $OLD_BOX exists."
+  echo "If you want to remove image $OLD_BOX, please run: vagrant box remove $OLD_BOX"
+  exit 0
 fi
 
 HERE=$(dirname $0)
@@ -14,7 +14,7 @@ if [ -f tachyon-dev.box ]; then
   rm -f tachyon-dev.box
 fi
 
-echo "Generating 'tachyon-dev.box' ..."
+echo "Generating tachyon base image 'tachyon-dev.box' ..."
 vagrant up
 vagrant package --output tachyon-dev.box default
 vagrant destroy -f

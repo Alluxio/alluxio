@@ -23,7 +23,7 @@ public class StorageDirId {
 
   /**
    * Compare storage level of StorageDirs
-   * 
+   *
    * @param storageDirIdLeft The left value of StorageDirId to be compared
    * @param storageDirIdRight The right value of StorageDirId to be compared
    * @return negative if storage level of left StorageDirId is higher than the right one, zero if

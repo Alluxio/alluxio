@@ -32,6 +32,9 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -46,7 +49,7 @@ import tachyon.util.CommonUtils;
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
-public class BlockMasterSync implements Runnable {
+public final class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
@@ -106,9 +109,9 @@ public class BlockMasterSync implements Runnable {
       mWorkerId =
           mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    } catch (BlockInfoException bie) {
-      LOG.error("Failed to register with master.", bie);
-      throw new IOException(bie);
+    } catch (IOException ioe) {
+      LOG.error("Failed to register with master.", ioe);
+      throw ioe;
     }
   }
 
