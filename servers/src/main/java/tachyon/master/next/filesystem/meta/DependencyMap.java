@@ -15,6 +15,7 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,8 +28,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalSerializable;
+import tachyon.master.next.journal.JournalWriter;
 
 /**
  * This class maintains the dependency related metadata information for the lineage feature.
@@ -125,8 +126,7 @@ public class DependencyMap implements JournalSerializable {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
+  public void writeCheckpointEntries(JournalWriter writer) throws IOException {
     // TODO(cc)
-    return null;
   }
 }
