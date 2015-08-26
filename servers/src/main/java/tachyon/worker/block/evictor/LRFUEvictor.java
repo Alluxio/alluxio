@@ -53,7 +53,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * {@link #mStepFactor} is close to 0, LRFU is close to LFU. Conversely, LRFU is close to LRU
  * when {@link #mStepFactor} is close to 1.
  */
-public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor {
+public final class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final double DEFAULT_STEP_FACTOR = 0.25;
@@ -75,8 +75,8 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
-    mManagerView = view;
-    mAllocator = allocator;
+    mManagerView = Preconditions.checkNotNull(view);
+    mAllocator = Preconditions.checkNotNull(allocator);
     mTachyonConf = new TachyonConf();
     mStepFactor = mTachyonConf
         .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR);
@@ -111,7 +111,6 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
    */
   private StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan, List<Map.Entry<Long, Double>> sortedCRF) {
-
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
     StorageDirView candidateDirView = EvictorUtils
         .selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
@@ -209,6 +208,7 @@ public class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor 
     List<Map.Entry<Long, Double>> sortedCRF =
         new ArrayList<Map.Entry<Long, Double>>(mBlockIdToCRFValue.entrySet());
     Collections.sort(sortedCRF, new Comparator<Map.Entry<Long, Double>>() {
+      @Override
       public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {
         double res = o1.getValue() - o2.getValue();
         if (res < 0) {
