@@ -1260,7 +1260,7 @@ public class MasterInfo extends ImageWriter {
    *
    * @param path path of the file
    * @return the file info
-   * @throws InvalidPathException when the file is invalid
+   * @throws InvalidPathException when the path is invalid
    */
   public ClientFileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
     mMasterSource.incGetFileStatusOps();
