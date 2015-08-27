@@ -73,13 +73,17 @@ public class FileUtils {
 
   /**
    * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
+   *
+   * @param process process whose stdout/stderr to copy
+   * @throws IOException when operation fails
    */
   private static void redirectIO(final Process process) throws IOException {
-    // Because chmod doesn't have a lot of error or output messages, its safe to process the output
-    // after the process is done. As of java 7, you can have the process redirect to System.out
-    // and System.err without forking a process.
-    // TODO when java 6 support is dropped, switch to
-    // http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+    /*
+     * Because chmod doesn't have a lot of error or output messages, it is safe to process the
+     * output after the process is done. As of java 7, you can have the process redirect to
+     * System.out and System.err without forking a process. TODO when java 6 support is dropped,
+     * switch to http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+     */
     Closer closer = Closer.create();
     try {
       ByteStreams.copy(closer.register(process.getInputStream()), System.out);
@@ -102,17 +106,24 @@ public class FileUtils {
   }
 
   /**
-   * If the sticky bit of is set on the directory 'dir', the 'dir' can only 
-   * be deleted or renamed by the owner 
+   * Sticky bit can be set primarily on directories in UNIX / Linux.
    *
-   * @param dir absolute dir path
-   * @throws IOException when fails to set sticky bit
+   * If the sticky bit of is enabled on a directory, only the owner and the root user can delete /
+   * rename the files or directories within that directory. No one else can delete other users data
+   * in this directory(Where sticky bit is set).
+   *
+   * This is a security measure to avoid deletion of folders and their content (sub-folders and
+   * files), though other users have full permissions.
+   *
+   * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
+   *
+   * @param dir absolute dir path to set the sticky bit
    */
   public static void setLocalDirStickyBit(String dir) {
     try {
       // sticky bit is not implemented in PosixFilePermission
       if (dir.startsWith(TachyonURI.SEPARATOR)) {
-        Runtime.getRuntime().exec("chmod o+t " + dir);
+        Runtime.getRuntime().exec("chmod o+t " + new File(dir).getAbsolutePath());
       }
     } catch (IOException e) {
       LOG.info("Can not set the sticky bit of the direcotry : " + dir);
@@ -128,20 +139,12 @@ public class FileUtils {
    *         permissions.
    */
   public static void createBlockPath(String path) throws IOException {
-    File localFolder;
     try {
-      localFolder = new File(PathUtils.getParent(path));
+      createStorageDirPath(PathUtils.getParent(path));
     } catch (InvalidPathException e) {
-      throw new IOException(e);
-    }
-
-    if (!localFolder.exists()) {
-      if (localFolder.mkdirs()) {
-        changeLocalFileToFullPermission(localFolder.getAbsolutePath());
-        LOG.info("Folder {} was created!", localFolder);
-      } else {
-        throw new IOException("Failed to create folder " + localFolder);
-      }
+      throw new IOException("Failed to create block path, get parent path of " + path + "failed");
+    } catch (IOException ioe) {
+      throw new IOException("Failed to create block path " + path);
     }
   }
 
@@ -149,7 +152,7 @@ public class FileUtils {
    * Move file from one place to another, can across storage devices (e.g., from memory to SSD) when
    * {@link File#renameTo} may not work.
    *
-   * Current implementation uses {@link com.google.common.io.Files#move(File, File);}, may change if
+   * Current implementation uses {@link com.google.common.io.Files#move(File, File)}, may change if
    * there is a better solution.
    *
    * @param srcPath pathname string of source file
@@ -163,8 +166,8 @@ public class FileUtils {
   /**
    * Delete the file or directory.
    *
-   * Current implementation uses {@link java.io.File#delete()}, may change if
-   * there is a better solution.
+   * Current implementation uses {@link java.io.File#delete()}, may change if there is a better
+   * solution.
    *
    * @param path pathname string of file or directory
    * @throws IOException when fails to delete
@@ -174,6 +177,29 @@ public class FileUtils {
     boolean deletionSucceeded = file.delete();
     if (deletionSucceeded == false) {
       throw new IOException("Failed to delete " + path);
+    }
+  }
+
+  /**
+   * Create the storage directory path, including any necessary but nonexistent parent directories.
+   * If the directory already exists, do nothing.
+   *
+   * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
+   *
+   * @param path storage directory path to create
+   * @throws IOException when fails to create storage directory path
+   */
+  public static void createStorageDirPath(String path) throws IOException {
+    File dir = new File(path);
+    String absolutePath = dir.getAbsolutePath();
+    if (!dir.exists()) {
+      if (dir.mkdirs()) {
+        changeLocalFileToFullPermission(absolutePath);
+        setLocalDirStickyBit(absolutePath);
+        LOG.info("Folder {} was created!", path);
+      } else {
+        throw new IOException("Failed to create folder " + path);
+      }
     }
   }
 

@@ -62,7 +62,7 @@ public class BasicOperations implements Callable<Boolean> {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
     int fileId = tachyonClient.createFile(mFilePath);
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
   }
 
   private void writeFile(TachyonFS tachyonClient) throws IOException {
@@ -82,7 +82,7 @@ public class BasicOperations implements Callable<Boolean> {
     os.write(buf.array());
     os.close();
 
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "writeFile to file " + mFilePath);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
   private boolean readFile(TachyonFS tachyonClient) throws IOException {
@@ -100,7 +100,7 @@ public class BasicOperations implements Callable<Boolean> {
     }
     is.close();
 
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "readFile file " + mFilePath);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "readFile file " + mFilePath));
     return pass;
   }
 

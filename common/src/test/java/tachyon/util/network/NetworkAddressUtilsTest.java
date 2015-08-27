@@ -21,11 +21,160 @@ import java.net.UnknownHostException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
-import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 public class NetworkAddressUtilsTest {
+
+  @Test
+  public void testGetConnectAddress() throws Exception {
+    for (ServiceType service : ServiceType.values()) {
+      getConnectAddress(service);
+    }
+  }
+
+  private void getConnectAddress(ServiceType service) throws Exception {
+    TachyonConf conf = new TachyonConf();
+    String localHostName = NetworkAddressUtils.getLocalHostName(conf);
+    InetSocketAddress masterAddress;
+
+    // all default
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress(localHostName, service.getDefaultPort()),
+        masterAddress);
+
+    // bind host only
+    conf.set(service.getHostNameKey(), "");
+    conf.set(service.getBindHostKey(), "bind.host");
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert
+        .assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), masterAddress);
+
+    // connect host and bind host
+    conf.set(service.getHostNameKey(), "connect.host");
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress("connect.host", service.getDefaultPort()),
+        masterAddress);
+
+    // wildcard connect host and bind host
+    conf.set(service.getHostNameKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert
+        .assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), masterAddress);
+
+    // wildcard connect host and wildcard bind host
+    conf.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress(localHostName, service.getDefaultPort()),
+        masterAddress);
+
+    // connect host and wildcard bind host
+    conf.set(service.getHostNameKey(), "connect.host");
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress("connect.host", service.getDefaultPort()),
+        masterAddress);
+
+    // connect host and wildcard bind host with port
+    conf.set(service.getPortKey(), "10000");
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress("connect.host", 10000), masterAddress);
+
+    // connect host and bind host with port
+    conf.set(service.getBindHostKey(), "bind.host");
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress("connect.host", 10000), masterAddress);
+
+    // empty connect host and bind host with port
+    conf.set(service.getHostNameKey(), "");
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress("bind.host", 10000), masterAddress);
+
+    // empty connect host and wildcard bind host with port
+    conf.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
+    masterAddress = NetworkAddressUtils.getConnectAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress(localHostName, 10000), masterAddress);
+  }
+
+  @Test
+  public void testGetBindAddress() throws Exception {
+    for (ServiceType service : ServiceType.values()) {
+      getConnectAddress(service);
+    }
+  }
+
+  public void getBindAddress(ServiceType service) throws Exception {
+    TachyonConf conf = new TachyonConf();
+    String localHostName = NetworkAddressUtils.getLocalHostName(conf);
+    InetSocketAddress workerAddress;
+
+    // all default
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert.assertEquals(
+        new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, service.getDefaultPort()),
+        workerAddress);
+
+    // bind host only
+    conf.set(service.getBindHostKey(), "bind.host");
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert
+        .assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), workerAddress);
+
+    // connect host and bind host
+    conf.set(service.getHostNameKey(), "connect.host");
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert
+        .assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), workerAddress);
+
+    // wildcard connect host and bind host
+    conf.set(service.getHostNameKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert
+        .assertEquals(new InetSocketAddress("bind.host", service.getDefaultPort()), workerAddress);
+
+    // wildcard connect host and wildcard bind host
+    conf.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert.assertEquals(
+        new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, service.getDefaultPort()),
+        workerAddress);
+
+    // connect host and wildcard bind host
+    conf.set(service.getHostNameKey(), "connect.host");
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert.assertEquals(
+        new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, service.getDefaultPort()),
+        workerAddress);
+
+    // connect host and wildcard bind host with port
+    conf.set(Constants.WORKER_PORT, "20000");
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000),
+        workerAddress);
+
+    // connect host and bind host with port
+    conf.set(service.getBindHostKey(), "bind.host");
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress("bind.host", 20000), workerAddress);
+
+    // empty connect host and bind host with port
+    conf.set(service.getHostNameKey(), "");
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress("bind.host", 20000), workerAddress);
+
+    // empty connect host and wildcard bind host with port
+    conf.set(service.getBindHostKey(), NetworkAddressUtils.WILDCARD_ADDRESS);
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000),
+        workerAddress);
+
+    // empty connect host and empty bind host with port
+    conf.set(service.getBindHostKey(), "");
+    workerAddress = NetworkAddressUtils.getBindAddress(service, conf);
+    Assert.assertEquals(new InetSocketAddress(localHostName, 20000), workerAddress);
+  }
 
   @Test
   public void replaceHostNameTest() throws UnknownHostException {

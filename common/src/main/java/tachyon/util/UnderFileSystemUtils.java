@@ -29,8 +29,11 @@ public final class UnderFileSystemUtils {
   private UnderFileSystemUtils() {}
 
   /**
-   * Deletes the directory at the given path. If delete is unsuccessful, then this operation will
-   * throw a {@link java.io.IOException}.
+   * Deletes the directory at the given path.
+   *
+   * @param path path to the directory
+   * @param tachyonConf Tachyon configuration
+   * @throws IOException if the directory cannot be deleted
    */
   public static void deleteDir(final String path, TachyonConf tachyonConf) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
@@ -41,8 +44,11 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Attempts to create the directory if it does not already exist. If unable to create the
-   * directory, then a {@link java.io.IOException} is thrown.
+   * Attempts to create the directory if it does not already exist.
+   *
+   * @param path path to the directory
+   * @param tachyonConf Tachyon configuration
+   * @throws IOException if the directory cannot be created
    */
   public static void mkdirIfNotExists(final String path, TachyonConf tachyonConf)
       throws IOException {
@@ -56,9 +62,11 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Create an empty file
+   * Create an empty file.
    *
-   * @throws IOException
+   * @param path path to the file
+   * @param tachyonConf Tachyon Configuration
+   * @throws IOException if the file cannot be created
    */
   public static void touch(final String path, TachyonConf tachyonConf) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
