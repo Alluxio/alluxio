@@ -17,6 +17,8 @@ package tachyon.exception;
 
 import java.text.MessageFormat;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Exception messages used across Tachyon.
  *
@@ -57,13 +59,14 @@ public enum ExceptionMessage {
   private final MessageFormat mMessage;
 
   ExceptionMessage(String message) {
-    this.mMessage = new MessageFormat(message);
+    mMessage = new MessageFormat(message);
   }
 
   public String getMessage(Object... params) {
+    Preconditions.checkArgument(mMessage.getFormats().length == params.length);
     // MessageFormat is not thread-safe, so guard it
     synchronized (mMessage) {
-      return this.mMessage.format(params);
+      return mMessage.format(params);
     }
   }
 }
