@@ -96,9 +96,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
   @Override
   public void write(int b) throws IOException {
     failIfClosed();
-    if (mWrittenBytes + 1 > mBlockSize) {
-      throw new IOException("Out of capacity.");
-    }
+    Preconditions.checkState(mWrittenBytes + 1 <= mBlockSize, "Out of capacity.");
     if (mBuffer.position() >= mBuffer.limit()) {
       flushBufferToRemote();
     }
@@ -114,16 +112,10 @@ public class RemoteBlockOutStream extends BlockOutStream {
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
     failIfClosed();
-    if (b == null) {
-      throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
-        || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException(String.format("Buffer length (%d), offset(%d), len(%d)",
-          b.length, off, len));
-    }
-    if (mWrittenBytes + len > mBlockSize) {
-      throw new IOException("Out of capacity.");
-    }
+    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
+        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    Preconditions.checkState(mWrittenBytes + len <= mBlockSize, "Out of capacity.");
     if (len == 0) {
       return;
     }
