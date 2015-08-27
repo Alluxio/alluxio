@@ -146,8 +146,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public BlockWriter getBlockWriter(long userId, long blockId)
-      throws NotFoundException, IOException {
+  public BlockWriter getBlockWriter(long userId, long blockId) throws NotFoundException,
+      IOException {
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
     // TODO: handle the case where multiple writers compete for the same block
@@ -175,8 +175,8 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public TempBlockMeta createBlockMeta(long userId, long blockId, BlockStoreLocation location,
-      long initialBlockSize)
-          throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException {
+      long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
+      IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
       TempBlockMeta tempBlockMeta =
           createBlockMetaInternal(userId, blockId, location, initialBlockSize, true);
@@ -208,8 +208,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public BlockMeta getBlockMeta(long userId, long blockId, long lockId)
-      throws NotFoundException, InvalidStateException {
+  public BlockMeta getBlockMeta(long userId, long blockId, long lockId) throws NotFoundException,
+      InvalidStateException {
     mLockManager.validateLock(userId, blockId, lockId);
     mMetadataReadLock.lock();
     try {
@@ -220,8 +220,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void commitBlock(long userId, long blockId)
-      throws AlreadyExistsException, InvalidStateException, NotFoundException, IOException {
+  public void commitBlock(long userId, long blockId) throws AlreadyExistsException,
+      InvalidStateException, NotFoundException, IOException {
     BlockStoreLocation loc = commitBlockInternal(userId, blockId);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -231,8 +231,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void abortBlock(long userId, long blockId)
-      throws AlreadyExistsException, NotFoundException, InvalidStateException, IOException {
+  public void abortBlock(long userId, long blockId) throws AlreadyExistsException,
+      NotFoundException, InvalidStateException, IOException {
     abortBlockInternal(userId, blockId);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -282,8 +282,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public void removeBlock(long userId, long blockId)
-      throws InvalidStateException, NotFoundException, IOException {
+  public void removeBlock(long userId, long blockId) throws InvalidStateException,
+      NotFoundException, IOException {
     removeBlockInternal(userId, blockId);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -405,8 +405,8 @@ public final class TieredBlockStore implements BlockStore {
    * @throws AlreadyExistsException if blockId already exists in committed blocks
    * @throws InvalidStateException if blockId is not owned by userId
    */
-  private void checkTempBlockOwnedByUser(long userId, long blockId)
-      throws NotFoundException, AlreadyExistsException, InvalidStateException {
+  private void checkTempBlockOwnedByUser(long userId, long blockId) throws NotFoundException,
+      AlreadyExistsException, InvalidStateException {
     if (mMetaManager.hasBlockMeta(blockId)) {
       throw new AlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
     }
@@ -428,8 +428,8 @@ public final class TieredBlockStore implements BlockStore {
    * @throws InvalidStateException if blockId is not owned by userId
    * @throws IOException if I/O errors occur when deleting the block file
    */
-  private void abortBlockInternal(long userId, long blockId)
-      throws NotFoundException, AlreadyExistsException, InvalidStateException, IOException {
+  private void abortBlockInternal(long userId, long blockId) throws NotFoundException,
+      AlreadyExistsException, InvalidStateException, IOException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
       String path;
@@ -713,8 +713,8 @@ public final class TieredBlockStore implements BlockStore {
    * @throws IOException if I/O errors occur when moving block file
    */
   private MoveBlockResult moveBlockInternal(long userId, long blockId,
-      BlockStoreLocation newLocation)
-          throws NotFoundException, AlreadyExistsException, InvalidStateException, IOException {
+      BlockStoreLocation newLocation) throws NotFoundException, AlreadyExistsException,
+      InvalidStateException, IOException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
       long blockSize;
@@ -779,8 +779,8 @@ public final class TieredBlockStore implements BlockStore {
    * @throws NotFoundException if this block can not be found
    * @throws IOException if I/O errors occur when removing this block file
    */
-  private void removeBlockInternal(long userId, long blockId)
-      throws InvalidStateException, NotFoundException, IOException {
+  private void removeBlockInternal(long userId, long blockId) throws InvalidStateException,
+      NotFoundException, IOException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
       String filePath;
