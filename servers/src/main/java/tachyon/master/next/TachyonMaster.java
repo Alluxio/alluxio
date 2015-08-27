@@ -39,6 +39,7 @@ import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.rawtable.RawTableMaster;
+import tachyon.master.next.user.UserMaster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
@@ -78,10 +79,14 @@ public class TachyonMaster {
   private final TServerSocket mTServerSocket;
   private final InetSocketAddress mMasterAddress;
 
+  // The masters
+  private UserMaster mUserMaster;
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
   private RawTableMaster mRawTableMaster;
 
+  // The journals for the masters
+  private final Journal mUserMasterJournal;
   private final Journal mBlockMasterJournal;
   private final Journal mFileSystemMasterJournal;
   private final Journal mRawTableMasterJournal;
@@ -123,6 +128,9 @@ public class TachyonMaster {
       Preconditions.checkState(isJournalFormatted(journalDirectory),
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
+      // Create the journals.
+      mUserMasterJournal = new Journal(
+          PathUtils.concatPath(journalDirectory, Constants.USER_MASTER_SERVICE_NAME), mTachyonConf);
       mBlockMasterJournal =
           new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
               mTachyonConf);
@@ -133,6 +141,7 @@ public class TachyonMaster {
           PathUtils.concatPath(journalDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME),
           mTachyonConf);
 
+      mUserMaster = new UserMaster(mUserMasterJournal);
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster =
           new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
@@ -230,8 +239,11 @@ public class TachyonMaster {
             mWebServer.shutdownWebServer();
             // TODO: transition to becoming a standby master.
 
+            // TODO: handle when a master starts as a standby master.
+
             // When transitioning from master to standby, recreate the masters with a readonly
             // journal.
+            mUserMaster = new UserMaster(mUserMasterJournal.getReadOnlyJournal());
             mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
             mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
                 mFileSystemMasterJournal.getReadOnlyJournal());
@@ -279,6 +291,7 @@ public class TachyonMaster {
 
       // set up multiplexed thrift processors
       TMultiplexedProcessor processor = new TMultiplexedProcessor();
+      processor.registerProcessor(mUserMaster.getProcessorName(), mUserMaster.getProcessor());
       processor.registerProcessor(mBlockMaster.getProcessorName(), mBlockMaster.getProcessor());
       processor.registerProcessor(mFileSystemMaster.getProcessorName(),
           mFileSystemMaster.getProcessor());

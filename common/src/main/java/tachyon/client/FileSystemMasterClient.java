@@ -47,9 +47,6 @@ public final class FileSystemMasterClient extends MasterClient {
 
   private FileSystemMasterService.Client mClient = null;
 
-  // TODO: implement client heartbeat to the master
-  private Future<?> mHeartbeat;
-
   public FileSystemMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
@@ -63,13 +60,10 @@ public final class FileSystemMasterClient extends MasterClient {
   @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterService.Client(mProtocol);
-    // TODO: get a user id?
-    // TODO: start client heartbeat thread, and submit it to the executor service
   }
 
   @Override
   protected void afterDisconnect() {
-    // TODO: implement heartbeat cleanup
   }
 
   public synchronized long getFileId(String path) throws IOException {
