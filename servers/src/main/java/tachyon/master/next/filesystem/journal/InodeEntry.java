@@ -15,7 +15,6 @@
 
 package tachyon.master.next.filesystem.journal;
 
-import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;

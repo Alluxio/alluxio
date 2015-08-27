@@ -15,6 +15,7 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -30,8 +31,8 @@ import tachyon.TachyonURI;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.block.ContainerIdGenerator;
-import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalSerializable;
+import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -272,8 +273,9 @@ public final class InodeTree implements JournalSerializable {
     return Sets.newHashSet(mPinnedInodeFileIds);
   }
 
-  public JournalEntry toJournalEntry() {
-    return mRoot.toJournalEntry();
+  @Override
+  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
+    mRoot.writeJournalCheckpoint(writer);
   }
 
   private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {
