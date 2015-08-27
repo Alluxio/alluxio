@@ -57,6 +57,43 @@ public class LoginUserTest {
     Assert.assertFalse(loginUser.getName().isEmpty());
   }
 
+  /**
+   * Test whether we can get login user with conf in SIMPLE mode, when custom name is provided.
+   * @throws Exception
+   */
+  @Test
+  public void getCustomLoginUserTest() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //instead of System.getProperty for retrieving user name.
+    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon-user");
+
+    User loginUser = LoginUser.get(conf);
+
+    Assert.assertNotNull(loginUser);
+    Assert.assertEquals(loginUser.getName(), "tachyon-user");
+  }
+
+  /**
+   * Test whether we can get login user with conf in SIMPLE mode, when custom name is set to an
+   * empty string. In this case, login should return the OS user instead of empty string.
+   * @throws Exception
+   */
+  @Test
+  public void getLoginUserWhenCustomIsEmpty() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //instead of System.getProperty for retrieving user name.
+    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
+
+    User loginUser = LoginUser.get(conf);
+
+    Assert.assertNotNull(loginUser);
+    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+  }
+
   // TODO: getKerberosLoginUserTest()
 
   /**
