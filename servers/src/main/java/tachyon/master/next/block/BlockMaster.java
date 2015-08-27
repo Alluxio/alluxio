@@ -17,6 +17,7 @@ package tachyon.master.next.block;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
@@ -49,7 +52,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
-public class BlockMaster implements Master, ContainerIdGenerator {
+public final class BlockMaster implements Master, ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
@@ -58,19 +61,21 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private final Set<Long> mLostBlocks;
 
   // Worker metadata management.
-  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+  private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
     @Override
     public Object getFieldValue(MasterWorkerInfo o) {
       return o.getId();
     }
   };
-  private final IndexedSet.FieldIndex mAddressIndex =
+  private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getAddress();
         }
       };
+
+  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   private final AtomicInteger mWorkerCounter;
@@ -84,7 +89,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   private JournalTailerThread mStandbyJournalTailer = null;
 
   public BlockMaster(Journal journal) {
-    mJournal = journal;
+    mJournal = Preconditions.checkNotNull(journal);
     mBlocks = new HashMap<Long, MasterBlockInfo>();
     mBlockIdGenerator = new BlockIdGenerator();
     mWorkerCounter = new AtomicInteger(0);
@@ -164,7 +169,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   // TODO: expose through thrift
   public Set<Long> getLostBlocks() {
-    return mLostBlocks;
+    return Collections.unmodifiableSet(mLostBlocks);
   }
 
   public void removeBlocks(List<Long> blockIds) {
