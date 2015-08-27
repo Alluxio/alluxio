@@ -71,7 +71,7 @@ public class UserMaster extends MasterBase {
   }
 
   @Override
-  public void writeJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
   }
 
