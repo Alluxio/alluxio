@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.next.ClientOptions;
-import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.BlockInfo;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
@@ -57,7 +57,7 @@ public class TachyonBS implements Closeable {
    * @return a FileBlockInfo containing the metadata of the block
    * @throws IOException if the block does not exist
    */
-  public FileBlockInfo getInfo(long blockId) throws IOException {
+  public BlockInfo getInfo(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getBlockInfo(blockId);
@@ -77,9 +77,10 @@ public class TachyonBS implements Closeable {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Fix this RPC
-      FileBlockInfo blockInfo = masterClient.getBlockInfo(blockId);
+      BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
       // TODO: Get location via a policy
-      return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0));
+      return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
+          .getWorkerAddress());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
