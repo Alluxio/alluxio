@@ -27,7 +27,7 @@ import tachyon.Constants;
 /**
  * Unit tests for tachyon.InodeDirectory.
  */
-public final class InodeDirectoryTests extends AbstractInodeTests {
+public final class InodeDirectoryTest extends AbstractInodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Test

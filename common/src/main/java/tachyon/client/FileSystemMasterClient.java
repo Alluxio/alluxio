@@ -96,6 +96,10 @@ public final class FileSystemMasterClient extends MasterClient {
     throw new IOException("This connection has been closed.");
   }
 
+  public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException {
+    return null;
+  }
+
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException {
     return null;
@@ -117,7 +121,7 @@ public final class FileSystemMasterClient extends MasterClient {
     return null;
   }
 
-  public synchronized long createFile(long fileId, long blockSizeBytes, boolean recursive)
+  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
       throws IOException {
     return -1;
   }
@@ -143,7 +147,7 @@ public final class FileSystemMasterClient extends MasterClient {
 
   }
 
-  public synchronized boolean createDirectory(long fileId, boolean recursive) throws IOException {
+  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException {
     return false;
   }
 
