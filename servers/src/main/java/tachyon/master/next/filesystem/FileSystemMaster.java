@@ -17,7 +17,6 @@ package tachyon.master.next.filesystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -32,15 +31,18 @@ import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockId;
-import tachyon.master.next.Master;
-import tachyon.master.next.PeriodicTask;
+import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
+import tachyon.master.next.journal.Journal;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
@@ -60,7 +62,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-public class FileSystemMaster implements Master {
+public class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
@@ -71,7 +73,9 @@ public class FileSystemMaster implements Master {
 
   private final PrefixList mWhitelist;
 
-  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster) {
+  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
+      Journal journal) {
+    super(journal);
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
 
@@ -93,9 +97,30 @@ public class FileSystemMaster implements Master {
     return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
   }
 
-  public List<PeriodicTask> getPeriodicTaskList() {
-    // TODO: return tasks for periodic detection of required lineage recomputation
-    return Collections.emptyList();
+  @Override
+  public void processJournalCheckpoint(JournalInputStream inputStream) {
+    // TODO
+  }
+
+  @Override
+  public void processJournalEntry(JournalEntry entry) {
+    // TODO
+  }
+
+  @Override
+  public void start(boolean asMaster) throws IOException {
+    startMaster(asMaster);
+    if (isMasterMode()) {
+      // TODO: start periodic heartbeat threads.
+    }
+  }
+
+  @Override
+  public void stop() throws IOException {
+    stopMaster();
+    if (isMasterMode()) {
+      // TODO: stop heartbeat threads.
+    }
   }
 
   public boolean completeFileCheckpoint(long workerId, long fileId, long length,
@@ -149,7 +174,7 @@ public class FileSystemMaster implements Master {
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
-        // TODO: write to journal.
+        writeJournalEntry(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
       }
       return true;
     }
@@ -567,7 +592,7 @@ public class FileSystemMaster implements Master {
   }
 
   @Override
-  public void writeCheckpointEntries(JournalWriter writer) throws IOException {
+  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
     // TODO(cc)
   }
 

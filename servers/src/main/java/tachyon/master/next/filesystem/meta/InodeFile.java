@@ -273,7 +273,7 @@ public final class InodeFile extends Inode {
   }
 
   @Override
-  public synchronized void writeCheckpointEntries(JournalWriter writer) throws IOException {
+  public synchronized void writeJournalCheckpoint(JournalWriter writer) throws IOException {
     writer.writeCheckpointEntry(new InodeFileEntry(getCreationTimeMs(), getId(), getName(),
         getParentId(), isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(),
         isComplete(), isCache(), getUfsPath()));

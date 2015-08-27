@@ -191,7 +191,7 @@ public final class InodeDirectory extends Inode {
   }
 
   @Override
-  public synchronized void writeCheckpointEntries(JournalWriter writer) throws IOException {
+  public synchronized void writeJournalCheckpoint(JournalWriter writer) throws IOException {
     writer.writeCheckpointEntry(new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(),
         getParentId(), isPinned(), getLastModificationTimeMs(), getChildrenIds()));
 
@@ -200,7 +200,7 @@ public final class InodeDirectory extends Inode {
     Queue<Inode> children = new LinkedList<Inode>(getChildren());
     while (!children.isEmpty()) {
       Inode child = children.poll();
-      child.writeCheckpointEntries(writer);
+      child.writeJournalCheckpoint(writer);
       if (child.isDirectory()) {
         children.addAll(((InodeDirectory)child).getChildren());
       }

@@ -24,7 +24,6 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,13 +78,13 @@ public class TachyonMaster {
   private final TServerSocket mTServerSocket;
   private final InetSocketAddress mMasterAddress;
 
-  private final BlockMaster mBlockMaster;
-  private final FileSystemMaster mFileSystemMaster;
-  private final RawTableMaster mRawTableMaster;
+  private BlockMaster mBlockMaster;
+  private FileSystemMaster mFileSystemMaster;
+  private RawTableMaster mRawTableMaster;
 
-  private Journal mBlockMasterJournal;
-  private Journal mFileSystemMasterJournal;
-  private Journal mRawTableMasterJournal;
+  private final Journal mBlockMasterJournal;
+  private final Journal mFileSystemMasterJournal;
+  private final Journal mRawTableMasterJournal;
 
   private UIWebServer mWebServer;
   private TServer mMasterServiceServer;
@@ -124,20 +123,20 @@ public class TachyonMaster {
       Preconditions.checkState(isJournalFormatted(journalDirectory),
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
-      // TODO: create journal formatters.
       mBlockMasterJournal =
           new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
-              mTachyonConf, null);
+              mTachyonConf);
       mFileSystemMasterJournal =
           new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
-              mTachyonConf, null);
+              mTachyonConf);
       mRawTableMasterJournal = new Journal(
           PathUtils.concatPath(journalDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME),
-          mTachyonConf, null);
+          mTachyonConf);
 
-      mBlockMaster = new BlockMaster();
-      mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster);
-      mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster);
+      mBlockMaster = new BlockMaster(mBlockMasterJournal);
+      mFileSystemMaster =
+          new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
+      mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
 
       // TODO: implement metrics.
 
@@ -230,6 +229,14 @@ public class TachyonMaster {
             mMasterServiceServer.stop();
             mWebServer.shutdownWebServer();
             // TODO: transition to becoming a standby master.
+
+            // When transitioning from master to standby, recreate the masters with a readonly
+            // journal.
+            mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
+            mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
+                mFileSystemMasterJournal.getReadOnlyJournal());
+            mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
+                mRawTableMasterJournal.getReadOnlyJournal());
             running = false;
           }
         }

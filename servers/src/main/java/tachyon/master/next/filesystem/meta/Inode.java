@@ -228,5 +228,5 @@ public abstract class Inode implements JournalSerializable {
   }
 
   @Override
-  public abstract void writeCheckpointEntries(JournalWriter writer) throws IOException;
+  public abstract void writeJournalCheckpoint(JournalWriter writer) throws IOException;
 }

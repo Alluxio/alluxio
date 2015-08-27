@@ -18,7 +18,6 @@ package tachyon.master.next.block;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,11 +33,13 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.IndexedSet;
-import tachyon.master.next.Master;
-import tachyon.master.next.PeriodicTask;
+import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
+import tachyon.master.next.journal.Journal;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
@@ -49,7 +50,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
-public class BlockMaster implements Master, ContainerIdGenerator {
+public class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
@@ -59,21 +60,24 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   // Worker metadata management.
   private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+    @Override
     public Object getFieldValue(MasterWorkerInfo o) {
       return o.getId();
     }
   };
   private final IndexedSet.FieldIndex mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
-    public Object getFieldValue(MasterWorkerInfo o) {
-      return o.getAddress();
-    }
-  };
-  private final IndexedSet<MasterWorkerInfo> mWorkers = new IndexedSet<MasterWorkerInfo>(mIdIndex,
-      mAddressIndex);
+        @Override
+        public Object getFieldValue(MasterWorkerInfo o) {
+          return o.getAddress();
+        }
+      };
+  private final IndexedSet<MasterWorkerInfo> mWorkers =
+      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   private final AtomicInteger mWorkerCounter;
 
-  public BlockMaster() {
+  public BlockMaster(Journal journal) {
+    super(journal);
     mBlocks = new HashMap<Long, MasterBlockInfo>();
     mBlockIdGenerator = new BlockIdGenerator();
     mWorkerCounter = new AtomicInteger(0);
@@ -91,9 +95,30 @@ public class BlockMaster implements Master, ContainerIdGenerator {
     return Constants.BLOCK_MASTER_SERVICE_NAME;
   }
 
-  public List<PeriodicTask> getPeriodicTaskList() {
-    // TODO: return tasks for detecting lost workers
-    return Collections.emptyList();
+  @Override
+  public void processJournalCheckpoint(JournalInputStream inputStream) {
+    // TODO
+  }
+
+  @Override
+  public void processJournalEntry(JournalEntry entry) {
+    // TODO
+  }
+
+  @Override
+  public void start(boolean asMaster) throws IOException {
+    startMaster(asMaster);
+    if (isMasterMode()) {
+      // TODO: start periodic heartbeat threads.
+    }
+  }
+
+  @Override
+  public void stop() throws IOException {
+    stopMaster();
+    if (isMasterMode()) {
+      // TODO: stop heartbeat threads.
+    }
   }
 
   public List<WorkerInfo> getWorkerInfoList() {
@@ -189,11 +214,11 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         // "Join" to get all the addresses of the workers.
         List<BlockLocation> locations = new ArrayList<BlockLocation>();
         for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
-          MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex,
-              masterBlockLocation.mWorkerId);
+          MasterWorkerInfo workerInfo =
+              mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
           if (workerInfo != null) {
-            locations.add(new BlockLocation(masterBlockLocation.mWorkerId, workerInfo.getAddress(),
-                masterBlockLocation.mTier));
+            locations.add(new BlockLocation(masterBlockLocation.getWorkerId(),
+                workerInfo.getAddress(), masterBlockLocation.getTier()));
           }
         }
         BlockInfo retInfo =
@@ -274,7 +299,7 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   }
 
   @Override
-  public void writeCheckpointEntries(JournalWriter writer) throws IOException {
+  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
     // TODO(cc)
   }
 

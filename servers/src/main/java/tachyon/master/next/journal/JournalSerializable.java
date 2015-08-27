@@ -18,5 +18,5 @@ package tachyon.master.next.journal;
 import java.io.IOException;
 
 public interface JournalSerializable {
-  void writeCheckpointEntries(JournalWriter writer) throws IOException;
+  void writeJournalCheckpoint(JournalWriter writer) throws IOException;
 }
