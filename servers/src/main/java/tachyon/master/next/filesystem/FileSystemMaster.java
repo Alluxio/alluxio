@@ -36,6 +36,7 @@ import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.CreateFileEntry;
+import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -316,8 +317,10 @@ public class FileSystemMaster implements Master {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      return deleteInodeInternal(inode, recursive);
-      // TODO: write to journal
+      boolean ret = deleteInodeInternal(inode, recursive);
+      Inode parent = mInodeTree.getInodeById(inode.getParentId());
+      logEvent(new DeleteFileEntry(fileId, recursive, parent.getLastModificationTimeMs()));
+      return ret;
     }
   }
 
