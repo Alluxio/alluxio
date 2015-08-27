@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.client.UserMasterClient;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -36,6 +37,8 @@ public class ClientContext {
 
   private static final InetSocketAddress MASTER_ADDRESS;
 
+  private static final UserMasterClientPool USER_CLIENT_POOL;
+
   static {
     TACHYON_CONF = new TachyonConf();
 
@@ -43,6 +46,8 @@ public class ClientContext {
     int masterPort = TACHYON_CONF.getInt(Constants.MASTER_PORT);
 
     MASTER_ADDRESS = new InetSocketAddress(masterHostname, masterPort);
+
+    USER_CLIENT_POOL = new UserMasterClientPool(MASTER_ADDRESS, TACHYON_CONF);
   }
 
   /**
@@ -57,5 +62,13 @@ public class ClientContext {
 
   public static InetSocketAddress getMasterAddress() {
     return MASTER_ADDRESS;
+  }
+
+  public static UserMasterClient acquireUserMasterClient() {
+    return USER_CLIENT_POOL.acquire();
+  }
+
+  public static void releaseUserMasterClient(UserMasterClient userMasterClient) {
+    USER_CLIENT_POOL.release(userMasterClient);
   }
 }

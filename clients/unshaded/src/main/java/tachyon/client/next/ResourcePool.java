@@ -15,6 +15,7 @@
 
 package tachyon.client.next;
 
+import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 

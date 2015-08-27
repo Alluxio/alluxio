@@ -85,7 +85,7 @@ public class WorkerClient implements Closeable {
    * @param clientMetrics
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
-                      TachyonConf conf, long userId, ClientMetrics clientMetrics) {
+      TachyonConf conf, long userId, ClientMetrics clientMetrics) {
     mWorkerNetAddress = workerNetAddress;
     mExecutorService = executorService;
     mTachyonConf = conf;
@@ -232,8 +232,7 @@ public class WorkerClient implements Closeable {
       mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
-      mHeartbeatExecutor =
-          new WorkerClientHeartbeatExecutor(this, mUserId);
+      mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
       String threadName = "worker-heartbeat-" + mWorkerAddress;
       int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
           Constants.SECOND_MS);
@@ -250,6 +249,17 @@ public class WorkerClient implements Closeable {
     }
 
     return mConnected;
+  }
+
+  /**
+   * Updates the user id of the client, starting a new session. The previous user's held
+   * resources should have already been freed, and will be automatically freed after the timeout
+   * is exceeded.
+   *
+   * @param newUserId the new id that represents the new session
+   */
+  public synchronized void createNewSession(long newUserId) {
+    mUserId = newUserId;
   }
 
   /**
@@ -425,16 +435,16 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Users' heartbeat to the Worker.
+   * Sends a user heartbeat to the worker. This renews the client's lease on resources such as
+   * locks and temporary files and updates the worker's metrics.
    *
-   * @param userId The id of the user
-   * @throws IOException
+   * @throws IOException if an error occurs during the heartbeat
    */
-  public synchronized void userHeartbeat(long userId) throws IOException {
+  public synchronized void userHeartbeat() throws IOException {
     mustConnect();
 
     try {
-      mClient.userHeartbeat(userId, mClientMetrics.getHeartbeatData());
+      mClient.userHeartbeat(mUserId, mClientMetrics.getHeartbeatData());
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
