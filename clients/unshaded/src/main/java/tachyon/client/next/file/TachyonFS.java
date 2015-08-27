@@ -141,7 +141,7 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Fix the RPC arguments
-      int fileId = masterClient.createFile(path.getPath(), options.getBlockSize(), true);
+      long fileId = masterClient.createFile(path.getPath(), options.getBlockSize(), true);
       return new ClientFileOutStream(fileId, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -161,7 +161,7 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Change this RPC
-      return masterClient.getFileInfo(file.getFileId());
+      return masterClient.getFileInfoList(file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
