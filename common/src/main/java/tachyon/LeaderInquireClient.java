@@ -31,7 +31,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Utility to get leader from zookeeper.
  */
-public class LeaderInquireClient {
+public final class LeaderInquireClient {
   private static final int MAX_TRY = 10;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
