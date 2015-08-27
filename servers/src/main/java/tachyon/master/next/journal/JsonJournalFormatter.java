@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -232,7 +233,7 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("parentId"),
                 entry.getBoolean("isPinned"),
                 entry.getLong("lastModificationTimeMs"),
-                entry.get("childrenIds", new TypeReference<List<Long>>() {}));
+                entry.get("childrenIds", new TypeReference<Set<Long>>() {}));
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(
