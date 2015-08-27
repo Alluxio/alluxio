@@ -30,6 +30,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
@@ -217,7 +218,7 @@ public class RemoteBlockInStream extends BlockInStream {
     if (read(b) == -1) {
       return -1;
     }
-    return (int) b[0] & 0xFF;
+    return BufferUtils.byteToInt(b[0]);
   }
 
   @Override
