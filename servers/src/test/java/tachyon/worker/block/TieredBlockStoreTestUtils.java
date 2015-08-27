@@ -53,7 +53,7 @@ public class TieredBlockStoreTestUtils {
    * simplicity, you can use {@link #defaultTachyonConf(String)} which calls this method with
    * default values.
    *
-   * @param tierLevel like {@link #TIER_LEVEL}, length must be > 0.
+   * @param tierLevel like {@link #TIER_LEVEL}, length must be &gt; 0.
    * @param tierAlias like {@link #TIER_ALIAS}, each corresponds to an element in tierLevel
    * @param tierPath like {@link #TIER_PATH}, each list represents directories of the tier with the
    *        same list index in tierAlias

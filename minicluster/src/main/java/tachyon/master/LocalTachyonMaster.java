@@ -127,7 +127,9 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated home and port.
    *
-   * @throws IOException unable to do file operation or listen on port
+   * @param tachyonConf Tachyon configuration
+   * @throws IOException when unable to do file operation or listen on port
+   * @return an instance of Tachyon master
    */
   public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
     final String tachyonHome = uniquePath();
@@ -143,7 +145,10 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated port.
    *
-   * @throws IOException unable to do file operation or listen on port
+   * @param tachyonHome Tachyon home directory
+   * @param tachyonConf Tachyon configuration
+   * @return an instance of Tachyon master
+   * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
@@ -162,6 +167,8 @@ public final class LocalTachyonMaster {
    *
    * This method will not clean up {@link tachyon.util.UnderFileSystemUtils} data. To do that you
    * must call {@link #cleanupUnderfs()}.
+   *
+   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     clearClients();
@@ -186,6 +193,8 @@ public final class LocalTachyonMaster {
 
   /**
    * Get the actual bind hostname on RPC service (used by unit test only).
+   *
+   * @return the RPC bind hostname
    */
   public String getRPCBindHost() {
     return mTachyonMaster.getRPCBindHost();
@@ -193,6 +202,8 @@ public final class LocalTachyonMaster {
 
   /**
    * Get the actual port that the RPC service is listening on (used by unit test only)
+   *
+   * @return the RPC local port
    */
   public int getRPCLocalPort() {
     return mTachyonMaster.getRPCLocalPort();
@@ -200,6 +211,8 @@ public final class LocalTachyonMaster {
 
   /**
    * Get the actual bind hostname on web service (used by unit test only).
+   *
+   * @return the Web bind hostname
    */
   public String getWebBindHost() {
     return mTachyonMaster.getWebBindHost();
@@ -207,6 +220,8 @@ public final class LocalTachyonMaster {
 
   /**
    * Get the actual port that the web service is listening on (used by unit test only)
+   *
+   * @return the Web local port
    */
   public int getWebLocalPort() {
     return mTachyonMaster.getWebLocalPort();

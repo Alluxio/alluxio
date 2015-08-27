@@ -191,7 +191,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get available bytes given certain location Redirecting to >>>>>>> master
+   * Get available bytes given certain location
    * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}.
    *
    * @param location location the check available bytes

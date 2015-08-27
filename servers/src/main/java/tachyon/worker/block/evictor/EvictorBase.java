@@ -23,6 +23,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.Users;
@@ -41,8 +43,8 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
   protected BlockMetadataManagerView mManagerView;
 
   public EvictorBase(BlockMetadataManagerView view, Allocator allocator) {
-    mManagerView = view;
-    mAllocator = allocator;
+    mManagerView = Preconditions.checkNotNull(view);
+    mAllocator = Preconditions.checkNotNull(allocator);
   }
 
   /**

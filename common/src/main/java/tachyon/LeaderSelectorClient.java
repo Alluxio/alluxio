@@ -114,7 +114,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   /**
    * Set the current master thread.
    *
-   * @param currentMasterThread
+   * @param currentMasterThread the thread to use as the master thread
    */
   public void setCurrentMasterThread(Thread currentMasterThread) {
     mCurrentMasterThread = currentMasterThread;
