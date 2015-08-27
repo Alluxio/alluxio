@@ -48,6 +48,8 @@ public class FormatUtilsTest {
     testCases.add(new TestCase("(foo)", new Object[] {"foo"}));
     testCases.add(new TestCase("(foo, bar)", new Object[] {"foo", "bar"}));
     testCases.add(new TestCase("(foo, , bar)", new Object[] {"foo", "", "bar"}));
+    testCases.add(new TestCase("(, foo, )", new Object[] {"", "foo", ""}));
+    testCases.add(new TestCase("(, , )", new Object[] {"", "", ""}));
     testCases.add(new TestCase("(1)", new Object[] {1}));
     testCases.add(new TestCase("(1, 2, 3)", new Object[] {1, 2, 3}));
 
