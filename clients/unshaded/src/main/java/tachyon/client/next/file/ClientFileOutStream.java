@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.client.next.CacheType;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
@@ -161,12 +163,9 @@ public class ClientFileOutStream extends FileOutStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    if (b == null) {
-      throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
-        || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException();
-    }
+    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
+        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
 
     if (mCacheType.shouldCache()) {
       try {
@@ -200,10 +199,8 @@ public class ClientFileOutStream extends FileOutStream {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      if (mCurrentBlockOutStream.remaining() > 0) {
-        // TODO: Handle this error in a precondition
-        throw new IOException("The current block still has space left, no need to get new block");
-      }
+      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0, "The current block still "
+          + "has space left, no need to get new block");
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
