@@ -231,7 +231,7 @@ public class BufferUtils {
       return false;
     }
     buf.rewind();
-    if (buf.remaining() != len) {
+    if (buf.remaining() < len) {
       return false;
     }
     for (int k = 0; k < len; k ++) {
@@ -249,9 +249,20 @@ public class BufferUtils {
    * @return ByteBuffer containing an increasing sequence of integers
    */
   public static ByteBuffer getIncreasingIntBuffer(int len) {
+    return getIncreasingIntBuffer(0, len);
+  }
+
+  /**
+   * Get a ByteBuffer containing an increasing sequence of integers starting at the given value.
+   *
+   * @param start the starting value to use
+   * @param len the target length of the sequence
+   * @return ByteBuffer containing an increasing sequence of integers
+   */
+  public static ByteBuffer getIncreasingIntBuffer(int start, int len) {
     ByteBuffer ret = ByteBuffer.allocate(len * 4);
     for (int k = 0; k < len; k ++) {
-      ret.putInt(k);
+      ret.putInt(start + k);
     }
     ret.flip();
     return ret;
