@@ -148,7 +148,7 @@ The common configuration contains constants which specify paths and the log appe
   <td>tachyon.host.resolution.timeout.ms</td>
   <td>5000</td>
   <td>During startup of Master and Worker processes Tachyon needs to ensure that they are listening
-    on externally visible and reachable host names.  To do this Tachyon will automatically attempt
+    on externally resolvable and reachable host names.  To do this Tachyon will automatically attempt
     to select an appropriate host name if one was not explicitly specified.  This represents the
     maximum amount of time spent waiting to determine if a candidate host name is resolvable over
     the network.</td>
@@ -170,7 +170,7 @@ number.
 <tr>
   <td>tachyon.master.hostname</td>
   <td>localhost</td>
-  <td>The externally visible hostname of Tachyon's master address.</td>
+  <td>The externally resolvable hostname of Tachyon's master address.</td>
 </tr>
 <tr>
   <td>tachyon.master.hostname.listening</td>
@@ -180,9 +180,24 @@ number.
     specified for `tachyon.master.hostname`.</td>
 </tr>
 <tr>
+  <td>tachyon.master.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's master node binds to.</td>
+</tr>
+<tr>
   <td>tachyon.master.port</td>
   <td>19998</td>
   <td>The port Tachyon's master node runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.master.web.hostname</td>
+  <td>localhost</td>
+  <td>The externally resolvable hostname of master's web service that a client uses to communicate with the service.</td>
+</tr>
+<tr>
+  <td>tachyon.master.web.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's master's web server binds to.</td>
 </tr>
 <tr>
   <td>tachyon.master.web.port</td>
@@ -220,14 +235,44 @@ number.
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
+  <td>tachyon.worker.hostname</td>
+  <td>localhost</td>
+  <td>The externally resolvable hostname of worker's RPC service that an client uses to communicate with the service.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's worker node binds to.</td>
+</tr>
+<tr>
   <td>tachyon.worker.port</td>
   <td>29998</td>
   <td>The port Tachyon's worker node runs on.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.data.hostname</td>
+  <td>localhost</td>
+  <td>The externally resolvable hostname of worker's data service that a client uses to communicate with the service.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.data.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's data server binds to.</td>
+</tr>
+<tr>
   <td>tachyon.worker.data.port</td>
   <td>29999</td>
   <td>The port Tachyon's worker's data server runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.hostname</td>
+  <td>localhost</td>
+  <td>The externally resolvable hostname of worker's web service that a client uses to communicate with the service.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's worker's web server binds to.</td>
 </tr>
 <tr>
   <td>tachyon.worker.web.port</td>
@@ -437,3 +482,35 @@ For example, if you would like to enable Java remote debugging at port 7001 in t
 `TACHYON_MASTER_JAVA_OPTS` like this:
 
 `export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"`
+
+# Configuration of multihomed networks
+
+<table>
+  <tbody>
+    <tr>
+      <th>Specified Hostname</th>
+      <th>Specified Bind Host</th>
+      <th>Returned Connect Host</th>
+    </tr>
+    <tr>
+      <td>hostname</td>
+      <td>hostname</td>
+      <td>hostname</td>
+    </tr>
+    <tr>
+      <td>not defined</td>
+      <td>hostname</td>
+      <td>hostname</td>
+    </tr>
+    <tr>
+      <td>hostname</td>
+      <td>0.0.0.0 or not defined</td>
+      <td>hostname</td>
+    </tr>
+    <tr>
+      <td>not defined</td>
+      <td>0.0.0.0 or not defined</td>
+      <td>localhost</td>
+    </tr>
+  </tbody>
+</table>
