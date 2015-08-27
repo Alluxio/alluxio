@@ -21,7 +21,6 @@ import java.util.Map;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
 
-import tachyon.security.User;
 import tachyon.security.authentication.AuthenticationFactory;
 
 /**
