@@ -15,13 +15,13 @@
 
 package tachyon.master.next;
 
+import java.io.IOException;
+
 import org.apache.thrift.TProcessor;
 
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalSerializable;
-
-import java.io.IOException;
 
 public interface Master extends JournalSerializable {
   /**
