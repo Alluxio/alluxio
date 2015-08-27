@@ -16,9 +16,8 @@
 package tachyon.master.next.filesystem.meta;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
@@ -40,11 +39,13 @@ public final class InodeDirectory extends Inode {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+    @Override
     public Object getFieldValue(Inode o) {
       return o.getId();
     }
   };
   private IndexedSet.FieldIndex mNameIndex = new IndexedSet.FieldIndex<Inode>() {
+    @Override
     public Object getFieldValue(Inode o) {
       return o.getName();
     }
@@ -146,8 +147,8 @@ public final class InodeDirectory extends Inode {
    *
    * @return the ids of the children
    */
-  public synchronized List<Long> getChildrenIds() {
-    List<Long> ret = new ArrayList<Long>(mChildren.size());
+  public synchronized Set<Long> getChildrenIds() {
+    Set<Long> ret = new HashSet<Long>(mChildren.size());
     for (Inode child : mChildren) {
       ret.add(child.getId());
     }
