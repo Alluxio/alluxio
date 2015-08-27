@@ -37,7 +37,7 @@ public enum DependencyType {
    *
    * @param value The integer value, 1 or 2, means Wide or Narrow
    * @return the enum value of DependencyType
-   * @throws IOException
+   * @throws IOException when unknown dependency type is encountered
    */
   public static DependencyType getDependencyType(int value) throws IOException {
     if (value == 1) {
@@ -57,6 +57,8 @@ public enum DependencyType {
 
   /**
    * Get the integer value of this enum value.
+   *
+   * @return integer value of the dependency type
    */
   public int getValue() {
     return mValue;

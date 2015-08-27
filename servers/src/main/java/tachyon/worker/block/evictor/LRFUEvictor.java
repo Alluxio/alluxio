@@ -48,7 +48,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * {@link #mStepFactor} is close to 0, LRFU is close to LFU. Conversely, LRFU is close to LRU
  * when {@link #mStepFactor} is close to 1.
  */
-public class LRFUEvictor extends EvictorBase {
+public final class LRFUEvictor extends EvictorBase {
   // Map from block id to the last updated logic time count
   private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<Long, Long>();
   // Map from block id to the CRF value of the block
@@ -132,6 +132,7 @@ public class LRFUEvictor extends EvictorBase {
     List<Map.Entry<Long, Double>> sortedCRF =
         new ArrayList<Map.Entry<Long, Double>>(mBlockIdToCRFValue.entrySet());
     Collections.sort(sortedCRF, new Comparator<Map.Entry<Long, Double>>() {
+      @Override
       public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {
         double res = o1.getValue() - o2.getValue();
         if (res < 0) {

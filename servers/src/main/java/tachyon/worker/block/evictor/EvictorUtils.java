@@ -23,7 +23,7 @@ import tachyon.worker.block.meta.StorageTierView;
 /**
  * Utility functions for the evictor package
  */
-public class EvictorUtils {
+public final class EvictorUtils {
 
   /**
    * Get StorageDirView with max free space.
@@ -101,5 +101,9 @@ public class EvictorUtils {
 
     StorageDirView dirView = tierView.getDirView(location.dir());
     return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
+  }
+
+  private EvictorUtils() {
+    // util class
   }
 }
