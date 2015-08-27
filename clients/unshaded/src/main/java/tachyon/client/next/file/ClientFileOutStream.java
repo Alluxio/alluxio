@@ -38,7 +38,7 @@ import tachyon.underfs.UnderFileSystem;
  * the under storage system.
  */
 public class ClientFileOutStream extends FileOutStream {
-  private final int mFileId;
+  private final long mFileId;
   private final ClientOptions mOptions;
   private final long mBlockSize;
   private final CacheType mCacheType;
@@ -53,7 +53,7 @@ public class ClientFileOutStream extends FileOutStream {
   private BlockOutStream mCurrentBlockOutStream;
   private List<BlockOutStream> mPreviousBlockOutStreams;
 
-  public ClientFileOutStream(int fileId, ClientOptions options) {
+  public ClientFileOutStream(long fileId, ClientOptions options) {
     mFileId = fileId;
     mOptions = options;
     mBlockSize = options.getBlockSize();

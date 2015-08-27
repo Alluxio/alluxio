@@ -197,7 +197,6 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   public TachyonFile open(TachyonURI path) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Remove path from this RPC
       return new TachyonFile(masterClient.getFileId(path.getPath()));
     } finally {
       mContext.releaseMasterClient(masterClient);
