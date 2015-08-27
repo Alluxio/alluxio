@@ -37,6 +37,10 @@ public class BufferUtils {
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
 
+  public static int byteToInt(byte b) {
+    return b & 0xFF;
+  }
+
   /**
    * Force to unmap a direct buffer if this buffer is no longer used. After calling this method,
    * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to
@@ -103,31 +107,6 @@ public class BufferUtils {
     return ret;
   }
 
-  public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
-    // TODO this is a trick to fix the issue in thrift. Change the code to use
-    // metadata directly when thrift fixes the issue.
-    ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
-    correctData.put(data);
-    correctData.flip();
-    return correctData;
-  }
-
-  public static void putIntByteBuffer(ByteBuffer buf, int b) {
-    buf.put((byte) (b & 0xFF));
-  }
-
-  public static byte[] getIncreasingByteArray(int len) {
-    return getIncreasingByteArray(0, len);
-  }
-
-  public static byte[] getIncreasingByteArray(int start, int len) {
-    byte[] ret = new byte[len];
-    for (int k = 0; k < len; k ++) {
-      ret[k] = (byte) (k + start);
-    }
-    return ret;
-  }
-
   public static boolean equalIncreasingByteArray(int len, byte[] arr) {
     return equalIncreasingByteArray(0, len, arr);
   }
@@ -142,14 +121,6 @@ public class BufferUtils {
       }
     }
     return true;
-  }
-
-  public static ByteBuffer getIncreasingByteBuffer(int len) {
-    return getIncreasingByteBuffer(0, len);
-  }
-
-  public static ByteBuffer getIncreasingByteBuffer(int start, int len) {
-    return ByteBuffer.wrap(getIncreasingByteArray(start, len));
   }
 
   public static boolean equalIncreasingByteBuffer(int start, int len, ByteBuffer buf) {
@@ -168,6 +139,35 @@ public class BufferUtils {
     return true;
   }
 
+  public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
+    // TODO: this is a trick to fix the issue in thrift. Change the code to use
+    // metadata directly when thrift fixes the issue.
+    ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
+    correctData.put(data);
+    correctData.flip();
+    return correctData;
+  }
+
+  public static byte[] getIncreasingByteArray(int len) {
+    return getIncreasingByteArray(0, len);
+  }
+
+  public static byte[] getIncreasingByteArray(int start, int len) {
+    byte[] ret = new byte[len];
+    for (int k = 0; k < len; k ++) {
+      ret[k] = (byte) (k + start);
+    }
+    return ret;
+  }
+
+  public static ByteBuffer getIncreasingByteBuffer(int len) {
+    return getIncreasingByteBuffer(0, len);
+  }
+
+  public static ByteBuffer getIncreasingByteBuffer(int start, int len) {
+    return ByteBuffer.wrap(getIncreasingByteArray(start, len));
+  }
+
   public static ByteBuffer getIncreasingIntBuffer(int len) {
     ByteBuffer ret = ByteBuffer.allocate(len * 4);
     for (int k = 0; k < len; k ++) {
@@ -175,6 +175,10 @@ public class BufferUtils {
     }
     ret.flip();
     return ret;
+  }
+
+  public static void putIntByteBuffer(ByteBuffer buf, int b) {
+    buf.put((byte) (b & 0xFF));
   }
 
   /**

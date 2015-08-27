@@ -27,11 +27,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalSerializable;
 
 /**
  * This class maintains the dependency related metadata information for the lineage feature.
  */
-public class DependencyMap {
+public class DependencyMap implements JournalSerializable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Map<Integer, Dependency> mDependencyMap;
@@ -120,5 +122,11 @@ public class DependencyMap {
       }
     }
     return Lists.newArrayList(mPriorityDependencies);
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
   }
 }

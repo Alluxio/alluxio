@@ -32,8 +32,9 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -48,13 +49,11 @@ import tachyon.util.ThreadFactoryUtils;
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
-public class BlockMasterSync implements Runnable {
+public final class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** The executor service for the master client thread */
-  private final ExecutorService mMasterClientExecutorService;
   /** The net address of the worker */
   private final NetAddress mWorkerAddress;
   /** The configuration values */
@@ -75,16 +74,11 @@ public class BlockMasterSync implements Runnable {
           Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      NetAddress workerAddress) {
+      NetAddress workerAddress, MasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
-    mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1,
-            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+    mMasterClient = masterClient;
     mHeartbeatIntervalMs =
         mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mHeartbeatTimeoutMs =
@@ -152,7 +146,7 @@ public class BlockMasterSync implements Runnable {
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if heartbeat timeout is reached
         LOG.error("Failed to receive or execute master heartbeat command.", ioe);
-        resetMasterClient();
+        mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
@@ -166,8 +160,6 @@ public class BlockMasterSync implements Runnable {
    */
   public void stop() {
     mRunning = false;
-    mMasterClient.close();
-    mMasterClientExecutorService.shutdown();
   }
 
   /**
@@ -208,16 +200,6 @@ public class BlockMasterSync implements Runnable {
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
     }
-  }
-
-  /**
-   * Closes and creates a new master client, in case the master changes.
-   */
-  private void resetMasterClient() {
-    mMasterClient.close();
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
   }
 
   /**

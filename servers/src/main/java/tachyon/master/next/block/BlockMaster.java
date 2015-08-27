@@ -17,7 +17,6 @@ package tachyon.master.next.block;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,10 +33,13 @@ import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.Master;
-import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
+import tachyon.master.next.journal.Journal;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
+import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -57,21 +59,32 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   // Worker metadata management.
   private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+    @Override
     public Object getFieldValue(MasterWorkerInfo o) {
       return o.getId();
     }
   };
   private final IndexedSet.FieldIndex mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
-    public Object getFieldValue(MasterWorkerInfo o) {
-      return o.getAddress();
-    }
-  };
-  private final IndexedSet<MasterWorkerInfo> mWorkers = new IndexedSet<MasterWorkerInfo>(mIdIndex,
-      mAddressIndex);
+        @Override
+        public Object getFieldValue(MasterWorkerInfo o) {
+          return o.getAddress();
+        }
+      };
+  private final IndexedSet<MasterWorkerInfo> mWorkers =
+      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   private final AtomicInteger mWorkerCounter;
 
-  public BlockMaster() {
+  private final Journal mJournal;
+
+  // true if this master is in standby mode.
+  private boolean mIsStandbyMode = false;
+
+  // The thread that tails the journal when the master is in standby mode.
+  private JournalTailerThread mStandbyJournalTailer = null;
+
+  public BlockMaster(Journal journal) {
+    mJournal = journal;
     mBlocks = new HashMap<Long, MasterBlockInfo>();
     mBlockIdGenerator = new BlockIdGenerator();
     mWorkerCounter = new AtomicInteger(0);
@@ -86,12 +99,37 @@ public class BlockMaster implements Master, ContainerIdGenerator {
 
   @Override
   public String getProcessorName() {
-    return "BlockMaster";
+    return Constants.BLOCK_MASTER_SERVICE_NAME;
   }
 
-  public List<PeriodicTask> getPeriodicTaskList() {
-    // TODO: return tasks for detecting lost workers
-    return Collections.emptyList();
+  @Override
+  public void processJournalCheckpoint(JournalInputStream inputStream) {
+    // TODO
+  }
+
+  @Override
+  public void processJournalEntry(JournalEntry entry) {
+    // TODO
+  }
+
+  @Override
+  public void start(boolean asMaster) {
+    mIsStandbyMode = !asMaster;
+    if (asMaster) {
+      // TODO: start periodic heartbeat threads.
+    } else {
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer.start();
+    }
+  }
+
+  @Override
+  public void stop() {
+    if (mIsStandbyMode) {
+      mStandbyJournalTailer.shutdownAndJoin();
+    } else {
+      // TODO
+    }
   }
 
   public List<WorkerInfo> getWorkerInfoList() {
@@ -187,11 +225,11 @@ public class BlockMaster implements Master, ContainerIdGenerator {
         // "Join" to get all the addresses of the workers.
         List<BlockLocation> locations = new ArrayList<BlockLocation>();
         for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
-          MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex,
-              masterBlockLocation.mWorkerId);
+          MasterWorkerInfo workerInfo =
+              mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
           if (workerInfo != null) {
-            locations.add(new BlockLocation(masterBlockLocation.mWorkerId, workerInfo.getAddress(),
-                masterBlockLocation.mTier));
+            locations.add(new BlockLocation(masterBlockLocation.getWorkerId(),
+                workerInfo.getAddress(), masterBlockLocation.getTier()));
           }
         }
         BlockInfo retInfo =
@@ -269,6 +307,12 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       }
       return new Command(CommandType.Free, toRemoveBlocks);
     }
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
   }
 
   /**

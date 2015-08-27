@@ -37,6 +37,8 @@ import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListener;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
+import tachyon.worker.block.allocator.Allocator;
+import tachyon.worker.block.allocator.MaxFreeAllocator;
 import tachyon.worker.block.meta.StorageDir;
 
 /**
@@ -50,6 +52,7 @@ public class LRFUEvictorTest {
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mManagerView;
   private Evictor mEvictor;
+  private Allocator mAllocator;
 
   private double mStepFactor;
   private double mAttenuationFactor;
@@ -66,10 +69,12 @@ public class LRFUEvictorTest {
             Collections.<Long>emptySet());
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRFUEvictor.class.getName());
+    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    mAllocator = Allocator.Factory.createAllocator(conf, mManagerView);
     mStepFactor = conf.getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR);
     mAttenuationFactor =
         conf.getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_ATTENUATION_FACTOR);
-    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
+    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView, mAllocator);
   }
 
   private void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)

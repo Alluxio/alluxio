@@ -15,6 +15,7 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,6 +26,8 @@ import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.master.next.IndexedSet;
+import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
+import tachyon.master.next.journal.JournalEntry;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -185,5 +188,11 @@ public final class InodeDirectory extends Inode {
     StringBuilder sb = new StringBuilder("InodeFolder(");
     sb.append(super.toString()).append(",").append(getChildren()).append(")");
     return sb.toString();
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
+        isPinned(), getLastModificationTimeMs(), new ArrayList<Long>(getChildrenIds()));
   }
 }

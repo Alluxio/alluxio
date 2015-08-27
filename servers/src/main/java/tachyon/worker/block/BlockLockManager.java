@@ -19,14 +19,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
@@ -40,7 +38,7 @@ import tachyon.exception.NotFoundException;
  * <p>
  * This class is thread-safe.
  */
-public class BlockLockManager {
+public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
   // TODO: Make this configurable
@@ -68,7 +66,7 @@ public class BlockLockManager {
   }
 
   /**
-   * Get index of the lock that will be used to lock the block
+   * Gets index of the lock that will be used to lock the block
    *
    * @param blockId the id of the block
    * @return hash index of the lock
@@ -78,8 +76,8 @@ public class BlockLockManager {
   }
 
   /**
-   * Locks a block. Note that, lock striping is used so even this block does not exist, a lock id
-   * is still returned.
+   * Locks a block. Note that, lock striping is used so even this block does not exist, a lock id is
+   * still returned.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
@@ -93,7 +91,7 @@ public class BlockLockManager {
     Lock lock;
     if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
-    } else { // blockLockType == BlockLockType.WRITE
+    } else {
       lock = blockLock.writeLock();
     }
     lock.lock();
@@ -120,9 +118,9 @@ public class BlockLockManager {
     Lock lock;
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
-      if (null == record) {
-        throw new NotFoundException("Failed to unlockBlock: lockId " + lockId
-            + " has no lock record");
+      if (record == null) {
+        throw new NotFoundException(
+            "Failed to unlockBlock: lockId " + lockId + " has no lock record");
       }
       long userId = record.userId();
       lock = record.lock();
@@ -143,8 +141,8 @@ public class BlockLockManager {
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          throw new NotFoundException("Failed to unlockBlock: lockId " + lockId
-              + " has no lock record");
+          throw new NotFoundException(
+              "Failed to unlockBlock: lockId " + lockId + " has no lock record");
         }
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -169,16 +167,16 @@ public class BlockLockManager {
    * @param blockId The ID of the block
    * @param lockId The ID of the lock
    * @throws NotFoundException when no lock record can be found for lockId
-   * @throws InvalidStateException when userId or blockId is not consistent with that in the
-   *         lock record for lockId
+   * @throws InvalidStateException when userId or blockId is not consistent with that in the lock
+   *         record for lockId
    */
-  public void validateLock(long userId, long blockId, long lockId) throws NotFoundException,
-      InvalidStateException {
+  public void validateLock(long userId, long blockId, long lockId)
+      throws NotFoundException, InvalidStateException {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new NotFoundException("Failed to validateLock: lockId " + lockId
-            + " has no lock record");
+        throw new NotFoundException(
+            "Failed to validateLock: lockId " + lockId + " has no lock record");
       }
       if (userId != record.userId()) {
         throw new InvalidStateException("Failed to validateLock: lockId " + lockId
@@ -234,7 +232,7 @@ public class BlockLockManager {
   /**
    * Inner class to keep record of a lock.
    */
-  private static class LockRecord {
+  private static final class LockRecord {
     private final long mUserId;
     private final long mBlockId;
     private final Lock mLock;
