@@ -121,9 +121,10 @@ public class FileUtils {
    */
   public static void setLocalDirStickyBit(String dir) {
     try {
-      // sticky bit is not implemented in PosixFilePermission
+      // Support for sticky bit is platform specific. Check if the path starts with "/" and if so,
+      // assume that the host supports the chmod command.
       if (dir.startsWith(TachyonURI.SEPARATOR)) {
-        Runtime.getRuntime().exec("chmod o+t " + new File(dir).getAbsolutePath());
+        Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {
       LOG.info("Can not set the sticky bit of the direcotry : " + dir);
