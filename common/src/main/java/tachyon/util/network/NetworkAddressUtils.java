@@ -28,6 +28,8 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.commons.lang3.SystemUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +49,7 @@ public final class NetworkAddressUtils {
   /**
    * Check if the underlying OS is Windows.
    */
-  public static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
+  public static final boolean WINDOWS = SystemUtils.IS_OS_WINDOWS;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
@@ -172,15 +174,16 @@ public final class NetworkAddressUtils {
    * hostname is not explicitly specified, Tachyon will try to use the bind host. If the bind host
    * is wildcard, Tachyon will automatically determine an appropriate hostname from local machine.
    * The various possibilities shown in the following table:
-   * <P>
    * <table>
+   * <caption>Hostname Scenarios</caption>
    * <thead>
    * <tr>
    * <th>Specified Hostname</th>
    * <th>Specified Bind Host</th>
    * <th>Returned Connect Host</th>
    * </tr>
-   * <thead> <tbody>
+   * </thead>
+   * <tbody>
    * <tr>
    * <td>hostname</td>
    * <td>hostname</td>
@@ -203,7 +206,6 @@ public final class NetworkAddressUtils {
    * </tr>
    * </tbody>
    * </table>
-   * </P>
    *
    * @param service Service type used to connect
    * @param conf Tachyon configuration used to look up the host resolution timeout

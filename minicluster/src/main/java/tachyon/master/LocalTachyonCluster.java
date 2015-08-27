@@ -137,9 +137,10 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Configure and start master
+   * Configure and start master.
    *
-   * @throws IOException
+   * @param conf Tachyon configuration
+   * @throws IOException when the operation fails
    */
   public void startMaster(TachyonConf conf) throws IOException {
     // TODO: Would be good to have a masterContext as well
@@ -159,9 +160,9 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Configure and start worker
+   * Configure and start worker.
    *
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public void startWorker() throws IOException {
     mWorkerConf = WorkerContext.getConf();
@@ -224,10 +225,21 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(null, 100);
   }
 
+  /**
+   * Start both a master and a worker using the default configuration.
+   *
+   * @throws IOException when the operation fails
+   */
   public void start() throws IOException {
     start(new TachyonConf());
   }
-  
+
+  /**
+   * Start both a master and a worker using the given configuration.
+   *
+   * @param conf Tachyon configuration
+   * @throws IOException when the operation fails
+   */
   public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
@@ -251,7 +263,7 @@ public final class LocalTachyonCluster {
   /**
    * Stop both of the tachyon and underfs service threads.
    *
-   * @throws Exception
+   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     stopTFS();
@@ -262,9 +274,9 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Stop the tachyon filesystem's service thread only
+   * Stop the tachyon filesystem's service thread only.
    *
-   * @throws Exception
+   * @throws Exception when the operation fails
    */
   public void stopTFS() throws Exception {
     mMaster.stop();
@@ -283,14 +295,19 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Cleanup the underfs cluster test folder only
+   * Cleanup the underfs cluster test folder only.
    *
-   * @throws Exception
+   * @throws Exception when the operation fails
    */
   public void stopUFS() throws Exception {
     mMaster.cleanupUnderfs();
   }
 
+  /**
+   * Cleanup the worker state from the master and stop the worker.
+   *
+   * @throws Exception when the operation fails
+   */
   public void stopWorker() throws Exception {
     mMaster.clearClients();
     mWorker.stop();
