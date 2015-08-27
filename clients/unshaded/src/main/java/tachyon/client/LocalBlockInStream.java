@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import tachyon.conf.TachyonConf;
+import tachyon.util.io.BufferUtils;
 
 /**
  * BlockInStream for local block.
@@ -63,7 +64,7 @@ public class LocalBlockInStream extends BlockInStream {
     }
     mBytesReadLocal ++;
     mTachyonFS.getClientMetrics().incBytesReadLocal(1);
-    return mBuffer.get() & 0xFF;
+    return BufferUtils.byteToInt(mBuffer.get());
   }
 
   @Override

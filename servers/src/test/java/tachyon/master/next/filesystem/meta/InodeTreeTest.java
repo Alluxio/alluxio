@@ -25,7 +25,9 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.master.next.block.BlockMaster;
+import tachyon.master.next.journal.Journal;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -46,7 +48,7 @@ public final class InodeTreeTest {
 
   @Before
   public void before() {
-    mTree = new InodeTree(new BlockMaster());
+    mTree = new InodeTree(new BlockMaster(new Journal("directory", new TachyonConf())));
   }
 
   @Test

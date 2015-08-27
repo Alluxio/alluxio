@@ -15,5 +15,15 @@
 
 package tachyon.master.next.journal;
 
+import java.util.Map;
+
+// TODO: In the future, implementations of this interface can be represented as ProtoBuf
 public interface JournalEntry {
+
+  JournalEntryType getType();
+
+  /**
+   * Gets parameters of this entry which is a map from parameter name to parameter value.
+   */
+  Map<String, Object> getParameters();
 }

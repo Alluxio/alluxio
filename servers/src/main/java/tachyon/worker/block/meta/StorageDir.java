@@ -42,7 +42,7 @@ import tachyon.worker.block.BlockStoreLocation;
 
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
- * instantiation. It contains the set of blocks currently in the storage directory
+ * instantiation. It contains the set of blocks currently in the storage directory.
  * <p>
  * This class does not guarantee thread safety.
  */
@@ -74,7 +74,7 @@ public class StorageDir {
   }
 
   /**
-   * Factory method to create {@link StorageDir}
+   * Factory method to create {@link StorageDir}.
    *
    * It will load meta data of existing committed blocks in the dirPath specified. Only files with
    * directory depth 1 under dirPath and whose file name can be parsed into {@code long} will be
@@ -87,6 +87,7 @@ public class StorageDir {
    * @param dirPath filesystem path of this dir for actual storage
    * @return the new created StorageDir
    * @throws AlreadyExistsException when meta data of existing committed blocks already exists
+   * @throws IOException if the storage directory cannot be created with the appropriate permissions
    * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
@@ -97,7 +98,7 @@ public class StorageDir {
   }
 
   /**
-   * Initialize meta data for existing blocks in this StorageDir
+   * Initialize meta data for existing blocks in this StorageDir.
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath} are legal,
    * should be in format like {dir}/{blockId}. other paths will be deleted.
@@ -109,7 +110,7 @@ public class StorageDir {
   private void initializeMeta() throws AlreadyExistsException, IOException, OutOfSpaceException {
     // Create the storage directory path
     FileUtils.createStorageDirPath(mDirPath);
-    
+
     File dir = new File(mDirPath);
     File[] paths = dir.listFiles();
     if (paths == null) {
@@ -238,7 +239,7 @@ public class StorageDir {
   }
 
   /**
-   * Gets the BlockMeta from this storage dir by its block ID or throws IOException.
+   * Gets the BlockMeta from this storage dir by its block ID.
    *
    * @param blockId the block ID
    * @return BlockMeta of the given block or null
@@ -254,7 +255,7 @@ public class StorageDir {
   }
 
   /**
-   * Gets the BlockMeta from this storage dir by its block ID or throws IOException.
+   * Gets the BlockMeta from this storage dir by its block ID.
    *
    * @param blockId the block ID
    * @return TempBlockMeta of the given block or null
@@ -270,7 +271,7 @@ public class StorageDir {
   }
 
   /**
-   * Adds the metadata of a new block into this storage dir or throws IOException.
+   * Adds the metadata of a new block into this storage dir.
    *
    * @param blockMeta the meta data of the block
    * @throws AlreadyExistsException if blockId already exists
@@ -293,7 +294,7 @@ public class StorageDir {
   }
 
   /**
-   * Adds the metadata of a new block into this storage dir or throws IOException.
+   * Adds the metadata of a new block into this storage dir.
    *
    * @param tempBlockMeta the meta data of a temp block to add
    * @throws AlreadyExistsException if blockId already exists
@@ -326,7 +327,7 @@ public class StorageDir {
   }
 
   /**
-   * Removes a block from this storage dir or throws IOException.
+   * Removes a block from this storage dir.
    *
    * @param blockMeta the meta data of the block
    * @throws NotFoundException if no block is found
@@ -342,7 +343,7 @@ public class StorageDir {
   }
 
   /**
-   * Removes a temp block from this storage dir or throws IOException.
+   * Removes a temp block from this storage dir.
    *
    * @param tempBlockMeta the meta data of the temp block to remove
    * @throws NotFoundException if no temp block is found
@@ -373,7 +374,7 @@ public class StorageDir {
   }
 
   /**
-   * Changes the size of a temp block or throws IOException.
+   * Changes the size of a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to resize
    * @param newSize the new size after change in bytes
@@ -382,9 +383,9 @@ public class StorageDir {
   public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
       throws InvalidStateException {
     long oldSize = tempBlockMeta.getBlockSize();
-    tempBlockMeta.setBlockSize(newSize);
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize, false);
+      tempBlockMeta.setBlockSize(newSize);
     } else if (newSize < oldSize) {
       throw new InvalidStateException("Shrinking block, not supported!");
     }
@@ -392,7 +393,7 @@ public class StorageDir {
 
   private void reserveSpace(long size, boolean committed) {
     Preconditions.checkState(size <= mAvailableBytes.get(),
-        "Available bytes should always be non-negative ");
+        "Available bytes should always be non-negative");
     mAvailableBytes.addAndGet(-size);
     if (committed) {
       mCommittedBytes.addAndGet(size);
@@ -409,7 +410,7 @@ public class StorageDir {
   }
 
   /**
-   * Cleans up the temp block meta data for each block id passed in
+   * Cleans up the temp block meta data for each block id passed in.
    *
    * @param userId the ID of the client associated with the temporary blocks
    * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or

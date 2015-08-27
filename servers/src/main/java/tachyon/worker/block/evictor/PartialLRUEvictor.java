@@ -31,6 +31,7 @@ import tachyon.Pair;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
@@ -44,12 +45,14 @@ import tachyon.worker.block.meta.StorageTierView;
  * with maximum free space first and evict old blocks in the selected StorageDir by LRU
  */
 public class PartialLRUEvictor extends LRUEvictor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE); 
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private final Allocator mAllocator;
   private BlockMetadataManagerView mManagerView;
 
-  public PartialLRUEvictor(BlockMetadataManagerView view) {
-    super(view);
+  public PartialLRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
+    super(view, allocator);
     mManagerView = view;
+    mAllocator = allocator;
   }
 
   @Override

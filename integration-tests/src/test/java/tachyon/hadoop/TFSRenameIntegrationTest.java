@@ -54,9 +54,6 @@ public class TFSRenameIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
     Configuration conf = new Configuration();
     conf.set("fs.tachyon.impl", TFS.class.getName());
 
@@ -71,7 +68,6 @@ public class TFSRenameIntegrationTest {
   @AfterClass
   public static void afterClass() throws Exception {
     sLocalTachyonCluster.stop();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Test

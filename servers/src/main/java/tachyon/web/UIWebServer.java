@@ -36,6 +36,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Class that bootstraps and starts the web server for the web interface.
@@ -45,24 +46,24 @@ public abstract class UIWebServer {
 
   protected final WebAppContext mWebAppContext;
   private Server mServer;
-  private String mServerName;
+  private ServiceType mService;
   private InetSocketAddress mAddress;
   private final TachyonConf mTachyonConf;
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
    *
-   * @param serverName Name of the server
+   * @param service Name of the web service
    * @param address Address of the server
    * @param conf Tachyon configuration
    */
-  public UIWebServer(String serverName, InetSocketAddress address, TachyonConf conf) {
-    Preconditions.checkNotNull(serverName, "Server name cannot be null");
+  public UIWebServer(ServiceType service, InetSocketAddress address, TachyonConf conf) {
+    Preconditions.checkNotNull(service, "Service type cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
     Preconditions.checkNotNull(conf, "Configuration cannot be null");
 
     mAddress = address;
-    mServerName = serverName;
+    mService = service;
     mTachyonConf = conf;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
@@ -70,6 +71,7 @@ public abstract class UIWebServer {
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
+    connector.setHost(address.getHostName());
     connector.setPort(address.getPort());
     connector.setAcceptors(webThreadCount);
     mServer.setConnectors(new Connector[] {connector});
@@ -103,19 +105,46 @@ public abstract class UIWebServer {
     mServer.setHandler(handler);
   }
 
+  public Server getServer() {
+    return mServer;
+  }
+
+  /**
+   * Return the actual bind hostname (used by unit test only).
+   */
+  public String getBindHost() {
+    String bindHost = mServer.getServer().getConnectors()[0].getHost();
+    return bindHost == null ? "0.0.0.0" : bindHost;
+  }
+
+  /**
+   * Get the actual port that the web server is listening on (used by unit test only)
+   */
+  public int getLocalPort() {
+    return mServer.getServer().getConnectors()[0].getLocalPort();
+  }
+
   public void shutdownWebServer() throws Exception {
+    // close all connectors and release all binding ports
+    for (Connector connector : mServer.getConnectors()) {
+      connector.close();
+    }
+
     mServer.stop();
   }
 
   public void startWebServer() {
     try {
+      mServer.getConnectors()[0].close();
+      mServer.getConnectors()[0].open();
       mServer.start();
       if (mAddress.getPort() == 0) {
-        mAddress =
-            new InetSocketAddress(mAddress.getHostName(),
-                mServer.getConnectors()[0].getLocalPort());
+        int webPort =  mServer.getConnectors()[0].getLocalPort();
+        mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
+        // reset web service port
+        mTachyonConf.set(mService.getPortKey(), Integer.toString(webPort));
       }
-      LOG.info(mServerName + " started @ " + mAddress);
+      LOG.info(mService.getServiceName() + " started @ " + mAddress);
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

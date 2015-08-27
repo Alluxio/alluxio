@@ -16,8 +16,6 @@
 package tachyon.master.next.rawtable;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -27,14 +25,18 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.Master;
-import tachyon.master.next.PeriodicTask;
 import tachyon.master.next.filesystem.FileSystemMaster;
+import tachyon.master.next.journal.Journal;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
+import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.master.next.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.RawTableInfo;
+import tachyon.thrift.RawTableMasterService;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
@@ -49,26 +51,62 @@ public class RawTableMaster implements Master {
   private final FileSystemMaster mFileSystemMaster;
   private final RawTables mRawTables = new RawTables();
 
-  public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster) {
+  private final Journal mJournal;
+
+  // true if this master is in standby mode.
+  private boolean mIsStandbyMode = false;
+
+  // The thread that tails the journal when the master is in standby mode.
+  private JournalTailerThread mStandbyJournalTailer = null;
+
+  public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster,
+      Journal journal) {
     mTachyonConf = tachyonConf;
     mMaxTableMetadataBytes = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     mMaxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     mFileSystemMaster = fileSystemMaster;
+    mJournal = journal;
   }
 
   @Override
   public TProcessor getProcessor() {
-    return null;
+    return new RawTableMasterService.Processor<RawTableMasterServiceHandler>(
+        new RawTableMasterServiceHandler(this));
   }
 
   @Override
   public String getProcessorName() {
-    return "RawTableMaster";
+    return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
   }
 
-  public List<PeriodicTask> getPeriodicTaskList() {
+  @Override
+  public void processJournalCheckpoint(JournalInputStream inputStream) {
     // TODO
-    return Collections.emptyList();
+  }
+
+  @Override
+  public void processJournalEntry(JournalEntry entry) {
+    // TODO
+  }
+
+  @Override
+  public void start(boolean asMaster) {
+    mIsStandbyMode = !asMaster;
+    if (asMaster) {
+      // TODO: start periodic heartbeat threads.
+    } else {
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer.start();
+    }
+  }
+
+  @Override
+  public void stop() {
+    if (mIsStandbyMode) {
+      mStandbyJournalTailer.shutdownAndJoin();
+    } else {
+      // TODO
+    }
   }
 
   /**
@@ -148,8 +186,8 @@ public class RawTableMaster implements Master {
    * @throws InvalidPathException when path is invalid
    * @throws TableDoesNotExistException when the path does not refer to a table
    */
-  public long getRawTableId(TachyonURI path) throws InvalidPathException,
-      TableDoesNotExistException {
+  public long getRawTableId(TachyonURI path)
+      throws InvalidPathException, TableDoesNotExistException {
     long tableId = mFileSystemMaster.getFileId(path);
     if (!mRawTables.contains(tableId) || !mFileSystemMaster.isDirectory(tableId)) {
       throw new TableDoesNotExistException("Table does not exist at path " + path);
@@ -197,9 +235,15 @@ public class RawTableMaster implements Master {
    * @throws TableDoesNotExistException when the path does not refer to a table
    * @throws InvalidPathException when path is invalid
    */
-  public RawTableInfo getClientRawTableInfo(TachyonURI path) throws TableDoesNotExistException,
-      InvalidPathException {
+  public RawTableInfo getClientRawTableInfo(TachyonURI path)
+      throws TableDoesNotExistException, InvalidPathException {
     return getClientRawTableInfo(getRawTableId(path));
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    // TODO(cc)
+    return null;
   }
 
   /**

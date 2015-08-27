@@ -13,20 +13,31 @@
  * the License.
  */
 
-package tachyon.master.next;
+package tachyon.master.next.filesystem.meta;
 
-import java.util.concurrent.TimeUnit;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
-public interface PeriodicTask extends Runnable {
-  class PeriodicRate {
-    private final long mPeriod;
-    private final TimeUnit mTimeUnit;
+import tachyon.Constants;
+import tachyon.master.block.BlockId;
 
-    public PeriodicRate(long period, TimeUnit timeUnit) {
-      mPeriod = period;
-      mTimeUnit = timeUnit;
-    }
+/**
+ * Abstract class for serving inode tests.
+ */
+public abstract class AbstractInodeTest {
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
+  protected long createInodeFileId(long containerId) {
+    return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
   }
 
-  PeriodicRate getPeriodicRate();
+  protected static InodeDirectory createInodeDirectory() {
+    return new InodeDirectory("test1", 1, 0, System.currentTimeMillis());
+  }
+
+  protected InodeFile createInodeFile(long id) {
+    return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis());
+  }
 }

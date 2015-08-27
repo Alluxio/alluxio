@@ -27,6 +27,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.util.UnderFileSystemUtils;
 
 /**
@@ -69,7 +70,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
-    mHostname = NetworkAddressUtils.getLocalHostName(250);
+    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
@@ -86,12 +87,8 @@ public final class LocalTachyonMaster {
     UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),
         tachyonConf);
 
-    tachyonConf.set(Constants.MASTER_HOSTNAME, mHostname);
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
     tachyonConf.set(Constants.UNDERFS_ADDRESS, mUnderFSFolder);
-
-    tachyonConf.set(Constants.MASTER_PORT, "0");
-    tachyonConf.set(Constants.MASTER_WEB_PORT, "0");
 
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
@@ -110,9 +107,8 @@ public final class LocalTachyonMaster {
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
 
-    // Reset the ports
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getMetaPort()));
-    tachyonConf.set(Constants.MASTER_WEB_PORT, Integer.toString(getMetaPort() + 1));
+    // Reset the master port
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -188,12 +184,36 @@ public final class LocalTachyonMaster {
     System.clearProperty("tachyon.underfs.address");
   }
 
-  public int getMetaPort() {
-    return mTachyonMaster.getMetaPort();
+  /**
+   * Get the actual bind hostname on RPC service (used by unit test only).
+   */
+  public String getRPCBindHost() {
+    return mTachyonMaster.getRPCBindHost();
+  }
+
+  /**
+   * Get the actual port that the RPC service is listening on (used by unit test only)
+   */
+  public int getRPCLocalPort() {
+    return mTachyonMaster.getRPCLocalPort();
+  }
+
+  /**
+   * Get the actual bind hostname on web service (used by unit test only).
+   */
+  public String getWebBindHost() {
+    return mTachyonMaster.getWebBindHost();
+  }
+
+  /**
+   * Get the actual port that the web service is listening on (used by unit test only)
+   */
+  public int getWebLocalPort() {
+    return mTachyonMaster.getWebLocalPort();
   }
 
   public String getUri() {
-    return Constants.HEADER + mHostname + ":" + getMetaPort();
+    return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
   public TachyonFS getClient() throws IOException {
