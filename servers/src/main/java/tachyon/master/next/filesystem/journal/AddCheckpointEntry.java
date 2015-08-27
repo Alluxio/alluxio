@@ -15,8 +15,6 @@
 
 package tachyon.master.next.filesystem.journal;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -28,13 +26,13 @@ import tachyon.master.next.journal.JournalEntryType;
 public class AddCheckpointEntry implements JournalEntry {
   private final long mFileId;
   private final long mLength;
-  private final TachyonURI mCheckpointPath;
+  private final String mCheckpointPath;
   private final long mOpTimeMs;
 
   public AddCheckpointEntry(long fileId, long length, TachyonURI checkpointPath, long opTimeMs) {
     mFileId = fileId;
     mLength = length;
-    mCheckpointPath = checkpointPath;
+    mCheckpointPath = checkpointPath.getPath();
     mOpTimeMs = opTimeMs;
   }
 
