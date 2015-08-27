@@ -15,6 +15,7 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,6 +23,7 @@ import java.util.concurrent.Executors;
 import com.google.common.base.Preconditions;
 
 import tachyon.client.BlockMasterClient;
+import tachyon.client.UserMasterClient;
 import tachyon.client.next.ClientContext;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
@@ -98,7 +100,7 @@ public enum BSContext {
    *
    * @return a WorkerClient to a worker in the Tachyon system
    */
-  public WorkerClient acquireWorkerClient() {
+  public WorkerClient acquireWorkerClient() throws IOException {
     if (mLocalBlockWorkerClientPool != null) {
       return mLocalBlockWorkerClientPool.acquire();
     } else {
@@ -115,7 +117,7 @@ public enum BSContext {
    *                 workers are eligible
    * @return a WorkerClient connected to the worker with the given hostname
    */
-  public WorkerClient acquireWorkerClient(String hostname) {
+  public WorkerClient acquireWorkerClient(String hostname) throws IOException {
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       if (mLocalBlockWorkerClientPool != null) {
         return mLocalBlockWorkerClientPool.acquire();
@@ -126,7 +128,7 @@ public enum BSContext {
     return acquireRemoteWorkerClient(hostname);
   }
 
-  private WorkerClient acquireRemoteWorkerClient(String hostname) {
+  private WorkerClient acquireRemoteWorkerClient(String hostname) throws IOException {
     Preconditions.checkArgument(
         !hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
         "Acquire Remote Worker Client cannot not be called with local hostname");
@@ -137,10 +139,14 @@ public enum BSContext {
       // TODO: Better exception usage
       throw new RuntimeException("No Tachyon worker available for host: " + hostname);
     }
-    // TODO: Get the id from the master
-    long clientId = Math.round(Math.random() * 100000);
-    return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
-        clientId, new ClientMetrics());
+    UserMasterClient userMasterClient = ClientContext.acquireUserMasterClient();
+    try {
+      long clientId = userMasterClient.getUserId();
+      return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
+          clientId, new ClientMetrics());
+    } finally {
+      ClientContext.releaseUserMasterClient(userMasterClient);
+    }
   }
 
   /**
