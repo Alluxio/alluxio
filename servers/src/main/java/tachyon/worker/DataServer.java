@@ -45,6 +45,13 @@ public interface DataServer extends Closeable {
   }
 
   /**
+   * Get the actual bind hostname on DataServer service.
+   *
+   * @return the bind host
+   */
+  String getBindHost();
+
+  /**
    * Gets the port the DataServer is listening on.
    *
    * @return the port number

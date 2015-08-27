@@ -73,6 +73,8 @@ public class FileUtils {
 
   /**
    * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
+   *
+   * @throws IOException when operation fails
    */
   private static void redirectIO(final Process process) throws IOException {
     // Because chmod doesn't have a lot of error or output messages, its safe to process the output
@@ -103,18 +105,17 @@ public class FileUtils {
 
   /**
    * Sticky bit can be set primarily on directories in UNIX / Linux.
-   * 
-   * If the sticky bit of is enabled on a directory, only the owner and the root user can 
-   * delete / rename the files or directories within that directory. No one else can delete 
+   *
+   * If the sticky bit of is enabled on a directory, only the owner and the root user can
+   * delete / rename the files or directories within that directory. No one else can delete
    * other users data in this directory(Where sticky bit is set).
    *
    * This is a security measure to avoid deletion of folders and their content
    * (sub-folders and files), though other users have full permissions.
-   * 
+   *
    * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
-   * 
+   *
    * @param dir absolute dir path to set the sticky bit
-   * @throws IOException when fails to set sticky bit
    */
   public static void setLocalDirStickyBit(String dir) {
     try {
@@ -149,7 +150,7 @@ public class FileUtils {
    * Move file from one place to another, can across storage devices (e.g., from memory to SSD) when
    * {@link File#renameTo} may not work.
    *
-   * Current implementation uses {@link com.google.common.io.Files#move(File, File);}, may change if
+   * Current implementation uses {@link com.google.common.io.Files#move(File, File)}, may change if
    * there is a better solution.
    *
    * @param srcPath pathname string of source file
@@ -176,13 +177,13 @@ public class FileUtils {
       throw new IOException("Failed to delete " + path);
     }
   }
-  
+
   /**
    * Create the storage directory path, including any necessary but nonexistent parent directories.
-   * If the directory already exists, do nothing. 
-   * 
+   * If the directory already exists, do nothing.
+   *
    * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
-   * 
+   *
    * @param path storage directory path to create
    * @throws IOException when fails to create storage directory path
    */

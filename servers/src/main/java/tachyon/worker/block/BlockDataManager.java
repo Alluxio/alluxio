@@ -35,6 +35,8 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
@@ -90,8 +92,8 @@ public final class BlockDataManager {
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf);
-    mUfs.connectFromWorker(mTachyonConf, NetworkAddressUtils.getFqdnHost(workerAddress));
+    mUfs.connectFromWorker(mTachyonConf,
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf));
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -148,13 +150,13 @@ public final class BlockDataManager {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
       }
-    } catch (IOException e) {
+    } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
     }
     long fileSize;
     try {
       fileSize = mUfs.getFileSize(dstPath);
-    } catch (IOException e) {
+    } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
     mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
@@ -201,8 +203,8 @@ public final class BlockDataManager {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
-    } catch (TException te) {
-      throw new IOException("Failed to commit block to master.", te);
+    } catch (IOException ioe) {
+      throw new IOException("Failed to commit block to master.", ioe);
     } finally {
       mBlockStore.unlockBlock(lockId);
     }
