@@ -56,11 +56,13 @@ public abstract class MasterBase implements Master {
     mIsStandbyMode = !asMaster;
     if (asMaster) {
       // initialize the journal and write out the checkpoint file.
+      // TODO: verify that journal writer is null?
       mJournalWriter = mJournal.getNewWriter();
       writeJournalCheckpoint(mJournalWriter.getCheckpointOutputStream());
       mJournalWriter.getCheckpointOutputStream().close();
     } else {
       // in standby mode. Start the journal tailer thread.
+      // TODO: verify that journal tailer is null?
       mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
       mStandbyJournalTailer.start();
     }
@@ -69,8 +71,10 @@ public abstract class MasterBase implements Master {
   protected void stopMaster() throws IOException {
     LOG.info("Stopping master. isMaster: " + isMasterMode());
     if (isStandbyMode()) {
-      // stop and wait for the journal tailer thread.
-      mStandbyJournalTailer.shutdownAndJoin();
+      if (mStandbyJournalTailer != null) {
+        // stop and wait for the journal tailer thread.
+        mStandbyJournalTailer.shutdownAndJoin();
+      }
     } else {
       // Stop this master.
       if (mJournalWriter != null) {
