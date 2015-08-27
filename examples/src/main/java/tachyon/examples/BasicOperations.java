@@ -26,8 +26,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.OutStream;
-import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -90,16 +91,14 @@ public class BasicOperations implements Callable<Boolean> {
 
     final long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = tachyonClient.getFile(mFilePath);
-    TachyonByteBuffer buf = file.readByteBuffer(0);
-    if (buf == null) {
-      file.recache();
-      buf = file.readByteBuffer(0);
-    }
-    buf.mData.order(ByteOrder.nativeOrder());
+    InStream is = file.getInStream(ReadType.CACHE);
+    ByteBuffer buf = ByteBuffer.allocate((int) file.getBlockSizeByte());
+    is.read(buf.array());
+    buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
-      pass = pass && (buf.mData.getInt() == k);
+      pass = pass && (buf.getInt() == k);
     }
-    buf.close();
+    is.close();
 
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "readFile file " + mFilePath));
     return pass;
