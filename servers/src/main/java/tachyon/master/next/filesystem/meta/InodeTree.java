@@ -275,8 +275,8 @@ public final class InodeTree implements JournalSerializable {
   }
 
   @Override
-  public void writeJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    mRoot.writeJournalCheckpoint(outputStream);
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    mRoot.writeToJournal(outputStream);
   }
 
   private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {

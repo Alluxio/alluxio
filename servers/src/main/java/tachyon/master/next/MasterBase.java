@@ -58,7 +58,7 @@ public abstract class MasterBase implements Master {
       // initialize the journal and write out the checkpoint file.
       // TODO: verify that journal writer is null?
       mJournalWriter = mJournal.getNewWriter();
-      writeJournalCheckpoint(mJournalWriter.getCheckpointOutputStream());
+      writeToJournal(mJournalWriter.getCheckpointOutputStream());
       mJournalWriter.getCheckpointOutputStream().close();
     } else {
       // in standby mode. Start the journal tailer thread.
