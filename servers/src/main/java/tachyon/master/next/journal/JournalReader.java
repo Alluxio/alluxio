@@ -75,6 +75,7 @@ public class JournalReader {
     }
     mCheckpointOpenedTime = getCheckpointLastModifiedTime();
 
+    LOG.info("Opening journal checkpoint file: " + mCheckpointPath);
     JournalInputStream jis =
         mJournal.getJournalFormatter().deserialize(new DataInputStream(mUfs.open(mCheckpointPath)));
 
@@ -82,6 +83,13 @@ public class JournalReader {
     return jis;
   }
 
+  /**
+   * Returns the input stream for the next completed log file, or null if it doesn't exist yet.
+   *
+   * @return the input stream for the next completed log file. Will return null if the next
+   *         completed log file does not exist yet.
+   * @throws IOException
+   */
   public JournalInputStream getNextInputStream() throws IOException {
     if (!mCheckpointRead) {
       throw new IOException("Must read the checkpoint file before getting input stream.");
@@ -95,6 +103,7 @@ public class JournalReader {
       return null;
     }
     // Open input stream from the current log file.
+    LOG.info("Opening journal log file: " + currentLogPath);
     JournalInputStream jis =
         mJournal.getJournalFormatter().deserialize(new DataInputStream(mUfs.open(currentLogPath)));
 

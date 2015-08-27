@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 import tachyon.client.RemoteBlockReader;
 import tachyon.client.next.ClientContext;
 import tachyon.thrift.NetAddress;
+import tachyon.util.io.BufferUtils;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
@@ -52,8 +53,7 @@ public class RemoteBlockInStream extends BlockInStream {
     if (read(b) == -1) {
       return -1;
     }
-    // TODO: Move this logic to a utils class
-    return (int) b[0] & 0xFF;
+    return BufferUtils.byteToInt(b[0]);
   }
 
   @Override

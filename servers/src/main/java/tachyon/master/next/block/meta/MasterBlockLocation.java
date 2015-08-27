@@ -18,12 +18,24 @@ package tachyon.master.next.block.meta;
 /**
  * The location of the block.
  */
-public class MasterBlockLocation {
-  public long mWorkerId;
-  public int mTier;
+public final class MasterBlockLocation {
+  private final long mWorkerId;
+  private int mTier;
 
   MasterBlockLocation(long workerId, int tier) {
     mWorkerId = workerId;
+    mTier = tier;
+  }
+
+  public long getWorkerId() {
+    return mWorkerId;
+  }
+
+  public int getTier() {
+    return mTier;
+  }
+
+  public void setTier(int tier) {
     mTier = tier;
   }
 }

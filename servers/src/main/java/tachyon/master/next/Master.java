@@ -15,16 +15,61 @@
 
 package tachyon.master.next;
 
-import java.util.List;
+import java.io.IOException;
 
 import org.apache.thrift.TProcessor;
 
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalSerializable;
 
 public interface Master extends JournalSerializable {
+  /**
+   * Returns the thrift processor for this master.
+   *
+   * @return the {@link TProcessor} serving this master.
+   */
   TProcessor getProcessor();
 
+  /**
+   * Returns the service name for this master.
+   *
+   * @return a {@link String} representing this master service name.
+   */
   String getProcessorName();
 
-  List<PeriodicTask> getPeriodicTaskList();
+  /**
+   * Processes the journal checkpoint file.
+   *
+   * @param inputStream the input stream for the journal checkpoint file.
+   */
+  void processJournalCheckpoint(JournalInputStream inputStream);
+
+  /**
+   * Processes a journal entry. These entries follow the checkpoint entries.
+   *
+   * @param entry the entry to process to update the state of the master.
+   */
+  void processJournalEntry(JournalEntry entry);
+
+  /**
+   * Start the master, as the leader master or standby. Here, the master should initialize state and
+   * possibly start threads required for operation.
+   *
+   * If the parameter asMaster is true, the master should also initialize the journal for writing
+   * including writing the checkpoint file.
+   *
+   * @param asMaster if true, the master should behave as the leader master in the system. If false,
+   *        the master should act as a standby master.
+   * @throws IOException
+   */
+  void start(boolean asMaster) throws IOException;
+
+  /**
+   * Stop the master. Here, anything created or started in {@link #start(boolean)} should be cleaned
+   * up and shutdown.
+   *
+   * @throws IOException
+   */
+  void stop() throws IOException;
 }

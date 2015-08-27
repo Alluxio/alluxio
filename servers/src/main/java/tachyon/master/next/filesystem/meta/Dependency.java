@@ -281,7 +281,7 @@ public class Dependency implements JournalSerializable {
   }
 
   @Override
-  public void writeCheckpointEntries(JournalWriter writer) throws IOException {
+  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
     // TODO(cc)
   }
 }

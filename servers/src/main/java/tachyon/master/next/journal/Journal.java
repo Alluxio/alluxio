@@ -42,7 +42,7 @@ public class Journal {
   private final TachyonConf mTachyonConf;
   private final JournalFormatter mJournalFormatter;
 
-  public Journal(String directory, TachyonConf tachyonConf, JournalFormatter journalFormatter) {
+  public Journal(String directory, TachyonConf tachyonConf) {
     if (!directory.endsWith(TachyonURI.SEPARATOR)) {
       // Ensure directory format.
       directory += TachyonURI.SEPARATOR;
@@ -50,7 +50,7 @@ public class Journal {
     mDirectory = directory;
     mTachyonConf = tachyonConf;
     // TODO: maybe this can be constructed, specified by a parameter in tachyonConf.
-    mJournalFormatter = journalFormatter;
+    mJournalFormatter = new JsonJournalFormatter();
   }
 
   public String getDirectory() {
@@ -81,6 +81,10 @@ public class Journal {
 
   public JournalFormatter getJournalFormatter() {
     return mJournalFormatter;
+  }
+
+  public ReadOnlyJournal getReadOnlyJournal() {
+    return new ReadOnlyJournal(mDirectory, mTachyonConf);
   }
 
   public JournalWriter getNewWriter() {
