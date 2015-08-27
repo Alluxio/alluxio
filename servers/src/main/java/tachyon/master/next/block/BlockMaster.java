@@ -172,6 +172,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
           worker.updateToRemovedBlock(true, blockId);
         }
       }
+      // remove form lost blocks
+      mLostBlocks.remove(blockId);
     }
   }
 
@@ -197,7 +199,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
       mBlocks.put(blockId, masterBlockInfo);
     }
     masterBlockInfo.addWorker(workerId, tierAlias);
-    // TODO: update lost workers?
+
+    mLostBlocks.remove(blockId);
   }
 
   /**
@@ -325,6 +328,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
       masterBlockInfo.removeWorker(workerInfo.getId());
       if (masterBlockInfo.getNumLocations() == 0) {
         mLostBlocks.add(removedBlockId);
+        mBlocks.remove(removedBlockId);
       }
     }
   }
@@ -347,7 +351,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
           // TODO: change upper API so that this is tier level or type, not storage dir id.
           int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
           masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
-          // TODO: update lost workers?
+
+          mLostBlocks.remove(blockId);
         } else {
           // TODO: throw exception?
           LOG.warn(
