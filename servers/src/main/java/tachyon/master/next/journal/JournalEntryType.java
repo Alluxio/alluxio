@@ -21,5 +21,6 @@ public enum JournalEntryType {
 
   ADD_CHECKPOINT,
   COMPLETE_FILE,
+  CREATE_FILE,
   // TODO
 }

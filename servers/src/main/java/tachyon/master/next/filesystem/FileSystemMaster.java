@@ -35,6 +35,7 @@ import tachyon.master.next.Master;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
+import tachyon.master.next.filesystem.journal.CreateFileEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -292,9 +293,9 @@ public class FileSystemMaster implements Master {
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
+      logEvent(new CreateFileEntry(path.getPath(), blockSizeBytes, recursive,
+          inode.getCreationTimeMs()));
       return inode.getId();
-
-      // TODO: write to journal
     }
   }
 
