@@ -29,18 +29,37 @@ import tachyon.Constants;
  * according to a specific format.
  */
 public class FormatUtils {
+  /**
+   * Parse a list of <code>Objects</code> into a <code>String</code>.
+   *
+   * @param objs a list of Objects to convert to a String
+   * @return comma-separated concatenation of the string representation returned by Object#toString
+   *         of the individual objects
+   */
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
-    for (Object obj : objs) {
-      if (sb.length() != 1) {
-        sb.append(", ");
+    if (objs != null) {
+      for (Object obj : objs) {
+        if (sb.length() != 1) {
+          sb.append(", ");
+        }
+        if (obj == null) {
+          sb.append("null");
+        } else {
+          sb.append(obj.toString());
+        }
       }
-      sb.append(obj.toString());
     }
     sb.append(")");
     return sb.toString();
   }
 
+  /**
+   * Parse a <code>ByteBuffer</code> into a <code>String</code>. In particular, the function prints
+   * the content of the buffer in 4-byte increments as space separated integers.
+   *
+   * @param buf buffer to use
+   */
   public static String byteBufferToString(ByteBuffer buf) {
     StringBuilder sb = new StringBuilder();
     for (int k = 0; k < buf.limit() / 4; k ++) {
@@ -52,10 +71,24 @@ public class FormatUtils {
     return sb.toString();
   }
 
+  /**
+   * Format time elapsed since the given start time.
+   *
+   * @param startTimeMs start time in milliseconds
+   * @param message prefix for the message to be printed
+   * @return formatted string with the elapsed time
+   */
   public static String formatTimeTakenMs(long startTimeMs, String message) {
     return message + " took " + (CommonUtils.getCurrentMs() - startTimeMs) + " ms.";
   }
 
+  /**
+   * Format time elapsed since the given start time.
+   *
+   * @param startTimeNs start time in nanoseconds
+   * @param message prefix for the message to be printed
+   * @return formatted string with the elapsed time
+   */
   public static String formatTimeTakenNs(long startTimeNs, String message) {
     return message + " took " + (System.nanoTime() - startTimeNs) + " ns.";
   }
