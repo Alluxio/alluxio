@@ -19,19 +19,19 @@ package tachyon.exception;
  * Abstract class for Tachyon exceptions.
  *
  */
+@SuppressWarnings("serial")
 public abstract class AbstractTachyonException extends Exception {
-  private static final long serialVersionUID = -5227424702682358256L;
 
   public AbstractTachyonException(String message) {
     super(message);
   }
 
-  public AbstractTachyonException(ExceptionMessage message, Object... params) {
-    this(message.getMessage(params));
-  }
-
   public AbstractTachyonException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public AbstractTachyonException(ExceptionMessage message, Object... params) {
+    this(message.getMessage(params));
   }
 
   public AbstractTachyonException(ExceptionMessage message, Throwable cause, Object... params) {

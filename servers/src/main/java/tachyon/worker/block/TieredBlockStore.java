@@ -528,7 +528,7 @@ public final class TieredBlockStore implements BlockStore {
    */
   private TempBlockMeta createBlockMetaInternal(long userId, long blockId,
       BlockStoreLocation location, long initialBlockSize, boolean newBlock)
-          throws AlreadyExistsException {
+      throws AlreadyExistsException {
     // NOTE: a temp block is supposed to be visible for its own writer, unnecessary to acquire
     // block lock here since no sharing
     mMetadataWriteLock.lock();
