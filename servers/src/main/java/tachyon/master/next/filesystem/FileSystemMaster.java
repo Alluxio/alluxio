@@ -31,7 +31,7 @@ import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockId;
-import tachyon.master.next.Master;
+import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
@@ -46,7 +46,6 @@ import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
-import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
@@ -66,7 +65,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-public class FileSystemMaster implements Master {
+public class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
@@ -77,17 +76,9 @@ public class FileSystemMaster implements Master {
 
   private final PrefixList mWhitelist;
 
-  private final Journal mJournal;
-  private final JournalWriter mJournalWriter;
-
-  // true if this master is in standby mode.
-  private boolean mIsStandbyMode = false;
-
-  // The thread that tails the journal when the master is in standby mode.
-  private JournalTailerThread mStandbyJournalTailer = null;
-
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
       Journal journal) {
+    super(journal);
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
 
@@ -96,9 +87,6 @@ public class FileSystemMaster implements Master {
 
     // TODO: handle default config value for whitelist.
     mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
-
-    mJournal = journal;
-    mJournalWriter = mJournal.getNewWriter();
   }
 
   @Override
@@ -123,22 +111,18 @@ public class FileSystemMaster implements Master {
   }
 
   @Override
-  public void start(boolean asMaster) {
-    mIsStandbyMode = !asMaster;
-    if (asMaster) {
+  public void start(boolean asMaster) throws IOException {
+    startMaster(asMaster);
+    if (isMasterMode()) {
       // TODO: start periodic heartbeat threads.
-    } else {
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
-      mStandbyJournalTailer.start();
     }
   }
 
   @Override
-  public void stop() {
-    if (mIsStandbyMode) {
-      mStandbyJournalTailer.shutdownAndJoin();
-    } else {
-      // TODO
+  public void stop() throws IOException {
+    stopMaster();
+    if (isMasterMode()) {
+      // TODO: stop heartbeat threads.
     }
   }
 
@@ -193,7 +177,7 @@ public class FileSystemMaster implements Master {
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
-        logEvent(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
+        writeJournalEntry(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
       }
       return true;
     }
@@ -613,9 +597,8 @@ public class FileSystemMaster implements Master {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
+  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
     // TODO(cc)
-    return null;
   }
 
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
@@ -661,13 +644,5 @@ public class FileSystemMaster implements Master {
       }
     }
     return fileBlockInfo;
-  }
-
-  private void logEvent(JournalEntry event) {
-    try {
-      mJournalWriter.writeEntry(event);
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    }
   }
 }
