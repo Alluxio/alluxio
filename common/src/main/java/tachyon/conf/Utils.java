@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Utils for tachyon.conf package.
  */
-class Utils {
+final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger("");
   private static final CharMatcher LIST_SPLITTER_MATCHER = CharMatcher.is(',').or(
       CharMatcher.WHITESPACE);
@@ -96,5 +96,9 @@ class Utils {
     }
     LOG.debug("{} {} : {}", property, msg, ret);
     return ret;
+  }
+
+  private Utils() {
+    // util class
   }
 }
