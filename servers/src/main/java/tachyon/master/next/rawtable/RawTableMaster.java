@@ -15,6 +15,7 @@
 
 package tachyon.master.next.rawtable;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.apache.thrift.TProcessor;
@@ -24,12 +25,12 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.next.Master;
+import tachyon.master.next.MasterBase;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
-import tachyon.master.next.journal.JournalTailerThread;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -41,7 +42,7 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 
-public class RawTableMaster implements Master {
+public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
@@ -51,21 +52,13 @@ public class RawTableMaster implements Master {
   private final FileSystemMaster mFileSystemMaster;
   private final RawTables mRawTables = new RawTables();
 
-  private final Journal mJournal;
-
-  // true if this master is in standby mode.
-  private boolean mIsStandbyMode = false;
-
-  // The thread that tails the journal when the master is in standby mode.
-  private JournalTailerThread mStandbyJournalTailer = null;
-
   public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster,
       Journal journal) {
+    super(journal);
     mTachyonConf = tachyonConf;
     mMaxTableMetadataBytes = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     mMaxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     mFileSystemMaster = fileSystemMaster;
-    mJournal = journal;
   }
 
   @Override
@@ -90,22 +83,18 @@ public class RawTableMaster implements Master {
   }
 
   @Override
-  public void start(boolean asMaster) {
-    mIsStandbyMode = !asMaster;
-    if (asMaster) {
+  public void start(boolean asMaster) throws IOException {
+    startMaster(asMaster);
+    if (isMasterMode()) {
       // TODO: start periodic heartbeat threads.
-    } else {
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
-      mStandbyJournalTailer.start();
     }
   }
 
   @Override
-  public void stop() {
-    if (mIsStandbyMode) {
-      mStandbyJournalTailer.shutdownAndJoin();
-    } else {
-      // TODO
+  public void stop() throws IOException {
+    stopMaster();
+    if (isMasterMode()) {
+      // TODO: stop heartbeat threads.
     }
   }
 
@@ -241,9 +230,8 @@ public class RawTableMaster implements Master {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
+  public void writeJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
-    return null;
   }
 
   /**
