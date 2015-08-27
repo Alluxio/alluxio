@@ -24,7 +24,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 /**
  * Unit tests for tachyon.InodeFile
  */
-public final class InodeFileTests extends AbstractInodeTests {
+public final class InodeFileTests extends AbstractInodeTest {
   private static final long LENGTH = 100;
 
   @Test
