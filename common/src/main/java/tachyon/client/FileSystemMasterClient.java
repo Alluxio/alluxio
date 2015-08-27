@@ -123,7 +123,7 @@ public final class FileSystemMasterClient extends MasterClient {
     return null;
   }
 
-  public synchronized long createFile(long fileId, long blockSizeBytes, boolean recursive)
+  public synchronized long createFile(String fileId, long blockSizeBytes, boolean recursive)
       throws IOException {
     return -1;
   }
