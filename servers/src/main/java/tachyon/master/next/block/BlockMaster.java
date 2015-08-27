@@ -15,6 +15,7 @@
 
 package tachyon.master.next.block;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,14 +33,14 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.IndexedSet;
-import tachyon.master.next.Master;
+import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
-import tachyon.master.next.journal.JournalTailerThread;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -49,7 +50,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
-public class BlockMaster implements Master, ContainerIdGenerator {
+public class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
@@ -75,16 +76,8 @@ public class BlockMaster implements Master, ContainerIdGenerator {
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   private final AtomicInteger mWorkerCounter;
 
-  private final Journal mJournal;
-
-  // true if this master is in standby mode.
-  private boolean mIsStandbyMode = false;
-
-  // The thread that tails the journal when the master is in standby mode.
-  private JournalTailerThread mStandbyJournalTailer = null;
-
   public BlockMaster(Journal journal) {
-    mJournal = journal;
+    super(journal);
     mBlocks = new HashMap<Long, MasterBlockInfo>();
     mBlockIdGenerator = new BlockIdGenerator();
     mWorkerCounter = new AtomicInteger(0);
@@ -113,22 +106,18 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   }
 
   @Override
-  public void start(boolean asMaster) {
-    mIsStandbyMode = !asMaster;
-    if (asMaster) {
+  public void start(boolean asMaster) throws IOException {
+    startMaster(asMaster);
+    if (isMasterMode()) {
       // TODO: start periodic heartbeat threads.
-    } else {
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
-      mStandbyJournalTailer.start();
     }
   }
 
   @Override
-  public void stop() {
-    if (mIsStandbyMode) {
-      mStandbyJournalTailer.shutdownAndJoin();
-    } else {
-      // TODO
+  public void stop() throws IOException {
+    stopMaster();
+    if (isMasterMode()) {
+      // TODO: stop heartbeat threads.
     }
   }
 
@@ -310,9 +299,8 @@ public class BlockMaster implements Master, ContainerIdGenerator {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
+  public void writeJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
-    return null;
   }
 
   /**

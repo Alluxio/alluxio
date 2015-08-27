@@ -15,8 +15,11 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -27,7 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import tachyon.Constants;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
-import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -191,8 +194,21 @@ public final class InodeDirectory extends Inode {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
-    return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-        isPinned(), getLastModificationTimeMs(), new ArrayList<Long>(getChildrenIds()));
+  public synchronized void writeJournalCheckpoint(JournalOutputStream outputStream)
+      throws IOException {
+    outputStream
+        .writeEntry(new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
+            isPinned(), getLastModificationTimeMs(), new ArrayList<Long>(getChildrenIds())));
+
+    // Write sub-directories and sub-files via breadth-first, so that during deserialization, it may
+    // be more efficient than depth-first during deserialization due to parent directory's locality.
+    Queue<Inode> children = new LinkedList<Inode>(getChildren());
+    while (!children.isEmpty()) {
+      Inode child = children.poll();
+      child.writeJournalCheckpoint(outputStream);
+      if (child.isDirectory()) {
+        children.addAll(((InodeDirectory) child).getChildren());
+      }
+    }
   }
 }
