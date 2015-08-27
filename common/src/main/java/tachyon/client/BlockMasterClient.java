@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClient;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.WorkerInfo;
 
@@ -78,6 +79,11 @@ public final class BlockMasterClient extends MasterClient {
         mConnected = false;
       }
     }
+    return null;
+  }
+
+  public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
+    // TODO: Implement me
     return null;
   }
 
