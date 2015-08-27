@@ -75,7 +75,7 @@ public class BlockMetadataManager {
   }
 
   private void initBlockMetadataManager()
-      throws AlreadyExistsException, IOException, OutOfSpaceException {
+    throws AlreadyExistsException, IOException, OutOfSpaceException {
     // Initialize storage tiers
     int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
@@ -106,7 +106,7 @@ public class BlockMetadataManager {
    * @throws AlreadyExistsException when the block already exists
    */
   public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
-      throws OutOfSpaceException, AlreadyExistsException {
+    throws OutOfSpaceException, AlreadyExistsException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.addTempBlockMeta(tempBlockMeta);
   }
@@ -120,7 +120,7 @@ public class BlockMetadataManager {
    * @throws NotFoundException when temp block can not be found
    */
   public void commitTempBlockMeta(TempBlockMeta tempBlockMeta)
-      throws OutOfSpaceException, AlreadyExistsException, NotFoundException {
+    throws OutOfSpaceException, AlreadyExistsException, NotFoundException {
     BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
