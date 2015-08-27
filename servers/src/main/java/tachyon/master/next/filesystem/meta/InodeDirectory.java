@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableSet;
 import tachyon.Constants;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
-import tachyon.master.next.journal.JournalWriter;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -191,8 +191,9 @@ public final class InodeDirectory extends Inode {
   }
 
   @Override
-  public synchronized void writeJournalCheckpoint(JournalWriter writer) throws IOException {
-    writer.writeCheckpointEntry(new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(),
+  public synchronized void writeJournalCheckpoint(JournalOutputStream outputStream)
+      throws IOException {
+    outputStream.writeEntry(new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(),
         getParentId(), isPinned(), getLastModificationTimeMs(), getChildrenIds()));
 
     // Write sub-directories and sub-files via breadth-first, so that during deserialization, it may
@@ -200,9 +201,9 @@ public final class InodeDirectory extends Inode {
     Queue<Inode> children = new LinkedList<Inode>(getChildren());
     while (!children.isEmpty()) {
       Inode child = children.poll();
-      child.writeJournalCheckpoint(writer);
+      child.writeJournalCheckpoint(outputStream);
       if (child.isDirectory()) {
-        children.addAll(((InodeDirectory)child).getChildren());
+        children.addAll(((InodeDirectory) child).getChildren());
       }
     }
   }
