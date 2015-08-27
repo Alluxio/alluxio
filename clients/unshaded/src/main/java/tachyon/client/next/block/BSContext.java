@@ -15,14 +15,16 @@
 
 package tachyon.client.next.block;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.client.BlockMasterClient;
 import tachyon.client.next.ClientContext;
-import tachyon.master.MasterClient;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
@@ -61,12 +63,19 @@ public enum BSContext {
   }
 
   private NetAddress getWorkerAddress(String hostname) {
-    MasterClient masterClient = acquireMasterClient();
+    BlockMasterClient masterClient = acquireMasterClient();
     try {
+      List<WorkerInfo> workers = masterClient.getWorkerInfoList();
       if (hostname.isEmpty()) {
-        return masterClient.user_getWorker(true, hostname);
+        // TODO: Do this in a more defined way
+        return workers.get(0).getAddress();
       }
-      return masterClient.user_getWorker(false, hostname);
+      for (WorkerInfo worker : workers) {
+        if (worker.getAddress().getMHost().equals(hostname)) {
+          return worker.getAddress();
+        }
+      }
+      return null;
     } catch (Exception e) {
       return null;
     } finally {
@@ -74,11 +83,11 @@ public enum BSContext {
     }
   }
 
-  public MasterClient acquireMasterClient() {
+  public BlockMasterClient acquireMasterClient() {
     return mBlockMasterClientPool.acquire();
   }
 
-  public void releaseMasterClient(MasterClient masterClient) {
+  public void releaseMasterClient(BlockMasterClient masterClient) {
     mBlockMasterClientPool.release(masterClient);
   }
 
