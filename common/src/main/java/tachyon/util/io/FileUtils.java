@@ -74,14 +74,16 @@ public class FileUtils {
   /**
    * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
    *
+   * @param process process whose stdout/stderr to copy
    * @throws IOException when operation fails
    */
   private static void redirectIO(final Process process) throws IOException {
-    // Because chmod doesn't have a lot of error or output messages, its safe to process the output
-    // after the process is done. As of java 7, you can have the process redirect to System.out
-    // and System.err without forking a process.
-    // TODO when java 6 support is dropped, switch to
-    // http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+    /*
+     * Because chmod doesn't have a lot of error or output messages, it is safe to process the
+     * output after the process is done. As of java 7, you can have the process redirect to
+     * System.out and System.err without forking a process. TODO when java 6 support is dropped,
+     * switch to http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+     */
     Closer closer = Closer.create();
     try {
       ByteStreams.copy(closer.register(process.getInputStream()), System.out);
@@ -106,12 +108,12 @@ public class FileUtils {
   /**
    * Sticky bit can be set primarily on directories in UNIX / Linux.
    *
-   * If the sticky bit of is enabled on a directory, only the owner and the root user can
-   * delete / rename the files or directories within that directory. No one else can delete
-   * other users data in this directory(Where sticky bit is set).
+   * If the sticky bit of is enabled on a directory, only the owner and the root user can delete /
+   * rename the files or directories within that directory. No one else can delete other users data
+   * in this directory(Where sticky bit is set).
    *
-   * This is a security measure to avoid deletion of folders and their content
-   * (sub-folders and files), though other users have full permissions.
+   * This is a security measure to avoid deletion of folders and their content (sub-folders and
+   * files), though other users have full permissions.
    *
    * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
    *
@@ -164,8 +166,8 @@ public class FileUtils {
   /**
    * Delete the file or directory.
    *
-   * Current implementation uses {@link java.io.File#delete()}, may change if
-   * there is a better solution.
+   * Current implementation uses {@link java.io.File#delete()}, may change if there is a better
+   * solution.
    *
    * @param path pathname string of file or directory
    * @throws IOException when fails to delete
