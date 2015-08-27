@@ -339,12 +339,29 @@ public class TFsShellTest {
 
   @Test
   public void locationTest() throws IOException {
-    int fileId = TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run(new String[] {"location", "/testFile"});
-    String locationResult = getLocationResultStr("/testFile", fileId, mTfs);
+    String locationResult = getLocationResultStr("/testFile");
     Assert.assertEquals(locationResult, mOutput.toString());
   }
 
+  private String getLocationResultStr(String path) throws IOException {
+    TachyonURI tUri = new TachyonURI(path);
+    TachyonFile tFile = mTfs.getFile(tUri);
+    Assert.assertNotNull(tFile);
+    List<String> locationsList = tFile.getLocationHosts();
+    String[] commandParameters = new String[3 + locationsList.size()];
+    commandParameters[0] = "location";
+    commandParameters[1] = path;
+    commandParameters[2] = String.valueOf(mTfs.getFileId(tUri));
+    Iterator<String> iter = locationsList.iterator();
+    int i = 3;
+    while (iter.hasNext()) {
+      commandParameters[i ++] = iter.next();
+    }
+    return getCommandOutput(commandParameters);
+  }
+  
   @Test
   public void lsrTest() throws IOException {
     int fileIdA =
@@ -828,23 +845,7 @@ public class TFsShellTest {
         + " has reported been report lost.\n";
     Assert.assertEquals(expectedOutput, mOutput.toString());
   }
-  
-  private String getLocationResultStr(String path, int fid, TachyonFS tfs) throws IOException {
-    TachyonFile tFile = tfs.getFile(new TachyonURI(path));
-    Assert.assertNotNull(tFile);
-    List<String> locationsList = tFile.getLocationHosts();
-    String[] commandParameters = new String[3 + locationsList.size()];
-    commandParameters[0] = "location";
-    commandParameters[1] = path;
-    commandParameters[2] = String.valueOf(fid);
-    Iterator<String> iter = locationsList.iterator();
-    int i = 3;
-    while (iter.hasNext()) {
-      commandParameters[i ++] = iter.next();
-    }
-    return getCommandOutput(commandParameters);
-  }
-  
+    
   @Test
   public void locationWildcardTest() throws IOException {
     TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
@@ -852,12 +853,9 @@ public class TFsShellTest {
     mFsShell.run(new String[] {"location", "/testWildCards/*/foo*"});
     
     String locationResults = "";
-    locationResults += getLocationResultStr("/testWildCards/foo/foobar1", 
-        mTfs.getFileId(new TachyonURI("/testWildCards/foo/foobar1")), mTfs);
-    locationResults += getLocationResultStr("/testWildCards/foo/foobar2", 
-        mTfs.getFileId(new TachyonURI("/testWildCards/foo/foobar2")), mTfs);
-    locationResults += getLocationResultStr("/testWildCards/bar/foobar3", 
-        mTfs.getFileId(new TachyonURI("/testWildCards/bar/foobar3")), mTfs);
+    locationResults += getLocationResultStr("/testWildCards/foo/foobar1");
+    locationResults += getLocationResultStr("/testWildCards/foo/foobar2");
+    locationResults += getLocationResultStr("/testWildCards/bar/foobar3");
     Assert.assertEquals(locationResults, mOutput.toString());
   }
   
