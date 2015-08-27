@@ -695,7 +695,7 @@ public final class MasterClient implements Closeable {
    * Get the raw table info associated with the given id and / or path.
    *
    * @param path The path of the table
-   * @param inode The id of the table
+   * @param id The id of the table
    * @return the table info
    * @throws IOException if the table does not exist or the path is invalid.
    */
@@ -799,7 +799,7 @@ public final class MasterClient implements Closeable {
    * Get the address of a worker.
    *
    * @param random If true, select a random worker
-   * @param host If <code>random</code> is false, select a worker on this host
+   * @param hostname If <code>random</code> is false, select a worker on this host
    * @return the address of the selected worker, or null if no address could be found
    * @throws NoWorkerException if there is no available worker
    * @throws IOException if the connection fails

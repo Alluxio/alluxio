@@ -33,6 +33,8 @@ public enum ChannelType {
    * On Linux-based systems, {@link #EPOLL} is the default type for more consistent performance,
    * otherwise {@link #NIO}.
    * </p>
+   *
+   * @return a ChannelType compatible with the host
    */
   public static ChannelType defaultType() {
     if (Epoll.isAvailable()) {

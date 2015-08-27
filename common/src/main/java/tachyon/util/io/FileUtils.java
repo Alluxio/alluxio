@@ -73,6 +73,8 @@ public class FileUtils {
 
   /**
    * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
+   *
+   * @throws IOException when operation fails
    */
   private static void redirectIO(final Process process) throws IOException {
     // Because chmod doesn't have a lot of error or output messages, its safe to process the output
@@ -114,7 +116,6 @@ public class FileUtils {
    * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
    *
    * @param dir absolute dir path to set the sticky bit
-   * @throws IOException when fails to set sticky bit
    */
   public static void setLocalDirStickyBit(String dir) {
     try {
@@ -149,7 +150,7 @@ public class FileUtils {
    * Move file from one place to another, can across storage devices (e.g., from memory to SSD) when
    * {@link File#renameTo} may not work.
    *
-   * Current implementation uses {@link com.google.common.io.Files#move(File, File);}, may change if
+   * Current implementation uses {@link com.google.common.io.Files#move(File, File)}, may change if
    * there is a better solution.
    *
    * @param srcPath pathname string of source file
