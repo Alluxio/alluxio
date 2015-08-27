@@ -69,17 +69,18 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       EvictionPlan plan) {
     location = updateBlockStoreLocation(bytesToBeAvailable, location);
 
-    // 1. if bytesToBeAvailable can already be satisfied without eviction, return empty plan
+    // 1. If bytesToBeAvailable can already be satisfied without eviction, return the eligible
+    // StoargeDirView
     StorageDirView candidateDirView =
         EvictorUtils.selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
     if (candidateDirView != null) {
       return candidateDirView;
     }
 
-    // 2. iterate over blocks in order until we find a dir view that is in the range of
+    // 2. Iterate over blocks in order until we find a StorageDirView that is in the range of
     // location and can satisfy bytesToBeAvailable after evicting its blocks iterated so far
     EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
-    Iterator<Map.Entry<Long, Object>> it = getIterator();
+    Iterator<Map.Entry<Long, Object>> it = getBlockIterator();
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
       long blockId = it.next().getKey();
       try {
@@ -99,7 +100,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       }
     }
 
-    // 3. have no eviction plan
+    // 3. If there is no eligible StorageDirView, return null
     if (dirCandidates.candidateSize() < bytesToBeAvailable) {
       return null;
     }
@@ -181,11 +182,12 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
    * specifying the iteration order using its own strategy. For example, LRUEvictor returns an
    * iterator that iterates the blocks in LRU order. The key of the map entry is the block Id.
    */
-  protected abstract Iterator<Map.Entry<Long, Object>> getIterator();
+  // TODO: Is a key iterator sufficient?
+  protected abstract Iterator<Map.Entry<Long, Object>> getBlockIterator();
 
   /**
    * Perform additional cleanup when a block is removed from the iterator returned by
-   * {@link #getIterator}.
+   * {@link #getBlockIterator}.
    */
   protected void onRemoveBlockFromIterator(long blockId) {}
 

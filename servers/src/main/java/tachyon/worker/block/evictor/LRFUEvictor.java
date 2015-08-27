@@ -119,8 +119,8 @@ public final class LRFUEvictor extends EvictorBase {
   }
 
   @Override
-  protected Iterator<Map.Entry<Long, Object>> getIterator() {
-    return (Iterator)getSortedCRF().iterator();
+  protected Iterator<Map.Entry<Long, Object>> getBlockIterator() {
+    return (Iterator) getSortedCRF().iterator();
   }
 
   /**
