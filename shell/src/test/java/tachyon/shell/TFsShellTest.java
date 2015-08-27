@@ -702,41 +702,26 @@ public class TFsShellTest {
   public void lsWildcardTest() throws IOException {
     TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
     
-    TachyonURI expf1 = new TachyonURI("/testWildCards/foo/foobar1");
-    TachyonURI expf2 = new TachyonURI("/testWildCards/foo/foobar2");
-    TachyonURI expf3 = new TachyonURI("/testWildCards/bar/foobar3");
-    
-    StringBuilder expected = new StringBuilder(200);
-    String format = "%-10s%-25s%-15s%-5s\n";
-    expected.append(String.format(format, FormatUtils.getSizeFromBytes(10),
-            TFsShell.convertMsToDate(mTfs.getFile(expf1).getCreationTimeMs()), "In Memory",
-            expf1.getPath()));
-    expected.append(String.format(format, FormatUtils.getSizeFromBytes(20),
-            TFsShell.convertMsToDate(mTfs.getFile(expf2).getCreationTimeMs()), "In Memory",
-            expf2.getPath()));
-    expected.append(String.format(format, FormatUtils.getSizeFromBytes(30),
-            TFsShell.convertMsToDate(mTfs.getFile(expf3).getCreationTimeMs()), "In Memory",
-            expf3.getPath()));
-    
     mFsShell.run(new String[] {"ls", "/testWildCards/*/foo*"});
+    StringBuilder expected = new StringBuilder(200);
+    expected.append(getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10));
+    expected.append(getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20));
+    expected.append(getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30));
     Assert.assertEquals(expected.toString(), mOutput.toString());
     
-    
-    TachyonURI expf4 = new TachyonURI("/testWildCards/foobar4");
-    expected.append(String.format(format, FormatUtils.getSizeFromBytes(10),
-            TFsShell.convertMsToDate(mTfs.getFile(expf1).getCreationTimeMs()), "In Memory",
-            expf1.getPath()));
-    expected.append(String.format(format, FormatUtils.getSizeFromBytes(20),
-            TFsShell.convertMsToDate(mTfs.getFile(expf2).getCreationTimeMs()), "In Memory",
-            expf2.getPath()));
-    expected.append(String.format(format, FormatUtils.getSizeFromBytes(30),
-            TFsShell.convertMsToDate(mTfs.getFile(expf3).getCreationTimeMs()), "In Memory",
-            expf3.getPath()));
-    expected.append(String.format(format, FormatUtils.getSizeFromBytes(40),
-            TFsShell.convertMsToDate(mTfs.getFile(expf4).getCreationTimeMs()), "In Memory",
-            expf4.getPath()));
     mFsShell.run(new String[] {"ls", "/testWildCards/*"});
+    expected.append(getLsResultStr(new TachyonURI("/testWildCards/foo/foobar1"), 10));
+    expected.append(getLsResultStr(new TachyonURI("/testWildCards/foo/foobar2"), 20));
+    expected.append(getLsResultStr(new TachyonURI("/testWildCards/bar/foobar3"), 30));
+    expected.append(getLsResultStr(new TachyonURI("/testWildCards/foobar4"), 40));
     Assert.assertEquals(expected.toString(), mOutput.toString());
+  }
+  
+  private String getLsResultStr(TachyonURI tUri, int size) throws IOException {
+    String format = "%-10s%-25s%-15s%-5s\n";
+    return String.format(format, FormatUtils.getSizeFromBytes(size),
+        TFsShell.convertMsToDate(mTfs.getFile(tUri).getCreationTimeMs()), "In Memory",
+        tUri.getPath());
   }
   
   @Test
@@ -821,15 +806,15 @@ public class TFsShellTest {
     
     mFsShell.run(new String[] {"report", "/testWildCards/*/foo*"});
     StringBuilder expectedOutput = new StringBuilder(200);
-    expectedOutput.append("/testWildCards/foo/foobar1 with file id " 
-        + mTfs.getFileId(new TachyonURI("/testWildCards/foo/foobar1")) 
-        + " has reported been report lost.\n");
-    expectedOutput.append("/testWildCards/foo/foobar2 with file id " 
-        + mTfs.getFileId(new TachyonURI("/testWildCards/foo/foobar2")) 
-        + " has reported been report lost.\n");
-    expectedOutput.append("/testWildCards/bar/foobar3 with file id " 
-        + mTfs.getFileId(new TachyonURI("/testWildCards/bar/foobar3"))
-        + " has reported been report lost.\n");
+    String[] paths = {
+        "/testWildCards/foo/foobar1",
+        "/testWildCards/foo/foobar2",
+        "/testWildCards/bar/foobar3",
+    };
+    for (String path : paths) {
+      expectedOutput.append(path + " with file id " + mTfs.getFileId(new TachyonURI(path)) 
+          + " has reported been report lost.\n");
+    }
     Assert.assertEquals(expectedOutput.toString(), mOutput.toString());
   }
     
