@@ -20,6 +20,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.client.next.ClientContext;
@@ -97,11 +98,10 @@ public class LocalBlockInStream extends BlockInStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     failIfClosed();
-    if (b == null) {
-      throw new NullPointerException();
-    } else if (off < 0 || len < 0 || len > b.length - off) {
-      throw new IndexOutOfBoundsException();
-    } else if (len == 0) {
+    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
+        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    if (len == 0) {
       return 0;
     }
 
@@ -121,12 +121,9 @@ public class LocalBlockInStream extends BlockInStream {
 
   public void seek(long pos) throws IOException {
     failIfClosed();
-    if (pos < 0) {
-      throw new IOException("Seek position is negative: " + pos);
-    } else if (pos > mData.limit()) {
-      throw new IOException("Seek position is past buffer limit: " + pos + ", Buffer Size = "
-          + mData.limit());
-    }
+    Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
+    Preconditions.checkArgument(pos <= mData.limit(), "Seek position is past buffer limit: " + pos
+        + ", Buffer Size = " + mData.limit());
     mData.position((int) pos);
   }
 
