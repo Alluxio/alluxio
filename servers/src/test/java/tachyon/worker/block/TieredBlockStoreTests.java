@@ -20,6 +20,7 @@ import java.lang.reflect.Field;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -29,6 +30,8 @@ import com.google.common.collect.Sets;
 
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.io.FileUtils;
@@ -38,7 +41,7 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
-public class TieredBlockStoreTest {
+public final class TieredBlockStoreTests {
   private static final long USER_ID1 = 2;
   private static final long USER_ID2 = 3;
   private static final long BLOCK_ID1 = 1000;
@@ -91,17 +94,18 @@ public class TieredBlockStoreTest {
         mEvictor);
 
     long lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
-    Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1))
-        .isEmpty());
+    Assert.assertTrue(
+        Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
     long lockId2 = mBlockStore.lockBlock(USER_ID2, BLOCK_ID2);
     Assert.assertNotEquals(lockId1, lockId2);
-    Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(),
-        Sets.newHashSet(BLOCK_ID1, BLOCK_ID2)).isEmpty());
+    Assert.assertTrue(
+        Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1, BLOCK_ID2))
+            .isEmpty());
 
     mBlockStore.unlockBlock(lockId2);
-    Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1))
-        .isEmpty());
+    Assert.assertTrue(
+        Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
     mBlockStore.unlockBlock(lockId1);
     Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
@@ -116,8 +120,8 @@ public class TieredBlockStoreTest {
         mEvictor);
 
     long lockId1 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
-    Assert.assertTrue(Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1))
-        .isEmpty());
+    Assert.assertTrue(
+        Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1)).isEmpty());
 
     long lockId2 = mBlockStore.lockBlock(USER_ID1, BLOCK_ID2);
     Assert.assertNotEquals(lockId1, lockId2);
@@ -129,7 +133,6 @@ public class TieredBlockStoreTest {
     mThrown.expectMessage("Failed to lockBlock: no blockId " + BLOCK_ID1 + " found");
 
     mBlockStore.lockBlock(USER_ID1, BLOCK_ID1);
-    Assert.assertTrue(mLockManager.getLockedBlocks().isEmpty());
   }
 
   @Test
@@ -217,9 +220,8 @@ public class TieredBlockStoreTest {
   public void createBlockMetaWithEvictionTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
-    TempBlockMeta tempBlockMeta =
-        mBlockStore.createBlockMeta(USER_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
-            mTestDir1.getCapacityBytes());
+    TempBlockMeta tempBlockMeta = mBlockStore.createBlockMeta(USER_ID1, TEMP_BLOCK_ID,
+        mTestDir1.toBlockStoreLocation(), mTestDir1.getCapacityBytes());
     // Expect BLOCK_ID1 evicted from mTestDir1
     Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
     Assert.assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
@@ -296,5 +298,119 @@ public class TieredBlockStoreTest {
     mBlockStore.unlockBlock(lockId);
     mBlockStore.freeSpace(USER_ID1, mTestDir1.getCapacityBytes(), mTestDir1.toBlockStoreLocation());
     Assert.assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+  }
+
+  @Test
+  public void getBlockWriterForNonExistingBlockTest() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.getBlockWriter(USER_ID1, BLOCK_ID1);
+  }
+
+  @Test
+  public void abortNonExistingBlockTest() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.abortBlock(USER_ID1, BLOCK_ID1);
+  }
+
+  @Test
+  public void abortBlockNotOwnedByUserIdTest() throws Exception {
+    mThrown.expect(InvalidStateException.class);
+    mThrown.expectMessage("checkTempBlockOwnedByUser failed: ownerUserId of blockId "
+        + TEMP_BLOCK_ID + " is " + USER_ID1 + " but userId passed in is " + USER_ID2);
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.abortBlock(USER_ID2, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void abortCommitedBlockTest() throws Exception {
+    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expectMessage(
+        "checkTempBlockOwnedByUser failed: blockId " + TEMP_BLOCK_ID + " is committed");
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
+    mBlockStore.abortBlock(USER_ID1, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void moveNonExistingBlockTest() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get BlockMeta: blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
+  }
+
+  @Test
+  public void moveTempBlockTest() throws Exception {
+    mThrown.expect(InvalidStateException.class);
+    mThrown.expectMessage("Failed to move block " + TEMP_BLOCK_ID + ": block is uncommited");
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.moveBlock(USER_ID1, TEMP_BLOCK_ID, mTestDir2.toBlockStoreLocation());
+  }
+
+  // TACHYON-825
+  @Ignore
+  @Test
+  public void moveBlockToTheLocationWithExistingIdTest() throws Exception {
+    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expectMessage("Failed to add BlockMeta: blockId " + BLOCK_ID1 + " exists");
+
+    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir2, mMetaManager,
+        mEvictor);
+    mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
+  }
+
+  @Test
+  public void commitBlockTwiceTest() throws Exception {
+    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expectMessage(
+        "checkTempBlockOwnedByUser failed: blockId " + TEMP_BLOCK_ID + " is committed");
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
+    mBlockStore.commitBlock(USER_ID1, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void commitNonExistingBlockTest() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.commitBlock(USER_ID1, BLOCK_ID1);
+  }
+
+  @Test
+  public void commitBlockNotOwnedByUserIdTest() throws Exception {
+    mThrown.expect(InvalidStateException.class);
+    mThrown.expectMessage("checkTempBlockOwnedByUser failed: ownerUserId of blockId "
+        + TEMP_BLOCK_ID + " is " + USER_ID1 + " but userId passed in is " + USER_ID2);
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.commitBlock(USER_ID2, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void removeTempBlockTest() throws Exception {
+    mThrown.expect(InvalidStateException.class);
+    mThrown.expectMessage("Failed to remove block " + TEMP_BLOCK_ID + ": block is uncommitted");
+
+    TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
+    mBlockStore.removeBlock(USER_ID1, TEMP_BLOCK_ID);
+  }
+
+  @Test
+  public void removeNonExistingBlockTest() throws Exception {
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage("Failed to get BlockMeta: blockId " + BLOCK_ID1 + " not found");
+
+    mBlockStore.removeBlock(USER_ID1, BLOCK_ID1);
   }
 }

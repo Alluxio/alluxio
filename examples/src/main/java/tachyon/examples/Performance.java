@@ -70,7 +70,8 @@ public class Performance {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
       int fileId = sMtc.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber)));
-      FormatUtils.printTimeTakenMs(startTimeMs, LOG, "user_createFiles with fileId " + fileId);
+      LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs,
+          "user_createFiles with fileId " + fileId));
     }
   }
 
@@ -110,7 +111,7 @@ public class Performance {
     public void memoryCopyPartition() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        FormatUtils.printByteBuffer(LOG, mBuf);
+        LOG.info(FormatUtils.byteBufferToString(mBuf));
       }
       mBuf.flip();
       long sum = 0;
@@ -190,7 +191,7 @@ public class Performance {
     public void writeParition() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        FormatUtils.printByteBuffer(LOG, mBuf);
+        LOG.info(FormatUtils.byteBufferToString(mBuf));
       }
 
       mBuf.flip();
@@ -279,7 +280,7 @@ public class Performance {
           if (sDebugMode) {
             mBuf.order(ByteOrder.nativeOrder());
             mBuf.flip();
-            FormatUtils.printByteBuffer(LOG, mBuf);
+            LOG.info(FormatUtils.byteBufferToString(mBuf));
           }
           mBuf.clear();
           logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
@@ -331,7 +332,7 @@ public class Performance {
     public void io() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        FormatUtils.printByteBuffer(LOG, mBuf);
+        LOG.info(FormatUtils.byteBufferToString(mBuf));
       }
       mBuf.flip();
       long sum = 0;

@@ -15,30 +15,31 @@
 
 package tachyon.worker.block;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Container for the delta information in each worker to master heartbeat.
  */
-public class BlockHeartbeatReport {
+public final class BlockHeartbeatReport {
   /** Map of storage dir ids to a list of blocks ids added in the last heartbeat period */
   private final Map<Long, List<Long>> mAddedBlocks;
   /** List of block ids removed in the last heartbeat period */
   private final List<Long> mRemovedBlocks;
 
   public BlockHeartbeatReport(Map<Long, List<Long>> addedBlocks, List<Long> removedBlocks) {
-    mRemovedBlocks = removedBlocks;
     mAddedBlocks = addedBlocks;
+    mRemovedBlocks = removedBlocks;
   }
 
   /**
    * Gets the list of blocks added by the worker in the heartbeat this report represents
    *
-   * @return a map of storage dir id -> set of block ids added
+   * @return a map from storage dir ids to lists of block ids added
    */
   public Map<Long, List<Long>> getAddedBlocks() {
-    return mAddedBlocks;
+    return Collections.unmodifiableMap(mAddedBlocks);
   }
 
   /**
@@ -47,6 +48,6 @@ public class BlockHeartbeatReport {
    * @return a list of block ids which have been removed
    */
   public List<Long> getRemovedBlocks() {
-    return mRemovedBlocks;
+    return Collections.unmodifiableList(mRemovedBlocks);
   }
 }

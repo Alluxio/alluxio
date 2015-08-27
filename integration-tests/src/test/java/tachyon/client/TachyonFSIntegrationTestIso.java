@@ -96,7 +96,7 @@ public class TachyonFSIntegrationTestIso {
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
 
-    CommonUtils.sleepMs(null, mWorkerToMasterHeartbeatIntervalMs);
+    CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
 
     tFile = mTfs.getFile(fileIds.get(0));
     Assert.assertFalse(tFile.isInMemory());
@@ -135,7 +135,7 @@ public class TachyonFSIntegrationTestIso {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
     }
-    CommonUtils.sleepMs(null, getSleepMs());
+    CommonUtils.sleepMs(getSleepMs());
     tFile = mTfs.getFile(fileIds.get(numOfFiles));
     Assert.assertFalse(tFile.isInMemory());
   }
@@ -244,7 +244,7 @@ public class TachyonFSIntegrationTestIso {
     fileIds.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
         WriteType.CACHE_THROUGH, fileSize));
 
-    CommonUtils.sleepMs(null, getSleepMs());
+    CommonUtils.sleepMs(getSleepMs());
     tFile = mTfs.getFile(fileIds.get(0));
     Assert.assertFalse(tFile.isInMemory());
     for (int k = 1; k <= numOfFiles; k ++) {
