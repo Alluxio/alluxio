@@ -177,7 +177,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Redirecting to the next storage tier view.
+   * Get the next storage tier view.
    *
    * @param tierView the storage tier view
    * @return the next storage tier view, null if this is the last tier view.
