@@ -54,7 +54,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
    * blocks. If the next tier fails to allocate space for the evicted blocks, the next tier will
    * continue to evict its blocks to free space.
    *
-   * this method is only used in {@link #freeSpaceWithView}
+   * This method is only used in {@link #freeSpaceWithView}.
    *
    * @param bytesToBeAvailable bytes to be available after eviction
    * @param location target location to evict blocks from
@@ -93,7 +93,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       } catch (NotFoundException nfe) {
         LOG.warn("Remove block {} from evictor cache because {}", blockId, nfe);
         it.remove();
-        removeBlock(blockId);
+        onRemoveBlockFromIterator(blockId);
       }
     }
 
@@ -175,15 +175,17 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
   }
 
   /**
-   * @return an iterator over the blocks in the evictor cache. The key of the map entry is the
-   * block Id.
+   * @return an iterator over the blocks in the evictor cache. The evictor is responsible for
+   * specifying the iteration order using its own strategy. For example, LRUEvictor returns an
+   * iterator that iterates the blocks in LRU order. The key of the map entry is the block Id.
    */
   protected abstract Iterator<Map.Entry<Long, Object>> getIterator();
 
   /**
-   * Perform additional cleanup when a block is removed from the iterator.
+   * Perform additional cleanup when a block is removed from the iterator returned by
+   * {@link #getIterator}.
    */
-  protected void removeBlock(long blockId) {}
+  protected void onRemoveBlockFromIterator(long blockId) {}
 
   /**
    * Update the block store location if the evictor wants to free space in a specific location.
