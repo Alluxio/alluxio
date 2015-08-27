@@ -20,12 +20,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 import tachyon.Constants;
 
 /**
  * Unit tests for tachyon.InodeDirectory.
  */
-public final class InodeDirectoryTests extends AbstractInodeTests {
+public final class InodeDirectoryTest extends AbstractInodeTest {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Test
@@ -35,8 +37,8 @@ public final class InodeDirectoryTests extends AbstractInodeTests {
     InodeFile inodeFile2 = createInodeFile(3);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile2);
-    Assert.assertEquals(createInodeFileId(2), (long) inodeDirectory.getChildrenIds().get(0));
-    Assert.assertEquals(createInodeFileId(3), (long) inodeDirectory.getChildrenIds().get(1));
+    Assert.assertEquals(Sets.newHashSet(createInodeFileId(2), createInodeFileId(3)),
+        inodeDirectory.getChildrenIds());
   }
 
   @Test
@@ -116,7 +118,7 @@ public final class InodeDirectoryTests extends AbstractInodeTests {
     InodeFile inodeFile1 = createInodeFile(1);
     inodeDirectory.addChild(inodeFile1);
     inodeDirectory.addChild(inodeFile1);
-    Assert.assertTrue(inodeDirectory.getChildrenIds().get(0) == createInodeFileId(1));
+    Assert.assertTrue(inodeDirectory.getChildrenIds().contains(createInodeFileId(1)));
     Assert.assertEquals(1, inodeDirectory.getNumberOfChildren());
   }
 
