@@ -255,6 +255,7 @@ public class Constants {
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
 
   /** Security */
+  public static final String TACHYON_SECURITY_USERNAME = "tachyon.security.username";
   // Authentication
   public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
   public static final String TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS =
