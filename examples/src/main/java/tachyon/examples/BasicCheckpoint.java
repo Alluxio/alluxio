@@ -75,7 +75,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
             "BasicCheckpoint Dependency", "Tachyon Examples", "0.3",
             DependencyType.Narrow.getValue(), 512 * Constants.MB);
 
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "createDependency with depId " + depId);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createDependency with depId " + depId));
   }
 
   private boolean readFile(TachyonFS tachyonClient) throws IOException {
