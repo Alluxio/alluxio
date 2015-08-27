@@ -19,6 +19,7 @@ import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +34,7 @@ public class BufferUtilsTest {
       buf.put(i);
     }
     bufClone = BufferUtils.cloneByteBuffer(buf);
-    Assert.assertTrue(bufClone.equals(buf));
+    Assert.assertEquals(buf, bufClone);
   }
 
   @Test
@@ -48,11 +49,10 @@ public class BufferUtilsTest {
       }
       bufList.add(buf);
     }
-    java.util.List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufList);
+    List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufList);
     Assert.assertTrue(bufListClone.size() == listLength);
-    int k = 0;
-    for (ByteBuffer bufClone : bufListClone) {
-      Assert.assertTrue(bufClone.equals(bufList.get(k ++)));
+    for (int k = 0 ; k < listLength; k ++) {
+      Assert.assertEquals(bufList.get(k), bufListClone.get(k));
     }
   }
 
@@ -65,7 +65,7 @@ public class BufferUtilsTest {
       bufDirect.put(i);
     }
     bufClone = BufferUtils.cloneByteBuffer(bufDirect);
-    Assert.assertTrue(bufClone.equals(bufDirect));
+    Assert.assertEquals(bufDirect, bufClone);
   }
 
   @Test
@@ -80,11 +80,10 @@ public class BufferUtilsTest {
       }
       bufDirectList.add(bufDirect);
     }
-    java.util.List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufDirectList);
+    List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufDirectList);
     Assert.assertTrue(bufListClone.size() == listLength);
-    int k = 0;
-    for (ByteBuffer bufClone : bufListClone) {
-      Assert.assertTrue(bufClone.equals(bufDirectList.get(k ++)));
+    for (int k = 0 ; k < listLength; k ++) {
+      Assert.assertEquals(bufDirectList.get(k), bufListClone.get(k));
     }
   }
 
