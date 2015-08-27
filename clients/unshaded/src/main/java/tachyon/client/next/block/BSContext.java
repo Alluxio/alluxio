@@ -100,7 +100,7 @@ public enum BSContext {
    *
    * @return a WorkerClient to a worker in the Tachyon system
    */
-  public WorkerClient acquireWorkerClient() throws IOException {
+  public WorkerClient acquireWorkerClient() {
     if (mLocalBlockWorkerClientPool != null) {
       return mLocalBlockWorkerClientPool.acquire();
     } else {
@@ -117,7 +117,7 @@ public enum BSContext {
    *                 workers are eligible
    * @return a WorkerClient connected to the worker with the given hostname
    */
-  public WorkerClient acquireWorkerClient(String hostname) throws IOException {
+  public WorkerClient acquireWorkerClient(String hostname) {
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
       if (mLocalBlockWorkerClientPool != null) {
         return mLocalBlockWorkerClientPool.acquire();
@@ -128,7 +128,7 @@ public enum BSContext {
     return acquireRemoteWorkerClient(hostname);
   }
 
-  private WorkerClient acquireRemoteWorkerClient(String hostname) throws IOException {
+  private WorkerClient acquireRemoteWorkerClient(String hostname) {
     Preconditions.checkArgument(
         !hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
         "Acquire Remote Worker Client cannot not be called with local hostname");
@@ -144,6 +144,8 @@ public enum BSContext {
       long clientId = userMasterClient.getUserId();
       return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
           clientId, new ClientMetrics());
+    } catch (IOException ioe) {
+      throw new RuntimeException("Failed to get an ID from the master.", ioe);
     } finally {
       ClientContext.releaseUserMasterClient(userMasterClient);
     }
