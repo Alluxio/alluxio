@@ -873,6 +873,7 @@ public class TFsShellTest {
     Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar1")).isInMemory());
     Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/foo/foobar2")).isInMemory());
     Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/bar/foobar3")).isInMemory());
+    Assert.assertFalse(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")).isInMemory());
     
     mFsShell.run(new String[] {"load", "/testWildCards/*"});
     Assert.assertTrue(mTfs.getFile(new TachyonURI("/testWildCards/foobar4")).isInMemory());
