@@ -1,9 +1,9 @@
 /**
  * Set of utilities for working with retryable operations. The main entrypoint is
  * {@link tachyon.retry.RetryPolicy} which is designed to work with do/while loops.
- * <p />
+ * <p>
  * Example
- * 
+ * </p>
  * <pre>
  * {
  *   &#064;code
