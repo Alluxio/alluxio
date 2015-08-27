@@ -47,7 +47,10 @@ public final class CommonUtils {
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
     for (T s : list) {
-      sb.append(s).append(" ");
+      if (sb.length() != 0) {
+        sb.append(" ");
+      }
+      sb.append(s);
     }
     return sb.toString();
   }
@@ -106,8 +109,7 @@ public final class CommonUtils {
    * microbenchmarks.
    */
   public static void warmUpLoop() {
-    for (int k = 0; k < 10000000; k ++) {
-    }
+    for (int k = 0; k < 10000000; k ++) {}
   }
 
   /**
