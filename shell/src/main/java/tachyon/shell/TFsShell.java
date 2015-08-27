@@ -275,7 +275,7 @@ public class TFsShell implements Closeable {
       System.out.format(format, "File Count", "Folder Count", "Total Bytes");
       System.out.format(format, values[0], values[1], values[2]);
     } catch (FileDoesNotExistException e) {
-      System.out.println("'" + e.getMessage() + "' does not exist.");
+      System.out.println(e.getMessage() + " does not exist.");
       return -1;
     }
     return 0;
@@ -695,20 +695,20 @@ public class TFsShell implements Closeable {
           return getCapacityBytes();
         }
       } else if (numOfArgs == 1) { // commands need 1 argument
-        TachyonURI argp = new TachyonURI(argv[1]);
+        TachyonURI inputPath = new TachyonURI(argv[1]);
         
         // mkdir & touch & count does not support wildcard by semantics
         if (cmd.equals("mkdir")) {
-          return mkdir(argp);
+          return mkdir(inputPath);
         } else if (cmd.equals("touch")) {
-          return touch(argp);
+          return touch(inputPath);
         } else if (cmd.equals("count")) {
-          return count(argp);
+          return count(inputPath);
         }
         
-        List<TachyonURI> paths = TFsShellUtils.getTachyonURIs(createFS(argp), argp);
+        List<TachyonURI> paths = TFsShellUtils.getTachyonURIs(createFS(inputPath), inputPath);
         if (paths.size() == 0) { // A unified sanity check on the paths
-          System.out.println("'" + argp + "' does not exist.");
+          System.out.println(inputPath + " does not exist.");
           return -1;
         }
         
