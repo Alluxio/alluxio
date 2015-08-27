@@ -190,6 +190,6 @@ public final class InodeDirectory extends Inode {
   @Override
   public JournalEntry toJournalEntry() {
     return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-        isPinned(), getLastModificationTimeMs(), getChildren());
+        isPinned(), getLastModificationTimeMs(), getChildrenIds());
   }
 }
