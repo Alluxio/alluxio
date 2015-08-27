@@ -21,8 +21,9 @@ import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
 
 /**
- * Utility functions for the evictor package
+ * Utility functions for the evictor package.
  */
+// TODO: This could be moved into EvictorBase
 public final class EvictorUtils {
 
   /**
