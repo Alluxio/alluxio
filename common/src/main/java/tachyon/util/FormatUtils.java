@@ -38,52 +38,59 @@ public class FormatUtils {
    */
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
-    for (int k = 0; k < objs.length; k ++) {
-      if (k != 0) {
-        sb.append(", ");
+    if (objs != null) {
+      for (int k = 0; k < objs.length; k ++) {
+        if (k != 0) {
+          sb.append(", ");
+        }
+        if (objs[k] == null) {
+          sb.append("null");
+        } else {
+          sb.append(objs[k].toString());
+        }
       }
-      sb.append(objs[k].toString());
     }
     sb.append(")");
     return sb.toString();
   }
 
   /**
-   * Print the given buffer. In particular, the function prints the content of the buffer in 4-byte
-   * increments as space separated integers.
+   * Parse a <code>ByteBuffer</code> into a <code>String</code>. In particular, the function prints
+   * the content of the buffer in 4-byte increments as space separated integers.
    *
-   * @param logger logger to use
    * @param buf buffer to use
    */
-  public static void printByteBuffer(Logger logger, ByteBuffer buf) {
+  public static String byteBufferToString(ByteBuffer buf) {
     StringBuilder sb = new StringBuilder();
     for (int k = 0; k < buf.limit() / 4; k ++) {
-      sb.append(buf.getInt()).append(" ");
+      if (k != 0) {
+        sb.append(" ");
+      }
+      sb.append(buf.getInt());
     }
-
-    logger.info(sb.toString());
+    return sb.toString();
   }
 
   /**
-   * Print time elapsed since the given start time.
+   * Format time elapsed since the given start time (in milliseconds).
    *
    * @param startTimeMs start time in milliseconds
-   * @param logger logger to use
    * @param message prefix for the message to be printed
+   * @return formatted string with the elapsed time (in milliseconds)
    */
-  public static void printTimeTakenMs(long startTimeMs, Logger logger, String message) {
-    logger.info(message + " took " + (CommonUtils.getCurrentMs() - startTimeMs) + " ms.");
+  public static String formatTimeTakenMs(long startTimeMs, String message) {
+    return message + " took " + (CommonUtils.getCurrentMs() - startTimeMs) + " ms.";
   }
 
   /**
-   * Print time elapsed since the given start time.
+   * Format time elapsed since the given start time (in nanoseconds).
    *
    * @param startTimeNs start time in nanoseconds
-   * @param logger logger to use
    * @param message prefix for the message to be printed
+   * @return formatted string with the elapsed time (in nanoseconds)
    */
-  public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
-    logger.info(message + " took " + (System.nanoTime() - startTimeNs) + " ns.");
+  public static String formatTimeTakenNs(long startTimeNs, String message) {
+    return message + " took " + (System.nanoTime() - startTimeNs) + " ns.";
   }
 
   /**
@@ -113,6 +120,7 @@ public class FormatUtils {
     if (ret <= 1024 * 5) {
       return String.format("%.2f TB", ret);
     }
+    ret /= 1024;
     return String.format("%.2f PB", ret);
   }
 
