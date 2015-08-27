@@ -66,4 +66,17 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
       ClientContext.releaseUserMasterClient(userMasterClient);
     }
   }
+
+  @Override
+  public void release(WorkerClient workerClient) {
+    UserMasterClient userMasterClient = ClientContext.acquireUserMasterClient();
+    try {
+      workerClient.createNewSession(userMasterClient.getUserId());
+    } catch (IOException ioe) {
+      throw new RuntimeException("Failed to create new BlockWorker Client.", ioe);
+    } finally {
+      ClientContext.releaseUserMasterClient(userMasterClient);
+    }
+    super.release(workerClient);
+  }
 }
