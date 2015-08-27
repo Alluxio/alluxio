@@ -25,6 +25,7 @@ import tachyon.client.RemoteBlockReader;
 import tachyon.client.next.ClientContext;
 import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
+import tachyon.worker.next.WorkerClient;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
@@ -35,20 +36,42 @@ public class RemoteBlockInStream extends BlockInStream {
   private final BSContext mContext;
   private final long mBlockSize;
   private final InetSocketAddress mLocation;
+  private final WorkerClient mWorkerClient;
 
+  private boolean mClosed;
   private long mPos;
 
-  // TODO: Modify the locking so the stream owns the lock instead of the data server
-  public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
+  public RemoteBlockInStream(long blockId, long blockSize, NetAddress location)
+      throws IOException {
     mBlockId = blockId;
     mContext = BSContext.INSTANCE;
     mBlockSize = blockSize;
+    mClosed = false;
     // TODO: Validate these fields
     mLocation = new InetSocketAddress(location.getMHost(), location.getMSecondaryPort());
+    mWorkerClient = mContext.acquireWorkerClient(location.getMHost());
+    String blockPath = mWorkerClient.lockBlock(blockId);
+
+    if (null == blockPath) {
+      // TODO: Handle this error case better
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw new IOException("Block is not available on remote machine");
+    }
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    mWorkerClient.unlockBlock(mBlockId);
+    mContext.releaseWorkerClient(mWorkerClient);
+    mClosed = true;
   }
 
   @Override
   public int read() throws IOException {
+    failIfClosed();
     byte[] b = new byte[1];
     if (read(b) == -1) {
       return -1;
@@ -58,11 +81,13 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public int read(byte[] b) throws IOException {
+    failIfClosed();
     return read(b, 0, b.length);
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
+    failIfClosed();
     if (b == null) {
       throw new NullPointerException();
     } else if (off < 0 || len < 0 || len > b.length - off) {
@@ -102,6 +127,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public void seek(long pos) throws IOException {
+    failIfClosed();
     Preconditions.checkArgument(pos > 0, "Seek position is negative: " + pos);
     Preconditions.checkArgument(pos < mBlockSize, "Seek position: " + pos + " is past block size: "
         + mBlockSize);
@@ -110,11 +136,18 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public long skip(long n) throws IOException {
+    failIfClosed();
     if (n <= 0) {
       return 0;
     }
     long skipped = Math.min(n, mBlockSize - mPos);
     mPos += skipped;
     return skipped;
+  }
+
+  private void failIfClosed() throws IOException {
+    if (mClosed) {
+      throw new IOException("Cannot do operations on a closed BlockInStream");
+    }
   }
 }
