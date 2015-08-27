@@ -43,7 +43,7 @@ import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
-import tachyon.master.next.journal.JournalWriter;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
@@ -592,7 +592,7 @@ public class FileSystemMaster extends MasterBase {
   }
 
   @Override
-  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
+  public void writeJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
   }
 

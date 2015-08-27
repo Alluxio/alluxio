@@ -57,8 +57,8 @@ public abstract class MasterBase implements Master {
     if (asMaster) {
       // initialize the journal and write out the checkpoint file.
       mJournalWriter = mJournal.getNewWriter();
-      writeJournalCheckpoint(mJournalWriter);
-      mJournalWriter.closeCheckpoint();
+      writeJournalCheckpoint(mJournalWriter.getCheckpointOutputStream());
+      mJournalWriter.getCheckpointOutputStream().close();
     } else {
       // in standby mode. Start the journal tailer thread.
       mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
@@ -85,7 +85,7 @@ public abstract class MasterBase implements Master {
       throw new RuntimeException("Cannot write entry: journal writer is null.");
     }
     try {
-      mJournalWriter.writeEntry(entry);
+      mJournalWriter.getEntryOutputStream().writeEntry(entry);
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
@@ -96,7 +96,7 @@ public abstract class MasterBase implements Master {
       throw new RuntimeException("Cannot flush journal: Journal writer is null.");
     }
     try {
-      mJournalWriter.flush();
+      mJournalWriter.getEntryOutputStream().flush();
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }

@@ -40,7 +40,7 @@ import tachyon.master.next.block.meta.MasterWorkerInfo;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
-import tachyon.master.next.journal.JournalWriter;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -299,7 +299,7 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
   }
 
   @Override
-  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
+  public void writeJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
   }
 

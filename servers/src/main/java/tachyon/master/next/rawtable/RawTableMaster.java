@@ -30,7 +30,7 @@ import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
-import tachyon.master.next.journal.JournalWriter;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -230,7 +230,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
+  public void writeJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
   }
 
