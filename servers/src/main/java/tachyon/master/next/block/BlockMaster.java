@@ -60,7 +60,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   private final Set<Long> mLostBlocks;
 
   // Worker metadata management.
-  private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+  private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
+      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
     @Override
     public Object getFieldValue(MasterWorkerInfo o) {
       return o.getId();
