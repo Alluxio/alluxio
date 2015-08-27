@@ -31,6 +31,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.worker.WorkerContext;
@@ -40,7 +41,7 @@ import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 // TODO: improve code health of this unittest.
-public class BlockMetadataManagerTest {
+public final class BlockMetadataManagerTest {
   private static final long TEST_USER_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
@@ -106,7 +107,7 @@ public class BlockMetadataManagerTest {
   public void getTierNotExistingTest() throws Exception {
     int badTierAlias = 2;
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Cannot find tier with alias " + badTierAlias);
+    mThrown.expectMessage(ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(badTierAlias));
     mMetaManager.getTier(badTierAlias);
   }
 
@@ -180,15 +181,15 @@ public class BlockMetadataManagerTest {
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mMetaManager.getBlockMeta(TEST_BLOCK_ID);
   }
 
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + TEST_TEMP_BLOCK_ID
-        + " not found");
+    mThrown
+        .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
   }
 
