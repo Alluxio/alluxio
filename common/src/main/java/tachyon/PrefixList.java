@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Prefix list is used by PinList and WhiteList to do file filtering.
  */
-public class PrefixList {
+public final class PrefixList {
   private final List<String> mInnerList;
 
   public PrefixList(List<String> prefixList) {

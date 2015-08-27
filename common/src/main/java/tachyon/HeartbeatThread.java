@@ -18,6 +18,8 @@ package tachyon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Thread class to execute a heartbeat periodically. This Thread is daemonic, so it will not prevent
  * the JVM from exiting.
@@ -39,7 +41,7 @@ public final class HeartbeatThread implements Runnable {
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
       long fixedExecutionIntervalMs) {
     mThreadName = threadName;
-    mExecutor = hbExecutor;
+    mExecutor = Preconditions.checkNotNull(hbExecutor);
     mFixedExecutionIntervalMs = fixedExecutionIntervalMs;
   }
 
