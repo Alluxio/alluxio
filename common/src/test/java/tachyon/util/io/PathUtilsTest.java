@@ -94,10 +94,16 @@ public class PathUtilsTest {
 
   @Test
   public void cleanPathNoExceptionTest() throws InvalidPathException {
+    // test clean path
     Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar"));
 
     // test trailing slash
     Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar/"));
+
+    // test redundant slashes
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar"));
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar//"));
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo///////bar//////"));
 
     // test dots gets resolved
     Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/./bar"));
@@ -107,8 +113,8 @@ public class PathUtilsTest {
     Assert.assertEquals("/", PathUtils.cleanPath("/foo/bar/../.."));
 
     // the following seems strange
-    // TODO instead of returning "null", throw InvalidPathException
-    Assert.assertEquals(null, PathUtils.cleanPath("/foo/bar/../../.."));
+    // TODO instead of returning null, throw InvalidPathException
+    Assert.assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
   }
 
   @Test
