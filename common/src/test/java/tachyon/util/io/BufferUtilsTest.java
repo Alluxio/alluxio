@@ -50,7 +50,7 @@ public class BufferUtilsTest {
       bufList.add(buf);
     }
     List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufList);
-    Assert.assertTrue(bufListClone.size() == listLength);
+    Assert.assertEquals(listLength, bufListClone.size());
     for (int k = 0 ; k < listLength; k ++) {
       Assert.assertEquals(bufList.get(k), bufListClone.get(k));
     }
@@ -81,7 +81,7 @@ public class BufferUtilsTest {
       bufDirectList.add(bufDirect);
     }
     List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufDirectList);
-    Assert.assertTrue(bufListClone.size() == listLength);
+    Assert.assertEquals(listLength, bufListClone.size());
     for (int k = 0 ; k < listLength; k ++) {
       Assert.assertEquals(bufDirectList.get(k), bufListClone.get(k));
     }
@@ -96,8 +96,8 @@ public class BufferUtilsTest {
     }
     mockRPCbuf.position(bufferSize / 2);
     ByteBuffer buf = BufferUtils.generateNewByteBufferFromThriftRPCResults(mockRPCbuf);
-    Assert.assertTrue(buf.position() == 0);
-    Assert.assertTrue(buf.capacity() == bufferSize / 2);
+    Assert.assertEquals(0, buf.position());
+    Assert.assertEquals(bufferSize / 2, buf.capacity());
     for (int i = 0; i < bufferSize / 2; i ++) {
       Assert.assertEquals(mockRPCbuf.get(i + bufferSize / 2), buf.get(i));
     }
@@ -179,18 +179,18 @@ public class BufferUtilsTest {
     LinkedList<TestCase> testCases = new LinkedList<TestCase>();
     testCases.add(new TestCase(false, null, 0, 0));
     testCases.add(new TestCase(true, new byte[] {}, 0, 0));
-    testCases.add(new TestCase(true, new byte[] {1}, 0, 0));
+    testCases.add(new TestCase(false, new byte[] {1}, 0, 0));
     testCases.add(new TestCase(true, new byte[] {}, 0, 3));
-    testCases.add(new TestCase(true, new byte[] {1}, 0, 3));
+    testCases.add(new TestCase(false, new byte[] {1}, 0, 3));
     testCases.add(new TestCase(true, new byte[] {0}, 1, 0));
     testCases.add(new TestCase(false, new byte[] {1}, 1, 0));
     testCases.add(new TestCase(true, new byte[] {0, 1, 2}, 3, 0));
-    testCases.add(new TestCase(true, new byte[] {0, 1, 2, (byte) 0xFF}, 3, 0));
+    testCases.add(new TestCase(false, new byte[] {0, 1, 2, (byte) 0xFF}, 3, 0));
     testCases.add(new TestCase(false, new byte[] {1, 2, 3}, 3, 0));
     testCases.add(new TestCase(true, new byte[] {3}, 1, 3));
     testCases.add(new TestCase(false, new byte[] {2}, 1, 3));
     testCases.add(new TestCase(true, new byte[] {3, 4, 5}, 3, 3));
-    testCases.add(new TestCase(true, new byte[] {3, 4, 5, (byte) 0xFF}, 3, 3));
+    testCases.add(new TestCase(false, new byte[] {3, 4, 5, (byte) 0xFF}, 3, 3));
     testCases.add(new TestCase(false, new byte[] {2, 3, 4}, 3, 3));
 
     for (TestCase testCase : testCases) {
@@ -250,18 +250,18 @@ public class BufferUtilsTest {
     LinkedList<TestCase> testCases = new LinkedList<TestCase>();
     testCases.add(new TestCase(false, null, 0, 0));
     testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {}), 0, 0));
-    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {1}), 0, 0));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1}), 0, 0));
     testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {}), 0, 3));
-    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {1}), 0, 3));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1}), 0, 3));
     testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {0}), 1, 0));
     testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1}), 1, 0));
     testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {0, 1, 2}), 3, 0));
-    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {0, 1, 2, (byte) 0xFF}), 3, 0));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {0, 1, 2, (byte) 0xFF}), 3, 0));
     testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1, 2, 3}), 3, 0));
     testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {3}), 1, 3));
     testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {2}), 1, 3));
     testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {3, 4, 5}), 3, 3));
-    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {3, 4, 5, (byte) 0xFF}), 3, 3));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {3, 4, 5, (byte) 0xFF}), 3, 3));
     testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {2, 3, 4}), 3, 3));
 
     for (TestCase testCase : testCases) {
