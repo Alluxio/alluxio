@@ -36,7 +36,7 @@ public final class GreedyAllocator implements Allocator {
   @Override
   public StorageDirView allocateBlockWithView(long userId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view) ;
+    mManagerView = Preconditions.checkNotNull(view);
     return allocateBlock(userId, blockSize, location);
   }
 
