@@ -39,14 +39,14 @@ public class FormatUtils {
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
     if (objs != null) {
-      for (Object obj : objs) {
-        if (sb.length() != 1) {
+      for (int k = 0; k < objs.length; k ++) {
+        if (k != 0) {
           sb.append(", ");
         }
-        if (obj == null) {
+        if (objs[k] == null) {
           sb.append("null");
         } else {
-          sb.append(obj.toString());
+          sb.append(objs[k].toString());
         }
       }
     }
@@ -72,22 +72,22 @@ public class FormatUtils {
   }
 
   /**
-   * Format time elapsed since the given start time.
+   * Format time elapsed since the given start time (in milliseconds).
    *
    * @param startTimeMs start time in milliseconds
    * @param message prefix for the message to be printed
-   * @return formatted string with the elapsed time
+   * @return formatted string with the elapsed time (in milliseconds)
    */
   public static String formatTimeTakenMs(long startTimeMs, String message) {
     return message + " took " + (CommonUtils.getCurrentMs() - startTimeMs) + " ms.";
   }
 
   /**
-   * Format time elapsed since the given start time.
+   * Format time elapsed since the given start time (in nanoseconds).
    *
    * @param startTimeNs start time in nanoseconds
    * @param message prefix for the message to be printed
-   * @return formatted string with the elapsed time
+   * @return formatted string with the elapsed time (in nanoseconds)
    */
   public static String formatTimeTakenNs(long startTimeNs, String message) {
     return message + " took " + (System.nanoTime() - startTimeNs) + " ns.";
