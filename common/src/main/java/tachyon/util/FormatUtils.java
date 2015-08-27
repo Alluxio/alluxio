@@ -31,31 +31,33 @@ import tachyon.Constants;
 public class FormatUtils {
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
-    for (int k = 0; k < objs.length; k ++) {
-      if (k != 0) {
+    for (Object obj : objs) {
+      if (sb.length() != 1) {
         sb.append(", ");
       }
-      sb.append(objs[k].toString());
+      sb.append(obj.toString());
     }
     sb.append(")");
     return sb.toString();
   }
 
-  public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
+  public static String byteBufferToString(ByteBuffer buf) {
     StringBuilder sb = new StringBuilder();
     for (int k = 0; k < buf.limit() / 4; k ++) {
-      sb.append(buf.getInt()).append(" ");
+      if (k != 0) {
+        sb.append(" ");
+      }
+      sb.append(buf.getInt());
     }
-
-    LOG.info(sb.toString());
+    return sb.toString();
   }
 
-  public static void printTimeTakenMs(long startTimeMs, Logger logger, String message) {
-    logger.info(message + " took " + (CommonUtils.getCurrentMs() - startTimeMs) + " ms.");
+  public static String formatTimeTakenMs(long startTimeMs, String message) {
+    return message + " took " + (CommonUtils.getCurrentMs() - startTimeMs) + " ms.";
   }
 
-  public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
-    logger.info(message + " took " + (System.nanoTime() - startTimeNs) + " ns.");
+  public static String formatTimeTakenNs(long startTimeNs, String message) {
+    return message + " took " + (System.nanoTime() - startTimeNs) + " ns.";
   }
 
   /**
@@ -85,6 +87,7 @@ public class FormatUtils {
     if (ret <= 1024 * 5) {
       return String.format("%.2f TB", ret);
     }
+    ret /= 1024;
     return String.format("%.2f PB", ret);
   }
 
