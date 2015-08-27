@@ -34,6 +34,7 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.Master;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -279,7 +280,7 @@ public class FileSystemMaster implements Master {
       mDependencyMap.addFileCheckpoint(fileId);
       ((InodeFile) inode).setComplete(fileLength);
       inode.setLastModificationTimeMs(opTimeMs);
-      // TODO: write to journal
+      logEvent(new CompleteFileEntry(fileId, opTimeMs));
     }
   }
 

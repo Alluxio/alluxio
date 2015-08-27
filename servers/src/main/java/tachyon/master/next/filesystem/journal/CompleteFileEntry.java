@@ -13,13 +13,34 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.filesystem.journal;
 
-public enum JournalEntryType {
-  INODE_FILE,
-  INODE_DIRECTORY,
+import java.util.Map;
 
-  ADD_CHECKPOINT,
-  COMPLETE_FILE,
-  // TODO
+import com.google.common.collect.Maps;
+
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
+
+public class CompleteFileEntry implements JournalEntry {
+  private final long mFileId;
+  private final long mOpTimeMs;
+
+  public CompleteFileEntry(long fileId, long opTimeMs) {
+    mFileId = fileId;
+    mOpTimeMs = opTimeMs;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.COMPLETE_FILE;
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
+    parameters.put("fileId", mFileId);
+    parameters.put("operationTimeMs", mOpTimeMs);
+    return parameters;
+  }
 }
