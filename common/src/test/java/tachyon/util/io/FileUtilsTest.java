@@ -53,9 +53,7 @@ public class FileUtilsTest {
     // expect a file permission error when we open it for writing
     mException.expect(IOException.class);
     FileWriter fw = new FileWriter(tempFile);
-    if (fw != null) {
-      fw.close();
-    }
+    Assert.fail("opening a read-only file for writing should have failed");
   }
 
   @Test
@@ -64,7 +62,7 @@ public class FileUtilsTest {
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
     FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "777");
-    Assert.assertTrue(ghostFile.delete());
+    Assert.fail("changing permissions of a non-existent file should have failed");
   }
 
   @Test
@@ -94,7 +92,7 @@ public class FileUtilsTest {
     File toFile = mTestFolder.newFile("to.txt");
     mException.expect(IOException.class);
     FileUtils.move(ghostFile.getAbsolutePath(), toFile.getAbsolutePath());
-    Assert.assertTrue(ghostFile.delete());
+    Assert.fail("moving a non-existent file should have failed");
   }
 
   @Test
@@ -114,6 +112,7 @@ public class FileUtilsTest {
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
     FileUtils.delete(ghostFile.getAbsolutePath());
+    Assert.fail("deleting a non-existent file should have failed");
   }
 
   @Test
@@ -142,15 +141,15 @@ public class FileUtilsTest {
   }
 
   @Test
-  public void createBlockPath() throws IOException {
-    String absolutePath = mTestFolder.getRoot() + File.separator + "tmp" + File.separator + "bar";
+  public void createBlockPathTest() throws IOException {
+    String absolutePath = PathUtils.concatPath(mTestFolder.getRoot(), "tmp", "bar");
     File tempFile = new File(absolutePath);
     FileUtils.createBlockPath(tempFile.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempFile.getParent()));
   }
 
   @Test
-  public void createFile() throws IOException {
+  public void createFileTest() throws IOException {
     File tempFile = new File(mTestFolder.getRoot(), "tmp");
     FileUtils.createFile(tempFile.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempFile.getAbsolutePath()));
@@ -158,7 +157,7 @@ public class FileUtilsTest {
   }
 
   @Test
-  public void createDir() throws IOException {
+  public void createDirTest() throws IOException {
     File tempDir = new File(mTestFolder.getRoot(), "tmp");
     FileUtils.createDir(tempDir.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempDir.getAbsolutePath()));
