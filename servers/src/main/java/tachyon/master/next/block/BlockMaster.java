@@ -34,6 +34,7 @@ import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.MasterBase;
+import tachyon.master.next.block.journal.BlockIdGeneratorEntry;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
@@ -96,13 +97,30 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) {
-    // TODO
+  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
+    JournalEntry entry;
+    while ((entry = inputStream.getNextEntry()) != null) {
+      if (entry instanceof BlockIdGeneratorEntry) {
+        mBlockIdGenerator.setNextContainerId(((BlockIdGeneratorEntry) entry).getNextContainerId());
+      } else {
+        throw new IOException("unexpected entry in checkpoint: " + entry);
+      }
+    }
+    inputStream.close();
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) {
-    // TODO
+  public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry instanceof BlockIdGeneratorEntry) {
+      mBlockIdGenerator.setNextContainerId(((BlockIdGeneratorEntry) entry).getNextContainerId());
+    } else {
+      throw new IOException("unexpected entry in checkpoint: " + entry);
+    }
+  }
+
+  @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    mBlockIdGenerator.writeToJournal(outputStream);
   }
 
   @Override
@@ -151,7 +169,6 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
     return ret;
   }
 
-  // TODO: expose through thrift
   public Set<Long> getLostBlocks() {
     return mLostBlocks;
   }
@@ -172,10 +189,14 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
     }
   }
 
-  // TODO: expose through thrift
   @Override
   public long getNewContainerId() {
-    return mBlockIdGenerator.getNewBlockContainerId();
+    synchronized (mBlockIdGenerator) {
+      long containerId = mBlockIdGenerator.getNewBlockContainerId();
+      writeJournalEntry(new BlockIdGeneratorEntry(containerId));
+      flushJournal();
+      return containerId;
+    }
   }
 
   public void commitBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
@@ -194,7 +215,6 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
       mBlocks.put(blockId, masterBlockInfo);
     }
     masterBlockInfo.addWorker(workerId, tierAlias);
-    // TODO: update lost workers?
   }
 
   /**
@@ -296,11 +316,6 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
       }
       return new Command(CommandType.Free, toRemoveBlocks);
     }
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
   }
 
   /**

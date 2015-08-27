@@ -51,12 +51,12 @@ public class UserMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) {
+  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
     // TODO
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) {
+  public void processJournalEntry(JournalEntry entry) throws IOException {
     // TODO
   }
 
