@@ -167,7 +167,7 @@ public class LRFUEvictor extends EvictorBase {
   }
 
   @Override
-  public void removeBlock(long blockId) {
+  protected void onRemoveBlockFromIterator(long blockId) {
     mBlockIdToLastUpdateTime.remove(blockId);
     mBlockIdToCRFValue.remove(blockId);
   }
