@@ -22,12 +22,12 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.client.FileSystemMasterClient;
 import tachyon.client.next.CacheType;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.UnderStorageType;
 import tachyon.client.next.block.BlockOutStream;
-import tachyon.master.MasterClient;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -119,9 +119,9 @@ public class ClientFileOutStream extends FileOutStream {
     }
 
     if (canComplete) {
-      MasterClient masterClient = mContext.acquireMasterClient();
+      FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        masterClient.user_completeFile(mFileId);
+        masterClient.completeFile(mFileId);
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
@@ -205,15 +205,14 @@ public class ClientFileOutStream extends FileOutStream {
     }
 
     if (mCacheType.shouldCache()) {
-      int index = (int) (mCachedBytes / mBlockSize);
-      mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(getBlockId(index), mOptions);
+      mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(getNextBlockId(), mOptions);
     }
   }
 
-  private long getBlockId(int index) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+  private long getNextBlockId() throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.user_getBlockId(mFileId, index);
+      return masterClient.getNewBlockIdForFile(mFileId);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
