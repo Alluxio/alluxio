@@ -58,7 +58,7 @@ public class TFsShellUtilsTest {
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }
-  
+
   @Test
   public void getFilePathTest() throws IOException {
     String[] paths =
@@ -72,11 +72,11 @@ public class TFsShellUtilsTest {
   }
 
   public enum FsType {
-    TFS, 
+    TFS,
     LOCAL
   }
 
-  public static Comparator<File> createFilePathComparator() { 
+  public static Comparator<File> createFilePathComparator() {
     return  new Comparator<File>() {
       public int compare(File file1, File file2) {
         // ascending order
@@ -84,7 +84,7 @@ public class TFsShellUtilsTest {
       }
     };
   }
-  
+
   public static Comparator<TachyonURI> createTachyonURIComparator() {
     return  new Comparator<TachyonURI>() {
       public int compare(TachyonURI tUri1, TachyonURI tUri2) {
@@ -122,7 +122,7 @@ public class TFsShellUtilsTest {
     
     return "/testWildCards";
   }
-  
+
   public String resetLocalFileHierarchy() throws IOException {
     return resetLocalFileHierarchy(mLocalTachyonCluster);
   }
@@ -151,7 +151,7 @@ public class TFsShellUtilsTest {
     
     return localTachyonCluster.getTachyonHome() + "/testWildCards";
   }
-  
+
   public List<String> getPaths(String path, FsType fsType) throws IOException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
@@ -170,7 +170,7 @@ public class TFsShellUtilsTest {
     Collections.sort(ret);
     return ret;
   }
-  
+
   public String resetFsHierarchy(FsType fsType) throws IOException {
     if (fsType == FsType.TFS) {
       return resetTachyonFileHierarchy(WriteType.MUST_CACHE);
@@ -180,12 +180,12 @@ public class TFsShellUtilsTest {
       return null;
     }
   }
-  
+
   @Test
   public void getPathTest() throws IOException {
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
-       
+
       List<String> tl1 = getPaths(rootDir + "/foo", fsType);
       Assert.assertEquals(tl1.size(), 1);
       Assert.assertEquals(tl1.get(0), rootDir + "/foo");
@@ -194,7 +194,7 @@ public class TFsShellUtilsTest {
       List<String> tl2 = getPaths(rootDir + "/foo/", fsType);
       Assert.assertEquals(tl2.size(), 1);
       Assert.assertEquals(tl2.get(0), rootDir + "/foo");
-      
+
       // Wildcard
       List<String> tl3 = getPaths(rootDir + "/foo/*", fsType);
       Assert.assertEquals(tl3.size(), 2);
@@ -215,7 +215,7 @@ public class TFsShellUtilsTest {
       Assert.assertEquals(tl5.get(2), rootDir + "/foo/foobar2");
     }
   }
-  
+
   @Test
   public void matchTest() {
     Assert.assertEquals(TFsShellUtils.match("/a/b/c",  "/a/*"),    true);
@@ -225,13 +225,13 @@ public class TFsShellUtilsTest {
     Assert.assertEquals(TFsShellUtils.match("/a/b/c",  "/a/*/*/"), true);
     Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/a/*/*/"), true);
     Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/a/*/*"),  true);
-    
+
     Assert.assertEquals(TFsShellUtils.match("/foo/bar/foobar/", "/foo*/*"), true);
     Assert.assertEquals(TFsShellUtils.match("/foo/bar/foobar/", "/*/*/foobar"), true);
-    
+
     Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/b/*"), false);
     Assert.assertEquals(TFsShellUtils.match("/", "/*/*"), false);
-    
+
     Assert.assertEquals(TFsShellUtils.match("/a/b/c", "*"), true);
     Assert.assertEquals(TFsShellUtils.match("/", "/*"), true);
   }

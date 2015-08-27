@@ -32,6 +32,9 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -106,9 +109,9 @@ public final class BlockMasterSync implements Runnable {
       mWorkerId =
           mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    } catch (BlockInfoException bie) {
-      LOG.error("Failed to register with master.", bie);
-      throw new IOException(bie);
+    } catch (IOException ioe) {
+      LOG.error("Failed to register with master.", ioe);
+      throw ioe;
     }
   }
 

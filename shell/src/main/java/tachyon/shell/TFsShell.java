@@ -118,7 +118,7 @@ public class TFsShell implements Closeable {
    * @param filePath The TachyonURI path to load into Tachyon memory
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
-   */ 
+   */
   public int load(TachyonURI filePath) throws IOException {
     TachyonFS tachyonClient = createFS(filePath);
     int ret = loadPath(tachyonClient, filePath);
@@ -136,7 +136,7 @@ public class TFsShell implements Closeable {
       return -1;
     }
     if (tFile.isDirectory()) {
-      List<ClientFileInfo> files = tachyonClient.listStatus(filePath); 
+      List<ClientFileInfo> files = tachyonClient.listStatus(filePath);
       Collections.sort(files);
       for (ClientFileInfo file : files) {
         TachyonURI newPath = new TachyonURI(file.getPath());
@@ -527,24 +527,24 @@ public class TFsShell implements Closeable {
    * @return The number of argument of the input command
    */
   public int getNumOfArgs(String cmd) {
-    if (cmd.equals("getUsedBytes") 
+    if (cmd.equals("getUsedBytes")
         || cmd.equals("getCapacityBytes")) {
       return 0;
-    } else if (cmd.equals("cat") 
-        || cmd.equals("count") 
-        || cmd.equals("ls") 
+    } else if (cmd.equals("cat")
+        || cmd.equals("count")
+        || cmd.equals("ls")
         || cmd.equals("lsr")
-        || cmd.equals("mkdir") 
-        || cmd.equals("rm") 
-        || cmd.equals("rmr") 
+        || cmd.equals("mkdir")
+        || cmd.equals("rm")
+        || cmd.equals("rmr")
         || cmd.equals("tail")
-        || cmd.equals("touch") 
+        || cmd.equals("touch")
         || cmd.equals("load")
-        || cmd.equals("fileinfo") 
+        || cmd.equals("fileinfo")
         || cmd.equals("location")
-        || cmd.equals("report") 
-        || cmd.equals("pin") 
-        || cmd.equals("unpin") 
+        || cmd.equals("report")
+        || cmd.equals("pin")
+        || cmd.equals("unpin")
         || cmd.equals("free")
         || cmd.equals("du")) {
       return 1;
@@ -557,7 +557,7 @@ public class TFsShell implements Closeable {
       return -1;
     }
   }
-  
+
   /**
    * Renames a file or directory specified by argv. Will fail if the new path name already exists.
    *
