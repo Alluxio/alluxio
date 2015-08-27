@@ -17,6 +17,7 @@ package tachyon.master.next.filesystem.meta;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
@@ -38,18 +39,19 @@ import tachyon.thrift.FileInfo;
 public final class InodeDirectory extends Inode {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+  private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
       return o.getId();
     }
   };
-  private IndexedSet.FieldIndex mNameIndex = new IndexedSet.FieldIndex<Inode>() {
+  private IndexedSet.FieldIndex<Inode> mNameIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
       return o.getName();
     }
   };
+  @SuppressWarnings("unchecked")
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
   /**
@@ -194,8 +196,9 @@ public final class InodeDirectory extends Inode {
   @Override
   public synchronized void writeJournalCheckpoint(JournalOutputStream outputStream)
       throws IOException {
-    outputStream.writeEntry(new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(),
-        getParentId(), isPinned(), getLastModificationTimeMs(), getChildrenIds()));
+    outputStream
+        .writeEntry(new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
+            isPinned(), getLastModificationTimeMs(), getChildrenIds()));
 
     // Write sub-directories and sub-files via breadth-first, so that during deserialization, it may
     // be more efficient than depth-first during deserialization due to parent directory's locality.
