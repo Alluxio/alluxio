@@ -24,7 +24,7 @@ import tachyon.master.block.BlockId;
 /**
  * Abstract class for serving inode tests.
  */
-public abstract class AbstractInodeTests {
+public abstract class AbstractInodeTest {
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
