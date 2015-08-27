@@ -31,6 +31,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Local node UnderFilesystem implementation.
@@ -59,7 +60,6 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       stream.close();
       throw e;
     }
-    FileUtils.setLocalFileStickyBit(path);
     return stream;
   }
 
@@ -114,7 +114,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(NetworkAddressUtils.getLocalHostName(mTachyonConf));
+    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf));
     return ret;
   }
 
@@ -177,7 +177,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     File file = new File(path);
     boolean created = createParent ? file.mkdirs() : file.mkdir();
     setPermission(path, "777");
-    FileUtils.setLocalFileStickyBit(path);
+    FileUtils.setLocalDirStickyBit(path);
     return created;
   }
 

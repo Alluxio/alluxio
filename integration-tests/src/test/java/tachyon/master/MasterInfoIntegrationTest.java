@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -299,6 +300,7 @@ public class MasterInfoIntegrationTest {
 
   // TODO: This test currently relies on the fact the HDFS client is a cached instance to avoid
   // TODO: invalid lease exception. This should be fixed.
+  @Ignore
   @Test
   public void concurrentCreateJournalTest() throws Exception {
     // Makes sure the file id's are the same between a master info and the journal it creates

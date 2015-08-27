@@ -25,12 +25,16 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.Users;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
@@ -42,6 +46,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   private static final boolean LINKED_HASH_MAP_ACCESS_ORDERED = true;
   private static final boolean UNUSED_MAP_VALUE = true;
 
+  private final Allocator mAllocator;
   private BlockMetadataManagerView mManagerView;
 
   /**
@@ -49,12 +54,13 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    * placeholder to occupy the value), acts as a LRU double linked list where most recently accessed
    * element is put at the tail while least recently accessed element is put at the head.
    */
-  protected Map<Long, Boolean> mLRUCache = Collections
-      .synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
+  protected Map<Long, Boolean> mLRUCache =
+      Collections.synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
-  public LRUEvictor(BlockMetadataManagerView view) {
-    mManagerView = view;
+  public LRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
+    mManagerView = Preconditions.checkNotNull(view);
+    mAllocator = Preconditions.checkNotNull(allocator);
 
     // preload existing blocks loaded by StorageDir to Evictor
     for (StorageTierView tierView : mManagerView.getTierViews()) {
@@ -72,6 +78,8 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    */
   private StorageDirView selectDirWithRequestedSpace(long bytesToBeAvailable,
       BlockStoreLocation location) {
+    Preconditions.checkNotNull(location);
+
     if (location.equals(BlockStoreLocation.anyTier())) {
       for (StorageTierView tierView : mManagerView.getTierViews()) {
         for (StorageDirView dirView : tierView.getDirViews()) {
@@ -101,11 +109,11 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
   /**
    * A recursive implementation of cascading LRU eviction.
    *
-   * It will try to free space in next tier view to transfer blocks there, if the next tier view
-   * does not have enough free space to hold the blocks, the next next tier view will be tried and
-   * so on until the bottom tier is reached, if blocks can not even be transferred to the bottom
-   * tier, they will be evicted, otherwise, only blocks to be freed in the bottom tier will be
-   * evicted.
+   * This method uses a specific eviction strategy to find blocks to evict in the requested
+   * location. After eviction, one StorageDir in the location has the specific amount of free space.
+   * It then uses an allocation strategy to allocate space in the next tier to move each evicted
+   * blocks. If the next tier fails to allocate space for the evicted blocks, the next tier will
+   * continue to evict its blocks to free space.
    *
    * this method is only used in {@link #freeSpaceWithView}
    *
@@ -118,7 +126,6 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
    */
   protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
       EvictionPlan plan) {
-
     // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
     StorageDirView candidateDirView = selectDirWithRequestedSpace(bytesToBeAvailable, location);
     if (candidateDirView != null) {
@@ -152,31 +159,56 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
       return null;
     }
 
-    // 4. cascading eviction: try to free space in next tier to move candidate blocks there, evict
-    // blocks only when it can not be moved to next tiers
+    // 4. cascading eviction: try to allocate space in the next tier to move candidate blocks
+    // there. If allocation fails, the next tier will continue to evict its blocks to free space.
+    // Blocks are only evicted from the last tier or it can not be moved to the next tier.
     candidateDirView = dirCandidates.candidateDir();
     List<Long> candidateBlocks = dirCandidates.candidateBlocks();
-    List<StorageTierView> tierViewsBelow =
-        mManagerView.getTierViewsBelow(candidateDirView.getParentTierView().getTierViewAlias());
-    // find a dir in below tiers to transfer blocks there, from top tier to bottom tier
-    StorageDirView candidateNextDir = null;
-    for (StorageTierView tierView : tierViewsBelow) {
-      candidateNextDir =
-          cascadingEvict(dirCandidates.candidateSize() - candidateDirView.getAvailableBytes(),
-              BlockStoreLocation.anyDirInTier(tierView.getTierViewAlias()), plan);
-      if (candidateNextDir != null) {
-        break;
-      }
-    }
-    if (candidateNextDir == null) {
-      // nowhere to transfer blocks to, so evict them
+    StorageTierView nextTierView = mManagerView.getNextTier(candidateDirView.getParentTierView());
+    if (nextTierView == null) {
+      // This is the last tier, evict all the blocks.
       plan.toEvict().addAll(candidateBlocks);
+      for (Long blockId : candidateBlocks) {
+        try {
+          BlockMeta block = mManagerView.getBlockMeta(blockId);
+          if (null != block) {
+            candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
+          }
+        } catch (NotFoundException nfe) {
+          continue;
+        }
+      }
     } else {
-      BlockStoreLocation dest = candidateNextDir.toBlockStoreLocation();
-      for (long block : candidateBlocks) {
-        plan.toMove().add(new Pair<Long, BlockStoreLocation>(block, dest));
+      for (Long blockId : candidateBlocks) {
+        try {
+          BlockMeta block = mManagerView.getBlockMeta(blockId);
+          if (null == block) {
+            continue;
+          }
+          StorageDirView nextDirView =
+              mAllocator.allocateBlockWithView(Users.MIGRATE_DATA_USER_ID, block.getBlockSize(),
+                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
+          if (nextDirView == null) {
+            nextDirView = cascadingEvict(block.getBlockSize(),
+                BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
+          }
+          if (nextDirView == null) {
+            // If we failed to find a dir in the next tier to move this block, evict it and
+            // continue. Normally this should not happen.
+            plan.toEvict().add(blockId);
+            candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
+            continue;
+          }
+          plan.toMove()
+              .add(new Pair<Long, BlockStoreLocation>(blockId, nextDirView.toBlockStoreLocation()));
+          candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
+          nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
+        } catch (NotFoundException nfe) {
+          continue;
+        }
       }
     }
+
     return candidateDirView;
   }
 
@@ -190,6 +222,7 @@ public class LRUEvictor extends BlockStoreEventListenerBase implements Evictor {
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
     StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
+    mManagerView.clearBlockMarks();
     if (candidateDir == null) {
       return null;
     }

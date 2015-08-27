@@ -210,9 +210,6 @@ public class DFSIOIntegrationTest implements Tool {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
     // Init DFSIOIntegrationTest
     sBench = new DFSIOIntegrationTest();
     sBench.getConf().setBoolean("dfs.support.append", true);
@@ -249,7 +246,6 @@ public class DFSIOIntegrationTest implements Tool {
 
     // Stop local Tachyon cluster
     sLocalTachyonCluster.stop();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   public static void testWrite() throws Exception {
@@ -289,7 +285,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_BACKWARD, execTime);
   }
 
-  @Test(timeout = 20000)
+  @Test(timeout = 25000)
   public void testReadSkip() throws Exception {
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -392,7 +388,7 @@ public class DFSIOIntegrationTest implements Tool {
       }
 
       if (codec != null) {
-        mCompressionCodec = (CompressionCodec) ReflectionUtils.newInstance(codec, getConf());
+        mCompressionCodec = ReflectionUtils.newInstance(codec, getConf());
       }
     }
 
@@ -577,8 +573,8 @@ public class DFSIOIntegrationTest implements Tool {
    * by size.
    *
    * There are three type of reads. 1) Random read always chooses a random position to read from:
-   * skipSize = 0 2) Backward read reads file in reverse order : skipSize < 0 3) Skip-read skips
-   * skipSize bytes after every read : skipSize > 0
+   * skipSize = 0 2) Backward read reads file in reverse order : skipSize &lt; 0 3) Skip-read skips
+   * skipSize bytes after every read : skipSize &gt; 0
    */
   public static class RandomReadMapper extends IOStatMapper {
     private Random mRnd;

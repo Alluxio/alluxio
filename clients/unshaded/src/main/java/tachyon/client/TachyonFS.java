@@ -46,13 +46,14 @@ import tachyon.thrift.ClientWorkerInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
 
 /**
  * Client API to use Tachyon as a file system. This API is not compatible with HDFS file system API;
- * while {@link tachyon.hadoop.AbstractTFS} provides another API that exposes Tachyon as HDFS file
+ * while tachyon.hadoop.AbstractTFS provides another API that exposes Tachyon as HDFS file
  * system. Under the hood, this class maintains a MasterClient to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
  */
@@ -64,11 +65,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param tachyonPath a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    * @see #get(tachyon.TachyonURI, tachyon.conf.TachyonConf)
    */
   @Deprecated
-  public static synchronized TachyonFS get(String tachyonPath) throws IOException {
+  public static synchronized TachyonFS get(String tachyonPath) {
     return get(new TachyonURI(tachyonPath), new TachyonConf());
   }
 
@@ -78,11 +78,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param tachyonURI a Tachyon URI to indicate master address. e.g., tachyon://localhost:19998,
    *        tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    * @see #get(tachyon.TachyonURI, tachyon.conf.TachyonConf)
    */
   @Deprecated
-  public static synchronized TachyonFS get(final TachyonURI tachyonURI) throws IOException {
+  public static synchronized TachyonFS get(final TachyonURI tachyonURI) {
     return get(tachyonURI, new TachyonConf());
   }
 
@@ -93,21 +92,19 @@ public class TachyonFS extends AbstractTachyonFS {
    *        tachyon://localhost:19998/ab/c.txt
    * @param tachyonConf The TachyonConf instance.
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    */
-  public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf)
-      throws IOException {
-    Preconditions.checkNotNull(tachyonConf, "Could not pass null TachyonConf instance.");
-    if (tachyonURI == null) {
-      throw new IOException("Tachyon Uri cannot be null. Use " + Constants.HEADER + "host:port/ ,"
-          + Constants.HEADER_FT + "host:port/");
-    }
+  public static synchronized TachyonFS get(final TachyonURI tachyonURI, TachyonConf tachyonConf) {
+    Preconditions.checkArgument(tachyonConf != null, "TachyonConf cannot be null.");
+    Preconditions.checkArgument(tachyonURI != null, "Tachyon URI cannot be null. Use "
+        + Constants.HEADER + "host:port/ ," + Constants.HEADER_FT + "host:port/.");
     String scheme = tachyonURI.getScheme();
-    if (scheme == null || tachyonURI.getHost() == null || tachyonURI.getPort() == -1
-        || (!Constants.SCHEME.equals(scheme) && !Constants.SCHEME_FT.equals(scheme))) {
-      throw new IOException("Invalid Tachyon URI: " + tachyonURI + ". Use " + Constants.HEADER
-          + "host:port/ ," + Constants.HEADER_FT + "host:port/");
-    }
+    Preconditions.checkNotNull(scheme, "Tachyon scheme cannot be null. Use " + Constants.SCHEME
+        + " or " + Constants.SCHEME_FT + ".");
+    Preconditions.checkNotNull(tachyonURI.getHost(), "Tachyon hostname cannot be null.");
+    Preconditions.checkState(tachyonURI.getPort() != -1, "Tachyon URI must have a port number.");
+    Preconditions.checkState(
+        (Constants.SCHEME.equals(scheme) || Constants.SCHEME_FT.equals(scheme)),
+        "Tachyon scheme must be either " + Constants.SCHEME + " or " + Constants.SCHEME_FT + ".");
 
     boolean useZookeeper = scheme.equals(Constants.SCHEME_FT);
     tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(useZookeeper));
@@ -124,10 +121,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param masterPort port master listens on
    * @param zkMode use zookeeper
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    */
-  public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zkMode)
-      throws IOException {
+  public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zkMode) {
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
@@ -139,12 +134,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * Create a TachyonFS handler.
    *
    * @param tachyonConf The TachyonConf instance.
-   *
    * @return the corresponding TachyonFS handler
-   * @throws IOException
    */
-  public static synchronized TachyonFS get(TachyonConf tachyonConf) throws IOException {
-    Preconditions.checkArgument(tachyonConf != null, "Could not pass null TachyonConf instance.");
+  public static synchronized TachyonFS get(TachyonConf tachyonConf) {
+    Preconditions.checkArgument(tachyonConf != null, "TachyonConf cannot be null.");
     return new TachyonFS(tachyonConf);
   }
 
@@ -179,16 +172,11 @@ public class TachyonFS extends AbstractTachyonFS {
   private TachyonURI mRootUri = null;
   private ClientMetrics mClientMetrics = new ClientMetrics();
 
-  private TachyonFS(TachyonConf tachyonConf) throws IOException {
+  private TachyonFS(TachyonConf tachyonConf) {
     super(tachyonConf);
 
-    String masterHost =
-        tachyonConf.get(Constants.MASTER_HOSTNAME,
-            NetworkAddressUtils.getLocalHostName(tachyonConf));
-    int masterPort = tachyonConf.getInt(Constants.MASTER_PORT);
-
-    mMasterAddress = new InetSocketAddress(masterHost, masterPort);
-    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false);
+    mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, tachyonConf);
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
     mMasterClient =
@@ -985,27 +973,20 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Validates the given uri, throwing an IOException if the uri is invalid.
+   * Validates the given uri, throws an appropriate Exception if the uri is invalid.
    *
    * @param uri The uri to validate
    */
-  private void validateUri(TachyonURI uri) throws IOException {
-    String err = null;
-    if (uri == null) {
-      err = "URI cannot be null";
-    } else if (!uri.isPathAbsolute() && !TachyonURI.EMPTY_URI.equals(uri)) {
-      err = "URI must be absolute";
-    } else if (uri.hasScheme() && !mRootUri.getScheme().equals(uri.getScheme())) {
-      err =
-          "URI's scheme: " + uri.getScheme() + " must match the file system's scheme: "
-              + mRootUri.getScheme();
-    } else if (uri.hasAuthority() && !mRootUri.getAuthority().equals(uri.getAuthority())) {
-      err =
-          "URI's authority: " + uri.getAuthority() + " must match the file system's authority: "
-              + mRootUri.getAuthority();
-    }
-    if (err != null) {
-      throw new IOException("Uri is invalid: " + err);
-    }
+  private void validateUri(TachyonURI uri) {
+    Preconditions.checkNotNull(uri, "URI cannot be null.");
+    Preconditions.checkArgument(uri.isPathAbsolute() || TachyonURI.EMPTY_URI.equals(uri),
+        "URI must be absolute, unless it's empty.");
+    Preconditions.checkArgument(!uri.hasScheme() || mRootUri.getScheme().equals(uri.getScheme()),
+        "URI's scheme: " + uri.getScheme() + " must match the file system's scheme: "
+            + mRootUri.getScheme() + ", unless it doesn't have a scheme.");
+    Preconditions.checkArgument(!uri.hasAuthority()
+        || mRootUri.getAuthority().equals(uri.getAuthority()), "URI's authority: "
+        + uri.getAuthority() + " must match the file system's authority: "
+        + mRootUri.getAuthority() + ", unless it doesn't have an authority.");
   }
 }

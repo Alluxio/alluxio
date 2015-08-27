@@ -31,6 +31,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * BlockInStream for remote block.
@@ -162,10 +163,10 @@ public class RemoteBlockInStream extends BlockInStream {
    * The object can be used to perform near-stateless read using {@link #readRemoteByteBuffer}.
    * (The only state kept is a handler for the underlying reader, so we can close the reader
    * when we close the dummy stream.)
-   * 
+   *
    * <p>
    * See {@link tachyon.client.TachyonFile#readRemoteByteBuffer(ClientBlockInfo)} for usage.
-   * 
+   *
    * @return a dummy RemoteBlockInStream object.
    */
   public static RemoteBlockInStream getDummyStream() {
@@ -245,6 +246,11 @@ public class RemoteBlockInStream extends BlockInStream {
     if (bytesLeft > 0 && mBlockOutStream == null && mRecache) {
       try {
         mBlockOutStream = BlockOutStream.get(mFile, WriteType.TRY_CACHE, mBlockIndex, mTachyonConf);
+        // We should only cache when we are writing to a local worker
+        if (mBlockOutStream instanceof RemoteBlockOutStream) {
+          LOG.info("Cannot find a local worker to write to, recache attempt cancelled.");
+          cancelRecache();
+        }
       } catch (IOException ioe) {
         LOG.warn("Recache attempt failed.", ioe);
         cancelRecache();
@@ -303,7 +309,7 @@ public class RemoteBlockInStream extends BlockInStream {
     try {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
-      String localhost = NetworkAddressUtils.getLocalHostName(conf);
+      String localhost = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, conf);
 
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;
@@ -350,8 +356,7 @@ public class RemoteBlockInStream extends BlockInStream {
     // always clear the previous reader before assigning it to a new one
     closeReader();
     mCurrentReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
-    return mCurrentReader.readRemoteBlock(
-        address.getHostName(), address.getPort(), blockId, offset, length);
+    return mCurrentReader.readRemoteBlock(address, blockId, offset, length);
   }
 
   @Override
