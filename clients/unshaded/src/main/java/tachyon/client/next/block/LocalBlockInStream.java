@@ -85,7 +85,7 @@ public class LocalBlockInStream extends BlockInStream {
       close();
       return -1;
     }
-    return mData.get() & 0xFF;
+    return BufferUtils.byteToInt(mData.get());
   }
 
   @Override
