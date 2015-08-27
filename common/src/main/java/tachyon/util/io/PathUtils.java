@@ -37,11 +37,12 @@ public class PathUtils {
   }
 
   /**
-   * Checks and normalizes the given path
+   * Checks and normalizes the given path.
    *
    * @param path The path to clean up
    * @return a normalized version of the path, with single separators between path components and
    *         dot components resolved
+   * @throws InvalidPathException if the path is invalid
    */
   public static String cleanPath(String path) throws InvalidPathException {
     validatePath(path);
@@ -99,7 +100,7 @@ public class PathUtils {
    *
    * @param path The path
    * @return the parent path of the file; this is "/" if the given path is the root.
-   * @throws tachyon.thrift.InvalidPathException
+   * @throws InvalidPathException if the path is invalid
    */
   public static String getParent(String path) throws InvalidPathException {
     String cleanedPath = cleanPath(path);
@@ -117,7 +118,7 @@ public class PathUtils {
    *
    * @param path The path to split
    * @return the path split into components
-   * @throws tachyon.thrift.InvalidPathException
+   * @throws InvalidPathException if the path is invalid
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
@@ -134,17 +135,17 @@ public class PathUtils {
    *
    * @param path The path to check
    * @return true if the path is the root
-   * @throws tachyon.thrift.InvalidPathException
+   * @throws InvalidPathException if the path is invalid
    */
   public static boolean isRoot(String path) throws InvalidPathException {
     return TachyonURI.SEPARATOR.equals(cleanPath(path));
   }
 
   /**
-   * Check if the given path is properly formed
+   * Check if the given path is properly formed.
    *
    * @param path The path to check
-   * @throws tachyon.thrift.InvalidPathException If the path is not properly formed
+   * @throws InvalidPathException If the path is not properly formed
    */
   public static void validatePath(String path) throws InvalidPathException {
     if (path == null || path.isEmpty() || !path.startsWith(TachyonURI.SEPARATOR)
@@ -155,6 +156,8 @@ public class PathUtils {
 
   /**
    * Creates a unique path based off the caller.
+   *
+   * @return unique path based off the caller
    */
   public static final String uniqPath() {
     StackTraceElement caller = new Throwable().getStackTrace()[1];
