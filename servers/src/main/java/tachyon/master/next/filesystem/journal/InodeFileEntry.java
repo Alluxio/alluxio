@@ -15,11 +15,8 @@
 
 package tachyon.master.next.filesystem.journal;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
-import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
 
 public class InodeFileEntry extends InodeEntry {

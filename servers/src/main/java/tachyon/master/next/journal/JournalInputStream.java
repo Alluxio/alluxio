@@ -15,16 +15,17 @@
 
 package tachyon.master.next.journal;
 
-public interface JournalInputStream {
+import java.io.IOException;
 
+public interface JournalInputStream {
   /**
    * Returns the next {@link JournalEntry} in the stream.
    * @return the next {@link JournalEntry}. returns null if the are no more entries.
    */
-  JournalEntry getNextEntry();
+  JournalEntry getNextEntry() throws IOException;
 
   /**
    * Closes the stream.
    */
-  void close();
+  void close() throws IOException;
 }

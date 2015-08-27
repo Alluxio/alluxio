@@ -28,6 +28,7 @@ import org.apache.commons.codec.binary.Base64;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,11 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import tachyon.TachyonURI;
+import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
+import tachyon.master.next.filesystem.journal.InodeFileEntry;
 
 public class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -195,8 +201,55 @@ public class JsonJournalFormatter implements JournalFormatter {
   }
 
   @Override
-  public JournalInputStream deserialize(InputStream inputStream) {
-    // TODO(cc)
-    return null;
+  public JournalInputStream deserialize(final InputStream inputStream) throws IOException {
+    return new JournalInputStream() {
+      private JsonParser mParser = JsonEntry.createObjectMapper().getFactory()
+          .createParser(inputStream);
+
+      @Override
+      public JournalEntry getNextEntry() throws IOException {
+        JsonEntry entry = mParser.readValueAs(JsonEntry.class);
+        switch (entry.mType) {
+          case INODE_FILE: {
+            return new InodeFileEntry(
+                entry.getLong("creationTimeMs"),
+                entry.getLong("id"),
+                entry.getString("name"),
+                entry.getLong("parentId"),
+                entry.getBoolean("isPinned"),
+                entry.getLong("lastModificationTimeMs"),
+                entry.getLong("blockSizeBytes"),
+                entry.getLong("length"),
+                entry.getBoolean("isComplete"),
+                entry.getBoolean("isCache"),
+                entry.getString("ufsPath"));
+          }
+          case INODE_DIRECTORY: {
+            return new InodeDirectoryEntry(
+                entry.getLong("creationTimeMs"),
+                entry.getLong("id"),
+                entry.getString("name"),
+                entry.getLong("parentId"),
+                entry.getBoolean("isPinned"),
+                entry.getLong("lastModificationTimeMs"),
+                entry.get("childrenIds", new TypeReference<List<Long>>() {}));
+          }
+          case ADD_CHECKPOINT: {
+            return new AddCheckpointEntry(
+                entry.getLong("fileId"),
+                entry.getLong("length"),
+                new TachyonURI(entry.getString("checkpointPath")),
+                entry.getLong("operationTimeMs"));
+          }
+          default:
+            throw new IOException("Unknown entry type: " + entry.mType);
+        }
+      }
+
+      @Override
+      public void close() throws IOException {
+        inputStream.close();
+      }
+    };
   }
 }

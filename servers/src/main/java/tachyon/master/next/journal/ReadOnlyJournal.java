@@ -15,11 +15,7 @@
 
 package tachyon.master.next.journal;
 
-import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-
-import javax.naming.OperationNotSupportedException;
-import java.io.IOException;
 
 /**
  * This encapsulates the journal for a master. The journal is made up of 2 components:
