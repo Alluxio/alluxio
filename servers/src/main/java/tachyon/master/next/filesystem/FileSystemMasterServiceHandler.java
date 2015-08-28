@@ -79,12 +79,6 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public long getUserId() throws TException {
-    // TODO
-    return 0;
-  }
-
-  @Override
   public long getNewBlockIdForFile(long fileId)
       throws FileDoesNotExistException, BlockInfoException, TException {
     return mFileSystemMaster.getNewBlockIdForFile(fileId);
@@ -150,11 +144,6 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   @Override
   public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException, TException {
     return mFileSystemMaster.free(fileId, recursive);
-  }
-
-  @Override
-  public void userHeartbeat() throws TException {
-    // TODO
   }
 
   @Override
