@@ -82,7 +82,7 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   public void free(TachyonFile file) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.freePath(file.getFileId(), true);
+      masterClient.free(file.getFileId(), true);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

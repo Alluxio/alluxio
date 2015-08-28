@@ -195,7 +195,7 @@ service FileSystemMasterService {
   // TODO: is this necessary?
   string getUfsAddress()
 
-  i64 createFile(1: i64 fileId, 2: i64 blockSizeBytes, 3: bool recursive)
+  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
@@ -221,7 +221,7 @@ service FileSystemMasterService {
   void setPinned(1: i64 fileId, 2: bool pinned)
     throws (1: FileDoesNotExistException fdnee)
 
-  bool createDirectory(1: i64 fileId, 2: bool recursive)
+  bool createDirectory(1: string path, 2: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: TachyonException te)
 
   bool free(1: i64 fileId, 2: bool recursive)
@@ -396,7 +396,7 @@ service MasterService {
    */
   i32 user_getRawTableId(1: string path)
     throws (1: InvalidPathException e)
-     
+
   /**
    * Get RawTable's info; Return a ClientRawTable instance with id 0 if the system does not contain
    * the table. path if valid iff id is -1.
@@ -408,7 +408,7 @@ service MasterService {
     throws (1: TableDoesNotExistException eT, 2: TachyonException eTa)
 
   string user_getUfsAddress()
-  
+
   /**
    * Returns if the message was received. Intended to check if the client can still connect to the
    * master.
@@ -432,7 +432,7 @@ service WorkerService {
   /**
    * Used to cache a block into Tachyon space, worker will move the temporary block file from user
    * folder to data folder, and update the space usage information related. then update the block
-   * information to master. 
+   * information to master.
    */
   void cacheBlock(1: i64 userId, 2: i64 blockId)
     throws (1: FileDoesNotExistException eP, 2: BlockInfoException eB)
