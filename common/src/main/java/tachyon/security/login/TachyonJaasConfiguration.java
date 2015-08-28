@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.login;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,9 +55,9 @@ public class TachyonJaasConfiguration extends Configuration {
 
   /**
    * In SIMPLE mode, JAAS first tries to retrieve the user name set by the application with
-   * {@link tachyon.security.CustomLoginModule}. Upon failure, it use the OS specific login module
-   * to fetch the OS user, and then use the {@link tachyon.security.TachyonLoginModule} to convert
-   * it to a Tachyon user represented by {@link tachyon.security.User}.
+   * {@link tachyon.security.login.CustomLoginModule}. Upon failure, it use the OS specific login
+   * module to fetch the OS user, and then use the {@link tachyon.security.TachyonLoginModule} to
+   * convert it to a Tachyon user represented by {@link tachyon.security.User}.
    */
   private static final AppConfigurationEntry[] SIMPLE = new
       AppConfigurationEntry[]{CUSTOM_LOGIN, OS_SPECIFIC_LOGIN, TACHYON_LOGIN};

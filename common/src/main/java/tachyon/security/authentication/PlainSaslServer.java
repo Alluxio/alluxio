@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.authentication;
 
 import java.io.IOException;
 
@@ -27,7 +27,7 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
-import tachyon.security.authentication.AuthenticationProvider;
+import tachyon.security.AuthorizedClientUser;
 
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
