@@ -33,6 +33,7 @@ public enum JournalEntryType {
   MK_DIRS,
   SET_PINNED,
   FREE,
+  RENAME,
 
   // Raw table master entries
 }

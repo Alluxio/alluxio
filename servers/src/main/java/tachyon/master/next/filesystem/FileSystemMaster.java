@@ -39,6 +39,7 @@ import tachyon.master.next.filesystem.journal.CreateFileEntry;
 import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.MkDirsEntry;
+import tachyon.master.next.filesystem.journal.RenameEntry;
 import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
@@ -488,8 +489,11 @@ public class FileSystemMaster extends MasterBase {
       srcInode.setName(dstComponents[dstComponents.length - 1]);
       dstParentDirectory.addChild(srcInode);
       dstParentInode.setLastModificationTimeMs(opTimeMs);
+
+      writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
+      flushJournal();
+
       return true;
-      // TODO: write to journal
     }
 
   }
