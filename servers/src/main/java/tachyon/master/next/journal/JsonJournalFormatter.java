@@ -39,6 +39,7 @@ import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.CreateFileEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
 
@@ -231,8 +232,7 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getString("name"),
                 entry.getLong("parentId"),
                 entry.getBoolean("isPinned"),
-                entry.getLong("lastModificationTimeMs"),
-                entry.get("childrenIds", new TypeReference<List<Long>>() {}));
+                entry.getLong("lastModificationTimeMs"));
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(
@@ -240,6 +240,9 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
                 entry.getLong("operationTimeMs"));
+          }
+          case CREATE_FILE: {
+            return new CreateFileEntry();
           }
           default:
             throw new IOException("Unknown entry type: " + entry.mType);
