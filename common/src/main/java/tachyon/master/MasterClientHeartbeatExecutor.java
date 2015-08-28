@@ -17,6 +17,7 @@ package tachyon.master;
 
 import java.io.IOException;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.HeartbeatExecutor;
@@ -24,11 +25,11 @@ import tachyon.HeartbeatExecutor;
 /**
  * Heartbeat executor for master client.
  */
-class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
+final class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
   private final MasterClient mClient;
 
   public MasterClientHeartbeatExecutor(MasterClient client) {
-    mClient = client;
+    mClient = Preconditions.checkNotNull(client);
   }
 
   @Override
