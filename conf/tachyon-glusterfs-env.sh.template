@@ -9,8 +9,6 @@
 # - TACHYON_UNDERFS_ADDRESS, to set the under filesystem address.
 # - TACHYON_WORKER_MEMORY_SIZE, to set how much memory to use (e.g. 1000mb, 2gb) per worker
 # - TACHYON_RAM_FOLDER, to set where worker stores in memory data
-# - TACHYON_UNDERFS_HDFS_IMPL, to set which HDFS implementation to use (e.g. com.mapr.fs.MapRFileSystem,
-#   org.apache.hadoop.hdfs.DistributedFileSystem)
 
 # The following gives an example:
 
@@ -49,15 +47,9 @@ CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
   -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
-  -Dtachyon.debug=true
   -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
-  -Dtachyon.data.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/data
-  -Dtachyon.workers.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/workers
   -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
-  -Dtachyon.worker.data.folder=/tachyonworker/
-  -Dtachyon.master.worker.timeout.ms=60000
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
-  -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
   -Dtachyon.master.pinlist=/pinfiles;/pindata
   -Dtachyon.underfs.glusterfs.volumes=$TACHYON_UNDERFS_GLUSTER_VOLUMES
   -Dtachyon.underfs.glusterfs.mounts=$TACHYON_UNDERFS_GLUSTER_MOUNTS

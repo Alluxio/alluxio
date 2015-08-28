@@ -18,12 +18,22 @@ package tachyon.exception;
 /**
  * Exception used when some requested entity (e.g., block, file, directory or lock) was not found.
  */
-public class NotFoundException extends Exception {
+public final class NotFoundException extends AbstractTachyonException {
+  private static final long serialVersionUID = 6901397458237323517L;
+
   public NotFoundException(String message) {
     super(message);
   }
 
   public NotFoundException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public NotFoundException(ExceptionMessage message, Object... params) {
+    super(message, params);
+  }
+
+  public NotFoundException(ExceptionMessage message, Throwable cause, Object... params) {
+    super(message, cause, params);
   }
 }

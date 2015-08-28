@@ -30,6 +30,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import tachyon.Constants;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 
@@ -119,8 +120,7 @@ public final class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new NotFoundException(
-            "Failed to unlockBlock: lockId " + lockId + " has no lock record");
+        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
       }
       long userId = record.userId();
       lock = record.lock();
@@ -141,8 +141,7 @@ public final class BlockLockManager {
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          throw new NotFoundException(
-              "Failed to unlockBlock: lockId " + lockId + " has no lock record");
+          throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
         }
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -155,8 +154,8 @@ public final class BlockLockManager {
           return;
         }
       }
-      throw new NotFoundException("Failed to unlock blockId " + blockId + " for userId " + userId
-          + ": no lock is found for userId " + userId);
+      throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER,
+          blockId, userId);
     }
   }
 
@@ -175,16 +174,15 @@ public final class BlockLockManager {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new NotFoundException(
-            "Failed to validateLock: lockId " + lockId + " has no lock record");
+        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
       }
       if (userId != record.userId()) {
-        throw new InvalidStateException("Failed to validateLock: lockId " + lockId
-            + " is owned by userId " + record.userId() + ", not " + userId);
+        throw new InvalidStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_USER, lockId,
+            record.userId(), userId);
       }
       if (blockId != record.blockId()) {
-        throw new InvalidStateException("Failed to validateLock: lockId " + lockId
-            + " is for blockId " + record.blockId() + ", not " + blockId);
+        throw new InvalidStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
+            record.blockId(), blockId);
       }
     }
   }
@@ -203,7 +201,7 @@ public final class BlockLockManager {
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          LOG.error("Failed to cleanup userId {}: no lock record for lockId {}", userId, lockId);
+          LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
           continue;
         }
         Lock lock = record.lock();

@@ -63,11 +63,10 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    if (b == null) {
-      throw new NullPointerException();
-    } else if (off < 0 || len < 0 || len > b.length - off) {
-      throw new IndexOutOfBoundsException();
-    } else if (len == 0) {
+    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    if (len == 0) {
       return 0;
     } else if (mPos == mBlockSize) {
       return -1;
@@ -82,9 +81,7 @@ public class RemoteBlockInStream extends BlockInStream {
       // TODO: Fix needing to recreate reader each time
       RemoteBlockReader reader =
           RemoteBlockReader.Factory.createRemoteBlockReader(ClientContext.getConf());
-      ByteBuffer data =
-          reader.readRemoteBlock(mLocation.getHostName(), mLocation.getPort(), mBlockId, mPos,
-              bytesLeft);
+      ByteBuffer data = reader.readRemoteBlock(mLocation, mBlockId, mPos, bytesLeft);
       int bytesToRead = Math.min(bytesLeft, data.remaining());
       data.get(b, off, bytesToRead);
       reader.close();
@@ -103,8 +100,8 @@ public class RemoteBlockInStream extends BlockInStream {
   @Override
   public void seek(long pos) throws IOException {
     Preconditions.checkArgument(pos > 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos < mBlockSize, "Seek position: " + pos + " is past block size: "
-        + mBlockSize);
+    Preconditions.checkArgument(pos < mBlockSize,
+        "Seek position: " + pos + " is past block size: " + mBlockSize);
     mPos = pos;
   }
 

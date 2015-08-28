@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.journal.JournalSerializable;
-import tachyon.master.next.journal.JournalWriter;
 
 /**
  * This class maintains the dependency related metadata information for the lineage feature.
@@ -126,7 +126,7 @@ public class DependencyMap implements JournalSerializable {
   }
 
   @Override
-  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
   }
 }

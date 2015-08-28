@@ -364,8 +364,6 @@ abstract class AbstractTFS extends FileSystem {
    * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means to
    * make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
    *
-   * @Override on this method.
-   *
    * @return schema hadoop should map to.
    *
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,

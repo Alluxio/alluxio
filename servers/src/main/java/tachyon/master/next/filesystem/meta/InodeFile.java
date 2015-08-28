@@ -21,7 +21,7 @@ import java.util.List;
 
 import tachyon.master.block.BlockId;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
-import tachyon.master.next.journal.JournalWriter;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -273,8 +273,9 @@ public final class InodeFile extends Inode {
   }
 
   @Override
-  public synchronized void writeJournalCheckpoint(JournalWriter writer) throws IOException {
-    writer.writeCheckpointEntry(new InodeFileEntry(getCreationTimeMs(), getId(), getName(),
+  public synchronized void writeToJournal(JournalOutputStream outputStream)
+      throws IOException {
+    outputStream.writeEntry(new InodeFileEntry(getCreationTimeMs(), getId(), getName(),
         getParentId(), isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(),
         isComplete(), isCache(), getUfsPath()));
   }

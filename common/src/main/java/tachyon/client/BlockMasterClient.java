@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClient;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.WorkerInfo;
 
@@ -42,9 +43,6 @@ public final class BlockMasterClient extends MasterClient {
 
   private BlockMasterService.Client mClient = null;
 
-  // TODO: implement client heartbeat to the master
-  private Future<?> mHeartbeat;
-
   public BlockMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
@@ -58,13 +56,10 @@ public final class BlockMasterClient extends MasterClient {
   @Override
   protected void afterConnect() {
     mClient = new BlockMasterService.Client(mProtocol);
-    // TODO: get a user id?
-    // TODO: start client heartbeat thread, and submit it to the executor service
   }
 
   @Override
   protected void afterDisconnect() {
-    // TODO: implement heartbeat cleanup
   }
 
   /**
@@ -84,6 +79,11 @@ public final class BlockMasterClient extends MasterClient {
         mConnected = false;
       }
     }
+    return null;
+  }
+
+  public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
+    // TODO: Implement me
     return null;
   }
 

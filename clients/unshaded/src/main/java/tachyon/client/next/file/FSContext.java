@@ -15,6 +15,7 @@
 
 package tachyon.client.next.file;
 
+import tachyon.client.FileSystemMasterClient;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.block.BlockMasterClientPool;
 import tachyon.client.next.block.TachyonBS;
@@ -28,20 +29,20 @@ public enum FSContext {
   INSTANCE;
 
   // TODO: Separate this when block master and file system master use different clients
-  private final BlockMasterClientPool mFileSystemMasterClientPool;
+  private final FSMasterClientPool mFileSystemMasterClientPool;
   private final TachyonBS mTachyonBS;
 
   private FSContext() {
     mFileSystemMasterClientPool =
-        new BlockMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
+        new FSMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
     mTachyonBS = TachyonBS.get();
   }
 
-  public MasterClient acquireMasterClient() {
+  public FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
   }
 
-  public void releaseMasterClient(MasterClient masterClient) {
+  public void releaseMasterClient(FileSystemMasterClient masterClient) {
     mFileSystemMasterClientPool.release(masterClient);
   }
 

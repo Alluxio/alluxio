@@ -19,9 +19,9 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import tachyon.client.BlockMasterClient;
 import tachyon.client.next.ResourcePool;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterClient;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
@@ -29,7 +29,7 @@ import tachyon.util.ThreadFactoryUtils;
  * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
  * using the client.
  */
-public class BlockMasterClientPool extends ResourcePool<MasterClient> {
+public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
   private final TachyonConf mTachyonConf;
@@ -50,7 +50,7 @@ public class BlockMasterClientPool extends ResourcePool<MasterClient> {
   }
 
   @Override
-  public MasterClient createNewResource() {
-    return new MasterClient(mMasterAddress, mExecutorService, mTachyonConf);
+  public BlockMasterClient createNewResource() {
+    return new BlockMasterClient(mMasterAddress, mExecutorService, mTachyonConf);
   }
 }

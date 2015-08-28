@@ -164,7 +164,7 @@ public class RemoteBlockInStream extends BlockInStream {
    * The object can be used to perform near-stateless read using {@link #readRemoteByteBuffer}.
    * (The only state kept is a handler for the underlying reader, so we can close the reader
    * when we close the dummy stream.)
-   * 
+   *
    * <p>
    * See {@link tachyon.client.TachyonFile#readRemoteByteBuffer(FileBlockInfo)} for usage.
    * 
@@ -357,8 +357,7 @@ public class RemoteBlockInStream extends BlockInStream {
     // always clear the previous reader before assigning it to a new one
     closeReader();
     mCurrentReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
-    return mCurrentReader.readRemoteBlock(
-        address.getHostName(), address.getPort(), blockId, offset, length);
+    return mCurrentReader.readRemoteBlock(address, blockId, offset, length);
   }
 
   @Override
