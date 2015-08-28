@@ -79,11 +79,7 @@ public class JournalTailerThread extends Thread {
             // reset the shutdown clock, since a new completed log file is being processed.
             waitForShutdownStart = -1;
             LOG.info("Processing a newly completed log file.");
-            JournalEntry entry;
-            while ((entry = inputStream.getNextEntry()) != null) {
-              mMaster.processJournalEntry(entry);
-            }
-            inputStream.close();
+            mMaster.processJournalEntry(inputStream);
             LOG.info("Finished processing the log file.");
           } else {
             LOG.info("The next complete log file does not exist yet. Sleeping and checking again.");
