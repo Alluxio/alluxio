@@ -272,17 +272,18 @@ public class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      Pair<InodeDirectory, Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive,
+      Pair<Inode, Inode> createdInodes = mInodeTree.createPath(path, blockSizeBytes, recursive,
           false);
-      InodeFile inode = (InodeFile)created.getSecond();
+      InodeFile lastCreatedInode = (InodeFile)createdInodes.getSecond();
       if (mWhitelist.inList(path.toString())) {
-        inode.setCache(true);
+        lastCreatedInode.setCache(true);
       }
+
       writeJournalEntry(new CreateFileEntry());
       // Write the newly created Inodes
-      writeJournalEntry(created.getFirst());
+      writeJournalEntry(createdInodes.getFirst());
       flushJournal();
-      return inode.getId();
+      return lastCreatedInode.getId();
     }
   }
 
