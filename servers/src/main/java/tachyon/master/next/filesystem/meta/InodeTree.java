@@ -250,10 +250,11 @@ public final class InodeTree implements JournalSerializable {
    *
    * @param inode The {@link Inode} to set the pinned state for.
    * @param pinned The pinned state to set for the inode (and possible descendants).
+   * @param opTimeMs The operation time when this method is called
    */
-  public void setPinned(Inode inode, boolean pinned) {
+  public void setPinned(Inode inode, boolean pinned, long opTimeMs) {
     inode.setPinned(pinned);
-    inode.setLastModificationTimeMs(System.currentTimeMillis());
+    inode.setLastModificationTimeMs(opTimeMs);
 
     if (inode.isFile()) {
       if (inode.isPinned()) {
@@ -264,7 +265,7 @@ public final class InodeTree implements JournalSerializable {
     } else {
       // inode is a directory. Set the pinned state for all children.
       for (Inode child : ((InodeDirectory) inode).getChildren()) {
-        setPinned(child, pinned);
+        setPinned(child, pinned, opTimeMs);
       }
     }
   }

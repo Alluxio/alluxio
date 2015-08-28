@@ -38,6 +38,7 @@ import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.CreateFileEntry;
 import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.journal.MkDirsEntry;
+import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -496,8 +497,10 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      mInodeTree.setPinned(inode, pinned);
-      // TODO: write to journal
+      long opTimeMs = System.currentTimeMillis();
+      mInodeTree.setPinned(inode, pinned, opTimeMs);
+      writeJournalEntry(new SetPinnedEntry(fileId, pinned, opTimeMs));
+      flushJournal();
     }
   }
 
