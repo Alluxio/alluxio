@@ -96,11 +96,10 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public long createFile(long fileId, long blockSizeBytes, boolean recursive)
+  public long createFile(String path, long blockSizeBytes, boolean recursive)
       throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
       TachyonException, TException {
-    // TODO: should this take a string path?
-    return 0;
+    return mFileSystemMaster.createFile(new TachyonURI(path), blockSizeBytes, recursive);
   }
 
   @Override
@@ -142,10 +141,9 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public boolean createDirectory(long fileId, boolean recursive)
+  public boolean createDirectory(String path, boolean recursive)
       throws FileAlreadyExistException, TachyonException, TException {
-    // TODO
-    return false;
+    mFileSystemMaster.mkdirs(new TachyonURI(path), recursive);
   }
 
   @Override
