@@ -151,8 +151,8 @@ public final class FileUtils {
   }
 
   /**
-   * Moves file from one place to another, can across storage devices (e.g., from memory to SSD) when
-   * {@link File#renameTo} may not work.
+   * Moves file from one place to another, can across storage devices (e.g., from memory to SSD)
+   * when {@link File#renameTo} may not work.
    *
    * Current implementation uses {@link com.google.common.io.Files#move(File, File)}, may change if
    * there is a better solution.

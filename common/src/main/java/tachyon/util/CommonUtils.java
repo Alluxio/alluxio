@@ -86,8 +86,8 @@ public final class CommonUtils {
   }
 
   /**
-   * Sleeps for the given number of milliseconds, reporting interruptions using the given logger, and
-   * optionally pass the interruption to the caller.
+   * Sleeps for the given number of milliseconds, reporting interruptions using the given logger,
+   * and optionally pass the interruption to the caller.
    *
    * @param logger logger for reporting interruptions
    * @param timeMs sleep duration in milliseconds

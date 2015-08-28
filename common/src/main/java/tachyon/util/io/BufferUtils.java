@@ -174,8 +174,8 @@ public final class BufferUtils {
   }
 
   /**
-   * Checks if the given byte array starts with an increasing sequence of bytes starting at the given
-   * value of length equal to or greater than the given length.
+   * Checks if the given byte array starts with an increasing sequence of bytes starting at the
+   * given value of length equal to or greater than the given length.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence
@@ -217,8 +217,8 @@ public final class BufferUtils {
   }
 
   /**
-   * Checks if the given ByteBuffer starts with an increasing sequence of bytes starting at the given
-   * value of length equal to or greater than the given length.
+   * Checks if the given ByteBuffer starts with an increasing sequence of bytes starting at the
+   * given value of length equal to or greater than the given length.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence

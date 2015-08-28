@@ -31,6 +31,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
@@ -54,7 +56,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  *
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safety.
  */
-public class WorkerClient implements Closeable {
+public final class WorkerClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final MasterClient mMasterClient;
   private static final int CONNECTION_RETRY_TIMES = 5;
@@ -78,7 +80,7 @@ public class WorkerClient implements Closeable {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Create a WorkerClient, with a given MasterClient.
+   * Creates a WorkerClient, with a given MasterClient.
    *
    * @param masterClient a master client to retrieve user id and worker hostname info
    * @param executorService an executor for the worker client's heartbeat thread
@@ -87,14 +89,14 @@ public class WorkerClient implements Closeable {
    */
   public WorkerClient(MasterClient masterClient, ExecutorService executorService,
       TachyonConf conf, ClientMetrics clientMetrics) {
-    mMasterClient = masterClient;
-    mExecutorService = executorService;
-    mTachyonConf = conf;
-    mClientMetrics = clientMetrics;
+    mMasterClient = Preconditions.checkNotNull(masterClient);
+    mExecutorService = Preconditions.checkNotNull(executorService);
+    mTachyonConf = Preconditions.checkNotNull(conf);
+    mClientMetrics = Preconditions.checkNotNull(clientMetrics);
   }
 
   /**
-   * Update the latest block access time on the worker.
+   * Updates the latest block access time on the worker.
    *
    * @param blockId The id of the block
    * @throws IOException
@@ -112,7 +114,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker that the checkpoint file of the file has been added.
+   * Notifies the worker that the checkpoint file of the file has been added.
    *
    * @param fileId The id of the checkpointed file
    * @throws IOException
@@ -137,7 +139,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker to checkpoint the file asynchronously.
+   * Notifies the worker to checkpoint the file asynchronously.
    *
    * @param fileId The id of the file
    * @return true if success, false otherwise
@@ -157,7 +159,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker the block is cached.
+   * Notifies the worker the block is cached.
    *
    * @param blockId The id of the block
    * @throws IOException
@@ -178,7 +180,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify worker that the block has been cancelled
+   * Notifies worker that the block has been cancelled
    *
    * @param blockId The Id of the block to be cancelled
    * @throws IOException
@@ -195,7 +197,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Close the connection to worker. Shutdown the heartbeat thread.
+   * Closes the connection to worker. Shutdown the heartbeat thread.
    */
   @Override
   public synchronized void close() {
@@ -216,7 +218,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Open the connection to the worker. And start the heartbeat thread.
+   * Opens the connection to the worker. And start the heartbeat thread.
    *
    * @return true if succeed, false otherwise
    * @throws IOException
@@ -291,7 +293,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Get the user temporary folder in the under file system of the specified user.
+   * Gets the user temporary folder in the under file system of the specified user.
    *
    * @return The user temporary folder in the under file system
    * @throws IOException
@@ -330,7 +332,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Lock the block, therefore, the worker will not evict the block from the memory until it is
+   * Locks the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    *
    * @param blockId The id of the block
@@ -351,7 +353,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Connect to the worker.
+   * Connects to the worker.
    *
    * @throws IOException
    */
@@ -366,7 +368,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Promote block back to the top StorageTier
+   * Promotes block back to the top StorageTier
    *
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
@@ -384,7 +386,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Get temporary path for the block from the worker
+   * Gets temporary path for the block from the worker
    *
    * @param blockId The id of the block
    * @param initialBytes The initial size bytes allocated for the block
@@ -408,7 +410,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Request space for some block from worker
+   * Requests space for some block from worker
    *
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
@@ -431,7 +433,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Unlock the block
+   * Unlocks the block
    *
    * @param blockId The id of the block
    * @return true if success, false otherwise
