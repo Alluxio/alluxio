@@ -36,6 +36,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -94,18 +95,18 @@ public final class MasterClient implements Closeable {
 
   public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     if (!mUseZookeeper) {
-      mMasterAddress = masterAddress;
+      mMasterAddress = Preconditions.checkNotNull(masterAddress);
     }
     mConnected = false;
     mIsClosed = false;
-    mExecutorService = executorService;
+    mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
   /**
-   * Add a checkpoint.
+   * Adds a checkpoint.
    *
    * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId The file to add the checkpoint.
@@ -137,7 +138,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Close the connection with the Tachyon Master and do the necessary cleanup. It should be used if
+   * Closes the connection with the Tachyon Master and do the necessary cleanup. It should be used if
    * the client has not connected with the master for a while, for example.
    */
   public synchronized void disconnect() {
@@ -157,7 +158,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Connect with the Tachyon Master.
+   * Connects with the Tachyon Master.
    *
    * @throws IOException if the connection fails.
    */
@@ -224,7 +225,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Reset the connection with the Tachyon Master.
+   * Resets the connection with the Tachyon Master.
    * <p>
    * Mainly used for worker to master syncer (e.g., BlockMasterSyncer, PinListSyncer, etc.)  to
    * recover from Exception while running in case the master changes.
@@ -239,7 +240,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the client dependency info from master server.
+   * Gets the client dependency info from master server.
    *
    * @param depId Dependency id
    * @return ClientDependencyInfo returned from master
@@ -262,7 +263,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the file status from master server. If fileId is not -1, check the file status by its
+   * Gets the file status from master server. If fileId is not -1, check the file status by its
    * fileId, otherwise check the file status by path.
    *
    * @param fileId The id of the file
@@ -294,7 +295,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the master address.
+   * Gets the master address.
    *
    * @return InetSocketAddress storing master address
    */
@@ -316,7 +317,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the id of this master client.
+   * Gets the id of this master client.
    *
    * @return the id of this client
    * @throws IOException if the connection fails
@@ -330,7 +331,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the info of a list of workers.
+   * Gets the info of a list of workers.
    *
    * @return A list of worker info returned by master
    * @throws IOException if the connection fails
@@ -350,7 +351,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the total capacity in bytes.
+   * Gets the total capacity in bytes.
    *
    * @return capacity in bytes
    * @throws IOException if the connection fails
@@ -369,7 +370,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the amount of used space in bytes.
+   * Gets the amount of used space in bytes.
    *
    * @return amount of used space in bytes
    * @throws IOException if the connection fails
@@ -388,7 +389,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Return a connection status.
+   * Returns a connection status.
    *
    * @return connection status
    */
@@ -397,8 +398,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its ClientFileInfo.
+   * If the <code>path</code> is a directory, returns all the direct entries in it. If the
+   * <code>path</code> is a file, returns its ClientFileInfo.
    *
    * @param path the target directory/file path
    * @return A list of ClientFileInfo, null if the file or folder does not exist.
@@ -422,7 +423,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Check parameters.
+   * Checks parameters.
    *
    * @param id to check
    * @param path to check
@@ -438,7 +439,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Close the connection with the Tachyon Master permanently. MasterClient instance should be
+   * Closes the connection with the Tachyon Master permanently. MasterClient instance should be
    * discarded after this is executed.
    */
   @Override
@@ -470,7 +471,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create a dependency.
+   * Creates a dependency.
    *
    * @param parents the dependency's input files
    * @param children the dependency's output files
@@ -512,7 +513,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create a new file in the file system.
+   * Creates a new file in the file system.
    *
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
@@ -555,7 +556,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create a new block for the given file.
+   * Creates a new block for the given file.
    *
    * @param fileId The id of the file
    * @return the block id.
@@ -578,7 +579,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create a RawTable and return its id.
+   * Creates a RawTable and return its id.
    *
    * @param path the RawTable's path
    * @param columns number of columns it has
@@ -614,7 +615,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Delete a file or folder.
+   * Deletes a file or folder.
    *
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
@@ -643,7 +644,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the block id by the file id and block index. It will check whether the file and the block
+   * Gets the block id by the file id and block index. It will check whether the file and the block
    * exist.
    *
    * @param fileId the file id
@@ -667,7 +668,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get a ClientBlockInfo by blockId.
+   * Gets a ClientBlockInfo by blockId.
    *
    * @param blockId the id of the block
    * @return the ClientBlockInfo of the specified block
@@ -692,7 +693,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the raw table info associated with the given id and / or path.
+   * Gets the raw table info associated with the given id and / or path.
    *
    * @param path The path of the table
    * @param id The id of the table
@@ -723,7 +724,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the block infos of a file with the given id or path. Throws an exception if the id names a
+   * Gets the block infos of a file with the given id or path. Throws an exception if the id names a
    * directory.
    *
    * @param fileId The id of the file to look up
@@ -753,7 +754,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the id of the table at the given path.
+   * Gets the id of the table at the given path.
    *
    * @param path The path of the table
    * @return the id of the table
@@ -776,7 +777,7 @@ public final class MasterClient implements Closeable {
 
 
   /**
-   * Get the address of the under FS.
+   * Gets the address of the under FS.
    *
    * @return the address of the under FS
    * @throws IOException if the connection fails
@@ -796,7 +797,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get the address of a worker.
+   * Gets the address of a worker.
    *
    * @param random If true, select a random worker
    * @param hostname If <code>random</code> is false, select a worker on this host
@@ -840,7 +841,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Create a folder.
+   * Creates a folder.
    *
    * @param path the path of the folder to be created
    * @param recursive Creates necessary parent folders if true, not otherwise.
@@ -867,7 +868,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Rename a file or folder to the indicated new path.
+   * Renames a file or folder to the indicated new path.
    *
    * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the srcPath parameter.
@@ -901,7 +902,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Report the lost file to master.
+   * Reports the lost file to master.
    *
    * @param fileId the lost file id
    * @throws IOException if the file does not exist.
@@ -923,7 +924,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Request the dependency's needed files.
+   * Requests the dependency's needed files.
    *
    * @param depId the dependency id
    * @throws IOException if the dependency does not exist.
@@ -972,7 +973,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Update the RawTable's meta data.
+   * Updates the RawTable's meta data.
    *
    * @param id the raw table's id
    * @param metadata the new meta data
@@ -1025,7 +1026,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Cache a block in worker's memory.
+   * Caches a block in worker's memory.
    *
    * @param workerId the id of the worker
    * @param usedBytesOnTier used bytes on certain storage tier
@@ -1055,7 +1056,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Get a list of the pin id's.
+   * Gets a list of the pin id's.
    *
    * @return a list of pin id's
    * @throws IOException if the connection fails
@@ -1122,7 +1123,7 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Register the worker to the master.
+   * Registers the worker to the master.
    *
    * @param workerNetAddress Worker's NetAddress
    * @param totalBytesOnTiers Total bytes on each storage tier
