@@ -58,6 +58,7 @@ public class TachyonJaasConfiguration extends Configuration {
    * {@link tachyon.security.CustomLoginModule}. Upon failure, it use the OS specific login module
    * to fetch the OS user, and then use the {@link tachyon.security.TachyonLoginModule} to convert
    * it to a Tachyon user represented by {@link tachyon.security.User}.
+   * In CUSTOM mode, we also use this configuration.
    */
   private static final AppConfigurationEntry[] SIMPLE = new
       AppConfigurationEntry[]{CUSTOM_LOGIN, OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
@@ -67,8 +68,8 @@ public class TachyonJaasConfiguration extends Configuration {
 
   @Override
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
-    if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.SIMPLE.getAuthName())) {
-      // TODO: also return SIMPLE for AuthenticationFactory.AuthType.CUSTOM
+    if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.SIMPLE.getAuthName())
+        || appName.equalsIgnoreCase(AuthenticationFactory.AuthType.CUSTOM.getAuthName())) {
       return SIMPLE;
     } else if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.KERBEROS.getAuthName())) {
       // TODO: return KERBEROS;

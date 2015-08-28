@@ -94,6 +94,21 @@ public class LoginUserTest {
     Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
   }
 
+  /**
+   * Test whether we can get login user with conf in CUSTOM mode.
+   * @throws Exception
+   */
+  @Test
+  public void getLoginUserInCustomModeTest() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+
+    User loginUser = LoginUser.get(conf);
+
+    Assert.assertNotNull(loginUser);
+    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+  }
+
   // TODO: getKerberosLoginUserTest()
 
   /**
@@ -102,13 +117,13 @@ public class LoginUserTest {
    */
   @Test
   public void securityEnabledTest() throws Throwable {
-    // TODO: add Kerberos/Custom in the white list when it is supported.
-    // throw exception when AuthType is not "SIMPLE"
+    // TODO: add Kerberos in the white list when it is supported.
+    // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "NOSASL");
 
     mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("User is only supported in SIMPLE mode");
+    mThrown.expectMessage("User is not supported in NOSASL mode");
     LoginUser.get(conf);
   }
 }
