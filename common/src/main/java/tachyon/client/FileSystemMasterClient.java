@@ -47,9 +47,6 @@ public final class FileSystemMasterClient extends MasterClient {
 
   private FileSystemMasterService.Client mClient = null;
 
-  // TODO: implement client heartbeat to the master
-  private Future<?> mHeartbeat;
-
   public FileSystemMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
@@ -63,13 +60,10 @@ public final class FileSystemMasterClient extends MasterClient {
   @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterService.Client(mProtocol);
-    // TODO: get a user id?
-    // TODO: start client heartbeat thread, and submit it to the executor service
   }
 
   @Override
   protected void afterDisconnect() {
-    // TODO: implement heartbeat cleanup
   }
 
   public synchronized long getFileId(String path) throws IOException {
@@ -102,60 +96,207 @@ public final class FileSystemMasterClient extends MasterClient {
     throw new IOException("This connection has been closed.");
   }
 
+  public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getFileInfoList(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
+  }
+
+  // TODO: Not sure if this is necessary
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException {
-    return null;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getFileBlockInfo(fileId, fileBlockIndex);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
+  // TODO: Not sure if this is necessary
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException {
-    return null;
-  }
-
-  public synchronized long getUserId() throws IOException {
-    return -1;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getFileBlockInfoList(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized long getNewBlockIdForFile(long fileId) throws IOException {
-    return -1;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getNewBlockIdForFile(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized String getUfsAddress() throws IOException {
-    return null;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getUfsAddress();
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
-  public synchronized long createFile(long fileId, long blockSizeBytes, boolean recursive)
+  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
       throws IOException {
-    return -1;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.createFile(path, blockSizeBytes, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized long loadFileFromUfs(long fileId, String ufsPath, boolean recursive)
       throws IOException {
-    return -1;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.loadFileFromUfs(fileId, ufsPath, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized void completeFile(long fileId) throws IOException {
-
+    while (!mIsClosed) {
+      connect();
+      try {
+        mClient.completeFile(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException {
-    return false;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.deleteFile(fileId, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized boolean renameFile(long fileId, String dstPath) throws IOException {
-    return false;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.renameFile(fileId, dstPath);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized void setPinned(long fileId, boolean pinned) throws IOException {
-
+    while (!mIsClosed) {
+      connect();
+      try {
+        mClient.setPinned(fileId, pinned);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
-  public synchronized boolean createDirectory(long fileId, boolean recursive) throws IOException {
-    return false;
+  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.createDirectory(path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
-  public synchronized boolean freePath(long fileId, boolean recursive) throws IOException {
-    return false;
+  public synchronized boolean free(long fileId, boolean recursive) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.free(fileId, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
+
+  // TODO: See if these methods can/should be implemented
 
   public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
       String checkpointPath) throws IOException {

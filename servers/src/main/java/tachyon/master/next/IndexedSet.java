@@ -139,9 +139,10 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Get a subset of objects with the specified field value. If there is no object withthe specified
-   * field value, a newly created empty set is returned. Otherwise, the returned set is backed up by
-   * an internal set, so changes in internal set will be reflected in returned set and vice-versa.
+   * Gets a subset of objects with the specified field value. If there is no object with the
+   * specified field value, a newly created empty set is returned. Otherwise, the returned set is
+   * backed up by an internal set, so changes in internal set will be reflected in returned set and
+   * vice-versa.
    *
    * @param index the field index
    * @param value the field value to be satisfied

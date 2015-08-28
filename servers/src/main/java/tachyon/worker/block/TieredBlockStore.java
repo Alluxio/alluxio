@@ -37,6 +37,7 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
@@ -65,20 +66,17 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * <p>
  * This class is thread-safe, using the following lock hierarchy to ensure thread-safety:
  * <ul>
- * <li>
- * Any block-level operation (e.g., read, move or remove) on an existing block must acquire a block
- * lock for this block via {@link TieredBlockStore#mLockManager}. This block lock is a read/write
- * lock, guarding both the metadata operations and the following I/O on this block. It coordinates
- * different threads (clients) when accessing the same block concurrently.</li>
- * <li>
- * Any metadata operation (read or write) must go through {@link TieredBlockStore#mMetaManager} and
- * guarded by {@link TieredBlockStore#mMetadataLock}. This is also a read/write lock and coordinates
- * different threads (clients) when accessing the shared data structure for metadata.</li>
- * <li>
- * Method {@link #createBlockMeta} does not acquire the block lock, because it only creates a temp
- * block which is only visible to its writer before committed (thus no concurrent access).</li>
- * <li>
- * Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
+ * <li>Any block-level operation (e.g., read, move or remove) on an existing block must acquire a
+ * block lock for this block via {@link TieredBlockStore#mLockManager}. This block lock is a
+ * read/write lock, guarding both the metadata operations and the following I/O on this block. It
+ * coordinates different threads (clients) when accessing the same block concurrently.</li>
+ * <li>Any metadata operation (read or write) must go through {@link TieredBlockStore#mMetaManager}
+ * and guarded by {@link TieredBlockStore#mMetadataLock}. This is also a read/write lock and
+ * coordinates different threads (clients) when accessing the shared data structure for metadata.
+ * </li>
+ * <li>Method {@link #createBlockMeta} does not acquire the block lock, because it only creates a
+ * temp block which is only visible to its writer before committed (thus no concurrent access).</li>
+ * <li>Eviction is done in {@link #freeSpaceInternal} and it is on the basis of best effort. For
  * operations that may trigger this eviction (e.g., move, create, requestSpace), retry is used</li>
  * </ul>
  */
@@ -108,17 +106,15 @@ public final class TieredBlockStore implements BlockStore {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
-    BlockMetadataManagerView initManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
-            Collections.<Long>emptySet());
+    BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
+        Collections.<Integer>emptySet(), Collections.<Long>emptySet());
     mAllocator = Allocator.Factory.createAllocator(mTachyonConf, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
-    initManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
-            Collections.<Long>emptySet());
+    initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+        Collections.<Long>emptySet());
     mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
@@ -135,7 +131,8 @@ public final class TieredBlockStore implements BlockStore {
       return lockId;
     }
     mLockManager.unlockBlock(lockId);
-    throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
+    throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER, blockId,
+        userId);
   }
 
   @Override
@@ -195,8 +192,8 @@ public final class TieredBlockStore implements BlockStore {
     }
     // TODO: we are probably seeing a rare transient failure, maybe define and throw some other
     // types of exception to indicate this case.
-    throw new OutOfSpaceException("Failed to create blockMeta: blockId " + blockId + " "
-        + "failed to allocate " + initialBlockSize + " bytes after " + MAX_RETRIES + " retries");
+    throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION, initialBlockSize,
+        MAX_RETRIES, blockId);
   }
 
   // TODO: make this method to return a snapshot
@@ -257,9 +254,8 @@ public final class TieredBlockStore implements BlockStore {
         freeSpaceInternal(userId, additionalBytes, requestResult.getSecond());
       }
     }
-    throw new OutOfSpaceException("Failed to requestSpace: blockId " + blockId
-        + " failed to allocate " + additionalBytes + " extra bytes after " + MAX_RETRIES
-        + " retries");
+    throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION, additionalBytes,
+        MAX_RETRIES, blockId);
   }
 
   @Override
@@ -281,8 +277,8 @@ public final class TieredBlockStore implements BlockStore {
         freeSpaceInternal(userId, moveResult.blockSize(), newLocation);
       }
     }
-    throw new OutOfSpaceException("Failed to moveBlock: blockId " + blockId
-        + " failed to find space in " + newLocation + " after " + MAX_RETRIES + " retries");
+    throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation, blockId,
+        MAX_RETRIES);
   }
 
   @Override
@@ -302,7 +298,7 @@ public final class TieredBlockStore implements BlockStore {
     boolean hasBlock = mMetaManager.hasBlockMeta(blockId);
     mMetadataReadLock.unlock();
     if (!hasBlock) {
-      throw new NotFoundException("Failed to accessBlock: no blockId " + blockId + " found");
+      throw new NotFoundException(ExceptionMessage.NO_BLOCK_ID_FOUND, blockId);
     }
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -392,12 +388,10 @@ public final class TieredBlockStore implements BlockStore {
    */
   private void checkTempBlockIdAvailable(long blockId) throws AlreadyExistsException {
     if (mMetaManager.hasTempBlockMeta(blockId)) {
-      throw new AlreadyExistsException("checkTempBlockIdAvailable failed: blockId " + blockId
-          + " exists");
+      throw new AlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_EXISTS, blockId);
     }
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("checkTempBlockIdAvailable failed: blockId " + blockId
-          + " committed");
+      throw new AlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
     }
   }
 
@@ -414,14 +408,13 @@ public final class TieredBlockStore implements BlockStore {
   private void checkTempBlockOwnedByUser(long userId, long blockId) throws NotFoundException,
       AlreadyExistsException, InvalidStateException {
     if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException(
-          "checkTempBlockOwnedByUser failed: blockId " + blockId + " is committed");
+      throw new AlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
     }
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     long ownerUserId = tempBlockMeta.getUserId();
     if (ownerUserId != userId) {
-      throw new InvalidStateException("checkTempBlockOwnedByUser failed: ownerUserId of blockId "
-          + blockId + " is " + ownerUserId + " but userId passed in is " + userId);
+      throw new InvalidStateException(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_USER, blockId,
+          ownerUserId, userId);
     }
   }
 
@@ -594,8 +587,8 @@ public final class TieredBlockStore implements BlockStore {
       }
       // Increase the size of this temp block
       try {
-        mMetaManager.resizeTempBlockMeta(tempBlockMeta, tempBlockMeta.getBlockSize()
-            + additionalBytes);
+        mMetaManager.resizeTempBlockMeta(tempBlockMeta,
+            tempBlockMeta.getBlockSize() + additionalBytes);
       } catch (InvalidStateException ise) {
         throw Throwables.propagate(ise); // we shall never reach here
       }
@@ -623,7 +616,7 @@ public final class TieredBlockStore implements BlockStore {
       plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
       // Absent plan means failed to evict enough space.
       if (null == plan) {
-        throw new OutOfSpaceException("Failed to free space: no eviction plan by evictor");
+        throw new OutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE);
       }
     } finally {
       mMetadataReadLock.unlock();
@@ -734,8 +727,7 @@ public final class TieredBlockStore implements BlockStore {
       mMetadataReadLock.lock();
       try {
         if (mMetaManager.hasTempBlockMeta(blockId)) {
-          throw new InvalidStateException("Failed to move block " + blockId
-              + ": block is uncommited");
+          throw new InvalidStateException(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId);
         }
         srcBlockMeta = mMetaManager.getBlockMeta(blockId);
         srcLocation = srcBlockMeta.getBlockLocation();
@@ -796,8 +788,7 @@ public final class TieredBlockStore implements BlockStore {
       mMetadataReadLock.lock();
       try {
         if (mMetaManager.hasTempBlockMeta(blockId)) {
-          throw new InvalidStateException("Failed to remove block " + blockId
-              + ": block is uncommitted");
+          throw new InvalidStateException(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK, blockId);
         }
         blockMeta = mMetaManager.getBlockMeta(blockId);
         filePath = blockMeta.getPath();

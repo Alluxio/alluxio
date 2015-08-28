@@ -15,14 +15,18 @@
 
 package tachyon.client.next.block;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.client.BlockMasterClient;
+import tachyon.client.UserMasterClient;
 import tachyon.client.next.ClientContext;
-import tachyon.master.MasterClient;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
@@ -61,12 +65,19 @@ public enum BSContext {
   }
 
   private NetAddress getWorkerAddress(String hostname) {
-    MasterClient masterClient = acquireMasterClient();
+    BlockMasterClient masterClient = acquireMasterClient();
     try {
+      List<WorkerInfo> workers = masterClient.getWorkerInfoList();
       if (hostname.isEmpty()) {
-        return masterClient.user_getWorker(true, hostname);
+        // TODO: Do this in a more defined way
+        return workers.get(0).getAddress();
       }
-      return masterClient.user_getWorker(false, hostname);
+      for (WorkerInfo worker : workers) {
+        if (worker.getAddress().getMHost().equals(hostname)) {
+          return worker.getAddress();
+        }
+      }
+      return null;
     } catch (Exception e) {
       return null;
     } finally {
@@ -74,11 +85,11 @@ public enum BSContext {
     }
   }
 
-  public MasterClient acquireMasterClient() {
+  public BlockMasterClient acquireMasterClient() {
     return mBlockMasterClientPool.acquire();
   }
 
-  public void releaseMasterClient(MasterClient masterClient) {
+  public void releaseMasterClient(BlockMasterClient masterClient) {
     mBlockMasterClientPool.release(masterClient);
   }
 
@@ -128,10 +139,16 @@ public enum BSContext {
       // TODO: Better exception usage
       throw new RuntimeException("No Tachyon worker available for host: " + hostname);
     }
-    // TODO: Get the id from the master
-    long clientId = Math.round(Math.random() * 100000);
-    return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
-        clientId, new ClientMetrics());
+    UserMasterClient userMasterClient = ClientContext.acquireUserMasterClient();
+    try {
+      long clientId = userMasterClient.getUserId();
+      return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
+          clientId, new ClientMetrics());
+    } catch (IOException ioe) {
+      throw new RuntimeException("Failed to get an ID from the master.", ioe);
+    } finally {
+      ClientContext.releaseUserMasterClient(userMasterClient);
+    }
   }
 
   /**

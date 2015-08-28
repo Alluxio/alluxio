@@ -30,8 +30,8 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.DependencyType;
 import tachyon.master.DependencyVariables;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.journal.JournalSerializable;
-import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.DependencyInfo;
 import tachyon.util.io.BufferUtils;
 
@@ -281,7 +281,7 @@ public class Dependency implements JournalSerializable {
   }
 
   @Override
-  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
   }
 }

@@ -20,13 +20,17 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
+import tachyon.client.FileSystemMasterClient;
 import tachyon.client.next.CacheType;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.UnderStorageType;
+import tachyon.client.next.block.BSContext;
 import tachyon.client.next.block.BlockOutStream;
-import tachyon.master.MasterClient;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.worker.next.WorkerClient;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
@@ -36,7 +40,7 @@ import tachyon.underfs.UnderFileSystem;
  * the under storage system.
  */
 public class ClientFileOutStream extends FileOutStream {
-  private final int mFileId;
+  private final long mFileId;
   private final ClientOptions mOptions;
   private final long mBlockSize;
   private final CacheType mCacheType;
@@ -47,11 +51,12 @@ public class ClientFileOutStream extends FileOutStream {
 
   private boolean mCanceled;
   private boolean mClosed;
+  private boolean mShouldCacheCurrentBlock;
   private long mCachedBytes;
   private BlockOutStream mCurrentBlockOutStream;
   private List<BlockOutStream> mPreviousBlockOutStreams;
 
-  public ClientFileOutStream(int fileId, ClientOptions options) {
+  public ClientFileOutStream(long fileId, ClientOptions options) {
     mFileId = fileId;
     mOptions = options;
     mBlockSize = options.getBlockSize();
@@ -65,6 +70,7 @@ public class ClientFileOutStream extends FileOutStream {
     mUnderStorageOutputStream = mUnderStorageType.shouldPersist() ? null : null;
     mClosed = false;
     mCanceled = false;
+    mShouldCacheCurrentBlock = mCacheType.shouldCache();
   }
 
   @Override
@@ -93,8 +99,14 @@ public class ClientFileOutStream extends FileOutStream {
       } else {
         mUnderStorageOutputStream.flush();
         mUnderStorageOutputStream.close();
-        // TODO: Investigate if this RPC can be moved to master
-        // mTachyonFS.addCheckpoint(mFile.mFileId);
+        WorkerClient workerClient = BSContext.INSTANCE.acquireWorkerClient();
+        try {
+          // TODO: Investigate if this RPC can be moved to master
+          // TODO: Make this RPC take a long
+          workerClient.addCheckpoint((int) mFileId);
+        } finally {
+          BSContext.INSTANCE.releaseWorkerClient(workerClient);
+        }
         canComplete = true;
       }
     }
@@ -117,9 +129,9 @@ public class ClientFileOutStream extends FileOutStream {
     }
 
     if (canComplete) {
-      MasterClient masterClient = mContext.acquireMasterClient();
+      FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        masterClient.user_completeFile(mFileId);
+        masterClient.completeFile(mFileId);
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
@@ -137,7 +149,7 @@ public class ClientFileOutStream extends FileOutStream {
 
   @Override
   public void write(int b) throws IOException {
-    if (mCacheType.shouldCache()) {
+    if (mShouldCacheCurrentBlock) {
       try {
         if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
           getNextBlock();
@@ -161,14 +173,11 @@ public class ClientFileOutStream extends FileOutStream {
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    if (b == null) {
-      throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
-        || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException();
-    }
+    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
+        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
 
-    if (mCacheType.shouldCache()) {
+    if (mShouldCacheCurrentBlock) {
       try {
         int tLen = len;
         int tOff = off;
@@ -200,23 +209,21 @@ public class ClientFileOutStream extends FileOutStream {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      if (mCurrentBlockOutStream.remaining() > 0) {
-        // TODO: Handle this error in a precondition
-        throw new IOException("The current block still has space left, no need to get new block");
-      }
+      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0, "The current block still "
+          + "has space left, no need to get new block");
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
     if (mCacheType.shouldCache()) {
-      int index = (int) (mCachedBytes / mBlockSize);
-      mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(getBlockId(index), mOptions);
+      mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(getNextBlockId(), mOptions);
+      mShouldCacheCurrentBlock = true;
     }
   }
 
-  private long getBlockId(int index) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+  private long getNextBlockId() throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.user_getBlockId(mFileId, index);
+      return masterClient.getNewBlockIdForFile(mFileId);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -228,6 +235,10 @@ public class ClientFileOutStream extends FileOutStream {
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
     } else {
       // TODO: Handle this error
+      if (mCurrentBlockOutStream != null) {
+        mShouldCacheCurrentBlock = false;
+        mCurrentBlockOutStream.cancel();
+      }
     }
   }
 }

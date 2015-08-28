@@ -17,6 +17,7 @@ package tachyon.worker.block.meta;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import tachyon.Constants;
@@ -34,7 +35,7 @@ import tachyon.worker.WorkerContext;
  * <p>
  * This class does not guarantee thread safety.
  */
-public class StorageTier {
+public final class StorageTier {
   /** Alias of this tier, e.g., memory tier is 1, SSD tier is 2 and HDD tier is 3 */
   private final int mTierAlias;
   /** Level of this tier in tiered storage, highest level is 0 */
@@ -115,6 +116,6 @@ public class StorageTier {
   }
 
   public List<StorageDir> getStorageDirs() {
-    return mDirs;
+    return Collections.unmodifiableList(mDirs);
   }
 }

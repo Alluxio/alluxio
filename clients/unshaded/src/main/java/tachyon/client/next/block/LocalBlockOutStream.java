@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -124,14 +125,9 @@ public class LocalBlockOutStream extends BlockOutStream {
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
     failIfClosed();
-    // TODO: Clean up this error checking with Preconditions
-    if (b == null) {
-      throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
-        || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException(String.format("Buffer length (%d), offset(%d), len(%d)",
-          b.length, off, len));
-    }
+    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
+        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
 
     if (mAvailableBytes < len) {
       mAvailableBytes += requestSpace(len - mAvailableBytes);

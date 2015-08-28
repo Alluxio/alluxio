@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -35,13 +35,16 @@ import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.MasterBase;
+import tachyon.master.next.block.journal.BlockIdGeneratorEntry;
+import tachyon.master.next.block.journal.BlockInfoEntry;
+import tachyon.master.next.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.next.block.meta.MasterBlockInfo;
 import tachyon.master.next.block.meta.MasterBlockLocation;
 import tachyon.master.next.block.meta.MasterWorkerInfo;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
-import tachyon.master.next.journal.JournalWriter;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
@@ -56,11 +59,15 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
 
   // Block metadata management.
   /**
-   * blocks ever placed in all Tachyon workers, including both the active blocks and lost ones
+   * blocks ever placed in all Tachyon workers, including both the active blocks and lost ones. This
+   * state much be journaled.
    */
-  private final Map<Long, MasterBlockInfo> mBlocks;
-  private final BlockIdGenerator mBlockIdGenerator;
-  private final Set<Long> mLostBlocks;
+  private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
+  /**
+   * This state much be journaled.
+   */
+  private final BlockIdGenerator mBlockIdGenerator = new BlockIdGenerator();
+  private final Set<Long> mLostBlocks = new HashSet<Long>();
 
   // Worker metadata management.
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
@@ -81,14 +88,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
-  private final AtomicInteger mWorkerCounter;
+  // This state much be journaled.
+  private final AtomicLong mNextWorkerId = new AtomicLong(1);
 
   public BlockMaster(Journal journal) {
     super(journal);
-    mBlocks = new HashMap<Long, MasterBlockInfo>();
-    mBlockIdGenerator = new BlockIdGenerator();
-    mWorkerCounter = new AtomicInteger(0);
-    mLostBlocks = new HashSet<Long>();
   }
 
   @Override
@@ -103,13 +107,38 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) {
-    // TODO
+  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
+    // clear state before processing checkpoint.
+    mBlocks.clear();
+
+    JournalEntry entry;
+    while ((entry = inputStream.getNextEntry()) != null) {
+      processJournalEntry(entry);
+    }
+    inputStream.close();
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) {
-    // TODO
+  public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry instanceof BlockIdGeneratorEntry) {
+      mBlockIdGenerator.setNextContainerId(((BlockIdGeneratorEntry) entry).getNextContainerId());
+    } else if (entry instanceof WorkerIdGeneratorEntry) {
+      mNextWorkerId.set(((WorkerIdGeneratorEntry) entry).getNextWorkerId());
+    } else if (entry instanceof BlockInfoEntry) {
+      BlockInfoEntry bie = (BlockInfoEntry) entry;
+      mBlocks.put(bie.getBlockId(), new MasterBlockInfo(bie.getBlockId(), bie.getLength()));
+    } else {
+      throw new IOException("unexpected entry in journal: " + entry);
+    }
+  }
+
+  @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    mBlockIdGenerator.writeToJournal(outputStream);
+    outputStream.writeEntry(new WorkerIdGeneratorEntry(mNextWorkerId.get()));
+    for (MasterBlockInfo blockInfo : mBlocks.values()) {
+      outputStream.writeEntry(new BlockInfoEntry(blockInfo.getBlockId(), blockInfo.getLength()));
+    }
   }
 
   @Override
@@ -158,7 +187,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     return ret;
   }
 
-  // TODO: expose through thrift
   public Set<Long> getLostBlocks() {
     return Collections.unmodifiableSet(mLostBlocks);
   }
@@ -181,10 +209,15 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     }
   }
 
-  // TODO: expose through thrift
   @Override
   public long getNewContainerId() {
-    return mBlockIdGenerator.getNewBlockContainerId();
+    synchronized (mBlockIdGenerator) {
+      long containerId = mBlockIdGenerator.getNewBlockContainerId();
+      // Write id generator state to the journal.
+      writeJournalEntry(new BlockIdGeneratorEntry(containerId));
+      flushJournal();
+      return containerId;
+    }
   }
 
   public void commitBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
@@ -201,9 +234,12 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     if (masterBlockInfo == null) {
       masterBlockInfo = new MasterBlockInfo(blockId, length);
       mBlocks.put(blockId, masterBlockInfo);
+      // write new block info to journal.
+      writeJournalEntry(
+          new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+      flushJournal();
     }
     masterBlockInfo.addWorker(workerId, tierAlias);
-
     mLostBlocks.remove(blockId);
   }
 
@@ -253,8 +289,12 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
       }
 
       // Generate a new worker id.
-      long workerId = mWorkerCounter.incrementAndGet();
+      long workerId = mNextWorkerId.getAndIncrement();
       mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
+
+      // Write worker id to the journal.
+      writeJournalEntry(new WorkerIdGeneratorEntry(mNextWorkerId.get()));
+      flushJournal();
 
       return workerId;
     }
@@ -306,11 +346,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
       }
       return new Command(CommandType.Free, toRemoveBlocks);
     }
-  }
-
-  @Override
-  public void writeJournalCheckpoint(JournalWriter writer) throws IOException {
-    // TODO(cc)
   }
 
   /**

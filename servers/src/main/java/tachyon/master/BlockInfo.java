@@ -37,7 +37,7 @@ import tachyon.underfs.UnderFileSystem;
 public final class BlockInfo {
   /**
    * Compute the block id based on its inode id and its index among all blocks of the inode. In
-   * Tachyon, blockId is calculated by ((inodeId << 30) + blockIndex).
+   * Tachyon, blockId is calculated by ((inodeId &lt;&lt; 30) + blockIndex).
    *
    * @param inodeId The inode id of the block
    * @param blockIndex The index of the block in the inode
@@ -110,6 +110,7 @@ public final class BlockInfo {
   /**
    * Generate a ClientBlockInfo of the block, which is used for the thrift server.
    *
+   * @param tachyonConf Tachyon configuration
    * @return the generated ClientBlockInfo
    */
   public synchronized FileBlockInfo generateClientBlockInfo(TachyonConf tachyonConf) {
@@ -151,6 +152,7 @@ public final class BlockInfo {
    * block in its tiered storage. The list is sorted by the storage level alias(MEM, SSD, HDD).
    * That is, the worker who has the data of the block in its memory is in the top of the list.
    *
+   * @param tachyonConf Tachyon configuration
    * @return the net addresses of the locations
    */
   public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {

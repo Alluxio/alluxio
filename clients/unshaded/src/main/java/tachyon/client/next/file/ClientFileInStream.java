@@ -94,11 +94,10 @@ public class ClientFileInStream extends FileInStream {
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    if (b == null) {
-      throw new NullPointerException();
-    } else if (off < 0 || len < 0 || len > b.length - off) {
-      throw new IndexOutOfBoundsException();
-    } else if (len == 0) {
+    Preconditions.checkArgument(b != null, "Buffer is null");
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
+        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    if (len == 0) {
       return 0;
     } else if (mPos >= mFileLength) {
       return -1;
@@ -142,12 +141,9 @@ public class ClientFileInStream extends FileInStream {
     if (mPos == pos) {
       return;
     }
-    // TODO: Change these to use preconditions.
-    if (pos < 0) {
-      throw new IOException("Seek position is negative: " + pos);
-    } else if (pos > mFileLength) {
-      throw new IOException("Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
-    }
+    Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
+    Preconditions.checkArgument(pos <= mFileLength, "Seek position is past EOF: " + pos
+        + ", fileSize = " + mFileLength);
 
     moveBlockInStream(pos);
     mCurrentBlockInStream.seek(mPos % mBlockSize);
