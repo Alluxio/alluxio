@@ -23,9 +23,9 @@ import java.util.concurrent.Executors;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +38,7 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
+import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.thrift.MasterService;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
@@ -271,10 +272,16 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
+    /**
+     * Return a TTransportFactory based on the authentication type
+     */
+    TTransportFactory transportFactory =
+        new AuthenticationFactory(mTachyonConf).getServerTransportFactory();
+
     mMasterServiceServer =
         new TThreadPoolServer(new TThreadPoolServer.Args(mServerTServerSocket)
             .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-            .processor(masterServiceProcessor).transportFactory(new TFramedTransport.Factory())
+            .processor(masterServiceProcessor).transportFactory(transportFactory)
             .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     mIsStarted = true;
