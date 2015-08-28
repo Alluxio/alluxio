@@ -28,6 +28,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
+import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.rawtable.meta.RawTables;
@@ -77,7 +78,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalEntry(JournalInputStream inputStream) throws IOException {
+  public void processJournalEntry(JournalEntry entry) throws IOException {
     // TODO
   }
 

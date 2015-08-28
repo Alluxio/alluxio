@@ -61,17 +61,12 @@ public class UserMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalEntry(JournalInputStream inputStream) throws IOException {
-    // TODO
-    JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      if (entry instanceof UserIdGeneratorEntry) {
-        mNextUserId.set(((UserIdGeneratorEntry) entry).getNextUserId());
-      } else {
-        throw new IOException("unexpected entry in checkpoint: " + entry);
-      }
+  public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry instanceof UserIdGeneratorEntry) {
+      mNextUserId.set(((UserIdGeneratorEntry) entry).getNextUserId());
+    } else {
+      throw new IOException("unexpected entry in checkpoint: " + entry);
     }
-    inputStream.close();
   }
 
   @Override

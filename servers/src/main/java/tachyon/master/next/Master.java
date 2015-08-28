@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import org.apache.thrift.TProcessor;
 
+import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalSerializable;
 
@@ -46,12 +47,12 @@ public interface Master extends JournalSerializable {
   void processJournalCheckpoint(JournalInputStream inputStream) throws IOException;
 
   /**
-   * Processes a stream of journal entries. These entries follow the checkpoint entries.
+   * Processes a journal entry. These entries follow the checkpoint entries.
    *
-   * @param inputStream the stream of entries to process to update the state of the master.
+   * @param entry the entry to process to update the state of the master.
    * @throws IOException
    */
-  void processJournalEntry(JournalInputStream inputStream) throws IOException;
+  void processJournalEntry(JournalEntry entry) throws IOException;
 
   /**
    * Start the master, as the leader master or standby. Here, the master should initialize state and

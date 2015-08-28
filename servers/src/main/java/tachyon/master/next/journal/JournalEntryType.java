@@ -29,7 +29,6 @@ public enum JournalEntryType {
   INODE_FILE,
   INODE_DIRECTORY,
   ADD_CHECKPOINT,
-  CREATE_FILE,
 
   // Raw table master entries
 }
