@@ -36,6 +36,8 @@ import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CreateFileEntry;
+import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
+import tachyon.master.next.filesystem.journal.InodeFileEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -43,6 +45,8 @@ import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.master.next.journal.Journal;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
@@ -74,8 +78,7 @@ public class FileSystemMaster extends MasterBase {
 
   private final PrefixList mWhitelist;
 
-  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
-      Journal journal) {
+  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster, Journal journal) {
     super(journal);
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
@@ -106,6 +109,34 @@ public class FileSystemMaster extends MasterBase {
   @Override
   public void processJournalEntry(JournalInputStream inputStream) throws IOException {
     // TODO
+    JournalEntry entry = inputStream.getNextEntry();
+    while (entry != null) {
+      switch (entry.getType()) {
+        case CREATE_FILE: {
+          try {
+            // Next entries with INODE_FILE/INODE_DIRECTORY type should all be inodes created by
+            // createFile method until a different type.
+            while (true) {
+              entry = inputStream.getNextEntry();
+              if (entry.getType() == JournalEntryType.INODE_DIRECTORY) {
+                mInodeTree.addInode(InodeDirectory.fromEntry((InodeDirectoryEntry) entry));
+              } else if (entry.getType() == JournalEntryType.INODE_FILE) {
+                mInodeTree.addInode(InodeFile.fromEntry((InodeFileEntry) entry));
+              } else {
+                // The entry is not part of CREATE_FILE.
+                break;
+              }
+            }
+          } catch (FileDoesNotExistException fdnee) {
+            throw new IOException("Cannot retrieve parent Inode: " + fdnee.getMessage());
+          }
+          break;
+        }
+        default:
+          throw new IOException("Unknown type " + entry.getType());
+      }
+    }
+    inputStream.close();
   }
 
   @Override

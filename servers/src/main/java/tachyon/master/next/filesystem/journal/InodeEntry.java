@@ -40,6 +40,30 @@ public abstract class InodeEntry implements JournalEntry {
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 
+  public long getCreationTimeMs() {
+    return mCreationTimeMs;
+  }
+
+  public long getLastModificationTimeMs() {
+    return mLastModificationTimeMs;
+  }
+
+  public long getId() {
+    return mId;
+  }
+
+  public long getParentId() {
+    return mParentId;
+  }
+
+  public String getName() {
+    return mName;
+  }
+
+  public boolean getIsPinned() {
+    return mIsPinned;
+  }
+
   @Override
   public abstract JournalEntryType getType();
 

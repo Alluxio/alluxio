@@ -243,6 +243,22 @@ public final class InodeTree implements JournalSerializable {
   }
 
   /**
+   * Add a single inode to the inode tree by adding it as a child of its parent inode.
+   *
+   * @param inode The {@link Inode} to add
+   */
+  public void addInode(Inode inode) throws FileDoesNotExistException {
+    InodeDirectory parent = (InodeDirectory) getInodeById(inode.getParentId());
+    parent.addChild(inode);
+    parent.setLastModificationTimeMs(inode.getCreationTimeMs());
+
+    mInodes.add(inode);
+    if (inode.isPinned() && inode.isFile()) {
+      mPinnedInodeFileIds.add(inode.getId());
+    }
+  }
+
+  /**
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
    * @param inode The {@link Inode} to delete
