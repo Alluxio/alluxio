@@ -97,12 +97,35 @@ public final class FileSystemMasterClient extends MasterClient {
   }
 
   public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException {
-    return null;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getFileInfoList(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
+  // TODO: Not sure if this is necessary
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException {
-    return null;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getFileBlockInfo(fileId, fileBlockIndex);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException {
