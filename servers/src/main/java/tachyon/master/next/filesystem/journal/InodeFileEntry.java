@@ -15,8 +15,12 @@
 
 package tachyon.master.next.filesystem.journal;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
+import tachyon.master.block.BlockId;
+import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.journal.JournalEntryType;
 
 public class InodeFileEntry extends InodeEntry {
@@ -25,16 +29,37 @@ public class InodeFileEntry extends InodeEntry {
   private final boolean mIsComplete;
   private final boolean mIsCache;
   private final String mUfsPath;
+  private final List<Long> mBlocks;
 
   public InodeFileEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
       long lastModificationTimeMs, long blockSizeBytes, long length, boolean isComplete,
-      boolean isCache, String ufsPath) {
+      boolean isCache, String ufsPath, List<Long> blocks) {
     super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
     mIsComplete = isComplete;
     mIsCache = isCache;
     mUfsPath = ufsPath;
+    mBlocks = blocks;
+  }
+
+  public InodeFile toInodeFile() {
+    InodeFile inode = new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
+        mCreationTimeMs);
+
+    // Create block ids for the file.
+    for (long blockId : mBlocks) {
+      inode.getNewBlockId();
+    }
+
+    // Set flags.
+    if (mIsComplete) {
+      inode.setComplete(mLength);
+    }
+    inode.setPinned(mIsPinned);
+    inode.setCache(mIsCache);
+
+    return inode;
   }
 
   @Override
@@ -50,6 +75,7 @@ public class InodeFileEntry extends InodeEntry {
     parameters.put("isComplete", mIsComplete);
     parameters.put("isCache", mIsCache);
     parameters.put("ufsPath", mUfsPath);
+    parameters.put("blocks", mBlocks);
     return parameters;
   }
 }

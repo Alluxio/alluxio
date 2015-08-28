@@ -89,6 +89,18 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
+   * Removes all the entries in this set.
+   */
+  public void clear() {
+    synchronized (mLock) {
+      mObjects.clear();
+      for (Map<Object, Set<T>> mapping : mSetIndexedByFieldValue) {
+        mapping.clear();
+      }
+    }
+  }
+
+  /**
    * Add an object o to the set if there is no other object o2 such that (o == null ? o2 == null :
    * o.equals(o2)). If this set already contains the object, the call leaves the set unchanged.
    *
