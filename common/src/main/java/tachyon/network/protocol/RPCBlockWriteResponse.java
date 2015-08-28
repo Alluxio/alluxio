@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 /**
  * This represents the response to a {@link RPCBlockWriteRequest}.
  */
-public class RPCBlockWriteResponse extends RPCResponse {
+public final class RPCBlockWriteResponse extends RPCResponse {
   private final long mUserId;
   private final long mBlockId;
   private final long mOffset;
@@ -56,17 +56,20 @@ public class RPCBlockWriteResponse extends RPCResponse {
         request.getLength(), status);
   }
 
+  @Override
   public Type getType() {
     return Type.RPC_BLOCK_WRITE_RESPONSE;
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCBlockWriteResponse} object and return it.
+   * Decodes the input {@link ByteBuf} into a {@link RPCBlockWriteResponse} object and returns it.
    *
    * @param in the input {@link ByteBuf}
    * @return The decoded RPCBlockWriteResponse object
    */
   public static RPCBlockWriteResponse decode(ByteBuf in) {
+    Preconditions.checkNotNull(in);
+
     long userId = in.readLong();
     long blockId = in.readLong();
     long offset = in.readLong();

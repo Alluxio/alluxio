@@ -18,33 +18,33 @@ package tachyon.network.protocol.databuffer;
 import java.nio.ByteBuffer;
 
 /**
- * This class is a simple wrapper for the optional data that an RPCMessage may have. This allows
+ * This interface is a simple wrapper for the optional data that an RPCMessage may have. This allows
  * subclasses to support different representations of the data.
  */
-public abstract class DataBuffer {
+public interface DataBuffer {
   /**
    * Returns an object for writing to a netty channel.
    *
    * @return the object to output to Netty. Must be ByteBuf or FileRegion.
    */
-  public abstract Object getNettyOutput();
+  public Object getNettyOutput();
 
   /**
    * Returns the length of the data.
    *
    * @return the length of the data in bytes.
    */
-  public abstract long getLength();
+  public long getLength();
 
   /**
    * Returns a {@link ByteBuffer} for read-only access to the data.
    *
    * @return a read-only ByteBuffer representing the data
    */
-  public abstract ByteBuffer getReadOnlyByteBuffer();
+  public ByteBuffer getReadOnlyByteBuffer();
 
   /**
    * Release the underlying buffer of this DataBuffer if no longer needed.
    */
-  public abstract void release();
+  public void release();
 }
