@@ -17,6 +17,7 @@ package tachyon.network.protocol;
 
 import java.nio.ByteBuffer;
 
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 
 import io.netty.buffer.ByteBuf;
@@ -27,7 +28,7 @@ import tachyon.network.protocol.databuffer.DataByteBuffer;
 /**
  * This represents the request to write a block to a DataServer.
  */
-public class RPCBlockWriteRequest extends RPCRequest {
+public final class RPCBlockWriteRequest extends RPCRequest {
   private final long mUserId;
   private final long mBlockId;
   private final long mOffset;
@@ -43,17 +44,20 @@ public class RPCBlockWriteRequest extends RPCRequest {
     mData = data;
   }
 
+  @Override
   public Type getType() {
     return Type.RPC_BLOCK_WRITE_REQUEST;
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCBlockWriteRequest} object and return it.
+   * Decodes the input {@link ByteBuf} into a {@link RPCBlockWriteRequest} object and returns it.
    *
    * @param in the input {@link ByteBuf}
    * @return The decoded RPCBlockWriteRequest object
    */
   public static RPCBlockWriteRequest decode(ByteBuf in) {
+    Preconditions.checkNotNull(in);
+
     long userId = in.readLong();
     long blockId = in.readLong();
     long offset = in.readLong();

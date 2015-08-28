@@ -19,12 +19,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.google.common.base.Preconditions;
+
 import io.netty.channel.DefaultFileRegion;
 
 /**
  * A DataBuffer with the underlying data being a {@link FileChannel}.
  */
-public class DataFileChannel extends DataBuffer {
+public final class DataFileChannel implements DataBuffer {
   private final FileChannel mFileChannel;
   private final long mOffset;
   private final long mLength;
@@ -36,7 +38,7 @@ public class DataFileChannel extends DataBuffer {
    * @param length The length of the data to read
    */
   public DataFileChannel(FileChannel fileChannel, long offset, long length) {
-    mFileChannel = fileChannel;
+    mFileChannel = Preconditions.checkNotNull(fileChannel);
     mOffset = offset;
     mLength = length;
   }

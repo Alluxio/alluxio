@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 /**
  * A DataBuffer with the underlying data being a {@link ByteBuf}.
  */
-public class DataNettyBuffer extends DataBuffer {
+public final class DataNettyBuffer implements DataBuffer {
   private final ByteBuffer mBuffer;
   private final long mLength;
   private final ByteBuf mNettyBuf;

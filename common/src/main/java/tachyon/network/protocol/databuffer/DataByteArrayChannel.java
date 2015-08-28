@@ -17,12 +17,14 @@ package tachyon.network.protocol.databuffer;
 
 import java.nio.ByteBuffer;
 
+import com.google.common.base.Preconditions;
+
 import io.netty.buffer.Unpooled;
 
 /**
  * A DataBuffer backed by a byte[].
  */
-public class DataByteArrayChannel extends DataBuffer {
+public final class DataByteArrayChannel implements DataBuffer {
   private final byte[] mByteArray;
   private final long mOffset;
   private final long mLength;
@@ -34,7 +36,7 @@ public class DataByteArrayChannel extends DataBuffer {
    * @param length The length of the data.
    */
   public DataByteArrayChannel(byte[] byteArray, long offset, long length) {
-    mByteArray = byteArray;
+    mByteArray = Preconditions.checkNotNull(byteArray);
     mOffset = offset;
     mLength = length;
   }

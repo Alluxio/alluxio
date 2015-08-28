@@ -138,8 +138,8 @@ public final class MasterClient implements Closeable {
   }
 
   /**
-   * Closes the connection with the Tachyon Master and do the necessary cleanup. It should be used if
-   * the client has not connected with the master for a while, for example.
+   * Closes the connection with the Tachyon Master and do the necessary cleanup. It should be used
+   * if the client has not connected with the master for a while, for example.
    */
   public synchronized void disconnect() {
     if (mConnected) {
