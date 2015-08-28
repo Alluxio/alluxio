@@ -24,7 +24,7 @@ import tachyon.thrift.NetAddress;
  */
 public class ClientOptions {
 
-  public class Builder {
+  public static class Builder {
     // TODO: Add getter methods instead of accessing directly
     private long mBlockSize;
     private CacheType mCacheType;

@@ -23,7 +23,7 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
-import tachyon.client.TachyonFS;
+import tachyon.client.next.file.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master;
+package tachyon.master.next;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -23,8 +23,7 @@ import java.util.List;
 
 import com.google.common.base.Supplier;
 
-import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
+import tachyon.client.next.file.TachyonFS;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -49,7 +48,7 @@ public final class ClientPool implements Closeable {
    * @throws IOException when the operation fails
    */
   public TachyonFS getClient(TachyonConf tachyonConf) throws IOException {
-    final TachyonFS fs = TachyonFS.get(new TachyonURI(mUriSuppliers.get()), tachyonConf);
+    final TachyonFS fs = TachyonFS.get();
     mClients.add(fs);
     return fs;
   }
