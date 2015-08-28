@@ -18,6 +18,7 @@ package tachyon.master.next.filesystem.journal;
 import java.util.List;
 import java.util.Map;
 
+import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.journal.JournalEntryType;
 
 public class InodeDirectoryEntry extends InodeEntry {
@@ -28,6 +29,12 @@ public class InodeDirectoryEntry extends InodeEntry {
     super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
 
     mChildrenIds = childrenIds;
+  }
+
+  public InodeDirectory toInodeDirectory() {
+    InodeDirectory inode = new InodeDirectory(mName, mId, mParentId, mCreationTimeMs);
+    inode.setPinned(mIsPinned);
+    return inode;
   }
 
   @Override

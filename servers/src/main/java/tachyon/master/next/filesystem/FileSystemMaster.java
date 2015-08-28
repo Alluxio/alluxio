@@ -34,6 +34,8 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
+import tachyon.master.next.filesystem.journal.InodeEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -66,10 +68,12 @@ public class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
-
   private final BlockMaster mBlockMaster;
+
+  // This state must be journaled.
   private final InodeTree mInodeTree;
-  private final DependencyMap mDependencyMap;
+  // This state must be journaled.
+  private final DependencyMap mDependencyMap = new DependencyMap();
 
   private final PrefixList mWhitelist;
 
@@ -80,7 +84,6 @@ public class FileSystemMaster extends MasterBase {
     mBlockMaster = blockMaster;
 
     mInodeTree = new InodeTree(mBlockMaster);
-    mDependencyMap = new DependencyMap();
 
     // TODO: handle default config value for whitelist.
     mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
@@ -99,12 +102,21 @@ public class FileSystemMaster extends MasterBase {
 
   @Override
   public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    // TODO
+    JournalEntry entry;
+    while ((entry = inputStream.getNextEntry()) != null) {
+      processJournalEntry(entry);
+    }
+    inputStream.close();
   }
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     // TODO
+    if (entry instanceof InodeEntry) {
+      mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else {
+      throw new IOException("unexpected entry in journal: " + entry);
+    }
   }
 
   @Override
@@ -531,14 +543,8 @@ public class FileSystemMaster extends MasterBase {
     }
   }
 
-  // where to put this???
   public String getUfsAddress() {
     return mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
-  }
-
-  // maybe do this with listStatus???
-  public void listFiles(String path, boolean recursive) {
-
   }
 
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
@@ -594,6 +600,8 @@ public class FileSystemMaster extends MasterBase {
   @Override
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
+    mInodeTree.writeToJournal(outputStream);
+    mDependencyMap.writeToJournal(outputStream);
   }
 
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
