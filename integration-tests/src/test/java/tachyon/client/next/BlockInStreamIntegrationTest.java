@@ -26,7 +26,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.WriteType;
 import tachyon.client.next.file.FileInStream;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
@@ -62,27 +64,20 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void newReadTest1() throws IOException {
-    System.out.println("========Starting new Test=======");
-    tachyon.client.next.file.TachyonFS tfs = tachyon.client.next.file.TachyonFS.get();
     String uniqPath = PathUtils.uniqPath();
-    int i = 0;
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        System.out.println("Iteration: " + i ++);
         TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op);
         ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-        tachyon.client.next.file.FileOutStream os = tfs.getOutStream(path, options);
-        System.out.println("==== Got output stream ====");
+        FileOutStream os = sTfs.getOutStream(path, options);
         for (int j = 0; j < k; j ++) {
           os.write((byte) j);
         }
-        System.out.println("==== Wrote data! ====");
         os.close();
-        System.out.println("==== Closed Stream! ====");
 
-        tachyon.client.next.file.TachyonFile f = tfs.open(path);
+        TachyonFile f = sTfs.open(path);
 
-        FileInStream is = tfs.getInStream(f, options);
+        FileInStream is = sTfs.getInStream(f, options);
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
@@ -96,7 +91,7 @@ public class BlockInStreamIntegrationTest {
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
-        is = tfs.getInStream(f, options);
+        is = sTfs.getInStream(f, options);
         ret = new byte[k];
         value = is.read();
         cnt = 0;
@@ -111,6 +106,5 @@ public class BlockInStreamIntegrationTest {
         is.close();
       }
     }
-    System.out.println("========== This test is over!");
   }
 }
