@@ -209,28 +209,98 @@ public final class FileSystemMasterClient extends MasterClient {
   }
 
   public synchronized void completeFile(long fileId) throws IOException {
-
+    while (!mIsClosed) {
+      connect();
+      try {
+        mClient.completeFile(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException {
-    return false;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.deleteFile(fileId, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized boolean renameFile(long fileId, String dstPath) throws IOException {
-    return false;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.renameFile(fileId, dstPath);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized void setPinned(long fileId, boolean pinned) throws IOException {
-
+    while (!mIsClosed) {
+      connect();
+      try {
+        mClient.setPinned(fileId, pinned);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized boolean createDirectory(String path, boolean recursive) throws IOException {
-    return false;
+    while (!mIsClosed) {
+      connect();
+      try {
+        // TODO: Fix this argument type
+        return mClient.createDirectory(-1L, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
+  // TODO: Make the method names the same
   public synchronized boolean freePath(long fileId, boolean recursive) throws IOException {
-    return false;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.free(fileId, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
+
+  // TODO: See if these methods can/should be implemented
 
   public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
       String checkpointPath) throws IOException {
