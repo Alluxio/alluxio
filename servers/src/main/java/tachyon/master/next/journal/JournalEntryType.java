@@ -30,6 +30,7 @@ public enum JournalEntryType {
   COMPLETE_FILE,
   CREATE_FILE,
   DELETE_FILE,
+  MK_DIRS,
 
   // Raw table master entries
 }

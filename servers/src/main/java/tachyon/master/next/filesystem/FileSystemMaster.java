@@ -37,6 +37,7 @@ import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.CreateFileEntry;
 import tachyon.master.next.filesystem.journal.DeleteFileEntry;
+import tachyon.master.next.filesystem.journal.MkDirsEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -420,7 +421,9 @@ public class FileSystemMaster extends MasterBase {
         // happen.
         Throwables.propagate(bie);
       }
-      // TODO: write to journal
+      writeJournalEntry(new MkDirsEntry(path.getPath(), recursive,
+          mInodeTree.getInodeByPath(path).getCreationTimeMs()));
+      flushJournal();
     }
 
   }
