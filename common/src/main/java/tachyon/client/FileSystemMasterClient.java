@@ -179,8 +179,7 @@ public final class FileSystemMasterClient extends MasterClient {
     while (!mIsClosed) {
       connect();
       try {
-        // TODO: Change this method signature
-        return mClient.createFile(-1L, blockSizeBytes, recursive);
+        return mClient.createFile(path, blockSizeBytes, recursive);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -271,8 +270,7 @@ public final class FileSystemMasterClient extends MasterClient {
     while (!mIsClosed) {
       connect();
       try {
-        // TODO: Fix this argument type
-        return mClient.createDirectory(-1L, recursive);
+        return mClient.createDirectory(path, recursive);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -283,7 +281,6 @@ public final class FileSystemMasterClient extends MasterClient {
     throw new IOException("This connection has been closed.");
   }
 
-  // TODO: Make the method names the same
   public synchronized boolean free(long fileId, boolean recursive) throws IOException {
     while (!mIsClosed) {
       connect();
