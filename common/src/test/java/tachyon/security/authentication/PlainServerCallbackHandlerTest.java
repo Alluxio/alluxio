@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.authentication;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -32,6 +32,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthenticationFactory.AuthType;
 import tachyon.security.authentication.AuthenticationProvider;
 import tachyon.security.authentication.AuthenticationProviderFactory;
+import tachyon.security.authentication.PlainSaslServer;
 
 public class PlainServerCallbackHandlerTest {
   private TachyonConf mConf;

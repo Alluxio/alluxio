@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.LoginUser;
-import tachyon.security.PlainSaslHelper;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.authentication;
 
 import java.security.Provider;
 import java.util.Map;

@@ -13,22 +13,26 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.login;
 
-import java.security.Principal;
 import java.util.Map;
-import java.util.Set;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
+import tachyon.Constants;
+import tachyon.security.User;
+
 /**
- * A login module that search the Kerberos or OS user from Subject, and then convert to a Tachyon
- * user. It does not really authenticate the user in its login method.
+ * A custom login module that creates a user based on the user name provided through application
+ * configuration. Specifically, through Java system property tachyon.security.username.
+ * This module is useful if multiple Tachyon clients running under same OS user name
+ * want to get different identifies (for resource and data management), or if Tachyon clients
+ * running under different OS user names want to get same identify.
  */
-public class TachyonLoginModule implements LoginModule {
+public class CustomLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
 
@@ -39,15 +43,21 @@ public class TachyonLoginModule implements LoginModule {
   }
 
   /**
-   * Authenticate the user (first phase).
+   * Retrieve the user name by querying the property of Constants.TACHYON_SECURITY_USERNAME.
    *
-   * The implementation does not really authenticate the user here. Always return true.
-   * @return true in all cases
+   * @return true if customized user name is set and not empty.
    * @throws javax.security.auth.login.LoginException
    */
   @Override
   public boolean login() throws LoginException {
-    return true;
+    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //instead of System.getProperty for retrieving user name.
+    String userName = System.getProperty(Constants.TACHYON_SECURITY_USERNAME, "");
+    if (!userName.isEmpty()) {
+      mUser = new User(userName);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -55,6 +65,7 @@ public class TachyonLoginModule implements LoginModule {
    *
    * This method is called if the LoginContext's overall authentication failed. (login failed)
    * It cleans up any state that was changed in the login and commit methods.
+   *
    * @return true in all cases
    * @throws LoginException
    */
@@ -68,12 +79,12 @@ public class TachyonLoginModule implements LoginModule {
   /**
    * Commit the authentication (second phase).
    *
-   * This method is called if the LoginContext's overall authentication succeeded. (login
-   * succeeded)
-   * The implementation searches the Kerberos or OS user in the Subject. If existed,
-   * convert it to a Tachyon user and add into the Subject.
-   * @return true in all cases
-   * @throws LoginException if the user extending a specific Principal is not found.
+   * This method is called if the LoginContext's overall authentication succeeded.
+   * The implementation first checks if there is already Tachyon user in the subject.
+   * If not, it adds the previously logged in Tachyon user into the subject.
+   *
+   * @return true if a Tachyon user if found or created.
+   * @throws LoginException not Tachyon user is found or created.
    */
   @Override
   public boolean commit() throws LoginException {
@@ -81,24 +92,12 @@ public class TachyonLoginModule implements LoginModule {
     if (!mSubject.getPrincipals(User.class).isEmpty()) {
       return true;
     }
-
-    Principal user = null;
-
-    // TODO: get a Kerberos user if we are using Kerberos.
-    // user = getKerberosUser();
-
-    // get a OS user
-    if (user == null) {
-      user = getPrincipalUser(TachyonJaasProperties.getOsPrincipalClassName());
-    }
-
-    // if a user is found, convert it to a Tachyon user and save it.
-    if (user != null) {
-      mUser = new User(user.getName());
+    // add the logged in user into subject
+    if (mUser != null) {
       mSubject.getPrincipals().add(mUser);
       return true;
     }
-
+    // throw exception if no Tachyon user is found or created.
     throw new LoginException("Cannot find a user");
   }
 
@@ -106,6 +105,7 @@ public class TachyonLoginModule implements LoginModule {
    * Logout the user
    *
    * The implementation removes the User associated with the Subject.
+   *
    * @return true in all cases
    * @throws LoginException if logout fails
    */
@@ -120,30 +120,5 @@ public class TachyonLoginModule implements LoginModule {
     }
 
     return true;
-  }
-
-  private Principal getPrincipalUser(String className) throws LoginException {
-    // load the principal class
-    ClassLoader loader = Thread.currentThread().getContextClassLoader();
-    if (loader == null) {
-      loader = ClassLoader.getSystemClassLoader();
-    }
-
-    Class<? extends Principal> clazz = null;
-    try {
-      clazz = (Class<? extends Principal>) loader.loadClass(className);
-    } catch (ClassNotFoundException e) {
-      throw new LoginException("Unable to find JAAS principal class:" + e.getMessage());
-    }
-
-    // find corresponding user based on the principal
-    Set<? extends Principal> userSet = mSubject.getPrincipals(clazz);
-    if (!userSet.isEmpty()) {
-      if (userSet.size() == 1) {
-        return userSet.iterator().next();
-      }
-      throw new LoginException("More than one instance of Principal " + className + " is found");
-    }
-    return null;
   }
 }
