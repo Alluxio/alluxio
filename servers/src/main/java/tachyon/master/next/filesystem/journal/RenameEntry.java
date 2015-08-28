@@ -17,10 +17,10 @@ package tachyon.master.next.filesystem.journal;
 
 import java.util.Map;
 
+import com.google.common.collect.Maps;
+
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
-
-import com.google.common.collect.Maps;
 
 public class RenameEntry implements JournalEntry {
   private final long mFileId;
