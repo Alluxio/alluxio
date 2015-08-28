@@ -22,26 +22,33 @@ import com.google.common.collect.Maps;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
 
-public class BlockIdGeneratorEntry implements JournalEntry {
-  private final long mNextContainerId;
+public class BlockInfoEntry implements JournalEntry {
+  private final long mBlockId;
+  private final long mLength;
 
-  public BlockIdGeneratorEntry(long nextContainerId) {
-    mNextContainerId = nextContainerId;
+  public BlockInfoEntry(long blockId, long length) {
+    mBlockId = blockId;
+    mLength = length;
   }
 
-  public long getNextContainerId() {
-    return mNextContainerId;
+  public long getBlockId() {
+    return mBlockId;
+  }
+
+  public long getLength() {
+    return mLength;
   }
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.BLOCK_ID_GENERATOR;
+    return JournalEntryType.BLOCK_INFO;
   }
 
   @Override
   public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("nextContainerId", mNextContainerId);
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
+    parameters.put("blockId", mBlockId);
+    parameters.put("length", mLength);
     return parameters;
   }
 }
