@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.login;
 
 import tachyon.util.PlatformUtils;
 

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.authentication;
 
 import java.io.IOException;
 import java.security.Security;
@@ -33,8 +33,6 @@ import org.apache.thrift.transport.TTransportFactory;
 
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthenticationFactory.AuthType;
-import tachyon.security.authentication.AuthenticationProvider;
-import tachyon.security.authentication.AuthenticationProviderFactory;
 
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
