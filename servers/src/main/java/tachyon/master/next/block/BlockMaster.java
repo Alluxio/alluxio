@@ -119,7 +119,7 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
       BlockInfoEntry bie = (BlockInfoEntry) entry;
       mBlocks.put(bie.getBlockId(), new MasterBlockInfo(bie.getBlockId(), bie.getLength()));
     } else {
-      throw new IOException("unexpected entry in checkpoint: " + entry);
+      throw new IOException("unexpected entry in journal: " + entry);
     }
   }
 
