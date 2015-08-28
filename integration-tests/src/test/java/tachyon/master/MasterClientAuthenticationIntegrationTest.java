@@ -32,8 +32,8 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.security.LoginUser;
-import tachyon.security.authentication.AuthenticationProvider;
 import tachyon.security.authentication.AuthenticationFactory.AuthType;
+import tachyon.security.authentication.AuthenticationProvider;
 
 /**
  * Though its name indicates that it provides the tests for Tachyon authentication.
@@ -52,10 +52,7 @@ public class MasterClientAuthenticationIntegrationTest {
   public void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mExecutorService = Executors.newFixedThreadPool(2);
-    // User reflection to reset the private static member sLoginUser in LoginUser.
-    Field field = LoginUser.class.getDeclaredField("sLoginUser");
-    field.setAccessible(true);
-    field.set(null, null);
+    clearLoginUser();
   }
 
   @After
@@ -135,6 +132,7 @@ public class MasterClientAuthenticationIntegrationTest {
 
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
     // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
+    clearLoginUser();
     mThrown.expect(IOException.class);
     System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "no-tachyon");
     MasterClient masterClient =
@@ -162,6 +160,13 @@ public class MasterClientAuthenticationIntegrationTest {
     Assert.assertNotNull(masterClient.getFileStatus(-1, filename));
     masterClient.disconnect();
     masterClient.close();
+  }
+
+  private void clearLoginUser() throws Exception {
+    // User reflection to reset the private static member sLoginUser in LoginUser.
+    Field field = LoginUser.class.getDeclaredField("sLoginUser");
+    field.setAccessible(true);
+    field.set(null, null);
   }
 
   @Test
