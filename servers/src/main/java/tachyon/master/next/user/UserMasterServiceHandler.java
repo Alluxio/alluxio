@@ -13,10 +13,21 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.user;
 
-import java.io.IOException;
+import org.apache.thrift.TException;
 
-public interface JournalSerializable {
-  void writeToJournal(JournalOutputStream outputStream) throws IOException;
+import tachyon.thrift.UserMasterService;
+
+public class UserMasterServiceHandler implements UserMasterService.Iface {
+  private final UserMaster mUserMaster;
+
+  public UserMasterServiceHandler(UserMaster userMaster) {
+    mUserMaster = userMaster;
+  }
+
+  @Override
+  public long getUserId() throws TException {
+    return mUserMaster.getUserId();
+  }
 }

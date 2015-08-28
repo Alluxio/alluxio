@@ -13,19 +13,35 @@
  * the License.
  */
 
-package tachyon.client.next.file;
+package tachyon.master.next.block.journal;
 
-/**
- * A file handler for a file in Tachyon. It is just a wrapper around the file ID for now.
- */
-public class TachyonFile {
-  private final long mFileId;
+import java.util.Map;
 
-  public TachyonFile(long fileId) {
-    mFileId = fileId;
+import com.google.common.collect.Maps;
+
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
+
+public class BlockIdGeneratorEntry implements JournalEntry {
+  private final long mNextContainerId;
+
+  public BlockIdGeneratorEntry(long nextContainerId) {
+    mNextContainerId = nextContainerId;
   }
 
-  public long getFileId() {
-    return mFileId;
+  public long getNextContainerId() {
+    return mNextContainerId;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.BLOCK_ID_GENERATOR;
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(6);
+    parameters.put("nextContainerId", mNextContainerId);
+    return parameters;
   }
 }

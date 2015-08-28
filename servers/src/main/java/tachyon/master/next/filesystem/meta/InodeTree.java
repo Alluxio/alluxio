@@ -15,6 +15,7 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -30,7 +31,7 @@ import tachyon.TachyonURI;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.block.ContainerIdGenerator;
-import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.journal.JournalSerializable;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -44,12 +45,13 @@ public final class InodeTree implements JournalSerializable {
 
   private final InodeDirectory mRoot;
 
-  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+  private final IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
       return o.getId();
     }
   };
+  @SuppressWarnings("unchecked")
   private final IndexedSet<Inode> mInodes = new IndexedSet<Inode>(mIdIndex);
   /** A set of inode ids representing pinned inode files */
   private final Set<Long> mPinnedInodeFileIds = new HashSet<Long>();
@@ -272,8 +274,9 @@ public final class InodeTree implements JournalSerializable {
     return Sets.newHashSet(mPinnedInodeFileIds);
   }
 
-  public JournalEntry toJournalEntry() {
-    return mRoot.toJournalEntry();
+  @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    mRoot.writeToJournal(outputStream);
   }
 
   private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {

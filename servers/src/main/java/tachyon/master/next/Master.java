@@ -15,13 +15,13 @@
 
 package tachyon.master.next;
 
+import java.io.IOException;
+
 import org.apache.thrift.TProcessor;
 
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalSerializable;
-
-import java.io.IOException;
 
 public interface Master extends JournalSerializable {
   /**
@@ -42,22 +42,24 @@ public interface Master extends JournalSerializable {
    * Processes the journal checkpoint file.
    *
    * @param inputStream the input stream for the journal checkpoint file.
+   * @throws IOException
    */
-  void processJournalCheckpoint(JournalInputStream inputStream);
+  void processJournalCheckpoint(JournalInputStream inputStream) throws IOException;
 
   /**
    * Processes a journal entry. These entries follow the checkpoint entries.
    *
    * @param entry the entry to process to update the state of the master.
+   * @throws IOException
    */
-  void processJournalEntry(JournalEntry entry);
+  void processJournalEntry(JournalEntry entry) throws IOException;
 
   /**
    * Start the master, as the leader master or standby. Here, the master should initialize state and
    * possibly start threads required for operation.
    *
-   * If the parameter asMaster is true, the master should also initialize the journal for writing
-   * including writing the checkpoint file.
+   * If the parameter asMaster is true, the master should also initialize the journal and write the
+   * checkpoint file.
    *
    * @param asMaster if true, the master should behave as the leader master in the system. If false,
    *        the master should act as a standby master.

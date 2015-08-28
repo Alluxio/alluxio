@@ -17,6 +17,26 @@ package tachyon.master.next.journal;
 
 import java.io.IOException;
 
-public interface JournalSerializable {
-  void writeToJournal(JournalOutputStream outputStream) throws IOException;
+public interface JournalOutputStream {
+  /**
+   * Writes a {@link JournalEntry} to the journal.
+   *
+   * @param entry The entry to write to the journal.
+   * @throws IOException
+   */
+  void writeEntry(JournalEntry entry) throws IOException;
+
+  /**
+   * Closes the stream.
+   *
+   * @throws IOException
+   */
+  void close() throws IOException;
+
+  /**
+   * Flushes the stream.
+   *
+   * @throws IOException
+   */
+  void flush() throws IOException;
 }

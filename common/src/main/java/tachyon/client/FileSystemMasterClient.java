@@ -47,9 +47,6 @@ public final class FileSystemMasterClient extends MasterClient {
 
   private FileSystemMasterService.Client mClient = null;
 
-  // TODO: implement client heartbeat to the master
-  private Future<?> mHeartbeat;
-
   public FileSystemMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
@@ -63,13 +60,10 @@ public final class FileSystemMasterClient extends MasterClient {
   @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterService.Client(mProtocol);
-    // TODO: get a user id?
-    // TODO: start client heartbeat thread, and submit it to the executor service
   }
 
   @Override
   protected void afterDisconnect() {
-    // TODO: implement heartbeat cleanup
   }
 
   public synchronized long getFileId(String path) throws IOException {
@@ -102,6 +96,10 @@ public final class FileSystemMasterClient extends MasterClient {
     throw new IOException("This connection has been closed.");
   }
 
+  public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException {
+    return null;
+  }
+
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException {
     return null;
@@ -123,7 +121,7 @@ public final class FileSystemMasterClient extends MasterClient {
     return null;
   }
 
-  public synchronized long createFile(long fileId, long blockSizeBytes, boolean recursive)
+  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
       throws IOException {
     return -1;
   }
@@ -149,7 +147,7 @@ public final class FileSystemMasterClient extends MasterClient {
 
   }
 
-  public synchronized boolean createDirectory(long fileId, boolean recursive) throws IOException {
+  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException {
     return false;
   }
 

@@ -17,9 +17,7 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -28,22 +26,19 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockMasterService;
-import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.UserMasterService;
 
 /**
- * The BlockMaster client, for clients.
+ * The UserMaster client, for clients.
  *
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety.
  */
-// TODO: better deal with exceptions.
-public final class BlockMasterClient extends MasterClient {
+public final class UserMasterClient extends MasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private BlockMasterService.Client mClient = null;
+  private UserMasterService.Client mClient = null;
 
-  public BlockMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
+  public UserMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
   }
@@ -55,68 +50,23 @@ public final class BlockMasterClient extends MasterClient {
 
   @Override
   protected void afterConnect() {
-    mClient = new BlockMasterService.Client(mProtocol);
+    mClient = new UserMasterService.Client(mProtocol);
   }
 
   @Override
-  protected void afterDisconnect() {
-  }
+  protected void afterDisconnect() {}
 
   /**
-   * Get the info of a list of workers.
+   * Get a user id
    *
-   * @return A list of worker info returned by master
+   * @return a new user id
    * @throws IOException
    */
-  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
-    while (!mIsClosed) {
-      connect();
-
-      try {
-        return mClient.getWorkerInfoList();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return null;
-  }
-
-  public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
-    // TODO: Implement me
-    return null;
-  }
-
-  /**
-   * Get the total capacity in bytes.
-   *
-   * @return capacity in bytes
-   * @throws IOException
-   */
-  public synchronized long getCapacityBytes() throws IOException {
+  public synchronized long getUserId() throws IOException {
     while (!mIsClosed) {
       connect();
       try {
-        return mClient.getCapacityBytes();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return -1;
-  }
-
-  /**
-   * Get the amount of used space in bytes.
-   *
-   * @return amount of used space in bytes
-   * @throws IOException
-   */
-  public synchronized long getUsedBytes() throws IOException {
-    while (!mIsClosed) {
-      connect();
-      try {
-        return mClient.getUsedBytes();
+        return mClient.getUserId();
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

@@ -13,32 +13,28 @@
  * the License.
  */
 
-package tachyon.client.next.block;
+package tachyon.client.next.file;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import tachyon.client.BlockMasterClient;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.client.next.ResourcePool;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
 
-/**
- * Class for managing block master clients. After obtaining a client with {@link
- * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
- * using the client.
- */
-public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
+public class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
+
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
   private final TachyonConf mTachyonConf;
 
-  public BlockMasterClientPool(InetSocketAddress masterAddress, TachyonConf conf) {
+  public FSMasterClientPool(InetSocketAddress masterAddress, TachyonConf conf) {
     // TODO: Get capacity from conf
     super(10);
-    mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
-        "block-master-heartbeat-%d", true));
+    mExecutorService =
+        Executors.newFixedThreadPool(10, ThreadFactoryUtils.build("fs-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
     mTachyonConf = conf;
   }
@@ -50,7 +46,7 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   }
 
   @Override
-  public BlockMasterClient createNewResource() {
-    return new BlockMasterClient(mMasterAddress, mExecutorService, mTachyonConf);
+  public FileSystemMasterClient createNewResource() {
+    return new FileSystemMasterClient(mMasterAddress, mExecutorService, mTachyonConf);
   }
 }

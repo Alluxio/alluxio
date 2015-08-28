@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.client.next.ClientOptions;
-import tachyon.master.MasterClient;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -63,9 +63,9 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    */
   @Override
   public void delete(TachyonFile file) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.user_delete(file.getFileId(), "", true);
+      masterClient.deleteFile(file.getFileId(), true);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -80,9 +80,9 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    */
   @Override
   public void free(TachyonFile file) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.user_freepath(file.getFileId(), "", true);
+      masterClient.freePath(file.getFileId(), true);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -98,9 +98,9 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   // TODO: Consider FileInfo caching
   @Override
   public FileInfo getInfo(TachyonFile file) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getFileStatus(file.getFileId(), "");
+      return masterClient.getFileInfo(file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -117,10 +117,10 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    * @throws IOException if the file does not exist or the stream cannot be opened
    */
   public FileInStream getInStream(TachyonFile file, ClientOptions options) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Make sure the file is not a folder
-      FileInfo info = masterClient.getFileStatus(file.getFileId(), "");
+      FileInfo info = masterClient.getFileInfo(file.getFileId());
       return new ClientFileInStream(info, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -138,9 +138,10 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    * @throws IOException if the file already exists or if the stream cannot be opened
    */
   public FileOutStream getOutStream(TachyonURI path, ClientOptions options) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      int fileId = masterClient.user_createFile(path.getPath(), "", options.getBlockSize(), true);
+      // TODO: Fix the RPC arguments
+      long fileId = masterClient.createFile(path.getPath(), options.getBlockSize(), true);
       return new ClientFileOutStream(fileId, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -157,10 +158,10 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    */
   @Override
   public List<FileInfo> listStatus(TachyonFile file) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Change this RPC
-      return masterClient.listStatus(null);
+      return masterClient.getFileInfoList(file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -175,9 +176,10 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    */
   @Override
   public boolean mkdirs(TachyonURI path) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.user_mkdirs(path.getPath(), true);
+      // TODO: Change this RPC's arguments
+      return masterClient.createDirectory(path.getPath(), true);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -193,10 +195,9 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    */
   @Override
   public TachyonFile open(TachyonURI path) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Remove path from this RPC
-      return new TachyonFile(masterClient.getFileStatus(-1, path.getPath()).getFileId());
+      return new TachyonFile(masterClient.getFileId(path.getPath()));
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -212,10 +213,10 @@ public class TachyonFS implements Closeable, TachyonFSCore {
    */
   @Override
   public boolean rename(TachyonFile src, TachyonURI dst) throws IOException {
-    MasterClient masterClient = mContext.acquireMasterClient();
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Remove path from this RPC
-      return masterClient.user_rename(src.getFileId(), "", dst.getPath());
+      return masterClient.renameFile(src.getFileId(), dst.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

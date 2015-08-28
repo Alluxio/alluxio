@@ -39,6 +39,7 @@ import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.rawtable.RawTableMaster;
+import tachyon.master.next.user.UserMaster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
@@ -78,10 +79,14 @@ public class TachyonMaster {
   private final TServerSocket mTServerSocket;
   private final InetSocketAddress mMasterAddress;
 
+  // The masters
+  private UserMaster mUserMaster;
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
   private RawTableMaster mRawTableMaster;
 
+  // The journals for the masters
+  private final Journal mUserMasterJournal;
   private final Journal mBlockMasterJournal;
   private final Journal mFileSystemMasterJournal;
   private final Journal mRawTableMasterJournal;
@@ -89,7 +94,7 @@ public class TachyonMaster {
   private UIWebServer mWebServer;
   private TServer mMasterServiceServer;
   private LeaderSelectorClient mLeaderSelectorClient = null;
-  private boolean mIsStarted = false;
+  private boolean mIsServing = false;
 
   public TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
@@ -123,6 +128,9 @@ public class TachyonMaster {
       Preconditions.checkState(isJournalFormatted(journalDirectory),
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
+      // Create the journals.
+      mUserMasterJournal = new Journal(
+          PathUtils.concatPath(journalDirectory, Constants.USER_MASTER_SERVICE_NAME), mTachyonConf);
       mBlockMasterJournal =
           new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
               mTachyonConf);
@@ -133,6 +141,7 @@ public class TachyonMaster {
           PathUtils.concatPath(journalDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME),
           mTachyonConf);
 
+      mUserMaster = new UserMaster(mUserMasterJournal);
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster =
           new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
@@ -198,8 +207,8 @@ public class TachyonMaster {
    *
    * @return true if the system is the leader under zookeeper mode, false otherwise.
    */
-  boolean isStarted() {
-    return mIsStarted;
+  boolean isServing() {
+    return mIsServing;
   }
 
   /**
@@ -216,28 +225,31 @@ public class TachyonMaster {
 
       Thread currentThread = Thread.currentThread();
       mLeaderSelectorClient.setCurrentMasterThread(currentThread);
-      boolean running = false;
+      boolean started = false;
       while (true) {
         if (mLeaderSelectorClient.isLeader()) {
-          running = true;
-          startMaster();
-
-          // TODO: stop serving here?
+          if (started) {
+            stopMaster();
+          }
+          startMaster(true);
+          started = true;
+          startServing();
         } else {
           // this is not the leader
-          if (running) {
-            mMasterServiceServer.stop();
-            mWebServer.shutdownWebServer();
-            // TODO: transition to becoming a standby master.
+          if (mIsServing || !started) {
+            stopServing();
+            stopMaster();
 
             // When transitioning from master to standby, recreate the masters with a readonly
             // journal.
+            mUserMaster = new UserMaster(mUserMasterJournal.getReadOnlyJournal());
             mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
             mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
                 mFileSystemMasterJournal.getReadOnlyJournal());
             mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
                 mRawTableMasterJournal.getReadOnlyJournal());
-            running = false;
+            startMaster(false);
+            started = true;
           }
         }
 
@@ -245,7 +257,8 @@ public class TachyonMaster {
       }
     } else {
       // not using zookeeper.
-      startMaster();
+      startMaster(true);
+      startServing();
     }
   }
 
@@ -253,11 +266,11 @@ public class TachyonMaster {
    * Stop a Tachyon master server.
    */
   public void stop() throws Exception {
-    if (mIsStarted) {
+    if (mIsServing) {
       mWebServer.shutdownWebServer();
       mMasterServiceServer.stop();
       mTServerSocket.close();
-      mIsStarted = false;
+      mIsServing = false;
     }
     if (mUseZookeeper) {
       if (mLeaderSelectorClient != null) {
@@ -266,36 +279,52 @@ public class TachyonMaster {
     }
   }
 
-  private void startMaster() {
+  private void startMaster(boolean asMaster) {
     try {
       connectToUFS();
-      if (mUseZookeeper) {
-        // TODO: prepare for start
-      }
 
-      // TODO: init() masters
+      mUserMaster.start(asMaster);
+      mBlockMaster.start(asMaster);
+      mFileSystemMaster.start(asMaster);
+      mRawTableMaster.start(asMaster);
 
-      // TODO: init MasterUIWebServer
-
-      // set up multiplexed thrift processors
-      TMultiplexedProcessor processor = new TMultiplexedProcessor();
-      processor.registerProcessor(mBlockMaster.getProcessorName(), mBlockMaster.getProcessor());
-      processor.registerProcessor(mFileSystemMaster.getProcessorName(),
-          mFileSystemMaster.getProcessor());
-      processor.registerProcessor(mRawTableMaster.getProcessorName(),
-          mRawTableMaster.getProcessor());
-
-      // create master thrift service with the multiplexed processor.
-      mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
-          .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-          .processor(processor).transportFactory(new TFramedTransport.Factory())
-          .protocolFactory(new TBinaryProtocol.Factory(true, true)));
-
-      mIsStarted = true;
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
+  }
+
+  private void stopMaster() {
+    try {
+      mUserMaster.stop();
+      mBlockMaster.stop();
+      mFileSystemMaster.stop();
+      mRawTableMaster.stop();
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+      throw Throwables.propagate(e);
+    }
+  }
+
+  private void startServing() {
+    // TODO: init MasterUIWebServer
+
+    // set up multiplexed thrift processors
+    TMultiplexedProcessor processor = new TMultiplexedProcessor();
+    processor.registerProcessor(mUserMaster.getProcessorName(), mUserMaster.getProcessor());
+    processor.registerProcessor(mBlockMaster.getProcessorName(), mBlockMaster.getProcessor());
+    processor.registerProcessor(mFileSystemMaster.getProcessorName(),
+        mFileSystemMaster.getProcessor());
+    processor.registerProcessor(mRawTableMaster.getProcessorName(),
+        mRawTableMaster.getProcessor());
+
+    // create master thrift service with the multiplexed processor.
+    mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
+        .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
+        .processor(processor).transportFactory(new TFramedTransport.Factory())
+        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+
+    mIsServing = true;
 
     // start web ui
     mWebServer.startWebServer();
@@ -311,6 +340,17 @@ public class TachyonMaster {
     LOG.info("Tachyon Master version " + Version.VERSION + " ended " + leaderStop + " @ "
         + mMasterAddress);
   }
+
+  private void stopServing() throws Exception {
+    if (mMasterServiceServer != null) {
+      mMasterServiceServer.stop();
+    }
+    if (mWebServer != null) {
+      mWebServer.shutdownWebServer();
+    }
+    mIsServing = false;
+  }
+
 
   /**
    * Checks to see if the journal directory is formatted.

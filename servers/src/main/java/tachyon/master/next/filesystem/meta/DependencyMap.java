@@ -15,6 +15,7 @@
 
 package tachyon.master.next.filesystem.meta;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.journal.JournalSerializable;
 
 /**
@@ -125,8 +126,7 @@ public class DependencyMap implements JournalSerializable {
   }
 
   @Override
-  public JournalEntry toJournalEntry() {
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
     // TODO(cc)
-    return null;
   }
 }

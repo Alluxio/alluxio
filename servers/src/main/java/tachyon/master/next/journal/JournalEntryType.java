@@ -15,7 +15,14 @@
 
 package tachyon.master.next.journal;
 
+// TODO
 public enum JournalEntryType {
+  // User master entries
+
+  // Block master entries
+  BLOCK_ID_GENERATOR,
+
+  // File system master entries
   INODE_FILE,
   INODE_DIRECTORY,
 
@@ -23,5 +30,6 @@ public enum JournalEntryType {
   COMPLETE_FILE,
   CREATE_FILE,
   DELETE_FILE,
-  // TODO
+
+  // Raw table master entries
 }
