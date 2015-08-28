@@ -110,11 +110,11 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry instanceof BlockIdGeneratorEntry) {
-      mBlockIdGenerator.setNextContainerId(((BlockIdGeneratorEntry) entry).getNextContainerId());
+  public void processJournalEntry(JournalInputStream inputStream) throws IOException {
+    if (inputStream instanceof BlockIdGeneratorEntry) {
+      mBlockIdGenerator.setNextContainerId(((BlockIdGeneratorEntry) inputStream).getNextContainerId());
     } else {
-      throw new IOException("unexpected entry in checkpoint: " + entry);
+      throw new IOException("unexpected entry in checkpoint: " + inputStream);
     }
   }
 

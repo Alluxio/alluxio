@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.journal.Journal;
-import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.UserMasterService;
@@ -56,7 +55,7 @@ public class UserMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
+  public void processJournalEntry(JournalInputStream inputStream) throws IOException {
     // TODO
   }
 
