@@ -40,7 +40,7 @@ public class BlockIdGeneratorEntry implements JournalEntry {
 
   @Override
   public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(6);
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
     parameters.put("nextContainerId", mNextContainerId);
     return parameters;
   }

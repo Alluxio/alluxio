@@ -32,6 +32,9 @@ import tachyon.TachyonURI;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.block.ContainerIdGenerator;
+import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
+import tachyon.master.next.filesystem.journal.InodeEntry;
+import tachyon.master.next.filesystem.journal.InodeFileEntry;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.journal.JournalSerializable;
 import tachyon.thrift.BlockInfoException;
@@ -43,8 +46,10 @@ import tachyon.util.io.PathUtils;
 
 public final class InodeTree implements JournalSerializable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  // Only the root inode should have the empty string as its name.
+  private static final String ROOT_INODE_NAME = "";
 
-  private final InodeDirectory mRoot;
+  private InodeDirectory mRoot;
 
   private final IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
@@ -58,20 +63,34 @@ public final class InodeTree implements JournalSerializable {
   private final Set<Long> mPinnedInodeFileIds = new HashSet<Long>();
 
   /**
-   * Inode id management. Inode ids are essentially block ids. inode files: Each file id will be
-   * composed of a unique block container id, with the maximum sequence number. inode directories:
-   * Each directory id will be a unique block id, in order to avoid any collision with file ids.
+   * Inode id management. Inode ids are essentially block ids.
+   * 
+   * inode files: Each file id will be composed of a unique block container id, with the maximum
+   * sequence number.
+   * 
+   * inode directories: Each directory id will be a unique block id, in order to avoid any collision
+   * with file ids.
    */
   private final ContainerIdGenerator mContainerIdGenerator;
+
+  // TODO: journal this state.
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
+
+  /**
+   * This is only used for adding inodes from the journal, to prevent repeated lookups of the same
+   * inode.
+   */
+  private InodeDirectory mCachedInode;
 
   public InodeTree(ContainerIdGenerator containerIdGenerator) {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(containerIdGenerator);
 
-    mRoot = new InodeDirectory("", mDirectoryIdGenerator.getNewDirectoryId(), -1,
+    mRoot = new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), -1,
         System.currentTimeMillis());
     mInodes.add(mRoot);
+
+    mCachedInode = mRoot;
   }
 
   public Inode getInodeById(long id) throws FileDoesNotExistException {
@@ -308,6 +327,56 @@ public final class InodeTree implements JournalSerializable {
     mRoot.writeToJournal(outputStream);
   }
 
+  /**
+   * Adds the inode represented by the entry parameter into the inode tree. If the inode entry
+   * represents the root inode, the tree is "reset", and all state is cleared.
+   * 
+   * @param entry The journal entry representing an inode.
+   */
+  public void addInodeFromJournal(InodeEntry entry) {
+    if (entry instanceof InodeFileEntry) {
+      InodeFile file = ((InodeFileEntry) entry).toInodeFile();
+
+      if (file.getParentId() == mCachedInode.getId()) {
+        mCachedInode.addChild(file);
+      } else {
+        InodeDirectory parentDirectory =
+            (InodeDirectory) mInodes.getFirstByField(mIdIndex, file.getParentId());
+        parentDirectory.addChild(file);
+      }
+      // Update indexes.
+      mInodes.add(file);
+      if (file.isPinned()) {
+        mPinnedInodeFileIds.add(file.getId());
+      }
+    } else if (entry instanceof InodeDirectoryEntry) {
+      InodeDirectory directory = ((InodeDirectoryEntry) entry).toInodeDirectory();
+
+      if (directory.getName() == ROOT_INODE_NAME) {
+        // This is the root inode. Clear all the state, and set the root.
+        mRoot = directory;
+        mInodes.clear();
+        mCachedInode = mRoot;
+      } else {
+        // Add this directory to its parent.
+        if (directory.getParentId() == mCachedInode.getId()) {
+          mCachedInode.addChild(directory);
+        } else {
+          InodeDirectory parentDirectory =
+              (InodeDirectory) mInodes.getFirstByField(mIdIndex, directory.getParentId());
+          parentDirectory.addChild(directory);
+        }
+      }
+      // Update indexes.
+      mInodes.add(directory);
+      if (directory.isPinned()) {
+        mPinnedInodeFileIds.add(directory.getId());
+      }
+    } else {
+      LOG.error("Unexpected InodeEntry journal entry: " + entry);
+    }
+  }
+
   private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {
     if (pathComponents == null) {
       throw new InvalidPathException("passed-in pathComponents is null");
@@ -396,7 +465,10 @@ public final class InodeTree implements JournalSerializable {
    */
   private static class InodeDirectoryIdGenerator {
     private final ContainerIdGenerator mContainerIdGenerator;
+
+    // TODO: journal this state.
     private long mContainerId;
+    // TODO: journal this state.
     private long mSequenceNumber;
 
     InodeDirectoryIdGenerator(ContainerIdGenerator containerIdGenerator) {

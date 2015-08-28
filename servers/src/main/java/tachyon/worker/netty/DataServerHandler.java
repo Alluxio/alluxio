@@ -64,8 +64,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   private final FileTransferType mTransferType;
 
   public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
-    mDataManager = dataManager;
-    mTachyonConf = tachyonConf;
+    mDataManager = Preconditions.checkNotNull(dataManager);
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mTransferType =
         mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
   }
@@ -83,8 +83,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
         ctx.writeAndFlush(resp);
-        throw new IllegalArgumentException("No handler implementation for rpc msg type: "
-            + msg.getType());
+        throw new IllegalArgumentException(
+            "No handler implementation for rpc msg type: " + msg.getType());
     }
   }
 
@@ -180,8 +180,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       writer = mDataManager.getTempBlockWriterRemote(userId, blockId);
       writer.append(buffer);
 
-      RPCBlockWriteResponse resp = new RPCBlockWriteResponse(userId, blockId, offset, length,
-          RPCResponse.Status.SUCCESS);
+      RPCBlockWriteResponse resp =
+          new RPCBlockWriteResponse(userId, blockId, offset, length, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(writer));
@@ -208,8 +208,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   private void validateBounds(final RPCBlockReadRequest req, final long fileLength) {
     Preconditions.checkArgument(req.getOffset() <= fileLength,
         "Offset(%s) is larger than file length(%s)", req.getOffset(), fileLength);
-    Preconditions.checkArgument(req.getLength() == -1
-        || req.getOffset() + req.getLength() <= fileLength,
+    Preconditions.checkArgument(
+        req.getLength() == -1 || req.getOffset() + req.getLength() <= fileLength,
         "Offset(%s) plus length(%s) is larger than file length(%s)", req.getOffset(),
         req.getLength(), fileLength);
   }

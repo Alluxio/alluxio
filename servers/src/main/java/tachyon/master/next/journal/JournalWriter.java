@@ -206,7 +206,7 @@ public class JournalWriter {
      * @throws IOException
      */
     @Override
-    public void writeEntry(JournalEntry entry) throws IOException {
+    public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
         throw new IOException("Cannot write entry after closing the stream.");
       }
@@ -226,7 +226,7 @@ public class JournalWriter {
      * @throws IOException
      */
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
       if (mIsClosed) {
         return;
       }
@@ -251,7 +251,7 @@ public class JournalWriter {
     }
 
     @Override
-    public void flush() throws IOException {
+    public synchronized void flush() throws IOException {
       if (mIsClosed) {
         return;
       }
@@ -272,7 +272,7 @@ public class JournalWriter {
     }
 
     @Override
-    public void writeEntry(JournalEntry entry) throws IOException {
+    public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
         throw new IOException("Cannot write entry after closing the stream.");
       }
@@ -281,7 +281,7 @@ public class JournalWriter {
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
       if (mIsClosed) {
         return;
       }
@@ -294,7 +294,7 @@ public class JournalWriter {
     }
 
     @Override
-    public void flush() throws IOException {
+    public synchronized void flush() throws IOException {
       if (mIsClosed) {
         return;
       }

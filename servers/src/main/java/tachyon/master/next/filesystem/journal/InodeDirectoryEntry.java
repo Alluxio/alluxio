@@ -15,12 +15,19 @@
 
 package tachyon.master.next.filesystem.journal;
 
+import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.journal.JournalEntryType;
 
 public class InodeDirectoryEntry extends InodeEntry {
   public InodeDirectoryEntry(long creationTimeMs, long id, String name, long parentId,
       boolean isPinned, long lastModificationTimeMs) {
     super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
+  }
+
+  public InodeDirectory toInodeDirectory() {
+    InodeDirectory inode = new InodeDirectory(mName, mId, mParentId, mCreationTimeMs);
+    inode.setPinned(mIsPinned);
+    return inode;
   }
 
   @Override

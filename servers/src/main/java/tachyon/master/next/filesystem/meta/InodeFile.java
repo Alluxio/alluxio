@@ -288,6 +288,6 @@ public final class InodeFile extends Inode {
       throws IOException {
     outputStream.writeEntry(new InodeFileEntry(getCreationTimeMs(), getId(), getName(),
         getParentId(), isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(),
-        isComplete(), isCache(), getUfsPath()));
+        isComplete(), isCache(), getUfsPath(), mBlocks));
   }
 }

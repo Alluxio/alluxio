@@ -91,10 +91,10 @@ public class LRFUEvictorTest {
   private double calculateAccessWeight(long timeInterval) {
     return Math.pow(1.0 / mAttenuationFactor, mStepFactor * timeInterval);
   }
-  
+
   /**
    * Sort all blocks in ascending order of CRF
-   * 
+   *
    * @return the sorted CRF of all blocks
    */
   private List<Map.Entry<Long, Double>> getSortedCRF(Map<Long, Double> crfMap) {
@@ -294,7 +294,7 @@ public class LRFUEvictorTest {
         access(blockIdMovedInFirstTier);
       }
       for (int j = 0; j < totalBlocks; j ++) {
-        access(blockIdEvictedInSecondTier); 
+        access(blockIdEvictedInSecondTier);
       }
     }
   }

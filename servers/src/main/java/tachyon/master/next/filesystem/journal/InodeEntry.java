@@ -23,20 +23,20 @@ import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
 
 public abstract class InodeEntry implements JournalEntry {
-  private final long mCreationTimeMs;
-  private final long mId;
-  private final String mName;
-  private final long mParentId;
-  private final boolean mIsPinned;
-  private final long mLastModificationTimeMs;
+  protected final long mId;
+  protected final long mParentId;
+  protected final String mName;
+  protected final boolean mIsPinned;
+  protected final long mCreationTimeMs;
+  protected final long mLastModificationTimeMs;
 
   public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
       long lastModificationTimeMs) {
-    mCreationTimeMs = creationTimeMs;
     mId = id;
-    mName = name;
     mParentId = parentId;
+    mName = name;
     mIsPinned = isPinned;
+    mCreationTimeMs = creationTimeMs;
     mLastModificationTimeMs = lastModificationTimeMs;
   }
 

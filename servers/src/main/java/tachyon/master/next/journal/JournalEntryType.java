@@ -18,9 +18,12 @@ package tachyon.master.next.journal;
 // TODO
 public enum JournalEntryType {
   // User master entries
+  USER_ID_GENERATOR,
 
   // Block master entries
   BLOCK_ID_GENERATOR,
+  BLOCK_INFO,
+  WORKER_ID_GENERATOR,
 
   // File system master entries
   INODE_FILE,
