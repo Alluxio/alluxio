@@ -32,13 +32,13 @@ import tachyon.Constants;
 /**
  * Utilities related to buffers, not only ByteBuffer.
  */
-public class BufferUtils {
+public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
 
   /**
-   * Force to unmap a direct buffer if this buffer is no longer used. After calling this method,
+   * Forces to unmap a direct buffer if this buffer is no longer used. After calling this method,
    * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to
    * avoid huge memory occupation caused by memory map.
    *
@@ -76,7 +76,7 @@ public class BufferUtils {
   }
 
   /**
-   * Clone a bytebuffer.
+   * Clones a bytebuffer.
    * <p>
    * The new bytebuffer will have the same content, but the type of the bytebuffer may not be the
    * same.
@@ -97,7 +97,7 @@ public class BufferUtils {
   }
 
   /**
-   * Clone a list of ByteBuffers.
+   * Clones a list of ByteBuffers.
    *
    * @param source the list of ByteBuffers to clone
    * @return the new list of ByteBuffers
@@ -111,7 +111,7 @@ public class BufferUtils {
   }
 
   /**
-   * Extract a correct ByteBuffer from Thrift RPC result.
+   * Extracts a correct ByteBuffer from Thrift RPC result.
    *
    * @param data result of Thrift RPC
    * @return ByteBuffer with data extracted from the Thrift RPC result
@@ -126,7 +126,7 @@ public class BufferUtils {
   }
 
   /**
-   * Put a byte (the first byte of an integer) into a ByteBuffer.
+   * Puts a byte (the first byte of an integer) into a ByteBuffer.
    *
    * @param buf ByteBuffer to use
    * @param b byte to put into the ByteBuffer
@@ -136,7 +136,7 @@ public class BufferUtils {
   }
 
   /**
-   * Get an increasing sequence of bytes starting at zero.
+   * Gets an increasing sequence of bytes starting at zero.
    *
    * @param len the target length of the sequence
    * @return an increasing sequence of bytes
@@ -146,7 +146,7 @@ public class BufferUtils {
   }
 
   /**
-   * Get an increasing sequence of bytes starting with the given value.
+   * Gets an increasing sequence of bytes starting with the given value.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence
@@ -161,7 +161,7 @@ public class BufferUtils {
   }
 
   /**
-   * Check if the given byte array starts with an increasing sequence of bytes starting at zero of
+   * Checks if the given byte array starts with an increasing sequence of bytes starting at zero of
    * length equal to or greater than the given length.
    *
    * @param len the target length of the sequence
@@ -174,7 +174,7 @@ public class BufferUtils {
   }
 
   /**
-   * Check if the given byte array starts with an increasing sequence of bytes starting at the given
+   * Checks if the given byte array starts with an increasing sequence of bytes starting at the given
    * value of length equal to or greater than the given length.
    *
    * @param start the starting value to use
@@ -196,7 +196,7 @@ public class BufferUtils {
   }
 
   /**
-   * Get a ByteBuffer containing an increasing sequence of bytes starting at zero.
+   * Gets a ByteBuffer containing an increasing sequence of bytes starting at zero.
    *
    * @param len the target length of the sequence
    * @return ByteBuffer containing an increasing sequence of bytes
@@ -206,7 +206,7 @@ public class BufferUtils {
   }
 
   /**
-   * Get a ByteBuffer containing an increasing sequence of bytes starting at the given value.
+   * Gets a ByteBuffer containing an increasing sequence of bytes starting at the given value.
    *
    * @param len the target length of the sequence
    * @param start the starting value to use
@@ -217,7 +217,7 @@ public class BufferUtils {
   }
 
   /**
-   * Check if the given ByteBuffer starts with an increasing sequence of bytes starting at the given
+   * Checks if the given ByteBuffer starts with an increasing sequence of bytes starting at the given
    * value of length equal to or greater than the given length.
    *
    * @param start the starting value to use
@@ -243,7 +243,7 @@ public class BufferUtils {
   }
 
   /**
-   * Get a ByteBuffer containing an increasing sequence of integers starting at zero.
+   * Gets a ByteBuffer containing an increasing sequence of integers starting at zero.
    *
    * @param len the target length of the sequence
    * @return ByteBuffer containing an increasing sequence of integers
@@ -268,5 +268,9 @@ public class BufferUtils {
     FileOutputStream os = new FileOutputStream(path);
     os.write(buffer);
     os.close();
+  }
+
+  private BufferUtils() {
+    // util class
   }
 }

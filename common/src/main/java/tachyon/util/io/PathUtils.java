@@ -30,7 +30,7 @@ import tachyon.thrift.InvalidPathException;
 /**
  * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.
  */
-public class PathUtils {
+public final class PathUtils {
 
   private PathUtils() {
     // util class
@@ -50,7 +50,7 @@ public class PathUtils {
   }
 
   /**
-   * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
+   * Joins each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
    * <p>
    * For example,
    *
@@ -96,7 +96,7 @@ public class PathUtils {
   }
 
   /**
-   * Get the parent of the file at a path.
+   * Gets the parent of the file at a path.
    *
    * @param path The path
    * @return the parent path of the file; this is "/" if the given path is the root.
@@ -114,7 +114,7 @@ public class PathUtils {
   }
 
   /**
-   * Get the path components of the given path.
+   * Gets the path components of the given path.
    *
    * @param path The path to split
    * @return the path split into components
@@ -131,7 +131,7 @@ public class PathUtils {
   }
 
   /**
-   * Check if the given path is the root.
+   * Checks if the given path is the root.
    *
    * @param path The path to check
    * @return true if the path is the root
@@ -142,7 +142,7 @@ public class PathUtils {
   }
 
   /**
-   * Check if the given path is properly formed.
+   * Checks if the given path is properly formed.
    *
    * @param path The path to check
    * @throws InvalidPathException If the path is not properly formed

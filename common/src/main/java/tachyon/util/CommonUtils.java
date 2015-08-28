@@ -37,7 +37,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Convert a list of objects to a string.
+   * Converts a list of objects to a string.
    *
    * @param list list of objects
    * @param <T> type of the objects
@@ -56,7 +56,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Parse <code>ArrayList<String></code> into <code>String[]</code>.
+   * Parses <code>ArrayList<String></code> into <code>String[]</code>.
    *
    * @param src is the ArrayList of strings
    * @return an array of strings
@@ -67,7 +67,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Sleep for the given number of milliseconds.
+   * Sleeps for the given number of milliseconds.
    *
    * @param timeMs sleep duration in milliseconds
    */
@@ -76,7 +76,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Sleep for the given number of milliseconds, reporting interruptions using the given logger.
+   * Sleeps for the given number of milliseconds, reporting interruptions using the given logger.
    *
    * @param logger logger for reporting interruptions
    * @param timeMs sleep duration in milliseconds
@@ -86,7 +86,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Sleep for the given number of milliseconds, reporting interruptions using the given logger, and
+   * Sleeps for the given number of milliseconds, reporting interruptions using the given logger, and
    * optionally pass the interruption to the caller.
    *
    * @param logger logger for reporting interruptions
@@ -134,5 +134,9 @@ public final class CommonUtils {
     }
     Constructor<T> ctor = cls.getConstructor(ctorClassArgs);
     return ctor.newInstance(ctorArgs);
+  }
+
+  private CommonUtils() {
+    // util class
   }
 }
