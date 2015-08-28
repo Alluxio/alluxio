@@ -55,6 +55,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
+  /**
+   * blocks ever placed in all Tachyon workers, including both the active blocks and lost ones
+   */
   private final Map<Long, MasterBlockInfo> mBlocks;
   private final BlockIdGenerator mBlockIdGenerator;
   private final Set<Long> mLostBlocks;
@@ -173,7 +176,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
           worker.updateToRemovedBlock(true, blockId);
         }
       }
-      // remove form lost blocks
+      // remove from lost blocks
       mLostBlocks.remove(blockId);
     }
   }
@@ -329,7 +332,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
       masterBlockInfo.removeWorker(workerInfo.getId());
       if (masterBlockInfo.getNumLocations() == 0) {
         mLostBlocks.add(removedBlockId);
-        mBlocks.remove(removedBlockId);
       }
     }
   }
