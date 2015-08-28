@@ -25,8 +25,8 @@ import tachyon.master.next.journal.JournalEntryType;
 public class WorkerIdGeneratorEntry implements JournalEntry {
   private final long mNextWorkerId;
 
-  public WorkerIdGeneratorEntry(long nextContainerId) {
-    mNextWorkerId = nextContainerId;
+  public WorkerIdGeneratorEntry(long nextWorkerId) {
+    mNextWorkerId = nextWorkerId;
   }
 
   public long getNextWorkerId() {
