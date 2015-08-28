@@ -30,7 +30,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Block info on the master side.
