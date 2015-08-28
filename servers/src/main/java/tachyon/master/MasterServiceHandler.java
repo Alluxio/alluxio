@@ -336,4 +336,20 @@ public class MasterServiceHandler implements MasterService.Iface {
     return mMasterInfo.registerWorker(workerNetAddress, totalBytesOnTiers, usedBytesOnTiers,
         currentBlockIds);
   }
+
+  @Override
+  public boolean user_setPermission(int fileId, String path, int permission,
+      boolean recursive) throws FileDoesNotExistException, InvalidPathException,
+      TachyonException, TException {
+    //TODO MasterInfo will support it
+    return true;
+  }
+
+  @Override
+  public boolean user_setOwner(int fileId, String path, String username,
+      String groupname, boolean recursive) throws FileDoesNotExistException,
+      InvalidPathException, TachyonException, TException {
+    //TODO MasterInfo will support it
+    return true;
+  }
 }
