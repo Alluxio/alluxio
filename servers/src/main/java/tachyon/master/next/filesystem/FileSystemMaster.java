@@ -37,6 +37,7 @@ import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.CreateFileEntry;
 import tachyon.master.next.filesystem.journal.DeleteFileEntry;
+import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.MkDirsEntry;
 import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
@@ -535,7 +536,8 @@ public class FileSystemMaster extends MasterBase {
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
         }
       }
-      // TODO: write to journal
+      writeJournalEntry(new FreeEntry(fileId, recursive));
+      flushJournal();
     }
     return true;
   }

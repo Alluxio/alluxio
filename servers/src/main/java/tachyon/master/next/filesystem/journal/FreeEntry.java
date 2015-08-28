@@ -13,26 +13,34 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.filesystem.journal;
 
-// TODO
-public enum JournalEntryType {
-  // User master entries
+import java.util.Map;
 
-  // Block master entries
-  BLOCK_ID_GENERATOR,
+import com.google.common.collect.Maps;
 
-  // File system master entries
-  INODE_FILE,
-  INODE_DIRECTORY,
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
 
-  ADD_CHECKPOINT,
-  COMPLETE_FILE,
-  CREATE_FILE,
-  DELETE_FILE,
-  MK_DIRS,
-  SET_PINNED,
-  FREE,
+public class FreeEntry implements JournalEntry {
+  private final long mFileId;
+  private final boolean mRecursive;
 
-  // Raw table master entries
+  public FreeEntry(long fileId, boolean recursive) {
+    mFileId = fileId;
+    mRecursive = recursive;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.FREE;
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
+    parameters.put("fileId", mFileId);
+    parameters.put("recursive", mRecursive);
+    return parameters;
+  }
 }
