@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
@@ -34,6 +35,7 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.CreateFileEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -41,7 +43,6 @@ import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.master.next.journal.Journal;
-import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
@@ -103,7 +104,7 @@ public class FileSystemMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
+  public void processJournalEntry(JournalInputStream inputStream) throws IOException {
     // TODO
   }
 
@@ -271,13 +272,17 @@ public class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      InodeFile inode = (InodeFile) mInodeTree.createPath(path, blockSizeBytes, recursive, false);
+      Pair<InodeDirectory, Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive,
+          false);
+      InodeFile inode = (InodeFile)created.getSecond();
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
+      writeJournalEntry(new CreateFileEntry());
+      // Write the newly created Inodes
+      writeJournalEntry(created.getFirst());
+      flushJournal();
       return inode.getId();
-
-      // TODO: write to journal
     }
   }
 

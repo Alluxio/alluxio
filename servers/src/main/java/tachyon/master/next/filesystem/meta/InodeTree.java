@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.IndexedSet;
@@ -120,9 +121,12 @@ public final class InodeTree implements JournalSerializable {
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
+   * @return a pair whose first value is the last path component that does not exist when traversing
+   *         the given path before creating it, it should be an InodeDirectory, the second value is
+   *         the newly created Inode at path.
    */
-  public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory)
+  public Pair<InodeDirectory, Inode> createPath(TachyonURI path, long blockSizeBytes,
+      boolean recursive, boolean directory)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
 
     if (path.isRoot()) {
@@ -168,10 +172,14 @@ public final class InodeTree implements JournalSerializable {
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
+    InodeDirectory firstNonExistentInode = null;
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
       Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
           currentInodeDirectory.getId(), creationTimeMs);
+      if (firstNonExistentInode == null) {
+        firstNonExistentInode = (InodeDirectory)dir;
+      }
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
@@ -185,7 +193,7 @@ public final class InodeTree implements JournalSerializable {
     Inode ret = currentInodeDirectory.getChild(name);
     if (ret != null) {
       if (ret.isDirectory() && directory) {
-        return ret;
+        return new Pair<InodeDirectory, Inode>(firstNonExistentInode, ret);
       }
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
@@ -208,7 +216,7 @@ public final class InodeTree implements JournalSerializable {
     currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
 
     LOG.debug("createFile: File Created: {} parent: ", ret, currentInodeDirectory);
-    return ret;
+    return new Pair<InodeDirectory, Inode>(firstNonExistentInode, ret);
   }
 
   /**

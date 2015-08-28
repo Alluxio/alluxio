@@ -163,11 +163,11 @@ public final class InodeTreeTest {
     Assert.assertEquals(new TachyonURI("/"), mTree.getPath(root));
 
     // test one level
-    Inode test = mTree.createPath(TEST_URI, Constants.KB, false, true);
+    Inode test = mTree.createPath(TEST_URI, Constants.KB, false, true).getSecond();
     Assert.assertEquals(new TachyonURI("/test"), mTree.getPath(test));
 
     // test nesting
-    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true).getSecond();
     Assert.assertEquals(new TachyonURI("/nested/test"), mTree.getPath(nested));
   }
 
@@ -186,7 +186,7 @@ public final class InodeTreeTest {
 
   @Test
   public void deleteInodeTest() throws Exception {
-    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true).getSecond();
 
     // all inodes under root
     List<Inode> inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
@@ -210,7 +210,7 @@ public final class InodeTreeTest {
 
   @Test
   public void setPinnedTest() throws Exception {
-    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    Inode nested = mTree.createPath(NESTED_URI, Constants.KB, true, true).getSecond();
     mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
 
     // no inodes pinned

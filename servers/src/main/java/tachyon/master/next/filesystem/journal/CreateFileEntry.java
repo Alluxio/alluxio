@@ -13,20 +13,23 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.filesystem.journal;
 
-// TODO
-public enum JournalEntryType {
-  // User master entries
+import java.util.Map;
 
-  // Block master entries
-  BLOCK_ID_GENERATOR,
+import com.google.common.collect.Maps;
 
-  // File system master entries
-  INODE_FILE,
-  INODE_DIRECTORY,
-  ADD_CHECKPOINT,
-  CREATE_FILE,
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
 
-  // Raw table master entries
+public class CreateFileEntry implements JournalEntry {
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.CREATE_FILE;
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    return Maps.newHashMapWithExpectedSize(0);
+  }
 }
