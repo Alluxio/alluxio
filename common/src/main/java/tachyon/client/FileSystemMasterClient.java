@@ -128,30 +128,84 @@ public final class FileSystemMasterClient extends MasterClient {
     throw new IOException("This connection has been closed.");
   }
 
+  // TODO: Not sure if this is necessary
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException {
-    return null;
-  }
-
-  public synchronized long getUserId() throws IOException {
-    return -1;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getFileBlockInfoList(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized long getNewBlockIdForFile(long fileId) throws IOException {
-    return -1;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getNewBlockIdForFile(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized String getUfsAddress() throws IOException {
-    return null;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getUfsAddress();
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
       throws IOException {
-    return -1;
+    while (!mIsClosed) {
+      connect();
+      try {
+        // TODO: Change this method signature
+        return mClient.createFile(-1L, blockSizeBytes, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized long loadFileFromUfs(long fileId, String ufsPath, boolean recursive)
       throws IOException {
-    return -1;
+    while (!mIsClosed) {
+      connect();
+      try {
+        // TODO: Change this method signature
+        return mClient.loadFileFromUfs(fileId, ufsPath, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
 
   public synchronized void completeFile(long fileId) throws IOException {
