@@ -178,6 +178,7 @@ public class FileSystemMaster extends MasterBase {
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
         writeJournalEntry(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
+        flushJournal();
       }
       return true;
     }
@@ -266,7 +267,8 @@ public class FileSystemMaster extends MasterBase {
       mDependencyMap.addFileCheckpoint(fileId);
       ((InodeFile) inode).setComplete(fileLength);
       inode.setLastModificationTimeMs(opTimeMs);
-      logEvent(new CompleteFileEntry(fileId, opTimeMs));
+      writeJournalEntry(new CompleteFileEntry(fileId, opTimeMs));
+      flushJournal();
     }
   }
 
@@ -278,8 +280,9 @@ public class FileSystemMaster extends MasterBase {
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
-      logEvent(new CreateFileEntry(path.getPath(), blockSizeBytes, recursive,
+      writeJournalEntry(new CreateFileEntry(path.getPath(), blockSizeBytes, recursive,
           inode.getCreationTimeMs()));
+      flushJournal();
       return inode.getId();
     }
   }
@@ -303,7 +306,8 @@ public class FileSystemMaster extends MasterBase {
       Inode inode = mInodeTree.getInodeById(fileId);
       boolean ret = deleteInodeInternal(inode, recursive);
       Inode parent = mInodeTree.getInodeById(inode.getParentId());
-      logEvent(new DeleteFileEntry(fileId, recursive, parent.getLastModificationTimeMs()));
+      writeJournalEntry(new DeleteFileEntry(fileId, recursive, parent.getLastModificationTimeMs()));
+      flushJournal();
       return ret;
     }
   }
