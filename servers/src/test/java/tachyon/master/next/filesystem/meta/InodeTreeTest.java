@@ -217,12 +217,12 @@ public final class InodeTreeTest {
     Assert.assertEquals(0, mTree.getPinIdSet().size());
 
     // pin nested folder
-    mTree.setPinned(nested, true);
+    mTree.setPinned(nested, true, System.currentTimeMillis());
     // nested file pinned
     Assert.assertEquals(1, mTree.getPinIdSet().size());
 
     // unpin nested folder
-    mTree.setPinned(nested, false);
+    mTree.setPinned(nested, false, System.currentTimeMillis());
     Assert.assertEquals(0, mTree.getPinIdSet().size());
   }
 }

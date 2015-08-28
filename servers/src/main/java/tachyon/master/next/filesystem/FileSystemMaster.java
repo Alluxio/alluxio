@@ -34,6 +34,13 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.CompleteFileEntry;
+import tachyon.master.next.filesystem.journal.CreateFileEntry;
+import tachyon.master.next.filesystem.journal.DeleteFileEntry;
+import tachyon.master.next.filesystem.journal.FreeEntry;
+import tachyon.master.next.filesystem.journal.MkDirsEntry;
+import tachyon.master.next.filesystem.journal.RenameEntry;
+import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -175,6 +182,7 @@ public class FileSystemMaster extends MasterBase {
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
         writeJournalEntry(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
+        flushJournal();
       }
       return true;
     }
@@ -263,7 +271,8 @@ public class FileSystemMaster extends MasterBase {
       mDependencyMap.addFileCheckpoint(fileId);
       ((InodeFile) inode).setComplete(fileLength);
       inode.setLastModificationTimeMs(opTimeMs);
-      // TODO: write to journal
+      writeJournalEntry(new CompleteFileEntry(fileId, opTimeMs));
+      flushJournal();
     }
   }
 
@@ -275,9 +284,10 @@ public class FileSystemMaster extends MasterBase {
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
+      writeJournalEntry(new CreateFileEntry(path.getPath(), blockSizeBytes, recursive,
+          inode.getCreationTimeMs()));
+      flushJournal();
       return inode.getId();
-
-      // TODO: write to journal
     }
   }
 
@@ -298,8 +308,11 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      return deleteInodeInternal(inode, recursive);
-      // TODO: write to journal
+      boolean ret = deleteInodeInternal(inode, recursive);
+      Inode parent = mInodeTree.getInodeById(inode.getParentId());
+      writeJournalEntry(new DeleteFileEntry(fileId, recursive, parent.getLastModificationTimeMs()));
+      flushJournal();
+      return ret;
     }
   }
 
@@ -411,7 +424,9 @@ public class FileSystemMaster extends MasterBase {
         // happen.
         Throwables.propagate(bie);
       }
-      // TODO: write to journal
+      writeJournalEntry(new MkDirsEntry(path.getPath(), recursive,
+          mInodeTree.getInodeByPath(path).getCreationTimeMs()));
+      flushJournal();
     }
 
   }
@@ -474,8 +489,11 @@ public class FileSystemMaster extends MasterBase {
       srcInode.setName(dstComponents[dstComponents.length - 1]);
       dstParentDirectory.addChild(srcInode);
       dstParentInode.setLastModificationTimeMs(opTimeMs);
+
+      writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
+      flushJournal();
+
       return true;
-      // TODO: write to journal
     }
 
   }
@@ -484,8 +502,10 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      mInodeTree.setPinned(inode, pinned);
-      // TODO: write to journal
+      long opTimeMs = System.currentTimeMillis();
+      mInodeTree.setPinned(inode, pinned, opTimeMs);
+      writeJournalEntry(new SetPinnedEntry(fileId, pinned, opTimeMs));
+      flushJournal();
     }
   }
 
@@ -520,7 +540,8 @@ public class FileSystemMaster extends MasterBase {
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
         }
       }
-      // TODO: write to journal
+      writeJournalEntry(new FreeEntry(fileId, recursive));
+      flushJournal();
     }
     return true;
   }
