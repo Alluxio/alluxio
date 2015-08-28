@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.authentication;
 
 import java.util.HashMap;
 
@@ -23,7 +23,8 @@ import javax.security.sasl.SaslServer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.security.PlainSaslHelper;
+import tachyon.security.authentication.PlainSaslHelper;
+import tachyon.security.authentication.PlainSaslServerProvider;
 
 public class PlainSaslServerProviderTest {
 
