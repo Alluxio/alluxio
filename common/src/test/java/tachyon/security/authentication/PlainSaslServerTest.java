@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.authentication;
 
 import java.io.IOException;
 
@@ -28,6 +28,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import tachyon.security.authentication.PlainSaslServer;
 
 public class PlainSaslServerTest{
   private static byte sSEPARATOR = 0x00; // US-ASCII <NUL>

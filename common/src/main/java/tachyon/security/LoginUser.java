@@ -24,6 +24,7 @@ import javax.security.auth.login.LoginException;
 
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.login.TachyonJaasConfiguration;
 
 /**
  * A Singleton of LoginUser, which is an instance of {@link tachyon.security.User}. It represents
