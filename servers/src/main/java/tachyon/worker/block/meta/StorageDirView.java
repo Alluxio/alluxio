@@ -29,7 +29,7 @@ import tachyon.worker.block.BlockStoreLocation;
  * This class is a wrapper of {@link StorageDir} to provide more limited access
  * and a filtered list of blocks.
  */
-public class StorageDirView {
+public final class StorageDirView {
 
   /** the StorageDir this view is derived from */
   private final StorageDir mDir;

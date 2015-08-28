@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -78,6 +79,8 @@ public class JournalShutdownIntegrationTest {
               break;
             }
           }
+          // The create operation may succeed at the master side but still returns false due to the
+          // shutdown. So the mSuccessNum may be less than the actual success number.
           mSuccessNum ++;
           CommonUtils.sleepMs(null, 100);
         }
@@ -124,12 +127,13 @@ public class JournalShutdownIntegrationTest {
         mMasterTachyonConf);
     info.init();
 
-    Assert.assertEquals(successFiles, info.listFiles(new TachyonURI(TEST_FILE_DIR), false).size());
+    int actualFiles = info.listFiles(new TachyonURI(TEST_FILE_DIR), false).size();
+    Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f ++) {
       Assert.assertTrue(info.getFileId(new TachyonURI(TEST_FILE_DIR + f)) != -1);
     }
-    Assert.assertEquals(successTables,
-        info.listFiles(new TachyonURI(TEST_TABLE_DIR), false).size());
+    int actualTables = info.listFiles(new TachyonURI(TEST_TABLE_DIR), false).size();
+    Assert.assertTrue((successTables == actualTables) || (successTables + 1 == actualTables));
     for (int t = 0; t < successTables; t ++) {
       Assert.assertTrue(info.getRawTableId(new TachyonURI(TEST_TABLE_DIR + t)) != -1);
     }
@@ -170,7 +174,7 @@ public class JournalShutdownIntegrationTest {
     CommonUtils.sleepMs(null, TEST_TIME_MS);
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdown();
-    CommonUtils.sleepMs(null, TEST_TIME_MS);
+    while (!mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS)) {}
     reproduceAndCheckState(mCreateFileThread.getSuccessNum(), mCreateTableThread.getSuccessNum());
     // clean up
     cluster.stopUFS();
@@ -184,10 +188,11 @@ public class JournalShutdownIntegrationTest {
       CommonUtils.sleepMs(null, TEST_TIME_MS);
       Assert.assertTrue(cluster.killLeader());
     }
+    cluster.stopTFS();
     CommonUtils.sleepMs(null, TEST_TIME_MS);
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdown();
-    CommonUtils.sleepMs(null, TEST_TIME_MS);
+    while (!mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS)) {}
     reproduceAndCheckState(mCreateFileThread.getSuccessNum(), mCreateTableThread.getSuccessNum());
     // clean up
     cluster.stopUFS();

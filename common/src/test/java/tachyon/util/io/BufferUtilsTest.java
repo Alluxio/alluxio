@@ -15,7 +15,11 @@
 
 package tachyon.util.io;
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,7 +34,26 @@ public class BufferUtilsTest {
       buf.put(i);
     }
     bufClone = BufferUtils.cloneByteBuffer(buf);
-    Assert.assertTrue(bufClone.equals(buf));
+    Assert.assertEquals(buf, bufClone);
+  }
+
+  @Test
+  public void cloneByteBufferListTest() {
+    final int bufferSize = 10;
+    final int listLength = 10;
+    ArrayList<ByteBuffer> bufList = new ArrayList<ByteBuffer>(listLength);
+    for (int k = 0; k < listLength; k ++) {
+      ByteBuffer buf = ByteBuffer.allocate(bufferSize);
+      for (byte i = 0; i < bufferSize; i ++) {
+        buf.put((byte) (i + k));
+      }
+      bufList.add(buf);
+    }
+    List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufList);
+    Assert.assertEquals(listLength, bufListClone.size());
+    for (int k = 0 ; k < listLength; k ++) {
+      Assert.assertEquals(bufList.get(k), bufListClone.get(k));
+    }
   }
 
   @Test
@@ -42,15 +65,251 @@ public class BufferUtilsTest {
       bufDirect.put(i);
     }
     bufClone = BufferUtils.cloneByteBuffer(bufDirect);
-    Assert.assertTrue(bufClone.equals(bufDirect));
+    Assert.assertEquals(bufDirect, bufClone);
+  }
+
+  @Test
+  public void cloneDirectByteBufferListTest() {
+    final int bufferSize = 10;
+    final int listLength = 10;
+    ArrayList<ByteBuffer> bufDirectList = new ArrayList<ByteBuffer>(listLength);
+    for (int k = 0; k < listLength; k ++) {
+      ByteBuffer bufDirect = ByteBuffer.allocateDirect(bufferSize);
+      for (byte i = 0; i < bufferSize; i ++) {
+        bufDirect.put((byte) (i + k));
+      }
+      bufDirectList.add(bufDirect);
+    }
+    List<ByteBuffer> bufListClone = BufferUtils.cloneByteBufferList(bufDirectList);
+    Assert.assertEquals(listLength, bufListClone.size());
+    for (int k = 0 ; k < listLength; k ++) {
+      Assert.assertEquals(bufDirectList.get(k), bufListClone.get(k));
+    }
+  }
+
+  @Test
+  public void generateNewByteBufferFromThriftRPCResultsTest() {
+    final int bufferSize = 10;
+    ByteBuffer mockRPCbuf = ByteBuffer.allocate(bufferSize);
+    for (byte i = 0; i < bufferSize; i ++) {
+      mockRPCbuf.put(i);
+    }
+    mockRPCbuf.position(bufferSize / 2);
+    ByteBuffer buf = BufferUtils.generateNewByteBufferFromThriftRPCResults(mockRPCbuf);
+    Assert.assertEquals(0, buf.position());
+    Assert.assertEquals(bufferSize / 2, buf.capacity());
+    for (int i = 0; i < bufferSize / 2; i ++) {
+      Assert.assertEquals(mockRPCbuf.get(i + bufferSize / 2), buf.get(i));
+    }
+  }
+
+  @Test
+  public void putIntByteBufferTest() {
+    class TestCase {
+      byte mExpected;
+      int mInput;
+
+      public TestCase(byte expected, int input) {
+        mExpected = expected;
+        mInput = input;
+      }
+    }
+
+    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase((byte) 0x00, 0x00));
+    testCases.add(new TestCase((byte) 0x12, 0x12));
+    testCases.add(new TestCase((byte) 0x34, 0x1234));
+    testCases.add(new TestCase((byte) 0x56, 0x123456));
+    testCases.add(new TestCase((byte) 0x78, 0x12345678));
+
+    for (TestCase testCase : testCases) {
+      ByteBuffer buf = ByteBuffer.allocate(1);
+      BufferUtils.putIntByteBuffer(buf, testCase.mInput);
+      Assert.assertEquals(testCase.mExpected, buf.get(0));
+    }
+  }
+
+  @Test
+  public void getIncreasingByteArrayTest() {
+    class TestCase {
+      byte[] mExpected;
+      int mLength;
+      int mStart;
+
+      public TestCase(byte[] expected, int length, int start) {
+        mExpected = expected;
+        mLength = length;
+        mStart = start;
+      }
+    }
+
+    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase(new byte[] {}, 0, 0));
+    testCases.add(new TestCase(new byte[] {}, 0, 3));
+    testCases.add(new TestCase(new byte[] {0}, 1, 0));
+    testCases.add(new TestCase(new byte[] {0, 1, 2}, 3, 0));
+    testCases.add(new TestCase(new byte[] {3}, 1, 3));
+    testCases.add(new TestCase(new byte[] {3, 4, 5}, 3, 3));
+
+    for (TestCase testCase : testCases) {
+      byte[] result = BufferUtils.getIncreasingByteArray(testCase.mStart, testCase.mLength);
+      Assert.assertEquals(testCase.mExpected.length, result.length);
+      for (int k = 0; k < result.length; k ++) {
+        Assert.assertEquals(testCase.mExpected[k], result[k]);
+      }
+    }
+  }
+
+  @Test
+  public void equalIncreasingByteArrayTest() {
+    class TestCase {
+      boolean mExpected;
+      byte[] mArray;
+      int mLength;
+      int mStart;
+
+      public TestCase(boolean expected, byte[] array, int length, int start) {
+        mExpected = expected;
+        mArray = array;
+        mLength = length;
+        mStart = start;
+      }
+    }
+
+    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase(false, null, 0, 0));
+    testCases.add(new TestCase(true, new byte[] {}, 0, 0));
+    testCases.add(new TestCase(false, new byte[] {1}, 0, 0));
+    testCases.add(new TestCase(true, new byte[] {}, 0, 3));
+    testCases.add(new TestCase(false, new byte[] {1}, 0, 3));
+    testCases.add(new TestCase(true, new byte[] {0}, 1, 0));
+    testCases.add(new TestCase(false, new byte[] {1}, 1, 0));
+    testCases.add(new TestCase(true, new byte[] {0, 1, 2}, 3, 0));
+    testCases.add(new TestCase(false, new byte[] {0, 1, 2, (byte) 0xFF}, 3, 0));
+    testCases.add(new TestCase(false, new byte[] {1, 2, 3}, 3, 0));
+    testCases.add(new TestCase(true, new byte[] {3}, 1, 3));
+    testCases.add(new TestCase(false, new byte[] {2}, 1, 3));
+    testCases.add(new TestCase(true, new byte[] {3, 4, 5}, 3, 3));
+    testCases.add(new TestCase(false, new byte[] {3, 4, 5, (byte) 0xFF}, 3, 3));
+    testCases.add(new TestCase(false, new byte[] {2, 3, 4}, 3, 3));
+
+    for (TestCase testCase : testCases) {
+      boolean result = BufferUtils.equalIncreasingByteArray(testCase.mStart, testCase.mLength,
+          testCase.mArray);
+      Assert.assertEquals(testCase.mExpected, result);
+    }
+  }
+
+  @Test
+  public void getIncreasingByteBufferTest() {
+    class TestCase {
+      ByteBuffer mExpected;
+      int mLength;
+      int mStart;
+
+      public TestCase(ByteBuffer expected, int length, int start) {
+        mExpected = expected;
+        mLength = length;
+        mStart = start;
+      }
+    }
+
+    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 0));
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 3));
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0}), 1, 0));
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0, 1, 2}), 3, 0));
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {3}), 1, 3));
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {3, 4, 5}), 3, 3));
+
+    for (TestCase testCase : testCases) {
+      ByteBuffer result = BufferUtils.getIncreasingByteBuffer(testCase.mStart, testCase.mLength);
+      Assert.assertEquals(testCase.mExpected.capacity(), result.capacity());
+      for (int k = 0; k < result.capacity(); k ++) {
+        Assert.assertEquals(testCase.mExpected.get(k), result.get(k));
+      }
+    }
+  }
+
+  @Test
+  public void equalIncreasingByteBufferTest() {
+    class TestCase {
+      boolean mExpected;
+      ByteBuffer mBuffer;
+      int mLength;
+      int mStart;
+
+      public TestCase(boolean expected, ByteBuffer buffer, int length, int start) {
+        mExpected = expected;
+        mBuffer = buffer;
+        mLength = length;
+        mStart = start;
+      }
+    }
+
+    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase(false, null, 0, 0));
+    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {}), 0, 0));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1}), 0, 0));
+    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {}), 0, 3));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1}), 0, 3));
+    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {0}), 1, 0));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1}), 1, 0));
+    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {0, 1, 2}), 3, 0));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {0, 1, 2, (byte) 0xFF}), 3, 0));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1, 2, 3}), 3, 0));
+    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {3}), 1, 3));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {2}), 1, 3));
+    testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {3, 4, 5}), 3, 3));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {3, 4, 5, (byte) 0xFF}), 3, 3));
+    testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {2, 3, 4}), 3, 3));
+
+    for (TestCase testCase : testCases) {
+      boolean result = BufferUtils.equalIncreasingByteBuffer(testCase.mStart, testCase.mLength,
+          testCase.mBuffer);
+      Assert.assertEquals(testCase.mExpected, result);
+    }
+  }
+
+  @Test
+  public void getIncreasingIntBufferTest() {
+    class TestCase {
+      ByteBuffer mExpected;
+      int mLength;
+      int mStart;
+
+      public TestCase(ByteBuffer expected, int length, int start) {
+        mExpected = expected;
+        mLength = length;
+        mStart = start;
+      }
+    }
+
+    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 0));
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 3));
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0, 0, 0, 0}), 1, 0));
+    testCases.add(new TestCase(ByteBuffer.wrap(
+        new byte[] {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2}), 3, 0));
+    testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0, 0, 0, 3}), 1, 3));
+    testCases.add(new TestCase(ByteBuffer.wrap(
+        new byte[] {0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 5}), 3, 3));
+
+    for (TestCase testCase : testCases) {
+      ByteBuffer result = BufferUtils.getIncreasingIntBuffer(testCase.mStart, testCase.mLength);
+      Assert.assertEquals(testCase.mExpected.limit(), result.limit());
+      for (int k = 0; k < result.limit(); k ++) {
+        Assert.assertEquals(testCase.mExpected.get(k), result.get(k));
+      }
+    }
   }
 
   /**
-   *{@link BufferUtils#cleanDirectBuffer(ByteBuffer)} } forces to unmap an unused direct buffer.
+   *{@link BufferUtils#cleanDirectBuffer(ByteBuffer)} forces to unmap an unused direct buffer.
    * This test repeated allocates and de-allocates a direct buffer of size 16MB to make sure
    * cleanDirectBuffer is doing its job. The bufferArray is used to store references to the direct
    * buffers so that they won't get garbage collected automatically. It has been tested that if the
-   * call to cleanDirectBuffer is removed, this test will fail
+   * call to cleanDirectBuffer is removed, this test will fail.
    */
   @Test
   public void cleanDirectBufferTest() {
