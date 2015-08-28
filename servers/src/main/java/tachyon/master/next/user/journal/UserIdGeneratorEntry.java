@@ -13,22 +13,35 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.user.journal;
 
-// TODO
-public enum JournalEntryType {
-  // User master entries
-  USER_ID_GENERATOR,
+import java.util.Map;
 
-  // Block master entries
-  BLOCK_ID_GENERATOR,
-  BLOCK_INFO,
-  WORKER_ID_GENERATOR,
+import com.google.common.collect.Maps;
 
-  // File system master entries
-  INODE_FILE,
-  INODE_DIRECTORY,
-  ADD_CHECKPOINT,
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
 
-  // Raw table master entries
+public class UserIdGeneratorEntry implements JournalEntry {
+  private final long mNextUserId;
+
+  public UserIdGeneratorEntry(long nextUserId) {
+    mNextUserId = nextUserId;
+  }
+
+  public long getNextUserId() {
+    return mNextUserId;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.USER_ID_GENERATOR;
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
+    parameters.put("nextUserId", mNextUserId);
+    return parameters;
+  }
 }
