@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.security;
+package tachyon.security.authentication;
 
 import java.io.IOException;
 import javax.security.auth.callback.Callback;
@@ -27,6 +27,8 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import tachyon.security.authentication.PlainSaslHelper;
 
 public class PlainClientCallbackHandlerTest {
 
