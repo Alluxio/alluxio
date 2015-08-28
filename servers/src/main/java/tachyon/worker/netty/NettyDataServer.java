@@ -19,14 +19,15 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
-
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -47,8 +48,9 @@ public final class NettyDataServer implements DataServer {
 
   public NettyDataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       final TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
-    mDataServerHandler = new DataServerHandler(dataManager, mTachyonConf);
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
+    mDataServerHandler =
+        new DataServerHandler(Preconditions.checkNotNull(dataManager), mTachyonConf);
     mBootstrap = createBootstrap().childHandler(new PipelineHandler(mDataServerHandler));
 
     try {
@@ -101,6 +103,7 @@ public final class NettyDataServer implements DataServer {
   /**
    * Gets the actual bind hostname.
    */
+  @Override
   public String getBindHost() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
     // InetSocketAddress to get detailed info such as port.

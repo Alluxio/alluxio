@@ -13,24 +13,28 @@
  * the License.
  */
 
-package tachyon.underfs.swift;
+package tachyon.exception;
 
-import org.apache.hadoop.conf.Configuration;
+/**
+ * Abstract class for Tachyon exceptions.
+ *
+ */
+@SuppressWarnings("serial")
+public abstract class AbstractTachyonException extends Exception {
 
-import tachyon.conf.TachyonConf;
+  public AbstractTachyonException(String message) {
+    super(message);
+  }
 
-public class SwiftUnderFileSystemUtils {
+  public AbstractTachyonException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-  /**
-   * Replace default key with user provided key
-   * @param conf
-   * @param key
-   */
-  public static void addKey(Configuration conf, TachyonConf tachyonConf, String key) {
-    if (System.getProperty(key) != null && conf.get(key) == null) {
-      conf.set(key, System.getProperty(key));
-    } else if (tachyonConf.containsKey(key)) {
-      conf.set(key, tachyonConf.get(key));
-    }
+  public AbstractTachyonException(ExceptionMessage message, Object... params) {
+    this(message.getMessage(params));
+  }
+
+  public AbstractTachyonException(ExceptionMessage message, Throwable cause, Object... params) {
+    this(message.getMessage(params), cause);
   }
 }

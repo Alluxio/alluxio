@@ -26,8 +26,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.OutStream;
-import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -61,7 +62,7 @@ public class BasicOperations implements Callable<Boolean> {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
     int fileId = tachyonClient.createFile(mFilePath);
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
   }
 
   private void writeFile(TachyonFS tachyonClient) throws IOException {
@@ -81,7 +82,7 @@ public class BasicOperations implements Callable<Boolean> {
     os.write(buf.array());
     os.close();
 
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "writeFile to file " + mFilePath);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
   private boolean readFile(TachyonFS tachyonClient) throws IOException {
@@ -90,18 +91,16 @@ public class BasicOperations implements Callable<Boolean> {
 
     final long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = tachyonClient.getFile(mFilePath);
-    TachyonByteBuffer buf = file.readByteBuffer(0);
-    if (buf == null) {
-      file.recache();
-      buf = file.readByteBuffer(0);
-    }
-    buf.mData.order(ByteOrder.nativeOrder());
+    InStream is = file.getInStream(ReadType.CACHE);
+    ByteBuffer buf = ByteBuffer.allocate((int) file.getBlockSizeByte());
+    is.read(buf.array());
+    buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
-      pass = pass && (buf.mData.getInt() == k);
+      pass = pass && (buf.getInt() == k);
     }
-    buf.close();
+    is.close();
 
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "readFile file " + mFilePath);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "readFile file " + mFilePath));
     return pass;
   }
 

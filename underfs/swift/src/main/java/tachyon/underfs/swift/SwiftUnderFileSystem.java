@@ -49,9 +49,9 @@ public class SwiftUnderFileSystem extends HdfsUnderFileSystem {
    * @param config Hadoop Configuration
    */
   protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
-    // To disable the instance cache for hdfs client, otherwise it causes the
-    // FileSystem closed exception. Being configurable for unit/integration
-    // test only, and not expose to the end-user currently.
+    // To disable the instance cache for hdfs client, otherwise it causes the FileSystem closed
+    // exception. Being configurable for unit/integration test only, and not expose to the end-user
+    // currently.
     config.set("fs.swift.impl.disable.cache", "true");
     SwiftUnderFileSystemUtils.addKey(config, tachyonConf, Constants.UNDERFS_HADOOP_CONFIGURATION);
     config.addResource(new Path(config.get(Constants.UNDERFS_HADOOP_CONFIGURATION)));

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -26,8 +26,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.OutStream;
-import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -87,17 +88,14 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-
-      TachyonByteBuffer buf = tFile.readByteBuffer(0);
-      if (buf == null) {
-        tFile.recache();
-        buf = tFile.readByteBuffer(0);
-      }
-      buf.mData.order(ByteOrder.nativeOrder());
+      InStream is = tFile.getInStream(ReadType.CACHE);
+      ByteBuffer buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      is.read(buf.array());
+      buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mDataLength; k ++) {
-        pass = pass && (buf.mData.getInt() == k);
+        pass = pass && (buf.getInt() == k);
       }
-      buf.close();
+      is.close();
     }
     return pass;
   }
