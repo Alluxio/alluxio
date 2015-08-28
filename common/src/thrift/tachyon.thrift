@@ -187,8 +187,6 @@ service FileSystemMasterService {
   list<FileBlockInfo> getFileBlockInfoList(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee)
 
-  i64 getUserId()
-
   i64 getNewBlockIdForFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
 
@@ -226,12 +224,6 @@ service FileSystemMasterService {
 
   bool free(1: i64 fileId, 2: bool recursive)
     throws (1: FileDoesNotExistException fdnee)
-
-  /**
-   * Returns if the message was received. Intended to check if the client can still connect to the
-   * master.
-   */
-  void userHeartbeat();
 
   // Lineage Features
   i32 createDependency(1: list<string> parents, 2: list<string> children,
