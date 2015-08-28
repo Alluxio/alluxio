@@ -47,7 +47,7 @@ import tachyon.worker.block.BlockStoreLocation;
  * <p>
  * This class does not guarantee thread safety.
  */
-public class StorageDir {
+public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
   /** A map from block ID to block meta data */
@@ -99,7 +99,7 @@ public class StorageDir {
   }
 
   /**
-   * Initialize meta data for existing blocks in this StorageDir.
+   * Initializes meta data for existing blocks in this StorageDir.
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath} are legal,
    * should be in format like {dir}/{blockId}. other paths will be deleted.
@@ -281,6 +281,9 @@ public class StorageDir {
     long blockId = blockMeta.getBlockId();
     long blockSize = blockMeta.getBlockSize();
 
+    if (hasBlockMeta(blockId)) {
+      throw new AlreadyExistsException("Failed to add BlockMeta: blockId " + blockId + " exists");
+    }
     if (getAvailableBytes() < blockSize) {
       throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
           getAvailableBytes());
@@ -299,13 +302,17 @@ public class StorageDir {
    * @throws AlreadyExistsException if blockId already exists
    * @throws OutOfSpaceException when not enough space to hold block
    */
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws OutOfSpaceException,
-      AlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws OutOfSpaceException, AlreadyExistsException {
     Preconditions.checkNotNull(tempBlockMeta);
     long userId = tempBlockMeta.getUserId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
+    if (hasTempBlockMeta(blockId)) {
+      throw new AlreadyExistsException(
+          "Failed to add TempBlockMeta: blockId " + blockId + " exists");
+    }
     if (getAvailableBytes() < blockSize) {
       throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
           getAvailableBytes());
@@ -383,24 +390,6 @@ public class StorageDir {
     }
   }
 
-  private void reserveSpace(long size, boolean committed) {
-    Preconditions.checkState(size <= mAvailableBytes.get(),
-        "Available bytes should always be non-negative");
-    mAvailableBytes.addAndGet(-size);
-    if (committed) {
-      mCommittedBytes.addAndGet(size);
-    }
-  }
-
-  private void reclaimSpace(long size, boolean committed) {
-    Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
-        "Available bytes should always be less than total capacity bytes");
-    mAvailableBytes.addAndGet(size);
-    if (committed) {
-      mCommittedBytes.addAndGet(-size);
-    }
-  }
-
   /**
    * Cleans up the temp block meta data for each block id passed in.
    *
@@ -457,7 +446,28 @@ public class StorageDir {
     return userTempBlocks;
   }
 
+  /**
+   * @return the block store location of this directory.
+   */
   public BlockStoreLocation toBlockStoreLocation() {
     return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
+  }
+
+  private void reclaimSpace(long size, boolean committed) {
+    Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
+        "Available bytes should always be less than total capacity bytes");
+    mAvailableBytes.addAndGet(size);
+    if (committed) {
+      mCommittedBytes.addAndGet(-size);
+    }
+  }
+
+  private void reserveSpace(long size, boolean committed) {
+    Preconditions.checkState(size <= mAvailableBytes.get(),
+        "Available bytes should always be non-negative");
+    mAvailableBytes.addAndGet(-size);
+    if (committed) {
+      mCommittedBytes.addAndGet(size);
+    }
   }
 }
