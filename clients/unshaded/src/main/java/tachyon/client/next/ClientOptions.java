@@ -15,6 +15,7 @@
 
 package tachyon.client.next;
 
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 
@@ -25,16 +26,16 @@ import tachyon.thrift.NetAddress;
 public class ClientOptions {
 
   public static class Builder {
-    // TODO: Add getter methods instead of accessing directly
     private long mBlockSize;
     private CacheType mCacheType;
     private UnderStorageType mUnderStorageType;
     private NetAddress mLocation;
 
     public Builder(TachyonConf conf) {
-      // TODO: Add constants and default values
-      mCacheType = null;
-      mUnderStorageType = null;
+      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mCacheType = conf.getEnum(Constants.USER_DEFAULT_CACHE_TYPE, CacheType.CACHE);
+      mUnderStorageType =
+          conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.NO_PERSIST);
       mLocation = null;
     }
 

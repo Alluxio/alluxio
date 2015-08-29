@@ -72,6 +72,8 @@ public class LocalBlockOutStream extends BlockOutStream {
     // TODO: Get the initial size from the configuration
     long initialSize = Constants.MB * 8;
     mBlockPath = mWorkerClient.requestBlockLocation(blockId, initialSize);
+    // TODO: Handle this in the worker?
+    FileUtils.createBlockPath(mBlockPath);
     mAvailableBytes += initialSize;
 
     mLocalFile = mCloser.register(new RandomAccessFile(mBlockPath, "rw"));
@@ -153,6 +155,7 @@ public class LocalBlockOutStream extends BlockOutStream {
     }
     ByteBuffer buf = ByteBuffer.allocate(1);
     BufferUtils.putIntByteBuffer(buf, b);
+    buf.flip();
     mLocalFileChannel.write(buf);
     mAvailableBytes --;
     mWrittenBytes ++;
