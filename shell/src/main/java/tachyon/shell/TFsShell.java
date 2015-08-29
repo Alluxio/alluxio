@@ -174,8 +174,8 @@ public class TFsShell implements Closeable {
     TachyonFS tachyonClient = createFS(dstPath);
     TachyonFile dstFile = tachyonClient.getFile(dstPath);
     if (dstFile != null && dstFile.isDirectory() == false) {
-      System.out.println("The destination cannot be an existent file when the src contains " +
-      		"wildcards.");
+      System.out.println("The destination cannot be an existent file when the src contains " 
+          + "wildcards.");
       return -1;
     }
     if (dstFile == null) {
@@ -190,8 +190,8 @@ public class TFsShell implements Closeable {
     for (File srcFile : srcFiles) {
       try {
         exitCode |= copyFromLocal(srcFile, 
-            new TachyonURI(dstPath.getPath() + "/" + srcFile.getName()));
-      } catch(IOException ioe) {
+            new TachyonURI(dstPath.getPath() + TachyonURI.SEPARATOR + srcFile.getName()));
+      } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
         exitCode |= -1;
       }
@@ -270,8 +270,8 @@ public class TFsShell implements Closeable {
    */
   public int copyWildcardToLocal(List<TachyonURI> srcPaths, File dstFile) throws IOException {
     if (dstFile.exists() && dstFile.isDirectory() == false) {
-      System.out.println("The destination cannot be an existent file when the src contains " +
-          "wildcards.");
+      System.out.println("The destination cannot be an existent file when the src contains " 
+          + "wildcards.");
       return -1;
     }
     if (dstFile.exists() == false) {
@@ -285,8 +285,8 @@ public class TFsShell implements Closeable {
     int exitCode = 0;
     for (TachyonURI srcPath : srcPaths) {
       try {
-        copyToLocal(srcPath, new File(dstFile.getAbsoluteFile() + "/" + srcPath.getName()));
-      } catch(IOException ioe) {
+        copyToLocal(srcPath, new File(dstFile.getAbsoluteFile(), srcPath.getName()));
+      } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
         exitCode |= -1;
       }
@@ -329,7 +329,7 @@ public class TFsShell implements Closeable {
     if (tFile.isDirectory()) {
       //make a local directory
       if (!dstFile.exists()) {
-        if(dstFile.mkdirs() == false) {
+        if (dstFile.mkdirs() == false) {
           System.out.println("mkdirs failure for directory: " + dstFile.getAbsolutePath());
           return -1;
         } else {
@@ -342,7 +342,7 @@ public class TFsShell implements Closeable {
       for (ClientFileInfo file : files) {
         ret |= copyToLocal(tachyonClient, 
             new TachyonURI(srcPath.getScheme(), srcPath.getAuthority(), file.getPath()), 
-            new File(dstFile.getAbsolutePath() + "/" + file.getName()));
+            new File(dstFile.getAbsolutePath(), file.getName()));
       }
       return ret;
     } else {
