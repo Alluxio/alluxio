@@ -906,4 +906,52 @@ public class TFsShellTest {
     Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar3")));
     Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar4")));
   }
+  
+  @Test
+  public void copyToLocalWildcardTest() throws IOException {
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
+    int ret = mFsShell.run(new String[] {"copyToLocal", "/testWildCards/*/foo*",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir"});
+    Assert.assertEquals(ret, 0);
+    fileReadTest("/testDir/foobar1", 10);
+    fileReadTest("/testDir/foobar2", 20);
+    fileReadTest("/testDir/foobar3", 30);
+  }
+  
+  @Test
+  public void copyToLocalWildcardExistingDirTest() throws IOException {
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
+    
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
+    
+    int ret = mFsShell.run(new String[] {"copyToLocal", "/testWildCards/*/foo*",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir"});
+    Assert.assertEquals(ret, 0);
+    fileReadTest("/testDir/foobar1", 10);
+    fileReadTest("/testDir/foobar2", 20);
+    fileReadTest("/testDir/foobar3", 30);
+  }
+  
+  @Test
+  public void copyToLocalWildcardNotDirTest() throws IOException {
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir").mkdir();
+    new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile").createNewFile();
+    
+    int ret = mFsShell.run(new String[] {"copyToLocal", "/testWildCards/*/foo*",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile"});
+    Assert.assertEquals(ret, -1);
+  }
+  
+  @Test
+  public void copyToLocalWildcardHierTest() throws IOException {
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
+    int ret = mFsShell.run(new String[] {"copyToLocal", "/testWildCards/*",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir"});
+    Assert.assertEquals(ret, 0);
+    fileReadTest("/testDir/foo/foobar1", 10);
+    fileReadTest("/testDir/foo/foobar2", 20);
+    fileReadTest("/testDir/bar/foobar3", 30);
+    fileReadTest("/testDir/foobar4", 40);
+  }
 }
