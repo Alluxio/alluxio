@@ -42,7 +42,7 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
     // TODO: Get capacity from conf
     super(10);
     mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
-        "block-master-heartbeat-%d", true));
+        "block-worker-heartbeat-%d", true));
     mWorkerNetAddress = workerNetAddress;
     mTachyonConf = conf;
   }

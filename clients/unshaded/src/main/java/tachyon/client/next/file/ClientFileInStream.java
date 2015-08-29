@@ -37,6 +37,7 @@ public class ClientFileInStream extends FileInStream {
   private final FSContext mContext;
   private final List<Long> mBlockIds;
   private final String mUfsPath;
+  private final ClientOptions mOptions;
 
   private boolean mClosed;
   private boolean mShouldCacheCurrentBlock;
@@ -49,6 +50,7 @@ public class ClientFileInStream extends FileInStream {
     mFileLength = info.getLength();
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
+    mOptions = options;
     mContext = FSContext.INSTANCE;
     mShouldCache = options.getCacheType().shouldCache();
     mShouldCacheCurrentBlock = mShouldCache;
@@ -181,7 +183,7 @@ public class ClientFileInStream extends FileInStream {
       if (mShouldCache) {
         try {
           closeCacheStream();
-          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
+          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, mOptions);
           mShouldCacheCurrentBlock = true;
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
