@@ -258,6 +258,42 @@ public class TFsShell implements Closeable {
   }
   
   /**
+   * Copies a list of files or directories specified by srcPaths from the Tachyon filesystem to 
+   * dstPath in the local filesystem. 
+   * This method is used when the input path contains wildcards.
+   * 
+   * @param srcPaths The list of files in the Tachyon filesystem
+   * @param dstFile The destination directory in the local filesystem 
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int copyWildcardToLocal(List<TachyonURI> srcPaths, File dstFile) throws IOException {
+    if (dstFile.exists() && dstFile.isDirectory() == false) {
+      System.out.println("The destination cannot be an existent file when the src contains " +
+          "wildcards.");
+      return -1;
+    }
+    if (dstFile.exists() == false) {
+      if (dstFile.mkdirs() == false) {
+        System.out.print("Fail to create directory: " + dstFile.getPath());
+        return -1;
+      } else {
+        System.out.println("Create directory: " + dstFile.getPath());
+      }
+    }
+    int exitCode = 0;
+    for (TachyonURI srcPath : srcPaths) {
+      try {
+        copyToLocal(srcPath, new File(dstFile.getAbsoluteFile() + "/" + srcPath.getName()));
+      } catch(IOException ioe) {
+        System.out.println(ioe.getMessage());
+        exitCode |= -1;
+      }
+    }
+    return exitCode;
+  }
+  
+  /**
    * Copies a file or a directory from the Tachyon filesystem to the local filesystem.
    * 
    * @param srcPath The source TachyonURI (could be a file or a directory)
@@ -851,7 +887,17 @@ public class TFsShell implements Closeable {
         } else if (cmd.equals("copyToLocal")) {
           TachyonURI srcPath = new TachyonURI(argv[1]);
           File dstFile = new File(argv[2]);
-          return copyToLocal(srcPath, dstFile);
+          List<TachyonURI> srcPaths = TFsShellUtils.getTachyonURIs(createFS(srcPath), srcPath);
+          if (srcPaths.size() == 0) {
+            System.out.println(srcPath.getPath() + " does not exist.");
+            return -1;
+          }
+          
+          if (srcPath.containsWildcard()) {
+            return copyWildcardToLocal(srcPaths, dstFile);
+          } else {
+            return copyToLocal(srcPath, dstFile);
+          }
         } else if (cmd.equals("request")) {
           return request(argv);
         } else if (cmd.equals("mv")) {
