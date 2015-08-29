@@ -205,31 +205,42 @@ public class TFsShellTest {
   @Test
   public void copyToLocalLargeTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, SIZE_BYTES);
-    mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
+    mFsShell.run(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"}), mOutput.toString());
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
-    FileInputStream fis = new FileInputStream(testFile);
-    byte[] read = new byte[SIZE_BYTES];
-    fis.read(read);
-    fis.close();
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+    fileReadTest("/testFile", SIZE_BYTES);
   }
 
   @Test
   public void copyToLocalTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
-    mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
+    mFsShell.run(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"}), mOutput.toString());
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
+    fileReadTest("/testFile", 10);
+  }
+  
+  @Test
+  public void copyToLocalDirTest() throws IOException {
+    TFsShellUtilsTest.resetTachyonFileHierarchy(mTfs, WriteType.MUST_CACHE);
+    int ret = mFsShell.run(new String[] {"copyToLocal", "/testWildCards/",
+        mLocalTachyonCluster.getTachyonHome() + "/testDir"});
+    Assert.assertEquals(ret, 0);
+    fileReadTest("/testDir/foo/foobar1", 10);
+    fileReadTest("/testDir/foo/foobar2", 20);
+    fileReadTest("/testDir/bar/foobar3", 30);
+    fileReadTest("/testDir/foobar4", 40);
+  }
+  
+  private void fileReadTest(String fileName, int size) throws IOException {
+    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/" + fileName);
     FileInputStream fis = new FileInputStream(testFile);
-    byte[] read = new byte[10];
+    byte[] read = new byte[size];
     fis.read(read);
     fis.close();
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, read));
   }
 
   @Test
