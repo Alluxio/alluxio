@@ -17,6 +17,7 @@ package tachyon.mesos;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.mesos.Protos;
@@ -30,6 +31,9 @@ import tachyon.master.LocalTachyonMaster;
 
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
+    private int mTasksRunning = 0;
+    private int mTasksActive = 0;
+
     @Override
     public void disconnected(SchedulerDriver driver) {
       System.out.println("Disconnected from master.");
@@ -79,9 +83,78 @@ public class TachyonFramework {
     @Override
     public void resourceOffers(SchedulerDriver driver,
                                List<Protos.Offer> offers) {
+      double CPUS_PER_TASK = 1;
+      double MEM_PER_TASK = 128;
+      int launchedTasks = 0;
+      int totalTasks = 0;
+
       for (Protos.Offer offer : offers) {
-        System.out.println("Resource offer: " + offer.toString());
-        // TODO create Tachyon task
+        Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
+        double offerCpus = 0;
+        double offerMem = 0;
+        for (Protos.Resource resource : offer.getResourcesList()) {
+          if (resource.getName().equals("cpus")) {
+            offerCpus += resource.getScalar().getValue();
+          } else if (resource.getName().equals("mem")) {
+            offerMem += resource.getScalar().getValue();
+          }
+        }
+
+        System.out.println(
+            "Received offer " + offer.getId().getValue() + " with cpus: " + offerCpus +
+                " and mem: " + offerMem);
+
+        double remainingCpus = offerCpus;
+        double remainingMem = offerMem;
+        while (launchedTasks < totalTasks
+            && remainingCpus >= CPUS_PER_TASK
+            && remainingMem >= MEM_PER_TASK) {
+          Protos.TaskID taskId = Protos.TaskID.newBuilder()
+              .setValue(Integer.toString(launchedTasks++)).build();
+
+          System.out.println("Launching task " + taskId.getValue() +
+              " using offer " + offer.getId().getValue());
+
+          Protos.ExecutorInfo executor = Protos.ExecutorInfo.newBuilder()
+              .setExecutorId(Protos.ExecutorID.newBuilder().setValue("default"))
+              .setCommand(Protos.CommandInfo.newBuilder().setValue("localhost"))
+              .setName("Test Tachyon Executor")
+              .setSource("java_test")
+              .build();
+
+          Protos.TaskInfo task = Protos.TaskInfo.newBuilder()
+              .setName("task " + taskId.getValue())
+              .setTaskId(taskId)
+              .setSlaveId(offer.getSlaveId())
+              .addResources(Protos.Resource.newBuilder()
+                  .setName("cpus")
+                  .setType(Protos.Value.Type.SCALAR)
+                  .setScalar(Protos.Value.Scalar.newBuilder().setValue(CPUS_PER_TASK)))
+              .addResources(Protos.Resource.newBuilder()
+                  .setName("mem")
+                  .setType(Protos.Value.Type.SCALAR)
+                  .setScalar(Protos.Value.Scalar.newBuilder().setValue(MEM_PER_TASK)))
+              .setExecutor(Protos.ExecutorInfo.newBuilder(executor))
+              .build();
+
+          launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
+
+          remainingCpus -= CPUS_PER_TASK;
+          remainingMem -= MEM_PER_TASK;
+        }
+
+        // NOTE: We use the new API `acceptOffers` here to launch tasks.
+        // The 'launchTasks' API will be deprecated.
+        List<Protos.OfferID> offerIds = new ArrayList<Protos.OfferID>();
+        offerIds.add(offer.getId());
+        List<Protos.Offer.Operation> operations = new ArrayList<Protos.Offer.Operation>();
+        Protos.Offer.Operation operation = Protos.Offer.Operation.newBuilder()
+            .setType(Protos.Offer.Operation.Type.LAUNCH)
+            .setLaunch(launch)
+            .build();
+        operations.add(operation);
+        Protos.Filters filters = Protos.Filters.newBuilder().setRefuseSeconds(1).build();
+        driver.acceptOffers(offerIds, operations, filters);
       }
     }
 
@@ -92,7 +165,19 @@ public class TachyonFramework {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-      System.out.println("Status update: " + status.getMessage());
+      String taskId = status.getTaskId().getValue();
+      Protos.TaskState state = status.getState();
+      System.out.printf("Task %s is in state %s\n", taskId, state);
+      switch (state) {
+        case TASK_RUNNING:
+          mTasksRunning ++;
+          break;
+        case TASK_FINISHED:
+        case TASK_FAILED:
+        case TASK_KILLED:
+        case TASK_LOST:
+          mTasksRunning --;
+      }
     }
   }
 
