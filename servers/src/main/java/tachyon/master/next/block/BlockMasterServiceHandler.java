@@ -20,6 +20,7 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 
+import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
@@ -73,5 +74,10 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
   @Override
   public long getUsedBytes() throws TException {
     return mBlockMaster.getUsedBytes();
+  }
+
+  @Override
+  public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
+    return mBlockMaster.getBlockInfo(blockId);
   }
 }
