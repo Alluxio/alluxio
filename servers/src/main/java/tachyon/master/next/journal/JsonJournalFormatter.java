@@ -40,6 +40,7 @@ import com.google.common.collect.Maps;
 import tachyon.TachyonURI;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
+import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
 
@@ -249,6 +250,10 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("id"),
                 entry.getLong("length"),
                 entry.getLong("operationTimeMs"));
+          }
+          case FREE: {
+            return new FreeEntry(
+                entry.getLong("id"));
           }
           default:
             throw new IOException("Unknown entry type: " + entry.mType);
