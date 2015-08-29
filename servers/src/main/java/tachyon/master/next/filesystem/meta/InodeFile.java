@@ -235,6 +235,7 @@ public final class InodeFile extends Inode {
    */
   public synchronized void setComplete(long length) {
     mIsComplete = true;
+    mLength = length;
   }
 
   /**

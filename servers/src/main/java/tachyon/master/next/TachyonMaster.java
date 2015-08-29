@@ -267,7 +267,7 @@ public class TachyonMaster {
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      mWebServer.shutdownWebServer();
+      // mWebServer.shutdownWebServer();
       mMasterServiceServer.stop();
       mTServerSocket.close();
       mIsServing = false;
