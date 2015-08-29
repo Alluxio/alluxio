@@ -901,9 +901,9 @@ public class TFsShellTest {
     
     mFsShell.run(new String[] {"ls", "/testDir"});
     Assert.assertEquals(ret, 0);
-    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar1")));
-    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar2")));
-    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar3")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foo/foobar1")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foo/foobar2")));
+    Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/bar/foobar3")));
     Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar4")));
   }
   

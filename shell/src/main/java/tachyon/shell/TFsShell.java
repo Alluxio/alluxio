@@ -189,7 +189,8 @@ public class TFsShell implements Closeable {
     int exitCode = 0;
     for (File srcFile : srcFiles) {
       try {
-        exitCode |= copyFromLocal(srcFile, dstPath);
+        exitCode |= copyFromLocal(srcFile, 
+            new TachyonURI(dstPath.getPath() + "/" + srcFile.getName()));
       } catch(IOException ioe) {
         System.out.println(ioe.getMessage());
         exitCode |= -1;
