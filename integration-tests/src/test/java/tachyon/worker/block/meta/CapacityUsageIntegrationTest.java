@@ -29,6 +29,7 @@ import tachyon.client.OutStream;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
@@ -56,20 +57,15 @@ public class CapacityUsageIntegrationTest {
   public final void before() throws Exception {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
-    mLocalTachyonCluster.start();
-
-    mLocalTachyonCluster.getWorkerTachyonConf().set(
-        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
-    mLocalTachyonCluster.getWorkerTachyonConf().set(
-        Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
-    mLocalTachyonCluster.getWorkerTachyonConf().set(
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
-    mLocalTachyonCluster.getWorkerTachyonConf().set(
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
+    conf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
+    conf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
+    conf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
         "/disk1");
-    mLocalTachyonCluster.getWorkerTachyonConf().set(
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
+    conf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
         DISK_CAPACITY_BYTES + "");
+    mLocalTachyonCluster.start(conf);
     mTFS = mLocalTachyonCluster.getClient();
   }
 
