@@ -65,8 +65,10 @@ public class BlockInStreamIntegrationTest {
   @Test
   public void newReadTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
+    int i = 0;
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
+        System.out.println("Iteration " + i ++);
         TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op);
         ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
         FileOutStream os = sTfs.getOutStream(path, options);
