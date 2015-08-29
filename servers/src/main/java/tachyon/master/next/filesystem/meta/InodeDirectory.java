@@ -16,7 +16,6 @@
 package tachyon.master.next.filesystem.meta;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -53,6 +52,11 @@ public final class InodeDirectory extends Inode {
   };
   @SuppressWarnings("unchecked")
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
+
+  public static InodeDirectory fromEntry(InodeDirectoryEntry entry) {
+    return new InodeDirectory(entry.getName(), entry.getId(), entry.getParentId(),
+        entry.getCreationTimeMs());
+  }
 
   /**
    * Create a new InodeFolder.
@@ -198,7 +202,7 @@ public final class InodeDirectory extends Inode {
       throws IOException {
     outputStream
         .writeEntry(new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-            isPinned(), getLastModificationTimeMs(), new ArrayList<Long>(getChildrenIds())));
+            isPinned(), getLastModificationTimeMs()));
 
     // Write sub-directories and sub-files via breadth-first, so that during deserialization, it may
     // be more efficient than depth-first during deserialization due to parent directory's locality.

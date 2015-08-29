@@ -15,20 +15,13 @@
 
 package tachyon.master.next.filesystem.journal;
 
-import java.util.List;
-import java.util.Map;
-
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.journal.JournalEntryType;
 
 public class InodeDirectoryEntry extends InodeEntry {
-  private List<Long> mChildrenIds;
-
   public InodeDirectoryEntry(long creationTimeMs, long id, String name, long parentId,
-      boolean isPinned, long lastModificationTimeMs, List<Long> childrenIds) {
+      boolean isPinned, long lastModificationTimeMs) {
     super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
-
-    mChildrenIds = childrenIds;
   }
 
   public InodeDirectory toInodeDirectory() {
@@ -40,12 +33,5 @@ public class InodeDirectoryEntry extends InodeEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.INODE_DIRECTORY;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = super.getParameters();
-    parameters.put("childrenIds", mChildrenIds);
-    return parameters;
   }
 }

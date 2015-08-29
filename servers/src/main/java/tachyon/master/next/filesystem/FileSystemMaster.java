@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
@@ -35,7 +36,7 @@ import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
-import tachyon.master.next.filesystem.journal.InodeEntry;
+import tachyon.master.next.filesystem.journal.InodeFileEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -77,8 +78,7 @@ public class FileSystemMaster extends MasterBase {
 
   private final PrefixList mWhitelist;
 
-  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
-      Journal journal) {
+  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster, Journal journal) {
     super(journal);
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
@@ -111,11 +111,25 @@ public class FileSystemMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    // TODO
-    if (entry instanceof InodeEntry) {
-      mInodeTree.addInodeFromJournal((InodeEntry) entry);
-    } else {
-      throw new IOException("unexpected entry in journal: " + entry);
+    switch (entry.getType()) {
+      case INODE_DIRECTORY: {
+        try {
+          mInodeTree.addInode(InodeDirectory.fromEntry((InodeDirectoryEntry) entry));
+        } catch (FileDoesNotExistException fdnee) {
+          throw new IOException("Cannot retrieve parent Inode: " + fdnee.getMessage());
+        }
+        break;
+      }
+      case INODE_FILE: {
+        try {
+          mInodeTree.addInode(InodeFile.fromEntry((InodeFileEntry) entry));
+        } catch (FileDoesNotExistException fdnee) {
+          throw new IOException("Cannot retrieve parent Inode: " + fdnee.getMessage());
+        }
+        break;
+      }
+      default:
+        throw new IOException("Unknown type " + entry.getType());
     }
   }
 
@@ -283,13 +297,17 @@ public class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      InodeFile inode = (InodeFile) mInodeTree.createPath(path, blockSizeBytes, recursive, false);
+      Pair<Inode, Inode> createdInodes = mInodeTree.createPath(path, blockSizeBytes, recursive,
+          false);
+      InodeFile lastCreatedInode = (InodeFile)createdInodes.getSecond();
       if (mWhitelist.inList(path.toString())) {
-        inode.setCache(true);
+        lastCreatedInode.setCache(true);
       }
-      return inode.getId();
 
-      // TODO: write to journal
+      // Write the newly created Inodes
+      writeJournalEntry(createdInodes.getFirst());
+      flushJournal();
+      return lastCreatedInode.getId();
     }
   }
 

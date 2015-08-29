@@ -232,8 +232,7 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getString("name"),
                 entry.getLong("parentId"),
                 entry.getBoolean("isPinned"),
-                entry.getLong("lastModificationTimeMs"),
-                entry.get("childrenIds", new TypeReference<List<Long>>() {}));
+                entry.getLong("lastModificationTimeMs"));
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(

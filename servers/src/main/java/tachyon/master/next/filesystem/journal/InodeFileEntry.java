@@ -62,6 +62,26 @@ public class InodeFileEntry extends InodeEntry {
     return inode;
   }
 
+  public long getBlockSizeBytes() {
+    return mBlockSizeBytes;
+  }
+
+  public long getLength() {
+    return mLength;
+  }
+
+  public boolean getIsComplete() {
+    return mIsComplete;
+  }
+
+  public boolean getIsCache() {
+    return mIsCache;
+  }
+
+  public String getUfsPath() {
+    return mUfsPath;
+  }
+
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.INODE_FILE;

@@ -43,6 +43,16 @@ public final class InodeFile extends Inode {
   private boolean mCache = false;
   private String mUfsPath = "";
 
+  public static InodeFile fromEntry(InodeFileEntry entry) {
+    InodeFile ret = new InodeFile(entry.getName(), entry.getId(), entry.getParentId(),
+        entry.getBlockSizeBytes(), entry.getCreationTimeMs());
+    ret.setCache(entry.getIsCache());
+    if (entry.getIsComplete()) {
+      ret.setComplete(entry.getLength());
+    }
+    return ret;
+  }
+
   /**
    * Create a new InodeFile.
    *
@@ -234,6 +244,7 @@ public final class InodeFile extends Inode {
    * @param length the length of the complete file
    */
   public synchronized void setComplete(long length) {
+    mLength = length;
     mIsComplete = true;
     mLength = length;
   }

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.master.block.BlockId;
 import tachyon.master.next.IndexedSet;
@@ -139,9 +140,11 @@ public final class InodeTree implements JournalSerializable {
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
+   * @return a pair whose first value is the first created InodeFile/InodeDirectory, the second
+   *         value is the last created InodeFile/InodeDirectory
    */
-  public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory)
+  public Pair<Inode, Inode> createPath(TachyonURI path, long blockSizeBytes,
+      boolean recursive, boolean directory)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
 
     if (path.isRoot()) {
@@ -187,10 +190,14 @@ public final class InodeTree implements JournalSerializable {
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
+    Inode firstCreatedInode = null;
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
       Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
           currentInodeDirectory.getId(), creationTimeMs);
+      if (firstCreatedInode == null) {
+        firstCreatedInode = (InodeDirectory)dir;
+      }
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
@@ -204,7 +211,7 @@ public final class InodeTree implements JournalSerializable {
     Inode ret = currentInodeDirectory.getChild(name);
     if (ret != null) {
       if (ret.isDirectory() && directory) {
-        return ret;
+        return new Pair<Inode, Inode>(firstCreatedInode, ret);
       }
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
@@ -212,12 +219,18 @@ public final class InodeTree implements JournalSerializable {
     if (directory) {
       ret = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
           currentInodeDirectory.getId(), creationTimeMs);
+      if (firstCreatedInode == null) {
+        firstCreatedInode = ret;
+      }
     } else {
       ret = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
           currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
         mPinnedInodeFileIds.add(ret.getId());
+      }
+      if (firstCreatedInode == null) {
+        firstCreatedInode = ret;
       }
     }
     ret.setPinned(currentInodeDirectory.isPinned());
@@ -227,7 +240,7 @@ public final class InodeTree implements JournalSerializable {
     currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
 
     LOG.debug("createFile: File Created: {} parent: ", ret, currentInodeDirectory);
-    return ret;
+    return new Pair<Inode, Inode>(firstCreatedInode, ret);
   }
 
   /**
@@ -246,6 +259,22 @@ public final class InodeTree implements JournalSerializable {
       }
     }
     return ret;
+  }
+
+  /**
+   * Add a single inode to the inode tree by adding it as a child of its parent inode.
+   *
+   * @param inode The {@link Inode} to add
+   */
+  public void addInode(Inode inode) throws FileDoesNotExistException {
+    InodeDirectory parent = (InodeDirectory) getInodeById(inode.getParentId());
+    parent.addChild(inode);
+    parent.setLastModificationTimeMs(inode.getCreationTimeMs());
+
+    mInodes.add(inode);
+    if (inode.isPinned() && inode.isFile()) {
+      mPinnedInodeFileIds.add(inode.getId());
+    }
   }
 
   /**
