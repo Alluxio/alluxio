@@ -33,6 +33,18 @@ public class CompleteFileEntry implements JournalEntry {
     mOpTimeMs = opTimeMs;
   }
 
+  public long getFileId() {
+    return mId;
+  }
+
+  public long getFileLength() {
+    return mLength;
+  }
+
+  public long getOperationTimeMs() {
+    return mOpTimeMs;
+  }
+
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.COMPLETE_FILE;
