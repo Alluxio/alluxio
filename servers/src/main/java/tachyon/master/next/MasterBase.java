@@ -86,7 +86,9 @@ public abstract class MasterBase implements Master {
 
   protected void writeJournalEntry(JournalEntry entry) {
     if (mJournalWriter == null) {
-      throw new RuntimeException("Cannot write entry: journal writer is null.");
+      // TODO: Add this check back
+      // throw new RuntimeException("Cannot write entry: journal writer is null.");
+      return;
     }
     try {
       mJournalWriter.getEntryOutputStream().writeEntry(entry);
@@ -97,7 +99,9 @@ public abstract class MasterBase implements Master {
 
   protected void flushJournal() {
     if (mJournalWriter == null) {
-      throw new RuntimeException("Cannot flush journal: Journal writer is null.");
+      // TODO: Add this check back
+      // throw new RuntimeException("Cannot flush journal: Journal writer is null.");
+      return;
     }
     try {
       mJournalWriter.getEntryOutputStream().flush();

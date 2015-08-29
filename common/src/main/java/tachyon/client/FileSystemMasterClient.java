@@ -211,6 +211,7 @@ public final class FileSystemMasterClient extends MasterClient {
       connect();
       try {
         mClient.completeFile(fileId);
+        return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -256,6 +257,7 @@ public final class FileSystemMasterClient extends MasterClient {
       connect();
       try {
         mClient.setPinned(fileId, pinned);
+        return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {

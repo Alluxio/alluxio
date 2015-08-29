@@ -148,7 +148,7 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, Integer.toString(64));
 
     mMasterConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
-    mMasterConf.set(Constants.MASTER_PORT, Integer.toString(0));
+    mMasterConf.set(Constants.MASTER_PORT, Integer.toString(19998));
     mMasterConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
 
     mMaster = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
@@ -163,8 +163,8 @@ public final class LocalTachyonCluster {
   public void startWorker() throws IOException {
     mWorkerConf = WorkerContext.getConf();
     mWorkerConf.merge(mMasterConf);
-    mWorkerConf.set(Constants.WORKER_PORT, Integer.toString(0));
-    mWorkerConf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_PORT, Integer.toString(29998));
+    mWorkerConf.set(Constants.WORKER_DATA_PORT, Integer.toString(29999));
     mWorkerConf.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
     mWorkerConf.set(Constants.WORKER_DATA_FOLDER, mWorkerDataFolder);
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));

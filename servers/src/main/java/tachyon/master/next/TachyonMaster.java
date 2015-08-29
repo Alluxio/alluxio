@@ -327,7 +327,7 @@ public class TachyonMaster {
     mIsServing = true;
 
     // start web ui
-    mWebServer.startWebServer();
+    // mWebServer.startWebServer();
 
     String leaderStart = (mUseZookeeper) ? "(gained leadership)" : "";
     LOG.info("Tachyon Master version " + Version.VERSION + " started " + leaderStart + " @ "
