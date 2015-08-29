@@ -34,7 +34,6 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
-import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
@@ -283,13 +282,20 @@ public class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
+      TachyonURI firstNonexistentPathPrefix = mInodeTree.firstNonexistentPathPrefix(path);
       InodeFile inode = (InodeFile) mInodeTree.createPath(path, blockSizeBytes, recursive, false);
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
-      return inode.getId();
 
-      // TODO: write to journal
+      if (firstNonexistentPathPrefix != null) {
+        Inode firstCreatedInode = mInodeTree.getInodeByPath(firstNonexistentPathPrefix);
+        writeJournalEntry(firstCreatedInode);
+      } else {
+        writeJournalEntry(inode);
+      }
+
+      return inode.getId();
     }
   }
 
