@@ -116,6 +116,8 @@ public class FileSystemMaster extends MasterBase {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
     } else if (entry instanceof CompleteFileEntry) {
       completeFileFromEntry((CompleteFileEntry) entry);
+    } else if (entry instanceof AddCheckpointEntry) {
+      completeFileCheckpointFromEntry((AddCheckpointEntry) entry);
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
@@ -143,7 +145,18 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     long opTimeMs = System.currentTimeMillis();
     LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
+    if (completeFileCheckpointInternal(workerId, fileId, length, checkpointPath, opTimeMs)) {
+      writeJournalEntry(new AddCheckpointEntry(workerId, fileId, length, checkpointPath, opTimeMs));
+    }
+    return true;
+  }
 
+  /**
+   * @return whether the operation needs to be written to journal
+   */
+  private boolean completeFileCheckpointInternal(long workerId, long fileId,
+      long length, TachyonURI checkpointPath, long opTimeMs)
+          throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
     if (workerId != -1) {
       // TODO: how to update worker timestamp?
       // workerInfo.updateLastUpdatedTimeMs();
@@ -184,15 +197,23 @@ public class FileSystemMaster extends MasterBase {
         }
       }
       mDependencyMap.addFileCheckpoint(fileId);
+      tFile.setLastModificationTimeMs(opTimeMs);
       tFile.setComplete(length);
-
-      if (needLog) {
-        tFile.setLastModificationTimeMs(opTimeMs);
-        writeJournalEntry(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
-      }
-      return true;
+      return needLog;
     }
+  }
 
+  private void completeFileCheckpointFromEntry(AddCheckpointEntry entry) {
+    try {
+      completeFileCheckpointInternal(entry.getWorkerId(), entry.getFileId(), entry.getFileLength(),
+          entry.getCheckpointPath(), entry.getOperationTimeMs());
+    } catch (FileDoesNotExistException fdnee) {
+      throw new RuntimeException(fdnee);
+    } catch (SuspectedFileSizeException sfse) {
+      throw new RuntimeException(sfse);
+    } catch (BlockInfoException bie) {
+      throw new RuntimeException(bie);
+    }
   }
 
   /**
