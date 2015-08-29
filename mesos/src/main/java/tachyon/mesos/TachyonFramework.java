@@ -57,8 +57,8 @@ public class TachyonFramework {
                                  Protos.ExecutorID executorId,
                                  Protos.SlaveID slaveId,
                                  byte[] data) {
-      System.out.println("Executor: " + executorId.getValue() + ", " +
-            "Slave: " + slaveId.getValue() + ", " + "Data: " + data + ".");
+      System.out.println("Executor: " + executorId.getValue() + ", "
+          + "Slave: " + slaveId.getValue() + ", " + "Data: " + data + ".");
     }
 
     @Override
@@ -83,8 +83,8 @@ public class TachyonFramework {
     @Override
     public void resourceOffers(SchedulerDriver driver,
                                List<Protos.Offer> offers) {
-      double CPUS_PER_TASK = 1;
-      double MEM_PER_TASK = 128;
+      final double CPUS_PER_TASK = 1;
+      final double MEM_PER_TASK = 128;
       int launchedTasks = 0;
       int totalTasks = 0;
 
@@ -101,8 +101,8 @@ public class TachyonFramework {
         }
 
         System.out.println(
-            "Received offer " + offer.getId().getValue() + " with cpus: " + offerCpus +
-                " and mem: " + offerMem);
+            "Received offer " + offer.getId().getValue() + " with cpus: " + offerCpus
+                + " and mem: " + offerMem);
 
         double remainingCpus = offerCpus;
         double remainingMem = offerMem;
@@ -112,8 +112,8 @@ public class TachyonFramework {
           Protos.TaskID taskId = Protos.TaskID.newBuilder()
               .setValue(Integer.toString(launchedTasks++)).build();
 
-          System.out.println("Launching task " + taskId.getValue() +
-              " using offer " + offer.getId().getValue());
+          System.out.println("Launching task " + taskId.getValue()
+              + " using offer " + offer.getId().getValue());
 
           Protos.ExecutorInfo executor = Protos.ExecutorInfo.newBuilder()
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("default"))
@@ -177,6 +177,8 @@ public class TachyonFramework {
         case TASK_KILLED:
         case TASK_LOST:
           mTasksRunning --;
+          break;
+        default:
       }
     }
   }
