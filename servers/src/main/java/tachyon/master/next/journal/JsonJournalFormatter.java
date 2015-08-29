@@ -39,6 +39,7 @@ import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
 
@@ -240,6 +241,12 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("fileId"),
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
+                entry.getLong("operationTimeMs"));
+          }
+          case COMPLETE_FILE: {
+            return new CompleteFileEntry(
+                entry.getLong("id"),
+                entry.getLong("length"),
                 entry.getLong("operationTimeMs"));
           }
           default:

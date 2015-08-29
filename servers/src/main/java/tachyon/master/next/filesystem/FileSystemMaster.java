@@ -114,6 +114,8 @@ public class FileSystemMaster extends MasterBase {
     // TODO
     if (entry instanceof InodeEntry) {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else if (entry instanceof CompleteFileEntry) {
+      completeFileFromEntry((CompleteFileEntry) entry);
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
@@ -272,10 +274,24 @@ public class FileSystemMaster extends MasterBase {
         }
       }
 
-      mDependencyMap.addFileCheckpoint(fileId);
-      ((InodeFile) inode).setComplete(fileLength);
-      inode.setLastModificationTimeMs(opTimeMs);
+      completeFileInternal(fileId, fileLength, opTimeMs);
       writeJournalEntry(new CompleteFileEntry(fileId, fileLength, opTimeMs));
+    }
+  }
+
+  private void completeFileInternal(long fileId, long fileLength, long opTimeMs)
+      throws FileDoesNotExistException {
+    mDependencyMap.addFileCheckpoint(fileId);
+    Inode inode = mInodeTree.getInodeById(fileId);
+    ((InodeFile) inode).setComplete(fileLength);
+    inode.setLastModificationTimeMs(opTimeMs);
+  }
+
+  private void completeFileFromEntry(CompleteFileEntry entry) {
+    try {
+      completeFileInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
+    } catch (FileDoesNotExistException fdnee) {
+      throw new RuntimeException(fdnee);
     }
   }
 
