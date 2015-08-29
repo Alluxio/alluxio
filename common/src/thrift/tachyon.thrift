@@ -165,6 +165,8 @@ service BlockMasterService {
   i64 getCapacityBytes()
 
   i64 getUsedBytes()
+
+  BlockInfo getBlockInfo(1: i64 blockId) throws (1: BlockInfoException bie)
 }
 
 service FileSystemMasterService {
