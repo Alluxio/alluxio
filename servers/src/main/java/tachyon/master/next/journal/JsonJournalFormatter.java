@@ -238,6 +238,7 @@ public class JsonJournalFormatter implements JournalFormatter {
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(
+                entry.getLong("workerId"),
                 entry.getLong("fileId"),
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
