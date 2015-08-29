@@ -24,10 +24,8 @@ import tachyon.master.TachyonMaster;
 
 public class TachyonMasterExecutor implements Executor {
   @Override
-  public void registered(ExecutorDriver driver,
-                         Protos.ExecutorInfo executorInfo,
-                         Protos.FrameworkInfo frameworkInfo,
-                         Protos.SlaveInfo slaveInfo) {
+  public void registered(ExecutorDriver driver, Protos.ExecutorInfo executorInfo,
+      Protos.FrameworkInfo frameworkInfo, Protos.SlaveInfo slaveInfo) {
     System.out.println("Registered executor on " + slaveInfo.getHostname());
   }
 
@@ -39,27 +37,29 @@ public class TachyonMasterExecutor implements Executor {
 
   @Override
   public void launchTask(final ExecutorDriver driver, final Protos.TaskInfo task) {
-    new Thread() { public void run() {
-      try {
-        Protos.TaskStatus status = Protos.TaskStatus.newBuilder()
-            .setTaskId(task.getTaskId())
-            .setState(Protos.TaskState.TASK_RUNNING).build();
+    new Thread() {
+      public void run() {
+        try {
+          Protos.TaskStatus status =
+              Protos.TaskStatus.newBuilder().setTaskId(task.getTaskId())
+                  .setState(Protos.TaskState.TASK_RUNNING).build();
 
-        driver.sendStatusUpdate(status);
+          driver.sendStatusUpdate(status);
 
-        System.out.println("Running task " + task.getTaskId().getValue());
+          System.out.println("Running task " + task.getTaskId().getValue());
 
-        TachyonMaster.main(null);
+          TachyonMaster.main(null);
 
-        status = Protos.TaskStatus.newBuilder()
-            .setTaskId(task.getTaskId())
-            .setState(Protos.TaskState.TASK_FINISHED).build();
+          status =
+              Protos.TaskStatus.newBuilder().setTaskId(task.getTaskId())
+                  .setState(Protos.TaskState.TASK_FINISHED).build();
 
-        driver.sendStatusUpdate(status);
-      } catch (Exception e) {
-        e.printStackTrace();
+          driver.sendStatusUpdate(status);
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
-    }}.start();
+    }.start();
   }
 
   @Override
