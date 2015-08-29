@@ -63,10 +63,10 @@ public final class InodeTree implements JournalSerializable {
 
   /**
    * Inode id management. Inode ids are essentially block ids.
-   * 
+   *
    * inode files: Each file id will be composed of a unique block container id, with the maximum
    * sequence number.
-   * 
+   *
    * inode directories: Each directory id will be a unique block id, in order to avoid any collision
    * with file ids.
    */
@@ -231,6 +231,27 @@ public final class InodeTree implements JournalSerializable {
   }
 
   /**
+   * Returns the first(shortest) path prefix that is nonexistent in the inode tree.
+   *
+   * @param path The path to check whether its prefixes are in the inode tree
+   * @return The first nonexistent path prefix, or null if the path is in the tree
+   * @throws InvalidPathException when the path is invalid
+   */
+  public TachyonURI firstNonexistentPathPrefix(TachyonURI path) throws InvalidPathException {
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
+    TraversalResult traversalResult = traverseToInode(pathComponents);
+    if (traversalResult.isFound()) {
+      return null;
+    }
+    int nonexistentPathIndex = traversalResult.getNonexistentPathIndex();
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i <= nonexistentPathIndex; i ++) {
+      sb.append(pathComponents[i]);
+    }
+    return new TachyonURI(sb.toString());
+  }
+
+  /**
    * Returns a list of all descendants of a particular {@link InodeDirectory}. Any directory inode
    * precedes its descendants in the list.
    *
@@ -301,7 +322,7 @@ public final class InodeTree implements JournalSerializable {
   /**
    * Adds the inode represented by the entry parameter into the inode tree. If the inode entry
    * represents the root inode, the tree is "reset", and all state is cleared.
-   * 
+   *
    * @param entry The journal entry representing an inode.
    */
   public void addInodeFromJournal(InodeEntry entry) {
