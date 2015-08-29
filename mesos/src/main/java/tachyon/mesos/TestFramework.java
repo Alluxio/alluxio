@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+package tachyon.mesos;
+
 import java.io.File;
 
 import java.util.ArrayList;
@@ -199,7 +201,7 @@ public class TestFramework {
       System.exit(1);
     }
 
-    String uri = new File("./test-executor").getCanonicalPath();
+    String uri = new File("/Users/jsimsa/Projects/mesos-0.23.0/build/src/examples/java/test-executor").getCanonicalPath();
 
     ExecutorInfo executor = ExecutorInfo.newBuilder()
         .setExecutorId(ExecutorID.newBuilder().setValue("default"))
