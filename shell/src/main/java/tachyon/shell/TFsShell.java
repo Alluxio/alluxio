@@ -162,25 +162,57 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
-   * fail if the path given already exists in the filesystem.
-   *
-   * @param argv [] Array of arguments given by the user's input from the terminal
+   * Copies a list of files or directories specified by srcFiles from the local filesystem to 
+   * dstPath in the Tachyon filesystem space. 
+   * This method is used when the input path contains wildcards.
+   * @param srcFiles The list of files in the local filesystem
+   * @param dstPath The TachyonURI of the destination
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int copyFromLocal(String[] argv) throws IOException {
-    String srcPath = argv[1];
-    TachyonURI dstPath = new TachyonURI(argv[2]);
-    File src = new File(srcPath);
-    if (!src.exists()) {
-      System.out.println("Local path " + srcPath + " does not exist.");
+  public int copyFromLocalWildcard(List<File> srcFiles, TachyonURI dstPath) throws IOException {
+    TachyonFS tachyonClient = createFS(dstPath);
+    TachyonFile dstFile = tachyonClient.getFile(dstPath);
+    if (dstFile != null && dstFile.isDirectory() == false) {
+      System.out.println("The destination cannot be an existent file when the src contains " +
+      		"wildcards.");
       return -1;
     }
+    if (dstFile == null) {
+      if (tachyonClient.mkdirs(dstPath, true) == false) {
+        System.out.print("Fail to create directory: " + dstPath);
+        return -1;
+      } else {
+        System.out.println("Create directory: " + dstPath);
+      }
+    }
+    int exitCode = 0;
+    for (File srcFile : srcFiles) {
+      try {
+        exitCode |= copyFromLocal(srcFile, dstPath);
+      } catch(IOException ioe) {
+        System.out.println(ioe.getMessage());
+        exitCode |= -1;
+      }
+    }
+    return exitCode;
+  }
+  
+  /**
+   * Copies a file or directory specified by srcPath from the local filesystem to dstPath in 
+   * the Tachyon filesystem space. Will
+   * fail if the path given already exists in the filesystem.
+   *
+   * @param srcPath The path of the source file in the local filesystem
+   * @param dstPath The TachyonURI of the destination
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int copyFromLocal(File srcFile, TachyonURI dstPath) throws IOException {
     TachyonFS tachyonClient = createFS(dstPath);
-    int ret = copyPath(src, tachyonClient, dstPath);
+    int ret = copyPath(srcFile, tachyonClient, dstPath);
     if (ret == 0) {
-      System.out.println("Copied " + srcPath + " to " + dstPath);
+      System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
     }
     return ret;
   }
@@ -752,8 +784,23 @@ public class TFsShell implements Closeable {
         return exitCode;
         
       } else if (numOfArgs == 2) { // commands need 2 arguments
+        
+        
         if (cmd.equals("copyFromLocal")) {
-          return copyFromLocal(argv);
+          String srcPath = argv[1];
+          TachyonURI dstPath = new TachyonURI(argv[2]);
+          List<File> srcFiles = TFsShellUtils.getFiles(srcPath);
+          if (srcFiles.size() == 0) {
+            System.out.println("Local path " + srcPath + " does not exist.");
+            return -1;
+          }
+          
+          if (srcPath.contains(TachyonURI.WILDCARD) == true) {
+            return copyFromLocalWildcard(srcFiles, dstPath);
+          } else {
+            return copyFromLocal(new File(srcPath), dstPath);
+          }
+          
         } else if (cmd.equals("copyToLocal")) {
           return copyToLocal(argv);
         } else if (cmd.equals("request")) {
