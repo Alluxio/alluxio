@@ -31,6 +31,7 @@ public enum JournalEntryType {
   ADD_CHECKPOINT,
   COMPLETE_FILE,
   FREE,
+  SET_PINNED,
 
   // Raw table master entries
 }

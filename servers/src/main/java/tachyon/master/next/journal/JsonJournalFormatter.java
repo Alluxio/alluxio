@@ -43,6 +43,7 @@ import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
+import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 
 public class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -254,6 +255,12 @@ public class JsonJournalFormatter implements JournalFormatter {
           case FREE: {
             return new FreeEntry(
                 entry.getLong("id"));
+          }
+          case SET_PINNED: {
+            return new SetPinnedEntry(
+                entry.getLong("id"),
+                entry.getBoolean("pinned"),
+                entry.getLong("operationTimeMs"));
           }
           default:
             throw new IOException("Unknown entry type: " + entry.mType);

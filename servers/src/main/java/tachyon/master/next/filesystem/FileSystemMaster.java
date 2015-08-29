@@ -37,6 +37,7 @@ import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
+import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -121,6 +122,8 @@ public class FileSystemMaster extends MasterBase {
       completeFileCheckpointFromEntry((AddCheckpointEntry) entry);
     } else if (entry instanceof FreeEntry) {
       freeFromEntry((FreeEntry) entry);
+    } else if (entry instanceof SetPinnedEntry) {
+      setPinnedFromEntry((SetPinnedEntry) entry);
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
@@ -542,9 +545,23 @@ public class FileSystemMaster extends MasterBase {
   public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
-      mInodeTree.setPinned(inode, pinned);
-      // TODO: write to journal
+      long opTimeMs = System.currentTimeMillis();
+      setPinnedInternal(fileId, pinned, opTimeMs);
+      writeJournalEntry(new SetPinnedEntry(fileId, pinned, opTimeMs));
+    }
+  }
+
+  private void setPinnedInternal(long fileId, boolean pinned, long opTimeMs)
+      throws FileDoesNotExistException {
+    Inode inode = mInodeTree.getInodeById(fileId);
+    mInodeTree.setPinned(inode, pinned, opTimeMs);
+  }
+
+  private void setPinnedFromEntry(SetPinnedEntry entry) {
+    try {
+      setPinnedInternal(entry.getId(), entry.getPinned(), entry.getOperationTimeMs());
+    } catch (FileDoesNotExistException fdnee) {
+      throw new RuntimeException(fdnee);
     }
   }
 
