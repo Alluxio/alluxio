@@ -34,7 +34,6 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
-import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
@@ -209,6 +208,28 @@ public class FileSystemMaster extends MasterBase {
       }
       return inode.isDirectory();
     }
+  }
+
+  /**
+   * Gets the list of block info of an InodeFile determined by path.
+   *
+   * @param path path to the file
+   * @return The list of the block info of the file
+   * @throws InvalidPathException when the path is invalid
+   * @throws FileDoesNotExistException when the file does not exist
+   */
+  public List<BlockInfo> getBlockInfoList(TachyonURI path)
+      throws InvalidPathException, FileDoesNotExistException {
+    long fileId = getFileId(path);
+    Inode inode = mInodeTree.getInodeById(fileId);
+    if (inode == null) {
+      throw new FileDoesNotExistException(path + " does not exist.");
+    }
+    if (!inode.isFile()) {
+      throw new FileDoesNotExistException(path + " is not a file.");
+    }
+    InodeFile inodeFile = (InodeFile) inode;
+    return mBlockMaster.getBlockInfoList(inodeFile.getBlockIds());
   }
 
   public long getFileId(TachyonURI path) throws InvalidPathException {
@@ -537,6 +558,18 @@ public class FileSystemMaster extends MasterBase {
     return true;
   }
 
+
+  /**
+   * Gets the path of a file with the given id
+   *
+   * @param fileId The id of the file to look up
+   * @return the path of the file
+   * @throws FileDoesNotExistException raise if the file does not exist.
+   */
+  public TachyonURI getPath(int fileId) throws FileDoesNotExistException {
+    return mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+  }
+
   public Set<Long> getPinIdList() {
     synchronized (mInodeTree) {
       return mInodeTree.getPinIdSet();
@@ -545,6 +578,15 @@ public class FileSystemMaster extends MasterBase {
 
   public String getUfsAddress() {
     return mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
+  }
+
+  /**
+   * Gets the white list.
+   *
+   * @return the white list
+   */
+  public List<String> getWhiteList() {
+    return mWhitelist.getList();
   }
 
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
