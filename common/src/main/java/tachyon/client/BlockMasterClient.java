@@ -18,8 +18,8 @@ package tachyon.client;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -30,6 +30,8 @@ import tachyon.MasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
+import tachyon.thrift.Command;
+import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 
 /**
@@ -83,7 +85,15 @@ public final class BlockMasterClient extends MasterClient {
   }
 
   public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
-    // TODO: Implement me
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.getBlockInfo(blockId);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
     return null;
   }
 
@@ -117,6 +127,62 @@ public final class BlockMasterClient extends MasterClient {
       connect();
       try {
         return mClient.getUsedBytes();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return -1;
+  }
+
+  public synchronized void workerCommitBlock(long workerId, long usedBytesOnTier, int tier, long
+      blockId, long length) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        mClient.workerCommitBlock(workerId, usedBytesOnTier, tier, blockId, length);
+        return;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+  }
+
+  public synchronized long workerGetId(NetAddress address) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.workerGetWorkerId(address);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return -1L;
+  }
+
+  public synchronized Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers, List<Long>
+      removedBlocks, Map<Long, List<Long>> addedBlocks) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.workerHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return null;
+  }
+
+  public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers, List<Long>
+      usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlocksOnTiers);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
