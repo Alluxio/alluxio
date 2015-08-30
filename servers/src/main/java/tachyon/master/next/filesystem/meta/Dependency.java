@@ -26,6 +26,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.DependencyType;
@@ -150,10 +152,8 @@ public class Dependency implements JournalSerializable {
   public DependencyInfo generateClientDependencyInfo() {
     DependencyInfo ret = new DependencyInfo();
     ret.id = mId;
-    ret.parents = new ArrayList<Long>(mParentFiles.size());
-    ret.parents.addAll(mParentFiles);
-    ret.children = new ArrayList<Long>(mChildrenFiles.size());
-    ret.children.addAll(mChildrenFiles);
+    ret.parents = Lists.newArrayList(mParentFiles);
+    ret.children = Lists.newArrayList(mChildrenFiles);
     ret.data = BufferUtils.cloneByteBufferList(mData);
     return ret;
   }
@@ -164,9 +164,7 @@ public class Dependency implements JournalSerializable {
    * @return the duplication of the children dependencies
    */
   public synchronized List<Integer> getChildrenDependency() {
-    List<Integer> ret = new ArrayList<Integer>(mChildrenDependencies.size());
-    ret.addAll(mChildrenDependencies);
-    return ret;
+    return Lists.newArrayList(mChildrenDependencies);
   }
 
   /**
@@ -196,9 +194,7 @@ public class Dependency implements JournalSerializable {
    * @return the duplication of the lost files' id
    */
   public synchronized List<Long> getLostFiles() {
-    List<Long> ret = new ArrayList<Long>();
-    ret.addAll(mLostFileIds);
-    return ret;
+    return Lists.newArrayList(mLostFileIds);
   }
 
   /**
@@ -207,9 +203,7 @@ public class Dependency implements JournalSerializable {
    * @return the duplication of the uncheckpointed children files' id
    */
   synchronized List<Long> getUncheckpointedChildrenFiles() {
-    List<Long> ret = new ArrayList<Long>(mUncheckpointedChildrenFiles.size());
-    ret.addAll(mUncheckpointedChildrenFiles);
-    return ret;
+    return Lists.newArrayList(mUncheckpointedChildrenFiles);
   }
 
   /**
