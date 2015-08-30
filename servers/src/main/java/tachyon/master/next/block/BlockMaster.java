@@ -18,6 +18,7 @@ package tachyon.master.next.block;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.journal.BlockIdGeneratorEntry;
@@ -148,6 +150,17 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
     }
   }
 
+  /**
+   * Gets the number of workers.
+   *
+   * @return the number of workers
+   */
+  public int getWorkerCount() {
+    synchronized (mWorkers) {
+      return mWorkers.size();
+    }
+  }
+
   public List<WorkerInfo> getWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<WorkerInfo>(mWorkers.size());
     synchronized (mWorkers) {
@@ -258,6 +271,36 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
         BlockInfo retInfo =
             new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
         ret.add(retInfo);
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * @return the total bytes on each storage tier.
+   */
+  public List<Long> getTotalBytesOnTiers() {
+    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+    synchronized (mWorkers) {
+      for (MasterWorkerInfo worker : mWorkers) {
+        for (int i = 0; i < worker.getTotalBytesOnTiers().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getTotalBytesOnTiers().get(i));
+        }
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * @return the used bytes on each storage tier.
+   */
+  public List<Long> getUsedBytesOnTiers() {
+    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+    synchronized (mWorkers) {
+      for (MasterWorkerInfo worker : mWorkers) {
+        for (int i = 0; i < worker.getUsedBytesOnTiers().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getUsedBytesOnTiers().get(i));
+        }
       }
     }
     return ret;
