@@ -18,6 +18,7 @@ package tachyon.master.next.block;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -54,30 +55,38 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
-public class BlockMaster extends MasterBase implements ContainerIdGenerator {
+public final class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
-  // This state much be journaled.
+  /**
+   * blocks ever placed in all Tachyon workers, including both the active blocks and lost ones. This
+   * state much be journaled.
+   */
   private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
-  // This state much be journaled.
+  /**
+   * This state much be journaled.
+   */
   private final BlockIdGenerator mBlockIdGenerator = new BlockIdGenerator();
   private final Set<Long> mLostBlocks = new HashSet<Long>();
 
   // Worker metadata management.
-  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+  private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
+      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
     @Override
     public Object getFieldValue(MasterWorkerInfo o) {
       return o.getId();
     }
   };
-  private final IndexedSet.FieldIndex mAddressIndex =
+  private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getAddress();
         }
       };
+
+  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   // This state much be journaled.
@@ -180,7 +189,7 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
   }
 
   public Set<Long> getLostBlocks() {
-    return mLostBlocks;
+    return Collections.unmodifiableSet(mLostBlocks);
   }
 
   public void removeBlocks(List<Long> blockIds) {
@@ -196,6 +205,8 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
           worker.updateToRemovedBlock(true, blockId);
         }
       }
+      // remove from lost blocks
+      mLostBlocks.remove(blockId);
     }
   }
 
@@ -230,6 +241,7 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
       flushJournal();
     }
     masterBlockInfo.addWorker(workerId, tierAlias);
+    mLostBlocks.remove(blockId);
   }
 
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
@@ -398,7 +410,8 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
           // TODO: change upper API so that this is tier level or type, not storage dir id.
           int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
           masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
-          // TODO: update lost workers?
+
+          mLostBlocks.remove(blockId);
         } else {
           // TODO: throw exception?
           LOG.warn(
