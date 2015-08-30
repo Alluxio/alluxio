@@ -262,10 +262,10 @@ public class FileSystemMaster extends MasterBase {
       // Verify that all the blocks (except the last one) is the same size as the file block size.
       long fileLength = 0;
       long fileBlockSize = fileInode.getBlockSizeBytes();
-      for (int i = 0; i < blockInfoList.size() - 1; i ++) {
+      for (int i = 0; i < blockInfoList.size(); i ++) {
         BlockInfo blockInfo = blockInfoList.get(i);
         fileLength += blockInfo.getLength();
-        if (blockInfo.getLength() != fileBlockSize) {
+        if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {
           throw new BlockInfoException(
               "Block index " + i + " has a block size smaller than the file block size ("
                   + fileInode.getBlockSizeBytes() + ")");
