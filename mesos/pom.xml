@@ -31,11 +31,6 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-minicluster</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-underfs-local</artifactId>
       <version>${project.version}</version>
     </dependency>
