@@ -328,15 +328,14 @@ public class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      TachyonURI firstNonexistentPathPrefix = mInodeTree.firstNonexistentPathPrefix(path);
-      InodeFile inode = (InodeFile) mInodeTree.createPath(path, blockSizeBytes, recursive, false);
+      List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false);
+      InodeFile inode = (InodeFile) created.get(created.size() - 1);
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
 
-      if (firstNonexistentPathPrefix != null) {
-        Inode firstCreatedInode = mInodeTree.getInodeByPath(firstNonexistentPathPrefix);
-        writeJournalEntry(firstCreatedInode);
+      if (!created.isEmpty()) {
+        writeJournalEntry(created.get(0));
       } else {
         writeJournalEntry(inode);
       }
