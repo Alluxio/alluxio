@@ -16,12 +16,14 @@
 package tachyon.master.next.filesystem.meta;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -42,13 +44,15 @@ public final class InodeTreeTest {
   private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
   private InodeTree mTree;
+  private final ExecutorService mExecutorService = Mockito.mock(ExecutorService.class);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() {
-    mTree = new InodeTree(new BlockMaster(new Journal("directory", new TachyonConf())));
+    TachyonConf conf = new TachyonConf();
+    mTree = new InodeTree(new BlockMaster(new Journal("directory", conf), conf, mExecutorService));
   }
 
   @Test
