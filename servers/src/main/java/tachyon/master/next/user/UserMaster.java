@@ -70,6 +70,11 @@ public class UserMaster extends MasterBase {
   }
 
   @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    outputStream.writeEntry(new UserIdGeneratorEntry(mNextUserId.get()));
+  }
+
+  @Override
   public void start(boolean asMaster) throws IOException {
     startMaster(asMaster);
   }
@@ -77,11 +82,6 @@ public class UserMaster extends MasterBase {
   @Override
   public void stop() throws IOException {
     stopMaster();
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(new UserIdGeneratorEntry(mNextUserId.get()));
   }
 
   public long getUserId() {
