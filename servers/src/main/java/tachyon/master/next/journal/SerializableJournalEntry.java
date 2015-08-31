@@ -15,10 +15,7 @@
 
 package tachyon.master.next.journal;
 
-import java.util.List;
 import java.util.Map;
-
-import com.google.common.collect.Maps;
 
 /**
  * This kind of JournalEntry will have a parameter field named transactionId.
