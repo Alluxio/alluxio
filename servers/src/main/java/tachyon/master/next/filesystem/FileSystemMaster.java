@@ -185,6 +185,14 @@ public class FileSystemMaster extends MasterBase {
         }
       } else {
         tFile.setLength(length);
+        // Commit all the file blocks (without locations) so the metadata for the block exists.
+        long currLength = length;
+        for (long blockId : tFile.getBlockIds()) {
+          long blockSize = Math.min(currLength, tFile.getBlockSizeBytes());
+          mBlockMaster.commitBlock(blockId, blockSize);
+          currLength -= blockSize;
+        }
+
         needLog = true;
       }
 
