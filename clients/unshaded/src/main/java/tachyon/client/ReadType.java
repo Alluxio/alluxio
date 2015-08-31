@@ -31,7 +31,8 @@ public enum ReadType {
   /**
    * If the block is on local Tachyon space but not on top storage layer, promote the block to top
    * storage layer after reading.
-   * TODO: Enable this again when lock upgrading is implemented in the worker
+   *
+   * TODO(calvin): Enable this again when lock upgrading is implemented in the worker.
    */
   //CACHE_PROMOTE(3);
 
@@ -52,8 +53,9 @@ public enum ReadType {
 
   /**
    * @return true if the read type is CACHE, false otherwise
+   *
+   * TODO(calvin): Add CACHE_PROMOTE back when it is enabled again.
    */
-  // TODO: Add CACHE_PROMOTE back when it is enabled again
   public boolean isCache() {
     return mValue == CACHE.mValue;
     // return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
@@ -61,7 +63,8 @@ public enum ReadType {
 
   /**
    * @return true if the read type is CACHE_PROMOTE, false otherwise
-   * TODO: Add this function back when CACHE_PROMOTE is enabled again
+   *
+   * TODO(calvin): Add this function back when CACHE_PROMOTE is enabled again.
    */
 //  public boolean isPromote() {
 //    return mValue == CACHE_PROMOTE.mValue;

@@ -24,6 +24,8 @@ import tachyon.conf.TachyonConf;
  */
 public class EmptyBlockInStream extends InStream {
   /**
+   * Creates a new <code>EmptyBlockInStream</code>.
+   *
    * @param file the file the block belongs to
    * @param readType the InStream's read type
    * @param tachyonConf the TachyonConf instance for this stream.

@@ -32,6 +32,12 @@ import tachyon.util.CommonUtils;
 public interface RemoteBlockReader extends Closeable {
 
   class Factory {
+    /**
+     * Creates a new <code>RemoteBlockReader</code>.
+     *
+     * @param conf Tachyon configuration
+     * @return a new instance of <code>RemoteBlockReader</code>
+     */
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
@@ -43,7 +49,7 @@ public interface RemoteBlockReader extends Closeable {
   }
 
   /**
-   * Read a remote block with a offset and length.
+   * Reads a remote block with a offset and length.
    *
    * @param address The {@link InetSocketAddress} of the data server.
    * @param blockId the id of the block trying to read.
