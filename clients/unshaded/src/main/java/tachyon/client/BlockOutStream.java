@@ -38,7 +38,7 @@ public abstract class BlockOutStream extends OutStream {
    * @param blockIndex The index of the block in the tachyonFile.
    * @param tachyonConf The TachyonConf instance.
    * @return A new {@link LocalBlockOutStream} or {@link RemoteBlockOutStream}.
-   * @throws IOException if the underlying file does not exist or its metadata is corrupted.
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
       TachyonConf tachyonConf) throws IOException {
@@ -55,7 +55,7 @@ public abstract class BlockOutStream extends OutStream {
    * @param initialBytes The initial size (in bytes) that will be allocated to the block.
    * @param tachyonConf The TachyonConf instance.
    * @return A new {@link LocalBlockOutStream} or {@link RemoteBlockOutStream}.
-   * @throws IOException if the underlying file does not exist or its metadata is corrupted.
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public static BlockOutStream get(TachyonFile tachyonFile, WriteType opType, int blockIndex,
       long initialBytes, TachyonConf tachyonConf) throws IOException {

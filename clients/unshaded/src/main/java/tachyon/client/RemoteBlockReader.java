@@ -33,8 +33,6 @@ public interface RemoteBlockReader extends Closeable {
 
   class Factory {
     /**
-     * Creates a new <code>RemoteBlockReader</code>.
-     *
      * @param conf Tachyon configuration
      * @return a new instance of <code>RemoteBlockReader</code>
      */
