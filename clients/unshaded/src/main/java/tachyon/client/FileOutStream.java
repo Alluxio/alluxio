@@ -53,7 +53,7 @@ public class FileOutStream extends OutStream {
    * @param opType the OutStream's write type
    * @param ufsConf the under file system configuration
    * @param tachyonConf the TachyonConf instance for this file output stream.
-   * @throws IOException
+   * @throws IOException if the underlying file cannot be found
    */
   FileOutStream(TachyonFile file, WriteType opType, Object ufsConf, TachyonConf tachyonConf)
       throws IOException {
@@ -61,7 +61,7 @@ public class FileOutStream extends OutStream {
 
     mBlockCapacityByte = file.getBlockSizeByte();
 
-    // TODO Support and test append.
+    // TODO(hy): Support and test append.
     mCurrentBlockOutStream = null;
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
     mCachedBytes = 0;
@@ -141,7 +141,7 @@ public class FileOutStream extends OutStream {
 
   @Override
   public void flush() throws IOException {
-    // TODO We only flush the checkpoint output stream. Flush for RAMFS block streams.
+    // TODO(hy):  We only flush the checkpoint output stream. Flush for RAMFS block streams.
     if (mWriteType.isThrough()) {
       mCheckpointOutputStream.flush();
     }
@@ -220,7 +220,7 @@ public class FileOutStream extends OutStream {
             || mCurrentBlockOutStream.getRemainingSpaceBytes() == 0) {
           getNextBlock();
         }
-        // TODO Cache the exception here.
+        // TODO(hy): Cache the exception here.
         mCurrentBlockOutStream.write(b);
         mCachedBytes ++;
       } catch (IOException e) {

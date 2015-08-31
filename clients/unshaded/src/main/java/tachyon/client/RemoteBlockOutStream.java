@@ -54,6 +54,9 @@ public class RemoteBlockOutStream extends BlockOutStream {
   private boolean mClosed = true;
 
   /**
+   * Creates a new <code>RemoteBlockOutStream</code> with a default initial size allocated to the
+   * block.
+   *
    * @param file the file the block belongs to
    * @param opType the OutStream's write type
    * @param blockIndex the index of the block in the file
@@ -67,6 +70,9 @@ public class RemoteBlockOutStream extends BlockOutStream {
   }
 
   /**
+   * Creates a new <code>RemoteBlockOutStream</code> with the given initial size allocated to the
+   * block.
+   *
    * @param file the file the block belongs to
    * @param opType the OutStream's write type
    * @param blockIndex the index of the block in the file
@@ -74,7 +80,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
    *                     for now, since the data server will allocate space matching the size of the
    *                     first write.
    * @param tachyonConf the TachyonConf instance for this file output stream.
-   * @throws IOException
+   * @throws IOException if the requested operation is not supported
    */
   RemoteBlockOutStream(TachyonFile file, WriteType opType, int blockIndex, long initialBytes,
       TachyonConf tachyonConf) throws IOException {
@@ -102,12 +108,12 @@ public class RemoteBlockOutStream extends BlockOutStream {
   }
 
   /**
-   * Write data to the remote block. This is synchronized to serialize writes to the block.
+   * Writes data to the remote block. This is synchronized to serialize writes to the block.
    *
    * @param bytes An array of bytes representing the source data.
    * @param offset The offset into the source array of bytes.
    * @param length The length of the data to write (in bytes).
-   * @throws IOException
+   * @throws IOException when the write operation fails
    */
   private synchronized void writeToRemoteBlock(byte[] bytes, int offset, int length)
       throws IOException {
@@ -163,9 +169,6 @@ public class RemoteBlockOutStream extends BlockOutStream {
     return mBlockId;
   }
 
-  /**
-   * @return the remaining space of the block, in bytes
-   */
   @Override
   public long getRemainingSpaceBytes() {
     return mBlockCapacityBytes - mWrittenBytes;

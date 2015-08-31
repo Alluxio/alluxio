@@ -428,7 +428,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param blockId the id of the block
    * @return the ClientBlockInfo of the specified block
-   * @throws IOException
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted.
    */
   synchronized ClientBlockInfo getClientBlockInfo(long blockId) throws IOException {
     return mMasterClient.user_getClientBlockInfo(blockId);
@@ -932,6 +932,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
+   * @throws IOException
    */
   synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
