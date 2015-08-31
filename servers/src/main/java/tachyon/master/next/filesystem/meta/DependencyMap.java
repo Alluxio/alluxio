@@ -104,6 +104,19 @@ public class DependencyMap implements JournalSerializable {
     return dependency;
   }
 
+  public void addDependency(Dependency dependency) {
+    mDependencyMap.add(dependency);
+    for (Long fileId : dependency.mChildrenFiles) {
+      mFileIdToDependency.put(fileId, dependency);
+    }
+    for (Long fileId : dependency.getLostFiles()) {
+      mLostFiles.add(fileId);
+    }
+    if (!dependency.hasCheckpointed()) {
+      mUncheckpointedDependencies.add(dependency.mId);
+    }
+  }
+
   public List<Integer> getPriorityDependencyList() {
     int earliestDependencyId = -1;
     if (mPriorityDependencies.isEmpty()) {
