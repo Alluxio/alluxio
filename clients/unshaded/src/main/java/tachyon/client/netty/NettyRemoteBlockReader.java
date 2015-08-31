@@ -49,7 +49,7 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   /**
    * Creates a new <code>NettyRemoteBlockReader</code>.
    *
-   * TODO: Creating a new remote block reader may be expensive, so consider a connection pool.
+   * TODO(gene): Creating a new remote block reader may be expensive, so consider a connection pool.
    */
   public NettyRemoteBlockReader() {
     mHandler = new ClientHandler();
