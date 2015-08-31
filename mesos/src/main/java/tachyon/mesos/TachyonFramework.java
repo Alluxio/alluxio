@@ -15,8 +15,6 @@
 
 package tachyon.mesos;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +25,7 @@ import org.apache.mesos.MesosSchedulerDriver;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonMaster;
+import tachyon.util.io.PathUtils;
 
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
@@ -97,6 +95,8 @@ public class TachyonFramework {
 
         double remainingCpus = offerCpus;
         double remainingMem = offerMem;
+        TachyonConf conf = new TachyonConf();
+        String tachyonHome = conf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
         while (remainingCpus > 0 && remainingMem > 0) {
           Protos.TaskID taskId =
               Protos.TaskID.newBuilder().setValue(Integer.toString(launchedTasks ++)).build();
@@ -114,7 +114,7 @@ public class TachyonFramework {
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
                 .setCommand(
                     Protos.CommandInfo.newBuilder().setValue(
-                        "/Users/jsimsa/Projects/tachyon/bin/tachyon-mesos-master.sh"));
+                        PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-master.sh")));
             targetCpus = MASTER_CPUS;
             targetMem = MASTER_MEM;
             mMasterLaunched = true;
@@ -125,7 +125,7 @@ public class TachyonFramework {
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
                 .setCommand(
                     Protos.CommandInfo.newBuilder().setValue(
-                        "/Users/jsimsa/Projects/tachyon/bin/tachyon-mesos-worker.sh"));
+                        PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh")));
             targetCpus = remainingCpus;
             targetMem = remainingMem;
           }
