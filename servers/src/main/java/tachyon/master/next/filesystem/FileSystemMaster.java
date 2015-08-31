@@ -329,16 +329,14 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false);
+      // If the create succeeded, the list of created inodes will not be empty.
       InodeFile inode = (InodeFile) created.get(created.size() - 1);
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
 
-      if (!created.isEmpty()) {
-        writeJournalEntry(created.get(0));
-      } else {
-        writeJournalEntry(inode);
-      }
+      // Writing the first created inode to the journal will also write its children.
+      writeJournalEntry(created.get(0));
       flushJournal();
 
       return inode.getId();
