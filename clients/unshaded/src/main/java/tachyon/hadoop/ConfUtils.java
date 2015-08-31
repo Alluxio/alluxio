@@ -32,13 +32,10 @@ import tachyon.conf.TachyonConf;
 public class ConfUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /**
-   * Prevent instantiation
-   */
-  private ConfUtils() {}
+  private ConfUtils() {} // Prevent instantiation.
 
   /**
-   * Store the source {@link tachyon.conf.TachyonConf} object to the target
+   * Stores the source {@link tachyon.conf.TachyonConf} object to the target
    * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
    *
    * @param source the {@link tachyon.conf.TachyonConf} to be stored
@@ -58,7 +55,8 @@ public class ConfUtils {
   }
 
   /**
-   * Load {@link TachyonConf} from Hadoop {@link org.apache.hadoop.conf.Configuration} source
+   * Loads {@link TachyonConf} from Hadoop {@link org.apache.hadoop.conf.Configuration} source.
+   *
    * @param source the {@link org.apache.hadoop.conf.Configuration} to load from.
    * @return instance of {@link TachyonConf} to be loaded
    */
