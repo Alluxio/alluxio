@@ -32,6 +32,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.DependencyType;
 import tachyon.master.DependencyVariables;
+import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.journal.JournalSerializable;
 import tachyon.thrift.DependencyInfo;
@@ -276,6 +277,8 @@ public class Dependency implements JournalSerializable {
 
   @Override
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
+    outputStream.writeEntry(new DependencyEntry(mId, mParentFiles, mChildrenFiles, mCommandPrefix,
+        mData, mComment, mFramework, mFrameworkVersion, mDependencyType, mParentDependencies,
+        mChildrenDependencies, mCreationTimeMs, getUncheckpointedChildrenFiles(), mLostFileIds));
   }
 }
