@@ -30,6 +30,7 @@ import tachyon.client.next.UnderStorageType;
 import tachyon.client.next.block.BSContext;
 import tachyon.client.next.block.BlockOutStream;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.io.PathUtils;
 import tachyon.worker.next.WorkerClient;
 
 /**
@@ -48,6 +49,7 @@ public class ClientFileOutStream extends FileOutStream {
   private final FSContext mContext;
   private final OutputStream mUnderStorageOutputStream;
   private final String mUnderStorageFile;
+  private final WorkerClient mWorkerClient;
 
   private boolean mCanceled;
   private boolean mClosed;
@@ -56,7 +58,7 @@ public class ClientFileOutStream extends FileOutStream {
   private BlockOutStream mCurrentBlockOutStream;
   private List<BlockOutStream> mPreviousBlockOutStreams;
 
-  public ClientFileOutStream(long fileId, ClientOptions options) {
+  public ClientFileOutStream(long fileId, ClientOptions options) throws IOException {
     mFileId = fileId;
     mOptions = options;
     mBlockSize = options.getBlockSize();
@@ -64,10 +66,19 @@ public class ClientFileOutStream extends FileOutStream {
     mUnderStorageType = options.getUnderStorageType();
     mContext = FSContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BlockOutStream>();
-    // TODO: Get the Under Storage File correctly
-    mUnderStorageFile = null;
-    // TODO: Create the under storage output stream
-    mUnderStorageOutputStream = mUnderStorageType.shouldPersist() ? null : null;
+    if (mUnderStorageType.shouldPersist()) {
+      mWorkerClient = BSContext.INSTANCE.acquireWorkerClient();
+      String userUnderStorageFolder = mWorkerClient.getUserUfsTempFolder();
+      mUnderStorageFile = PathUtils.concatPath(userUnderStorageFolder, mFileId);
+      UnderFileSystem underStorageClient =
+          UnderFileSystem.get(mUnderStorageFile, ClientContext.getConf());
+      underStorageClient.mkdirs(userUnderStorageFolder, true);
+      mUnderStorageOutputStream = underStorageClient.create(mUnderStorageFile, (int) mBlockSize);
+    } else {
+      mWorkerClient = null;
+      mUnderStorageFile = null;
+      mUnderStorageOutputStream = null;
+    }
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mCacheType.shouldCache();
@@ -99,13 +110,12 @@ public class ClientFileOutStream extends FileOutStream {
       } else {
         mUnderStorageOutputStream.flush();
         mUnderStorageOutputStream.close();
-        WorkerClient workerClient = BSContext.INSTANCE.acquireWorkerClient();
         try {
           // TODO: Investigate if this RPC can be moved to master
           // TODO: Make this RPC take a long
-          workerClient.addCheckpoint((int) mFileId);
+          mWorkerClient.addCheckpoint((int) mFileId);
         } finally {
-          BSContext.INSTANCE.releaseWorkerClient(workerClient);
+          BSContext.INSTANCE.releaseWorkerClient(mWorkerClient);
         }
         canComplete = true;
       }

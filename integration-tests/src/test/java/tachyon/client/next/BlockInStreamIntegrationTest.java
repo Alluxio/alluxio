@@ -16,6 +16,8 @@
 package tachyon.client.next;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -43,8 +45,9 @@ public class BlockInStreamIntegrationTest {
   private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
   private static final int DELTA = 33;
 
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static TachyonFS sTfs = null;
+  private static LocalTachyonCluster sLocalTachyonCluster;
+  private static TachyonFS sTfs;
+  private static TachyonConf sTachyonConf;
 
   @AfterClass
   public static final void afterClass() throws Exception {
@@ -57,6 +60,7 @@ public class BlockInStreamIntegrationTest {
     sLocalTachyonCluster = new LocalTachyonCluster(10000000, 1000, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
+    sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
   }
 
   /**
@@ -66,10 +70,9 @@ public class BlockInStreamIntegrationTest {
   public void newReadTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
+      for (ClientOptions op : getOptionSet()) {
         TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op);
-        ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-        FileOutStream os = sTfs.getOutStream(path, options);
+        FileOutStream os = sTfs.getOutStream(path, op);
         for (int j = 0; j < k; j ++) {
           os.write((byte) j);
         }
@@ -77,7 +80,7 @@ public class BlockInStreamIntegrationTest {
 
         TachyonFile f = sTfs.open(path);
 
-        FileInStream is = sTfs.getInStream(f, options);
+        FileInStream is = sTfs.getInStream(f, op);
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
@@ -91,7 +94,7 @@ public class BlockInStreamIntegrationTest {
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
-        is = sTfs.getInStream(f, options);
+        is = sTfs.getInStream(f, op);
         ret = new byte[k];
         value = is.read();
         cnt = 0;
@@ -106,5 +109,22 @@ public class BlockInStreamIntegrationTest {
         is.close();
       }
     }
+  }
+
+  private List<ClientOptions> getOptionSet() {
+    List<ClientOptions> ret = new ArrayList<ClientOptions>(10);
+    ClientOptions writeBoth =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
+    ClientOptions writeTachyon =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    ClientOptions writeUnderStore =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.NO_CACHE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
+    ret.add(writeBoth);
+    ret.add(writeTachyon);
+    //ret.add(writeUnderStore);
+    return ret;
   }
 }
