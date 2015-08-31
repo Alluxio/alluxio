@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.block.BlockInStream;
 import tachyon.client.next.block.BlockOutStream;
+import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -148,21 +149,24 @@ public class ClientFileInStream extends FileInStream {
         + ", fileSize = " + mFileLength);
 
     moveBlockInStream(pos);
+    checkAndAdvanceBlockInStream();
     mCurrentBlockInStream.seek(mPos % mBlockSize);
   }
 
   @Override
   public long skip(long n) throws IOException {
-    // TODO: Consider supporting backward skip
     if (n <= 0) {
       return 0;
     }
 
     long toSkip = Math.min(n, mFileLength - mPos);
-    moveBlockInStream(mPos + toSkip);
-    long shouldSkip = mPos % mBlockSize;
-    if (shouldSkip != mCurrentBlockInStream.skip(shouldSkip)) {
-      throw new IOException("The underlying BlockInStream could not skip " + shouldSkip);
+    long newPos = mPos + toSkip;
+    long toSkipInBlock = ((newPos / mBlockSize) > mPos / mBlockSize) ? newPos % mBlockSize :
+        toSkip;
+    moveBlockInStream(newPos);
+    checkAndAdvanceBlockInStream();
+    if (toSkipInBlock != mCurrentBlockInStream.skip(toSkipInBlock)) {
+      throw new IOException("The underlying BlockInStream could not skip " + toSkip);
     }
     return toSkip;
   }
@@ -177,7 +181,7 @@ public class ClientFileInStream extends FileInStream {
         mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
       } catch (IOException ioe) {
         // TODO: Maybe debug log here
-        long blockStart = currentBlockId * mBlockSize;
+        long blockStart = BlockId.getSequenceNumber(currentBlockId);
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
       }
       if (mShouldCache) {

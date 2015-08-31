@@ -120,7 +120,8 @@ public final class BlockWorker {
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
-    mBlockDataManager = new BlockDataManager(workerSource, mBlockMasterClient);
+    mBlockDataManager =
+        new BlockDataManager(workerSource, mBlockMasterClient, mFileSystemMasterClient);
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
