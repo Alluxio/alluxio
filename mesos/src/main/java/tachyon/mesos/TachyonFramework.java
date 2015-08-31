@@ -31,8 +31,7 @@ import tachyon.master.LocalTachyonMaster;
 
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
-    private int mTasksRunning = 0;
-    private int mTasksActive = 0;
+    private boolean mMasterLaunched = false;
 
     @Override
     public void disconnected(SchedulerDriver driver) {
@@ -45,20 +44,16 @@ public class TachyonFramework {
     }
 
     @Override
-    public void executorLost(SchedulerDriver driver,
-                             Protos.ExecutorID executorId,
-                             Protos.SlaveID slaveId,
-                             int status) {
+    public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId,
+        Protos.SlaveID slaveId, int status) {
       System.out.println("Executor " + executorId.getValue() + " was lost.");
     }
 
     @Override
-    public void frameworkMessage(SchedulerDriver driver,
-                                 Protos.ExecutorID executorId,
-                                 Protos.SlaveID slaveId,
-                                 byte[] data) {
-      System.out.println("Executor: " + executorId.getValue() + ", "
-          + "Slave: " + slaveId.getValue() + ", " + "Data: " + data + ".");
+    public void frameworkMessage(SchedulerDriver driver, Protos.ExecutorID executorId,
+        Protos.SlaveID slaveId, byte[] data) {
+      System.out.println("Executor: " + executorId.getValue() + ", " + "Slave: "
+          + slaveId.getValue() + ", " + "Data: " + data + ".");
     }
 
     @Override
@@ -67,26 +62,23 @@ public class TachyonFramework {
     }
 
     @Override
-    public void registered(SchedulerDriver driver,
-                           Protos.FrameworkID frameworkId,
-                           Protos.MasterInfo masterInfo) {
+    public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId,
+        Protos.MasterInfo masterInfo) {
       System.out.println("Registered framework " + frameworkId.getValue() + " with master "
           + masterInfo.getHostname() + ":" + masterInfo.getPort() + ".");
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-      System.out.println("Registered framework with master " + masterInfo.getHostname()
-          + ":" + masterInfo.getPort() + ".");
+      System.out.println("Registered framework with master " + masterInfo.getHostname() + ":"
+          + masterInfo.getPort() + ".");
     }
 
     @Override
-    public void resourceOffers(SchedulerDriver driver,
-                               List<Protos.Offer> offers) {
-      final double CPUS_PER_TASK = 1;
-      final double MEM_PER_TASK = 128;
+    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+      final double MASTER_CPUS = 1;
+      final double MASTER_MEM = 128;
       int launchedTasks = 0;
-      int totalTasks = 0;
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -100,47 +92,62 @@ public class TachyonFramework {
           }
         }
 
-        System.out.println(
-            "Received offer " + offer.getId().getValue() + " with cpus: " + offerCpus
-                + " and mem: " + offerMem);
+        System.out.println("Received offer " + offer.getId().getValue() + " with cpus: "
+            + offerCpus + " and mem: " + offerMem);
 
         double remainingCpus = offerCpus;
         double remainingMem = offerMem;
-        while (launchedTasks < totalTasks
-            && remainingCpus >= CPUS_PER_TASK
-            && remainingMem >= MEM_PER_TASK) {
-          Protos.TaskID taskId = Protos.TaskID.newBuilder()
-              .setValue(Integer.toString(launchedTasks++)).build();
+        while (remainingCpus > 0 && remainingMem > 0) {
+          Protos.TaskID taskId =
+              Protos.TaskID.newBuilder().setValue(Integer.toString(launchedTasks ++)).build();
 
-          System.out.println("Launching task " + taskId.getValue()
-              + " using offer " + offer.getId().getValue());
+          System.out.println("Launching task " + taskId.getValue() + " using offer "
+              + offer.getId().getValue());
 
-          Protos.ExecutorInfo executor = Protos.ExecutorInfo.newBuilder()
-              .setExecutorId(Protos.ExecutorID.newBuilder().setValue("default"))
-              .setCommand(Protos.CommandInfo.newBuilder().setValue("localhost"))
-              .setName("Test Tachyon Executor")
-              .setSource("java_test")
-              .build();
-
-          Protos.TaskInfo task = Protos.TaskInfo.newBuilder()
-              .setName("task " + taskId.getValue())
-              .setTaskId(taskId)
-              .setSlaveId(offer.getSlaveId())
-              .addResources(Protos.Resource.newBuilder()
-                  .setName("cpus")
-                  .setType(Protos.Value.Type.SCALAR)
-                  .setScalar(Protos.Value.Scalar.newBuilder().setValue(CPUS_PER_TASK)))
-              .addResources(Protos.Resource.newBuilder()
-                  .setName("mem")
-                  .setType(Protos.Value.Type.SCALAR)
-                  .setScalar(Protos.Value.Scalar.newBuilder().setValue(MEM_PER_TASK)))
-              .setExecutor(Protos.ExecutorInfo.newBuilder(executor))
-              .build();
+          Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
+          double targetCpus = 0;
+          double targetMem = 0;
+          if (!mMasterLaunched && remainingCpus >= MASTER_CPUS && remainingMem >= MASTER_MEM) {
+            executorBuilder
+                .setName("Tachyon Master Executor")
+                .setSource("master")
+                .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
+                .setCommand(
+                    Protos.CommandInfo.newBuilder().setValue(
+                        "/Users/jsimsa/Projects/tachyon/bin/tachyon-mesos-master.sh"));
+            targetCpus = MASTER_CPUS;
+            targetMem = MASTER_MEM;
+            mMasterLaunched = true;
+          } else {
+            executorBuilder
+                .setName("Tachyon Worker Executor")
+                .setSource("worker")
+                .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
+                .setCommand(
+                    Protos.CommandInfo.newBuilder().setValue(
+                        "/Users/jsimsa/Projects/tachyon/bin/tachyon-mesos-worker.sh"));
+            targetCpus = remainingCpus;
+            targetMem = remainingMem;
+          }
+          Protos.TaskInfo task =
+              Protos.TaskInfo
+                  .newBuilder()
+                  .setName("task " + taskId.getValue())
+                  .setTaskId(taskId)
+                  .setSlaveId(offer.getSlaveId())
+                  .addResources(
+                      Protos.Resource.newBuilder().setName("cpus")
+                          .setType(Protos.Value.Type.SCALAR)
+                          .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetCpus)))
+                  .addResources(
+                      Protos.Resource.newBuilder().setName("mem").setType(Protos.Value.Type.SCALAR)
+                          .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetMem)))
+                  .setExecutor(executorBuilder).build();
 
           launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
 
-          remainingCpus -= CPUS_PER_TASK;
-          remainingMem -= MEM_PER_TASK;
+          remainingCpus -= targetCpus;
+          remainingMem -= targetMem;
         }
 
         // NOTE: We use the new API `acceptOffers` here to launch tasks.
@@ -148,10 +155,9 @@ public class TachyonFramework {
         List<Protos.OfferID> offerIds = new ArrayList<Protos.OfferID>();
         offerIds.add(offer.getId());
         List<Protos.Offer.Operation> operations = new ArrayList<Protos.Offer.Operation>();
-        Protos.Offer.Operation operation = Protos.Offer.Operation.newBuilder()
-            .setType(Protos.Offer.Operation.Type.LAUNCH)
-            .setLaunch(launch)
-            .build();
+        Protos.Offer.Operation operation =
+            Protos.Offer.Operation.newBuilder().setType(Protos.Offer.Operation.Type.LAUNCH)
+                .setLaunch(launch).build();
         operations.add(operation);
         Protos.Filters filters = Protos.Filters.newBuilder().setRefuseSeconds(1).build();
         driver.acceptOffers(offerIds, operations, filters);
@@ -170,14 +176,10 @@ public class TachyonFramework {
       System.out.printf("Task %s is in state %s\n", taskId, state);
       switch (state) {
         case TASK_RUNNING:
-          mTasksRunning ++;
-          break;
         case TASK_FINISHED:
         case TASK_FAILED:
         case TASK_KILLED:
         case TASK_LOST:
-          mTasksRunning --;
-          break;
         default:
       }
     }
@@ -188,25 +190,6 @@ public class TachyonFramework {
     System.err.println("Usage: " + name + " <hostname>");
   }
 
-  private static TachyonConf createTachyonConfig() throws IOException {
-    final int quotaUnitBytes = 100000;
-    final int blockSizeByte = 1024;
-    final int readBufferSizeByte = 64;
-
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.IN_TEST_MODE, "true");
-    conf.set(Constants.TACHYON_HOME,
-        File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath());
-    conf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(quotaUnitBytes));
-    conf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, Integer.toString(blockSizeByte));
-    conf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, Integer.toString(readBufferSizeByte));
-    conf.set(Constants.MASTER_HOSTNAME, "localhost");
-    conf.set(Constants.MASTER_PORT, Integer.toString(0));
-    conf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
-
-    return conf;
-  }
-
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
       usage();
@@ -214,18 +197,10 @@ public class TachyonFramework {
     }
     String hostname = args[0];
 
-    // Start Tachyon master.
-    TachyonConf conf = createTachyonConfig();
-    LocalTachyonMaster master =
-        LocalTachyonMaster.create(conf.get(Constants.TACHYON_HOME), createTachyonConfig());
-    master.start();
-
-    // Start Mesos master.
-    Protos.FrameworkInfo framework = Protos.FrameworkInfo.newBuilder()
-        .setUser("") // Have Mesos fill in the current user.
-        .setName("Test Tachyon Framework")
-        .setPrincipal("test-tachyon-framework")
-        .build();
+    // Start Mesos master. Have Mesos fill in the current user.
+    Protos.FrameworkInfo framework =
+        Protos.FrameworkInfo.newBuilder().setUser("").setName("Test Tachyon Framework")
+            .setPrincipal("test-tachyon-framework").build();
 
     Scheduler scheduler = new TachyonScheduler();
 
@@ -235,9 +210,6 @@ public class TachyonFramework {
 
     // Ensure that the driver process terminates.
     driver.stop();
-
-    // Ensure that the Tachyon master terminates.
-    master.stop();
 
     System.exit(status);
   }
