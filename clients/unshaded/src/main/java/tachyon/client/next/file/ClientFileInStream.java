@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.block.BlockInStream;
 import tachyon.client.next.block.BlockOutStream;
+import tachyon.client.next.block.LocalBlockInStream;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 
@@ -179,16 +180,18 @@ public class ClientFileInStream extends FileInStream {
       }
       try {
         mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+        mShouldCacheCurrentBlock =
+            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
         // TODO: Maybe debug log here
         long blockStart = BlockId.getSequenceNumber(currentBlockId);
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
+        mShouldCacheCurrentBlock = mShouldCache;
       }
-      if (mShouldCache) {
+      closeCacheStream();
+      if (mShouldCacheCurrentBlock) {
         try {
-          closeCacheStream();
           mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, mOptions);
-          mShouldCacheCurrentBlock = true;
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
           mShouldCacheCurrentBlock = false;
@@ -225,17 +228,19 @@ public class ClientFileInStream extends FileInStream {
       mCurrentBlockInStream.close();
       try {
         mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+        mShouldCacheCurrentBlock =
+            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
         // TODO: Maybe debug log here
         long blockStart = currentBlockId * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
+        mShouldCacheCurrentBlock = mShouldCache;
       }
 
       // Reading next block entirely
-      if (mPos % mBlockSize == 0 && mShouldCache) {
+      if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
-          mShouldCacheCurrentBlock = true;
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
           mShouldCacheCurrentBlock = false;
