@@ -58,11 +58,12 @@ public class LoginUserTest {
   }
 
   /**
-   * Test whether we can get login user with conf in SIMPLE mode, when custom name is provided.
+   * Test whether we can get login user with conf in SIMPLE mode, when user name is provided by
+   * the application through configuration.
    * @throws Exception
    */
   @Test
-  public void getCustomLoginUserTest() throws Exception {
+  public void getSimpleLoginUserProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
     //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
@@ -76,12 +77,13 @@ public class LoginUserTest {
   }
 
   /**
-   * Test whether we can get login user with conf in SIMPLE mode, when custom name is set to an
-   * empty string. In this case, login should return the OS user instead of empty string.
+   * Test whether we can get login user with conf in SIMPLE mode, when user name is set to an
+   * empty string in the application configuration. In this case, login should return the OS user
+   * instead of empty string.
    * @throws Exception
    */
   @Test
-  public void getLoginUserWhenCustomIsEmpty() throws Exception {
+  public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
     //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
@@ -99,9 +101,48 @@ public class LoginUserTest {
    * @throws Exception
    */
   @Test
-  public void getLoginUserInCustomModeTest() throws Exception {
+  public void getCustomLoginUserTest() throws Exception {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+
+    User loginUser = LoginUser.get(conf);
+
+    Assert.assertNotNull(loginUser);
+    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+  }
+
+  /**
+   * Test whether we can get login user with conf in CUSTOM mode, when user name is provided by
+   * the application through configuration.
+   * @throws Exception
+   */
+  @Test
+  public void getCustomLoginUserProvidedByAppTest() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //instead of System.getProperty for retrieving user name.
+    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon-user");
+
+    User loginUser = LoginUser.get(conf);
+
+    Assert.assertNotNull(loginUser);
+    Assert.assertEquals(loginUser.getName(), "tachyon-user");
+  }
+
+  /**
+   * Test whether we can get login user with conf in CUSTOM mode, when user name is set to an
+   * empty string in the application configuration. In this case, login should return the OS user
+   * instead of empty string.
+   * @throws Exception
+   */
+  @Test
+  public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    //instead of System.getProperty for retrieving user name.
+    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
 
     User loginUser = LoginUser.get(conf);
 
