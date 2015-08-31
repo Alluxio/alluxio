@@ -67,7 +67,7 @@ public class BlockInStreamIntegrationTest {
    * Test <code>void read()</code>.
    */
   @Test
-  public void newReadTest1() throws IOException {
+  public void readTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -79,8 +79,8 @@ public class BlockInStreamIntegrationTest {
         os.close();
 
         TachyonFile f = sTfs.open(path);
-
         FileInStream is = sTfs.getInStream(f, op);
+
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
@@ -111,6 +111,102 @@ public class BlockInStreamIntegrationTest {
     }
   }
 
+  /**
+   * Test <code>void read(byte[] b)</code>.
+   */
+  @Test
+  public void readTest2() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (ClientOptions op : getOptionSet()) {
+        TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op);
+        FileOutStream os = sTfs.getOutStream(path, op);
+        for (int j = 0; j < k; j ++) {
+          os.write((byte) j);
+        }
+        os.close();
+
+        TachyonFile f = sTfs.open(path);
+        FileInStream is = sTfs.getInStream(f, op);
+        byte[] ret = new byte[k];
+        Assert.assertEquals(k, is.read(ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
+        is.close();
+
+        is = sTfs.getInStream(f, op);
+        ret = new byte[k];
+        Assert.assertEquals(k, is.read(ret));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
+        is.close();
+      }
+    }
+  }
+
+  /**
+   * Test <code>void read(byte[] b, int off, int len)</code>.
+   */
+  @Test
+  public void readTest3() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (ClientOptions op : getOptionSet()) {
+        TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op);
+        FileOutStream os = sTfs.getOutStream(path, op);
+        for (int j = 0; j < k; j ++) {
+          os.write((byte) j);
+        }
+        os.close();
+
+        TachyonFile f = sTfs.open(path);
+        FileInStream is = sTfs.getInStream(f, op);
+
+        byte[] ret = new byte[k / 2];
+        Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
+        is.close();
+
+        is = sTfs.getInStream(f, op);
+        ret = new byte[k];
+        Assert.assertEquals(k, is.read(ret, 0, k));
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
+        is.close();
+      }
+    }
+  }
+
+  /**
+   * Test <code>long skip(long len)</code>.
+   */
+  @Test
+  public void skipTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      for (ClientOptions op : getOptionSet()) {
+        TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op);
+        FileOutStream os = sTfs.getOutStream(path, op);
+        for (int j = 0; j < k; j ++) {
+          os.write((byte) j);
+        }
+        os.close();
+
+        TachyonFile f = sTfs.open(path);
+        FileInStream is = sTfs.getInStream(f, op);
+
+        Assert.assertEquals(k / 2, is.skip(k / 2));
+        Assert.assertEquals(k / 2, is.read());
+        is.close();
+
+        is = sTfs.getInStream(f, op);
+        int t = k / 3;
+        Assert.assertEquals(t, is.skip(t));
+        Assert.assertEquals(t, is.read());
+        Assert.assertEquals(t, is.skip(t));
+        Assert.assertEquals(2 * t + 1, is.read());
+        is.close();
+      }
+    }
+  }
+
   private List<ClientOptions> getOptionSet() {
     List<ClientOptions> ret = new ArrayList<ClientOptions>(10);
     ClientOptions writeBoth =
@@ -124,7 +220,7 @@ public class BlockInStreamIntegrationTest {
             .setUnderStorageType(UnderStorageType.PERSIST).build();
     ret.add(writeBoth);
     ret.add(writeTachyon);
-    //ret.add(writeUnderStore);
+    ret.add(writeUnderStore);
     return ret;
   }
 }

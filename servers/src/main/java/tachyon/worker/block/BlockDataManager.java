@@ -24,6 +24,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.client.BlockMasterClient;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
@@ -58,8 +59,10 @@ public final class BlockDataManager {
   /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
 
-  /** MasterClient, only used to inform the master of a new block in commitBlock */
-  private BlockMasterClient mMasterClient;
+  /** BlockMasterClient, only used to inform the master of a new block in commitBlock */
+  private BlockMasterClient mBlockMasterClient;
+  /** FileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
+  private FileSystemMasterClient mFileSystemMasterClient;
   /** UnderFileSystem Client */
   private UnderFileSystem mUfs;
   /** User metadata, used to keep track of user heartbeats */
@@ -73,7 +76,8 @@ public final class BlockDataManager {
    * @param workerSource object for collecting the worker metrics
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(WorkerSource workerSource, BlockMasterClient masterClient)
+  public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
+                          FileSystemMasterClient fileSystemMasterClient)
       throws IOException {
     // TODO: We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
@@ -82,7 +86,8 @@ public final class BlockDataManager {
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
-    mMasterClient = masterClient;
+    mBlockMasterClient = blockMasterClient;
+    mFileSystemMasterClient = fileSystemMasterClient;
 
     // Create Under FileSystem Client
     String ufsAddress =
@@ -157,8 +162,7 @@ public final class BlockDataManager {
     } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
-    // TODO: Support this?
-    // mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
+    mFileSystemMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
   }
 
   /**
@@ -199,7 +203,7 @@ public final class BlockDataManager {
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mMasterClient.workerCommitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
+      mBlockMasterClient.workerCommitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {
