@@ -52,6 +52,9 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   // Total number of bytes written to the remote block.
   private long mWrittenBytes;
 
+  /**
+   * Creates a new <code>NettyRemoteBlockWrite</code>.
+   */
   public NettyRemoteBlockWriter() {
     mHandler = new ClientHandler();
     mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
