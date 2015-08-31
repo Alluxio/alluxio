@@ -20,6 +20,7 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
 import org.apache.mesos.Protos;
 
+import tachyon.Format;
 import tachyon.master.TachyonMaster;
 
 public class TachyonMasterExecutor implements Executor {
@@ -48,7 +49,8 @@ public class TachyonMasterExecutor implements Executor {
 
           System.out.println("Running task " + task.getTaskId().getValue());
 
-          TachyonMaster.main(null);
+          Format.main(new String[]{"master"});
+          TachyonMaster.main(new String[]{});
 
           status =
               Protos.TaskStatus.newBuilder().setTaskId(task.getTaskId())

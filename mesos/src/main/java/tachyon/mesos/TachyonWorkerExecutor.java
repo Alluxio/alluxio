@@ -20,7 +20,11 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
 import org.apache.mesos.Protos;
 
+import tachyon.Constants;
+import tachyon.Format;
+import tachyon.conf.TachyonConf;
 import tachyon.worker.TachyonWorker;
+import tachyon.worker.WorkerContext;
 
 public class TachyonWorkerExecutor implements Executor {
   @Override
@@ -46,9 +50,11 @@ public class TachyonWorkerExecutor implements Executor {
 
           driver.sendStatusUpdate(status);
 
-          System.out.println("Running task " + task.getTaskId().getValue());
+          String taskId = task.getTaskId().getValue();
+          System.out.println("Running task " + taskId);
 
-          TachyonWorker.main(null);
+          Format.main(new String[]{"worker"});
+          TachyonWorker.main(new String[]{});
 
           status =
               Protos.TaskStatus.newBuilder().setTaskId(task.getTaskId())
