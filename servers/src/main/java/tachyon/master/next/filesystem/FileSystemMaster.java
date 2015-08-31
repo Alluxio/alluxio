@@ -34,6 +34,7 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
@@ -113,6 +114,21 @@ public class FileSystemMaster extends MasterBase {
     // TODO
     if (entry instanceof InodeEntry) {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else if (entry instanceof DependencyEntry) {
+      DependencyEntry dependencyEntry = (DependencyEntry) entry;
+      Dependency dependency = new Dependency(dependencyEntry.mId, dependencyEntry.mParentFiles,
+          dependencyEntry.mChildrenFiles, dependencyEntry.mCommandPrefix, dependencyEntry.mData,
+          dependencyEntry.mComment, dependencyEntry.mFramework, dependencyEntry.mFrameworkVersion,
+          dependencyEntry.mDependencyType, dependencyEntry.mParentDependencies,
+          dependencyEntry.mCreationTimeMs, mTachyonConf);
+      for (int childDependencyId : dependencyEntry.mChildrenDependencies) {
+        dependency.addChildrenDependency(childDependencyId);
+      }
+      for (long lostFileId : dependencyEntry.mLostFileIds) {
+        dependency.addLostFile(lostFileId);
+      }
+      dependency.resetUncheckpointedChildrenFiles(dependencyEntry.mUncheckpointedFiles);
+      mDependencyMap.addDependency(dependency);
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
