@@ -966,7 +966,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param id the raw table's id
    * @param metadata the new meta data
-   * @throws IOException
+   * @throws IOException when an event that prevents the metadata from being updated is encountered
    */
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
     mMasterClient.user_updateRawTableMetadata(id, metadata);

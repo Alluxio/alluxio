@@ -33,8 +33,10 @@ public class RawTable {
   private final ClientRawTableInfo mClientRawTableInfo;
 
   /**
-   * @param tachyonClient
-   * @param clientRawTableInfo
+   * Creates a new <code>RawTable</code>
+   *
+   * @param tachyonClient the <code>TachyonFS</code> client
+   * @param clientRawTableInfo information describing the table
    */
   public RawTable(TachyonFS tachyonClient, ClientRawTableInfo clientRawTableInfo) {
     mTachyonFS = tachyonClient;
@@ -77,7 +79,7 @@ public class RawTable {
   }
 
   /**
-   * Get one column of the raw table
+   * Get one column of the raw table.
    *
    * @param columnIndex the index of the column
    * @return the RawColumn
@@ -94,7 +96,7 @@ public class RawTable {
    * Update the meta data of the raw table
    *
    * @param metadata the new meta data
-   * @throws IOException
+   * @throws IOException if an event that prevents the metadata from being updated is encountered.
    */
   public void updateMetadata(ByteBuffer metadata) throws IOException {
     mTachyonFS.updateRawTableMetadata(mClientRawTableInfo.getId(), metadata);
