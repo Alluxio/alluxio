@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import tachyon.Constants;
 import tachyon.client.UserMasterClient;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ResourcePool;
