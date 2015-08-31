@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.io.PathUtils;
 
 /**
  * Servlet that provides data for browsing log files.
