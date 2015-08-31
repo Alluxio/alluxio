@@ -42,8 +42,11 @@ import tachyon.TachyonURI;
 import tachyon.master.DependencyType;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.DependencyEntry;
+import tachyon.master.next.filesystem.journal.CompleteFileEntry;
+import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
+import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 
 public class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -240,6 +243,7 @@ public class JsonJournalFormatter implements JournalFormatter {
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(
+                entry.getLong("workerId"),
                 entry.getLong("fileId"),
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
@@ -248,19 +252,41 @@ public class JsonJournalFormatter implements JournalFormatter {
           case DEPENDENCY: {
             return new DependencyEntry(
                 entry.getInt("id"),
-                entry.get("parentFiles", new TypeReference<List<Long>>() {}),
-                entry.get("childrenFiles", new TypeReference<List<Long>>() {}),
+                entry.get("parentFiles", new TypeReference<List<Long>>() {
+                }),
+                entry.get("childrenFiles", new TypeReference<List<Long>>() {
+                }),
                 entry.getString("commandPrefix"),
                 entry.getByteBufferList("data"),
                 entry.getString("comment"),
                 entry.getString("framework"),
                 entry.getString("frameworkVersion"),
                 entry.get("dependencyType", DependencyType.class),
-                entry.get("parentDependencies", new TypeReference<List<Integer>>() {}),
-                entry.get("childrenDependencies", new TypeReference<List<Integer>>() {}),
+                entry.get("parentDependencies", new TypeReference<List<Integer>>() {
+                }),
+                entry.get("childrenDependencies", new TypeReference<List<Integer>>() {
+                }),
                 entry.getLong("creationTimeMs"),
-                entry.get("uncheckpointedFiles", new TypeReference<List<Long>>() {}),
-                entry.get("lostFileIds", new TypeReference<Set<Long>>() {}));
+                entry.get("uncheckpointedFiles", new TypeReference<List<Long>>() {
+                }),
+                entry.get("lostFileIds", new TypeReference<Set<Long>>() {
+                }));
+          }
+          case COMPLETE_FILE: {
+            return new CompleteFileEntry(
+                entry.getLong("id"),
+                entry.getLong("length"),
+                entry.getLong("operationTimeMs"));
+          }
+          case FREE: {
+            return new FreeEntry(
+                entry.getLong("id"));
+          }
+          case SET_PINNED: {
+            return new SetPinnedEntry(
+                entry.getLong("id"),
+                entry.getBoolean("pinned"),
+                entry.getLong("operationTimeMs"));
           }
           default:
             throw new IOException("Unknown entry type: " + entry.mType);
