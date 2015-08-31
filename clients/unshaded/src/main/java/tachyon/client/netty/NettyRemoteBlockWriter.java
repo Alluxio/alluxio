@@ -85,7 +85,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   public void write(byte[] bytes, int offset, int length) throws IOException {
     SingleResponseListener listener = new SingleResponseListener();
     try {
-      // TODO: keep connection open across multiple write calls.
+      // TODO(hy): keep connection open across multiple write calls.
       ChannelFuture f = mClientBootstrap.connect(mAddress).sync();
 
       LOG.info("Connected to remote machine " + mAddress);
