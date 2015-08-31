@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalSerializable;
 import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.master.next.journal.JournalWriter;
 
@@ -94,6 +95,19 @@ public abstract class MasterBase implements Master {
     }
     try {
       mJournalWriter.getEntryOutputStream().writeEntry(entry);
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+  }
+
+  protected void writeJournalEntry(JournalSerializable entry) {
+    if (mJournalWriter == null) {
+      // TODO: Add this check back
+      // throw new RuntimeException("Cannot write entry: journal writer is null.");
+      return;
+    }
+    try {
+      entry.writeToJournal(mJournalWriter.getEntryOutputStream());
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
