@@ -53,8 +53,8 @@ import tachyon.worker.WorkerClient;
 
 /**
  * Client API to use Tachyon as a file system. This API is not compatible with HDFS file system API;
- * while tachyon.hadoop.AbstractTFS provides another API that exposes Tachyon as HDFS file
- * system. Under the hood, this class maintains a MasterClient to talk to the master server and
+ * while tachyon.hadoop.AbstractTFS provides another API that exposes Tachyon as HDFS file system.
+ * Under the hood, this class maintains a MasterClient to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
  */
 public class TachyonFS extends AbstractTachyonFS {
@@ -184,8 +184,7 @@ public class TachyonFS extends AbstractTachyonFS {
     mWorkerClient =
         mCloser.register(new WorkerClient(mMasterClient, mExecutorService, mTachyonConf,
             mClientMetrics));
-    mUserFailedSpaceRequestLimits =
-        mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
+    mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
 
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
@@ -401,7 +400,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fileId the file id
    * @param blockIndex The index of the block in the file.
    * @return the block id if exists
-   * @throws IOException when the file does not exist, or connection issue.
+   * @throws IOException if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
     ClientFileInfo info = getFileStatus(fileId, true);
@@ -498,8 +497,8 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Gets <code>TachyonFile</code> based on the path. If useCachedMetadata is true, this will not see
-   * changes to the file's pin setting, or other dynamic properties.
+   * Gets <code>TachyonFile</code> based on the path. If useCachedMetadata is true, this will not
+   * see changes to the file's pin setting, or other dynamic properties.
    *
    * @param path file path.
    * @param useCachedMetadata whether to use the file metadata cache
@@ -524,7 +523,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException when the underlying master RPC fails
    */
   public synchronized List<ClientBlockInfo> getFileBlocks(int fid) throws IOException {
-    // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
+    // TODO(hy): Should read from mClientFileInfos if possible. Should add timeout to improve this.
     return mMasterClient.user_getFileBlocks(fid, "");
   }
 
@@ -573,7 +572,7 @@ public class TachyonFS extends AbstractTachyonFS {
     }
     path = info.getPath();
 
-    // TODO: LRU
+    // TODO(hy): LRU
     mIdToClientFileInfo.put(fileId, info);
     mPathToClientFileInfo.put(path, info);
 
@@ -901,8 +900,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return -1;
     }
 
-    long userQuotaUnitBytes =
-        mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES);
+    long userQuotaUnitBytes = mTachyonConf.getBytes(Constants.USER_QUOTA_UNIT_BYTES);
 
     long toRequestSpaceBytes = Math.max(requestSpaceBytes, userQuotaUnitBytes);
     for (int attempt = 0; attempt < mUserFailedSpaceRequestLimits; attempt ++) {
@@ -1000,12 +998,13 @@ public class TachyonFS extends AbstractTachyonFS {
     Preconditions.checkNotNull(uri, "URI cannot be null.");
     Preconditions.checkArgument(uri.isPathAbsolute() || TachyonURI.EMPTY_URI.equals(uri),
         "URI must be absolute, unless it's empty.");
-    Preconditions.checkArgument(!uri.hasScheme() || mRootUri.getScheme().equals(uri.getScheme()),
+    Preconditions.checkArgument(
+        !uri.hasScheme() || mRootUri.getScheme().equals(uri.getScheme()),
         "URI's scheme: " + uri.getScheme() + " must match the file system's scheme: "
             + mRootUri.getScheme() + ", unless it doesn't have a scheme.");
-    Preconditions.checkArgument(!uri.hasAuthority()
-        || mRootUri.getAuthority().equals(uri.getAuthority()), "URI's authority: "
-        + uri.getAuthority() + " must match the file system's authority: "
-        + mRootUri.getAuthority() + ", unless it doesn't have an authority.");
+    Preconditions.checkArgument(
+        !uri.hasAuthority() || mRootUri.getAuthority().equals(uri.getAuthority()),
+        "URI's authority: " + uri.getAuthority() + " must match the file system's authority: "
+            + mRootUri.getAuthority() + ", unless it doesn't have an authority.");
   }
 }

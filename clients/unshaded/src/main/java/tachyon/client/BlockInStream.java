@@ -41,7 +41,7 @@ public abstract class BlockInStream extends InStream {
    * @param blockIndex the index of the block in the tachyonFile
    * @param tachyonConf the TachyonConf instance for this file output stream.
    * @return A new LocalBlockInStream or RemoteBlockInStream
-   * @throws IOException if the underlying file does not exist or its metadata is corrupted.
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
       TachyonConf tachyonConf) throws IOException {
@@ -57,7 +57,7 @@ public abstract class BlockInStream extends InStream {
    * @param blockIndex the index of the block in the tachyonFile
    * @param ufsConf the under file system configuration
    * @return A new LocalBlockInStream or RemoteBlockInStream
-   * @throws IOException if the underlying file does not exist or its metadata is corrupted.
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
       Object ufsConf, TachyonConf tachyonConf) throws IOException {
