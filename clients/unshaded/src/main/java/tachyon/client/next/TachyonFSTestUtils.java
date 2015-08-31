@@ -32,6 +32,22 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFS handler
    * @param fileName the name of the file to be created
+   * @param options client options to create the file with
+   * @param len file size in bytes
+   * @return the TachyonFile representation of the created file
+   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
+   */
+  public static TachyonFile createByteFile(TachyonFS tfs, String fileName, ClientOptions options,
+      int len) throws IOException {
+    return createByteFile(tfs, fileName, options.getCacheType(), options.getUnderStorageType(),
+        len, options.getBlockSize());
+  }
+
+  /**
+   * Create a simple file with <code>len</code> bytes.
+   *
+   * @param tfs a TachyonFS handler
+   * @param fileName the name of the file to be created
    * @param cacheType CacheType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size

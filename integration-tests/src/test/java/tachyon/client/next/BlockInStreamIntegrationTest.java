@@ -26,7 +26,8 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.WriteType;
+import tachyon.client.next.block.RemoteBlockInStream;
+import tachyon.client.next.file.ClientFileInStream;
 import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.FileOutStream;
 import tachyon.client.next.file.TachyonFS;
@@ -48,6 +49,9 @@ public class BlockInStreamIntegrationTest {
   private static LocalTachyonCluster sLocalTachyonCluster;
   private static TachyonFS sTfs;
   private static TachyonConf sTachyonConf;
+  private static ClientOptions sWriteBoth;
+  private static ClientOptions sWriteTachyon;
+  private static ClientOptions sWriteUnderStore;
 
   @AfterClass
   public static final void afterClass() throws Exception {
@@ -61,6 +65,15 @@ public class BlockInStreamIntegrationTest {
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    sWriteBoth =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
+    sWriteTachyon =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    sWriteUnderStore =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.NO_CACHE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
   }
 
   /**
@@ -208,19 +221,10 @@ public class BlockInStreamIntegrationTest {
   }
 
   private List<ClientOptions> getOptionSet() {
-    List<ClientOptions> ret = new ArrayList<ClientOptions>(10);
-    ClientOptions writeBoth =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
-    ClientOptions writeTachyon =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    ClientOptions writeUnderStore =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.NO_CACHE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
-    ret.add(writeBoth);
-    ret.add(writeTachyon);
-    ret.add(writeUnderStore);
+    List<ClientOptions> ret = new ArrayList<ClientOptions>(3);
+    ret.add(sWriteBoth);
+    ret.add(sWriteTachyon);
+    ret.add(sWriteUnderStore);
     return ret;
   }
 }
