@@ -24,6 +24,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
@@ -139,8 +140,10 @@ public final class InodeTree implements JournalSerializable {
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
+   * @return a list of Inodes created in the order of creation time, if no Inodes is created, the
+   *         list will be empty
    */
-  public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
+  public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
 
@@ -187,6 +190,7 @@ public final class InodeTree implements JournalSerializable {
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
+    List<Inode> ret = Lists.newArrayList();
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
       Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
@@ -194,6 +198,7 @@ public final class InodeTree implements JournalSerializable {
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
+      ret.add(dir);
       mInodes.add(dir);
       currentInodeDirectory = (InodeDirectory) dir;
     }
@@ -201,54 +206,34 @@ public final class InodeTree implements JournalSerializable {
     // Create the final path component. First we need to make sure that there isn't already a file
     // here with that name. If there is an existing file that is a directory and we're creating a
     // directory, we just return the existing directory's id.
-    Inode ret = currentInodeDirectory.getChild(name);
-    if (ret != null) {
-      if (ret.isDirectory() && directory) {
-        return ret;
+    Inode lastInode = currentInodeDirectory.getChild(name);
+    if (lastInode != null) {
+      if (lastInode.isDirectory() && directory) {
+        return ret; // Should be an empty list
       }
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
     }
     if (directory) {
-      ret = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
+      lastInode = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
           currentInodeDirectory.getId(), creationTimeMs);
     } else {
-      ret = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
+      lastInode = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
           currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
-        mPinnedInodeFileIds.add(ret.getId());
+        mPinnedInodeFileIds.add(lastInode.getId());
       }
     }
-    ret.setPinned(currentInodeDirectory.isPinned());
+    lastInode.setPinned(currentInodeDirectory.isPinned());
 
-    mInodes.add(ret);
-    currentInodeDirectory.addChild(ret);
+    ret.add(lastInode);
+    mInodes.add(lastInode);
+    currentInodeDirectory.addChild(lastInode);
     currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
 
-    LOG.debug("createFile: File Created: {} parent: ", ret, currentInodeDirectory);
+    LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
     return ret;
-  }
-
-  /**
-   * Returns the first(shortest) path prefix that is nonexistent in the inode tree.
-   *
-   * @param path The path to check whether its prefixes are in the inode tree
-   * @return The first nonexistent path prefix, or null if the path is in the tree
-   * @throws InvalidPathException when the path is invalid
-   */
-  public TachyonURI firstNonexistentPathPrefix(TachyonURI path) throws InvalidPathException {
-    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-    TraversalResult traversalResult = traverseToInode(pathComponents);
-    if (traversalResult.isFound()) {
-      return null;
-    }
-    int nonexistentPathIndex = traversalResult.getNonexistentPathIndex();
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i <= nonexistentPathIndex; i ++) {
-      sb.append(pathComponents[i]);
-    }
-    return new TachyonURI(sb.toString());
   }
 
   /**
