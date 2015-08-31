@@ -143,7 +143,7 @@ public enum BSContext {
     try {
       long clientId = userMasterClient.getUserId();
       return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
-          clientId, new ClientMetrics());
+          clientId, false, new ClientMetrics());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to get an ID from the master.", ioe);
     } finally {

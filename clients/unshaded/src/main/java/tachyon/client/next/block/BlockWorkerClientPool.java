@@ -25,11 +25,12 @@ import tachyon.client.next.ResourcePool;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.next.WorkerClient;
 
 /**
- * Class for managing block worker clients. After obtaining a client with {@link
+ * Class for managing local block worker clients. After obtaining a client with {@link
  * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
  * using the client.
  */
@@ -59,7 +60,7 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
     try {
       long clientId = userMasterClient.getUserId();
       return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
-          clientId, new ClientMetrics());
+          clientId, true, new ClientMetrics());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to create new BlockWorker Client.", ioe);
     } finally {
