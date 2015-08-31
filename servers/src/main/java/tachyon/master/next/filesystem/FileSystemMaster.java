@@ -153,6 +153,7 @@ public class FileSystemMaster extends MasterBase {
     LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
     if (completeFileCheckpointInternal(workerId, fileId, length, checkpointPath, opTimeMs)) {
       writeJournalEntry(new AddCheckpointEntry(workerId, fileId, length, checkpointPath, opTimeMs));
+      flushJournal();
     }
     return true;
   }
@@ -303,6 +304,7 @@ public class FileSystemMaster extends MasterBase {
 
       completeFileInternal(fileId, fileLength, opTimeMs);
       writeJournalEntry(new CompleteFileEntry(fileId, fileLength, opTimeMs));
+      flushJournal();
     }
   }
 
@@ -338,6 +340,7 @@ public class FileSystemMaster extends MasterBase {
       } else {
         writeJournalEntry(inode);
       }
+      flushJournal();
 
       return inode.getId();
     }
@@ -548,6 +551,7 @@ public class FileSystemMaster extends MasterBase {
       long opTimeMs = System.currentTimeMillis();
       setPinnedInternal(fileId, pinned, opTimeMs);
       writeJournalEntry(new SetPinnedEntry(fileId, pinned, opTimeMs));
+      flushJournal();
     }
   }
 
@@ -582,6 +586,7 @@ public class FileSystemMaster extends MasterBase {
       }
       freeInternal(inode);
       writeJournalEntry(new FreeEntry(fileId));
+      flushJournal();
     }
 
     return true;
