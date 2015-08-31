@@ -15,6 +15,8 @@
 
 package tachyon.util.io;
 
+import java.util.LinkedList;
+
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -88,5 +90,105 @@ public class PathUtilsTest {
     // Header
     Assert.assertEquals(Constants.HEADER + "host:port/foo/bar",
         PathUtils.concatPath(Constants.HEADER + "host:port", "/foo", "bar"));
+  }
+
+  @Test
+  public void cleanPathNoExceptionTest() throws InvalidPathException {
+    // test clean path
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar"));
+
+    // test trailing slash
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar/"));
+
+    // test redundant slashes
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar"));
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar//"));
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo///////bar//////"));
+
+    // test dots gets resolved
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/./bar"));
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/././bar"));
+    Assert.assertEquals("/foo", PathUtils.cleanPath("/foo/bar/.."));
+    Assert.assertEquals("/bar", PathUtils.cleanPath("/foo/../bar"));
+    Assert.assertEquals("/", PathUtils.cleanPath("/foo/bar/../.."));
+
+    // the following seems strange
+    // TODO instead of returning null, throw InvalidPathException
+    Assert.assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
+  }
+
+  @Test
+  public void cleanPathExceptionTest() throws InvalidPathException {
+    mException.expect(InvalidPathException.class);
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/\\   foo / bar"));
+  }
+
+  @Test
+  public void getParentTest() throws InvalidPathException {
+    // get a parent that is non-root
+    Assert.assertEquals("/foo", PathUtils.getParent("/foo/bar"));
+    Assert.assertEquals("/foo", PathUtils.getParent("/foo/bar/"));
+    Assert.assertEquals("/foo", PathUtils.getParent("/foo/./bar/"));
+    Assert.assertEquals("/foo", PathUtils.getParent("/foo/././bar/"));
+
+    // get a parent that is root
+    Assert.assertEquals("/", PathUtils.getParent("/foo"));
+    Assert.assertEquals("/", PathUtils.getParent("/foo/bar/../"));
+    Assert.assertEquals("/", PathUtils.getParent("/foo/../bar/"));
+
+    // get parent of root
+    Assert.assertEquals("/", PathUtils.getParent("/"));
+    Assert.assertEquals("/", PathUtils.getParent("/foo/bar/../../"));
+    Assert.assertEquals("/", PathUtils.getParent("/foo/../bar/../"));
+  }
+
+  @Test
+  public void isRootTest() throws InvalidPathException {
+    // check a path that is non-root
+    Assert.assertFalse(PathUtils.isRoot("/foo/bar"));
+    Assert.assertFalse(PathUtils.isRoot("/foo/bar/"));
+    Assert.assertFalse(PathUtils.isRoot("/foo/./bar/"));
+    Assert.assertFalse(PathUtils.isRoot("/foo/././bar/"));
+    Assert.assertFalse(PathUtils.isRoot("/foo/../bar"));
+    Assert.assertFalse(PathUtils.isRoot("/foo/../bar/"));
+
+    // check a path that is root
+    Assert.assertTrue(PathUtils.isRoot("/"));
+    Assert.assertTrue(PathUtils.isRoot("/"));
+    Assert.assertTrue(PathUtils.isRoot("/."));
+    Assert.assertTrue(PathUtils.isRoot("/./"));
+    Assert.assertTrue(PathUtils.isRoot("/foo/.."));
+    Assert.assertTrue(PathUtils.isRoot("/foo/../"));
+  }
+
+  @Test
+  public void validatePathTest() throws InvalidPathException {
+    // check valid paths
+    PathUtils.validatePath("/foo/bar");
+    PathUtils.validatePath("/foo/bar/");
+    PathUtils.validatePath("/foo/./bar/");
+    PathUtils.validatePath("/foo/././bar/");
+    PathUtils.validatePath("/foo/../bar");
+    PathUtils.validatePath("/foo/../bar/");
+
+    // check invalid paths
+    LinkedList<String> invalidPaths = new LinkedList<String>();
+    invalidPaths.add(null);
+    invalidPaths.add("");
+    invalidPaths.add(" /");
+    invalidPaths.add("/ ");
+    for (String invalidPath : invalidPaths) {
+      try {
+        PathUtils.validatePath(invalidPath);
+        Assert.fail("validatePath(" + invalidPath + ") did not fail");
+      } catch (InvalidPathException ipe) {
+        // this is expected
+      }
+    }
+  }
+
+  @Test
+  public void uniqPathTest() {
+    Assert.assertNotEquals(PathUtils.uniqPath(), PathUtils.uniqPath());
   }
 }
