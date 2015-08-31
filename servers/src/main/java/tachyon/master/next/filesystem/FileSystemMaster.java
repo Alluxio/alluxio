@@ -34,7 +34,6 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
-import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
@@ -599,7 +598,6 @@ public class FileSystemMaster extends MasterBase {
 
   @Override
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
     mInodeTree.writeToJournal(outputStream);
     mDependencyMap.writeToJournal(outputStream);
   }

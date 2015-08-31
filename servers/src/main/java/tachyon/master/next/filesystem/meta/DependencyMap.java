@@ -134,6 +134,8 @@ public class DependencyMap implements JournalSerializable {
 
   @Override
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
+    for (Dependency dependency : mDependencyMap) {
+      dependency.writeToJournal(outputStream);
+    }
   }
 }
