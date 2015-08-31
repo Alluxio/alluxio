@@ -19,40 +19,26 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
-import tachyon.TachyonURI;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalEntryType;
 
-public class AddCheckpointEntry implements JournalEntry {
-  private final long mWorkerId;
-  private final long mFileId;
+public class CompleteFileEntry implements JournalEntry {
+  private final long mId;
   private final long mLength;
-  private final String mCheckpointPath;
   private final long mOpTimeMs;
 
-  public AddCheckpointEntry(long workerId, long fileId, long length, TachyonURI checkpointPath,
-      long opTimeMs) {
-    mWorkerId = workerId;
-    mFileId = fileId;
+  public CompleteFileEntry(long id, long length, long opTimeMs) {
+    mId = id;
     mLength = length;
-    mCheckpointPath = checkpointPath.getPath();
     mOpTimeMs = opTimeMs;
   }
 
-  public long getWorkerId() {
-    return mWorkerId;
-  }
-
   public long getFileId() {
-    return mFileId;
+    return mId;
   }
 
   public long getFileLength() {
     return mLength;
-  }
-
-  public TachyonURI getCheckpointPath() {
-    return new TachyonURI(mCheckpointPath);
   }
 
   public long getOperationTimeMs() {
@@ -61,16 +47,14 @@ public class AddCheckpointEntry implements JournalEntry {
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.ADD_CHECKPOINT;
+    return JournalEntryType.COMPLETE_FILE;
   }
 
   @Override
   public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(5);
-    parameters.put("workerId", mWorkerId);
-    parameters.put("fileId", mFileId);
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
+    parameters.put("id", mId);
     parameters.put("length", mLength);
-    parameters.put("checkpointPath", mCheckpointPath);
     parameters.put("operationTimeMs", mOpTimeMs);
     return parameters;
   }

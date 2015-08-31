@@ -34,7 +34,10 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.CompleteFileEntry;
+import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
+import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
 import tachyon.master.next.filesystem.meta.Inode;
@@ -113,6 +116,14 @@ public class FileSystemMaster extends MasterBase {
     // TODO
     if (entry instanceof InodeEntry) {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else if (entry instanceof CompleteFileEntry) {
+      completeFileFromEntry((CompleteFileEntry) entry);
+    } else if (entry instanceof AddCheckpointEntry) {
+      completeFileCheckpointFromEntry((AddCheckpointEntry) entry);
+    } else if (entry instanceof FreeEntry) {
+      freeFromEntry((FreeEntry) entry);
+    } else if (entry instanceof SetPinnedEntry) {
+      setPinnedFromEntry((SetPinnedEntry) entry);
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
@@ -147,7 +158,19 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     long opTimeMs = System.currentTimeMillis();
     LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
+    if (completeFileCheckpointInternal(workerId, fileId, length, checkpointPath, opTimeMs)) {
+      writeJournalEntry(new AddCheckpointEntry(workerId, fileId, length, checkpointPath, opTimeMs));
+      flushJournal();
+    }
+    return true;
+  }
 
+  /**
+   * @return whether the operation needs to be written to journal
+   */
+  private boolean completeFileCheckpointInternal(long workerId, long fileId,
+      long length, TachyonURI checkpointPath, long opTimeMs)
+          throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
     if (workerId != -1) {
       // TODO: how to update worker timestamp?
       // workerInfo.updateLastUpdatedTimeMs();
@@ -169,6 +192,14 @@ public class FileSystemMaster extends MasterBase {
         }
       } else {
         tFile.setLength(length);
+        // Commit all the file blocks (without locations) so the metadata for the block exists.
+        long currLength = length;
+        for (long blockId : tFile.getBlockIds()) {
+          long blockSize = Math.min(currLength, tFile.getBlockSizeBytes());
+          mBlockMaster.commitBlock(blockId, blockSize);
+          currLength -= blockSize;
+        }
+
         needLog = true;
       }
 
@@ -188,15 +219,23 @@ public class FileSystemMaster extends MasterBase {
         }
       }
       mDependencyMap.addFileCheckpoint(fileId);
+      tFile.setLastModificationTimeMs(opTimeMs);
       tFile.setComplete(length);
-
-      if (needLog) {
-        tFile.setLastModificationTimeMs(opTimeMs);
-        writeJournalEntry(new AddCheckpointEntry(fileId, length, checkpointPath, opTimeMs));
-      }
-      return true;
+      return needLog;
     }
+  }
 
+  private void completeFileCheckpointFromEntry(AddCheckpointEntry entry) {
+    try {
+      completeFileCheckpointInternal(entry.getWorkerId(), entry.getFileId(), entry.getFileLength(),
+          entry.getCheckpointPath(), entry.getOperationTimeMs());
+    } catch (FileDoesNotExistException fdnee) {
+      throw new RuntimeException(fdnee);
+    } catch (SuspectedFileSizeException sfse) {
+      throw new RuntimeException(sfse);
+    } catch (BlockInfoException bie) {
+      throw new RuntimeException(bie);
+    }
   }
 
   /**
@@ -278,10 +317,25 @@ public class FileSystemMaster extends MasterBase {
         }
       }
 
-      mDependencyMap.addFileCheckpoint(fileId);
-      ((InodeFile) inode).setComplete(fileLength);
-      inode.setLastModificationTimeMs(opTimeMs);
-      // TODO: write to journal
+      completeFileInternal(fileId, fileLength, opTimeMs);
+      writeJournalEntry(new CompleteFileEntry(fileId, fileLength, opTimeMs));
+      flushJournal();
+    }
+  }
+
+  private void completeFileInternal(long fileId, long fileLength, long opTimeMs)
+      throws FileDoesNotExistException {
+    mDependencyMap.addFileCheckpoint(fileId);
+    Inode inode = mInodeTree.getInodeById(fileId);
+    ((InodeFile) inode).setComplete(fileLength);
+    inode.setLastModificationTimeMs(opTimeMs);
+  }
+
+  private void completeFileFromEntry(CompleteFileEntry entry) {
+    try {
+      completeFileInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
+    } catch (FileDoesNotExistException fdnee) {
+      throw new RuntimeException(fdnee);
     }
   }
 
@@ -289,13 +343,18 @@ public class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      InodeFile inode = (InodeFile) mInodeTree.createPath(path, blockSizeBytes, recursive, false);
+      List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false);
+      // If the create succeeded, the list of created inodes will not be empty.
+      InodeFile inode = (InodeFile) created.get(created.size() - 1);
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
-      return inode.getId();
 
-      // TODO: write to journal
+      // Writing the first created inode to the journal will also write its children.
+      writeJournalEntry(created.get(0));
+      flushJournal();
+
+      return inode.getId();
     }
   }
 
@@ -501,9 +560,24 @@ public class FileSystemMaster extends MasterBase {
   public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
-      mInodeTree.setPinned(inode, pinned);
-      // TODO: write to journal
+      long opTimeMs = System.currentTimeMillis();
+      setPinnedInternal(fileId, pinned, opTimeMs);
+      writeJournalEntry(new SetPinnedEntry(fileId, pinned, opTimeMs));
+      flushJournal();
+    }
+  }
+
+  private void setPinnedInternal(long fileId, boolean pinned, long opTimeMs)
+      throws FileDoesNotExistException {
+    Inode inode = mInodeTree.getInodeById(fileId);
+    mInodeTree.setPinned(inode, pinned, opTimeMs);
+  }
+
+  private void setPinnedFromEntry(SetPinnedEntry entry) {
+    try {
+      setPinnedInternal(entry.getId(), entry.getPinned(), entry.getOperationTimeMs());
+    } catch (FileDoesNotExistException fdnee) {
+      throw new RuntimeException(fdnee);
     }
   }
 
@@ -522,25 +596,38 @@ public class FileSystemMaster extends MasterBase {
         // The root cannot be freed.
         return false;
       }
-
-      List<Inode> freeInodes = new ArrayList<Inode>();
-      freeInodes.add(inode);
-      if (inode.isDirectory()) {
-        freeInodes.addAll(mInodeTree.getInodeChildrenRecursive((InodeDirectory) inode));
-      }
-
-      // We go through each inode.
-      for (int i = freeInodes.size() - 1; i >= 0; i --) {
-        Inode freeInode = freeInodes.get(i);
-
-        if (freeInode.isFile()) {
-          // Remove corresponding blocks from workers.
-          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
-        }
-      }
-      // TODO: write to journal
+      freeInternal(inode);
+      writeJournalEntry(new FreeEntry(fileId));
+      flushJournal();
     }
+
     return true;
+  }
+
+  private void freeInternal(Inode inode) {
+    List<Inode> freeInodes = new ArrayList<Inode>();
+    freeInodes.add(inode);
+    if (inode.isDirectory()) {
+      freeInodes.addAll(mInodeTree.getInodeChildrenRecursive((InodeDirectory) inode));
+    }
+
+    // We go through each inode.
+    for (int i = freeInodes.size() - 1; i >= 0; i--) {
+      Inode freeInode = freeInodes.get(i);
+
+      if (freeInode.isFile()) {
+        // Remove corresponding blocks from workers.
+        mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
+      }
+    }
+  }
+
+  private void freeFromEntry(FreeEntry entry) {
+    try {
+      freeInternal(mInodeTree.getInodeById(entry.getId()));
+    } catch (FileDoesNotExistException fdnee) {
+      throw new RuntimeException(fdnee);
+    }
   }
 
   public Set<Long> getPinIdList() {

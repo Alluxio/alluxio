@@ -39,8 +39,11 @@ import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.CompleteFileEntry;
+import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
+import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 
 public class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -237,9 +240,26 @@ public class JsonJournalFormatter implements JournalFormatter {
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(
+                entry.getLong("workerId"),
                 entry.getLong("fileId"),
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
+                entry.getLong("operationTimeMs"));
+          }
+          case COMPLETE_FILE: {
+            return new CompleteFileEntry(
+                entry.getLong("id"),
+                entry.getLong("length"),
+                entry.getLong("operationTimeMs"));
+          }
+          case FREE: {
+            return new FreeEntry(
+                entry.getLong("id"));
+          }
+          case SET_PINNED: {
+            return new SetPinnedEntry(
+                entry.getLong("id"),
+                entry.getBoolean("pinned"),
                 entry.getLong("operationTimeMs"));
           }
           default:

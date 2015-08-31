@@ -298,12 +298,23 @@ public final class FileSystemMasterClient extends MasterClient {
     throw new IOException("This connection has been closed.");
   }
 
-  // TODO: See if these methods can/should be implemented
-
   public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
       String checkpointPath) throws IOException {
-    return false;
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.addCheckpoint(workerId, (int) fileId, length, checkpointPath);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
   }
+
+  // TODO: See if these methods can/should be implemented
 
   public synchronized void userHeartbeat() throws IOException {
 
