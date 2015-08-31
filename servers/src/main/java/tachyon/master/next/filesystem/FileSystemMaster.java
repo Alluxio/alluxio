@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -80,8 +81,8 @@ public class FileSystemMaster extends MasterBase {
   private final PrefixList mWhitelist;
 
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
-      Journal journal) {
-    super(journal);
+      Journal journal, ExecutorService executorService) {
+    super(journal, executorService);
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
 

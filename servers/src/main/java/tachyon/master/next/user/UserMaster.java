@@ -16,6 +16,7 @@
 package tachyon.master.next.user;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.TProcessor;
@@ -36,8 +37,8 @@ public class UserMaster extends MasterBase {
 
   private final AtomicLong mNextUserId = new AtomicLong(1);
 
-  public UserMaster(Journal journal) {
-    super(journal);
+  public UserMaster(Journal journal, ExecutorService executorService) {
+    super(journal, executorService);
   }
 
   @Override

@@ -17,6 +17,8 @@ package tachyon.master.next;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -42,6 +44,7 @@ import tachyon.master.next.rawtable.RawTableMaster;
 import tachyon.master.next.user.UserMaster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -78,6 +81,11 @@ public class TachyonMaster {
   private final int mPort;
   private final TServerSocket mTServerSocket;
   private final InetSocketAddress mMasterAddress;
+  /**
+   * executor service for thread management
+   */
+  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2,
+      ThreadFactoryUtils.build("master-%d", true));
 
   // The masters
   private UserMaster mUserMaster;
@@ -141,11 +149,12 @@ public class TachyonMaster {
           PathUtils.concatPath(journalDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME),
           mTachyonConf);
 
-      mUserMaster = new UserMaster(mUserMasterJournal);
-      mBlockMaster = new BlockMaster(mBlockMasterJournal);
-      mFileSystemMaster =
-          new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
-      mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
+      mUserMaster = new UserMaster(mUserMasterJournal, mExecutorService);
+      mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf, mExecutorService);
+      mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal,
+          mExecutorService);
+      mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal,
+          mExecutorService);
 
       // TODO: implement metrics.
 
@@ -242,12 +251,13 @@ public class TachyonMaster {
 
             // When transitioning from master to standby, recreate the masters with a readonly
             // journal.
-            mUserMaster = new UserMaster(mUserMasterJournal.getReadOnlyJournal());
-            mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
+            mUserMaster = new UserMaster(mUserMasterJournal.getReadOnlyJournal(), mExecutorService);
+            mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal(), mTachyonConf,
+                mExecutorService);
             mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
-                mFileSystemMasterJournal.getReadOnlyJournal());
+                mFileSystemMasterJournal.getReadOnlyJournal(), mExecutorService);
             mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
-                mRawTableMasterJournal.getReadOnlyJournal());
+                mRawTableMasterJournal.getReadOnlyJournal(), mExecutorService);
             startMaster(false);
             started = true;
           }
