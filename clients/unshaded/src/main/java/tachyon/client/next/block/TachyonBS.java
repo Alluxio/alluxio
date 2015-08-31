@@ -79,6 +79,10 @@ public class TachyonBS implements Closeable {
       // TODO: Fix this RPC
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
       // TODO: Get location via a policy
+      if (blockInfo.locations.isEmpty()) {
+        // TODO: Maybe this shouldn't be an exception
+        throw new IOException("No block " + blockId + " is not available in Tachyon");
+      }
       return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
           .getWorkerAddress());
     } finally {
