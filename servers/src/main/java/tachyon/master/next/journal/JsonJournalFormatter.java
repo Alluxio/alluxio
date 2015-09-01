@@ -44,6 +44,7 @@ import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
+import tachyon.master.next.filesystem.journal.RenameEntry;
 import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 
 public class JsonJournalFormatter implements JournalFormatter {
@@ -267,6 +268,12 @@ public class JsonJournalFormatter implements JournalFormatter {
             return new DeleteFileEntry(
                 entry.getLong("fileId"),
                 entry.getBoolean("recursive"),
+                entry.getLong("operationTimeMs"));
+          }
+          case RENAME: {
+            return new RenameEntry(
+                entry.getLong("fileId"),
+                entry.getString("destinationPath"),
                 entry.getLong("operationTimeMs"));
           }
           default:
