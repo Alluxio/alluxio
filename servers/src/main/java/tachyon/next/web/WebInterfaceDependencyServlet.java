@@ -25,17 +25,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.master.next.MasterInfo;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileDoesNotExistException;
 
-public class WebInterfaceDependencyServlet extends HttpServlet {
+public final class WebInterfaceDependencyServlet extends HttpServlet {
   private static final long serialVersionUID = 2071462168900313417L;
   private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceDependencyServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+    mMasterInfo = Preconditions.checkNotNull(masterInfo);
   }
 
   @Override

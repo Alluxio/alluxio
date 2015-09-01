@@ -27,6 +27,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
@@ -43,14 +45,14 @@ import tachyon.worker.block.meta.BlockMeta;
 /**
  * Servlet that provides data for displaying block info of a worker.
  */
-public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
+public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
   private final transient BlockDataManager mBlockDataManager;
   private final transient TachyonConf mTachyonConf;
 
   public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager, TachyonConf conf) {
-    mBlockDataManager = blockDataManager;
-    mTachyonConf = conf;
+    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+    mTachyonConf = Preconditions.checkNotNull(conf);
   }
 
   /**

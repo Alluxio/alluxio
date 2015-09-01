@@ -531,8 +531,8 @@ public class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Return whether the inodeFile is fully in memory or not. The file is fully in memory only if all
-   * the blocks of the file are in memory, in other words, the in memory percentage is 100.
+   * Returns whether the inodeFile is fully in memory or not. The file is fully in memory only if
+   * all the blocks of the file are in memory, in other words, the in memory percentage is 100.
    *
    * @return true if the file is fully in memory, false otherwise
    */
