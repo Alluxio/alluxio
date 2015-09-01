@@ -40,10 +40,10 @@ public class TachyonJaasConfiguration extends Configuration {
       new AppConfigurationEntry(TachyonJaasProperties.getOsLoginModuleName(),
           AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, BASIC_JAAS_OPTIONS);
   /**
-   * This custom login module allows an customized user name to be specified.
+   * This app login module allows a user name provided by application to be specified.
    */
-  private static final AppConfigurationEntry CUSTOM_LOGIN =
-      new AppConfigurationEntry(CustomLoginModule.class.getName(),
+  private static final AppConfigurationEntry APP_LOGIN =
+      new AppConfigurationEntry(AppLoginModule.class.getName(),
           AppConfigurationEntry.LoginModuleControlFlag.SUFFICIENT, BASIC_JAAS_OPTIONS);
 
   private static final AppConfigurationEntry TACHYON_LOGIN =
@@ -55,20 +55,21 @@ public class TachyonJaasConfiguration extends Configuration {
 
   /**
    * In SIMPLE mode, JAAS first tries to retrieve the user name set by the application with
-   * {@link tachyon.security.login.CustomLoginModule}. Upon failure, it use the OS specific login
-   * module to fetch the OS user, and then use the {@link tachyon.security.TachyonLoginModule} to
-   * convert it to a Tachyon user represented by {@link tachyon.security.User}.
+   * {@link tachyon.security.login.AppLoginModule}. Upon failure, it use the OS specific login
+   * module to fetch the OS user, and then use the {@link tachyon.security.login.TachyonLoginModule}
+   * to convert it to a Tachyon user represented by {@link tachyon.security.User}.
+   * In CUSTOM mode, we also use this configuration.
    */
   private static final AppConfigurationEntry[] SIMPLE = new
-      AppConfigurationEntry[]{CUSTOM_LOGIN, OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
+      AppConfigurationEntry[]{APP_LOGIN, OS_SPECIFIC_LOGIN, TACHYON_LOGIN};
 
   // TODO: add Kerberos mode
   // private static final AppConfigurationEntry[] KERBEROS = ...
 
   @Override
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
-    if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.SIMPLE.getAuthName())) {
-      // TODO: also return SIMPLE for AuthenticationFactory.AuthType.CUSTOM
+    if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.SIMPLE.getAuthName())
+        || appName.equalsIgnoreCase(AuthenticationFactory.AuthType.CUSTOM.getAuthName())) {
       return SIMPLE;
     } else if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.KERBEROS.getAuthName())) {
       // TODO: return KERBEROS;
