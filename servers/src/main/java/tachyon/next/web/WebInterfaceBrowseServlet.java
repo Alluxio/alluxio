@@ -213,7 +213,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           toAdd.setFileLocations(mMasterInfo.getFileBlockList(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {
-        request.setAttribute("FileDoesNotExistException", "Error: non-existing file " + fdne.getMessage());
+        request.setAttribute("FileDoesNotExistException",
+            "Error: non-existing file " + fdne.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
       } catch (InvalidPathException ipe) {
