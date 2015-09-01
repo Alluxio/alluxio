@@ -20,11 +20,8 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
 import org.apache.mesos.Protos;
 
-import tachyon.Constants;
 import tachyon.Format;
-import tachyon.conf.TachyonConf;
 import tachyon.worker.TachyonWorker;
-import tachyon.worker.WorkerContext;
 
 public class TachyonWorkerExecutor implements Executor {
   @Override
