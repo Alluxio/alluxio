@@ -488,13 +488,16 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       try {
-        mInodeTree.createPath(path, 0, recursive, true);
+        List<Inode> created = mInodeTree.createPath(path, 0, recursive, true);
+        for (Inode inode : created) {
+          writeJournalEntry(inode);
+        }
+        flushJournal();
       } catch (BlockInfoException bie) {
         // Since we are creating a directory, the block size is ignored, no such exception should
         // happen.
         Throwables.propagate(bie);
       }
-      // TODO: write to journal
     }
 
   }
