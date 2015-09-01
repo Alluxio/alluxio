@@ -10,7 +10,7 @@ We also assume that the user has set up Tachyon and Hadoop in accordance to thes
 [Local Mode](Running-Tachyon-Locally.html) or [Cluster Mode](Running-Tachyon-on-a-Cluster.html).
 
 Shark 0.7 adds a new storage format to support efficiently reading data from
-[Tachyon](http://tachyonproject.org), which enables data sharing and isolation across instances of
+[Tachyon](http://tachyon-project.org), which enables data sharing and isolation across instances of
 Shark. Our meetup [slide](http://goo.gl/fVmxCG) gives a good overview of the benefits of using
 Tachyon to cache Shark's tables. In summary, the followings are four major ones:
 
