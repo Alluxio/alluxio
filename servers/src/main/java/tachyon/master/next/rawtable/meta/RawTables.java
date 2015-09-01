@@ -15,16 +15,19 @@
 
 package tachyon.master.next.rawtable.meta;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import tachyon.master.next.IndexedSet;
+import tachyon.master.next.journal.JournalOutputStream;
+import tachyon.master.next.journal.JournalSerializable;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.util.io.BufferUtils;
 
 /**
  * All RawTables managed by RawTableMaster.
  */
-public class RawTables {
+public class RawTables implements JournalSerializable {
   private final IndexedSet.FieldIndex<RawTable> mIdIndex = new IndexedSet.FieldIndex<RawTable>() {
     @Override
     public Object getFieldValue(RawTable o) {
@@ -118,5 +121,12 @@ public class RawTables {
     }
 
     table.setMetadata(metadata);
+  }
+
+  @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    for (RawTable table : mTables) {
+      table.writeToJournal(outputStream);
+    }
   }
 }

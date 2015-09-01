@@ -257,15 +257,20 @@ public final class InodeTree implements JournalSerializable {
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
    * @param inode The {@link Inode} to delete
+   * @param opTimeMs The operation time
    */
-  public void deleteInode(Inode inode) throws FileDoesNotExistException {
+  public void deleteInode(Inode inode, long opTimeMs) throws FileDoesNotExistException {
     InodeDirectory parent = (InodeDirectory) getInodeById(inode.getParentId());
     parent.removeChild(inode);
-    parent.setLastModificationTimeMs(System.currentTimeMillis());
+    parent.setLastModificationTimeMs(opTimeMs);
 
     mInodes.remove(inode);
     mPinnedInodeFileIds.remove(inode.getId());
     inode.delete();
+  }
+
+  public void deleteInode(Inode inode) throws FileDoesNotExistException {
+    deleteInode(inode, System.currentTimeMillis());
   }
 
   /**

@@ -26,7 +26,6 @@ import tachyon.Constants;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.user.journal.UserIdGeneratorEntry;
 import tachyon.thrift.UserMasterService;
@@ -52,21 +51,17 @@ public class UserMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      processJournalEntry(entry);
-    }
-    inputStream.close();
-  }
-
-  @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry instanceof UserIdGeneratorEntry) {
       mNextUserId.set(((UserIdGeneratorEntry) entry).getNextUserId());
     } else {
       throw new IOException("unexpected entry in checkpoint: " + entry);
     }
+  }
+
+  @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    outputStream.writeEntry(new UserIdGeneratorEntry(mNextUserId.get()));
   }
 
   @Override
@@ -77,11 +72,6 @@ public class UserMaster extends MasterBase {
   @Override
   public void stop() throws IOException {
     stopMaster();
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(new UserIdGeneratorEntry(mNextUserId.get()));
   }
 
   public long getUserId() {

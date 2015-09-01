@@ -15,11 +15,15 @@
 
 package tachyon.master.next.rawtable.meta;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import tachyon.master.next.journal.JournalOutputStream;
+import tachyon.master.next.journal.JournalSerializable;
+import tachyon.master.next.rawtable.journal.RawTableEntry;
 import tachyon.util.io.BufferUtils;
 
-public class RawTable {
+public class RawTable implements JournalSerializable {
   /** Table ID */
   private final long mId;
   /** Number of columns */
@@ -75,5 +79,10 @@ public class RawTable {
    */
   public void setMetadata(ByteBuffer metadata) {
     mMetadata = BufferUtils.cloneByteBuffer(metadata);
+  }
+
+  @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    outputStream.writeEntry(new RawTableEntry(mId, mColumns, mMetadata));
   }
 }
