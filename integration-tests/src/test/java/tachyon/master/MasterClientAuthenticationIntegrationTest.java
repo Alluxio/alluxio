@@ -175,7 +175,7 @@ public class MasterClientAuthenticationIntegrationTest {
     System.setProperty(Constants.TACHYON_SECURITY_AUTHENTICATION,
         AuthType.KERBEROS.getAuthName());
     //Currently the kerberos authentication doesn't support
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("Kerberos is not supported currently");
     //start cluster
     mLocalTachyonCluster.start();
