@@ -82,8 +82,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
       new LinkedBlockingQueue<MasterWorkerInfo>();
   private final TachyonConf mTachyonConf;
 
-  // heart beat service
-  private Future<?> mHeartbeat;
+  /**
+   * the service that detects lost worker nodes, and tries to restart the failed workers
+   */
+  private Future<?> mLostWorkerDetectionService;
 
   // Worker metadata management.
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
@@ -163,8 +165,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   public void start(boolean asMaster) throws IOException {
     startMaster(asMaster);
     if (isMasterMode()) {
-      mHeartbeat = getExecutorService()
-          .submit(new HeartbeatThread("Master Heartbeat", new MasterInfoHeartbeatExecutor(),
+      mLostWorkerDetectionService =
+          getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
+              new LostWorkerDetectionHeartbeatExecutor(),
               mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
@@ -173,8 +176,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   public void stop() throws IOException {
     stopMaster();
     if (isMasterMode()) {
-      if (mHeartbeat != null) {
-        mHeartbeat.cancel(true);
+      if (mLostWorkerDetectionService != null) {
+        mLostWorkerDetectionService.cancel(true);
       }
     }
   }
@@ -472,29 +475,24 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   /**
-   * Master info periodical status check.
+   * Lost worker periodical check.
    */
-  public final class MasterInfoHeartbeatExecutor implements HeartbeatExecutor {
+  public final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
 
-      Set<Long> lostWorkers = new HashSet<Long>();
-
       synchronized (mWorkers) {
         for (MasterWorkerInfo worker : mWorkers) {
-          int masterWorkerTimeoutMs =
-              mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-          if (CommonUtils.getCurrentMs()
-              - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
+          int masterWorkerTimeoutMs = mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
+          if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker + " got timed out!");
             mLostWorkers.add(worker);
-            lostWorkers.add(worker.getId());
+            mWorkers.remove(worker);
+          } else if (mLostWorkers.contains(worker)) {
+            LOG.info("The lost worker " + worker + " is found.");
+            mLostWorkers.remove(worker);
           }
-        }
-        for (long workerId : lostWorkers) {
-          MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
-          mWorkers.remove(workerInfo);
         }
       }
 
