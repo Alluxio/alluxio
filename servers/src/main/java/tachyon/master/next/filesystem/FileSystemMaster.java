@@ -171,7 +171,8 @@ public class FileSystemMaster extends MasterBase {
       long opTimeMs = System.currentTimeMillis();
       LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
       if (completeFileCheckpointInternal(workerId, fileId, length, checkpointPath, opTimeMs)) {
-        writeJournalEntry(new AddCheckpointEntry(workerId, fileId, length, checkpointPath, opTimeMs));
+        writeJournalEntry(
+            new AddCheckpointEntry(workerId, fileId, length, checkpointPath, opTimeMs));
         flushJournal();
       }
     }
