@@ -1,4 +1,10 @@
-- name: Start Mesos master
-  script: start_master.sh
+- include: install_deps.yml
+
+- copy: >
+    src=roles/mesos/files/start_master.sh
+    dest=/tmp/start_mesos_master.sh
+
+- name: start Mesos master
+  shell: bash /tmp/start_mesos_master.sh
 
 # vim :set filetype=ansible.yaml:

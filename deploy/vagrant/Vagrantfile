@@ -48,7 +48,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               mesos_type: MesosV.type,
               mesos_repo: mesos_repo,
               mesos_dist: MesosV.dist,
-              mesos_version: mesos_version.
+              mesos_version: mesos_version,
 
               tachyon_type:    TachyonV.type,
               tachyon_repo:    tachyon_repo,

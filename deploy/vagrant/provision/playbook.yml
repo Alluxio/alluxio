@@ -28,11 +28,13 @@
       # vb syncs local repo to vm through kernel module instead of rsync
       when: (tachyon_type == "Local") and (provider != "vb") and (mesos_type == "None")
 
-    - include: roles/tachyon/tasks/clone_remote_repo.yml
-      when: (tachyon_type == "Github") or (mesos_type != "None")
+  # TODO uncomment
+  #  - include: roles/tachyon/tasks/clone_remote_repo.yml
+  #    when: (tachyon_type == "Github") or (mesos_type != "None")
 
-    - include: roles/tachyon/tasks/compile.yml
-      when: tachyon_type != "Release"
+  # TODO uncomment
+  #  - include: roles/tachyon/tasks/compile.yml
+  #    when: tachyon_type != "Release"
 
     - include: roles/tachyon/tasks/config.yml
 
@@ -54,13 +56,14 @@
 
     # Mesos
     - include: roles/mesos/tasks/download_release.yml
-      when: spark_type == "Release"
+      when: mesos_type == "Release"
 
     - include: roles/mesos/tasks/clone_remote_repo.yml
       when: mesos_type == "Github"
 
-    - include: roles/tachyon/tasks/compile.yml
-      when: spark_type == "Github"
+# TODO uncomment
+#    - include: roles/mesos/tasks/compile.yml
+#      when: mesos_type == "Github"
 
 - hosts: TachyonWorker*
   tasks:
@@ -76,12 +79,12 @@
 
 - hosts: TachyonMaster
   tasks:
-    - include: roles/tachyon/mesos/start_master.yml
+    - include: roles/mesos/tasks/start_master.yml
       when: mesos_type != "None"
 
 - hosts: all
   tasks:
-    - include: roles/tachyon/mesos/start_slave.yml
+    - include: roles/mesos/tasks/start_slave.yml
       when: mesos_type != "None"
 
 - hosts: TachyonMaster

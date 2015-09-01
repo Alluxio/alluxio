@@ -2,5 +2,7 @@
 
 set -e
 
-cd /mesos
-./bin/mesos-master --work-dir=/mesos/workdir/master --port=1234
+cd /mesos/build
+MESOS_LOGS_DIR=/mesos/logs
+mkdir -p "${MESOS_LOGS_DIR}"
+./bin/mesos-master.sh --work_dir=/mesos/workdir/master --port=1234 > "${MESOS_LOGS_DIR}/master.out" 2>&1 &

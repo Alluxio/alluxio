@@ -1,0 +1,4 @@
+- name: Install Mesos dependencies
+  script: install_deps.sh
+
+# vim :set filetype=ansible.yaml:
