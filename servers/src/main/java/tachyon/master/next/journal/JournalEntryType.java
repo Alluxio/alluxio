@@ -33,6 +33,8 @@ public enum JournalEntryType {
   COMPLETE_FILE,
   FREE,
   SET_PINNED,
+  DELETE_FILE,
+  RENAME,
 
   // Raw table master entries
   RAW_TABLE,
