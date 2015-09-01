@@ -55,10 +55,12 @@ public class WorkerClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
+  private final NetAddress mWorkerNetAddress;
+  private final boolean mIsLocal;
+
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
   private long mUserId;
-  private NetAddress mWorkerNetAddress;
   private InetSocketAddress mWorkerAddress;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
@@ -67,7 +69,6 @@ public class WorkerClient implements Closeable {
   // network/thrift problems. Maybe error codes/status should be returned for api errors, to be
   // independent from thrift exceptions.
   private boolean mConnected = false;
-  private boolean mIsLocal = false;
   private final ExecutorService mExecutorService;
   private Future<?> mHeartbeat;
   private HeartbeatExecutor mHeartbeatExecutor;
@@ -85,11 +86,12 @@ public class WorkerClient implements Closeable {
    * @param clientMetrics
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
-      TachyonConf conf, long userId, ClientMetrics clientMetrics) {
+      TachyonConf conf, long userId, boolean isLocal, ClientMetrics clientMetrics) {
     mWorkerNetAddress = workerNetAddress;
     mExecutorService = executorService;
     mTachyonConf = conf;
     mUserId = userId;
+    mIsLocal = isLocal;
     mClientMetrics = clientMetrics;
   }
 
@@ -304,14 +306,6 @@ public class WorkerClient implements Closeable {
    * @return true if the worker is local, false otherwise.
    */
   public synchronized boolean isLocal() {
-    if (!isConnected()) {
-      try {
-        connect();
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-      }
-    }
-
     return mIsLocal;
   }
 
