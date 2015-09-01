@@ -22,14 +22,12 @@ public enum StorageLevelAlias {
   /**
    * Memory Layer
    */
-  MEM(1),
-  /**
-   * SSD Layer
-   */
-  SSD(2),
-  /**
-   * HDD Layer
-   */
+  MEM(1), /**
+           * SSD Layer
+           */
+  SSD(2), /**
+           * HDD Layer
+           */
   HDD(3);
 
   private int mValue;
@@ -39,12 +37,25 @@ public enum StorageLevelAlias {
   }
 
   /**
-   * Get value of the storage level alias
+   * Gets value of the storage level alias
    *
    * @return value of the storage level alias
    */
   public int getValue() {
     return mValue;
+  }
+
+  /**
+   * Gets StorageLevelAlias from a given value.
+   *
+   * @param value the value of the storage level alias
+   * @return the StorageLevelAlias
+   */
+  public static StorageLevelAlias getAlias(int value) {
+    if (value > SIZE || value < 1) {
+      throw new IllegalArgumentException("non existing storage level");
+    }
+    return StorageLevelAlias.values()[value - 1];
   }
 
   public static final int SIZE = StorageLevelAlias.values().length;
