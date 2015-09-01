@@ -29,7 +29,6 @@ import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.FileOutStream;
 import tachyon.client.next.file.TachyonFS;
 import tachyon.client.next.file.TachyonFile;
-import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
@@ -68,7 +67,7 @@ public class BlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         TachyonURI path = new TachyonURI(uniqPath + "/file_" + k + "_" + op);
-        ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
+        ClientOptions options = ClientOptions.defaults();
         FileOutStream os = sTfs.getOutStream(path, options);
         for (int j = 0; j < k; j ++) {
           os.write((byte) j);
@@ -77,33 +76,21 @@ public class BlockInStreamIntegrationTest {
 
         TachyonFile f = sTfs.open(path);
 
-        FileInStream is = sTfs.getInStream(f, options);
-        byte[] ret = new byte[k];
-        int value = is.read();
-        int cnt = 0;
-        while (value != -1) {
-          Assert.assertTrue(value >= 0);
-          Assert.assertTrue(value < 256);
-          ret[cnt ++] = (byte) value;
-          value = is.read();
+        for (int i = 0; i < 2; i ++) {
+          FileInStream is = sTfs.getInStream(f, options);
+          byte[] ret = new byte[k];
+          int value = is.read();
+          int cnt = 0;
+          while (value != -1) {
+            Assert.assertTrue(value >= 0);
+            Assert.assertTrue(value < 256);
+            ret[cnt++] = (byte) value;
+            value = is.read();
+          }
+          Assert.assertEquals(cnt, k);
+          Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
+          is.close();
         }
-        Assert.assertEquals(cnt, k);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-        is.close();
-
-        is = sTfs.getInStream(f, options);
-        ret = new byte[k];
-        value = is.read();
-        cnt = 0;
-        while (value != -1) {
-          Assert.assertTrue(value >= 0);
-          Assert.assertTrue(value < 256);
-          ret[cnt ++] = (byte) value;
-          value = is.read();
-        }
-        Assert.assertEquals(cnt, k);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-        is.close();
       }
     }
   }
