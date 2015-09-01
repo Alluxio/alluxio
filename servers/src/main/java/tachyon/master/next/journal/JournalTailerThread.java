@@ -110,6 +110,13 @@ public class JournalTailerThread extends Thread {
       } catch (IOException ioe) {
         // Log the error and continue the loop.
         LOG.error(ioe.getMessage());
+
+        if (mInitiateShutdown) {
+          LOG.info(mMaster.getProcessorName() + " Journal tailer has been shutdown.");
+          return;
+        }
+        // TODO: make this wait a config parameter
+        CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
       }
     }
   }
