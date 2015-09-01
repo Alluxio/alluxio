@@ -31,8 +31,8 @@ import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.client.next.ClientOptions;
+import tachyon.client.next.TachyonFSTestUtils;
 import tachyon.client.next.file.TachyonFS;
-import tachyon.client.next.file.TachyonFSTestUtils;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
@@ -86,7 +86,7 @@ public class MasterFaultToleranceIntegrationTest {
    * @throws java.io.IOException
    */
   private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException {
-    List<String> files = TachyonFSTestUtils.listFiles(mTfs, new TachyonURI(TachyonURI.SEPARATOR));
+    List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
@@ -132,7 +132,7 @@ public class MasterFaultToleranceIntegrationTest {
       TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
-    List<String> files = TachyonFSTestUtils.listFiles(mTfs, new TachyonURI(TachyonURI.SEPARATOR));
+    List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());
     Collections.sort(files);
     for (int k = 0; k < clients; k ++) {
