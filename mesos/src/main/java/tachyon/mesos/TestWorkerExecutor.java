@@ -15,11 +15,8 @@
 
 package tachyon.mesos;
 
-import tachyon.Constants;
 import tachyon.Format;
-import tachyon.conf.TachyonConf;
 import tachyon.worker.TachyonWorker;
-import tachyon.worker.WorkerContext;
 
 public class TestWorkerExecutor {
   public static void main(String[] args) throws Exception {
