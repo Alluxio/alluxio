@@ -17,6 +17,7 @@ package tachyon.master.next.rawtable;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Executors;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ import tachyon.thrift.RawTableMasterService;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.util.ThreadFactoryUtils;
 
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -54,7 +56,8 @@ public class RawTableMaster extends MasterBase {
 
   public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster,
       Journal journal) {
-    super(journal);
+    super(journal,
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("raw-table-master-%d", true)));
     mTachyonConf = tachyonConf;
     mMaxTableMetadataBytes = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     mMaxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);

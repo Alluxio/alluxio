@@ -48,7 +48,8 @@ public final class InodeTreeTest {
 
   @Before
   public void before() {
-    mTree = new InodeTree(new BlockMaster(new Journal("directory", new TachyonConf())));
+    TachyonConf conf = new TachyonConf();
+    mTree = new InodeTree(new BlockMaster(new Journal("directory", conf), conf));
   }
 
   @Test
