@@ -68,12 +68,20 @@ public class ClientOptions {
   private final UnderStorageType mUnderStorageType;
   private final NetAddress mLocation;
 
-  // TODO: Add a constructor that just uses defaults
   private ClientOptions(ClientOptions.Builder builder) {
     mBlockSize = builder.mBlockSize;
     mCacheType = builder.mCacheType;
     mUnderStorageType = builder.mUnderStorageType;
     mLocation = builder.mLocation;
+  }
+
+  public ClientOptions() {
+    TachyonConf conf = new TachyonConf();
+    mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+    mCacheType = conf.getEnum(Constants.USER_DEFAULT_CACHE_TYPE, CacheType.CACHE);
+    mUnderStorageType =
+        conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.NO_PERSIST);
+    mLocation = null;
   }
 
   public long getBlockSize() {
