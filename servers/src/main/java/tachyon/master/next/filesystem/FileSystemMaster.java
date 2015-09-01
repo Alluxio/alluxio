@@ -177,11 +177,13 @@ public class FileSystemMaster extends MasterBase {
       TachyonURI checkpointPath)
           throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
     // TODO: metrics
-    long opTimeMs = System.currentTimeMillis();
-    LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
-    if (completeFileCheckpointInternal(workerId, fileId, length, checkpointPath, opTimeMs)) {
-      writeJournalEntry(new AddCheckpointEntry(workerId, fileId, length, checkpointPath, opTimeMs));
-      flushJournal();
+    synchronized (mInodeTree) {
+      long opTimeMs = System.currentTimeMillis();
+      LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
+      if (completeFileCheckpointInternal(workerId, fileId, length, checkpointPath, opTimeMs)) {
+        writeJournalEntry(new AddCheckpointEntry(workerId, fileId, length, checkpointPath, opTimeMs));
+        flushJournal();
+      }
     }
     return true;
   }
@@ -197,53 +199,51 @@ public class FileSystemMaster extends MasterBase {
       // workerInfo.updateLastUpdatedTimeMs();
     }
 
-    synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("File id " + fileId + " is a directory, not a file.");
+    Inode inode = mInodeTree.getInodeById(fileId);
+    if (inode.isDirectory()) {
+      throw new FileDoesNotExistException("File id " + fileId + " is a directory, not a file.");
+    }
+
+    InodeFile tFile = (InodeFile) inode;
+    boolean needLog = false;
+
+    if (tFile.isComplete()) {
+      if (tFile.getLength() != length) {
+        throw new SuspectedFileSizeException(
+            fileId + ". Original Size: " + tFile.getLength() + ". New Size: " + length);
+      }
+    } else {
+      tFile.setLength(length);
+      // Commit all the file blocks (without locations) so the metadata for the block exists.
+      long currLength = length;
+      for (long blockId : tFile.getBlockIds()) {
+        long blockSize = Math.min(currLength, tFile.getBlockSizeBytes());
+        mBlockMaster.commitBlock(blockId, blockSize);
+        currLength -= blockSize;
       }
 
-      InodeFile tFile = (InodeFile) inode;
-      boolean needLog = false;
+      needLog = true;
+    }
 
-      if (tFile.isComplete()) {
-        if (tFile.getLength() != length) {
-          throw new SuspectedFileSizeException(
-              fileId + ". Original Size: " + tFile.getLength() + ". New Size: " + length);
-        }
-      } else {
-        tFile.setLength(length);
-        // Commit all the file blocks (without locations) so the metadata for the block exists.
-        long currLength = length;
-        for (long blockId : tFile.getBlockIds()) {
-          long blockSize = Math.min(currLength, tFile.getBlockSizeBytes());
-          mBlockMaster.commitBlock(blockId, blockSize);
-          currLength -= blockSize;
-        }
+    if (!tFile.hasCheckpointed()) {
+      tFile.setUfsPath(checkpointPath.toString());
+      needLog = true;
 
-        needLog = true;
-      }
-
-      if (!tFile.hasCheckpointed()) {
-        tFile.setUfsPath(checkpointPath.toString());
-        needLog = true;
-
-        synchronized (mDependencyMap) {
-          Dependency dep = mDependencyMap.getFromFileId(fileId);
-          if (dep != null) {
-            dep.childCheckpointed(fileId);
-            if (dep.hasCheckpointed()) {
-              mDependencyMap.removeUncheckpointedDependency(dep);
-              mDependencyMap.removePriorityDependency(dep);
-            }
+      synchronized (mDependencyMap) {
+        Dependency dep = mDependencyMap.getFromFileId(fileId);
+        if (dep != null) {
+          dep.childCheckpointed(fileId);
+          if (dep.hasCheckpointed()) {
+            mDependencyMap.removeUncheckpointedDependency(dep);
+            mDependencyMap.removePriorityDependency(dep);
           }
         }
       }
-      mDependencyMap.addFileCheckpoint(fileId);
-      tFile.setLastModificationTimeMs(opTimeMs);
-      tFile.setComplete(length);
-      return needLog;
     }
+    mDependencyMap.addFileCheckpoint(fileId);
+    tFile.setLastModificationTimeMs(opTimeMs);
+    tFile.setComplete(length);
+    return needLog;
   }
 
   private void completeFileCheckpointFromEntry(AddCheckpointEntry entry) {
@@ -394,11 +394,13 @@ public class FileSystemMaster extends MasterBase {
   public boolean deleteFile(long fileId, boolean recursive)
       throws TachyonException, FileDoesNotExistException {
     // TODO: metrics
-    long opTimeMs = System.currentTimeMillis();
-    boolean ret = deleteFileInternal(fileId, recursive, opTimeMs);
-    writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
-    flushJournal();
-    return ret;
+    synchronized (mInodeTree) {
+      long opTimeMs = System.currentTimeMillis();
+      boolean ret = deleteFileInternal(fileId, recursive, opTimeMs);
+      writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
+      flushJournal();
+      return ret;
+    }
   }
 
   private void deleteFileFromEntry(DeleteFileEntry entry) {
@@ -411,10 +413,8 @@ public class FileSystemMaster extends MasterBase {
 
   private boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
       throws TachyonException, FileDoesNotExistException {
-    synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
-      return deleteInodeInternal(inode, recursive, System.currentTimeMillis());
-    }
+    Inode inode = mInodeTree.getInodeById(fileId);
+    return deleteInodeInternal(inode, recursive, System.currentTimeMillis());
   }
 
   private boolean deleteInodeInternal(Inode inode, boolean recursive, long opTimeMs)
