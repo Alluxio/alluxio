@@ -24,10 +24,11 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * This authentication provider implements the {@code CUSTOM} authentication. It allows a {@link
- * AuthenticationProvider} to be specified at configuration time.
- * It uses the property tachyon.authentication.provider.custom.class in the Tachyon's {@link
- * TachyonConf Configuration}.
+ * An authentication provider implementation that allows {@link AuthenticationProvider} to be
+ * customized at configuration time. This authentication provider is created if authentication type
+ * specified in {@link TachyonConf} is {@link AuthenticationFactory.AuthType#CUSTOM CUSTOM}. It
+ * requires the property {@code tachyon.authentication.provider.custom.class} to be set in
+ * {@link TachyonConf Configuration} to determine which provider to load.
  */
 public class CustomAuthenticationProviderImpl implements AuthenticationProvider {
 
@@ -45,19 +46,19 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
     try {
       customProviderClass = Class.forName(customProviderName);
       if (!AuthenticationProvider.class.isAssignableFrom(customProviderClass)) {
-        throw new RuntimeException(customProviderClass
-            + " didn't implement AuthenticationProvider");
+        throw new RuntimeException(customProviderClass + " didn't implement AuthenticationProvider");
       }
     } catch (ClassNotFoundException cfe) {
       throw new RuntimeException(customProviderName + " not found");
     }
 
     try {
-      mCustomProvider = (AuthenticationProvider)CommonUtils.createNewClassInstance(
-          customProviderClass, null, null);
+      mCustomProvider =
+          (AuthenticationProvider) CommonUtils.createNewClassInstance(customProviderClass, null,
+              null);
     } catch (Exception e) {
-      throw new RuntimeException(customProviderClass.getName()
-          + " instantiate failed :" + e.getMessage());
+      throw new RuntimeException(customProviderClass.getName() + " instantiate failed :"
+          + e.getMessage());
     }
   }
 

@@ -26,16 +26,15 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 public class CustomAuthenticationProviderImplTest {
-
   private TachyonConf mConf = new TachyonConf();
+
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Test
   public void classNotFoundTest() throws Exception {
     String notExistClass = "tachyon.test.custom.provider";
-    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        notExistClass);
+    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS, notExistClass);
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(notExistClass + " not found");
     new CustomAuthenticationProviderImpl(mConf);
@@ -54,12 +53,12 @@ public class CustomAuthenticationProviderImplTest {
   @Test
   public void underlyingCustomProviderTest() throws Exception {
     mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        NoopAuthenticationProvider.class.getName());
+        MockAuthenticationProvider.class.getName());
     CustomAuthenticationProviderImpl provider = new CustomAuthenticationProviderImpl(mConf);
-    Assert.assertTrue(provider.getCustomProvider() instanceof NoopAuthenticationProvider);
+    Assert.assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);
   }
 
-  public static class NoopAuthenticationProvider implements AuthenticationProvider {
+  public static class MockAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
       // noop
