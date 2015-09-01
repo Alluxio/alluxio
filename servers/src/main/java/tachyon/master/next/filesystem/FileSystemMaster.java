@@ -28,6 +28,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.PrefixList;
+import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockId;
@@ -275,26 +276,32 @@ public class FileSystemMaster extends MasterBase {
     }
   }
 
-  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      return inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
+      return getFileInfo(inode);
     }
   }
 
-  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
+  private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException, InvalidPathException {
+    FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
+    fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
+    return fileInfo;
+  }
+
+  public List<FileInfo> getFileInfoList(long fileId)
+      throws FileDoesNotExistException, InvalidPathException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      TachyonURI path = mInodeTree.getPath(inode);
 
       List<FileInfo> ret = new ArrayList<FileInfo>();
       if (inode.isDirectory()) {
         for (Inode child : ((InodeDirectory) inode).getChildren()) {
-          ret.add(child.generateClientFileInfo(PathUtils.concatPath(path, child.getName())));
+          ret.add(getFileInfo(child));
         }
       } else {
-        ret.add(inode.generateClientFileInfo(path.toString()));
+        ret.add(getFileInfo(inode));
       }
       return ret;
     }
@@ -493,6 +500,60 @@ public class FileSystemMaster extends MasterBase {
       }
       return ret;
     }
+  }
+
+  /**
+   * Return whether the file is fully in memory or not. The file is fully in memory only if all the
+   * blocks of the file are in memory, in other words, the in memory percentage is 100.
+   *
+   * @return true if the file is fully in memory, false otherwise
+   * @throws InvalidPathException when the path is invalid
+   * @throws FileDoesNotExistException when the file does not exist
+   */
+  public boolean isFullyInMemory(TachyonURI path)
+      throws FileDoesNotExistException, InvalidPathException {
+    Inode inode = mInodeTree.getInodeByPath(path);
+    return getInMemoryPercentage(inode) == 100;
+  }
+
+  /**
+   * Get the in-memory percentage of an InodeFile. For a file that has all blocks
+   * in memory, it returns 100; for a file that has no block in memory, it returns 0.
+   *
+   * @param inode the inode
+   * @return the in memory percentage
+   * @throws FileDoesNotExistException when the file does not exist
+   */
+  private int getInMemoryPercentage(Inode inode) throws FileDoesNotExistException {
+    if (!inode.isFile()) {
+      throw new FileDoesNotExistException(mInodeTree.getPath(inode) + " is not a file.");
+    }
+    InodeFile inodeFile = (InodeFile) inode;
+
+    long length = inodeFile.getLength();
+    if (length == 0) {
+      return 100;
+    }
+
+    long inMemoryLength = 0;
+    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
+      if (isInMemory(info)) {
+        inMemoryLength += info.getLength();
+      }
+    }
+    return (int) (inMemoryLength * 100 / length);
+  }
+
+  /**
+   * @return true if the given block is in some worker's memory, false otherwise
+   */
+  private boolean isInMemory(BlockInfo blockInfo) {
+    for (BlockLocation location : blockInfo.getLocations()) {
+      if (location.getTier() == StorageLevelAlias.MEM.getValue()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
