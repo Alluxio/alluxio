@@ -29,7 +29,6 @@ import tachyon.master.next.MasterBase;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.rawtable.journal.RawTableEntry;
 import tachyon.master.next.rawtable.meta.RawTables;
@@ -71,15 +70,6 @@ public class RawTableMaster extends MasterBase {
   @Override
   public String getProcessorName() {
     return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
-  }
-
-  @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      processJournalEntry(entry);
-    }
-    inputStream.close();
   }
 
   @Override

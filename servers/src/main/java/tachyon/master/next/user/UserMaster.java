@@ -26,7 +26,6 @@ import tachyon.Constants;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.user.journal.UserIdGeneratorEntry;
 import tachyon.thrift.UserMasterService;
@@ -49,15 +48,6 @@ public class UserMaster extends MasterBase {
   @Override
   public String getProcessorName() {
     return Constants.USER_MASTER_SERVICE_NAME;
-  }
-
-  @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      processJournalEntry(entry);
-    }
-    inputStream.close();
   }
 
   @Override

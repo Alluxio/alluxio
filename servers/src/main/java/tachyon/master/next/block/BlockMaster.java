@@ -112,11 +112,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     // clear state before processing checkpoint.
     mBlocks.clear();
 
-    JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      processJournalEntry(entry);
-    }
-    inputStream.close();
+    super.processJournalCheckpoint(inputStream);
   }
 
   @Override
