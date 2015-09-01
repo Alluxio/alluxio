@@ -217,6 +217,8 @@ public class RawTableMaster extends MasterBase {
       return ret;
     } catch (FileDoesNotExistException fne) {
       throw new TableDoesNotExistException("Table with id " + id + " does not exist.");
+    } catch (InvalidPathException e) {
+      throw new TableDoesNotExistException("Table id " + id + " is invalid.");
     }
   }
 
