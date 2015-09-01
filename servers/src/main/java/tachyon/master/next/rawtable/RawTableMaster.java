@@ -29,8 +29,8 @@ import tachyon.master.next.MasterBase;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
+import tachyon.master.next.rawtable.journal.RawTableEntry;
 import tachyon.master.next.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -73,18 +73,18 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    // TODO
-  }
-
-  @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    // TODO
+    if (entry instanceof RawTableEntry) {
+      RawTableEntry tableEntry = (RawTableEntry) entry;
+      mRawTables.add(tableEntry.mId, tableEntry.mColumns, tableEntry.mMetadata);
+    } else {
+      throw new IOException("Unknown entry type " + entry.getType());
+    }
   }
 
   @Override
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
+    mRawTables.writeToJournal(outputStream);
   }
 
   @Override
