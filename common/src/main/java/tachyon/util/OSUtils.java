@@ -17,14 +17,15 @@ package tachyon.util;
 
 import org.apache.commons.lang3.SystemUtils;
 
-
 /**
  * OS related utility functions 
- *
  */
 public final class OSUtils {
   private OSUtils() {}
 
+  /**
+   * @return true if current OS is Windows 
+   */
   public static boolean isWindows() {
     return SystemUtils.IS_OS_WINDOWS;
   }
