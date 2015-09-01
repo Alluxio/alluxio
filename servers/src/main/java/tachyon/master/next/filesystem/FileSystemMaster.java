@@ -267,7 +267,7 @@ public class FileSystemMaster extends MasterBase {
 
   private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException, InvalidPathException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
-    fileInfo.inMemoryPercentage = getInMemoryPercentage(mInodeTree.getPath(inode));
+    fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
     return fileInfo;
   }
 
@@ -477,26 +477,21 @@ public class FileSystemMaster extends MasterBase {
    */
   public boolean isFullyInMemory(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
-    return getInMemoryPercentage(path) == 100;
+    Inode inode = mInodeTree.getInodeByPath(path);
+    return getInMemoryPercentage(inode) == 100;
   }
 
   /**
-   * Get the in-memory percentage of an InodeFile determined by path. For a file that has all blocks
+   * Get the in-memory percentage of an InodeFile. For a file that has all blocks
    * in memory, it returns 100; for a file that has no block in memory, it returns 0.
    *
-   * @param path path to the file
+   * @param inode the inode
    * @return the in memory percentage
-   * @throws InvalidPathException when the path is invalid
    * @throws FileDoesNotExistException when the file does not exist
    */
-  private int getInMemoryPercentage(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException {
-    Inode inode =  mInodeTree.getInodeByPath(path);
-    if (inode == null) {
-      throw new FileDoesNotExistException(path + " does not exist.");
-    }
+  private int getInMemoryPercentage(Inode inode) throws FileDoesNotExistException {
     if (!inode.isFile()) {
-      throw new FileDoesNotExistException(path + " is not a file.");
+      throw new FileDoesNotExistException(mInodeTree.getPath(inode) + " is not a file.");
     }
     InodeFile inodeFile = (InodeFile) inode;
 
