@@ -54,7 +54,7 @@ public class LoginUserTest {
     User loginUser = LoginUser.get(conf);
 
     Assert.assertNotNull(loginUser);
-    Assert.assertFalse(loginUser.getName().isEmpty());
+    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
   }
 
   /**
