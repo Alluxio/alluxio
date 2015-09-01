@@ -16,12 +16,10 @@
 package tachyon.master.next.user;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.TProcessor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.master.next.MasterBase;
@@ -31,14 +29,15 @@ import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.user.journal.UserIdGeneratorEntry;
 import tachyon.thrift.UserMasterService;
+import tachyon.util.ThreadFactoryUtils;
 
 public class UserMaster extends MasterBase {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final AtomicLong mNextUserId = new AtomicLong(1);
 
-  public UserMaster(Journal journal, ExecutorService executorService) {
-    super(journal, executorService);
+  public UserMaster(Journal journal) {
+    super(journal,
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("user-master-%d", true)));
   }
 
   @Override
