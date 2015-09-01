@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.master.next.IndexedSet;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.journal.JournalSerializable;
 
@@ -37,7 +38,14 @@ import tachyon.master.next.journal.JournalSerializable;
 public class DependencyMap implements JournalSerializable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Map<Integer, Dependency> mDependencyMap;
+  private final IndexedSet.FieldIndex<Dependency> mIdIndex =
+      new IndexedSet.FieldIndex<Dependency>() {
+        @Override
+        public Object getFieldValue(Dependency o) {
+          return o.mId;
+        }
+      };
+  private final IndexedSet<Dependency> mDependencyMap = new IndexedSet<Dependency>(mIdIndex);
   private final Map<Long, Dependency> mFileIdToDependency;
 
   private final Set<Integer> mUncheckpointedDependencies;
@@ -47,7 +55,6 @@ public class DependencyMap implements JournalSerializable {
   private final Set<Integer> mToRecompute;
 
   public DependencyMap() {
-    mDependencyMap = new HashMap<Integer, Dependency>();
     mFileIdToDependency = new HashMap<Long, Dependency>();
 
     mUncheckpointedDependencies = new HashSet<Integer>();
@@ -58,7 +65,7 @@ public class DependencyMap implements JournalSerializable {
   }
 
   public Dependency getFromDependencyId(int dependencyId) {
-    return mDependencyMap.get(dependencyId);
+    return mDependencyMap.getFirstByField(mIdIndex, dependencyId);
   }
 
   public Dependency getFromFileId(long fileId) {
@@ -97,6 +104,19 @@ public class DependencyMap implements JournalSerializable {
     return dependency;
   }
 
+  public void addDependency(Dependency dependency) {
+    mDependencyMap.add(dependency);
+    for (Long fileId : dependency.mChildrenFiles) {
+      mFileIdToDependency.put(fileId, dependency);
+    }
+    for (Long fileId : dependency.getLostFiles()) {
+      mLostFiles.add(fileId);
+    }
+    if (!dependency.hasCheckpointed()) {
+      mUncheckpointedDependencies.add(dependency.mId);
+    }
+  }
+
   public List<Integer> getPriorityDependencyList() {
     int earliestDependencyId = -1;
     if (mPriorityDependencies.isEmpty()) {
@@ -127,6 +147,8 @@ public class DependencyMap implements JournalSerializable {
 
   @Override
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
+    for (Dependency dependency : mDependencyMap) {
+      dependency.writeToJournal(outputStream);
+    }
   }
 }

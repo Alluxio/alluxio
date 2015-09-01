@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -38,11 +39,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
+import tachyon.master.DependencyType;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
+import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
+import tachyon.master.next.filesystem.journal.RenameEntry;
 import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 
 public class JsonJournalFormatter implements JournalFormatter {
@@ -246,6 +251,29 @@ public class JsonJournalFormatter implements JournalFormatter {
                 new TachyonURI(entry.getString("checkpointPath")),
                 entry.getLong("operationTimeMs"));
           }
+          case DEPENDENCY: {
+            return new DependencyEntry(
+                entry.getInt("id"),
+                entry.get("parentFiles", new TypeReference<List<Long>>() {
+                }),
+                entry.get("childrenFiles", new TypeReference<List<Long>>() {
+                }),
+                entry.getString("commandPrefix"),
+                entry.getByteBufferList("data"),
+                entry.getString("comment"),
+                entry.getString("framework"),
+                entry.getString("frameworkVersion"),
+                entry.get("dependencyType", DependencyType.class),
+                entry.get("parentDependencies", new TypeReference<List<Integer>>() {
+                }),
+                entry.get("childrenDependencies", new TypeReference<List<Integer>>() {
+                }),
+                entry.getLong("creationTimeMs"),
+                entry.get("uncheckpointedFiles", new TypeReference<List<Long>>() {
+                }),
+                entry.get("lostFileIds", new TypeReference<Set<Long>>() {
+                }));
+          }
           case COMPLETE_FILE: {
             return new CompleteFileEntry(
                 entry.getLong("id"),
@@ -260,6 +288,18 @@ public class JsonJournalFormatter implements JournalFormatter {
             return new SetPinnedEntry(
                 entry.getLong("id"),
                 entry.getBoolean("pinned"),
+                entry.getLong("operationTimeMs"));
+          }
+          case DELETE_FILE: {
+            return new DeleteFileEntry(
+                entry.getLong("fileId"),
+                entry.getBoolean("recursive"),
+                entry.getLong("operationTimeMs"));
+          }
+          case RENAME: {
+            return new RenameEntry(
+                entry.getLong("fileId"),
+                entry.getString("destinationPath"),
                 entry.getLong("operationTimeMs"));
           }
           default:

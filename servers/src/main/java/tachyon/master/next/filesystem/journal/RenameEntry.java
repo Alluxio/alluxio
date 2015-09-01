@@ -13,34 +13,37 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.filesystem.journal;
 
 import java.util.Map;
 
-/**
- * This kind of JournalEntry will have a parameter field named transactionId.
- */
-public class SerializableJournalEntry implements JournalEntry {
-  private final long mSequenceNumber;
-  private final JournalEntry mEntry;
+import com.google.common.collect.Maps;
 
-  protected SerializableJournalEntry(long sequenceNumber, JournalEntry entry) {
-    mSequenceNumber = sequenceNumber;
-    mEntry = entry;
-  }
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
 
-  public long getSequenceNumber() {
-    return mSequenceNumber;
+public class RenameEntry implements JournalEntry {
+  public final long mFileId;
+  public final String mDstPath;
+  public final long mOpTimeMs;
+
+  public RenameEntry(long fileId, String dstPath, long opTimeMs) {
+    mFileId = fileId;
+    mDstPath = dstPath;
+    mOpTimeMs = opTimeMs;
   }
 
   @Override
   public JournalEntryType getType() {
-    return mEntry.getType();
+    return JournalEntryType.RENAME;
   }
 
   @Override
   public Map<String, Object> getParameters() {
-    return mEntry.getParameters();
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
+    parameters.put("fileId", mFileId);
+    parameters.put("destinationPath", mDstPath);
+    parameters.put("operationTimeMs", mOpTimeMs);
+    return parameters;
   }
-
 }

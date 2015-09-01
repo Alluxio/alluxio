@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalSerializable;
 import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.master.next.journal.JournalWriter;
@@ -46,6 +47,15 @@ public abstract class MasterBase implements Master {
     mJournal = Preconditions.checkNotNull(journal);
   }
 
+  @Override
+  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
+    JournalEntry entry;
+    while ((entry = inputStream.getNextEntry()) != null) {
+      processJournalEntry(entry);
+    }
+    inputStream.close();
+  }
+
   protected boolean isMasterMode() {
     return !mIsStandbyMode;
   }
@@ -59,6 +69,15 @@ public abstract class MasterBase implements Master {
     mIsStandbyMode = !asMaster;
     if (asMaster) {
       // initialize the journal and write out the checkpoint file.
+
+      // TODO: only do this if this is a fresh start, not if this master had already been tailing
+      // the journal.
+      // Use the journal tailer to "catch up".
+      LOG.info(getProcessorName() + ": start journal tailer to catch up before becoming master.");
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer.start();
+      mStandbyJournalTailer.shutdownAndJoin();
+
       // TODO: verify that journal writer is null?
       mJournalWriter = mJournal.getNewWriter();
       writeToJournal(mJournalWriter.getCheckpointOutputStream());
