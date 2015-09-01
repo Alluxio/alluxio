@@ -48,12 +48,11 @@ public class RemoteBlockOutStream extends BlockOutStream {
     mBlockId = blockId;
     mBlockSize = blockSize;
     mContext = BSContext.INSTANCE;
-    // TODO: Get this value from the conf
-    mBuffer = ByteBuffer.allocate(Constants.MB * 8);
+    mBuffer =
+        ByteBuffer.allocate((int) ClientContext.getConf()
+            .getBytes(Constants.USER_FILE_BUFFER_BYTES));
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
-    // TODO: This should be specified outside of options
     mWorkerClient = mContext.acquireWorkerClient();
-    // TODO: Get the user ID
     mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId, mWorkerClient.getUserId());
   }
 
