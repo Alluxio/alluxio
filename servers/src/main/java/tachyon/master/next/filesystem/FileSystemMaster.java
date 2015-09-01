@@ -34,9 +34,9 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
-import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.DeleteFileEntry;
+import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
 import tachyon.master.next.filesystem.journal.RenameEntry;
@@ -49,7 +49,6 @@ import tachyon.master.next.filesystem.meta.InodeFile;
 import tachyon.master.next.filesystem.meta.InodeTree;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
@@ -103,15 +102,6 @@ public class FileSystemMaster extends MasterBase {
   @Override
   public String getProcessorName() {
     return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
-  }
-
-  @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      processJournalEntry(entry);
-    }
-    inputStream.close();
   }
 
   @Override

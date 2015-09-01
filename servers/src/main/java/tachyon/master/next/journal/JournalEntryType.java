@@ -37,4 +37,5 @@ public enum JournalEntryType {
   RENAME,
 
   // Raw table master entries
+  RAW_TABLE,
 }
