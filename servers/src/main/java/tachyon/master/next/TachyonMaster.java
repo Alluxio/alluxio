@@ -142,7 +142,7 @@ public class TachyonMaster {
           mTachyonConf);
 
       mUserMaster = new UserMaster(mUserMasterJournal);
-      mBlockMaster = new BlockMaster(mBlockMasterJournal);
+      mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf);
       mFileSystemMaster =
           new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
@@ -243,7 +243,7 @@ public class TachyonMaster {
             // When transitioning from master to standby, recreate the masters with a readonly
             // journal.
             mUserMaster = new UserMaster(mUserMasterJournal.getReadOnlyJournal());
-            mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
+            mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal(), mTachyonConf);
             mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
                 mFileSystemMasterJournal.getReadOnlyJournal());
             mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,

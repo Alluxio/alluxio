@@ -21,6 +21,8 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.client.UserMasterClient;
+import tachyon.client.next.block.BSContext;
+import tachyon.client.next.file.FSContext;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -86,5 +88,8 @@ public class ClientContext {
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
     sUserClientPool = new UserMasterClientPool(sMasterAddress, sTachyonConf);
+
+    BSContext.INSTANCE.resetContext();
+    FSContext.INSTANCE.resetContext();
   }
 }

@@ -206,7 +206,6 @@ public final class LocalTachyonCluster {
     }
 
     // We need to update the client with the most recent configuration so it knows the correct ports
-    ClientContext.reinitializeWithConf(mWorkerConf);
 
     mWorker = new BlockWorker();
     Runnable runWorker = new Runnable() {
@@ -223,6 +222,7 @@ public final class LocalTachyonCluster {
     mWorkerThread.start();
     // waiting for worker web server startup
     CommonUtils.sleepMs(null, 100);
+    ClientContext.reinitializeWithConf(mWorkerConf);
   }
 
   /**
