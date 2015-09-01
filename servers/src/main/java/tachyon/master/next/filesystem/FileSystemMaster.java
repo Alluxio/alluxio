@@ -28,6 +28,8 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.PrefixList;
+import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockId;
@@ -458,6 +460,68 @@ public class FileSystemMaster extends MasterBase {
       }
       return ret;
     }
+  }
+
+  /**
+   * Return whether the file is fully in memory or not. The file is fully in memory only if all the
+   * blocks of the file are in memory, in other words, the in memory percentage is 100.
+   *
+   * @return true if the file is fully in memory, false otherwise
+   * @throws InvalidPathException when the path is invalid
+   * @throws FileDoesNotExistException when the file does not exist
+   */
+  public boolean isFullyInMemory(TachyonURI path)
+      throws FileDoesNotExistException, InvalidPathException {
+    return getInMemoryPercentage(path) == 100;
+  }
+
+  /**
+   * Get the in-memory percentage of an InodeFile determined by path. For a file that has all blocks
+   * in memory, it returns 100; for a file that has no block in memory, it returns 0.
+   *
+   * @param path path to the file
+   * @return the in memory percentage
+   * @throws InvalidPathException when the path is invalid
+   * @throws FileDoesNotExistException when the file does not exist
+   */
+  public int getInMemoryPercentage(TachyonURI path)
+      throws FileDoesNotExistException, InvalidPathException {
+    long fileId = getFileId(path);
+    Inode inode = mInodeTree.getInodeById(fileId);
+    if (inode == null) {
+      throw new FileDoesNotExistException(path + " does not exist.");
+    }
+    if (!inode.isFile()) {
+      throw new FileDoesNotExistException(path + " is not a file.");
+    }
+    InodeFile inodeFile = (InodeFile) inode;
+
+    long length = inodeFile.getLength();
+    if (length == 0) {
+      return 100;
+    }
+
+    long inMemoryLength = 0;
+    for (BlockInfo info : mBlockMaster.getBlockInfoList(inodeFile.getBlockIds())) {
+      if (isInMemory(info)) {
+        inMemoryLength += info.getLength();
+      }
+    }
+    return (int) (inMemoryLength * 100 / inMemoryLength);
+  }
+
+  /**
+   * @return true if the given block is in some worker's memory, false otherwise
+   */
+  private boolean isInMemory(BlockInfo blockIfno) {
+    for (BlockLocation location : blockIfno.getLocations()) {
+      int tier = location.getTier();
+      int storageLevelValue = StorageDirId.getStorageLevelAliasValue(tier);
+      if (storageLevelValue == StorageLevelAlias.MEM.getValue()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
