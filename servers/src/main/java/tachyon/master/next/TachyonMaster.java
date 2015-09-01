@@ -263,7 +263,7 @@ public class TachyonMaster {
   }
 
   /*
-   * Stop a Tachyon master server.
+   * Stop a Tachyon master server. Should only be called by tests.
    */
   public void stop() throws Exception {
     if (mIsServing) {
