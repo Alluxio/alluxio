@@ -38,6 +38,7 @@ import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
+import tachyon.master.next.filesystem.journal.RenameEntry;
 import tachyon.master.next.filesystem.journal.SetPinnedEntry;
 import tachyon.master.next.filesystem.meta.Dependency;
 import tachyon.master.next.filesystem.meta.DependencyMap;
@@ -127,6 +128,8 @@ public class FileSystemMaster extends MasterBase {
       setPinnedFromEntry((SetPinnedEntry) entry);
     } else if (entry instanceof DeleteFileEntry) {
       deleteFileFromEntry((DeleteFileEntry) entry);
+    } else if (entry instanceof RenameEntry) {
+      renameFromEntry((RenameEntry) entry);
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
@@ -554,16 +557,35 @@ public class FileSystemMaster extends MasterBase {
 
       // Now we remove srcInode from it's parent and insert it into dstPath's parent
       long opTimeMs = System.currentTimeMillis();
-      srcParentDirectory.removeChild(srcInode);
-      srcParentInode.setLastModificationTimeMs(opTimeMs);
-      srcInode.setParentId(dstParentInode.getId());
-      srcInode.setName(dstComponents[dstComponents.length - 1]);
-      dstParentDirectory.addChild(srcInode);
-      dstParentInode.setLastModificationTimeMs(opTimeMs);
-      return true;
-      // TODO: write to journal
-    }
+      renameInternal(fileId, dstPath, opTimeMs);
 
+      writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
+      flushJournal();
+
+      return true;
+    }
+  }
+
+  private void renameInternal(long fileId, TachyonURI dstPath, long opTimeMs)
+      throws InvalidPathException, FileDoesNotExistException {
+    Inode srcInode = mInodeTree.getInodeById(fileId);
+    Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
+    Inode dstInode = mInodeTree.getInodeByPath(dstPath);
+    Inode dstParentInode = mInodeTree.getInodeById(dstInode.getParentId());
+    ((InodeDirectory) srcParentInode).removeChild(srcInode);
+    srcParentInode.setLastModificationTimeMs(opTimeMs);
+    srcInode.setParentId(dstParentInode.getId());
+    srcInode.setName(dstPath.getName());
+    ((InodeDirectory) dstParentInode).addChild(srcInode);
+    dstParentInode.setLastModificationTimeMs(opTimeMs);
+  }
+
+  private void renameFromEntry(RenameEntry entry) {
+    try {
+      renameInternal(entry.mFileId, new TachyonURI(entry.mDstPath), entry.mOpTimeMs);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException {
