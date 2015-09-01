@@ -13,34 +13,38 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.rawtable.journal;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
-/**
- * This kind of JournalEntry will have a parameter field named transactionId.
- */
-public class SerializableJournalEntry implements JournalEntry {
-  private final long mSequenceNumber;
-  private final JournalEntry mEntry;
+import com.google.common.collect.Maps;
 
-  protected SerializableJournalEntry(long sequenceNumber, JournalEntry entry) {
-    mSequenceNumber = sequenceNumber;
-    mEntry = entry;
-  }
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
 
-  public long getSequenceNumber() {
-    return mSequenceNumber;
+public class RawTableEntry implements JournalEntry {
+  public final long mId;
+  public final int mColumns;
+  public final ByteBuffer mMetadata;
+
+  public RawTableEntry(long id, int columns, ByteBuffer metadata) {
+    mId = id;
+    mColumns = columns;
+    mMetadata = metadata;
   }
 
   @Override
   public JournalEntryType getType() {
-    return mEntry.getType();
+    return JournalEntryType.RAW_TABLE;
   }
 
   @Override
   public Map<String, Object> getParameters() {
-    return mEntry.getParameters();
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
+    parameters.put("id", mId);
+    parameters.put("columns", mColumns);
+    parameters.put("metadata", mMetadata);
+    return parameters;
   }
-
 }

@@ -13,34 +13,49 @@
  * the License.
  */
 
-package tachyon.master.next.journal;
+package tachyon.master.next.filesystem.journal;
 
 import java.util.Map;
 
-/**
- * This kind of JournalEntry will have a parameter field named transactionId.
- */
-public class SerializableJournalEntry implements JournalEntry {
-  private final long mSequenceNumber;
-  private final JournalEntry mEntry;
+import com.google.common.collect.Maps;
 
-  protected SerializableJournalEntry(long sequenceNumber, JournalEntry entry) {
-    mSequenceNumber = sequenceNumber;
-    mEntry = entry;
+import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalEntryType;
+
+public class SetPinnedEntry implements JournalEntry {
+  private final long mId;
+  private final boolean mPinned;
+  private final long mOpTimeMs;
+
+  public SetPinnedEntry(long id, boolean pinned, long opTimeMs) {
+    mId = id;
+    mPinned = pinned;
+    mOpTimeMs = opTimeMs;
   }
 
-  public long getSequenceNumber() {
-    return mSequenceNumber;
+  public long getId() {
+    return mId;
+  }
+
+  public boolean getPinned() {
+    return mPinned;
+  }
+
+  public long getOperationTimeMs() {
+    return mOpTimeMs;
   }
 
   @Override
   public JournalEntryType getType() {
-    return mEntry.getType();
+    return JournalEntryType.SET_PINNED;
   }
 
   @Override
   public Map<String, Object> getParameters() {
-    return mEntry.getParameters();
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
+    parameters.put("id", mId);
+    parameters.put("pinned", mPinned);
+    parameters.put("operationTimeMs", mOpTimeMs);
+    return parameters;
   }
-
 }

@@ -73,11 +73,11 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   // Worker metadata management.
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
-    @Override
-    public Object getFieldValue(MasterWorkerInfo o) {
-      return o.getId();
-    }
-  };
+        @Override
+        public Object getFieldValue(MasterWorkerInfo o) {
+          return o.getId();
+        }
+      };
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
@@ -112,11 +112,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     // clear state before processing checkpoint.
     mBlocks.clear();
 
-    JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      processJournalEntry(entry);
-    }
-    inputStream.close();
+    super.processJournalCheckpoint(inputStream);
   }
 
   @Override
@@ -221,9 +217,18 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     }
   }
 
+  /**
+   * Commit a block on a specific worker.
+   *
+   * @param workerId the worker id committing the block
+   * @param usedBytesOnTier the updated used bytes on the tier of the worker
+   * @param tierAlias the tier alias where the worker is committing the block to
+   * @param blockId the committing block id
+   * @param length the length of the block
+   */
   public void commitBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
       long length) {
-    LOG.debug("Commit block: {}",
+    LOG.debug("Commit block from worker: {}",
         FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
 
     MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
@@ -242,6 +247,26 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     }
     masterBlockInfo.addWorker(workerId, tierAlias);
     mLostBlocks.remove(blockId);
+  }
+
+  /**
+   * Commit a block, but without a worker location. This means the block is only in ufs.
+   *
+   * @param blockId the id of the block to commit
+   * @param length the length of the block
+   */
+  public void commitBlock(long blockId, long length) {
+    LOG.debug("Commit block: {}", FormatUtils.parametersToString(blockId, length));
+
+    MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+    if (masterBlockInfo == null) {
+      masterBlockInfo = new MasterBlockInfo(blockId, length);
+      mBlocks.put(blockId, masterBlockInfo);
+      // write new block info to journal.
+      writeJournalEntry(
+          new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+      flushJournal();
+    }
   }
 
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
