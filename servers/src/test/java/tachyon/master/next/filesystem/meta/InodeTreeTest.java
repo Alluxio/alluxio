@@ -52,7 +52,7 @@ public final class InodeTreeTest {
   }
 
   @Test
-  public void createPathTest() throws Exception {
+  public void createDirectoryTest() throws Exception {
     // create directory
     mTree.createPath(TEST_URI, Constants.KB, false, true);
     Inode test = mTree.getInodeByPath(TEST_URI);
@@ -65,13 +65,34 @@ public final class InodeTreeTest {
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
     Assert.assertTrue(test.isDirectory());
+  }
 
+  @Test
+  public void createFileTest() throws Exception {
     // created nested file
     mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
     Inode nestedFile = mTree.getInodeByPath(NESTED_FILE_URI);
     Assert.assertEquals("file", nestedFile.getName());
-    Assert.assertEquals(3, nestedFile.getParentId());
+    Assert.assertEquals(2, nestedFile.getParentId());
     Assert.assertTrue(nestedFile.isFile());
+  }
+
+  @Test
+  public void createPathTest() throws Exception {
+    // create nested directory
+    List<Inode> inodes = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    Assert.assertEquals(2, inodes.size());
+    Assert.assertEquals("nested", inodes.get(0).getName());
+    Assert.assertEquals("test", inodes.get(1).getName());
+
+    // creating the directory path again results in no new inodes.
+    inodes = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    Assert.assertEquals(0, inodes.size());
+
+    // create a file
+    inodes = mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    Assert.assertEquals(1, inodes.size());
+    Assert.assertEquals("file", inodes.get(0).getName());
   }
 
   @Test

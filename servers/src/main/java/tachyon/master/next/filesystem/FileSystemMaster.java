@@ -34,6 +34,7 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
@@ -118,6 +119,21 @@ public class FileSystemMaster extends MasterBase {
     // TODO
     if (entry instanceof InodeEntry) {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else if (entry instanceof DependencyEntry) {
+      DependencyEntry dependencyEntry = (DependencyEntry) entry;
+      Dependency dependency = new Dependency(dependencyEntry.mId, dependencyEntry.mParentFiles,
+          dependencyEntry.mChildrenFiles, dependencyEntry.mCommandPrefix, dependencyEntry.mData,
+          dependencyEntry.mComment, dependencyEntry.mFramework, dependencyEntry.mFrameworkVersion,
+          dependencyEntry.mDependencyType, dependencyEntry.mParentDependencies,
+          dependencyEntry.mCreationTimeMs, mTachyonConf);
+      for (int childDependencyId : dependencyEntry.mChildrenDependencies) {
+        dependency.addChildrenDependency(childDependencyId);
+      }
+      for (long lostFileId : dependencyEntry.mLostFileIds) {
+        dependency.addLostFile(lostFileId);
+      }
+      dependency.resetUncheckpointedChildrenFiles(dependencyEntry.mUncheckpointedFiles);
+      mDependencyMap.addDependency(dependency);
     } else if (entry instanceof CompleteFileEntry) {
       completeFileFromEntry((CompleteFileEntry) entry);
     } else if (entry instanceof AddCheckpointEntry) {
@@ -133,6 +149,12 @@ public class FileSystemMaster extends MasterBase {
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
+  }
+
+  @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    mInodeTree.writeToJournal(outputStream);
+    mDependencyMap.writeToJournal(outputStream);
   }
 
   @Override
@@ -191,6 +213,14 @@ public class FileSystemMaster extends MasterBase {
         }
       } else {
         tFile.setLength(length);
+        // Commit all the file blocks (without locations) so the metadata for the block exists.
+        long currLength = length;
+        for (long blockId : tFile.getBlockIds()) {
+          long blockSize = Math.min(currLength, tFile.getBlockSizeBytes());
+          mBlockMaster.commitBlock(blockId, blockSize);
+          currLength -= blockSize;
+        }
+
         needLog = true;
       }
 
@@ -335,16 +365,14 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false);
+      // If the create succeeded, the list of created inodes will not be empty.
       InodeFile inode = (InodeFile) created.get(created.size() - 1);
       if (mWhitelist.inList(path.toString())) {
         inode.setCache(true);
       }
 
-      if (!created.isEmpty()) {
-        writeJournalEntry(created.get(0));
-      } else {
-        writeJournalEntry(inode);
-      }
+      // Writing the first created inode to the journal will also write its children.
+      writeJournalEntry(created.get(0));
       flushJournal();
 
       return inode.getId();
@@ -719,13 +747,6 @@ public class FileSystemMaster extends MasterBase {
     synchronized (mDependencyMap) {
       return mDependencyMap.getPriorityDependencyList();
     }
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
-    mInodeTree.writeToJournal(outputStream);
-    mDependencyMap.writeToJournal(outputStream);
   }
 
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
