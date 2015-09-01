@@ -67,6 +67,8 @@ public final class InodeFile extends Inode {
     FileInfo ret = new FileInfo();
 
     // TODO: make this a long.
+    // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
+    // block master
     ret.fileId = (int) getId();
     ret.name = getName();
     ret.path = path;

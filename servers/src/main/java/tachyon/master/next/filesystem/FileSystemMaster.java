@@ -261,27 +261,31 @@ public class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
-      fileInfo.inMemoryPercentage = getInMemoryPercentage(mInodeTree.getPath(inode));
-      return fileInfo;
+      return getFileInfo(inode);
     }
   }
 
-  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
+  public List<FileInfo> getFileInfoList(long fileId)
+      throws FileDoesNotExistException, InvalidPathException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      TachyonURI path = mInodeTree.getPath(inode);
 
       List<FileInfo> ret = new ArrayList<FileInfo>();
       if (inode.isDirectory()) {
         for (Inode child : ((InodeDirectory) inode).getChildren()) {
-          ret.add(child.generateClientFileInfo(PathUtils.concatPath(path, child.getName())));
+          ret.add(getFileInfo(child));
         }
       } else {
-        ret.add(inode.generateClientFileInfo(path.toString()));
+        ret.add(getFileInfo(inode));
       }
       return ret;
     }
+  }
+
+  private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException, InvalidPathException {
+    FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
+    fileInfo.inMemoryPercentage = getInMemoryPercentage(mInodeTree.getPath(inode));
+    return fileInfo;
   }
 
   public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
@@ -485,7 +489,7 @@ public class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException when the path is invalid
    * @throws FileDoesNotExistException when the file does not exist
    */
-  public int getInMemoryPercentage(TachyonURI path)
+  private int getInMemoryPercentage(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
     Inode inode =  mInodeTree.getInodeByPath(path);
     if (inode == null) {
