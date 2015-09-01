@@ -22,8 +22,10 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
+import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.TachyonFS;
@@ -49,6 +51,9 @@ public class FileInStreamIntegrationTest {
   private static ClientOptions sWriteBoth;
   private static ClientOptions sWriteTachyon;
   private static ClientOptions sWriteUnderStore;
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @AfterClass
   public static final void afterClass() throws Exception {
@@ -201,6 +206,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -210,13 +216,9 @@ public class FileInStreamIntegrationTest {
         FileInStream is = sTfs.getInStream(f, op);
         try {
           is.seek(-1);
-        } catch (IOException e) {
-          // This is expected
-          continue;
         } finally {
           is.close();
         }
-        throw new IOException("Except seek IOException");
       }
     }
   }
@@ -225,10 +227,11 @@ public class FileInStreamIntegrationTest {
    * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
    * that is past EOF.
    *
-   * @throws IOException
+   * @throws IllegalArgumentException
    */
   @Test
   public void seekExceptionTest2() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -238,13 +241,9 @@ public class FileInStreamIntegrationTest {
         FileInStream is = sTfs.getInStream(f, op);
         try {
           is.seek(k + 1);
-        } catch (IOException e) {
-          // This is expected
-          continue;
         } finally {
           is.close();
         }
-        throw new IOException("Except seek IOException");
       }
     }
   }

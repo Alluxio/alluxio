@@ -303,7 +303,7 @@ public final class FileSystemMasterClient extends MasterClient {
     while (!mIsClosed) {
       connect();
       try {
-        return mClient.addCheckpoint(workerId, (int) fileId, length, checkpointPath);
+        return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {

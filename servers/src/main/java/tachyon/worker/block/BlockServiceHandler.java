@@ -73,7 +73,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @throws TException
    */
   @Override
-  public void addCheckpoint(long userId, int fileId) throws TException {
+  public void addCheckpoint(long userId, long fileId) throws TException {
     try {
       mWorker.addCheckpoint(userId, fileId);
     } catch (IOException ioe) {

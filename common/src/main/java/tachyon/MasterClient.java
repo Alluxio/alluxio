@@ -65,7 +65,7 @@ public abstract class MasterClient implements Closeable {
 
   /**
    * Returns the name of the service.
-   * 
+   *
    * @return A string representing the specific master
    */
   protected abstract String getServiceName();
@@ -150,7 +150,7 @@ public abstract class MasterClient implements Closeable {
 
   /**
    * Returns the connected status of the client.
-   * 
+   *
    * @return true if this client is connected to the master
    */
   public synchronized boolean isConnected() {

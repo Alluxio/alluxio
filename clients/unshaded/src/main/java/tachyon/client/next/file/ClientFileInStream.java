@@ -226,14 +226,16 @@ public class ClientFileInStream extends FileInStream {
     long currentBlockId = getBlockCurrentBlockId();
 
     if (oldBlockId != currentBlockId) {
-      mCurrentBlockInStream.close();
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.close();
+      }
       try {
         mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
         mShouldCacheCurrentBlock =
             !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
         // TODO: Maybe debug log here
-        long blockStart = currentBlockId * mBlockSize;
+        long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
         mShouldCacheCurrentBlock = mShouldCache;
       }
