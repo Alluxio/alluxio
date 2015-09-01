@@ -69,16 +69,23 @@ public class LocalBlockOutStream extends BlockOutStream {
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
-    // TODO: Get the initial size from the configuration
-    long initialSize = Constants.MB * 8;
-    mBlockPath = mWorkerClient.requestBlockLocation(blockId, initialSize);
-    mAvailableBytes += initialSize;
+    try {
+      // TODO: Get the initial size from the configuration
+      long initialSize = Constants.MB * 8;
+      mBlockPath = mWorkerClient.requestBlockLocation(blockId, initialSize);
+      // TODO: Handle this in the worker?
+      FileUtils.createBlockPath(mBlockPath);
+      mAvailableBytes += initialSize;
 
-    mLocalFile = mCloser.register(new RandomAccessFile(mBlockPath, "rw"));
-    mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
-    // change the permission of the temporary file in order that the worker can move it.
-    FileUtils.changeLocalFileToFullPermission(mBlockPath);
-    // TODO: Add a log message to indicate the file creation
+      mLocalFile = mCloser.register(new RandomAccessFile(mBlockPath, "rw"));
+      mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+      // change the permission of the temporary file in order that the worker can move it.
+      FileUtils.changeLocalFileToFullPermission(mBlockPath);
+      // TODO: Add a log message to indicate the file creation
+    } catch (IOException ioe) {
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw ioe;
+    }
   }
 
   private void failIfClosed() throws IOException {
@@ -153,6 +160,7 @@ public class LocalBlockOutStream extends BlockOutStream {
     }
     ByteBuffer buf = ByteBuffer.allocate(1);
     BufferUtils.putIntByteBuffer(buf, b);
+    buf.flip();
     mLocalFileChannel.write(buf);
     mAvailableBytes --;
     mWrittenBytes ++;

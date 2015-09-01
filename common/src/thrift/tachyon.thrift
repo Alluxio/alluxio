@@ -165,6 +165,8 @@ service BlockMasterService {
   i64 getCapacityBytes()
 
   i64 getUsedBytes()
+
+  BlockInfo getBlockInfo(1: i64 blockId) throws (1: BlockInfoException bie)
 }
 
 service FileSystemMasterService {
@@ -224,6 +226,10 @@ service FileSystemMasterService {
 
   bool free(1: i64 fileId, 2: bool recursive)
     throws (1: FileDoesNotExistException fdnee)
+
+  bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
+      3: BlockInfoException eB)
 
   // Lineage Features
   i32 createDependency(1: list<string> parents, 2: list<string> children,

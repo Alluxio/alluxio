@@ -92,7 +92,7 @@ public class UnderStoreFileInStream extends BlockInStream {
       return 0;
     }
     // Cannot skip beyond boundary
-    long toSkip = Math.min(mInitPos + mLength, mPos + n);
+    long toSkip = Math.min(mInitPos + mLength - mPos, n);
     long skipped = mUnderStoreStream.skip(toSkip);
     if (toSkip != skipped) {
       throw new IOException("Failed to skip " + toSkip);

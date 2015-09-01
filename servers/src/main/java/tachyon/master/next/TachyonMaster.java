@@ -134,9 +134,9 @@ public class TachyonMaster {
       mBlockMasterJournal =
           new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
               mTachyonConf);
-      mFileSystemMasterJournal =
-          new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
-              mTachyonConf);
+      mFileSystemMasterJournal = new Journal(
+          PathUtils.concatPath(journalDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME),
+          mTachyonConf);
       mRawTableMasterJournal = new Journal(
           PathUtils.concatPath(journalDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME),
           mTachyonConf);
@@ -263,12 +263,13 @@ public class TachyonMaster {
   }
 
   /*
-   * Stop a Tachyon master server.
+   * Stop a Tachyon master server. Should only be called by tests.
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      mWebServer.shutdownWebServer();
-      mMasterServiceServer.stop();
+      LOG.info("Stopping Tachyon Master @ " + mMasterAddress);
+      stopServing();
+      stopMaster();
       mTServerSocket.close();
       mIsServing = false;
     }
@@ -315,8 +316,7 @@ public class TachyonMaster {
     processor.registerProcessor(mBlockMaster.getProcessorName(), mBlockMaster.getProcessor());
     processor.registerProcessor(mFileSystemMaster.getProcessorName(),
         mFileSystemMaster.getProcessor());
-    processor.registerProcessor(mRawTableMaster.getProcessorName(),
-        mRawTableMaster.getProcessor());
+    processor.registerProcessor(mRawTableMaster.getProcessorName(), mRawTableMaster.getProcessor());
 
     // create master thrift service with the multiplexed processor.
     mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
@@ -327,7 +327,7 @@ public class TachyonMaster {
     mIsServing = true;
 
     // start web ui
-    mWebServer.startWebServer();
+    // mWebServer.startWebServer();
 
     String leaderStart = (mUseZookeeper) ? "(gained leadership)" : "";
     LOG.info("Tachyon Master version " + Version.VERSION + " started " + leaderStart + " @ "

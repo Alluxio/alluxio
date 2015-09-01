@@ -23,6 +23,8 @@ import com.google.common.base.Preconditions;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.block.BlockInStream;
 import tachyon.client.next.block.BlockOutStream;
+import tachyon.client.next.block.LocalBlockInStream;
+import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -37,6 +39,7 @@ public class ClientFileInStream extends FileInStream {
   private final FSContext mContext;
   private final List<Long> mBlockIds;
   private final String mUfsPath;
+  private final ClientOptions mOptions;
 
   private boolean mClosed;
   private boolean mShouldCacheCurrentBlock;
@@ -49,6 +52,7 @@ public class ClientFileInStream extends FileInStream {
     mFileLength = info.getLength();
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
+    mOptions = options;
     mContext = FSContext.INSTANCE;
     mShouldCache = options.getCacheType().shouldCache();
     mShouldCacheCurrentBlock = mShouldCache;
@@ -146,21 +150,24 @@ public class ClientFileInStream extends FileInStream {
         + ", fileSize = " + mFileLength);
 
     moveBlockInStream(pos);
+    checkAndAdvanceBlockInStream();
     mCurrentBlockInStream.seek(mPos % mBlockSize);
   }
 
   @Override
   public long skip(long n) throws IOException {
-    // TODO: Consider supporting backward skip
     if (n <= 0) {
       return 0;
     }
 
     long toSkip = Math.min(n, mFileLength - mPos);
-    moveBlockInStream(mPos + toSkip);
-    long shouldSkip = mPos % mBlockSize;
-    if (shouldSkip != mCurrentBlockInStream.skip(shouldSkip)) {
-      throw new IOException("The underlying BlockInStream could not skip " + shouldSkip);
+    long newPos = mPos + toSkip;
+    long toSkipInBlock = ((newPos / mBlockSize) > mPos / mBlockSize) ? newPos % mBlockSize :
+        toSkip;
+    moveBlockInStream(newPos);
+    checkAndAdvanceBlockInStream();
+    if (toSkipInBlock != mCurrentBlockInStream.skip(toSkipInBlock)) {
+      throw new IOException("The underlying BlockInStream could not skip " + toSkip);
     }
     return toSkip;
   }
@@ -173,16 +180,18 @@ public class ClientFileInStream extends FileInStream {
       }
       try {
         mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+        mShouldCacheCurrentBlock =
+            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
         // TODO: Maybe debug log here
-        long blockStart = currentBlockId * mBlockSize;
+        long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
+        mShouldCacheCurrentBlock = mShouldCache;
       }
-      if (mShouldCache) {
+      closeCacheStream();
+      if (mShouldCacheCurrentBlock) {
         try {
-          closeCacheStream();
-          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
-          mShouldCacheCurrentBlock = true;
+          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, mOptions);
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
           mShouldCacheCurrentBlock = false;
@@ -219,17 +228,19 @@ public class ClientFileInStream extends FileInStream {
       mCurrentBlockInStream.close();
       try {
         mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+        mShouldCacheCurrentBlock =
+            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
         // TODO: Maybe debug log here
         long blockStart = currentBlockId * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
+        mShouldCacheCurrentBlock = mShouldCache;
       }
 
       // Reading next block entirely
-      if (mPos % mBlockSize == 0 && mShouldCache) {
+      if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
-          mShouldCacheCurrentBlock = true;
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
           mShouldCacheCurrentBlock = false;

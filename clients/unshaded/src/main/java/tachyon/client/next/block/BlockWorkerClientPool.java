@@ -19,17 +19,19 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import tachyon.Constants;
 import tachyon.client.UserMasterClient;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ResourcePool;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.next.WorkerClient;
 
 /**
- * Class for managing block worker clients. After obtaining a client with {@link
+ * Class for managing local block worker clients. After obtaining a client with {@link
  * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
  * using the client.
  */
@@ -40,9 +42,9 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
 
   public BlockWorkerClientPool(NetAddress workerNetAddress, TachyonConf conf) {
     // TODO: Get capacity from conf
-    super(10);
+    super(10000);
     mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
-        "block-master-heartbeat-%d", true));
+        "block-worker-heartbeat-%d", true));
     mWorkerNetAddress = workerNetAddress;
     mTachyonConf = conf;
   }
@@ -59,7 +61,7 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
     try {
       long clientId = userMasterClient.getUserId();
       return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
-          clientId, new ClientMetrics());
+          clientId, true, new ClientMetrics());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to create new BlockWorker Client.", ioe);
     } finally {

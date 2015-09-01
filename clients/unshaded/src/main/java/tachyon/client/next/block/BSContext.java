@@ -40,8 +40,8 @@ import tachyon.worker.next.WorkerClient;
 public enum BSContext {
   INSTANCE;
 
-  private final BlockMasterClientPool mBlockMasterClientPool;
-  private final BlockWorkerClientPool mLocalBlockWorkerClientPool;
+  private BlockMasterClientPool mBlockMasterClientPool;
+  private BlockWorkerClientPool mLocalBlockWorkerClientPool;
   private final ExecutorService mRemoteBlockWorkerExecutor;
 
   private BSContext() {
@@ -52,6 +52,28 @@ public enum BSContext {
         Executors.newFixedThreadPool(10,
             ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
 
+    NetAddress localWorkerAddress =
+        getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+
+    // If the local worker is not available, do not initialize the local worker client pool
+    if (null == localWorkerAddress) {
+      mLocalBlockWorkerClientPool = null;
+    } else {
+      mLocalBlockWorkerClientPool =
+          new BlockWorkerClientPool(localWorkerAddress, ClientContext.getConf());
+    }
+  }
+
+  /**
+   * Reinitializes the Block Store context. This method should only be used in ClientContext.
+   */
+  public void resetContext() {
+    mBlockMasterClientPool.close();
+    if (mLocalBlockWorkerClientPool != null) {
+      mLocalBlockWorkerClientPool.close();
+    }
+    mBlockMasterClientPool =
+        new BlockMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
     NetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
@@ -143,7 +165,7 @@ public enum BSContext {
     try {
       long clientId = userMasterClient.getUserId();
       return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
-          clientId, new ClientMetrics());
+          clientId, false, new ClientMetrics());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to get an ID from the master.", ioe);
     } finally {

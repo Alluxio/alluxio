@@ -15,17 +15,17 @@
 
 package tachyon.master.next.filesystem.journal;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import tachyon.master.next.filesystem.meta.InodeDirectory;
 import tachyon.master.next.journal.JournalEntryType;
 
 public class InodeDirectoryEntry extends InodeEntry {
-  private List<Long> mChildrenIds;
+  private Set<Long> mChildrenIds;
 
   public InodeDirectoryEntry(long creationTimeMs, long id, String name, long parentId,
-      boolean isPinned, long lastModificationTimeMs, List<Long> childrenIds) {
+      boolean isPinned, long lastModificationTimeMs, Set<Long> childrenIds) {
     super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
 
     mChildrenIds = childrenIds;

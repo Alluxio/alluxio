@@ -52,6 +52,13 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
+  public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath)
+      throws BlockInfoException, FileDoesNotExistException, SuspectedFileSizeException {
+    return mFileSystemMaster.completeFileCheckpoint(workerId, fileId, length, new TachyonURI(
+        checkpointPath));
+  }
+
+  @Override
   public long getFileId(String path) throws InvalidPathException, TException {
     return mFileSystemMaster.getFileId(new TachyonURI(path));
   }

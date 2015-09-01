@@ -47,6 +47,7 @@ import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
@@ -55,30 +56,38 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
-public class BlockMaster extends MasterBase implements ContainerIdGenerator {
+public final class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Block metadata management.
-  // This state much be journaled.
+  /**
+   * blocks ever placed in all Tachyon workers, including both the active blocks and lost ones. This
+   * state much be journaled.
+   */
   private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
-  // This state much be journaled.
+  /**
+   * This state much be journaled.
+   */
   private final BlockIdGenerator mBlockIdGenerator = new BlockIdGenerator();
   private final Set<Long> mLostBlocks = new HashSet<Long>();
 
   // Worker metadata management.
-  private final IndexedSet.FieldIndex mIdIndex = new IndexedSet.FieldIndex<MasterWorkerInfo>() {
-    @Override
-    public Object getFieldValue(MasterWorkerInfo o) {
-      return o.getId();
-    }
-  };
-  private final IndexedSet.FieldIndex mAddressIndex =
+  private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
+      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+        @Override
+        public Object getFieldValue(MasterWorkerInfo o) {
+          return o.getId();
+        }
+      };
+  private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getAddress();
         }
       };
+
+  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   // This state much be journaled.
@@ -104,11 +113,7 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
     // clear state before processing checkpoint.
     mBlocks.clear();
 
-    JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      processJournalEntry(entry);
-    }
-    inputStream.close();
+    super.processJournalCheckpoint(inputStream);
   }
 
   @Override
@@ -192,7 +197,7 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
   }
 
   public Set<Long> getLostBlocks() {
-    return mLostBlocks;
+    return Collections.unmodifiableSet(mLostBlocks);
   }
 
   public void removeBlocks(List<Long> blockIds) {
@@ -208,6 +213,8 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
           worker.updateToRemovedBlock(true, blockId);
         }
       }
+      // remove from lost blocks
+      mLostBlocks.remove(blockId);
     }
   }
 
@@ -222,9 +229,18 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
     }
   }
 
+  /**
+   * Commit a block on a specific worker.
+   *
+   * @param workerId the worker id committing the block
+   * @param usedBytesOnTier the updated used bytes on the tier of the worker
+   * @param tierAlias the tier alias where the worker is committing the block to
+   * @param blockId the committing block id
+   * @param length the length of the block
+   */
   public void commitBlock(long workerId, long usedBytesOnTier, int tierAlias, long blockId,
       long length) {
-    LOG.debug("Commit block: {}",
+    LOG.debug("Commit block from worker: {}",
         FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
 
     MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
@@ -242,6 +258,47 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
       flushJournal();
     }
     masterBlockInfo.addWorker(workerId, tierAlias);
+    mLostBlocks.remove(blockId);
+  }
+
+  /**
+   * Commit a block, but without a worker location. This means the block is only in ufs.
+   *
+   * @param blockId the id of the block to commit
+   * @param length the length of the block
+   */
+  public void commitBlock(long blockId, long length) {
+    LOG.debug("Commit block: {}", FormatUtils.parametersToString(blockId, length));
+
+    MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+    if (masterBlockInfo == null) {
+      masterBlockInfo = new MasterBlockInfo(blockId, length);
+      mBlocks.put(blockId, masterBlockInfo);
+      // write new block info to journal.
+      writeJournalEntry(
+          new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
+      flushJournal();
+    }
+  }
+
+  public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
+    MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+    if (masterBlockInfo != null) {
+      // Construct the block info object to return.
+
+      // "Join" to get all the addresses of the workers.
+      List<BlockLocation> locations = new ArrayList<BlockLocation>();
+      for (MasterBlockLocation masterBlockLocation : masterBlockInfo.getBlockLocations()) {
+        MasterWorkerInfo workerInfo =
+            mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
+        if (workerInfo != null) {
+          locations.add(new BlockLocation(masterBlockLocation.getWorkerId(),
+              workerInfo.getAddress(), masterBlockLocation.getTier()));
+        }
+      }
+      return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
+    }
+    throw new BlockInfoException("Block info not found for " + blockId);
   }
 
   /**
@@ -420,7 +477,8 @@ public class BlockMaster extends MasterBase implements ContainerIdGenerator {
           // TODO: change upper API so that this is tier level or type, not storage dir id.
           int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
           masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
-          // TODO: update lost workers?
+
+          mLostBlocks.remove(blockId);
         } else {
           // TODO: throw exception?
           LOG.warn(

@@ -24,6 +24,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
@@ -63,10 +64,10 @@ public final class InodeTree implements JournalSerializable {
 
   /**
    * Inode id management. Inode ids are essentially block ids.
-   * 
+   *
    * inode files: Each file id will be composed of a unique block container id, with the maximum
    * sequence number.
-   * 
+   *
    * inode directories: Each directory id will be a unique block id, in order to avoid any collision
    * with file ids.
    */
@@ -132,7 +133,8 @@ public final class InodeTree implements JournalSerializable {
    *        path, otherwise, throw InvalidPathException if there some necessary parent directories
    *        is nonexistent
    * @param directory if it is true, create a directory, otherwise, create a file
-   * @return the Inode of the file or directory
+   * @return a list of Inodes created in the order of creation time. If no Inodes are created, the
+   *         list will be empty
    * @throws FileAlreadyExistException when there is already a file at path if we want to create a
    *         directory there
    * @throws BlockInfoException when blockSizeBytes is invalid
@@ -140,7 +142,7 @@ public final class InodeTree implements JournalSerializable {
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
    */
-  public Inode createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
+  public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
 
@@ -187,6 +189,7 @@ public final class InodeTree implements JournalSerializable {
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
+    List<Inode> ret = Lists.newArrayList();
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
       Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
@@ -194,6 +197,7 @@ public final class InodeTree implements JournalSerializable {
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
+      ret.add(dir);
       mInodes.add(dir);
       currentInodeDirectory = (InodeDirectory) dir;
     }
@@ -201,32 +205,33 @@ public final class InodeTree implements JournalSerializable {
     // Create the final path component. First we need to make sure that there isn't already a file
     // here with that name. If there is an existing file that is a directory and we're creating a
     // directory, we just return the existing directory's id.
-    Inode ret = currentInodeDirectory.getChild(name);
-    if (ret != null) {
-      if (ret.isDirectory() && directory) {
-        return ret;
+    Inode lastInode = currentInodeDirectory.getChild(name);
+    if (lastInode != null) {
+      if (lastInode.isDirectory() && directory) {
+        return ret; // Should be an empty list
       }
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
     }
     if (directory) {
-      ret = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
+      lastInode = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
           currentInodeDirectory.getId(), creationTimeMs);
     } else {
-      ret = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
+      lastInode = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
           currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
-        mPinnedInodeFileIds.add(ret.getId());
+        mPinnedInodeFileIds.add(lastInode.getId());
       }
     }
-    ret.setPinned(currentInodeDirectory.isPinned());
+    lastInode.setPinned(currentInodeDirectory.isPinned());
 
-    mInodes.add(ret);
-    currentInodeDirectory.addChild(ret);
+    ret.add(lastInode);
+    mInodes.add(lastInode);
+    currentInodeDirectory.addChild(lastInode);
     currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
 
-    LOG.debug("createFile: File Created: {} parent: ", ret, currentInodeDirectory);
+    LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
     return ret;
   }
 
@@ -252,15 +257,20 @@ public final class InodeTree implements JournalSerializable {
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
    * @param inode The {@link Inode} to delete
+   * @param opTimeMs The operation time
    */
-  public void deleteInode(Inode inode) throws FileDoesNotExistException {
+  public void deleteInode(Inode inode, long opTimeMs) throws FileDoesNotExistException {
     InodeDirectory parent = (InodeDirectory) getInodeById(inode.getParentId());
     parent.removeChild(inode);
-    parent.setLastModificationTimeMs(System.currentTimeMillis());
+    parent.setLastModificationTimeMs(opTimeMs);
 
     mInodes.remove(inode);
     mPinnedInodeFileIds.remove(inode.getId());
     inode.delete();
+  }
+
+  public void deleteInode(Inode inode) throws FileDoesNotExistException {
+    deleteInode(inode, System.currentTimeMillis());
   }
 
   /**
@@ -269,10 +279,11 @@ public final class InodeTree implements JournalSerializable {
    *
    * @param inode The {@link Inode} to set the pinned state for.
    * @param pinned The pinned state to set for the inode (and possible descendants).
+   * @param opTimeMs The operation time
    */
-  public void setPinned(Inode inode, boolean pinned) {
+  public void setPinned(Inode inode, boolean pinned, long opTimeMs) {
     inode.setPinned(pinned);
-    inode.setLastModificationTimeMs(System.currentTimeMillis());
+    inode.setLastModificationTimeMs(opTimeMs);
 
     if (inode.isFile()) {
       if (inode.isPinned()) {
@@ -283,9 +294,13 @@ public final class InodeTree implements JournalSerializable {
     } else {
       // inode is a directory. Set the pinned state for all children.
       for (Inode child : ((InodeDirectory) inode).getChildren()) {
-        setPinned(child, pinned);
+        setPinned(child, pinned, opTimeMs);
       }
     }
+  }
+
+  public void setPinned(Inode inode, boolean pinned) {
+    setPinned(inode, pinned, System.currentTimeMillis());
   }
 
   // TODO: this should return block container ids, not file ids.
@@ -301,7 +316,7 @@ public final class InodeTree implements JournalSerializable {
   /**
    * Adds the inode represented by the entry parameter into the inode tree. If the inode entry
    * represents the root inode, the tree is "reset", and all state is cleared.
-   * 
+   *
    * @param entry The journal entry representing an inode.
    */
   public void addInodeFromJournal(InodeEntry entry) {

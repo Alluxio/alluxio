@@ -124,10 +124,12 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
 
   @Test
   public void setLastModificationTimeTest() {
-    long createTimeMs = System.currentTimeMillis();
-    long modificationTimeMs = createTimeMs + Constants.SECOND_MS;
     InodeDirectory inodeDirectory = createInodeDirectory();
+    // This is not perfect, since time could have passed between creation and this call.
+    long createTimeMs = System.currentTimeMillis();
     Assert.assertEquals(createTimeMs, inodeDirectory.getLastModificationTimeMs());
+
+    long modificationTimeMs = createTimeMs + Constants.SECOND_MS;
     inodeDirectory.setLastModificationTimeMs(modificationTimeMs);
     Assert.assertEquals(modificationTimeMs, inodeDirectory.getLastModificationTimeMs());
   }

@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,8 +31,9 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Users;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterClient;
+import tachyon.client.BlockMasterClient;
 import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
@@ -42,7 +42,6 @@ import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
@@ -73,8 +72,10 @@ public final class BlockWorker {
   private final BlockDataManager mBlockDataManager;
   /** Server for data requests and responses. */
   private final DataServer mDataServer;
-  /** Client for all master communication */
-  private final MasterClient mMasterClient;
+  /** Client for all block master communication */
+  private final BlockMasterClient mBlockMasterClient;
+  /** Client for all file system master communication */
+  private final FileSystemMasterClient mFileSystemMasterClient;
   /** The executor service for the master client thread */
   private final ExecutorService mMasterClientExecutorService;
   /** Threadpool for the master sync */
@@ -109,14 +110,18 @@ public final class BlockWorker {
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient =
-        new MasterClient(
-            NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+    mBlockMasterClient =
+        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
+
+    mFileSystemMasterClient =
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
-    mBlockDataManager = new BlockDataManager(workerSource, mMasterClient);
+    mBlockDataManager =
+        new BlockDataManager(workerSource, mBlockMasterClient, mFileSystemMasterClient);
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -156,12 +161,13 @@ public final class BlockWorker {
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
-        mMasterClient);
-    // In registerWithMaster mMasterClient tries to connect to master
-    mBlockMasterSync.registerWithMaster();
+        mBlockMasterClient);
+    // Get the worker id
+    // TODO: Do this at TachyonWorker
+    mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mMasterClient);
+    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
 
     // Setup UserCleaner
     mUserCleanerThread = new UserCleaner(mBlockDataManager, mTachyonConf);
@@ -223,7 +229,7 @@ public final class BlockWorker {
     mBlockMasterSync.stop();
     mPinListSync.stop();
     mUserCleanerThread.stop();
-    mMasterClient.close();
+    mBlockMasterClient.close();
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     try {
