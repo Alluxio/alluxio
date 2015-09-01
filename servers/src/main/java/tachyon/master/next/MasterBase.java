@@ -69,6 +69,15 @@ public abstract class MasterBase implements Master {
     mIsStandbyMode = !asMaster;
     if (asMaster) {
       // initialize the journal and write out the checkpoint file.
+
+      // TODO: only do this if this is a fresh start, not if this master had already been tailing
+      // the journal.
+      // Use the journal tailer to "catch up".
+      LOG.info(getProcessorName() + ": start journal tailer to catch up before becoming master.");
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer.start();
+      mStandbyJournalTailer.shutdownAndJoin();
+
       // TODO: verify that journal writer is null?
       mJournalWriter = mJournal.getNewWriter();
       writeToJournal(mJournalWriter.getCheckpointOutputStream());
