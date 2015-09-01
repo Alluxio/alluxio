@@ -146,6 +146,12 @@ public class FileSystemMaster extends MasterBase {
   }
 
   @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    mInodeTree.writeToJournal(outputStream);
+    mDependencyMap.writeToJournal(outputStream);
+  }
+
+  @Override
   public void start(boolean asMaster) throws IOException {
     startMaster(asMaster);
     if (isMasterMode()) {
@@ -697,12 +703,6 @@ public class FileSystemMaster extends MasterBase {
     synchronized (mDependencyMap) {
       return mDependencyMap.getPriorityDependencyList();
     }
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    mInodeTree.writeToJournal(outputStream);
-    mDependencyMap.writeToJournal(outputStream);
   }
 
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
