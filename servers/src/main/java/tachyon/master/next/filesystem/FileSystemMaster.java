@@ -35,6 +35,7 @@ import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
+import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
 import tachyon.master.next.filesystem.journal.SetPinnedEntry;
@@ -124,6 +125,8 @@ public class FileSystemMaster extends MasterBase {
       freeFromEntry((FreeEntry) entry);
     } else if (entry instanceof SetPinnedEntry) {
       setPinnedFromEntry((SetPinnedEntry) entry);
+    } else if (entry instanceof DeleteFileEntry) {
+      deleteFileFromEntry((DeleteFileEntry) entry);
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
@@ -360,14 +363,30 @@ public class FileSystemMaster extends MasterBase {
   public boolean deleteFile(long fileId, boolean recursive)
       throws TachyonException, FileDoesNotExistException {
     // TODO: metrics
-    synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
-      return deleteInodeInternal(inode, recursive);
-      // TODO: write to journal
+    long opTimeMs = System.currentTimeMillis();
+    boolean ret = deleteFileInternal(fileId, recursive, opTimeMs);
+    writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
+    flushJournal();
+    return ret;
+  }
+
+  private void deleteFileFromEntry(DeleteFileEntry entry) {
+    try {
+      deleteFileInternal(entry.mFileId, entry.mRecursive, entry.mOpTimeMs);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
-  private boolean deleteInodeInternal(Inode inode, boolean recursive)
+  private boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
+      throws TachyonException, FileDoesNotExistException {
+    synchronized (mInodeTree) {
+      Inode inode = mInodeTree.getInodeById(fileId);
+      return deleteInodeInternal(inode, recursive, System.currentTimeMillis());
+    }
+  }
+
+  private boolean deleteInodeInternal(Inode inode, boolean recursive, long opTimeMs)
       throws TachyonException, FileDoesNotExistException {
     if (inode == null) {
       return true;
@@ -413,7 +432,7 @@ public class FileSystemMaster extends MasterBase {
         mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds());
       }
 
-      mInodeTree.deleteInode(delInode);
+      mInodeTree.deleteInode(delInode, opTimeMs);
     }
     return true;
   }
