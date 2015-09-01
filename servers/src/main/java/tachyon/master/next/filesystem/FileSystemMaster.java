@@ -34,6 +34,7 @@ import tachyon.master.block.BlockId;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
 import tachyon.master.next.filesystem.journal.InodeEntry;
@@ -116,6 +117,21 @@ public class FileSystemMaster extends MasterBase {
     // TODO
     if (entry instanceof InodeEntry) {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else if (entry instanceof DependencyEntry) {
+      DependencyEntry dependencyEntry = (DependencyEntry) entry;
+      Dependency dependency = new Dependency(dependencyEntry.mId, dependencyEntry.mParentFiles,
+          dependencyEntry.mChildrenFiles, dependencyEntry.mCommandPrefix, dependencyEntry.mData,
+          dependencyEntry.mComment, dependencyEntry.mFramework, dependencyEntry.mFrameworkVersion,
+          dependencyEntry.mDependencyType, dependencyEntry.mParentDependencies,
+          dependencyEntry.mCreationTimeMs, mTachyonConf);
+      for (int childDependencyId : dependencyEntry.mChildrenDependencies) {
+        dependency.addChildrenDependency(childDependencyId);
+      }
+      for (long lostFileId : dependencyEntry.mLostFileIds) {
+        dependency.addLostFile(lostFileId);
+      }
+      dependency.resetUncheckpointedChildrenFiles(dependencyEntry.mUncheckpointedFiles);
+      mDependencyMap.addDependency(dependency);
     } else if (entry instanceof CompleteFileEntry) {
       completeFileFromEntry((CompleteFileEntry) entry);
     } else if (entry instanceof AddCheckpointEntry) {
@@ -685,7 +701,6 @@ public class FileSystemMaster extends MasterBase {
 
   @Override
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
     mInodeTree.writeToJournal(outputStream);
     mDependencyMap.writeToJournal(outputStream);
   }
