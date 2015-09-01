@@ -172,6 +172,15 @@ public final class MasterInfo {
   }
 
   /**
+   * Gets info about the lost workers
+   *
+   * @return a list of worker info
+   */
+  public List<WorkerInfo> getLostWorkersInfo() {
+    return mBlockMaster.getLostWorkersInfo();
+  }
+
+  /**
    * Gets the master address.
    *
    * @return the master address

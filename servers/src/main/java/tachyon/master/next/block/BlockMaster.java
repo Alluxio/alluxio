@@ -224,6 +224,20 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     return Collections.unmodifiableSet(mLostBlocks);
   }
 
+  /**
+   * Gets info about the lost workers
+   *
+   * @return a list of worker info
+   */
+  public List<WorkerInfo> getLostWorkersInfo() {
+    List<WorkerInfo> ret = new ArrayList<WorkerInfo>();
+
+    for (MasterWorkerInfo worker : mLostWorkers) {
+      ret.add(worker.generateClientWorkerInfo());
+    }
+    return ret;
+  }
+
   public void removeBlocks(List<Long> blockIds) {
     for (long blockId : blockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
