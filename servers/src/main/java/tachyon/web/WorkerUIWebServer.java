@@ -22,7 +22,6 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
-import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.block.BlockDataManager;
 
