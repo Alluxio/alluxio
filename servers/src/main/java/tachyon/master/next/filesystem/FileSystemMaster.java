@@ -258,11 +258,13 @@ public class FileSystemMaster extends MasterBase {
     }
   }
 
-  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
-      return inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
+      FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
+      fileInfo.inMemoryPercentage = getInMemoryPercentage(mInodeTree.getPath(inode));
+      return fileInfo;
     }
   }
 
@@ -486,8 +488,7 @@ public class FileSystemMaster extends MasterBase {
    */
   public int getInMemoryPercentage(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
-    long fileId = getFileId(path);
-    Inode inode = mInodeTree.getInodeById(fileId);
+    Inode inode =  mInodeTree.getInodeByPath(path);
     if (inode == null) {
       throw new FileDoesNotExistException(path + " does not exist.");
     }
@@ -507,14 +508,14 @@ public class FileSystemMaster extends MasterBase {
         inMemoryLength += info.getLength();
       }
     }
-    return (int) (inMemoryLength * 100 / inMemoryLength);
+    return (int) (inMemoryLength * 100 / length);
   }
 
   /**
    * @return true if the given block is in some worker's memory, false otherwise
    */
-  private boolean isInMemory(BlockInfo blockIfno) {
-    for (BlockLocation location : blockIfno.getLocations()) {
+  private boolean isInMemory(BlockInfo blockInfo) {
+    for (BlockLocation location : blockInfo.getLocations()) {
       int tier = location.getTier();
       int storageLevelValue = StorageDirId.getStorageLevelAliasValue(tier);
       if (storageLevelValue == StorageLevelAlias.MEM.getValue()) {
