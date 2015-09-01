@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.TProcessor;
@@ -32,7 +36,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.HeartbeatExecutor;
+import tachyon.HeartbeatThread;
 import tachyon.StorageDirId;
+import tachyon.conf.TachyonConf;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.MasterBase;
 import tachyon.master.next.block.journal.BlockIdGeneratorEntry;
@@ -53,7 +60,9 @@ import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
+import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
+import tachyon.util.ThreadFactoryUtils;
 
 public final class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -69,6 +78,14 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
    */
   private final BlockIdGenerator mBlockIdGenerator = new BlockIdGenerator();
   private final Set<Long> mLostBlocks = new HashSet<Long>();
+  private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
+      new LinkedBlockingQueue<MasterWorkerInfo>();
+  private final TachyonConf mTachyonConf;
+
+  /**
+   * the service that detects lost worker nodes, and tries to restart the failed workers
+   */
+  private Future<?> mLostWorkerDetectionService;
 
   // Worker metadata management.
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
@@ -92,8 +109,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   // This state much be journaled.
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
 
-  public BlockMaster(Journal journal) {
-    super(journal);
+  public BlockMaster(Journal journal, TachyonConf tachyonConf) {
+    super(journal,
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)));
+    mTachyonConf = tachyonConf;
   }
 
   @Override
@@ -142,7 +161,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   public void start(boolean asMaster) throws IOException {
     startMaster(asMaster);
     if (isMasterMode()) {
-      // TODO: start periodic heartbeat threads.
+      mLostWorkerDetectionService =
+          getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
+              new LostWorkerDetectionHeartbeatExecutor(),
+              mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -150,7 +172,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   public void stop() throws IOException {
     stopMaster();
     if (isMasterMode()) {
-      // TODO: stop heartbeat threads.
+      if (mLostWorkerDetectionService != null) {
+        mLostWorkerDetectionService.cancel(true);
+      }
     }
   }
 
@@ -441,6 +465,42 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
           // TODO: throw exception?
           LOG.warn(
               "failed to register workerId: " + workerInfo.getId() + " to blockId: " + blockId);
+        }
+      }
+    }
+  }
+
+  /**
+   * Lost worker periodical check.
+   */
+  public final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+    @Override
+    public void heartbeat() {
+      LOG.debug("System status checking.");
+
+      synchronized (mWorkers) {
+        for (MasterWorkerInfo worker : mWorkers) {
+          int masterWorkerTimeoutMs = mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
+          if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
+            LOG.error("The worker " + worker + " got timed out!");
+            mLostWorkers.add(worker);
+            mWorkers.remove(worker);
+          } else if (mLostWorkers.contains(worker)) {
+            LOG.info("The lost worker " + worker + " is found.");
+            mLostWorkers.remove(worker);
+          }
+        }
+      }
+
+      // restart the failed workers
+      if (mLostWorkers.size() != 0) {
+        LOG.warn("Restarting failed workers.");
+        try {
+          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
+          java.lang.Runtime.getRuntime()
+              .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
+        } catch (IOException e) {
+          LOG.error(e.getMessage());
         }
       }
     }
