@@ -45,7 +45,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
   private long mWrittenBytes;
 
   public RemoteBlockOutStream(long blockId, ClientOptions options) throws IOException {
-    Preconditions.checkArgument(!options.getCacheType().shouldCache(), "Remote Block OutStream "
+    Preconditions.checkArgument(options.getCacheType().shouldCache(), "Remote Block OutStream "
         + "only supports CacheType CACHE.");
     mBlockId = blockId;
     mBlockSize = options.getBlockSize();
