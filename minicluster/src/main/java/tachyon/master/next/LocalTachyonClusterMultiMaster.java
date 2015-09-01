@@ -112,7 +112,7 @@ public class LocalTachyonClusterMultiMaster {
 
   public boolean killLeader() {
     for (int k = 0; k < mNumOfMasters; k ++) {
-      if (mMasters.get(k).isStarted()) {
+      if (mMasters.get(k).isServing()) {
         try {
           mMasters.get(k).stop();
         } catch (Exception e) {
