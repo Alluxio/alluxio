@@ -1,0 +1,4 @@
+- name: Start Mesos master
+  script: start_master.sh
+
+# vim :set filetype=ansible.yaml:

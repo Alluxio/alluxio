@@ -1,0 +1,4 @@
+- name: Start Tachyon Mesos framework
+  script: start_mesos_framework.sh
+
+# vim :set filetype=ansible.yaml:
