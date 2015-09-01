@@ -41,9 +41,9 @@ public enum ExceptionMessage {
   TIER_VIEW_ALIAS_NOT_FOUND("Tier view with alias {0} not found"),
 
   // storageDir
-  ADD_EXISTING_BLOCK("blockId {0} exists"),
-  BLOCK_NOT_FOUND_FOR_USER("blockId {0} not found for user {1}"),
-  NO_SPACE_FOR_BLOCK_META("blockId {0} is {1} bytes, but only {2} bytes available"),
+  ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),
+  BLOCK_NOT_FOUND_FOR_USER("blockId {0} in {1} not found for user {2}"),
+  NO_SPACE_FOR_BLOCK_META("blockId {0} is {1} bytes, but only {2} bytes available in {3}"),
 
   // tieredBlockStore
   BLOCK_ID_FOR_DIFFERENT_USER("BlockId {0} is owned by userId {1} not {2}"),

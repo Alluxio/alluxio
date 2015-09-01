@@ -33,6 +33,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
@@ -281,15 +282,16 @@ public final class StorageDir {
     long blockId = blockMeta.getBlockId();
     long blockSize = blockMeta.getBlockSize();
 
-    if (hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("Failed to add BlockMeta: blockId " + blockId + " exists");
-    }
     if (getAvailableBytes() < blockSize) {
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
       throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
-          getAvailableBytes());
+          getAvailableBytes(), alias);
     }
     if (hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId);
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
@@ -309,16 +311,16 @@ public final class StorageDir {
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
-    if (hasTempBlockMeta(blockId)) {
-      throw new AlreadyExistsException(
-          "Failed to add TempBlockMeta: blockId " + blockId + " exists");
-    }
     if (getAvailableBytes() < blockSize) {
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
       throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
-          getAvailableBytes());
+          getAvailableBytes(), alias);
     }
     if (hasTempBlockMeta(blockId)) {
-      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId);
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
@@ -363,7 +365,9 @@ public final class StorageDir {
     }
     Set<Long> userBlocks = mUserIdToTempBlockIdsMap.get(userId);
     if (userBlocks == null || !userBlocks.contains(blockId)) {
-      throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_USER, blockId, userId);
+      StorageLevelAlias alias = StorageLevelAlias.getAlias(this.getDirIndex());
+      throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_USER, blockId, alias,
+          userId);
     }
     Preconditions.checkState(userBlocks.remove(blockId));
     if (userBlocks.isEmpty()) {
