@@ -1,17 +1,15 @@
 # Compile Mesos.
 ---
 
-- name: install autoconf
-  yum: name=autoconf
-  sudo: yes
+- include: install_deps.yml
 
-- name: install automake
-  yum: name=automake
-  sudo: yes
+- copy: >
+    src=roles/mesos/files/compile.sh
+    dest=/tmp/compile_mesos.sh
 
 - name: compile mesos
-  script: /compile.sh
-  async: 1200
+  shell: bash /tmp/compile_mesos.sh
+  async: 1800
   poll: 60
 
 # vim :set filetype=ansible.yaml:

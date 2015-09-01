@@ -19,8 +19,8 @@ def validate_provider(provider)
       return
     end
 
-    raise "\nMISMATCH FOUND\nProvider in init.yml is #{provider}." + 
-          "\nBut vagrant provider is #{current_provider}." 
+    raise "\nMISMATCH FOUND\nProvider in init.yml is #{provider}." +
+          "\nBut vagrant provider is #{current_provider}."
   end
 end
 
@@ -69,6 +69,43 @@ class TachyonVersion
 
   def memory
     return @mem
+  end
+end
+
+# parse mesos_version.yml
+class MesosVersion
+  def initialize(yaml_path)
+    puts 'parsing mesos_version.yml'
+    @yml = YAML.load_file(yaml_path)
+
+    @type = @yml['Type']
+    @repo = ''
+    @version = ''
+    @dist = ''
+    case @type
+    when "Github"
+      @repo = @yml['Github']['Repo']
+      @version = @yml['Github']['Version']
+      puts "using github #{@repo}, version #{@version}"
+    when "Release"
+      @dist = @yml['Release']['Dist']
+      puts "using mesos dist #{@dist}"
+    else
+      puts "Unknown VersionType"
+      exit(1)
+    end
+  end
+
+  def dist
+    return @dist
+  end
+
+  def type
+    return @type
+  end
+
+  def repo_version
+    return @repo, @version
   end
 end
 

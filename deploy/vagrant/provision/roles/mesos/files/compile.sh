@@ -4,8 +4,8 @@ set -e
 
 cd /mesos
 ./bootstrap
-mkdir build
+mkdir -p build
 cd build
 ../configure
 make
-make install
+sudo make install
