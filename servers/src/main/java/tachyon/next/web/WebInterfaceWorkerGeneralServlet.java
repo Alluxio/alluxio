@@ -34,7 +34,7 @@ import tachyon.worker.block.BlockStoreMeta;
 /**
  * Servlets that shows a worker's general information, including tiered storage details.
  */
-public class WebInterfaceWorkerGeneralServlet extends HttpServlet {
+public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
   public static class UiStorageDir {
     private final long mStorageDirId;

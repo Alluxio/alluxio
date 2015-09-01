@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
 import tachyon.StorageLevelAlias;
@@ -42,7 +43,7 @@ public final class UiFileInfo {
       });
 
   // Simple class for describing a file on the local filesystem.
-  public static class LocalFileInfo {
+  static class LocalFileInfo {
     public static final long EMPTY_CREATION_TIME = 0;
 
     private final String mName;
@@ -54,8 +55,8 @@ public final class UiFileInfo {
 
     public LocalFileInfo(String name, String absolutePath, long size, long creationTimeMs,
         long lastModificationTimeMs, boolean isDirectory) {
-      mName = name;
-      mAbsolutePath = absolutePath;
+      mName = Preconditions.checkNotNull(name);
+      mAbsolutePath = Preconditions.checkNotNull(absolutePath);
       mSize = size;
       mCreationTimeMs = creationTimeMs;
       mLastModificationTimeMs = lastModificationTimeMs;

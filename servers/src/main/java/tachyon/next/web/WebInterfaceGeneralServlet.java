@@ -35,7 +35,7 @@ import tachyon.util.FormatUtils;
 /**
  * Servlet that provides data for viewing the general status of the filesystem.
  */
-public class WebInterfaceGeneralServlet extends HttpServlet {
+public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Class to make referencing tiered storage information more intuitive.
    */
