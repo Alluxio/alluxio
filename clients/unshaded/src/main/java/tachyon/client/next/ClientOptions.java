@@ -45,8 +45,7 @@ public class ClientOptions {
     }
 
     public Builder setLocation(NetAddress location) {
-      mLocation = location;
-      return this;
+      throw new UnsupportedOperationException("Set location is currently unsupported.");
     }
 
     public Builder setUnderStorageType(UnderStorageType underStorageType) {

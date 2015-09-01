@@ -278,6 +278,10 @@ public class WorkerClient implements Closeable {
     return mWorkerDataServerAddress;
   }
 
+  public synchronized long getUserId() {
+    return mUserId;
+  }
+
   /**
    * Get the user temporary folder in the under file system of the specified user.
    *
