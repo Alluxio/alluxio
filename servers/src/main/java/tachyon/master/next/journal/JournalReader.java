@@ -15,7 +15,6 @@
 
 package tachyon.master.next.journal;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 
 import org.slf4j.Logger;
@@ -41,7 +40,7 @@ public class JournalReader {
   private final UnderFileSystem mUfs;
   private final String mCheckpointPath;
 
-  // true if the checkpoint has been already been read.
+  // true if the checkpoint has already been read.
   private boolean mCheckpointRead = false;
   // The modified time (in ms) for the opened checkpoint file.
   private long mCheckpointOpenedTime = -1;
@@ -57,7 +56,7 @@ public class JournalReader {
   }
 
   /**
-   * Checks to see if the journal checkpoint has not be updated. If it has been updated since the
+   * Checks to see if the journal checkpoint has not been updated. If it has been updated since the
    * creation of this reader, this reader is no longer valid.
    *
    * @return true if the checkpoint file has not been modified.
@@ -77,7 +76,7 @@ public class JournalReader {
 
     LOG.info("Opening journal checkpoint file: " + mCheckpointPath);
     JournalInputStream jis =
-        mJournal.getJournalFormatter().deserialize(new DataInputStream(mUfs.open(mCheckpointPath)));
+        mJournal.getJournalFormatter().deserialize(mUfs.open(mCheckpointPath));
 
     mCheckpointRead = true;
     return jis;
@@ -105,7 +104,7 @@ public class JournalReader {
     // Open input stream from the current log file.
     LOG.info("Opening journal log file: " + currentLogPath);
     JournalInputStream jis =
-        mJournal.getJournalFormatter().deserialize(new DataInputStream(mUfs.open(currentLogPath)));
+        mJournal.getJournalFormatter().deserialize(mUfs.open(currentLogPath));
 
     // Increment the log file number.
     mCurrentLogNumber ++;
