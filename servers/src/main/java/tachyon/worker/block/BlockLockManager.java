@@ -44,8 +44,7 @@ public final class BlockLockManager {
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
   // TODO: Make this configurable
   private static final int NUM_LOCKS = 1000;
-  /** Time to wait to acquire a lock */
-  private static final int LOCK_ACQUIRE_TIMEOUT_MS = 5000;
+
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
   /** A hashing function to map blockId to one of the locks */
