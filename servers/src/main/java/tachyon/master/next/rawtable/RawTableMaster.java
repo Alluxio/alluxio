@@ -29,8 +29,8 @@ import tachyon.master.next.MasterBase;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalOutputStream;
+import tachyon.master.next.rawtable.journal.RawTableEntry;
 import tachyon.master.next.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -73,13 +73,18 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
-    // TODO
+  public void processJournalEntry(JournalEntry entry) throws IOException {
+    if (entry instanceof RawTableEntry) {
+      RawTableEntry tableEntry = (RawTableEntry) entry;
+      mRawTables.add(tableEntry.mId, tableEntry.mColumns, tableEntry.mMetadata);
+    } else {
+      throw new IOException("Unknown entry type " + entry.getType());
+    }
   }
 
   @Override
-  public void processJournalEntry(JournalEntry entry) throws IOException {
-    // TODO
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    mRawTables.writeToJournal(outputStream);
   }
 
   @Override
@@ -212,6 +217,8 @@ public class RawTableMaster extends MasterBase {
       return ret;
     } catch (FileDoesNotExistException fne) {
       throw new TableDoesNotExistException("Table with id " + id + " does not exist.");
+    } catch (InvalidPathException e) {
+      throw new TableDoesNotExistException("Table id " + id + " is invalid.");
     }
   }
 
@@ -227,11 +234,6 @@ public class RawTableMaster extends MasterBase {
   public RawTableInfo getClientRawTableInfo(TachyonURI path)
       throws TableDoesNotExistException, InvalidPathException {
     return getClientRawTableInfo(getRawTableId(path));
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
   }
 
   /**

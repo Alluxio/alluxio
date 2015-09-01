@@ -20,9 +20,13 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
+import tachyon.master.next.journal.JournalInputStream;
+import tachyon.master.next.journal.JournalSerializable;
 import tachyon.master.next.journal.JournalTailerThread;
 import tachyon.master.next.journal.JournalWriter;
 
@@ -40,7 +44,16 @@ public abstract class MasterBase implements Master {
   private JournalWriter mJournalWriter = null;
 
   protected MasterBase(Journal journal) {
-    mJournal = journal;
+    mJournal = Preconditions.checkNotNull(journal);
+  }
+
+  @Override
+  public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
+    JournalEntry entry;
+    while ((entry = inputStream.getNextEntry()) != null) {
+      processJournalEntry(entry);
+    }
+    inputStream.close();
   }
 
   protected boolean isMasterMode() {
@@ -56,6 +69,15 @@ public abstract class MasterBase implements Master {
     mIsStandbyMode = !asMaster;
     if (asMaster) {
       // initialize the journal and write out the checkpoint file.
+
+      // TODO: only do this if this is a fresh start, not if this master had already been tailing
+      // the journal.
+      // Use the journal tailer to "catch up".
+      LOG.info(getProcessorName() + ": start journal tailer to catch up before becoming master.");
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer.start();
+      mStandbyJournalTailer.shutdownAndJoin();
+
       // TODO: verify that journal writer is null?
       mJournalWriter = mJournal.getNewWriter();
       writeToJournal(mJournalWriter.getCheckpointOutputStream());
@@ -86,7 +108,9 @@ public abstract class MasterBase implements Master {
 
   protected void writeJournalEntry(JournalEntry entry) {
     if (mJournalWriter == null) {
-      throw new RuntimeException("Cannot write entry: journal writer is null.");
+      // TODO: Add this check back
+      // throw new RuntimeException("Cannot write entry: journal writer is null.");
+      return;
     }
     try {
       mJournalWriter.getEntryOutputStream().writeEntry(entry);
@@ -95,9 +119,24 @@ public abstract class MasterBase implements Master {
     }
   }
 
+  protected void writeJournalEntry(JournalSerializable entry) {
+    if (mJournalWriter == null) {
+      // TODO: Add this check back
+      // throw new RuntimeException("Cannot write entry: journal writer is null.");
+      return;
+    }
+    try {
+      entry.writeToJournal(mJournalWriter.getEntryOutputStream());
+    } catch (IOException ioe) {
+      throw new RuntimeException(ioe);
+    }
+  }
+
   protected void flushJournal() {
     if (mJournalWriter == null) {
-      throw new RuntimeException("Cannot flush journal: Journal writer is null.");
+      // TODO: Add this check back
+      // throw new RuntimeException("Cannot flush journal: Journal writer is null.");
+      return;
     }
     try {
       mJournalWriter.getEntryOutputStream().flush();

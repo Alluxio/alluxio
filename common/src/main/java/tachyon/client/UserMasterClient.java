@@ -45,7 +45,7 @@ public final class UserMasterClient extends MasterClient {
 
   @Override
   protected String getServiceName() {
-    return Constants.BLOCK_MASTER_SERVICE_NAME;
+    return Constants.USER_MASTER_SERVICE_NAME;
   }
 
   @Override

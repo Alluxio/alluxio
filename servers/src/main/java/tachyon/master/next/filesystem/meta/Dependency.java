@@ -26,10 +26,14 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.DependencyType;
 import tachyon.master.DependencyVariables;
+import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.journal.JournalSerializable;
 import tachyon.thrift.DependencyInfo;
@@ -86,12 +90,9 @@ public class Dependency implements JournalSerializable {
     mId = id;
     mCreationTimeMs = creationTimeMs;
 
-    mParentFiles = new ArrayList<Long>(parents.size());
-    mParentFiles.addAll(parents);
-    mChildrenFiles = new ArrayList<Long>(children.size());
-    mChildrenFiles.addAll(children);
-    mUncheckpointedChildrenFiles = new HashSet<Long>();
-    mUncheckpointedChildrenFiles.addAll(mChildrenFiles);
+    mParentFiles = Lists.newArrayList(parents);
+    mChildrenFiles = Lists.newArrayList(children);
+    mUncheckpointedChildrenFiles = Sets.newHashSet(mChildrenFiles);
     mCommandPrefix = commandPrefix;
     mData = BufferUtils.cloneByteBufferList(data);
 
@@ -101,8 +102,7 @@ public class Dependency implements JournalSerializable {
 
     mDependencyType = type;
 
-    mParentDependencies = new ArrayList<Integer>(parentDependencies.size());
-    mParentDependencies.addAll(parentDependencies);
+    mParentDependencies = Lists.newArrayList(parentDependencies);
     mChildrenDependencies = new ArrayList<Integer>(0);
     mLostFileIds = new HashSet<Long>(0);
     mTachyonConf = tachyonConf;
@@ -150,10 +150,8 @@ public class Dependency implements JournalSerializable {
   public DependencyInfo generateClientDependencyInfo() {
     DependencyInfo ret = new DependencyInfo();
     ret.id = mId;
-    ret.parents = new ArrayList<Long>(mParentFiles.size());
-    ret.parents.addAll(mParentFiles);
-    ret.children = new ArrayList<Long>(mChildrenFiles.size());
-    ret.children.addAll(mChildrenFiles);
+    ret.parents = Lists.newArrayList(mParentFiles);
+    ret.children = Lists.newArrayList(mChildrenFiles);
     ret.data = BufferUtils.cloneByteBufferList(mData);
     return ret;
   }
@@ -164,9 +162,7 @@ public class Dependency implements JournalSerializable {
    * @return the duplication of the children dependencies
    */
   public synchronized List<Integer> getChildrenDependency() {
-    List<Integer> ret = new ArrayList<Integer>(mChildrenDependencies.size());
-    ret.addAll(mChildrenDependencies);
-    return ret;
+    return Lists.newArrayList(mChildrenDependencies);
   }
 
   /**
@@ -196,9 +192,7 @@ public class Dependency implements JournalSerializable {
    * @return the duplication of the lost files' id
    */
   public synchronized List<Long> getLostFiles() {
-    List<Long> ret = new ArrayList<Long>();
-    ret.addAll(mLostFileIds);
-    return ret;
+    return Lists.newArrayList(mLostFileIds);
   }
 
   /**
@@ -207,9 +201,7 @@ public class Dependency implements JournalSerializable {
    * @return the duplication of the uncheckpointed children files' id
    */
   synchronized List<Long> getUncheckpointedChildrenFiles() {
-    List<Long> ret = new ArrayList<Long>(mUncheckpointedChildrenFiles.size());
-    ret.addAll(mUncheckpointedChildrenFiles);
-    return ret;
+    return Lists.newArrayList(mUncheckpointedChildrenFiles);
   }
 
   /**
@@ -258,7 +250,7 @@ public class Dependency implements JournalSerializable {
    *
    * @param uckdChildrenFiles The new uncheckpointed children files' id
    */
-  synchronized void resetUncheckpointedChildrenFiles(Collection<Long> uckdChildrenFiles) {
+  public synchronized void resetUncheckpointedChildrenFiles(Collection<Long> uckdChildrenFiles) {
     mUncheckpointedChildrenFiles.clear();
     mUncheckpointedChildrenFiles.addAll(uckdChildrenFiles);
   }
@@ -282,6 +274,8 @@ public class Dependency implements JournalSerializable {
 
   @Override
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
+    outputStream.writeEntry(new DependencyEntry(mId, mParentFiles, mChildrenFiles, mCommandPrefix,
+        mData, mComment, mFramework, mFrameworkVersion, mDependencyType, mParentDependencies,
+        mChildrenDependencies, mCreationTimeMs, getUncheckpointedChildrenFiles(), mLostFileIds));
   }
 }

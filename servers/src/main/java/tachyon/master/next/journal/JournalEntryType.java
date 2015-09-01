@@ -29,6 +29,13 @@ public enum JournalEntryType {
   INODE_FILE,
   INODE_DIRECTORY,
   ADD_CHECKPOINT,
+  DEPENDENCY,
+  COMPLETE_FILE,
+  FREE,
+  SET_PINNED,
+  DELETE_FILE,
+  RENAME,
 
   // Raw table master entries
+  RAW_TABLE,
 }
