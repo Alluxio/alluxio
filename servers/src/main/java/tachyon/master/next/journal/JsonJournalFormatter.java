@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -38,7 +39,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
+import tachyon.master.DependencyType;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
+import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
 import tachyon.master.next.filesystem.journal.DeleteFileEntry;
 import tachyon.master.next.filesystem.journal.FreeEntry;
@@ -247,6 +250,29 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
                 entry.getLong("operationTimeMs"));
+          }
+          case DEPENDENCY: {
+            return new DependencyEntry(
+                entry.getInt("id"),
+                entry.get("parentFiles", new TypeReference<List<Long>>() {
+                }),
+                entry.get("childrenFiles", new TypeReference<List<Long>>() {
+                }),
+                entry.getString("commandPrefix"),
+                entry.getByteBufferList("data"),
+                entry.getString("comment"),
+                entry.getString("framework"),
+                entry.getString("frameworkVersion"),
+                entry.get("dependencyType", DependencyType.class),
+                entry.get("parentDependencies", new TypeReference<List<Integer>>() {
+                }),
+                entry.get("childrenDependencies", new TypeReference<List<Integer>>() {
+                }),
+                entry.getLong("creationTimeMs"),
+                entry.get("uncheckpointedFiles", new TypeReference<List<Long>>() {
+                }),
+                entry.get("lostFileIds", new TypeReference<Set<Long>>() {
+                }));
           }
           case COMPLETE_FILE: {
             return new CompleteFileEntry(

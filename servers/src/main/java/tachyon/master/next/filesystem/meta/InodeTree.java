@@ -133,15 +133,14 @@ public final class InodeTree implements JournalSerializable {
    *        path, otherwise, throw InvalidPathException if there some necessary parent directories
    *        is nonexistent
    * @param directory if it is true, create a directory, otherwise, create a file
-   * @return the Inode of the file or directory
+   * @return a list of Inodes created in the order of creation time. If no Inodes are created, the
+   *         list will be empty
    * @throws FileAlreadyExistException when there is already a file at path if we want to create a
    *         directory there
    * @throws BlockInfoException when blockSizeBytes is invalid
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
-   * @return a list of Inodes created in the order of creation time, if no Inodes is created, the
-   *         list will be empty
    */
   public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory)

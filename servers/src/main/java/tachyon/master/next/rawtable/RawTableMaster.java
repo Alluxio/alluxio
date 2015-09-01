@@ -83,6 +83,11 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
+  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+    // TODO(cc)
+  }
+
+  @Override
   public void start(boolean asMaster) throws IOException {
     startMaster(asMaster);
     if (isMasterMode()) {
@@ -227,11 +232,6 @@ public class RawTableMaster extends MasterBase {
   public RawTableInfo getClientRawTableInfo(TachyonURI path)
       throws TableDoesNotExistException, InvalidPathException {
     return getClientRawTableInfo(getRawTableId(path));
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    // TODO(cc)
   }
 
   /**
