@@ -335,7 +335,6 @@ public class TachyonMaster {
 
     // start thrift rpc server
     mMasterServiceServer.serve();
-
     String leaderStop = (mUseZookeeper) ? "(lost leadership)" : "";
     LOG.info("Tachyon Master version " + Version.VERSION + " ended " + leaderStop + " @ "
         + mMasterAddress);
