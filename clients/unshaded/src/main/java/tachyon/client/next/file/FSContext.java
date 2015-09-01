@@ -28,14 +28,22 @@ import tachyon.master.MasterClient;
 public enum FSContext {
   INSTANCE;
 
-  // TODO: Separate this when block master and file system master use different clients
-  private final FSMasterClientPool mFileSystemMasterClientPool;
+  private FSMasterClientPool mFileSystemMasterClientPool;
   private final TachyonBS mTachyonBS;
 
   private FSContext() {
     mFileSystemMasterClientPool =
         new FSMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
     mTachyonBS = TachyonBS.get();
+  }
+
+  /**
+   * Reinitializes the File System Context. This method should only be used in ClientContext.
+   */
+  public void resetContext() {
+    mFileSystemMasterClientPool.close();
+    mFileSystemMasterClientPool =
+        new FSMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
   }
 
   public FileSystemMasterClient acquireMasterClient() {

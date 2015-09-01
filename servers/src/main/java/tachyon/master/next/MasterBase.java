@@ -16,6 +16,7 @@
 package tachyon.master.next;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +44,11 @@ public abstract class MasterBase implements Master {
 
   private JournalWriter mJournalWriter = null;
 
-  protected MasterBase(Journal journal) {
+  private final ExecutorService mExecutorService;
+
+  protected MasterBase(Journal journal, ExecutorService executorService) {
     mJournal = Preconditions.checkNotNull(journal);
+    mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
   @Override
@@ -143,5 +147,9 @@ public abstract class MasterBase implements Master {
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
+  }
+
+  protected ExecutorService getExecutorService() {
+    return mExecutorService;
   }
 }

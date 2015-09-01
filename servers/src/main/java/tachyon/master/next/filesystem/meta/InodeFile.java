@@ -67,6 +67,8 @@ public final class InodeFile extends Inode {
     FileInfo ret = new FileInfo();
 
     // TODO: make this a long.
+    // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
+    // block master
     ret.fileId = (int) getId();
     ret.name = getName();
     ret.path = path;
@@ -79,7 +81,6 @@ public final class InodeFile extends Inode {
     ret.isPinned = isPinned();
     ret.isCache = mCache;
     ret.blockIds = getBlockIds();
-    ret.inMemoryPercentage = getInMemoryPercentage();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
 
     return ret;
@@ -110,24 +111,6 @@ public final class InodeFile extends Inode {
    */
   public synchronized String getUfsPath() {
     return mUfsPath;
-  }
-
-  /**
-   * Get the percentage of the file in memory. For a file that has all blocks in memory, it returns
-   * 100; for a file that has no block in memory, it returns 0.
-   *
-   * @return the in memory percentage
-   */
-  private synchronized int getInMemoryPercentage() {
-    if (mLength == 0) {
-      return 100;
-    }
-
-    long inMemoryLength = 0;
-    // TODO: access the block master for this information.
-    for (long blockId : mBlocks) {
-    }
-    return (int) (inMemoryLength * 100 / mLength);
   }
 
   /**
@@ -197,16 +180,6 @@ public final class InodeFile extends Inode {
    */
   public synchronized boolean isComplete() {
     return mIsComplete;
-  }
-
-  /**
-   * Return whether the file is fully in memory or not. The file is fully in memory only if all the
-   * blocks of the file are in memory, in other words, the in memory percentage is 100.
-   *
-   * @return true if the file is fully in memory, false otherwise
-   */
-  public synchronized boolean isFullyInMemory() {
-    return getInMemoryPercentage() == 100;
   }
 
   /**
