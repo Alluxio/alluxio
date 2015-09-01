@@ -225,7 +225,8 @@ public class ClientFileOutStream extends FileOutStream {
     }
 
     if (mCacheType.shouldCache()) {
-      mCurrentBlockOutStream = mContext.getTachyonBS().getOutStream(getNextBlockId(), mOptions);
+      mCurrentBlockOutStream =
+          mContext.getTachyonBS().getOutStream(getNextBlockId(), mBlockSize, null);
       mShouldCacheCurrentBlock = true;
     }
   }

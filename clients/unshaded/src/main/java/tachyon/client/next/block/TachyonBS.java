@@ -21,6 +21,7 @@ import java.io.IOException;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.next.ClientOptions;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.NetAddress;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
@@ -97,15 +98,16 @@ public class TachyonBS implements Closeable {
    * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public BlockOutStream getOutStream(long blockId, ClientOptions options) throws IOException {
+  public BlockOutStream getOutStream(long blockId, long blockSize, NetAddress location)
+      throws IOException {
     // No specified location to read from
-    if (null == options.getLocation()) {
+    if (null == location) {
       // Local client, attempt to do direct write to local storage
       if (mContext.hasLocalWorker()) {
-        return new LocalBlockOutStream(blockId, options);
+        return new LocalBlockOutStream(blockId, blockSize);
       }
       // Client is not local or the data is not available on the local worker, use remote stream
-      return new RemoteBlockOutStream(blockId, options);
+      return new RemoteBlockOutStream(blockId, blockSize);
     }
     // TODO: Handle the case when a location is specified
     return null;
