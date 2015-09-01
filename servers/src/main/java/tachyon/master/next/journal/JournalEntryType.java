@@ -35,4 +35,5 @@ public enum JournalEntryType {
   SET_PINNED,
 
   // Raw table master entries
+  RAW_TABLE,
 }
