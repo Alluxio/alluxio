@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -65,6 +65,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
 public class FileSystemMaster extends MasterBase {
@@ -81,8 +82,9 @@ public class FileSystemMaster extends MasterBase {
   private final PrefixList mWhitelist;
 
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
-      Journal journal, ExecutorService executorService) {
-    super(journal, executorService);
+      Journal journal) {
+    super(journal,
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
 

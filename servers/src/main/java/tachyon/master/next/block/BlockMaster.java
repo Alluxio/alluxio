@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -62,6 +62,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
+import tachyon.util.ThreadFactoryUtils;
 
 public final class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -106,8 +107,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   // This state much be journaled.
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
 
-  public BlockMaster(Journal journal, TachyonConf tachyonConf, ExecutorService executorService) {
-    super(journal, executorService);
+  public BlockMaster(Journal journal, TachyonConf tachyonConf) {
+    super(journal,
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)));
     mTachyonConf = tachyonConf;
   }
 
