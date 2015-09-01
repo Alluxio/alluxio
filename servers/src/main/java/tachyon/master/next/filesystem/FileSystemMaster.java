@@ -17,7 +17,9 @@ package tachyon.master.next.filesystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import org.apache.thrift.TProcessor;
@@ -27,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
@@ -525,17 +528,51 @@ public class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Return whether the file is fully in memory or not. The file is fully in memory only if all the
-   * blocks of the file are in memory, in other words, the in memory percentage is 100.
+   * Return whether the inodeFile is fully in memory or not. The file is fully in memory only if all
+   * the blocks of the file are in memory, in other words, the in memory percentage is 100.
    *
    * @return true if the file is fully in memory, false otherwise
-   * @throws InvalidPathException when the path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
    */
-  public boolean isFullyInMemory(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException {
-    Inode inode = mInodeTree.getInodeByPath(path);
-    return getInMemoryPercentage(inode) == 100;
+  private boolean isFullyInMemory(InodeFile inode) {
+    try {
+      return getInMemoryPercentage(inode) == 100;
+    } catch (FileDoesNotExistException e) {
+      // should never happen
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Gets absolute paths of all in memory files.
+   *
+   * @return absolute paths of all in memory files.
+   */
+  public List<TachyonURI> getInMemoryFiles() {
+    List<TachyonURI> ret = new ArrayList<TachyonURI>();
+    LOG.info("getInMemoryFiles()");
+    Queue<Pair<InodeDirectory, TachyonURI>> nodesQueue =
+        new LinkedList<Pair<InodeDirectory, TachyonURI>>();
+    synchronized (mInodeTree) {
+      // TODO: Verify we want to use absolute path.
+      nodesQueue.add(new Pair<InodeDirectory, TachyonURI>(mInodeTree.getRoot(),
+          new TachyonURI(TachyonURI.SEPARATOR)));
+      while (!nodesQueue.isEmpty()) {
+        Pair<InodeDirectory, TachyonURI> tPair = nodesQueue.poll();
+        InodeDirectory tDir = tPair.getFirst();
+        TachyonURI curUri = tPair.getSecond();
+
+        Set<Inode> children = tDir.getChildren();
+        for (Inode tInode : children) {
+          TachyonURI newUri = curUri.join(tInode.getName());
+          if (tInode.isDirectory()) {
+            nodesQueue.add(new Pair<InodeDirectory, TachyonURI>((InodeDirectory) tInode, newUri));
+          } else if (isFullyInMemory((InodeFile) tInode)) {
+            ret.add(newUri);
+          }
+        }
+      }
+    }
+    return ret;
   }
 
   /**
@@ -649,7 +686,6 @@ public class FileSystemMaster extends MasterBase {
         return false;
       }
 
-      InodeDirectory srcParentDirectory = (InodeDirectory) srcParentInode;
       InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
 
       // Make sure destination path does not exist

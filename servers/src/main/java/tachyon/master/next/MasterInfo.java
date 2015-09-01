@@ -127,8 +127,9 @@ public final class MasterInfo {
    * @param fileId id of the file
    * @return the file info
    * @throws FileDoesNotExistException when the file does not exist
+   * @throws InvalidPathException when the id is for a directory
    */
-  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
     return mFileSystemMaster.getFileInfo(fileId);
   }
 
@@ -159,6 +160,15 @@ public final class MasterInfo {
       throws FileDoesNotExistException, InvalidPathException {
     long fileId = mFileSystemMaster.getFileId(path);
     return mFileSystemMaster.getFileInfoList(fileId);
+  }
+
+  /**
+   * Gets absolute paths of all in memory files.
+   *
+   * @return absolute paths of all in memory files.
+   */
+  public List<TachyonURI> getInMemoryFiles() {
+    return mFileSystemMaster.getInMemoryFiles();
   }
 
   /**

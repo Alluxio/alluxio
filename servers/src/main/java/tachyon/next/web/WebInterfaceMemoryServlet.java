@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import tachyon.TachyonURI;
 import tachyon.master.next.MasterInfo;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 
@@ -67,6 +68,11 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
         }
       } catch (InvalidPathException ipe) {
         request.setAttribute("fatalError", "Error: Invalid Path " + ipe.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (FileDoesNotExistException fee) {
+        request.setAttribute("fatalError",
+            "Error: File does not exist " + fee.getLocalizedMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
       }
