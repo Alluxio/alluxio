@@ -1,0 +1,4 @@
+- name: Start Mesos slave
+  script: start_slave.sh
+
+# vim :set filetype=ansible.yaml:

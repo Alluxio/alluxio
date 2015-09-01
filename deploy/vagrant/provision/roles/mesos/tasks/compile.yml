@@ -1,0 +1,17 @@
+# Compile Mesos.
+---
+
+- name: install autoconf
+  yum: name=autoconf
+  sudo: yes
+
+- name: install automake
+  yum: name=automake
+  sudo: yes
+
+- name: compile mesos
+  script: /compile.sh
+  async: 1200
+  poll: 60
+
+# vim :set filetype=ansible.yaml:
