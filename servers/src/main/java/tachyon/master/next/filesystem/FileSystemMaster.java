@@ -265,6 +265,12 @@ public class FileSystemMaster extends MasterBase {
     }
   }
 
+  private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException, InvalidPathException {
+    FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
+    fileInfo.inMemoryPercentage = getInMemoryPercentage(mInodeTree.getPath(inode));
+    return fileInfo;
+  }
+
   public List<FileInfo> getFileInfoList(long fileId)
       throws FileDoesNotExistException, InvalidPathException {
     synchronized (mInodeTree) {
@@ -280,12 +286,6 @@ public class FileSystemMaster extends MasterBase {
       }
       return ret;
     }
-  }
-
-  private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException, InvalidPathException {
-    FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
-    fileInfo.inMemoryPercentage = getInMemoryPercentage(mInodeTree.getPath(inode));
-    return fileInfo;
   }
 
   public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
