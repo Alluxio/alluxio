@@ -63,7 +63,7 @@ public class LocalBlockOutStream extends BlockOutStream {
 
     try {
       // TODO: Get the initial size from the configuration
-      long initialSize = Constants.MB * 8;
+      long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
       mBlockPath = mWorkerClient.requestBlockLocation(blockId, initialSize);
       // TODO: Handle this in the worker?
       FileUtils.createBlockPath(mBlockPath);
