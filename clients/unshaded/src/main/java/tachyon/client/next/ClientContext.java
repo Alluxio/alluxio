@@ -33,21 +33,21 @@ public class ClientContext {
    * The static configuration object. There is only one TachyonConf object shared within the same
    * client.
    */
-  private static final TachyonConf TACHYON_CONF;
+  private static TachyonConf sTachyonConf;
 
-  private static final InetSocketAddress MASTER_ADDRESS;
+  private static InetSocketAddress sMasterAddress;
 
-  private static final UserMasterClientPool USER_CLIENT_POOL;
+  private static UserMasterClientPool sUserClientPool;
 
   static {
-    TACHYON_CONF = new TachyonConf();
+    sTachyonConf = new TachyonConf();
 
-    String masterHostname = Preconditions.checkNotNull(TACHYON_CONF.get(Constants.MASTER_HOSTNAME));
-    int masterPort = TACHYON_CONF.getInt(Constants.MASTER_PORT);
+    String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
+    int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
 
-    MASTER_ADDRESS = new InetSocketAddress(masterHostname, masterPort);
+    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
-    USER_CLIENT_POOL = new UserMasterClientPool(MASTER_ADDRESS, TACHYON_CONF);
+    sUserClientPool = new UserMasterClientPool(sMasterAddress, sTachyonConf);
   }
 
   /**
@@ -57,18 +57,34 @@ public class ClientContext {
    * @return the tachyonConf for the worker process
    */
   public static TachyonConf getConf() {
-    return TACHYON_CONF;
+    return sTachyonConf;
   }
 
   public static InetSocketAddress getMasterAddress() {
-    return MASTER_ADDRESS;
+    return sMasterAddress;
   }
 
   public static UserMasterClient acquireUserMasterClient() {
-    return USER_CLIENT_POOL.acquire();
+    return sUserClientPool.acquire();
   }
 
   public static void releaseUserMasterClient(UserMasterClient userMasterClient) {
-    USER_CLIENT_POOL.release(userMasterClient);
+    sUserClientPool.release(userMasterClient);
+  }
+
+  /**
+   * This method is only for testing purposes
+   * @param conf new configuration to use
+   */
+  // TODO: Find a better way to handle testing confs
+  public static synchronized void reinitializeWithConf(TachyonConf conf) {
+    sUserClientPool.close();
+    sTachyonConf = conf;
+    String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
+    int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
+
+    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
+
+    sUserClientPool = new UserMasterClientPool(sMasterAddress, sTachyonConf);
   }
 }
