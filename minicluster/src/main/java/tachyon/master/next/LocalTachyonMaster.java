@@ -162,6 +162,10 @@ public final class LocalTachyonMaster {
     mMasterThread.start();
   }
 
+  public boolean isServing() {
+    return mTachyonMaster.isServing();
+  }
+
   /**
    * Stops the master and cleans up client connections.
    *
