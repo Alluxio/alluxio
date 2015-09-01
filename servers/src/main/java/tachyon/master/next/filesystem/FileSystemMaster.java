@@ -28,7 +28,6 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.PrefixList;
-import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
@@ -516,9 +515,7 @@ public class FileSystemMaster extends MasterBase {
    */
   private boolean isInMemory(BlockInfo blockInfo) {
     for (BlockLocation location : blockInfo.getLocations()) {
-      int tier = location.getTier();
-      int storageLevelValue = StorageDirId.getStorageLevelAliasValue(tier);
-      if (storageLevelValue == StorageLevelAlias.MEM.getValue()) {
+      if (location.getTier() == StorageLevelAlias.MEM.getValue()) {
         return true;
       }
     }
