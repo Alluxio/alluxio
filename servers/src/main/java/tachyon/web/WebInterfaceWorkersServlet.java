@@ -35,7 +35,7 @@ import tachyon.util.FormatUtils;
 /**
  * Servlet that provides data for displaying detail info of all workers.
  */
-public class WebInterfaceWorkersServlet extends HttpServlet {
+final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by
    * array indexes.
@@ -151,7 +151,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
-    List<WorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
+    List<WorkerInfo> workerInfos = mMasterInfo.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
     request.setAttribute("normalNodeInfos", normalNodeInfos);
 

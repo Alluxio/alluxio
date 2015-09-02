@@ -28,7 +28,7 @@ import tachyon.TachyonURI;
 import tachyon.client.TachyonFile;
 import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.master.next.LocalTachyonCluster;
+import tachyon.master.LocalTachyonCluster;
 
 /**
  * Integration tests for tachyon.client.RawColumn.

@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
@@ -84,20 +85,20 @@ public class TFsShellUtils {
   }
 
   /**
-   * Get all the TachyonURIs that match inputURI.
-   * If the path is a regular path, the returned list only contains the corresponding URI;
-   * Else if the path contains wildcards, the returned list contains all the matched URIs
-   * It supports any number of wildcards in inputURI
+   * Get all the TachyonURIs that match inputURI. If the path is a regular path, the returned list
+   * only contains the corresponding URI; Else if the path contains wildcards, the returned list
+   * contains all the matched URIs It supports any number of wildcards in inputURI
+   * 
    * @param tachyonClient The client used to fetch information of Tachyon files
    * @param inputURI the input URI (could contain wildcards)
    * @return A list of TachyonURIs that matches the inputURI
    * @throws IOException
    */
-  public static List<TachyonURI> getTachyonURIs(TachyonFS tachyonClient, TachyonURI inputURI)
-      throws IOException {
+  public static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
+      TachyonURI inputURI) throws IOException {
     if (!inputURI.getPath().contains(TachyonURI.WILDCARD)) {
       List<TachyonURI> res = new LinkedList<TachyonURI>();
-      if (tachyonClient.getFileId(inputURI) != -1) {
+      if (tachyonClient.open(inputURI) != null) {
         res.add(inputURI);
       }
       return res;
@@ -122,10 +123,10 @@ public class TFsShellUtils {
    * @return A list of TachyonURIs of the files that match the inputURI in parentDir
    * @throws IOException
    */
-  private static List<TachyonURI> getTachyonURIs(TachyonFS tachyonClient, TachyonURI inputURI,
-      TachyonURI parentDir) throws IOException {
+  private static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
+      TachyonURI inputURI, TachyonURI parentDir) throws IOException {
     List<TachyonURI> res = new LinkedList<TachyonURI>();
-    List<FileInfo> files = tachyonClient.listStatus(parentDir);
+    List<FileInfo> files = tachyonClient.listStatus(tachyonClient.open(parentDir));
     for (FileInfo file : files) {
       TachyonURI fileURI =
           new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), file.getPath());

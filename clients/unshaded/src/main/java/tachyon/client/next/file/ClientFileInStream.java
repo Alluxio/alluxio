@@ -192,7 +192,7 @@ public class ClientFileInStream extends FileInStream {
       if (mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream =
-              mContext.getTachyonBS().getOutStream(currentBlockId, mBlockSize, null);
+              mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
           mShouldCacheCurrentBlock = false;
@@ -244,7 +244,7 @@ public class ClientFileInStream extends FileInStream {
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream =
-              mContext.getTachyonBS().getOutStream(currentBlockId, mBlockSize, null);
+              mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
           mShouldCacheCurrentBlock = false;
