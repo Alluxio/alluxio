@@ -34,6 +34,7 @@ public final class BlockIdTests {
   public void createBlockIdTest() {
     Assert.assertEquals(16797216L, BlockId.createBlockId(1, 20000L));
     Assert.assertEquals(20000L, BlockId.createBlockId(0, 20000L));
+    Assert.assertEquals(2071248101952L, BlockId.createBlockId(123456, 123456L));
   }
 
   @Test
@@ -42,6 +43,8 @@ public final class BlockIdTests {
     Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(33554431L));
     Assert.assertEquals(255L, BlockId.getContainerId(4294967295L));
     Assert.assertEquals(MAX_SEQUENCE_NUMBER, BlockId.getSequenceNumber(4294967295L));
+    Assert.assertEquals(123456L, BlockId.getContainerId(2071248101952L));
+    Assert.assertEquals(123456L, BlockId.getSequenceNumber(2071248101952L));
   }
 
   @Test
