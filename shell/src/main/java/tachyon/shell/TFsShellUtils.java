@@ -75,7 +75,7 @@ public class TFsShellUtils {
       }
     } else {
       String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
+      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
       if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }

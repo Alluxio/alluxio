@@ -200,7 +200,7 @@ public class TachyonConfTest {
     Assert.assertEquals(Constants.SECOND_MS, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
-    Assert.assertEquals(Runtime.getRuntime().availableProcessors(), intValue);
+    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
