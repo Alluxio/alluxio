@@ -17,6 +17,7 @@ package tachyon.master.next;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
@@ -208,6 +209,13 @@ public final class LocalTachyonMaster {
       mUnderFSCluster.cleanup();
     }
     System.clearProperty("tachyon.underfs.address");
+  }
+
+  /**
+   * Get the externally resolvable address of the master (used by unit test only).
+   */
+  public InetSocketAddress getAddress() {
+    return mTachyonMaster.getMasterAddress();
   }
 
   /**
