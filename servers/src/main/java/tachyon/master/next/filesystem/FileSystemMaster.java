@@ -71,7 +71,7 @@ import tachyon.util.FormatUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
-public class FileSystemMaster extends MasterBase {
+public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;

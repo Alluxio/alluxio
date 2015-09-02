@@ -373,7 +373,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) {
     synchronized (mWorkers) {
-      if (mWorkers.contains(mIdIndex, workerId)) {
+      if (!mWorkers.contains(mIdIndex, workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " to register.");
         return -1;
       }
