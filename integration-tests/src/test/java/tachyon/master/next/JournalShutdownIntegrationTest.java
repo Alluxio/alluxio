@@ -16,7 +16,6 @@
 package tachyon.master.next;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,12 +26,10 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
+import tachyon.client.next.ClientOptions;
+import tachyon.client.next.file.TachyonFS;
 import tachyon.conf.TachyonConf;
-import tachyon.master.Journal;
-import tachyon.master.LocalTachyonCluster;
-import tachyon.master.LocalTachyonClusterMultiMaster;
-import tachyon.master.MasterInfo;
+import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.TableDoesNotExistException;
@@ -51,7 +48,7 @@ public class JournalShutdownIntegrationTest {
     /** The number of successfully created files/tables. */
     private int mSuccessNum = 0;
 
-    private final int mOpType;  //0:create file; 1:create raw table.
+    private final int mOpType; // 0:create file; 1:create raw table.
     private final TachyonFS mTfs;
 
     public ClientThread(int opType, TachyonFS tfs) {
@@ -74,13 +71,17 @@ public class JournalShutdownIntegrationTest {
         // expected since the master will shutdown at a certain time.
         while (true) {
           if (mOpType == 0) {
-            if (mTfs.createFile(new TachyonURI(TEST_FILE_DIR + mSuccessNum)) == -1) {
+            try {
+              mTfs.getOutStream(new TachyonURI(TEST_FILE_DIR + mSuccessNum),
+                  ClientOptions.defaults()).close();
+            } catch (IOException ioe) {
               break;
             }
           } else if (mOpType == 1) {
-            if (mTfs.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) == -1) {
-              break;
-            }
+            // TODO Add this back when there is new RawTable client API
+            // if (mTfs.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) == -1) {
+            // break;
+            // }
           }
           mSuccessNum ++;
           CommonUtils.sleepMs(null, 100);
@@ -103,7 +104,7 @@ public class JournalShutdownIntegrationTest {
   private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(2);
   /** Executor for constructing MasterInfo */
   private final ExecutorService mExecutorsForMasterInfo = Executors.newFixedThreadPool(2);
-  private TachyonConf mMasterTachyonConf =  null;
+  private TachyonConf mMasterTachyonConf = null;
 
   @After
   public final void after() throws Exception {
@@ -117,27 +118,31 @@ public class JournalShutdownIntegrationTest {
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
   }
 
+  private FileSystemMaster createFsMasterFromJournal() throws IOException {
+    // TODO
+    return null;
+  }
+
   /**
    * Reproduce the journal and check if the state is correct.
    */
   private void reproduceAndCheckState(int successFiles, int successTables) throws IOException,
       InvalidPathException, FileDoesNotExistException, TableDoesNotExistException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
-    Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
-    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorsForMasterInfo,
-        mMasterTachyonConf);
-    info.init();
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    Assert.assertEquals(successFiles, info.listFiles(new TachyonURI(TEST_FILE_DIR), false).size());
+    Assert.assertEquals(successFiles, fsMaster.getFileInfoList(fsMaster.getFileId(
+        new TachyonURI(TEST_FILE_DIR))).size());
     for (int f = 0; f < successFiles; f ++) {
-      Assert.assertTrue(info.getFileId(new TachyonURI(TEST_FILE_DIR + f)) != -1);
+      Assert.assertTrue(fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR + f)) != -1);
     }
-    Assert.assertEquals(successTables,
-        info.listFiles(new TachyonURI(TEST_TABLE_DIR), false).size());
-    for (int t = 0; t < successTables; t ++) {
-      Assert.assertTrue(info.getRawTableId(new TachyonURI(TEST_TABLE_DIR + t)) != -1);
-    }
-    info.stop();
+
+    // TODO Add this back when there is new RawTable client API
+    // Assert.assertEquals(successTables,
+    // info.listFiles(new TachyonURI(TEST_TABLE_DIR), false).size());
+    // for (int t = 0; t < successTables; t ++) {
+    // Assert.assertTrue(info.getRawTableId(new TachyonURI(TEST_TABLE_DIR + t)) != -1);
+    // }
+    fsMaster.stop();
   }
 
   private LocalTachyonClusterMultiMaster setupMultiMasterCluster() throws IOException {
@@ -153,9 +158,9 @@ public class JournalShutdownIntegrationTest {
     return cluster;
   }
 
-  private tachyon.master.LocalTachyonCluster setupSingleMasterCluster() throws IOException {
+  private LocalTachyonCluster setupSingleMasterCluster() throws IOException {
     // Setup and start the local tachyon cluster.
-    tachyon.master.LocalTachyonCluster cluster = new tachyon.master.LocalTachyonCluster(100, 100, TEST_BLOCK_SIZE);
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100, 100, TEST_BLOCK_SIZE);
     cluster.start();
     mMasterTachyonConf = cluster.getMasterTachyonConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
