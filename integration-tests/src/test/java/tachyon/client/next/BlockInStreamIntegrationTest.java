@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.client.next.file.FileInStream;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
@@ -43,7 +43,7 @@ public class BlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   private static LocalTachyonCluster sLocalTachyonCluster;
-  private static TachyonFS sTfs;
+  private static TachyonFileSystem sTfs;
   private static TachyonConf sTachyonConf;
   private static ClientOptions sWriteBoth;
   private static ClientOptions sWriteTachyon;

@@ -29,7 +29,7 @@ import tachyon.client.next.CacheType;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.OutStream;
 import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
@@ -43,7 +43,7 @@ public class CapacityUsageIntegrationTest {
   private static final int HEARTBEAT_INTERVAL_MS = 30;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTFS = null;
+  private TachyonFileSystem mTFS = null;
 
   @After
   public final void after() throws Exception {

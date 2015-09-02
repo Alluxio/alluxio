@@ -21,7 +21,7 @@ import java.util.List;
 
 import tachyon.TachyonURI;
 import tachyon.client.next.file.FileOutStream;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileInfo;
@@ -37,8 +37,8 @@ public final class TachyonFSTestUtils {
    * @return the TachyonFile representation of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
-  public static TachyonFile createByteFile(TachyonFS tfs, String fileName, ClientOptions options,
-      int len) throws IOException {
+  public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
+      ClientOptions options, int len) throws IOException {
     return createByteFile(tfs, fileName, options.getCacheType(), options.getUnderStorageType(),
         len, options.getBlockSize());
   }
@@ -54,8 +54,8 @@ public final class TachyonFSTestUtils {
    * @return the TachyonFile of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
-  public static TachyonFile createByteFile(TachyonFS tfs, String fileName, CacheType cacheType,
-      UnderStorageType underStorageType, int len) throws IOException {
+  public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
+      CacheType cacheType, UnderStorageType underStorageType, int len) throws IOException {
     return createByteFile(tfs, new TachyonURI(fileName), cacheType, underStorageType, len);
   }
 
@@ -70,10 +70,11 @@ public final class TachyonFSTestUtils {
    * @return the TachyonFile of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
-  public static TachyonFile createByteFile(TachyonFS tfs, TachyonURI fileURI, CacheType cacheType,
-      UnderStorageType underStorageType, int len) throws IOException {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).setCacheType(cacheType)
-        .setUnderStorageType(underStorageType).build();
+  public static TachyonFile createByteFile(TachyonFileSystem tfs, TachyonURI fileURI,
+      CacheType cacheType, UnderStorageType underStorageType, int len) throws IOException {
+    ClientOptions options =
+        new ClientOptions.Builder(new TachyonConf()).setCacheType(cacheType)
+            .setUnderStorageType(underStorageType).build();
     FileOutStream os = tfs.getOutStream(fileURI, options);
 
     for (int k = 0; k < len; k ++) {
@@ -95,10 +96,12 @@ public final class TachyonFSTestUtils {
    * @return the TachyonFile of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
-  public static TachyonFile createByteFile(TachyonFS tfs, String fileName, CacheType cacheType,
-      UnderStorageType underStorageType, int len, long blockCapacityByte) throws IOException {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).setCacheType(cacheType)
-        .setUnderStorageType(underStorageType).setBlockSize(blockCapacityByte).build();
+  public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
+      CacheType cacheType, UnderStorageType underStorageType, int len, long blockCapacityByte)
+      throws IOException {
+    ClientOptions options =
+        new ClientOptions.Builder(new TachyonConf()).setCacheType(cacheType)
+            .setUnderStorageType(underStorageType).setBlockSize(blockCapacityByte).build();
     FileOutStream os = tfs.getOutStream(new TachyonURI(fileName), options);
 
     for (int k = 0; k < len; k ++) {
@@ -116,7 +119,7 @@ public final class TachyonFSTestUtils {
    * @return a list of stings representing the file names under the given path
    * @throws IOException if <code>path</code> does not exist or is invalid
    */
-  public static List<String> listFiles(TachyonFS tfs, String path) throws IOException {
+  public static List<String> listFiles(TachyonFileSystem tfs, String path) throws IOException {
     List<FileInfo> infos = tfs.listStatus(tfs.open(new TachyonURI(path)));
     List<String> res = new ArrayList<String>();
     for (FileInfo info : infos) {
