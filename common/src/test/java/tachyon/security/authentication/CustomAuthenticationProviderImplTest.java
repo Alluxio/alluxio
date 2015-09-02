@@ -46,7 +46,7 @@ public class CustomAuthenticationProviderImplTest {
         CustomAuthenticationProviderImplTest.class.getName());
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(CustomAuthenticationProviderImplTest.class.getName()
-        + " didn't implement AuthenticationProvider");
+        + " didn't implement interface AuthenticationProvider");
     new CustomAuthenticationProviderImpl(mConf);
   }
 
