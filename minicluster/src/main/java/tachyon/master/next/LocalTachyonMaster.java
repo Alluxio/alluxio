@@ -211,6 +211,13 @@ public final class LocalTachyonMaster {
   }
 
   /**
+   * Gets the actual internal master.
+   */
+  public TachyonMaster getInternalMaster() {
+    return mTachyonMaster;
+  }
+
+  /**
    * Get the actual bind hostname on RPC service (used by unit test only).
    *
    * @return the RPC bind hostname
