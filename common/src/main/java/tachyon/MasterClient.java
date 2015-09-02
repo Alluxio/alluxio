@@ -119,7 +119,6 @@ public abstract class MasterClient implements Closeable {
       }
 
       LOG.info("Client registered with " + getServiceName() + " master @ " + mMasterAddress);
-
       mConnected = true;
       afterConnect();
       return;

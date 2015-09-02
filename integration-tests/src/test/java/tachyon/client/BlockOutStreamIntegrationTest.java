@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -67,6 +68,7 @@ public class BlockOutStreamIntegrationTest {
    *
    * @throws IOException
    */
+  @Ignore
   @Test
   public void disableLocalWriteTest() throws IOException {
     BlockOutStream os = getBlockOutStream("/file_no_local_write", false);
@@ -79,6 +81,7 @@ public class BlockOutStreamIntegrationTest {
    *
    * @throws IOException
    */
+  @Ignore
   @Test
   public void enableLocalWriteTest() throws IOException {
     BlockOutStream os = getBlockOutStream("/file_local_write", true);
@@ -91,6 +94,7 @@ public class BlockOutStreamIntegrationTest {
    *
    * @throws IOException
    */
+  @Ignore
   @Test
   public void cancelRemoteWriteTest() throws IOException {
     BlockOutStream os = getBlockOutStream("/file_cancel_remote_write", false);
@@ -103,11 +107,11 @@ public class BlockOutStreamIntegrationTest {
    *
    * @throws IOException
    */
+  @Ignore
   @Test
   public void cancelLocalWriteTest() throws IOException {
     BlockOutStream os = getBlockOutStream("/file_cancel_local_write", true);
     Assert.assertTrue(os instanceof LocalBlockOutStream);
     os.cancel();
   }
-
 }

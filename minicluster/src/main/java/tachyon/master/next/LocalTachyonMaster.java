@@ -17,12 +17,14 @@ package tachyon.master.next;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.PathUtils;
@@ -59,6 +61,9 @@ public final class LocalTachyonMaster {
     }
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
+
+  private final tachyon.master.ClientPool mOldClientPool = new tachyon.master.ClientPool(
+      mClientSupplier);
 
   private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
@@ -196,6 +201,7 @@ public final class LocalTachyonMaster {
 
   public void clearClients() throws IOException {
     mClientPool.close();
+    mOldClientPool.close();
   }
 
   public void cleanupUnderfs() throws IOException {
@@ -203,6 +209,20 @@ public final class LocalTachyonMaster {
       mUnderFSCluster.cleanup();
     }
     System.clearProperty("tachyon.underfs.address");
+  }
+
+  /**
+   * Get the externally resolvable address of the master (used by unit test only).
+   */
+  public InetSocketAddress getAddress() {
+    return mTachyonMaster.getMasterAddress();
+  }
+
+  /**
+   * Gets the actual internal master.
+   */
+  public TachyonMaster getInternalMaster() {
+    return mTachyonMaster;
   }
 
   /**
@@ -245,16 +265,12 @@ public final class LocalTachyonMaster {
     return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
-  public TachyonFS getClient() throws IOException {
+  public TachyonFS getOldClient() throws IOException {
+    return mOldClientPool.getClient(mTachyonMaster.getTachyonConf());
+  }
+
+  public TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(mTachyonMaster.getTachyonConf());
-  }
-
-  public String getEditLogPath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
-  }
-
-  public String getImagePath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
   }
 
   private static String uniquePath() throws IOException {
@@ -267,5 +283,9 @@ public final class LocalTachyonMaster {
 
   public TachyonConf getTachyonConf() {
     return mTachyonMaster.getTachyonConf();
+  }
+
+  public String getJournalFolder() {
+    return mJournalFolder;
   }
 }

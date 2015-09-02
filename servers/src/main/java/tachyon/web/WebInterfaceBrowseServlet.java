@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
@@ -82,7 +82,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       throw new FileDoesNotExistException(path.toString());
     }
     if (tFile.isComplete()) {
-      InStream is = tFile.getInStream(ReadType.NO_CACHE);
+      FileInStream is = tFile.getInStream(ReadType.NO_CACHE);
       try {
         int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);
         byte[] data = new byte[len];

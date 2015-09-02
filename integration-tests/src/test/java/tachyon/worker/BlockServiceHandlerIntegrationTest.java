@@ -27,10 +27,10 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.OutStream;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.WriteType;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
@@ -148,7 +148,7 @@ public class BlockServiceHandlerIntegrationTest {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = mTfs.getBlockId(fileId, 0);
 
-    OutStream out = mTfs.getFile(fileId).getOutStream(WriteType.MUST_CACHE);
+    FileOutStream out = mTfs.getFile(fileId).getOutStream(WriteType.MUST_CACHE);
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
 

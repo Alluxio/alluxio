@@ -32,7 +32,7 @@ import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.TachyonFSTestUtils;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
@@ -44,7 +44,7 @@ public class MasterFaultToleranceIntegrationTest {
   private static final int MASTERS = 5;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
 
   @After
   public final void after() throws Exception {
@@ -129,7 +129,7 @@ public class MasterFaultToleranceIntegrationTest {
     int clients = 10;
     ClientOptions option = new ClientOptions.Builder(new TachyonConf()).setBlockSize(1024).build();
     for (int k = 0; k < clients; k ++) {
-      TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
+      TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);

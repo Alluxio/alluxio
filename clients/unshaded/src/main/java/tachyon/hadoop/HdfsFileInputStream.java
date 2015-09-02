@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.InStream;
+import tachyon.client.next.file.FileInStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
@@ -51,7 +51,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private FSDataInputStream mHdfsInputStream = null;
 
-  private InStream mTachyonFileInputStream = null;
+  private FileInStream mTachyonFileInputStream = null;
 
   private boolean mClosed = false;
 

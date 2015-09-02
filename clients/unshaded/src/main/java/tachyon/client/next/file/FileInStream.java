@@ -19,7 +19,7 @@ import tachyon.client.next.InStream;
 
 /**
  * Provides a stream API to read a file from Tachyon. An instance of this class can be obtained by
- * calling {@link TachyonFS#getInStream}. Multiple FileInStreams can be opened for a
+ * calling {@link TachyonFileSystem#getInStream}. Multiple FileInStreams can be opened for a
  * {@link TachyonFile}. This class is not thread safe and should only be used by one thread.
  */
 public abstract class FileInStream extends InStream {

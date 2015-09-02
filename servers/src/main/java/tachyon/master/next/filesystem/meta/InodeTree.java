@@ -123,6 +123,12 @@ public final class InodeTree implements JournalSerializable {
     return mRoot;
   }
 
+  public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
+      boolean directory)
+          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
+    return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis());
+  }
+
   /**
    * Create a file or directory at path.
    *
@@ -143,7 +149,7 @@ public final class InodeTree implements JournalSerializable {
    *         parent directories is actually a file
    */
   public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory)
+      boolean directory, long creationTimeMs)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
 
     if (path.isRoot()) {
@@ -162,8 +168,6 @@ public final class InodeTree implements JournalSerializable {
 
     String[] parentPath = new String[pathComponents.length - 1];
     System.arraycopy(pathComponents, 0, parentPath, 0, parentPath.length);
-
-    long creationTimeMs = System.currentTimeMillis();
 
     TraversalResult traversalResult = traverseToInode(parentPath);
     // pathIndex is the index into pathComponents where we start filling in the path from the inode.
