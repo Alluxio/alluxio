@@ -23,6 +23,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
@@ -67,15 +68,13 @@ public class BlockInStreamIntegrationTest {
     conf.set(Constants.USER_ENABLE_LOCAL_READ, "false");
     TachyonFS sTfs1 = TachyonFS.get(conf);
     TachyonFile file1 = sTfs1.getFile(fileId);
-    InStream is1 = file1.getInStream(ReadType.NO_CACHE);
-    Assert.assertTrue(is1 instanceof RemoteBlockInStream); // local read is disabled
+    FileInStream is1 = file1.getInStream(ReadType.NO_CACHE);
     is1.close();
 
     conf.set(Constants.USER_ENABLE_LOCAL_READ, "true");
     TachyonFS sTfs2 = TachyonFS.get(conf);
     TachyonFile file2 = sTfs2.getFile(fileId);
-    InStream is2 = file2.getInStream(ReadType.NO_CACHE);
-    Assert.assertTrue(is2 instanceof LocalBlockInStream); // local read is enabled
+    FileInStream is2 = file2.getInStream(ReadType.NO_CACHE);
     is2.close();
   }
 
@@ -91,13 +90,8 @@ public class BlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
+        FileInStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof BlockInStream);
-        }
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
@@ -112,11 +106,6 @@ public class BlockInStreamIntegrationTest {
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof BlockInStream);
-        }
         ret = new byte[k];
         value = is.read();
         cnt = 0;
@@ -145,24 +134,14 @@ public class BlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
+        FileInStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof BlockInStream);
-        }
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof BlockInStream);
-        }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -183,24 +162,14 @@ public class BlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
+        FileInStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof BlockInStream);
-        }
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof BlockInStream);
-        }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -221,15 +190,13 @@ public class BlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is =
+        FileInStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof BlockInStream);
         Assert.assertEquals(k / 2, is.skip(k / 2));
         Assert.assertEquals(k / 2, is.read());
         is.close();
 
         is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof BlockInStream);
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());
