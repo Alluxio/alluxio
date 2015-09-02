@@ -32,6 +32,10 @@ import tachyon.master.next.journal.Journal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 
+/**
+ * Unit tests for tachyon.master.filesystem.FileSystemMaster.
+ *
+ */
 public final class FileSystemMasterTest {
   private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
@@ -49,8 +53,9 @@ public final class FileSystemMasterTest {
 
     // set up worker
     mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    mBlockMaster.workerRegister(mWorkerId, Lists.newArrayList(Constants.MB * 1L),
-        Lists.<Long>newArrayList(Constants.KB*1L), Maps.<Long, List<Long>>newHashMap());
+    mBlockMaster.workerRegister(mWorkerId, Lists.newArrayList(Constants.MB * 1L, Constants.MB * 1L),
+        Lists.<Long>newArrayList(Constants.KB * 1L, Constants.KB * 1L),
+        Maps.<Long, List<Long>>newHashMap());
   }
 
   @Test
@@ -74,8 +79,24 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
     Assert.assertTrue(mFileSystemMaster.isFullyInMemory(NESTED_FILE_URI));
 
+    // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
     Assert.assertTrue(mFileSystemMaster.isFullyInMemory(NESTED_FILE_URI));
+
+    // add SSD block
+    blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
+    mBlockMaster.commitBlock(mWorkerId, Constants.KB, 2, blockId, Constants.KB);
+    mFileSystemMaster.completeFile(fileId);
+    Assert.assertFalse(mFileSystemMaster.isFullyInMemory(NESTED_FILE_URI));
+  }
+
+  @Test
+  public void renameTest() throws Exception {
+    // src
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    TachyonURI dstPath = new TachyonURI("/dst");
+    Assert.assertTrue(mFileSystemMaster.rename(fileId, dstPath));
+
   }
 }

@@ -584,7 +584,6 @@ public final class FileSystemMaster extends MasterBase {
         Throwables.propagate(bie);
       }
     }
-
   }
 
   public boolean rename(long fileId, TachyonURI dstPath)
