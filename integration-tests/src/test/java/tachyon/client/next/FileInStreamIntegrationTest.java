@@ -24,8 +24,8 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-
 import org.junit.rules.ExpectedException;
+
 import tachyon.Constants;
 import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.TachyonFS;
