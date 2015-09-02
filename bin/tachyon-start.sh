@@ -198,12 +198,12 @@ case "${WHAT}" in
       echo "Mount failed, not starting"
       exit 1
     fi
-    start_master $2
+    start_master $3
     sleep 2
     start_worker NoMount
     ;;
   master)
-    start_master $2
+    start_master $3
     ;;
   worker)
     check_mount_mode $2
