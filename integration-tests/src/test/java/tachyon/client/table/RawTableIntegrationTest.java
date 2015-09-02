@@ -28,7 +28,7 @@ import tachyon.TachyonURI;
 import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.FileOutStream;
 import tachyon.client.next.file.TachyonFileSystem;
-import tachyon.master.next.LocalTachyonCluster;
+import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 
 /**

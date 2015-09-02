@@ -30,7 +30,7 @@ import tachyon.client.next.CacheType;
 import tachyon.client.next.TachyonFSTestUtils;
 import tachyon.client.next.UnderStorageType;
 import tachyon.client.next.file.TachyonFileSystem;
-import tachyon.master.next.LocalTachyonCluster;
+import tachyon.master.LocalTachyonCluster;
 
 /**
  * Integration tests for TFS getFileBlockLocations.

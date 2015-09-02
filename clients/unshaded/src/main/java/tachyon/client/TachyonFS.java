@@ -35,17 +35,13 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.next.ClientContext;
 import tachyon.client.next.block.BSContext;
 import tachyon.client.next.file.FSContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
-import tachyon.client.FileSystemMasterClient;
-import tachyon.client.BlockMasterClient;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.WorkerInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.ThreadFactoryUtils;
@@ -53,7 +49,7 @@ import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.next.WorkerClient;
+import tachyon.worker.WorkerClient;
 
 /**
  * Client API to use Tachyon as a file system. This API is not compatible with HDFS file system API;

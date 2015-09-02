@@ -25,20 +25,23 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.TachyonURI;
 import tachyon.master.MasterInfo;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.
  */
-public class WebInterfaceMemoryServlet extends HttpServlet {
+public final class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
   private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceMemoryServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+    mMasterInfo = Preconditions.checkNotNull(masterInfo);
   }
 
   /**
@@ -61,12 +64,17 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(inMemoryFiles.size());
     for (TachyonURI file : inMemoryFiles) {
       try {
-        FileInfo fileInfo = mMasterInfo.getClientFileInfo(file);
+        FileInfo fileInfo = mMasterInfo.getFileInfo(file);
         if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
           fileInfos.add(new UiFileInfo(fileInfo));
         }
       } catch (InvalidPathException ipe) {
         request.setAttribute("fatalError", "Error: Invalid Path " + ipe.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (FileDoesNotExistException fee) {
+        request.setAttribute("fatalError",
+            "Error: File does not exist " + fee.getLocalizedMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
       }

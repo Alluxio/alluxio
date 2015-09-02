@@ -24,10 +24,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.client.next.ClientContext;
-import tachyon.client.next.ClientOptions;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.next.WorkerClient;
+import tachyon.worker.WorkerClient;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be directly read
