@@ -28,7 +28,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import tachyon.master.LocalTachyonCluster;
+import tachyon.master.next.LocalTachyonCluster;
 
 /**
  * Integration tests for TFS rename.
