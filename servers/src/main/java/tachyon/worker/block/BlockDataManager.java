@@ -143,7 +143,7 @@ public final class BlockDataManager {
    * @throws TException if the file does not exist or cannot be renamed
    * @throws IOException if the update to the master fails
    */
-  public void addCheckpoint(long userId, int fileId) throws TException, IOException {
+  public void addCheckpoint(long userId, long fileId) throws TException, IOException {
     // TODO This part needs to be changed.
     String srcPath = PathUtils.concatPath(getUserUfsTmpFolder(userId), fileId);
     String ufsDataFolder =
@@ -504,7 +504,7 @@ public final class BlockDataManager {
    *
    * @param pinnedInodes a set of pinned inodes
    */
-  public void updatePinList(Set<Integer> pinnedInodes) {
+  public void updatePinList(Set<Long> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
   }
 }

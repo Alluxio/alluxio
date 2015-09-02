@@ -84,6 +84,16 @@ public final class LocalTachyonMaster {
     mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
+    String[] masterServiceNames = new String[] {
+        Constants.BLOCK_MASTER_SERVICE_NAME,
+        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
+        Constants.RAW_TABLE_MASTER_SERVICE_NAME,
+        Constants.USER_MASTER_SERVICE_NAME,
+    };
+    for (String masterServieName : masterServiceNames) {
+      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServieName),
+          tachyonConf);
+    }
     UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),
         tachyonConf);
 
@@ -160,6 +170,10 @@ public final class LocalTachyonMaster {
 
   public void start() {
     mMasterThread.start();
+  }
+
+  public boolean isServing() {
+    return mTachyonMaster.isServing();
   }
 
   /**

@@ -119,7 +119,7 @@ public class WorkerClient implements Closeable {
    * @param fileId The id of the checkpointed file
    * @throws IOException
    */
-  public synchronized void addCheckpoint(int fileId) throws IOException {
+  public synchronized void addCheckpoint(long fileId) throws IOException {
     mustConnect();
 
     try {

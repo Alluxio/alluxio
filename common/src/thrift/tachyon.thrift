@@ -227,7 +227,7 @@ service FileSystemMasterService {
   bool free(1: i64 fileId, 2: bool recursive)
     throws (1: FileDoesNotExistException fdnee)
 
-  bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
+  bool addCheckpoint(1: i64 workerId, 2: i64 fileId, 3: i64 length, 4: string checkpointPath)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
@@ -420,7 +420,7 @@ service MasterService {
 service WorkerService {
   void accessBlock(1: i64 blockId)
 
-  void addCheckpoint(1: i64 userId, 2: i32 fileId)
+  void addCheckpoint(1: i64 userId, 2: i64 fileId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: FailedToCheckpointException eF, 4: BlockInfoException eB)
 
