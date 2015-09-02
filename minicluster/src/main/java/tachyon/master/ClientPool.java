@@ -36,7 +36,7 @@ public final class ClientPool implements Closeable {
 
   private final List<TachyonFS> mClients = Collections.synchronizedList(new ArrayList<TachyonFS>());
 
-  ClientPool(Supplier<String> uriSupplier) {
+  public ClientPool(Supplier<String> uriSupplier) {
     mUriSuppliers = uriSupplier;
   }
 

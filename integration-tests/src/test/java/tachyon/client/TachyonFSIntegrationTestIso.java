@@ -28,8 +28,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
-import tachyon.client.ReadType;
+import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
@@ -110,7 +109,7 @@ public class TachyonFSIntegrationTestIso {
   public void lockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -143,7 +142,7 @@ public class TachyonFSIntegrationTestIso {
   public void lockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -181,7 +180,7 @@ public class TachyonFSIntegrationTestIso {
   public void lockBlockTest4() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -218,7 +217,7 @@ public class TachyonFSIntegrationTestIso {
   public void unlockBlockTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -251,7 +250,7 @@ public class TachyonFSIntegrationTestIso {
   public void unlockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -287,7 +286,7 @@ public class TachyonFSIntegrationTestIso {
   public void unlockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf1 = null;
     ByteBuffer buf2 = null;
     int numOfFiles = 5;

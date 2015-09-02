@@ -43,6 +43,7 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.io.PathUtils;
 
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -53,6 +54,10 @@ public class RawTableMaster extends MasterBase {
 
   private final FileSystemMaster mFileSystemMaster;
   private final RawTables mRawTables = new RawTables();
+
+  public static String getJournalDirectory(String baseDirectory) {
+    return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME);
+  }
 
   public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster,
       Journal journal) {

@@ -33,12 +33,12 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
-import tachyon.client.OutStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.next.file.FileInStream;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileBlockInfo;
@@ -94,7 +94,7 @@ public class TFsShell implements Closeable {
       return -1;
     }
     if (tFile.isFile()) {
-      InStream is = tFile.getInStream(ReadType.NO_CACHE);
+      FileInStream is = tFile.getInStream(ReadType.NO_CACHE);
       byte[] buf = new byte[512];
       try {
         int read = is.read(buf);
@@ -147,7 +147,7 @@ public class TFsShell implements Closeable {
       return 0;
     } else {
       Closer closer = Closer.create();
-      InStream in = closer.register(tFile.getInStream(ReadType.CACHE));
+      FileInStream in = closer.register(tFile.getInStream(ReadType.CACHE));
       byte[] buf = new byte[8 * Constants.MB];
       try {
         while (in.read(buf) != -1) {
@@ -200,7 +200,7 @@ public class TFsShell implements Closeable {
       try {
         WriteType writeType =
             mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
-        OutStream os = closer.register(tFile.getOutStream(writeType));
+        FileOutStream os = closer.register(tFile.getOutStream(writeType));
         FileInputStream in = closer.register(new FileInputStream(src));
         FileChannel channel = closer.register(in.getChannel());
         ByteBuffer buf = ByteBuffer.allocate(8 * Constants.MB);
@@ -246,7 +246,7 @@ public class TFsShell implements Closeable {
 
     Closer closer = Closer.create();
     try {
-      InStream is = closer.register(tFile.getInStream(ReadType.NO_CACHE));
+      FileInStream is = closer.register(tFile.getInStream(ReadType.NO_CACHE));
       FileOutputStream out = closer.register(new FileOutputStream(dst));
       byte[] buf = new byte[64 * Constants.MB];
       int t = is.read(buf);
@@ -761,7 +761,7 @@ public class TFsShell implements Closeable {
       return -1;
     }
     if (tFile.isFile()) {
-      InStream is = tFile.getInStream(ReadType.NO_CACHE);
+      FileInStream is = tFile.getInStream(ReadType.NO_CACHE);
       try {
         byte[] buf = new byte[Constants.KB];
         long bytesToRead = 0L;

@@ -28,12 +28,12 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
@@ -82,7 +82,7 @@ public class TieredStoreIntegrationTest {
 
     Assert.assertTrue(file.isInMemory());
     // Open the file
-    InStream in = mTFS.getFile(fileId).getInStream(ReadType.NO_CACHE);
+    FileInStream in = mTFS.getFile(fileId).getInStream(ReadType.NO_CACHE);
 
     // Delete the file
     mTFS.delete(fileId, false);

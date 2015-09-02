@@ -25,13 +25,12 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.OutStream;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
-import tachyon.io.Utils;
+import tachyon.client.next.file.FileInStream;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 
@@ -170,7 +169,7 @@ public class RawTableIntegrationTest {
       RawColumn rawCol = table.getRawColumn(k);
       rawCol.createPartition(0);
       TachyonFile file = rawCol.getPartition(0);
-      OutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
+      FileOutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
       outStream.write(BufferUtils.getIncreasingByteArray(10));
       outStream.close();
     }
@@ -178,7 +177,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      InStream is = file.getInStream(ReadType.CACHE);
+      FileInStream is = file.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
@@ -188,7 +187,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      InStream is = file.getInStream(ReadType.CACHE);
+      FileInStream is = file.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);

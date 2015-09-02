@@ -145,7 +145,7 @@ public class WorkerClient implements Closeable {
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public synchronized boolean asyncCheckpoint(int fileId) throws IOException {
+  public synchronized boolean asyncCheckpoint(long fileId) throws IOException {
     mustConnect();
 
     try {
