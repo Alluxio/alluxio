@@ -22,14 +22,14 @@
 
     # Tachyon
     - include: roles/tachyon/tasks/download_release.yml
-      when: (tachyon_type == "Release") and (mesos_type == "None")
+      when: tachyon_type == "Release"
 
     - include: roles/tachyon/tasks/clone_local_repo.yml
       # vb syncs local repo to vm through kernel module instead of rsync
-      when: (tachyon_type == "Local") and (provider != "vb") and (mesos_type == "None")
+      when: (tachyon_type == "Local") and (provider != "vb")
 
     - include: roles/tachyon/tasks/clone_remote_repo.yml
-      when: (tachyon_type == "Github") or (mesos_type != "None")
+      when: tachyon_type == "Github"
 
     - include: roles/tachyon/tasks/compile.yml
       when: tachyon_type != "Release"
