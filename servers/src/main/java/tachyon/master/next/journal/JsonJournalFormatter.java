@@ -40,6 +40,9 @@ import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
 import tachyon.master.DependencyType;
+import tachyon.master.next.block.journal.BlockIdGeneratorEntry;
+import tachyon.master.next.block.journal.BlockInfoEntry;
+import tachyon.master.next.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.next.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.next.filesystem.journal.DependencyEntry;
 import tachyon.master.next.filesystem.journal.CompleteFileEntry;
@@ -49,6 +52,8 @@ import tachyon.master.next.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.next.filesystem.journal.InodeFileEntry;
 import tachyon.master.next.filesystem.journal.RenameEntry;
 import tachyon.master.next.filesystem.journal.SetPinnedEntry;
+import tachyon.master.next.rawtable.journal.RawTableEntry;
+import tachyon.master.next.user.journal.UserIdGeneratorEntry;
 
 public class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -218,6 +223,28 @@ public class JsonJournalFormatter implements JournalFormatter {
       public JournalEntry getNextEntry() throws IOException {
         JsonEntry entry = mParser.readValueAs(JsonEntry.class);
         switch (entry.mType) {
+          // User
+          case USER_ID_GENERATOR: {
+            return new UserIdGeneratorEntry(
+                entry.getLong("nextUserId"));
+          }
+
+          // Block
+          case BLOCK_ID_GENERATOR: {
+            return new BlockIdGeneratorEntry(
+                entry.getLong("nextContainerId"));
+          }
+          case BLOCK_INFO: {
+            return new BlockInfoEntry(
+                entry.getLong("blockId"),
+                entry.getLong("length"));
+          }
+          case WORKER_ID_GENERATOR: {
+            return new WorkerIdGeneratorEntry(
+                entry.getLong("nextWorkerId"));
+          }
+
+          // FileSystem
           case INODE_FILE: {
             return new InodeFileEntry(
                 entry.getLong("creationTimeMs"),
@@ -301,6 +328,14 @@ public class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("fileId"),
                 entry.getString("destinationPath"),
                 entry.getLong("operationTimeMs"));
+          }
+
+          // RawTable
+          case RAW_TABLE: {
+            return new RawTableEntry(
+                entry.getLong("id"),
+                entry.getInt("columns"),
+                entry.getByteBuffer("metadata"));
           }
           default:
             throw new IOException("Unknown entry type: " + entry.mType);
