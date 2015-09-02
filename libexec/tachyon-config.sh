@@ -27,13 +27,16 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
   export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
   export TACHYON_JARS="$TACHYON_HOME/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar"
-  export JAVA="$JAVA_HOME/bin/java"
 fi
 
 # Environment settings should override * and are administrator controlled.
-if [ -e $TACHYON_CONF_DIR/tachyon-env.sh ] ; then
-  . $TACHYON_CONF_DIR/tachyon-env.sh
+if [ ! -e $TACHYON_CONF_DIR/tachyon-env.sh ]; then
+  echo "Cannot find tachyon-env.sh in $TACHYON_CONF_DIR."
+  echo "Please create one manually or using $TACHYON_HOME/bin/tachyon bootstrap-conf function."
+  exit 0
 fi
+
+. $TACHYON_CONF_DIR/tachyon-env.sh
 
 # A developer option to prepend Tachyon jars before TACHYON_CLASSPATH jars
 if [ -n "$TACHYON_PREPEND_TACHYON_CLASSES" ]; then
