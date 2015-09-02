@@ -258,14 +258,6 @@ public final class LocalTachyonMaster {
     return mClientPool.getClient(mTachyonMaster.getTachyonConf());
   }
 
-  public String getEditLogPath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
-  }
-
-  public String getImagePath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
-  }
-
   private static String uniquePath() throws IOException {
     return File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.nanoTime();
   }
@@ -276,5 +268,9 @@ public final class LocalTachyonMaster {
 
   public TachyonConf getTachyonConf() {
     return mTachyonMaster.getTachyonConf();
+  }
+
+  public String getJournalFolder() {
+    return mJournalFolder;
   }
 }

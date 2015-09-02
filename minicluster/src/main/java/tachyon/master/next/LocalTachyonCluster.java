@@ -86,14 +86,6 @@ public final class LocalTachyonCluster {
     return mMaster.getClient();
   }
 
-  public String getEditLogPath() {
-    return mMaster.getEditLogPath();
-  }
-
-  public String getImagePath() {
-    return mMaster.getImagePath();
-  }
-
   public LocalTachyonMaster getMaster() {
     return mMaster;
   }
