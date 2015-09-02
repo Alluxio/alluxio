@@ -49,8 +49,7 @@ public class WebInterfaceHeaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    int masterWebPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT,
-        Constants.DEFAULT_MASTER_WEB_PORT);
+    int masterWebPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT);
     String masterHostName =
         NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf);
     request.setAttribute("masterHost", masterHostName);
