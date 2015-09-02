@@ -101,6 +101,14 @@ public class TachyonBlockStore implements Closeable {
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, NetAddress location)
       throws IOException {
+    if (blockSize == -1) {
+      BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
+      try {
+        blockSize = blockMasterClient.getBlockInfo(blockId).getLength();
+      } finally {
+        mContext.releaseMasterClient(blockMasterClient);
+      }
+    }
     // No specified location to read from
     if (null == location) {
       // Local client, attempt to do direct write to local storage
