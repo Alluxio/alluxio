@@ -34,11 +34,13 @@ import tachyon.Constants;
 import tachyon.security.LoginUser;
 import tachyon.security.authentication.AuthenticationFactory.AuthType;
 import tachyon.security.authentication.AuthenticationProvider;
+import tachyon.worker.ClientMetrics;
+import tachyon.worker.WorkerClient;
 
 /**
- * Though its name indicates that it provides the tests for Tachyon authentication.
+ * Though its name indicates that it provides the tests for Tachyon authentication (Master RPC
+ * and Worker RPC).
  * This class is likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
- *
  */
 public class MasterClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -101,7 +103,7 @@ public class MasterClientAuthenticationIntegrationTest {
 
     /**
      * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
-     * Tachyon Master.
+     * Tachyon Master / Worker.
      */
     System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon");
 
@@ -115,7 +117,7 @@ public class MasterClientAuthenticationIntegrationTest {
   }
 
   @Test
-  public void customAuthenticationDenyConnectTest() throws Exception {
+  public void customAuthenticationDenyConnectMasterTest() throws Exception {
     //custom authentication configure
     System.setProperty(Constants.TACHYON_SECURITY_AUTHENTICATION,
         AuthType.CUSTOM.getAuthName());
@@ -142,8 +144,37 @@ public class MasterClientAuthenticationIntegrationTest {
     masterClient.connect();
   }
 
+  @Test
+  public void customAuthenticationDenyConnectWorkerTest() throws Exception {
+    //custom authentication configure
+    System.setProperty(Constants.TACHYON_SECURITY_AUTHENTICATION,
+        AuthType.CUSTOM.getAuthName());
+    //custom authenticationProvider configure
+    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+        NameMatchAuthenticationProvider.class.getName());
+    /**
+     * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
+     * Tachyon Master.
+     */
+    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon");
+    //start cluster
+    mLocalTachyonCluster.start();
+
+    mMasterInfo = mLocalTachyonCluster.getMasterInfo();
+    // Using no-tachyon as loginUser to connect to Worker, the IOException will be thrown
+    clearLoginUser();
+    mThrown.expect(IOException.class);
+    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "no-tachyon");
+    MasterClient masterClient =
+        new MasterClient(mMasterInfo.getMasterAddress(),
+            mExecutorService, mLocalTachyonCluster.getMasterTachyonConf());
+    WorkerClient workerClient = new WorkerClient(masterClient, mExecutorService,
+        mLocalTachyonCluster.getWorkerTachyonConf(), new ClientMetrics());
+    Assert.assertFalse(workerClient.isConnected());
+    workerClient.mustConnect();
+  }
   /**
-   * Test Tachyon client connects or disconnects to the Master. When the client connects
+   * Test Tachyon client connects or disconnects to the Master / Worker. When the client connects
    * successfully to the Master, it can successfully create file or not.
    * @param filename
    * @throws Exception
@@ -153,13 +184,22 @@ public class MasterClientAuthenticationIntegrationTest {
     MasterClient masterClient =
         new MasterClient(mMasterInfo.getMasterAddress(),
             mExecutorService, mLocalTachyonCluster.getMasterTachyonConf());
+    WorkerClient workerClient = new WorkerClient(masterClient, mExecutorService,
+        mLocalTachyonCluster.getWorkerTachyonConf(), new ClientMetrics());
+
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     masterClient.user_createFile(filename, "", Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     Assert.assertNotNull(masterClient.getFileStatus(-1, filename));
+
+    Assert.assertFalse(workerClient.isConnected());
+    workerClient.mustConnect();
+    Assert.assertTrue(workerClient.isConnected());
+
     masterClient.disconnect();
     masterClient.close();
+    workerClient.close();
   }
 
   private void clearLoginUser() throws Exception {
