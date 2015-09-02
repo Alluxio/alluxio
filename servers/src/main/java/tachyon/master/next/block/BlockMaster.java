@@ -63,6 +63,7 @@ import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.io.PathUtils;
 
 public final class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -108,6 +109,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   // This state much be journaled.
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
+
+  public static String getJournalDirectory(String baseDirectory) {
+    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_SERVICE_NAME);
+  }
 
   public BlockMaster(Journal journal, TachyonConf tachyonConf) {
     super(journal,
