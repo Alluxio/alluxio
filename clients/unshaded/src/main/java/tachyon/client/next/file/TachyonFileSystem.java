@@ -26,23 +26,23 @@ import tachyon.thrift.FileInfo;
 
 /**
  * Tachyon File System client. This class is the entry point for all file level operations on
- * Tachyon files. An instance of this class can be obtained via {@link TachyonFS#get}. This class
- * is thread safe. The read/write interface provided by this client is similar to Java's
+ * Tachyon files. An instance of this class can be obtained via {@link TachyonFileSystem#get}. This
+ * class is thread safe. The read/write interface provided by this client is similar to Java's
  * input/output streams.
  */
-public class TachyonFS implements Closeable, TachyonFSCore {
-  private static TachyonFS sCachedClient;
+public class TachyonFileSystem implements Closeable, TachyonFSCore {
+  private static TachyonFileSystem sCachedClient;
 
-  public static synchronized TachyonFS get() {
+  public static synchronized TachyonFileSystem get() {
     if (null == sCachedClient) {
-      sCachedClient = new TachyonFS();
+      sCachedClient = new TachyonFileSystem();
     }
     return sCachedClient;
   }
 
   private FSContext mContext;
 
-  private TachyonFS() {
+  private TachyonFileSystem() {
     mContext = FSContext.INSTANCE;
   }
 
@@ -148,6 +148,11 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  @Deprecated
+  public FileOutStream getOutStream(long fileId, ClientOptions options) throws IOException {
+    return new ClientFileOutStream(fileId, options);
   }
 
   /**

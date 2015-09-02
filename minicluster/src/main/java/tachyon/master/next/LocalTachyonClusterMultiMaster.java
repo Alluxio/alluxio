@@ -28,7 +28,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
@@ -94,7 +94,7 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
-  public synchronized TachyonFS getClient() throws IOException {
+  public synchronized TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(mMasterConf);
   }
 

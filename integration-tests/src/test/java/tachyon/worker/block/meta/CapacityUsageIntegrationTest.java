@@ -25,10 +25,10 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.OutStream;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
@@ -81,7 +81,7 @@ public class CapacityUsageIntegrationTest {
     }
     int fileId = mTFS.createFile(filePath);
     TachyonFile file = mTFS.getFile(fileId);
-    OutStream os = file.getOutStream(writeType);
+    FileOutStream os = file.getOutStream(writeType);
     os.write(buf.array());
     os.close();
     return fileId;

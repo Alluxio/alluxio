@@ -23,8 +23,9 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
+import tachyon.client.TachyonFS;
 import tachyon.client.next.ClientContext;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -77,16 +78,12 @@ public final class LocalTachyonCluster {
     mUserBlockSize = userBlockSize;
   }
 
-  public TachyonFS getClient() throws IOException {
+  public TachyonFS getOldClient() throws IOException {
+    return mMaster.getOldClient();
+  }
+
+  public TachyonFileSystem getClient() throws IOException {
     return mMaster.getClient();
-  }
-
-  public String getEditLogPath() {
-    return mMaster.getEditLogPath();
-  }
-
-  public String getImagePath() {
-    return mMaster.getImagePath();
   }
 
   public LocalTachyonMaster getMaster() {

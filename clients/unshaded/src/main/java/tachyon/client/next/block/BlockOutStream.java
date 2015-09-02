@@ -19,7 +19,7 @@ import tachyon.client.next.OutStream;
 
 /**
  * Provides a stream API to write a block to Tachyon. An instance of this class can be obtained by
- * calling {@link TachyonBS#getOutStream}. Only one BlockOutStream should be opened for a
+ * calling {@link TachyonBlockStore#getOutStream}. Only one BlockOutStream should be opened for a
  * block. This class is not thread safe and should only be used by one thread.
  *
  * The type of BlockOutStream returned will depend on the user configuration and cluster setup. A

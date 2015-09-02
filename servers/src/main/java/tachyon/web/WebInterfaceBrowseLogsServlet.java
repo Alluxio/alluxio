@@ -31,29 +31,28 @@ import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.util.io.PathUtils;
 
 /**
  * Servlet that provides data for browsing log files.
  */
-public class WebInterfaceBrowseLogsServlet extends HttpServlet {
+public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   private static final long serialVersionUID = 6589358568781503724L;
 
   private final transient TachyonConf mTachyonConf;
   private final String mBrowseJsp;
   private final String mViewJsp;
-  private final FilenameFilter mLogFileFilter;
+  private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
+    @Override
+    public boolean accept(File dir, String name) {
+      return name.toLowerCase().endsWith(".log");
+    }
+  };
 
   public WebInterfaceBrowseLogsServlet(boolean isMasterServlet) {
     mTachyonConf = new TachyonConf();
     String prefix = isMasterServlet ? "/" : "/worker/";
     mBrowseJsp = prefix + "browse.jsp";
     mViewJsp = prefix + "viewFile.jsp";
-    mLogFileFilter = new FilenameFilter() {
-      public boolean accept(File dir, String name) {
-        return name.toLowerCase().endsWith(".log");
-      }
-    };
   }
 
   /**
@@ -115,7 +114,6 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("baseUrl", "./browseLogs");
     request.setAttribute("currentPath", "");
 
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
     String logsPath =
         mTachyonConf.get(Constants.LOGS_DIR);
     File logsDir = new File(logsPath);
@@ -125,7 +123,7 @@ public class WebInterfaceBrowseLogsServlet extends HttpServlet {
       // List all log files in the log/ directory.
 
       List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>();
-      File[] logFiles = logsDir.listFiles(mLogFileFilter);
+      File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
       for (File logFile : logFiles) {
         String logFileName = logFile.getName();
         fileInfos.add(new UiFileInfo(new UiFileInfo.LocalFileInfo(logFileName, logFileName,

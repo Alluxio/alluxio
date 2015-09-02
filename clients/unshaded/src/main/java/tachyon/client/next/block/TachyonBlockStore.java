@@ -25,23 +25,24 @@ import tachyon.thrift.NetAddress;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
- * An instance of this class can be obtained via {@link TachyonBS#get}. The methods in this class
- * are completely opaque to user input (such as {@link ClientOptions}). This class is thread safe.
+ * An instance of this class can be obtained via {@link TachyonBlockStore#get}. The methods in this
+ * class are completely opaque to user input (such as {@link ClientOptions}). This class is thread
+ * safe.
  */
-public class TachyonBS implements Closeable {
+public class TachyonBlockStore implements Closeable {
 
-  private static TachyonBS sCachedClient = null;
+  private static TachyonBlockStore sCachedClient = null;
 
-  public static synchronized TachyonBS get() {
+  public static synchronized TachyonBlockStore get() {
     if (null == sCachedClient) {
-      sCachedClient = new TachyonBS();
+      sCachedClient = new TachyonBlockStore();
     }
     return sCachedClient;
   }
 
   private final BSContext mContext;
 
-  public TachyonBS() {
+  public TachyonBlockStore() {
     mContext = BSContext.INSTANCE;
   }
 
