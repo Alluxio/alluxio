@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
+import tachyon.client.next.file.FileInStream;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
@@ -74,12 +75,7 @@ public class LocalBlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.NO_CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
+        FileInStream is = file.getInStream(ReadType.NO_CACHE);
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
@@ -95,11 +91,6 @@ public class LocalBlockInStreamIntegrationTest {
         Assert.assertTrue(file.isInMemory());
 
         is = file.getInStream(ReadType.CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
         ret = new byte[k];
         value = is.read();
         cnt = 0;
@@ -129,12 +120,7 @@ public class LocalBlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.NO_CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
+        FileInStream is = file.getInStream(ReadType.NO_CACHE);
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -142,11 +128,6 @@ public class LocalBlockInStreamIntegrationTest {
         Assert.assertTrue(file.isInMemory());
 
         is = file.getInStream(ReadType.CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -168,12 +149,7 @@ public class LocalBlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.NO_CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
+        FileInStream is = file.getInStream(ReadType.NO_CACHE);
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
@@ -181,11 +157,6 @@ public class LocalBlockInStreamIntegrationTest {
         Assert.assertTrue(file.isInMemory());
 
         is = file.getInStream(ReadType.CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -210,13 +181,7 @@ public class LocalBlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.NO_CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
-
+        FileInStream is = file.getInStream(ReadType.NO_CACHE);
         try {
           is.seek(-1);
         } catch (IOException e) {
@@ -248,12 +213,7 @@ public class LocalBlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.NO_CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
+        FileInStream is = file.getInStream(ReadType.NO_CACHE);
         try {
           is.seek(k + 1);
         } finally {
@@ -277,13 +237,7 @@ public class LocalBlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.NO_CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
-
+        FileInStream is = file.getInStream(ReadType.NO_CACHE);
         is.seek(k / 3);
         Assert.assertEquals(k / 3, is.read());
         is.seek(k / 2);
@@ -307,15 +261,13 @@ public class LocalBlockInStreamIntegrationTest {
             TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
 
         TachyonFile file = sTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.CACHE);
-        Assert.assertTrue(is instanceof LocalBlockInStream);
+        FileInStream is = file.getInStream(ReadType.CACHE);
         Assert.assertEquals(k / 2, is.skip(k / 2));
         Assert.assertEquals(k / 2, is.read());
         is.close();
         Assert.assertTrue(file.isInMemory());
 
         is = file.getInStream(ReadType.CACHE);
-        Assert.assertTrue(is instanceof LocalBlockInStream);
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());

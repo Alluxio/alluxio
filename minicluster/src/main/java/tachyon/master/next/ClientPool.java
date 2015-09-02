@@ -33,7 +33,8 @@ import tachyon.conf.TachyonConf;
 public final class ClientPool implements Closeable {
   private final Supplier<String> mUriSuppliers;
 
-  private final List<TachyonFileSystem> mClients = Collections.synchronizedList(new ArrayList<TachyonFileSystem>());
+  private final List<TachyonFileSystem> mClients = Collections
+      .synchronizedList(new ArrayList<TachyonFileSystem>());
 
   ClientPool(Supplier<String> uriSupplier) {
     mUriSuppliers = uriSupplier;

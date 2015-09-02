@@ -33,19 +33,18 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.BufferUtils;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit tests on TFsShell.
@@ -117,7 +116,7 @@ public class TFsShellTest {
     TachyonFile tFile = mTfs.getFile(new TachyonURI("/testFile"));
     Assert.assertNotNull(tFile);
     Assert.assertEquals(SIZE_BYTES, tFile.length());
-    InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
+    FileInStream tfis = tFile.getInStream(ReadType.NO_CACHE);
     byte[] read = new byte[SIZE_BYTES];
     tfis.read(read);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
@@ -461,7 +460,7 @@ public class TFsShellTest {
   }
 
   private byte[] readContent(TachyonFile tFile, int length) throws IOException {
-    InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
+    FileInStream tfis = tFile.getInStream(ReadType.NO_CACHE);
     byte[] read = new byte[length];
     tfis.read(read);
     return read;

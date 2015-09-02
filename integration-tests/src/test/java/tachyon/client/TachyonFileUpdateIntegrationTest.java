@@ -28,6 +28,7 @@ import com.google.common.base.Joiner;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -80,7 +81,7 @@ public final class TachyonFileUpdateIntegrationTest {
         }
         buffer.flip();
 
-        OutStream os = file.getOutStream(type);
+        FileOutStream os = file.getOutStream(type);
         try {
           os.write(buffer.array());
         } finally {
