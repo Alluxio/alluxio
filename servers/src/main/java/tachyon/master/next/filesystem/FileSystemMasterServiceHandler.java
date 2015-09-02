@@ -15,6 +15,7 @@
 
 package tachyon.master.next.filesystem;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
@@ -33,8 +34,9 @@ import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
 
-public class FileSystemMasterServiceHandler implements FileSystemMasterService.Iface {
+public final class FileSystemMasterServiceHandler implements FileSystemMasterService.Iface {
   private final FileSystemMaster mFileSystemMaster;
 
   public FileSystemMasterServiceHandler(FileSystemMaster fileSystemMaster) {
@@ -112,11 +114,26 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public long loadFileFromUfs(long fileId, String ufsPath, boolean recursive)
+  public long loadFileFromUfs(String path, String ufsPath, long blockSizeByte, boolean recursive)
       throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
       TachyonException, TException {
-    // TODO: should this take a string path?
-    return 0;
+    if (!ufsPath.isEmpty()) {
+      UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mFileSystemMaster.getTachyonConf());
+      try {
+        long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
+        long fileSizeByte = underfs.getFileSize(ufsPath);
+        long fileId =
+            mFileSystemMaster.createFile(new TachyonURI(path), ufsBlockSizeByte, recursive);
+        if (fileId != -1 && mFileSystemMaster.completeFileCheckpoint(-1, fileId, fileSizeByte,
+            new TachyonURI(ufsPath))) {
+          return fileId;
+        }
+      } catch (IOException e) {
+        throw new TachyonException(e.getMessage());
+      }
+    }
+
+    return mFileSystemMaster.createFile(new TachyonURI(path), blockSizeByte, recursive);
   }
 
   @Override
@@ -166,19 +183,18 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   @Override
   public DependencyInfo getDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException, TException {
-    // TODO
-    return null;
+    return mFileSystemMaster.getClientDependencyInfo(dependencyId);
   }
 
   @Override
   public void reportLostFile(long fileId) throws FileDoesNotExistException, TException {
-    // TODO
+    mFileSystemMaster.reportLostFile(fileId);
   }
 
   @Override
   public void requestFilesInDependency(int depId)
       throws DependencyDoesNotExistException, TException {
-    // TODO
+    mFileSystemMaster.requestFilesInDependency(depId);
   }
 
 }
