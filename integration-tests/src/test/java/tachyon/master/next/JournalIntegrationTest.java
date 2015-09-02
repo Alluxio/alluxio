@@ -31,8 +31,8 @@ import tachyon.client.next.ClientOptions;
 import tachyon.client.next.TachyonFSTestUtils;
 import tachyon.client.next.UnderStorageType;
 import tachyon.client.next.file.FileOutStream;
-import tachyon.client.next.file.TachyonFS;
 import tachyon.client.next.file.TachyonFile;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.FileSystemMaster;
@@ -53,7 +53,7 @@ import tachyon.util.io.PathUtils;
  */
 public class JournalIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf =  null;
