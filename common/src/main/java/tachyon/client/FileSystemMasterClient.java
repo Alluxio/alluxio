@@ -216,12 +216,12 @@ public final class FileSystemMasterClient extends MasterClient {
     throw new IOException("This connection has been closed.");
   }
 
-  public synchronized long loadFileFromUfs(long fileId, String ufsPath, boolean recursive)
-      throws IOException {
+  public synchronized long loadFileFromUfs(String path, String ufsPath, long blockSizeByte,
+      boolean recursive) throws IOException {
     while (!mIsClosed) {
       connect();
       try {
-        return mClient.loadFileFromUfs(fileId, ufsPath, recursive);
+        return mClient.loadFileFromUfs(path, ufsPath, blockSizeByte, recursive);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {

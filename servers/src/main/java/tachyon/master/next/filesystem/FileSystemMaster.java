@@ -263,6 +263,10 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  public TachyonConf getTachyonConf() {
+    return mTachyonConf;
+  }
+
   /**
    * Whether the filesystem contains a directory with the id.
    *
