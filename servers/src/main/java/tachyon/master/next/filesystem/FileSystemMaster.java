@@ -84,6 +84,10 @@ public class FileSystemMaster extends MasterBase {
 
   private final PrefixList mWhitelist;
 
+  public static String getJournalDirectory(String baseDirectory) {
+    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME);
+  }
+
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
       Journal journal) {
     super(journal,
