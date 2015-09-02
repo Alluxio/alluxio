@@ -35,6 +35,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.network.ChannelType;
 import tachyon.util.FormatUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -137,6 +138,8 @@ public class TachyonConf {
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
+    defaultProps.setProperty(Constants.USER_NETTY_CHANNEL,
+        String.valueOf(ChannelType.defaultType()));
 
     InputStream defaultInputStream =
         TachyonConf.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
@@ -315,12 +318,12 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public <T extends Enum<T>> T getEnum(String key, T defaultValue) {
-    if (mProperties.containsKey(key)) {
-      final String val = get(key, defaultValue.toString());
-      return null == val ? defaultValue : Enum.valueOf(defaultValue.getDeclaringClass(), val);
+  public <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
+    if (!mProperties.containsKey(key)) {
+      throw new RuntimeException("Invalid configuration key " + key + ".");
     }
-    return defaultValue;
+    final String val = get(key);
+    return Enum.valueOf(enumType, val);
   }
 
   public long getBytes(String key) {
