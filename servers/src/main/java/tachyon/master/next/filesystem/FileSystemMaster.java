@@ -84,6 +84,10 @@ public class FileSystemMaster extends MasterBase {
 
   private final PrefixList mWhitelist;
 
+  public static String getJournalDirectory(String baseDirectory) {
+    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME);
+  }
+
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
       Journal journal) {
     super(journal,
@@ -186,7 +190,9 @@ public class FileSystemMaster extends MasterBase {
   /**
    * @return whether the operation needs to be written to journal
    */
-  private boolean completeFileCheckpointInternal(long workerId, long fileId,
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public boolean completeFileCheckpointInternal(long workerId, long fileId,
       long length, TachyonURI checkpointPath, long opTimeMs)
           throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
     if (workerId != -1) {
@@ -345,7 +351,9 @@ public class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void completeFileInternal(long fileId, long fileLength, long opTimeMs)
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public void completeFileInternal(long fileId, long fileLength, long opTimeMs)
       throws FileDoesNotExistException {
     mDependencyMap.addFileCheckpoint(fileId);
     Inode inode = mInodeTree.getInodeById(fileId);
@@ -365,19 +373,28 @@ public class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false);
-      // If the create succeeded, the list of created inodes will not be empty.
-      InodeFile inode = (InodeFile) created.get(created.size() - 1);
-      if (mWhitelist.inList(path.toString())) {
-        inode.setCache(true);
-      }
+      List<Inode> created =
+          createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
 
       // Writing the first created inode to the journal will also write its children.
       writeJournalEntry(created.get(0));
       flushJournal();
 
-      return inode.getId();
+      return created.get(created.size() - 1).getId();
     }
+  }
+
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public List<Inode> createFileInternal(TachyonURI path, long blockSizeBytes, boolean recursive,
+      long opTimeMs) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+    List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
+    // If the create succeeded, the list of created inodes will not be empty.
+    InodeFile inode = (InodeFile) created.get(created.size() - 1);
+    if (mWhitelist.inList(path.toString())) {
+      inode.setCache(true);
+    }
+    return created;
   }
 
   public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
@@ -412,7 +429,9 @@ public class FileSystemMaster extends MasterBase {
     }
   }
 
-  private boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
       throws TachyonException, FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
     return deleteInodeInternal(inode, recursive, System.currentTimeMillis());
@@ -648,7 +667,9 @@ public class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void renameInternal(long fileId, TachyonURI dstPath, long opTimeMs)
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public void renameInternal(long fileId, TachyonURI dstPath, long opTimeMs)
       throws InvalidPathException, FileDoesNotExistException {
     Inode srcInode = mInodeTree.getInodeById(fileId);
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());

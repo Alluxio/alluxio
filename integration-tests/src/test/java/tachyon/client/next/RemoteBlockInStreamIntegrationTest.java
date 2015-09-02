@@ -33,8 +33,8 @@ import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.client.next.block.RemoteBlockInStream;
-import tachyon.client.next.block.TachyonBS;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.block.TachyonBlockStore;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
@@ -52,7 +52,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private String mDataServerClass;
   private String mRemoteReaderClass;
   private TachyonConf mMasterTachyonConf;
@@ -93,7 +93,7 @@ public class RemoteBlockInStreamIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
+    mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
     mLocalTachyonCluster.start();
@@ -259,7 +259,7 @@ public class RemoteBlockInStreamIntegrationTest {
           TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteTachyon, k);
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
-      BlockInfo info = TachyonBS.get().getInfo(blockId);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
               .getWorkerAddress());
@@ -290,7 +290,7 @@ public class RemoteBlockInStreamIntegrationTest {
           TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteTachyon, k);
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
-      BlockInfo info = TachyonBS.get().getInfo(blockId);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
               .getWorkerAddress());
@@ -317,7 +317,7 @@ public class RemoteBlockInStreamIntegrationTest {
           TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteTachyon, k);
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
-      BlockInfo info = TachyonBS.get().getInfo(blockId);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
               .getWorkerAddress());

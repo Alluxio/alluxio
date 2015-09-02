@@ -29,10 +29,15 @@ import tachyon.master.next.journal.JournalOutputStream;
 import tachyon.master.next.user.journal.UserIdGeneratorEntry;
 import tachyon.thrift.UserMasterService;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.io.PathUtils;
 
 public class UserMaster extends MasterBase {
 
   private final AtomicLong mNextUserId = new AtomicLong(1);
+
+  public static String getJournalDirectory(String baseDirectory) {
+    return PathUtils.concatPath(baseDirectory, Constants.USER_MASTER_SERVICE_NAME);
+  }
 
   public UserMaster(Journal journal) {
     super(journal,
