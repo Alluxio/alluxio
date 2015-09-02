@@ -39,7 +39,7 @@ import tachyon.conf.TachyonConf;
  * TODO: Rename this class.
  *
  */
-public class MasterClientIntegrationTest {
+public class FileSystemMasterClientIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
