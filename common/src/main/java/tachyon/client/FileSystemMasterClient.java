@@ -29,12 +29,15 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClient;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyInfo;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * The FileSystemMaster client, for clients.
@@ -88,6 +91,8 @@ public final class FileSystemMasterClient extends MasterClient {
         return mClient.getFileInfo(fileId);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -102,6 +107,8 @@ public final class FileSystemMasterClient extends MasterClient {
       try {
         return mClient.getFileInfoList(fileId);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -119,6 +126,8 @@ public final class FileSystemMasterClient extends MasterClient {
       try {
         return mClient.getFileBlockInfo(fileId, fileBlockIndex);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -179,8 +188,6 @@ public final class FileSystemMasterClient extends MasterClient {
       connect();
       try {
         return mClient.getUfsAddress();
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -195,7 +202,11 @@ public final class FileSystemMasterClient extends MasterClient {
       connect();
       try {
         return mClient.createFile(path, blockSizeBytes, recursive);
-      } catch (FileDoesNotExistException e) {
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -228,6 +239,10 @@ public final class FileSystemMasterClient extends MasterClient {
         mClient.completeFile(fileId);
         return;
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -290,6 +305,8 @@ public final class FileSystemMasterClient extends MasterClient {
         return mClient.createDirectory(path, recursive);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -304,6 +321,8 @@ public final class FileSystemMasterClient extends MasterClient {
       try {
         return mClient.free(fileId, recursive);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);

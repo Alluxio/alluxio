@@ -22,6 +22,7 @@ import java.util.List;
 import tachyon.TachyonURI;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.next.ClientOptions;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -101,6 +102,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getFileInfo(file.getFileId());
+    } catch (IOException e) {
+      return null;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

@@ -25,7 +25,7 @@ import org.apache.hadoop.fs.contract.AbstractFSContract;
 
 import tachyon.Constants;
 import tachyon.hadoop.TFS;
-import tachyon.master.next.LocalTachyonCluster;
+import tachyon.master.LocalTachyonCluster;
 
 /**
  * This class provides an implementation of AbstractFSContract using tachyon.hadoop.TFS. This

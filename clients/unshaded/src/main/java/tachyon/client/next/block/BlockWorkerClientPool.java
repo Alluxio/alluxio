@@ -19,16 +19,14 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import tachyon.Constants;
 import tachyon.client.UserMasterClient;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.ResourcePool;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.next.WorkerClient;
+import tachyon.worker.WorkerClient;
 
 /**
  * Class for managing local block worker clients. After obtaining a client with {@link

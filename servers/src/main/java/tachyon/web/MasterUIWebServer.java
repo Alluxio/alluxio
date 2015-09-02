@@ -28,7 +28,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 /**
  * A master's UI web server
  */
-public class MasterUIWebServer extends UIWebServer {
+public final class MasterUIWebServer extends UIWebServer {
 
   public MasterUIWebServer(ServiceType service, InetSocketAddress address, MasterInfo masterInfo,
       TachyonConf conf) {
