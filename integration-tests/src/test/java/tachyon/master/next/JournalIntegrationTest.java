@@ -34,12 +34,8 @@ import tachyon.client.next.file.FileOutStream;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.master.next.block.BlockMaster;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.master.next.journal.Journal;
-import tachyon.master.next.journal.JournalEntry;
-import tachyon.master.next.journal.JournalInputStream;
-import tachyon.master.next.journal.JournalReader;
 import tachyon.master.next.journal.JournalWriter;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -82,31 +78,7 @@ public class JournalIntegrationTest {
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
-
-    Journal blockJournal = new Journal(BlockMaster.getJournalDirectory(masterJournal),
-        mMasterTachyonConf);
-    BlockMaster blockMaster = new BlockMaster(blockJournal, mMasterTachyonConf);
-
-    Journal fsJournal = new Journal(FileSystemMaster.getJournalDirectory(masterJournal),
-        mMasterTachyonConf);
-    FileSystemMaster fsMaster = new FileSystemMaster(mMasterTachyonConf, blockMaster, fsJournal);
-
-    JournalReader reader = fsJournal.getNewReader();
-    // load checkpoint
-    fsMaster.processJournalCheckpoint(reader.getCheckpointInputStream());
-
-    // load logs
-    JournalInputStream is;
-    while ((is = reader.getNextInputStream()) != null) {
-      JournalEntry entry;
-      while ((entry = is.getNextEntry()) != null) {
-        fsMaster.processJournalEntry(entry);
-      }
-      is.close();
-    }
-
-    return fsMaster;
+    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterTachyonConf);
   }
 
   private void deleteFsMasterJournalLogs() throws IOException {
