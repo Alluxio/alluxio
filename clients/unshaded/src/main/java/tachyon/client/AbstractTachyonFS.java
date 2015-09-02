@@ -120,7 +120,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @return true if succeed, false otherwise
    * @throws IOException
    */
-  public synchronized boolean rename(int fileId, TachyonURI dstPath) throws IOException {
+  public synchronized boolean rename(long fileId, TachyonURI dstPath) throws IOException {
     return rename(fileId, TachyonURI.EMPTY_URI, dstPath);
   }
 

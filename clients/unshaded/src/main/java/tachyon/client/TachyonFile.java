@@ -44,7 +44,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   private final TachyonFileSystem mTFS;
 
   final TachyonFS mTachyonFS;
-  final int mFileId;
+  final long mFileId;
 
   private Object mUFSConf = null;
 
@@ -57,7 +57,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @param fid the file id
    * @param tachyonConf the TachyonConf for this file.
    */
-  TachyonFile(TachyonFS tfs, int fid, TachyonConf tachyonConf) {
+  TachyonFile(TachyonFS tfs, long fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
     mTFS = TachyonFileSystem.get();
     mFileId = fid;
@@ -238,7 +238,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     FileInfo info = getUnCachedFileStatus();
-    TachyonURI uri = new TachyonURI(info.getPath());
     ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
     optionsBuilder.setBlockSize(info.getBlockSizeByte());
 
@@ -252,7 +251,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } else {
       optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
     }
-    return mTFS.getOutStream(uri, optionsBuilder.build());
+    return mTFS.getOutStream(mFileId, optionsBuilder.build());
   }
 
   /**
@@ -292,7 +291,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   @Override
   public int hashCode() {
-    return mFileId;
+    return Long.valueOf(mFileId).hashCode();
   }
 
   /**

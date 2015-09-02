@@ -163,8 +163,8 @@ public class TachyonFS extends AbstractTachyonFS {
   // Cached FileInfo
   private final Map<String, FileInfo> mPathToClientFileInfo =
       new HashMap<String, FileInfo>();
-  private final Map<Integer, FileInfo> mIdToClientFileInfo =
-      new HashMap<Integer, FileInfo>();
+  private final Map<Long, FileInfo> mIdToClientFileInfo =
+      new HashMap<Long, FileInfo>();
 
   private UnderFileSystem mUnderFileSystem;
 
@@ -214,7 +214,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fid the file id
    * @throws IOException
    */
-  synchronized void addCheckpoint(int fid) throws IOException {
+  synchronized void addCheckpoint(long fid) throws IOException {
     mWorkerClient.addCheckpoint(fid);
   }
 
@@ -225,7 +225,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if succeed, false otherwise
    * @throws IOException
    */
-  synchronized boolean asyncCheckpoint(int fid) throws IOException {
+  synchronized boolean asyncCheckpoint(long fid) throws IOException {
     return mWorkerClient.asyncCheckpoint(fid);
   }
 
@@ -269,7 +269,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fid the file id
    * @throws IOException
    */
-  synchronized void completeFile(int fid) throws IOException {
+  synchronized void completeFile(long fid) throws IOException {
     mFSMasterClient.completeFile(fid);
   }
 
@@ -380,7 +380,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   @Override
-  public synchronized boolean delete(int fileId, TachyonURI path, boolean recursive)
+  public synchronized boolean delete(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
     return mFSMasterClient.deleteFile(fileId, recursive);
@@ -406,7 +406,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the block id if exists
    * @throws IOException if the file does not exist, or connection issue.
    */
-  public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
+  public synchronized long getBlockId(long fileId, int blockIndex) throws IOException {
     FileInfo info = getFileStatus(fileId, true);
 
     if (info == null) {
@@ -469,7 +469,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fid file id.
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
-  public synchronized TachyonFile getFile(int fid) throws IOException {
+  public synchronized TachyonFile getFile(long fid) throws IOException {
     return getFile(fid, true);
   }
 
@@ -479,7 +479,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
-  public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
+  public synchronized TachyonFile getFile(long fid, boolean useCachedMetadata) throws IOException {
     FileInfo fileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI, useCachedMetadata);
     if (fileInfo == null) {
       return null;
@@ -557,7 +557,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   private synchronized <K> FileInfo getFileStatus(Map<K, FileInfo> cache, K key,
-      int fileId, String path, boolean useCachedMetaData) throws IOException {
+      long fileId, String path, boolean useCachedMetaData) throws IOException {
     FileInfo info = null;
     if (useCachedMetaData) {
       info = cache.get(key);
@@ -593,10 +593,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the FileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
-  public synchronized FileInfo getFileStatus(int fileId, TachyonURI path,
+  public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
     if (fileId != -1) {
-      return getFileStatus(mIdToClientFileInfo, Integer.valueOf(fileId), fileId,
+      return getFileStatus(mIdToClientFileInfo, fileId, fileId,
           TachyonURI.EMPTY_URI.getPath(), useCachedMetadata);
     }
     validateUri(path);
@@ -605,7 +605,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   @Override
-  public FileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
+  public FileInfo getFileStatus(long fileId, TachyonURI path) throws IOException {
     return getFileStatus(fileId, path, false);
   }
 
@@ -617,7 +617,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the FileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
-  public synchronized FileInfo getFileStatus(int fileId, boolean useCachedMetadata)
+  public synchronized FileInfo getFileStatus(long fileId, boolean useCachedMetadata)
       throws IOException {
     return getFileStatus(fileId, TachyonURI.EMPTY_URI, useCachedMetadata);
   }
@@ -829,7 +829,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   @Override
-  public synchronized boolean freepath(int fileId, TachyonURI path, boolean recursive)
+  public synchronized boolean freepath(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
     return mFSMasterClient.free(fileId, recursive);
@@ -860,7 +860,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   @Override
-  public synchronized boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath)
+  public synchronized boolean rename(long fileId, TachyonURI srcPath, TachyonURI dstPath)
       throws IOException {
     validateUri(srcPath);
     validateUri(dstPath);

@@ -25,7 +25,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
+import tachyon.master.next.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -49,9 +49,9 @@ public class BlockInStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
+    sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 1000, Constants.GB);
     sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getClient();
+    sTfs = sLocalTachyonCluster.getOldClient();
   }
 
   /**
