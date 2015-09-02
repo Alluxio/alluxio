@@ -16,6 +16,7 @@ function printUsage {
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Tachyon."
   echo -e "  runTest       \t Run a end-to-end test on a Tachyon cluster."
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
+  echo -e "  jCrashTest    \t Test the Master Journal System in a crash scenario"
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
@@ -85,6 +86,66 @@ function runTest {
   # If test process received a signal abort early
   # Exit Codes for signals terminating a JVM are 128 + signal
   RET=$?
+  if [ $RET -gt 128 ]; then
+    echo "Test process was terminated due to signal"
+    exit $RET
+  fi
+  return $RET
+}
+
+function jCrashTest {
+  if [ "$#" -lt 1 ]; then
+    echo "Usage: tachyon jCrashTest <test-duration-in-seconds> [-options]"
+    echo "where options include:"
+    echo -e "    -cn <Clients number>"
+    echo "e.g. 'tachyon jCrashTest 5 -cn 10' will launch 10 clients connecting to the Master and kill the Master after 5 seconds"
+    exit 1
+  fi
+
+  MASTER_ADDRESS=$TACHYON_MASTER_ADDRESS
+  if [ -z $TACHYON_MASTER_ADDRESS ] ; then
+    MASTER_ADDRESS=localhost
+  fi
+
+  local testDir="/default_tests_files"
+  local tachyonMasterUri="tachyon://$MASTER_ADDRESS:19998"
+  local class="tachyon.examples.JournalCrashTest"
+  local tmpOutFile=$(mktemp --suffix=TachyonTestTmp)
+  local sleepSec=$1
+  shift
+
+  # launch a Tachyon Master and cleanup test directory
+  $bin/tachyon-stop.sh
+  $bin/tachyon-start.sh master
+  sleep 1
+  echo "Delete $testDir on $tachyonMasterUri"
+  $LAUNCHER $bin/tachyon tfs rmr "$testDir"
+
+  echo "Tachyon Master started. Run JournalCrashTest..."
+  ($JAVA -cp $CLASSPATH -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS "$class" 0 "$tachyonMasterUri" "$testDir" "$tmpOutFile" $@) &
+  local testPid=$!
+  echo "Kill Tachyon Master after $sleepSec seconds..."
+  sleep $sleepSec
+
+  # crash Master by kill -9
+  echo "Kill Tachyon Master..."
+  for pid in `ps -Aww -o pid,command | grep -i "[j]ava" | grep "tachyon.master.TachyonMaster" | awk '{print $1}'`; do
+      kill -9 "$pid" > /dev/null 2>&1
+  done
+  echo "Tachyon Master Killed. Wait for all Clients..."
+
+  wait $testPid
+  echo "Restart Master and check status..."
+  $bin/tachyon-start.sh master
+  sleep 1
+  $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS "$class" 1 "$tachyonMasterUri" "$testDir" "$tmpOutFile"
+  RET=$?
+  echo "Delete temp file $tmpOutFile"
+  rm "$tmpOutFile"
+  echo "Stop Tachyon Master"
+  $bin/tachyon-stop.sh
+  # If test process received a signal abort early
+  # Exit Codes for signals terminating a JVM are 128 + signal
   if [ $RET -gt 128 ]; then
     echo "Test process was terminated due to signal"
     exit $RET
@@ -239,6 +300,9 @@ elif [ "$COMMAND" == "runTests" ]; then
     echo "Number of failed tests: $failed" 1>&2
   fi
   exit $failed
+elif [ "$COMMAND" == "jCrashTest" ]; then
+  jCrashTest "$@"
+  exit $?
 elif [ "$COMMAND" == "killAll" ]; then
   killAll "$@"
   exit 0

@@ -239,7 +239,7 @@ public class JournalCrashTest {
       System.out.println("java -cp tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
           + "tachyon.examples.JournalCrashTest " + "<0:Run Clients|1: Check Status> "
           + "<TachyonMasterAddress> <TestTachyonDir> <TmpOutFile> [-options]");
-      System.exit(-1);
+      System.exit(EXIT_FAILED);
     }
 
     int runType = Integer.parseInt(args[0]);
