@@ -121,6 +121,9 @@ public class TachyonFS implements Closeable, TachyonFSCore {
     try {
       // TODO: Make sure the file is not a folder
       FileInfo info = masterClient.getFileInfo(file.getFileId());
+      if (info.isFolder) {
+        throw new IOException("Cannot get an instream to a folder.");
+      }
       return new ClientFileInStream(info, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -140,7 +143,6 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   public FileOutStream getOutStream(TachyonURI path, ClientOptions options) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Fix the RPC arguments
       long fileId = masterClient.createFile(path.getPath(), options.getBlockSize(), true);
       return new ClientFileOutStream(fileId, options);
     } finally {
@@ -160,7 +162,6 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   public List<FileInfo> listStatus(TachyonFile file) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Change this RPC
       return masterClient.getFileInfoList(file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -204,6 +205,22 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   }
 
   /**
+   * Sets the pin status of a file. A pinned file will never be evicted for any reason.
+   *
+   * @param file the file handler for the file to pin
+   * @param pinned true to pin the file, false to unpin it
+   * @throws IOException if an error occurs during the pin operation
+   */
+  public void setPin(TachyonFile file, boolean pinned) throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.setPinned(file.getFileId(), pinned);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  /**
    * Renames an existing file in Tachyon space to another path in Tachyon space.
    *
    * @param src The file handler for the source file
@@ -215,7 +232,6 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   public boolean rename(TachyonFile src, TachyonURI dst) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Remove path from this RPC
       return masterClient.renameFile(src.getFileId(), dst.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);

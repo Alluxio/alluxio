@@ -52,7 +52,7 @@ public class FileSystemMasterServiceHandler implements FileSystemMasterService.I
   }
 
   @Override
-  public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath)
+  public boolean addCheckpoint(long workerId, long fileId, long length, String checkpointPath)
       throws BlockInfoException, FileDoesNotExistException, SuspectedFileSizeException {
     return mFileSystemMaster.completeFileCheckpoint(workerId, fileId, length, new TachyonURI(
         checkpointPath));

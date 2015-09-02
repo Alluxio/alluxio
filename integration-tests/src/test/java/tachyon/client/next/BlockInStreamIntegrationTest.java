@@ -25,11 +25,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
-import tachyon.client.next.block.RemoteBlockInStream;
-import tachyon.client.next.file.ClientFileInStream;
 import tachyon.client.next.file.FileInStream;
-import tachyon.client.next.file.FileOutStream;
 import tachyon.client.next.file.TachyonFS;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
@@ -61,7 +57,7 @@ public class BlockInStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
+    sLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
@@ -87,34 +83,21 @@ public class BlockInStreamIntegrationTest {
         String path = uniqPath + "/file_" + k + "_" + op;
         TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
-        FileInStream is = sTfs.getInStream(f, op);
-
-        byte[] ret = new byte[k];
-        int value = is.read();
-        int cnt = 0;
-        while (value != -1) {
-          Assert.assertTrue(value >= 0);
-          Assert.assertTrue(value < 256);
-          ret[cnt ++] = (byte) value;
-          value = is.read();
+        for (int i = 0; i < 2; i ++) {
+          FileInStream is = sTfs.getInStream(f, op);
+          byte[] ret = new byte[k];
+          int value = is.read();
+          int cnt = 0;
+          while (value != -1) {
+            Assert.assertTrue(value >= 0);
+            Assert.assertTrue(value < 256);
+            ret[cnt++] = (byte) value;
+            value = is.read();
+          }
+          Assert.assertEquals(cnt, k);
+          Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
+          is.close();
         }
-        Assert.assertEquals(cnt, k);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-        is.close();
-
-        is = sTfs.getInStream(f, op);
-        ret = new byte[k];
-        value = is.read();
-        cnt = 0;
-        while (value != -1) {
-          Assert.assertTrue(value >= 0);
-          Assert.assertTrue(value < 256);
-          ret[cnt ++] = (byte) value;
-          value = is.read();
-        }
-        Assert.assertEquals(cnt, k);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-        is.close();
       }
     }
   }
