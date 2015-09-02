@@ -19,8 +19,8 @@ public final class BlockId {
 
   private static final int CONTAINER_ID_BITS = 40;
   private static final int SEQUENCE_NUMBER_BITS = 64 - CONTAINER_ID_BITS;
-  private static final long CONTAINER_ID_MASK = (1 << CONTAINER_ID_BITS) - 1;
-  private static final long SEQUENCE_NUMBER_MASK = (1 << SEQUENCE_NUMBER_BITS) - 1;
+  private static final long CONTAINER_ID_MASK = (1L << CONTAINER_ID_BITS) - 1;
+  private static final long SEQUENCE_NUMBER_MASK = (1L << SEQUENCE_NUMBER_BITS) - 1;
 
   private BlockId() {
     // util class
