@@ -28,11 +28,9 @@
       # vb syncs local repo to vm through kernel module instead of rsync
       when: (tachyon_type == "Local") and (provider != "vb") and (mesos_type == "None")
 
-  # TODO uncomment
     - include: roles/tachyon/tasks/clone_remote_repo.yml
       when: (tachyon_type == "Github") or (mesos_type != "None")
 
-  # TODO uncomment
     - include: roles/tachyon/tasks/compile.yml
       when: tachyon_type != "Release"
 
@@ -61,7 +59,6 @@
     - include: roles/mesos/tasks/clone_remote_repo.yml
       when: mesos_type == "Github"
 
-# TODO uncomment
     - include: roles/mesos/tasks/compile.yml
       when: mesos_type == "Github"
 
@@ -85,6 +82,12 @@
 - hosts: all
   tasks:
     - include: roles/mesos/tasks/start_slave.yml
+      when: mesos_type != "None"
+
+    - include: roles/tachyon/tasks/create_mount.yml
+      when: mesos_type != "None"
+
+    - include: roles/mesos/tasks/config_tachyon.yml
       when: mesos_type != "None"
 
 - hosts: TachyonMaster
