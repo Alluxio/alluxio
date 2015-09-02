@@ -83,20 +83,6 @@ public final class MasterInfo {
   }
 
   /**
-   * Gets the list of blocks of an {@link InodeFile} determined by path.
-   *
-   * @param path path to the file
-   * @return The list of the blocks of the file
-   * @throws InvalidPathException when the path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
-   */
-  public List<FileBlockInfo> getFileBlockList(TachyonURI path)
-      throws InvalidPathException, FileDoesNotExistException {
-    long fileId = mFileSystemMaster.getFileId(path);
-    return getFileBlockList(fileId);
-  }
-
-  /**
    * Gets the list of blocks of an {@link InodeFile} determined by the file id.
    *
    * @param fileId id of the file
@@ -122,18 +108,6 @@ public final class MasterInfo {
   }
 
   /**
-   * Gets the file info associated with the given id.
-   *
-   * @param fileId id of the file
-   * @return the file info
-   * @throws FileDoesNotExistException when the file does not exist
-   * @throws InvalidPathException when the id is for a directory
-   */
-  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
-    return mFileSystemMaster.getFileInfo(fileId);
-  }
-
-  /**
    * Gets the file info for the file at the given path
    *
    * @param path path of the file
@@ -144,7 +118,7 @@ public final class MasterInfo {
   public FileInfo getFileInfo(TachyonURI path)
       throws InvalidPathException, FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(path);
-    return getFileInfo(fileId);
+    return mFileSystemMaster.getFileInfo(fileId);
   }
 
   /**
