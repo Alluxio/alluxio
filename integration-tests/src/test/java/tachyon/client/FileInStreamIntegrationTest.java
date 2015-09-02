@@ -24,8 +24,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import tachyon.Constants;
 import tachyon.client.next.file.FileInStream;
-import tachyon.master.LocalTachyonCluster;
+import tachyon.master.next.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -52,9 +53,9 @@ public class FileInStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, BLOCK_SIZE);
+    sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 1000, BLOCK_SIZE);
     sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getClient();
+    sTfs = sLocalTachyonCluster.getOldClient();
   }
 
   /**

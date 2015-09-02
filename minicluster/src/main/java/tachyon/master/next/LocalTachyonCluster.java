@@ -23,6 +23,7 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
+import tachyon.client.TachyonFS;
 import tachyon.client.next.ClientContext;
 import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -75,6 +76,10 @@ public final class LocalTachyonCluster {
     mWorkerCapacityBytes = workerCapacityBytes;
     mQuotaUnitBytes = quotaUnitBytes;
     mUserBlockSize = userBlockSize;
+  }
+
+  public TachyonFS getOldClient() throws IOException {
+    return mMaster.getOldClient();
   }
 
   public TachyonFileSystem getClient() throws IOException {

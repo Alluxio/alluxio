@@ -150,6 +150,11 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     }
   }
 
+  @Deprecated
+  public FileOutStream getOutStream(long fileId, ClientOptions options) throws IOException {
+    return new ClientFileOutStream(fileId, options);
+  }
+
   /**
    * If the file is a folder, return the {@link FileInfo} of all the direct entries in it.
    * Otherwise return the FileInfo for the file.

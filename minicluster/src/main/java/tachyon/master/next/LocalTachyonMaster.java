@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
+import tachyon.client.TachyonFS;
 import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
@@ -59,6 +60,9 @@ public final class LocalTachyonMaster {
     }
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
+
+  private final tachyon.master.ClientPool mOldClientPool = new tachyon.master.ClientPool(
+      mClientSupplier);
 
   private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
@@ -196,6 +200,7 @@ public final class LocalTachyonMaster {
 
   public void clearClients() throws IOException {
     mClientPool.close();
+    mOldClientPool.close();
   }
 
   public void cleanupUnderfs() throws IOException {
@@ -243,6 +248,10 @@ public final class LocalTachyonMaster {
 
   public String getUri() {
     return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
+  }
+
+  public TachyonFS getOldClient() throws IOException {
+    return mOldClientPool.getClient(mTachyonMaster.getTachyonConf());
   }
 
   public TachyonFileSystem getClient() throws IOException {
