@@ -34,7 +34,7 @@ import tachyon.client.next.CacheType;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.UnderStorageType;
 import tachyon.client.next.file.FileOutStream;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
@@ -44,7 +44,7 @@ public class PinIntegrationTest {
       Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("test-executor-%d", true));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private FileSystemMasterClient mFSMasterClient;
 
   @Before

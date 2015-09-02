@@ -36,7 +36,7 @@ import tachyon.client.next.ClientOptions;
 import tachyon.client.next.OutStream;
 import tachyon.client.next.TachyonFSTestUtils;
 import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockId;
@@ -65,7 +65,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private BlockServiceHandler mWorkerServiceHandler = null;
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
