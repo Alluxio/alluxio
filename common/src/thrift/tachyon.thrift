@@ -424,7 +424,7 @@ service WorkerService {
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: FailedToCheckpointException eF, 4: BlockInfoException eB)
 
-  bool asyncCheckpoint(1: i32 fileId)
+  bool asyncCheckpoint(1: i64 fileId)
     throws (1: TachyonException e)
 
   /**

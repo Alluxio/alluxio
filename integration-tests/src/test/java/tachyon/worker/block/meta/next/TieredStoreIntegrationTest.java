@@ -33,7 +33,7 @@ import tachyon.client.next.ClientOptions;
 import tachyon.client.next.InStream;
 import tachyon.client.next.TachyonFSTestUtils;
 import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
@@ -50,7 +50,7 @@ public class TieredStoreIntegrationTest {
 
   private LocalTachyonCluster mLocalTachyonCluster;
   private TachyonConf mWorkerConf;
-  private TachyonFS mTFS;
+  private TachyonFileSystem mTFS;
   private int mWorkerToMasterHeartbeatIntervalMs;
 
   @Rule
@@ -177,21 +177,21 @@ public class TieredStoreIntegrationTest {
    * / 6); int fileId2 = TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE,
    * MEM_CAPACITY_BYTES / 2); int fileId3 = TachyonFSTestUtils.createByteFile(mTFS, "/root/test3",
    * WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
-   * 
+   *
    * CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
-   * 
+   *
    * TachyonFile file1 = mTFS.getFile(fileId1); TachyonFile file2 = mTFS.getFile(fileId2);
    * TachyonFile file3 = mTFS.getFile(fileId3);
-   * 
+   *
    * Assert.assertEquals(false, file1.isInMemory()); Assert.assertEquals(true, file2.isInMemory());
    * Assert.assertEquals(true, file3.isInMemory()); Assert.assertEquals(MEM_CAPACITY_BYTES / 6 +
    * MEM_CAPACITY_BYTES, mLocalTachyonCluster.getMasterInfo().getUsedBytes());
-   * 
+   *
    * InStream is = file1.getInStream(ReadType.CACHE_PROMOTE); byte[] buf = new
    * byte[MEM_CAPACITY_BYTES / 6]; int len = is.read(buf); is.close();
-   * 
+   *
    * CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
-   * 
+   *
    * Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len); Assert.assertEquals(true,
    * file1.isInMemory()); Assert.assertEquals(false, file2.isInMemory()); Assert.assertEquals(true,
    * file3.isInMemory()); Assert.assertEquals(MEM_CAPACITY_BYTES / 6 + MEM_CAPACITY_BYTES,

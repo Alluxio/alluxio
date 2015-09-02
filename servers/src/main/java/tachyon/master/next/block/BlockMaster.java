@@ -39,6 +39,7 @@ import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.IndexedSet;
 import tachyon.master.next.MasterBase;
@@ -63,6 +64,7 @@ import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.io.PathUtils;
 
 public final class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -108,6 +110,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   // This state much be journaled.
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
+
+  public static String getJournalDirectory(String baseDirectory) {
+    return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_SERVICE_NAME);
+  }
 
   public BlockMaster(Journal journal, TachyonConf tachyonConf) {
     super(journal,
@@ -178,6 +184,17 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     }
   }
 
+  /**
+   * Gets the number of workers.
+   *
+   * @return the number of workers
+   */
+  public int getWorkerCount() {
+    synchronized (mWorkers) {
+      return mWorkers.size();
+    }
+  }
+
   public List<WorkerInfo> getWorkerInfoList() {
     List<WorkerInfo> workerInfoList = new ArrayList<WorkerInfo>(mWorkers.size());
     synchronized (mWorkers) {
@@ -210,6 +227,20 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
 
   public Set<Long> getLostBlocks() {
     return Collections.unmodifiableSet(mLostBlocks);
+  }
+
+  /**
+   * Gets info about the lost workers
+   *
+   * @return a list of worker info
+   */
+  public List<WorkerInfo> getLostWorkersInfo() {
+    List<WorkerInfo> ret = new ArrayList<WorkerInfo>();
+
+    for (MasterWorkerInfo worker : mLostWorkers) {
+      ret.add(worker.generateClientWorkerInfo());
+    }
+    return ret;
   }
 
   public void removeBlocks(List<Long> blockIds) {
@@ -340,6 +371,36 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
         BlockInfo retInfo =
             new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
         ret.add(retInfo);
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * @return the total bytes on each storage tier.
+   */
+  public List<Long> getTotalBytesOnTiers() {
+    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+    synchronized (mWorkers) {
+      for (MasterWorkerInfo worker : mWorkers) {
+        for (int i = 0; i < worker.getTotalBytesOnTiers().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getTotalBytesOnTiers().get(i));
+        }
+      }
+    }
+    return ret;
+  }
+
+  /**
+   * @return the used bytes on each storage tier.
+   */
+  public List<Long> getUsedBytesOnTiers() {
+    List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+    synchronized (mWorkers) {
+      for (MasterWorkerInfo worker : mWorkers) {
+        for (int i = 0; i < worker.getUsedBytesOnTiers().size(); i ++) {
+          ret.set(i, ret.get(i) + worker.getUsedBytesOnTiers().get(i));
+        }
       }
     }
     return ret;

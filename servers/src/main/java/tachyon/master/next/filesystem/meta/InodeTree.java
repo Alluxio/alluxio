@@ -109,10 +109,6 @@ public final class InodeTree implements JournalSerializable {
     return traversalResult.getInode();
   }
 
-  public boolean isRootId(long id) {
-    return id == mRoot.getId();
-  }
-
   public TachyonURI getPath(Inode inode) {
     if (isRootId(inode.getId())) {
       return new TachyonURI(TachyonURI.SEPARATOR);
@@ -121,6 +117,16 @@ public final class InodeTree implements JournalSerializable {
       return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
     }
     return getPath(mInodes.getFirstByField(mIdIndex, inode.getParentId())).join(inode.getName());
+  }
+
+  public InodeDirectory getRoot() {
+    return mRoot;
+  }
+
+  public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
+      boolean directory)
+          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
+    return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis());
   }
 
   /**
@@ -143,7 +149,7 @@ public final class InodeTree implements JournalSerializable {
    *         parent directories is actually a file
    */
   public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory)
+      boolean directory, long creationTimeMs)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
 
     if (path.isRoot()) {
@@ -162,8 +168,6 @@ public final class InodeTree implements JournalSerializable {
 
     String[] parentPath = new String[pathComponents.length - 1];
     System.arraycopy(pathComponents, 0, parentPath, 0, parentPath.length);
-
-    long creationTimeMs = System.currentTimeMillis();
 
     TraversalResult traversalResult = traverseToInode(parentPath);
     // pathIndex is the index into pathComponents where we start filling in the path from the inode.
@@ -306,6 +310,10 @@ public final class InodeTree implements JournalSerializable {
   // TODO: this should return block container ids, not file ids.
   public Set<Long> getPinIdSet() {
     return Sets.newHashSet(mPinnedInodeFileIds);
+  }
+
+  public boolean isRootId(long id) {
+    return id == mRoot.getId();
   }
 
   @Override

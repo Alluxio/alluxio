@@ -17,7 +17,9 @@ package tachyon.master.next.filesystem;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
@@ -28,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
@@ -83,6 +86,10 @@ public final class FileSystemMaster extends MasterBase {
   private final DependencyMap mDependencyMap = new DependencyMap();
 
   private final PrefixList mWhitelist;
+
+  public static String getJournalDirectory(String baseDirectory) {
+    return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME);
+  }
 
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
       Journal journal) {
@@ -186,7 +193,9 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * @return whether the operation needs to be written to journal
    */
-  private boolean completeFileCheckpointInternal(long workerId, long fileId,
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public boolean completeFileCheckpointInternal(long workerId, long fileId,
       long length, TachyonURI checkpointPath, long opTimeMs)
           throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
     if (workerId != -1) {
@@ -272,6 +281,30 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * Gets the list of block info of an InodeFile determined by path.
+   *
+   * TODO: get rid of this after FileBlockInfo contains BlockInfo
+   *
+   * @param path path to the file
+   * @return The list of the block info of the file
+   * @throws InvalidPathException when the path is invalid
+   * @throws FileDoesNotExistException when the file does not exist
+   */
+  public List<BlockInfo> getBlockInfoList(TachyonURI path)
+      throws InvalidPathException, FileDoesNotExistException {
+    long fileId = getFileId(path);
+    Inode inode = mInodeTree.getInodeById(fileId);
+    if (inode == null) {
+      throw new FileDoesNotExistException(path + " does not exist.");
+    }
+    if (!inode.isFile()) {
+      throw new FileDoesNotExistException(path + " is not a file.");
+    }
+    InodeFile inodeFile = (InodeFile) inode;
+    return mBlockMaster.getBlockInfoList(inodeFile.getBlockIds());
+  }
+
   public long getFileId(TachyonURI path) throws InvalidPathException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeByPath(path);
@@ -345,7 +378,9 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void completeFileInternal(long fileId, long fileLength, long opTimeMs)
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public void completeFileInternal(long fileId, long fileLength, long opTimeMs)
       throws FileDoesNotExistException {
     mDependencyMap.addFileCheckpoint(fileId);
     Inode inode = mInodeTree.getInodeById(fileId);
@@ -365,19 +400,28 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false);
-      // If the create succeeded, the list of created inodes will not be empty.
-      InodeFile inode = (InodeFile) created.get(created.size() - 1);
-      if (mWhitelist.inList(path.toString())) {
-        inode.setCache(true);
-      }
+      List<Inode> created =
+          createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
 
       // Writing the first created inode to the journal will also write its children.
       writeJournalEntry(created.get(0));
       flushJournal();
 
-      return inode.getId();
+      return created.get(created.size() - 1).getId();
     }
+  }
+
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public List<Inode> createFileInternal(TachyonURI path, long blockSizeBytes, boolean recursive,
+      long opTimeMs) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+    List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
+    // If the create succeeded, the list of created inodes will not be empty.
+    InodeFile inode = (InodeFile) created.get(created.size() - 1);
+    if (mWhitelist.inList(path.toString())) {
+      inode.setCache(true);
+    }
+    return created;
   }
 
   public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
@@ -412,7 +456,9 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
       throws TachyonException, FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
     return deleteInodeInternal(inode, recursive, System.currentTimeMillis());
@@ -506,17 +552,46 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Return whether the file is fully in memory or not. The file is fully in memory only if all the
-   * blocks of the file are in memory, in other words, the in memory percentage is 100.
+   * Returns whether the inodeFile is fully in memory or not. The file is fully in memory only if
+   * all the blocks of the file are in memory, in other words, the in memory percentage is 100.
    *
    * @return true if the file is fully in memory, false otherwise
-   * @throws InvalidPathException when the path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
    */
-  public boolean isFullyInMemory(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException {
-    Inode inode = mInodeTree.getInodeByPath(path);
+  private boolean isFullyInMemory(InodeFile inode) {
     return getInMemoryPercentage(inode) == 100;
+  }
+
+  /**
+   * Gets absolute paths of all in memory files.
+   *
+   * @return absolute paths of all in memory files.
+   */
+  public List<TachyonURI> getInMemoryFiles() {
+    List<TachyonURI> ret = new ArrayList<TachyonURI>();
+    LOG.info("getInMemoryFiles()");
+    Queue<Pair<InodeDirectory, TachyonURI>> nodesQueue =
+        new LinkedList<Pair<InodeDirectory, TachyonURI>>();
+    synchronized (mInodeTree) {
+      // TODO: Verify we want to use absolute path.
+      nodesQueue.add(new Pair<InodeDirectory, TachyonURI>(mInodeTree.getRoot(),
+          new TachyonURI(TachyonURI.SEPARATOR)));
+      while (!nodesQueue.isEmpty()) {
+        Pair<InodeDirectory, TachyonURI> tPair = nodesQueue.poll();
+        InodeDirectory tDir = tPair.getFirst();
+        TachyonURI curUri = tPair.getSecond();
+
+        Set<Inode> children = tDir.getChildren();
+        for (Inode tInode : children) {
+          TachyonURI newUri = curUri.join(tInode.getName());
+          if (tInode.isDirectory()) {
+            nodesQueue.add(new Pair<InodeDirectory, TachyonURI>((InodeDirectory) tInode, newUri));
+          } else if (isFullyInMemory((InodeFile) tInode)) {
+            ret.add(newUri);
+          }
+        }
+      }
+    }
+    return ret;
   }
 
   /**
@@ -646,7 +721,9 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private void renameInternal(long fileId, TachyonURI dstPath, long opTimeMs)
+  // TODO(cc) Make it protected instead of public for use in tests,
+  // after splitting up MasterInfoIntegrationTest
+  public void renameInternal(long fileId, TachyonURI dstPath, long opTimeMs)
       throws InvalidPathException, FileDoesNotExistException {
     Inode srcInode = mInodeTree.getInodeById(fileId);
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
@@ -741,6 +818,18 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+
+  /**
+   * Gets the path of a file with the given id
+   *
+   * @param fileId The id of the file to look up
+   * @return the path of the file
+   * @throws FileDoesNotExistException raise if the file does not exist.
+   */
+  public TachyonURI getPath(int fileId) throws FileDoesNotExistException {
+    return mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+  }
+
   public Set<Long> getPinIdList() {
     synchronized (mInodeTree) {
       return mInodeTree.getPinIdSet();
@@ -749,6 +838,15 @@ public final class FileSystemMaster extends MasterBase {
 
   public String getUfsAddress() {
     return mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
+  }
+
+  /**
+   * Gets the white list.
+   *
+   * @return the white list
+   */
+  public List<String> getWhiteList() {
+    return mWhitelist.getList();
   }
 
   public void reportLostFile(long fileId) throws FileDoesNotExistException {

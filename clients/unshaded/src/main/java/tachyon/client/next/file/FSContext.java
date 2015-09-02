@@ -17,9 +17,7 @@ package tachyon.client.next.file;
 
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.next.ClientContext;
-import tachyon.client.next.block.BlockMasterClientPool;
-import tachyon.client.next.block.TachyonBS;
-import tachyon.master.MasterClient;
+import tachyon.client.next.block.TachyonBlockStore;
 
 /**
  * A shared context in each client JVM for common File System client functionality such as a pool
@@ -29,12 +27,12 @@ public enum FSContext {
   INSTANCE;
 
   private FSMasterClientPool mFileSystemMasterClientPool;
-  private final TachyonBS mTachyonBS;
+  private final TachyonBlockStore mTachyonBlockStore;
 
   private FSContext() {
     mFileSystemMasterClientPool =
         new FSMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
-    mTachyonBS = TachyonBS.get();
+    mTachyonBlockStore = TachyonBlockStore.get();
   }
 
   /**
@@ -54,7 +52,7 @@ public enum FSContext {
     mFileSystemMasterClientPool.release(masterClient);
   }
 
-  public TachyonBS getTachyonBS() {
-    return mTachyonBS;
+  public TachyonBlockStore getTachyonBS() {
+    return mTachyonBlockStore;
   }
 }

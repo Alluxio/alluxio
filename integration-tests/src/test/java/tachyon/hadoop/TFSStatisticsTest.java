@@ -28,10 +28,11 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
-import tachyon.master.LocalTachyonCluster;
+import tachyon.client.next.CacheType;
+import tachyon.client.next.TachyonFSTestUtils;
+import tachyon.client.next.UnderStorageType;
+import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.master.next.LocalTachyonCluster;
 
 /**
  * Integration tests for statistics in TFS.
@@ -53,9 +54,9 @@ public class TFSStatisticsTest {
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, BLOCK_SIZE);
     sLocalTachyonCluster.start();
 
-    TachyonFS tachyonFS = sLocalTachyonCluster.getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", WriteType.CACHE_THROUGH,
-        FILE_LEN);
+    TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
+    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", CacheType.CACHE,
+        UnderStorageType.PERSIST, FILE_LEN);
     tachyonFS.close();
 
     URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
@@ -75,7 +76,8 @@ public class TFSStatisticsTest {
   public void bytesReadStatisticsTest() throws Exception {
     long originStat = sStatistics.getBytesRead();
     InputStream is = sTFS.open(new Path("/testFile-read"));
-    while (is.read() != -1) {}
+    while (is.read() != -1) {
+    }
     is.close();
     Assert.assertEquals(originStat + FILE_LEN, sStatistics.getBytesRead());
   }

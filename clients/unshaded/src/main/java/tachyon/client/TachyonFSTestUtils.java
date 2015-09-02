@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.TachyonURI;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.thrift.FileInfo;
 
 public final class TachyonFSTestUtils {
@@ -52,7 +53,7 @@ public final class TachyonFSTestUtils {
       throws IOException {
     int fileId = tfs.createFile(fileURI);
     TachyonFile file = tfs.getFile(fileId);
-    OutStream os = file.getOutStream(op);
+    FileOutStream os = file.getOutStream(op);
 
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
@@ -77,7 +78,7 @@ public final class TachyonFSTestUtils {
       long blockCapacityByte) throws IOException {
     int fileId = tfs.createFile(new TachyonURI(fileName), blockCapacityByte);
     TachyonFile file = tfs.getFile(fileId);
-    OutStream os = file.getOutStream(op);
+    FileOutStream os = file.getOutStream(op);
 
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);

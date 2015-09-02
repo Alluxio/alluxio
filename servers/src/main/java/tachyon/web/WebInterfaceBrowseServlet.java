@@ -31,22 +31,22 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
+import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.io.PathUtils;
 
 /**
  * Servlet that provides data for browsing the file system.
  */
-public class WebInterfaceBrowseServlet extends HttpServlet {
+public final class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final long serialVersionUID = 6121623049981468871L;
 
@@ -82,7 +82,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       throw new FileDoesNotExistException(path.toString());
     }
     if (tFile.isComplete()) {
-      InStream is = tFile.getInStream(ReadType.NO_CACHE);
+      FileInStream is = tFile.getInStream(ReadType.NO_CACHE);
       try {
         int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);
         byte[] data = new byte[len];
