@@ -31,7 +31,7 @@ import tachyon.client.next.block.BSContext;
 import tachyon.client.next.block.BlockOutStream;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.next.WorkerClient;
+import tachyon.worker.WorkerClient;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the

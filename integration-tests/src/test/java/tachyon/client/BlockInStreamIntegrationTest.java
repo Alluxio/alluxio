@@ -16,6 +16,8 @@
 package tachyon.client;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -23,9 +25,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.client.next.CacheType;
+import tachyon.client.next.ClientOptions;
+import tachyon.client.next.TachyonFSTestUtils;
+import tachyon.client.next.UnderStorageType;
 import tachyon.client.next.file.FileInStream;
+import tachyon.client.next.file.TachyonFile;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.master.next.LocalTachyonCluster;
+import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -38,8 +46,12 @@ public class BlockInStreamIntegrationTest {
   private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
   private static final int DELTA = 33;
 
-  private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static TachyonFS sTfs = null;
+  private static LocalTachyonCluster sLocalTachyonCluster;
+  private static TachyonFileSystem sTfs;
+  private static TachyonConf sTachyonConf;
+  private static ClientOptions sWriteBoth;
+  private static ClientOptions sWriteTachyon;
+  private static ClientOptions sWriteUnderStore;
 
   @AfterClass
   public static final void afterClass() throws Exception {
@@ -49,33 +61,19 @@ public class BlockInStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 1000, Constants.GB);
+    sLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
     sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getOldClient();
-  }
-
-  /**
-   * Test disable local read
-   *
-   * @throws IOException
-   */
-  @Test
-  public void disableLocalReadTest() throws IOException {
-    int fileId =
-        TachyonFSTestUtils.createByteFile(sTfs, "/file_no_local_read", WriteType.TRY_CACHE, 10);
-
-    TachyonConf conf = sLocalTachyonCluster.getWorkerTachyonConf();
-    conf.set(Constants.USER_ENABLE_LOCAL_READ, "false");
-    TachyonFS sTfs1 = TachyonFS.get(conf);
-    TachyonFile file1 = sTfs1.getFile(fileId);
-    FileInStream is1 = file1.getInStream(ReadType.NO_CACHE);
-    is1.close();
-
-    conf.set(Constants.USER_ENABLE_LOCAL_READ, "true");
-    TachyonFS sTfs2 = TachyonFS.get(conf);
-    TachyonFile file2 = sTfs2.getFile(fileId);
-    FileInStream is2 = file2.getInStream(ReadType.NO_CACHE);
-    is2.close();
+    sTfs = sLocalTachyonCluster.getClient();
+    sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    sWriteBoth =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
+    sWriteTachyon =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    sWriteUnderStore =
+        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.NO_CACHE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
   }
 
   /**
@@ -85,39 +83,25 @@ public class BlockInStreamIntegrationTest {
   public void readTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
-        int fileId =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      for (ClientOptions op : getOptionSet()) {
+        String path = uniqPath + "/file_" + k + "_" + op;
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
-        TachyonFile file = sTfs.getFile(fileId);
-        FileInStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        byte[] ret = new byte[k];
-        int value = is.read();
-        int cnt = 0;
-        while (value != -1) {
-          Assert.assertTrue(value >= 0);
-          Assert.assertTrue(value < 256);
-          ret[cnt ++] = (byte) value;
-          value = is.read();
+        for (int i = 0; i < 2; i ++) {
+          FileInStream is = sTfs.getInStream(f, op);
+          byte[] ret = new byte[k];
+          int value = is.read();
+          int cnt = 0;
+          while (value != -1) {
+            Assert.assertTrue(value >= 0);
+            Assert.assertTrue(value < 256);
+            ret[cnt++] = (byte) value;
+            value = is.read();
+          }
+          Assert.assertEquals(cnt, k);
+          Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
+          is.close();
         }
-        Assert.assertEquals(cnt, k);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-        is.close();
-
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        ret = new byte[k];
-        value = is.read();
-        cnt = 0;
-        while (value != -1) {
-          Assert.assertTrue(value >= 0);
-          Assert.assertTrue(value < 256);
-          ret[cnt ++] = (byte) value;
-          value = is.read();
-        }
-        Assert.assertEquals(cnt, k);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-        is.close();
       }
     }
   }
@@ -129,19 +113,17 @@ public class BlockInStreamIntegrationTest {
   public void readTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
-        int fileId =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      for (ClientOptions op : getOptionSet()) {
+        String path = uniqPath + "/file_" + k + "_" + op;
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
-        TachyonFile file = sTfs.getFile(fileId);
-        FileInStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        FileInStream is = sTfs.getInStream(f, op);
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        is = sTfs.getInStream(f, op);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -157,19 +139,18 @@ public class BlockInStreamIntegrationTest {
   public void readTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
-        int fileId =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      for (ClientOptions op : getOptionSet()) {
+        String path = uniqPath + "/file_" + k + "_" + op;
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
-        TachyonFile file = sTfs.getFile(fileId);
-        FileInStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        FileInStream is = sTfs.getInStream(f, op);
+
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
 
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        is = sTfs.getInStream(f, op);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -185,18 +166,17 @@ public class BlockInStreamIntegrationTest {
   public void skipTest() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
-        int fileId =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      for (ClientOptions op : getOptionSet()) {
+        String path = uniqPath + "/file_" + k + "_" + op;
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
-        TachyonFile file = sTfs.getFile(fileId);
-        FileInStream is =
-            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        FileInStream is = sTfs.getInStream(f, op);
+
         Assert.assertEquals(k / 2, is.skip(k / 2));
         Assert.assertEquals(k / 2, is.read());
         is.close();
 
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        is = sTfs.getInStream(f, op);
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());
@@ -205,5 +185,13 @@ public class BlockInStreamIntegrationTest {
         is.close();
       }
     }
+  }
+
+  private List<ClientOptions> getOptionSet() {
+    List<ClientOptions> ret = new ArrayList<ClientOptions>(3);
+    ret.add(sWriteBoth);
+    ret.add(sWriteTachyon);
+    ret.add(sWriteUnderStore);
+    return ret;
   }
 }

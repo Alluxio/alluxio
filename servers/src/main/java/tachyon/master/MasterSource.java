@@ -121,6 +121,7 @@ public class MasterSource implements Source {
       }
     });
 
+    /*
     mMetricRegistry.register(MetricRegistry.name("FilesTotal"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
@@ -134,6 +135,7 @@ public class MasterSource implements Source {
         return masterInfo.getNumberOfPinnedFiles();
       }
     });
+    */
   }
 
   @Override
