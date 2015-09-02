@@ -199,7 +199,7 @@ public class TFsShell implements Closeable {
       Closer closer = Closer.create();
       try {
         WriteType writeType =
-            mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
+            mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.class);
         OutStream os = closer.register(tFile.getOutStream(writeType));
         FileInputStream in = closer.register(new FileInputStream(src));
         FileChannel channel = closer.register(in.getChannel());
@@ -548,8 +548,8 @@ public class TFsShell implements Closeable {
         || cmd.equals("free")
         || cmd.equals("du")) {
       return 1;
-    } else if (cmd.equals("copyFromLocal") 
-        || cmd.equals("copyToLocal") 
+    } else if (cmd.equals("copyFromLocal")
+        || cmd.equals("copyToLocal")
         || cmd.equals("request")
         || cmd.equals("mv")) {
       return 2;
@@ -673,19 +673,19 @@ public class TFsShell implements Closeable {
     // Sanity check on the number of arguments
     String cmd = argv[0];
     int numOfArgs = getNumOfArgs(cmd);
-    
+
     if (numOfArgs == -1) { // Unknown command (we didn't find the cmd in our dict)
       System.out.println(cmd + " is an unknown command.\n");
       printUsage();
       return -1;
     }
-    
+
     if (numOfArgs != argv.length - 1) {
       System.out.println(cmd + " takes " + numOfArgs + " arguments.\n");
       printUsage();
       return -1;
     }
-    
+
     // Handle the command
     try {
       if (numOfArgs == 0) { // commands need 0 argument
@@ -696,7 +696,7 @@ public class TFsShell implements Closeable {
         }
       } else if (numOfArgs == 1) { // commands need 1 argument
         TachyonURI inputPath = new TachyonURI(argv[1]);
-        
+
         // mkdir & touch & count does not support wildcard by semantics
         if (cmd.equals("mkdir")) {
           return mkdir(inputPath);
@@ -705,13 +705,13 @@ public class TFsShell implements Closeable {
         } else if (cmd.equals("count")) {
           return count(inputPath);
         }
-        
+
         List<TachyonURI> paths = TFsShellUtils.getTachyonURIs(createFS(inputPath), inputPath);
         if (paths.size() == 0) { // A unified sanity check on the paths
           System.out.println(inputPath + " does not exist.");
           return -1;
         }
-        
+
         int exitCode = 0;
         for (TachyonURI path : paths) {
           try {
@@ -750,7 +750,7 @@ public class TFsShell implements Closeable {
           }
         }
         return exitCode;
-        
+
       } else if (numOfArgs == 2) { // commands need 2 arguments
         if (cmd.equals("copyFromLocal")) {
           return copyFromLocal(argv);
@@ -766,7 +766,7 @@ public class TFsShell implements Closeable {
       System.out.println(ioe.getMessage());
     }
     return -1;
-  }   
+  }
 
   /**
    * Prints the file's last 1KB of contents to the console.
