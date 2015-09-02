@@ -1,0 +1,4 @@
+- name: Create Tachyon mount folders
+  script: create_mount.sh
+
+# vim :set filetype=ansible.yaml:

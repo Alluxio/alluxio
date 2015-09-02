@@ -21,6 +21,7 @@ import org.apache.mesos.MesosExecutorDriver;
 import org.apache.mesos.Protos;
 
 import tachyon.Format;
+import tachyon.underfs.UnderFileSystemRegistry;
 import tachyon.worker.TachyonWorker;
 
 public class TachyonWorkerExecutor implements Executor {
@@ -49,6 +50,9 @@ public class TachyonWorkerExecutor implements Executor {
 
           String taskId = task.getTaskId().getValue();
           System.out.println("Running task " + taskId);
+
+          Thread.currentThread().setContextClassLoader(
+              UnderFileSystemRegistry.class.getClassLoader());
 
           Format.main(new String[]{"worker"});
           TachyonWorker.main(new String[]{});

@@ -22,6 +22,7 @@ import org.apache.mesos.Protos;
 
 import tachyon.Format;
 import tachyon.master.TachyonMaster;
+import tachyon.underfs.UnderFileSystemRegistry;
 
 public class TachyonMasterExecutor implements Executor {
   @Override
@@ -48,6 +49,9 @@ public class TachyonMasterExecutor implements Executor {
           driver.sendStatusUpdate(status);
 
           System.out.println("Running task " + task.getTaskId().getValue());
+
+          Thread.currentThread().setContextClassLoader(
+              UnderFileSystemRegistry.class.getClassLoader());
 
           Format.main(new String[]{"master"});
           TachyonMaster.main(new String[]{});
