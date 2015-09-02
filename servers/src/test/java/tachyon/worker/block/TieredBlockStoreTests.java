@@ -73,7 +73,7 @@ public final class TieredBlockStoreTests {
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
     ExecutorService executorService = Executors.newFixedThreadPool(
-        testConf.getInt(Constants.WORKER_SHARED_EXECUTOR_CORES, 10),
+        testConf.getInt(Constants.WORKER_SHARED_EXECUTOR_CORES),
         ThreadFactoryUtils.build("Shared-executor-%d", false));
     mBlockStore = new TieredBlockStore(executorService);
 
