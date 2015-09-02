@@ -30,7 +30,7 @@ import tachyon.thrift.WorkerInfo;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.ClientMetrics;
-import tachyon.worker.next.WorkerClient;
+import tachyon.worker.WorkerClient;
 
 /**
  * A shared context in each client JVM for common Block Store client functionality such as a pool
