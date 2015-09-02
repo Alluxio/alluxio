@@ -97,6 +97,5 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
     TachyonURI dstPath = new TachyonURI("/dst");
     Assert.assertTrue(mFileSystemMaster.rename(fileId, dstPath));
-
   }
 }
