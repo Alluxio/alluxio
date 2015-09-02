@@ -780,10 +780,6 @@ public final class FileSystemMaster extends MasterBase {
         // true
         return false;
       }
-      if (mInodeTree.isRootId(inode.getId())) {
-        // The root cannot be freed.
-        return false;
-      }
       freeInternal(inode);
       writeJournalEntry(new FreeEntry(fileId));
       flushJournal();
