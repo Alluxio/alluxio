@@ -203,6 +203,27 @@ public class TachyonMaster {
   }
 
   /**
+   * Get internal {@link FileSystemMaster}, for unit test only.
+   */
+  public FileSystemMaster getFileSystemMaster() {
+    return mFileSystemMaster;
+  }
+
+  /**
+   * Get internal {@link RawTableMaster}, for unit test only.
+   */
+  public RawTableMaster getRawTableMaster() {
+    return mRawTableMaster;
+  }
+
+  /**
+   * Get internal {@link BlockMaster}, for unit test only.
+   */
+  public BlockMaster getBlockMaster() {
+    return mBlockMaster;
+  }
+
+  /**
    * Get whether the system is the leader in zookeeper mode, for unit test only.
    *
    * @return true if the system is the leader under zookeeper mode, false otherwise.
