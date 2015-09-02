@@ -55,6 +55,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    System.setProperty(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start();
@@ -90,7 +91,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
     Assert.assertFalse(mTfs.getInfo(files.get(0)).getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k ++) {
-      Assert.assertTrue(mTfs.getInfo(files.get(0)).getInMemoryPercentage() == 100);
+      Assert.assertTrue(mTfs.getInfo(files.get(k)).getInMemoryPercentage() == 100);
     }
   }
 
@@ -116,13 +117,13 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
 
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 1; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
     CommonUtils.sleepMs(getSleepMs());
-    FileInfo info = mTfs.getInfo(files.get(numOfFiles));;
-    Assert.assertFalse(info.getInMemoryPercentage() == 100);
+    FileInfo info = mTfs.getInfo(files.get(numOfFiles));
+    Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
 
   @Test
@@ -152,7 +153,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
     for (int k = 0; k <= numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
-      if (k != numOfFiles - 1) {
+      if (k != 0) {
         Assert.assertTrue(info.getInMemoryPercentage() == 100);
       } else {
         CommonUtils.sleepMs(null, getSleepMs());
@@ -217,13 +218,13 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
 
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 1; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
     CommonUtils.sleepMs(null, getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(numOfFiles));
-    Assert.assertFalse(info.getInMemoryPercentage() == 100);
+    Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
 
   @Test
