@@ -29,7 +29,7 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_JARS="$TACHYON_HOME/assembly/target/tachyon-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
-# Environment settings should override * and are administrator controlled.
+# Make sure tachyon-env.sh exists  
 if [ ! -e $TACHYON_CONF_DIR/tachyon-env.sh ]; then
   echo "Cannot find tachyon-env.sh in $TACHYON_CONF_DIR."
   echo "Please create one manually or using $TACHYON_HOME/bin/tachyon bootstrap-conf function."
