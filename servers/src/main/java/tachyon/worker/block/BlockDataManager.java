@@ -504,7 +504,7 @@ public final class BlockDataManager {
    *
    * @param pinnedInodes a set of pinned inodes
    */
-  public void updatePinList(Set<Integer> pinnedInodes) {
+  public void updatePinList(Set<Long> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
   }
 }
