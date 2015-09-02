@@ -628,7 +628,6 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
 
-      InodeDirectory srcParentDirectory = (InodeDirectory) srcParentInode;
       InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
 
       // Make sure destination path does not exist
@@ -651,8 +650,8 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileDoesNotExistException {
     Inode srcInode = mInodeTree.getInodeById(fileId);
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
-    Inode dstInode = mInodeTree.getInodeByPath(dstPath);
-    Inode dstParentInode = mInodeTree.getInodeById(dstInode.getParentId());
+    TachyonURI dstParentURI = dstPath.getParent();
+    Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
     ((InodeDirectory) srcParentInode).removeChild(srcInode);
     srcParentInode.setLastModificationTimeMs(opTimeMs);
     srcInode.setParentId(dstParentInode.getId());
