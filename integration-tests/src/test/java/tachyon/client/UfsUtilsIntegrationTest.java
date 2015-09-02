@@ -50,7 +50,7 @@ public class UfsUtilsIntegrationTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
     mLocalTachyonCluster.start();
 
-    mTfs = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonCluster.getOldClient();
 
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
     mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);

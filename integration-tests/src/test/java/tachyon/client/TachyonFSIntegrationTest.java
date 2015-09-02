@@ -71,7 +71,7 @@ public class TachyonFSIntegrationTest {
     sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     sLocalTachyonCluster.start();
-    sTfs = sLocalTachyonCluster.getClient();
+    sTfs = sLocalTachyonCluster.getOldClient();
     sHost = sLocalTachyonCluster.getMasterHostname();
     sPort = sLocalTachyonCluster.getMasterPort();
   }

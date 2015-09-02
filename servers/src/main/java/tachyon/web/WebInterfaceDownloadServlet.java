@@ -26,24 +26,25 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 
 /**
  * Servlet for downloading a file
  */
-public class WebInterfaceDownloadServlet extends HttpServlet {
+public final class WebInterfaceDownloadServlet extends HttpServlet {
   private static final long serialVersionUID = 7329267100965731815L;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -51,7 +52,7 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
   private final transient MasterInfo mMasterInfo;
 
   public WebInterfaceDownloadServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+    mMasterInfo = Preconditions.checkNotNull(masterInfo);
   }
 
   /**
@@ -71,7 +72,7 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
     }
     TachyonURI currentPath = new TachyonURI(requestPath);
     try {
-      FileInfo fileInfo = mMasterInfo.getClientFileInfo(currentPath);
+      FileInfo fileInfo = mMasterInfo.getFileInfo(currentPath);
       if (null == fileInfo) {
         throw new FileDoesNotExistException(currentPath.toString());
       }

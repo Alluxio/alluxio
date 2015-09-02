@@ -30,7 +30,6 @@ import com.google.common.collect.Sets;
 
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
-import tachyon.master.BlockInfo;
 import tachyon.master.block.BlockId;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;

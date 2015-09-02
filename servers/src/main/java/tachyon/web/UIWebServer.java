@@ -45,10 +45,10 @@ public abstract class UIWebServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected final WebAppContext mWebAppContext;
-  private Server mServer;
-  private ServiceType mService;
-  private InetSocketAddress mAddress;
+  private final Server mServer;
+  private final ServiceType mService;
   private final TachyonConf mTachyonConf;
+  private InetSocketAddress mAddress;
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.

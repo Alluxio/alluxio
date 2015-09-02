@@ -60,7 +60,7 @@ public class HdfsFileInputStreamIntegrationTest {
     sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     sLocalTachyonCluster.start();
-    sTFS = sLocalTachyonCluster.getClient();
+    sTFS = sLocalTachyonCluster.getOldClient();
     TachyonFSTestUtils.createByteFile(sTFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
     TachyonFSTestUtils.createByteFile(sTFS, "/testFile2", WriteType.THROUGH, FILE_LEN);
   }
