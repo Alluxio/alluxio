@@ -27,7 +27,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.next.ClientOptions;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.filesystem.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
@@ -49,9 +49,9 @@ public class JournalShutdownIntegrationTest {
     private int mSuccessNum = 0;
 
     private final int mOpType; // 0:create file; 1:create raw table.
-    private final TachyonFS mTfs;
+    private final TachyonFileSystem mTfs;
 
-    public ClientThread(int opType, TachyonFS tfs) {
+    public ClientThread(int opType, TachyonFileSystem tfs) {
       mOpType = opType;
       mTfs = tfs;
     }
