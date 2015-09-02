@@ -109,10 +109,6 @@ public final class InodeTree implements JournalSerializable {
     return traversalResult.getInode();
   }
 
-  public boolean isRootId(long id) {
-    return id == mRoot.getId();
-  }
-
   public TachyonURI getPath(Inode inode) {
     if (isRootId(inode.getId())) {
       return new TachyonURI(TachyonURI.SEPARATOR);
@@ -121,6 +117,10 @@ public final class InodeTree implements JournalSerializable {
       return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
     }
     return getPath(mInodes.getFirstByField(mIdIndex, inode.getParentId())).join(inode.getName());
+  }
+
+  public InodeDirectory getRoot() {
+    return mRoot;
   }
 
   public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
@@ -310,6 +310,10 @@ public final class InodeTree implements JournalSerializable {
   // TODO: this should return block container ids, not file ids.
   public Set<Long> getPinIdSet() {
     return Sets.newHashSet(mPinnedInodeFileIds);
+  }
+
+  public boolean isRootId(long id) {
+    return id == mRoot.getId();
   }
 
   @Override
