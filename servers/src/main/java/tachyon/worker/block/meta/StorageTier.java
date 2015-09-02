@@ -50,7 +50,7 @@ public final class StorageTier {
     String tierLevelAliasProp =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
     StorageLevelAlias alias = WorkerContext.getConf()
-        .getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
+        .getEnum(tierLevelAliasProp, StorageLevelAlias.class);
     mTierAlias = alias.getValue();
   }
 
