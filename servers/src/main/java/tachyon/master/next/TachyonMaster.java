@@ -171,6 +171,13 @@ public class TachyonMaster {
   }
 
   /**
+   * Get the externally resolvable address of this master.
+   */
+  public InetSocketAddress getMasterAddress() {
+    return mMasterAddress;
+  }
+
+  /**
    * Get the actual bind hostname on RPC service (used by unit test only).
    */
   public String getRPCBindHost() {
