@@ -22,7 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.PathUtils;
@@ -245,7 +245,7 @@ public final class LocalTachyonMaster {
     return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
-  public TachyonFS getClient() throws IOException {
+  public TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(mTachyonMaster.getTachyonConf());
   }
 

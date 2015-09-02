@@ -27,7 +27,7 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
@@ -37,13 +37,13 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests on TachyonClient (Reuse the LocalTachyonCluster).
  */
-public class TachyonFSIntegrationTest {
+public class TachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static String sHost = null;
   private static int sPort = -1;
-  private static TachyonFS sTfs = null;
+  private static TachyonFileSystem sTfs = null;
   private static ClientOptions sReadCache;
   private static ClientOptions sWriteBoth;
   private TachyonConf mMasterTachyonConf;
