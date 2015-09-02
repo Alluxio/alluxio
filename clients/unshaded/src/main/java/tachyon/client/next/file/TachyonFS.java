@@ -205,6 +205,22 @@ public class TachyonFS implements Closeable, TachyonFSCore {
   }
 
   /**
+   * Sets the pin status of a file. A pinned file will never be evicted for any reason.
+   *
+   * @param file the file handler for the file to pin
+   * @param pinned true to pin the file, false to unpin it
+   * @throws IOException if an error occurs during the pin operation
+   */
+  public void setPin(TachyonFile file, boolean pinned) throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.setPinned(file.getFileId(), pinned);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  /**
    * Renames an existing file in Tachyon space to another path in Tachyon space.
    *
    * @param src The file handler for the source file

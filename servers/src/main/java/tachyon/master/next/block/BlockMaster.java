@@ -375,7 +375,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     synchronized (mWorkers) {
       if (!mWorkers.contains(mIdIndex, workerId)) {
         LOG.warn("Could not find worker id: " + workerId + " to register.");
-        return -1;
+        return -1L;
       }
       MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
       workerInfo.updateLastUpdatedTimeMs();

@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ import tachyon.thrift.InvalidPathException;
  *
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety.
  */
-// TODO: better deal with exceptions.
+// TODO: split out worker-specific calls to a fs master client for workers.
 public final class FileSystemMasterClient extends MasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -150,6 +150,21 @@ public final class FileSystemMasterClient extends MasterClient {
       try {
         return mClient.getNewBlockIdForFile(fileId);
       } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
+  }
+
+  public synchronized Set<Long> getPinList() throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        return mClient.workerGetPinIdList();
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -303,7 +318,7 @@ public final class FileSystemMasterClient extends MasterClient {
     while (!mIsClosed) {
       connect();
       try {
-        return mClient.addCheckpoint(workerId, (int) fileId, length, checkpointPath);
+        return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {

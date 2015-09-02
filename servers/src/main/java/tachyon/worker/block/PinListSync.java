@@ -86,8 +86,7 @@ public final class PinListSync implements Runnable {
 
       // Send the sync
       try {
-        // TODO: Get this info from file system master
-        Set<Integer> pinList = new HashSet<Integer>();
+        Set<Long> pinList = mMasterClient.getPinList();
         mBlockDataManager.updatePinList(pinList);
         lastSyncMs = System.currentTimeMillis();
       // TODO: Change this back to IOException when we have the correct pinlist RPC

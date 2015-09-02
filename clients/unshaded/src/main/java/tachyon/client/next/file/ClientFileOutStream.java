@@ -112,8 +112,7 @@ public class ClientFileOutStream extends FileOutStream {
         mUnderStorageOutputStream.close();
         try {
           // TODO: Investigate if this RPC can be moved to master
-          // TODO: Make this RPC take a long
-          mWorkerClient.addCheckpoint((int) mFileId);
+          mWorkerClient.addCheckpoint(mFileId);
         } finally {
           BSContext.INSTANCE.releaseWorkerClient(mWorkerClient);
         }
