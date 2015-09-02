@@ -16,6 +16,7 @@
 package tachyon.master.next;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -299,9 +300,8 @@ public class MasterInfoIntegrationTest {
     Assert.assertFalse(fileInfo.isComplete);
   }
 
-  private FileSystemMaster createFileSystemMasterFromJournal() {
-    // TODO(cc) This method is shared among several PRs
-    return null;
+  private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
+    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterTachyonConf);
   }
 
   // TODO: This test currently relies on the fact the HDFS client is a cached instance to avoid
