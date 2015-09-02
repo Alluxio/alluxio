@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileBlockInfo;
@@ -236,7 +237,7 @@ public class TachyonFileIntegrationTest {
     Assert.assertTrue(mTfs.exist(uri));
     TachyonFile file = mTfs.getFile(uri);
     Assert.assertEquals(0, file.length());
-    OutStream os = file.getOutStream(WriteType.CACHE_THROUGH);
+    FileOutStream os = file.getOutStream(WriteType.CACHE_THROUGH);
     os.close();
     Assert.assertEquals(0, file.length());
   }

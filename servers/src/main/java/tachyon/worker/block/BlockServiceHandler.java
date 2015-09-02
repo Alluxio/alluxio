@@ -83,7 +83,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
 
   // TODO: Make this supported again
   @Override
-  public boolean asyncCheckpoint(int fileId) throws TException {
+  public boolean asyncCheckpoint(long fileId) throws TException {
     return false;
   }
 
