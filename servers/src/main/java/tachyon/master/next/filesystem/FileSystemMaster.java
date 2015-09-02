@@ -537,12 +537,7 @@ public class FileSystemMaster extends MasterBase {
    * @return true if the file is fully in memory, false otherwise
    */
   private boolean isFullyInMemory(InodeFile inode) {
-    try {
-      return getInMemoryPercentage(inode) == 100;
-    } catch (FileDoesNotExistException e) {
-      // should never happen
-      throw Throwables.propagate(e);
-    }
+    return getInMemoryPercentage(inode) == 100;
   }
 
   /**
