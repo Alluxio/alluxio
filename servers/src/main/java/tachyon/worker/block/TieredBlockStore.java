@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -36,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 import tachyon.Constants;
 import tachyon.Pair;
@@ -921,6 +924,8 @@ public final class TieredBlockStore implements BlockStore {
     // Alias of the storage tier and reserved space on it
     private final List<Pair<Integer, Long>> mReservedBytesOnTiers =
         new ArrayList<Pair<Integer, Long>>();
+    private final Multimap<Integer, Future<Boolean>> mMoverResOnTiers =
+        HashMultimap.<Integer, Future<Boolean>>create();
     private final Timer mTimer;
     private final Semaphore mSemaphore = new Semaphore(1);
     private final Thread mEvictorThread;
@@ -967,6 +972,20 @@ public final class TieredBlockStore implements BlockStore {
       return plan;
     }
 
+    private boolean areMoversDoneOnTier(int tierAlias) {
+      boolean done = true;
+      List<Future<Boolean>> moversDone = new ArrayList<Future<Boolean>>();
+      for (Future<Boolean> res : mMoverResOnTiers.get(tierAlias)) {
+        if (res.isCancelled() || res.isDone()) {
+          moversDone.add(res);
+        } else {
+          done = false;
+        }
+      }
+      mMoverResOnTiers.removeAll(moversDone);
+      return done;
+    }
+
     public void initialize() {
       mEvictorThread.start();
       mTimer.schedule(new TimerTask() {
@@ -984,6 +1003,9 @@ public final class TieredBlockStore implements BlockStore {
           for (int tierIdx = mReservedBytesOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
             Pair<Integer, Long> bytesReservedOnTier = mReservedBytesOnTiers.get(tierIdx);
             int tierAlias = bytesReservedOnTier.getFirst();
+            if (!areMoversDoneOnTier(tierAlias)) {
+              continue;
+            }
             long bytesReserved = bytesReservedOnTier.getSecond();
             BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
             EvictionPlan plan = getEvictionPlanOnTier(bytesReserved, location);
@@ -991,12 +1013,14 @@ public final class TieredBlockStore implements BlockStore {
               continue;
             }
             for (Pair<Long, BlockStoreLocation> toMoveBlock : plan.toMove()) {
-              mExecutorService.execute(new BlockMover(TieredBlockStore.this,
+              Future<Boolean> res = mExecutorService.submit(new BlockMover(TieredBlockStore.this,
                   Users.MIGRATE_DATA_USER_ID, toMoveBlock.getFirst(), toMoveBlock.getSecond()));
+              mMoverResOnTiers.put(tierAlias, res);
             }
             for (long toEvictBlock : plan.toEvict()) {
-              mExecutorService.execute(new BlockMover(TieredBlockStore.this,
+              Future<Boolean> res = mExecutorService.submit(new BlockMover(TieredBlockStore.this,
                   Users.MIGRATE_DATA_USER_ID, toEvictBlock, null));
+              mMoverResOnTiers.put(tierAlias, res);
             }
           }
         }

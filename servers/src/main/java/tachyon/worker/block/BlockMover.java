@@ -15,18 +15,14 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
-import tachyon.exception.OutOfSpaceException;
 
-public class BlockMover implements Runnable {
+public class BlockMover implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mUserId;
   private final BlockStore mBlockStore;
@@ -41,28 +37,17 @@ public class BlockMover implements Runnable {
     mDstLocation = dstLocation;
   }
 
-  public void run() {
+  public Boolean call() {
     try {
       if (mDstLocation == null) {
         mBlockStore.removeBlock(mUserId, mBlockId);
       } else {
         mBlockStore.moveBlock(mUserId, mBlockId, mDstLocation);
       }
-    } catch (IOException e) {
-      LOG.error("Failed to migrate block {} to {}", mBlockId, mDstLocation);
-      e.printStackTrace();
-    } catch (InvalidStateException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (NotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (AlreadyExistsException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (OutOfSpaceException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      return true;
+    } catch (Exception e) {
+      LOG.error("Failed to migrate block {} to {}", mBlockId, mDstLocation, e);
+      return false;
     }
   }
 }
