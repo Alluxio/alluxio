@@ -119,8 +119,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    // TODO
-    return null;
+    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterTachyonConf);
   }
 
   /**
