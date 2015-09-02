@@ -29,6 +29,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.client.next.CacheType;
 import tachyon.client.next.ClientOptions;
 import tachyon.client.next.UnderStorageType;
@@ -37,7 +38,6 @@ import tachyon.client.next.file.TachyonFS;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.worker.FileSystemMasterClient;
 
 public class PinIntegrationTest {
   private final ExecutorService mExecutorService =
