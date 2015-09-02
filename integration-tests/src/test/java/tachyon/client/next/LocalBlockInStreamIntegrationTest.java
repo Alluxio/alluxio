@@ -61,7 +61,7 @@ public class LocalBlockInStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
+    sLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
@@ -185,6 +185,8 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Seek position is negative: -1");
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -195,13 +197,9 @@ public class LocalBlockInStreamIntegrationTest {
 
         try {
           is.seek(-1);
-        } catch (IOException e) {
-          // This is expected
-          continue;
         } finally {
           is.close();
         }
-        throw new IOException("Except seek IOException");
       }
     }
   }
@@ -214,8 +212,8 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("Seek position is past buffer limit");
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
 
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {

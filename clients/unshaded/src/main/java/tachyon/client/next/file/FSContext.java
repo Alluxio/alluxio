@@ -28,7 +28,6 @@ import tachyon.master.MasterClient;
 public enum FSContext {
   INSTANCE;
 
-  // TODO: Separate this when block master and file system master use different clients
   private FSMasterClientPool mFileSystemMasterClientPool;
   private final TachyonBS mTachyonBS;
 

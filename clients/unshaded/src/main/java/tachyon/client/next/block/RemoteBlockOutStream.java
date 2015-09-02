@@ -44,22 +44,16 @@ public class RemoteBlockOutStream extends BlockOutStream {
   private long mFlushedBytes;
   private long mWrittenBytes;
 
-  public RemoteBlockOutStream(long blockId, ClientOptions options) throws IOException {
-    Preconditions.checkArgument(options.getCacheType().shouldCache(), "Remote Block OutStream "
-        + "only supports CacheType CACHE.");
+  public RemoteBlockOutStream(long blockId, long blockSize) throws IOException {
     mBlockId = blockId;
-    mBlockSize = options.getBlockSize();
+    mBlockSize = blockSize;
     mContext = BSContext.INSTANCE;
-    // TODO: Get this value from the conf
-    mBuffer = ByteBuffer.allocate(Constants.MB * 8);
+    mBuffer =
+        ByteBuffer.allocate((int) ClientContext.getConf()
+            .getBytes(Constants.USER_FILE_BUFFER_BYTES));
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
-    // TODO: This should be specified outside of options
-    InetSocketAddress workerAddr =
-        new InetSocketAddress(options.getLocation().getMHost(), options.getLocation()
-            .getMSecondaryPort());
-    mWorkerClient = mContext.acquireWorkerClient(workerAddr.getHostName());
-    // TODO: Get the user ID
-    mRemoteWriter.open(workerAddr, mBlockId, 1);
+    mWorkerClient = mContext.acquireWorkerClient();
+    mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId, mWorkerClient.getUserId());
   }
 
   @Override

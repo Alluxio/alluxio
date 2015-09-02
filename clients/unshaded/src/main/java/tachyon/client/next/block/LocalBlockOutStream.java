@@ -42,9 +42,7 @@ public class LocalBlockOutStream extends BlockOutStream {
   private final Closer mCloser;
   private final long mBlockSize;
   private final long mBlockId;
-  private final CacheType mCacheType;
   private final BSContext mContext;
-  private final UnderStorageType mUnderStorageType;
   private final WorkerClient mWorkerClient;
   private final String mBlockPath;
   private final RandomAccessFile mLocalFile;
@@ -54,24 +52,18 @@ public class LocalBlockOutStream extends BlockOutStream {
   private long mAvailableBytes;
   private long mWrittenBytes;
 
-  public LocalBlockOutStream(long blockId, ClientOptions options) throws IOException {
-    mCacheType = options.getCacheType();
-    if (!mCacheType.shouldCache()) {
-      throw new IOException("LocalBlockOutStream only supports CacheType.CACHE");
-    }
-
+  public LocalBlockOutStream(long blockId, long blockSize) throws IOException {
     mCloser = Closer.create();
-    mBlockSize = options.getBlockSize();
+    mBlockSize = blockSize;
     mBlockId = blockId;
     mContext = BSContext.INSTANCE;
-    mUnderStorageType = options.getUnderStorageType();
 
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     try {
       // TODO: Get the initial size from the configuration
-      long initialSize = Constants.MB * 8;
+      long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
       mBlockPath = mWorkerClient.requestBlockLocation(blockId, initialSize);
       // TODO: Handle this in the worker?
       FileUtils.createBlockPath(mBlockPath);

@@ -191,7 +191,8 @@ public class ClientFileInStream extends FileInStream {
       closeCacheStream();
       if (mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, mOptions);
+          mCurrentCacheStream =
+              mContext.getTachyonBS().getOutStream(currentBlockId, mBlockSize, null);
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
           mShouldCacheCurrentBlock = false;
@@ -225,14 +226,16 @@ public class ClientFileInStream extends FileInStream {
     long currentBlockId = getBlockCurrentBlockId();
 
     if (oldBlockId != currentBlockId) {
-      mCurrentBlockInStream.close();
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.close();
+      }
       try {
         mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
         mShouldCacheCurrentBlock =
             !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
         // TODO: Maybe debug log here
-        long blockStart = currentBlockId * mBlockSize;
+        long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
         mShouldCacheCurrentBlock = mShouldCache;
       }
@@ -240,7 +243,8 @@ public class ClientFileInStream extends FileInStream {
       // Reading next block entirely
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, null);
+          mCurrentCacheStream =
+              mContext.getTachyonBS().getOutStream(currentBlockId, mBlockSize, null);
         } catch (IOException ioe) {
           // TODO: Maybe debug log here
           mShouldCacheCurrentBlock = false;

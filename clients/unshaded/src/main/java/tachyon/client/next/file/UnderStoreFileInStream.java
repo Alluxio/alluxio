@@ -76,10 +76,12 @@ public class UnderStoreFileInStream extends BlockInStream {
 
   @Override
   public void seek(long pos) throws IOException {
-    if (pos < mPos) {
+    long offset = mPos - mInitPos;
+    if (pos < offset) {
       setUnderStoreStream(pos);
     } else {
-      if (skip(mPos - pos) != mPos - pos) {
+      long toSkip = pos - offset;
+      if (skip(toSkip) != toSkip) {
         throw new IOException("Failed to seek forward to " + pos);
       }
     }

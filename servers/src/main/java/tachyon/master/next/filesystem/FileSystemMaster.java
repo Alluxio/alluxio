@@ -579,16 +579,15 @@ public class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Get the in-memory percentage of an InodeFile. For a file that has all blocks
-   * in memory, it returns 100; for a file that has no block in memory, it returns 0.
+   * Get the in-memory percentage of an Inode. For a file that has all blocks in memory, it returns
+   * 100; for a file that has no block in memory, it returns 0. Returns 0 for a directory.
    *
    * @param inode the inode
    * @return the in memory percentage
-   * @throws FileDoesNotExistException when the file does not exist
    */
-  private int getInMemoryPercentage(Inode inode) throws FileDoesNotExistException {
+  private int getInMemoryPercentage(Inode inode) {
     if (!inode.isFile()) {
-      throw new FileDoesNotExistException(mInodeTree.getPath(inode) + " is not a file.");
+      return 0;
     }
     InodeFile inodeFile = (InodeFile) inode;
 

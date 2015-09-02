@@ -95,8 +95,7 @@ public final class BlockMasterSync implements Runnable {
 
   public void setWorkerId() throws IOException {
     try {
-      mWorkerId =
-          mMasterClient.workerGetId(mWorkerAddress);
+      mWorkerId = mMasterClient.workerGetId(mWorkerAddress);
     } catch (IOException ioe) {
       LOG.error("Failed to register with master.", ioe);
       throw ioe;
@@ -106,18 +105,15 @@ public final class BlockMasterSync implements Runnable {
   /**
    * Registers with the Tachyon master. This should be called before the continuous heartbeat thread
    * begins. The workerId will be set after this method is successful.
-   *
-   * @throws IOException if the registration fails
    */
-  public void registerWithMaster() throws IOException {
+  public void registerWithMaster() {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
       mWorkerId =
           mMasterClient.workerRegister(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
-      LOG.error("Failed to register with master.", ioe);
-      throw ioe;
+      throw new RuntimeException("Failed to register with master.", ioe);
     }
   }
 
@@ -128,6 +124,7 @@ public final class BlockMasterSync implements Runnable {
   @Override
   public void run() {
     long lastHeartbeatMs = System.currentTimeMillis();
+    registerWithMaster();
     while (mRunning) {
       // Check the time since last heartbeat, and wait until it is within heartbeat interval
       long lastIntervalMs = System.currentTimeMillis() - lastHeartbeatMs;
