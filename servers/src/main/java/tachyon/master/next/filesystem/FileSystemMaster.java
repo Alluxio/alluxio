@@ -74,7 +74,7 @@ import tachyon.util.FormatUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
-public class FileSystemMaster extends MasterBase {
+public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
@@ -277,6 +277,8 @@ public class FileSystemMaster extends MasterBase {
 
   /**
    * Gets the list of block info of an InodeFile determined by path.
+   *
+   * TODO: get rid of this after FileBlockInfo contains BlockInfo
    *
    * @param path path to the file
    * @return The list of the block info of the file

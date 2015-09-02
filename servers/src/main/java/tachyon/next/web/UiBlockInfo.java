@@ -35,6 +35,7 @@ public final class UiBlockInfo {
     Preconditions.checkNotNull(blockInfo);
     mId = blockInfo.getBlockId();
     mBlockLength = blockInfo.getLength();
+    // FIXME: compute this from FileBlockInfo when FileBlockInfo includes BlockInfo
     mInMemory = isInMemory(blockInfo);
     mLastAccessTimeMs = -1;
     addLocations(blockInfo.getLocations());
