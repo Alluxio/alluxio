@@ -29,12 +29,12 @@
       when: (tachyon_type == "Local") and (provider != "vb") and (mesos_type == "None")
 
   # TODO uncomment
-  #  - include: roles/tachyon/tasks/clone_remote_repo.yml
-  #    when: (tachyon_type == "Github") or (mesos_type != "None")
+    - include: roles/tachyon/tasks/clone_remote_repo.yml
+      when: (tachyon_type == "Github") or (mesos_type != "None")
 
   # TODO uncomment
-  #  - include: roles/tachyon/tasks/compile.yml
-  #    when: tachyon_type != "Release"
+    - include: roles/tachyon/tasks/compile.yml
+      when: tachyon_type != "Release"
 
     - include: roles/tachyon/tasks/config.yml
 
@@ -62,8 +62,8 @@
       when: mesos_type == "Github"
 
 # TODO uncomment
-#    - include: roles/mesos/tasks/compile.yml
-#      when: mesos_type == "Github"
+    - include: roles/mesos/tasks/compile.yml
+      when: mesos_type == "Github"
 
 - hosts: TachyonWorker*
   tasks:
