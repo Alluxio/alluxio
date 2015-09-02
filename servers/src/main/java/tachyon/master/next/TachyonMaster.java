@@ -42,7 +42,6 @@ import tachyon.master.next.rawtable.RawTableMaster;
 import tachyon.master.next.user.UserMaster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
@@ -129,16 +128,13 @@ public class TachyonMaster {
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
       // Create the journals.
-      mUserMasterJournal = new Journal(
-          PathUtils.concatPath(journalDirectory, Constants.USER_MASTER_SERVICE_NAME), mTachyonConf);
-      mBlockMasterJournal =
-          new Journal(PathUtils.concatPath(journalDirectory, Constants.BLOCK_MASTER_SERVICE_NAME),
-              mTachyonConf);
-      mFileSystemMasterJournal = new Journal(
-          PathUtils.concatPath(journalDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME),
+      mUserMasterJournal = new Journal(UserMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
-      mRawTableMasterJournal = new Journal(
-          PathUtils.concatPath(journalDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME),
+      mBlockMasterJournal = new Journal(BlockMaster.getJournalDirectory(journalDirectory),
+          mTachyonConf);
+      mFileSystemMasterJournal = new Journal(FileSystemMaster.getJournalDirectory(journalDirectory),
+          mTachyonConf);
+      mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
 
       mUserMaster = new UserMaster(mUserMasterJournal);
@@ -175,6 +171,13 @@ public class TachyonMaster {
   }
 
   /**
+   * Get the externally resolvable address of this master.
+   */
+  public InetSocketAddress getMasterAddress() {
+    return mMasterAddress;
+  }
+
+  /**
    * Get the actual bind hostname on RPC service (used by unit test only).
    */
   public String getRPCBindHost() {
@@ -200,6 +203,27 @@ public class TachyonMaster {
    */
   public int getWebLocalPort() {
     return mWebServer.getLocalPort();
+  }
+
+  /**
+   * Get internal {@link FileSystemMaster}, for unit test only.
+   */
+  public FileSystemMaster getFileSystemMaster() {
+    return mFileSystemMaster;
+  }
+
+  /**
+   * Get internal {@link RawTableMaster}, for unit test only.
+   */
+  public RawTableMaster getRawTableMaster() {
+    return mRawTableMaster;
+  }
+
+  /**
+   * Get internal {@link BlockMaster}, for unit test only.
+   */
+  public BlockMaster getBlockMaster() {
+    return mBlockMaster;
   }
 
   /**

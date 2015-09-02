@@ -32,7 +32,7 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
@@ -60,7 +60,7 @@ public class FileOutStreamIntegrationTest {
   private static ClientOptions sWriteTachyon;
   private static ClientOptions sWriteUnderStore;
 
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   // If true, clients will write directly to the local file.
   private final boolean mEnableLocalWrite;

@@ -26,10 +26,11 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
-import tachyon.master.LocalTachyonCluster;
+import tachyon.client.next.CacheType;
+import tachyon.client.next.TachyonFSTestUtils;
+import tachyon.client.next.UnderStorageType;
+import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.master.next.LocalTachyonCluster;
 
 /**
  * Integration tests for TFS getFileBlockLocations.
@@ -50,8 +51,9 @@ public class TFSBlockLocationIntegrationTest {
     sLocalTachyonCluster = new LocalTachyonCluster(100000000, 100000, BLOCK_SIZE);
     sLocalTachyonCluster.start();
 
-    TachyonFS tachyonFS = sLocalTachyonCluster.getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
+    TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
+    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", CacheType.CACHE,
+        UnderStorageType.PERSIST, FILE_LEN);
     tachyonFS.close();
 
     URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
@@ -73,47 +75,47 @@ public class TFSBlockLocationIntegrationTest {
     long len = 0;
     FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile1"));
 
-    //block0.offset = start < start+len < block1.offset
+    // block0.offset = start < start+len < block1.offset
     start = 0;
     len = BLOCK_SIZE - 1;
     Assert.assertEquals(1, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
-    //block0.offset < start < start+len < block1.offset
+    // block0.offset < start < start+len < block1.offset
     start = 1;
     len = BLOCK_SIZE - 2;
     Assert.assertEquals(1, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
-    //block0.offset < start = start+len < block1.offset
+    // block0.offset < start = start+len < block1.offset
     start = 1;
     len = 0;
     Assert.assertEquals(1, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
-    //block0.offset = start < start+len = block1.offset
+    // block0.offset = start < start+len = block1.offset
     start = 0;
     len = BLOCK_SIZE;
     Assert.assertEquals(2, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
-    //block0.offset = start < block1.offset < start+len < block2.offset
+    // block0.offset = start < block1.offset < start+len < block2.offset
     start = 0;
     len = BLOCK_SIZE + 1;
     Assert.assertEquals(2, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
-    //block0.offset < start < block1.offset < start+len < block2.offset
+    // block0.offset < start < block1.offset < start+len < block2.offset
     start = 1;
     len = BLOCK_SIZE;
     Assert.assertEquals(2, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
-    //block0.offset = start < start+len = block2.offset
+    // block0.offset = start < start+len = block2.offset
     start = 0;
     len = BLOCK_SIZE * 2;
     Assert.assertEquals(3, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
-    //block0.offset = start < start+len = file.len
+    // block0.offset = start < start+len = file.len
     start = 0;
     len = FILE_LEN;
     Assert.assertEquals(3, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
-    //file.len < start < start+len
+    // file.len < start < start+len
     start = FILE_LEN + 1;
     len = 1;
     Assert.assertEquals(0, sTFS.getFileBlockLocations(fStatus, start, len).length);

@@ -26,12 +26,12 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.OutStream;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.client.next.file.FileInStream;
+import tachyon.client.next.file.FileOutStream;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
@@ -88,7 +88,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-      InStream is = tFile.getInStream(ReadType.CACHE);
+      FileInStream is = tFile.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
       is.read(buf.array());
       buf.order(ByteOrder.nativeOrder());
@@ -119,7 +119,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       buf.flip();
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      OutStream os = tFile.getOutStream(mWriteType);
+      FileOutStream os = tFile.getOutStream(mWriteType);
       os.write(buf.array());
       os.close();
     }

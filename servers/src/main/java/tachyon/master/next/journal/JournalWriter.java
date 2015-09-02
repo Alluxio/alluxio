@@ -28,20 +28,20 @@ import tachyon.underfs.UnderFileSystem;
 
 /**
  * This class manages all the writes to the journal. Journal writes happen in two phases:
- * 
+ *
  * 1. First the checkpoint file is written. The checkpoint file contains entries reflecting the
  * state of the master with all of the completed logs applied.
- * 
+ *
  * 2. Afterwards, entries are appended to log files. The checkpoint file must be written before the
  * log files.
- * 
+ *
  * The latest state can be reconstructed by reading the checkpoint file, and applying all the
  * completed logs and then the remaining log in progress.
  */
 public class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make this a config parameter.
-  private static final int MAX_LOG_SIZE = 10 * Constants.MB;
+  private static int sMaxLogSize = 10 * Constants.MB;
 
   private final Journal mJournal;
   private final TachyonConf mTachyonConf;
@@ -72,6 +72,10 @@ public class JournalWriter {
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
     mUfs = UnderFileSystem.get(mJournalDirectory, mTachyonConf);
+  }
+
+  public static void setMaxLogSize(int sizeInBytes) {
+    sMaxLogSize = sizeInBytes;
   }
 
   /**
@@ -302,7 +306,7 @@ public class JournalWriter {
       if (mOutputStream instanceof FSDataOutputStream) {
         ((FSDataOutputStream) mOutputStream).sync();
       }
-      if (mOutputStream.size() > MAX_LOG_SIZE) {
+      if (mOutputStream.size() > sMaxLogSize) {
         // rotate the current log.
         mOutputStream.close();
         completeCurrentLog();

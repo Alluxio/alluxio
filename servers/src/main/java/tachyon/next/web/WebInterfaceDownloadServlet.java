@@ -31,10 +31,10 @@ import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.next.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.MasterInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -115,7 +115,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     }
     response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
 
-    InStream is = null;
+    FileInStream is = null;
     ServletOutputStream out = null;
     try {
       is = tFile.getInStream(ReadType.NO_CACHE);

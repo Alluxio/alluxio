@@ -26,7 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
@@ -37,11 +37,11 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests on TachyonClient (Do not reuse the LocalTachyonCluster).
  */
-public class IsolatedTachyonFSIntegrationTest {
+public class IsolatedTachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
   private int mWorkerToMasterHeartbeatIntervalMs;
@@ -55,6 +55,7 @@ public class IsolatedTachyonFSIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    System.setProperty(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start();
@@ -90,7 +91,7 @@ public class IsolatedTachyonFSIntegrationTest {
 
     Assert.assertFalse(mTfs.getInfo(files.get(0)).getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k ++) {
-      Assert.assertTrue(mTfs.getInfo(files.get(0)).getInMemoryPercentage() == 100);
+      Assert.assertTrue(mTfs.getInfo(files.get(k)).getInMemoryPercentage() == 100);
     }
   }
 
@@ -116,13 +117,13 @@ public class IsolatedTachyonFSIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
 
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 1; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
     CommonUtils.sleepMs(getSleepMs());
-    FileInfo info = mTfs.getInfo(files.get(numOfFiles));;
-    Assert.assertFalse(info.getInMemoryPercentage() == 100);
+    FileInfo info = mTfs.getInfo(files.get(numOfFiles));
+    Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
 
   @Test
@@ -152,7 +153,7 @@ public class IsolatedTachyonFSIntegrationTest {
 
     for (int k = 0; k <= numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
-      if (k != numOfFiles - 1) {
+      if (k != 0) {
         Assert.assertTrue(info.getInMemoryPercentage() == 100);
       } else {
         CommonUtils.sleepMs(null, getSleepMs());
@@ -217,13 +218,13 @@ public class IsolatedTachyonFSIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
 
-    for (int k = 0; k < numOfFiles; k ++) {
+    for (int k = 1; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
     CommonUtils.sleepMs(null, getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(numOfFiles));
-    Assert.assertFalse(info.getInMemoryPercentage() == 100);
+    Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
 
   @Test

@@ -25,11 +25,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.curator.utils.ThreadUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -42,7 +40,7 @@ import tachyon.client.RemoteBlockReader;
 import tachyon.client.next.CacheType;
 import tachyon.client.next.TachyonFSTestUtils;
 import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFS;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.client.next.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.next.LocalTachyonCluster;
@@ -55,7 +53,6 @@ import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.worker.DataServerMessage;
-import tachyon.worker.WorkerContext;
 
 /**
  * Integration tests for tachyon.worker.DataServer.
@@ -93,7 +90,7 @@ public class DataServerIntegrationTest {
       Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("test-executor-%d", true));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTFS = null;
+  private TachyonFileSystem mTFS = null;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
 
@@ -355,7 +352,7 @@ public class DataServerIntegrationTest {
 
   /**
    * returns the BlockInfo of the first block of the file
-   * 
+   *
    * @param tachyonFile the file to get the first BlockInfo for
    * @return the BlockInfo of the first block in the file
    * @throws IOException
