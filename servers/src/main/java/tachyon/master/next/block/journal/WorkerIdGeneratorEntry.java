@@ -35,7 +35,7 @@ public class WorkerIdGeneratorEntry implements JournalEntry {
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.BLOCK_ID_GENERATOR;
+    return JournalEntryType.WORKER_ID_GENERATOR;
   }
 
   @Override

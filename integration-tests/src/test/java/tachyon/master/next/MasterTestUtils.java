@@ -25,34 +25,20 @@ import tachyon.master.next.journal.Journal;
 import tachyon.master.next.journal.JournalEntry;
 import tachyon.master.next.journal.JournalInputStream;
 import tachyon.master.next.journal.JournalReader;
+import tachyon.master.next.journal.JournalTailerThread;
 
 public class MasterTestUtils {
   public static FileSystemMaster createFileSystemMasterFromJournal(TachyonConf tachyonConf)
       throws IOException {
     String masterJournal = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
-
     Journal blockJournal = new Journal(BlockMaster.getJournalDirectory(masterJournal),
         tachyonConf);
-    BlockMaster blockMaster = new BlockMaster(blockJournal, tachyonConf);
-
     Journal fsJournal = new Journal(FileSystemMaster.getJournalDirectory(masterJournal),
         tachyonConf);
+
+    BlockMaster blockMaster = new BlockMaster(blockJournal, tachyonConf);
     FileSystemMaster fsMaster = new FileSystemMaster(tachyonConf, blockMaster, fsJournal);
-
-    JournalReader reader = fsJournal.getNewReader();
-    // load checkpoint
-    fsMaster.processJournalCheckpoint(reader.getCheckpointInputStream());
-
-    // load logs
-    JournalInputStream is;
-    while ((is = reader.getNextInputStream()) != null) {
-      JournalEntry entry;
-      while ((entry = is.getNextEntry()) != null) {
-        fsMaster.processJournalEntry(entry);
-      }
-      is.close();
-    }
-
+    fsMaster.start(true);
     return fsMaster;
   }
 }

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.codec.binary.Base64;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -221,7 +222,12 @@ public class JsonJournalFormatter implements JournalFormatter {
 
       @Override
       public JournalEntry getNextEntry() throws IOException {
-        JsonEntry entry = mParser.readValueAs(JsonEntry.class);
+        JsonEntry entry;
+        try {
+          entry = mParser.readValueAs(JsonEntry.class);
+        } catch (JsonProcessingException e) {
+          return null;
+        }
         switch (entry.mType) {
           // User
           case USER_ID_GENERATOR: {
