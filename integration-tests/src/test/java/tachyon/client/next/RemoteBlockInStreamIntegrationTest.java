@@ -349,7 +349,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       Assert.assertEquals(-1, is.read(ret));
       is.close();
-      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
+      Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     }
   }
 
@@ -361,6 +361,8 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Seek position is negative: -1");
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -369,12 +371,9 @@ public class RemoteBlockInStreamIntegrationTest {
       InStream is = mTfs.getInStream(f, mReadNoCache);
       try {
         is.seek(-1);
-      } catch (IOException e) {
-        // This is expected
-        continue;
+      } finally {
+        is.close();
       }
-      is.close();
-      throw new IOException("Except seek IOException");
     }
   }
 
@@ -386,16 +385,19 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("Seek position is past block size");
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
           TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
       InStream is = mTfs.getInStream(f, mReadNoCache);
-      is.seek(k + 1);
-      is.close();
+      try {
+        is.seek(k + 1);
+      } finally {
+        is.close();
+      }
     }
   }
 
@@ -463,7 +465,7 @@ public class RemoteBlockInStreamIntegrationTest {
     TachyonFile f =
         TachyonFSTestUtils.createByteFile(mTfs, uniqPath, mWriteUnderStore, len);
 
-    InStream is = mTfs.getInStream(f, mReadNoCache);
+    InStream is = mTfs.getInStream(f, mReadCache);
     for (int i = 0; i < len; ++ i) {
       Assert.assertEquals(i, is.read());
     }
@@ -487,46 +489,6 @@ public class RemoteBlockInStreamIntegrationTest {
     Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     is = mTfs.getInStream(f, mReadNoCache);
     is.close();
-  }
-
-  /*
-   * Tests that reading a remote block with CACHE ReadType will only cache if it is writing with a
-   * local stream.
-   */
-  @Test
-  public void remoteStreamCancelsRecache() throws IOException {
-    String uniqPath = PathUtils.uniqPath();
-    int len = 2;
-    TachyonFile f =
-        TachyonFSTestUtils.createByteFile(mTfs, uniqPath, mWriteUnderStore, 2);
-    TachyonConf conf = ClientContext.getConf();
-    // Turn on localwrite so that local worker can be found
-    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(true));
-    TachyonFile file = mTfs.open(new TachyonURI(uniqPath));
-    InStream is = mTfs.getInStream(file, mReadCache);
-    Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
-    for (int i = 0; i < len; i ++) {
-      Assert.assertEquals(i, is.read());
-    }
-    is.close();
-    // reading the whole file cause it to recache
-    Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
-
-    String uniqPath2 = PathUtils.uniqPath();
-    TachyonFile f2 =
-        TachyonFSTestUtils.createByteFile(mTfs, uniqPath2, mWriteUnderStore, 2);
-    // Turn off localwrite so that only remote worker can be found
-    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(false));
-    TachyonFile file2 = mTfs.open(new TachyonURI(uniqPath2));
-    InStream is2 = mTfs.getInStream(file2, mReadCache);
-    Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
-    for (int i = 0; i < len; i ++) {
-      Assert.assertEquals(i, is2.read());
-    }
-    is2.close();
-    // even though the whole file was read, recache was cancelled because no local worker is
-    // available
-    Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
   }
 
   /**
