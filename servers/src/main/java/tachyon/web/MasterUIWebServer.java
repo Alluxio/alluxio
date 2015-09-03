@@ -19,11 +19,11 @@ import java.net.InetSocketAddress;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-
-import com.google.common.base.Preconditions;
 
 /**
  * A master's UI web server
@@ -44,8 +44,8 @@ public final class MasterUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(master)), "/memory");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(master)),
         "/dependency");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
-        "/download");
+    mWebAppContext.addServlet(new ServletHolder(
+        new WebInterfaceDownloadServlet(master.getFileSystemMaster())), "/download");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadLocalServlet()),
         "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(true)),
