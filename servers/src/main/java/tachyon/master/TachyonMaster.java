@@ -359,7 +359,8 @@ public class TachyonMaster {
     mIsServing = true;
 
     // start web ui
-    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, mMasterAddress, this, mTachyonConf);
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
+        ServiceType.MASTER_WEB, mTachyonConf), this, mTachyonConf);
     mWebServer.startWebServer();
 
     String leaderStart = (mUseZookeeper) ? "(gained leadership)" : "";
