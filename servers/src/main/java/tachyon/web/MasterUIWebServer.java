@@ -36,8 +36,8 @@ public final class MasterUIWebServer extends UIWebServer {
     Preconditions.checkNotNull(master, "TachyonMaster cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkersServlet(masterInfo)),
-        "/workers");
+    mWebAppContext.addServlet(new ServletHolder(
+        new WebInterfaceWorkersServlet(master.getBlockMaster())), "/workers");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(masterInfo)),
         "/configuration");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)),

@@ -28,7 +28,7 @@ import com.google.common.collect.Ordering;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterInfo;
+import tachyon.master.block.BlockMaster;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
@@ -97,11 +97,11 @@ final class WebInterfaceWorkersServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7454493761603179826L;
 
-  private final transient MasterInfo mMasterInfo;
+  private final transient BlockMaster mBlockMaster;
   private final transient TachyonConf mTachyonConf;
 
-  public WebInterfaceWorkersServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+  public WebInterfaceWorkersServlet(BlockMaster blockMaster) {
+    mBlockMaster = blockMaster;
     mTachyonConf = new TachyonConf();
   }
 
@@ -151,11 +151,11 @@ final class WebInterfaceWorkersServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
-    List<WorkerInfo> workerInfos = mMasterInfo.getWorkerInfoList();
+    List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
     request.setAttribute("normalNodeInfos", normalNodeInfos);
 
-    List<WorkerInfo> lostWorkerInfos = mMasterInfo.getLostWorkersInfo();
+    List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfo();
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
 
