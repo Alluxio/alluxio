@@ -111,7 +111,13 @@ public class JournalReader {
     return jis;
   }
 
-  private long getCheckpointLastModifiedTime() throws IOException {
+  /**
+   * Returns the last modified time for the checkpoint file.
+   *
+   * @return the last modified time of the checkpoint file in ms.
+   * @throws IOException
+   */
+  public long getCheckpointLastModifiedTime() throws IOException {
     if (!mUfs.exists(mCheckpointPath)) {
       throw new IOException("Checkpoint file " + mCheckpointPath + " does not exist.");
     }

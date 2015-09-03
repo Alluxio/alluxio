@@ -27,8 +27,8 @@ import tachyon.Constants;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
-import tachyon.master.journal.JournalReader;
 import tachyon.master.journal.JournalSerializable;
+import tachyon.master.journal.JournalTailer;
 import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
 
@@ -77,38 +77,32 @@ public abstract class MasterBase implements Master {
 
       // TODO: only do this if this is a fresh start, not if this master had already been tailing
       // the journal.
-      // Use the journal tailer to "catch up".
-      LOG.info(getProcessorName() + ": start journal tailer to catch up before becoming master.");
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
-      mStandbyJournalTailer.start();
-      mStandbyJournalTailer.shutdownAndJoin();
+      LOG.info(getProcessorName() + ": process completed logs before becoming master.");
+      JournalTailer catchupTailer = new JournalTailer(this, mJournal);
+      boolean checkpointExists = true;
+      try {
+        catchupTailer.getCheckpointLastModifiedTime();
+      } catch (IOException ioe) {
+        // The checkpoint doesn't exist yet.
+        checkpointExists = false;
+      }
+      if (checkpointExists) {
+        catchupTailer.processJournalCheckpoint(true);
+        catchupTailer.processNextJournalLogFiles();
+      }
 
-      // TODO: verify that journal writer is null?
       mJournalWriter = mJournal.getNewWriter();
       writeToJournal(mJournalWriter.getCheckpointOutputStream());
       mJournalWriter.getCheckpointOutputStream().close();
 
-      JournalReader catchup = mJournal.getNewReader();
-
-      // TODO: improve this catchup process.
       // Final catchup stage. The last in-progress file (if it existed) was marked as complete when
       // the checkpoint write was closed. That last file must be processed to get to the latest
       // state. Read and process the completed file.
 
-      // Checkpoint must be "read" first. Ignore it since it was just written by this master.
-      catchup.getCheckpointInputStream();
-      // Process the new completed log file, if it exists.
-      JournalInputStream inputStream = catchup.getNextInputStream();
-      if (inputStream != null) {
-        LOG.info("Processing the first completed log file to catchup to the latest state.");
-        JournalEntry entry;
-        while ((entry = inputStream.getNextEntry()) != null) {
-          processJournalEntry(entry);
-        }
-        inputStream.close();
-        LOG.info("Finished processing the log file.");
-      }
-
+      LOG.info(getProcessorName() + ": process the last completed log before becoming master.");
+      catchupTailer = new JournalTailer(this, mJournal);
+      catchupTailer.processJournalCheckpoint(false);
+      catchupTailer.processNextJournalLogFiles();
     } else {
       // in standby mode. Start the journal tailer thread.
       // TODO: verify that journal tailer is null?
