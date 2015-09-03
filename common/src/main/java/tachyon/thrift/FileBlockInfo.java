@@ -40,7 +40,7 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
 
   private static final org.apache.thrift.protocol.TField BLOCK_INFO_FIELD_DESC = new org.apache.thrift.protocol.TField("blockInfo", org.apache.thrift.protocol.TType.STRUCT, (short)1);
   private static final org.apache.thrift.protocol.TField OFFSET_FIELD_DESC = new org.apache.thrift.protocol.TField("offset", org.apache.thrift.protocol.TType.I64, (short)2);
-  private static final org.apache.thrift.protocol.TField UNDER_FS_LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("underFsLocations", org.apache.thrift.protocol.TType.LIST, (short)4);
+  private static final org.apache.thrift.protocol.TField UNDER_FS_LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("underFsLocations", org.apache.thrift.protocol.TType.LIST, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -56,7 +56,7 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     BLOCK_INFO((short)1, "blockInfo"),
     OFFSET((short)2, "offset"),
-    UNDER_FS_LOCATIONS((short)4, "underFsLocations");
+    UNDER_FS_LOCATIONS((short)3, "underFsLocations");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -75,7 +75,7 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
           return BLOCK_INFO;
         case 2: // OFFSET
           return OFFSET;
-        case 4: // UNDER_FS_LOCATIONS
+        case 3: // UNDER_FS_LOCATIONS
           return UNDER_FS_LOCATIONS;
         default:
           return null;
@@ -532,7 +532,7 @@ public class FileBlockInfo implements org.apache.thrift.TBase<FileBlockInfo, Fil
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // UNDER_FS_LOCATIONS
+          case 3: // UNDER_FS_LOCATIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();

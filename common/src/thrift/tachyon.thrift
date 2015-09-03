@@ -39,10 +39,9 @@ struct BlockInfo {
 struct FileBlockInfo {
   1: BlockInfo blockInfo
   2: i64 offset
-  4: list<NetAddress> underFsLocations
+  3: list<NetAddress> underFsLocations
 }
 
-// TODO: make fileId into i64
 struct FileInfo {
   1: i64 fileId
   2: string name
