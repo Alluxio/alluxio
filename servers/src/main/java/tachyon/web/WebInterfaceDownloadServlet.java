@@ -31,12 +31,12 @@ import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
+import tachyon.client.next.CacheType;
+import tachyon.client.next.ClientOptions;
 import tachyon.client.next.file.FileInStream;
-import tachyon.conf.TachyonConf;
-import tachyon.master.MasterInfo;
+import tachyon.client.next.file.TachyonFile;
+import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.master.filesystem.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -49,10 +49,10 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final transient MasterInfo mMasterInfo;
+  private final transient FileSystemMaster mFsMaster;
 
-  public WebInterfaceDownloadServlet(MasterInfo masterInfo) {
-    mMasterInfo = Preconditions.checkNotNull(masterInfo);
+  public WebInterfaceDownloadServlet(FileSystemMaster fsMaster) {
+    mFsMaster = Preconditions.checkNotNull(fsMaster);
   }
 
   /**
@@ -72,7 +72,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     }
     TachyonURI currentPath = new TachyonURI(requestPath);
     try {
-      FileInfo fileInfo = mMasterInfo.getFileInfo(currentPath);
+      long fileId = mFsMaster.getFileId(currentPath);
+      FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
       if (null == fileInfo) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
@@ -97,15 +98,10 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    */
   private void downloadFile(TachyonURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException {
-    String masterAddress =
-        Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
-            + mMasterInfo.getMasterAddress().getPort();
-    TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress), new TachyonConf());
-    TachyonFile tFile = tachyonClient.getFile(path);
-    if (tFile == null) {
-      throw new FileDoesNotExistException(path.toString());
-    }
-    long len = tFile.length();
+    TachyonFileSystem tachyonClient = TachyonFileSystem.get();
+    TachyonFile fd = tachyonClient.open(path);
+    FileInfo tFile = tachyonClient.getInfo(fd);
+    long len = tFile.getLength();
     String fileName = path.getName();
     response.setContentType("application/octet-stream");
     if (len <= Integer.MAX_VALUE) {
@@ -118,7 +114,9 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      is = tFile.getInStream(ReadType.NO_CACHE);
+      ClientOptions op = new ClientOptions.Builder(mFsMaster.getTachyonConf()).setCacheType(
+          CacheType.NO_CACHE).build();
+      is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);
     } finally {
@@ -130,10 +128,6 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
         is.close();
       }
     }
-    try {
-      tachyonClient.close();
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
+    tachyonClient.close();
   }
 }
