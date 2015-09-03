@@ -118,7 +118,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
       TachyonException, TException {
     if (ufsPath == null || ufsPath.isEmpty()) {
-      throw new IllegalArgumentException("the uderFS path is not provided");
+      throw new IllegalArgumentException("the underFS path is not provided");
     }
     UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mFileSystemMaster.getTachyonConf());
     try {

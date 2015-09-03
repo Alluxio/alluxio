@@ -183,6 +183,9 @@ public class ClientFileInStream extends FileInStream {
         mShouldCacheCurrentBlock =
             !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
+        if (null == mUfsPath || mUfsPath.isEmpty()) {
+          throw ioe;
+        }
         // TODO: Maybe debug log here
         long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
