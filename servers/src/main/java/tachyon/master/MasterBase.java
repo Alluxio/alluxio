@@ -105,7 +105,6 @@ public abstract class MasterBase implements Master {
       catchupTailer.processNextJournalLogFiles();
     } else {
       // in standby mode. Start the journal tailer thread.
-      // TODO: verify that journal tailer is null?
       mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
       mStandbyJournalTailer.start();
     }
@@ -129,9 +128,7 @@ public abstract class MasterBase implements Master {
 
   protected void writeJournalEntry(JournalEntry entry) {
     if (mJournalWriter == null) {
-      // TODO: Add this check back
-      // throw new RuntimeException("Cannot write entry: journal writer is null.");
-      return;
+      throw new RuntimeException("Cannot write entry: journal writer is null.");
     }
     try {
       mJournalWriter.getEntryOutputStream().writeEntry(entry);
@@ -142,9 +139,7 @@ public abstract class MasterBase implements Master {
 
   protected void writeJournalEntry(JournalSerializable entry) {
     if (mJournalWriter == null) {
-      // TODO: Add this check back
-      // throw new RuntimeException("Cannot write entry: journal writer is null.");
-      return;
+      throw new RuntimeException("Cannot write entry: journal writer is null.");
     }
     try {
       entry.writeToJournal(mJournalWriter.getEntryOutputStream());
@@ -155,9 +150,7 @@ public abstract class MasterBase implements Master {
 
   protected void flushJournal() {
     if (mJournalWriter == null) {
-      // TODO: Add this check back
-      // throw new RuntimeException("Cannot flush journal: Journal writer is null.");
-      return;
+      throw new RuntimeException("Cannot flush journal: Journal writer is null.");
     }
     try {
       mJournalWriter.getEntryOutputStream().flush();

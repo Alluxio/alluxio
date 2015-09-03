@@ -94,8 +94,8 @@ public final class LocalTachyonMaster {
         Constants.RAW_TABLE_MASTER_SERVICE_NAME,
         Constants.USER_MASTER_SERVICE_NAME,
     };
-    for (String masterServieName : masterServiceNames) {
-      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServieName),
+    for (String masterServiceName : masterServiceNames) {
+      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
           tachyonConf);
     }
     UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),

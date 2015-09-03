@@ -15,6 +15,7 @@
 
 package tachyon.master.filesystem.meta;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Assert;
@@ -22,6 +23,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -44,12 +46,22 @@ public final class InodeTreeTest {
   private InodeTree mTree;
 
   @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public void before() {
+  public void before() throws IOException {
     TachyonConf conf = new TachyonConf();
-    mTree = new InodeTree(new BlockMaster(new Journal("directory", conf), conf));
+    Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), conf);
+
+    BlockMaster blockMaster = new BlockMaster(blockJournal, conf);
+    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
+    mTree = new InodeTree(blockMaster, directoryIdGenerator);
+
+    blockMaster.start(true);
+    mTree.initializeRoot();
   }
 
   @Test
