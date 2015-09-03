@@ -176,6 +176,16 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     }
   }
 
+  public long loadFileFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive) throws
+      IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.loadFileFromUfs(path.getPath(), ufsPath.getPath(), -1L, recursive);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
   /**
    * Creates a folder. If the parent folders do not exist, they will be created automatically.
    *

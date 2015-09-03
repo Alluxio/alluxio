@@ -328,7 +328,12 @@ public class TachyonFS extends AbstractTachyonFS {
       boolean recursive) throws IOException {
     validateUri(path);
     // TODO: This is not safe
-    return (int) mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
+    if (blockSizeByte > 0) {
+      return (int) mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
+    } else {
+      return (int) mFSMasterClient.loadFileFromUfs(path.getPath(), ufsPath.getPath(), blockSizeByte,
+          recursive);
+    }
   }
 
   /**
@@ -389,8 +394,14 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if it exists, false otherwise
    * @throws IOException
    */
+  // TODO: Consider making an exists function
   public synchronized boolean exist(TachyonURI path) throws IOException {
-    return getFileStatus(-1, path, false) != null;
+    try {
+      getFileStatus(-1, path, false);
+    } catch (IOException ioe) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -562,9 +573,8 @@ public class TachyonFS extends AbstractTachyonFS {
       }
     }
 
+    fileId = mFSMasterClient.getFileId(path);
     info = mFSMasterClient.getFileInfo(fileId);
-
-    fileId = info.getFileId();
     if (fileId == -1) {
       cache.remove(key);
       return null;

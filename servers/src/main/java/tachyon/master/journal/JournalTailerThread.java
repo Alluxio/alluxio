@@ -90,7 +90,8 @@ public class JournalTailerThread extends Thread {
             if (mInitiateShutdown) {
               if (waitForShutdownStart == -1) {
                 waitForShutdownStart = CommonUtils.getCurrentMs();
-              } else if ((CommonUtils.getCurrentMs() - waitForShutdownStart) > 1) {
+              } else if ((CommonUtils.getCurrentMs() - waitForShutdownStart) > (10
+                  * Constants.SECOND_MS)) {
                 // There have been no new logs for some time period. It is safe to stop the tailer
                 // now.
                 // TODO: make the waiting period a configuration parameter.
@@ -101,11 +102,11 @@ public class JournalTailerThread extends Thread {
           }
 
           // TODO: make this wait a config parameter
-          //CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
+          CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
         }
 
         // TODO: make this wait a config parameter
-        //CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
+        CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
       } catch (IOException ioe) {
         // Log the error and continue the loop.
         LOG.error(ioe.getMessage());
@@ -115,7 +116,7 @@ public class JournalTailerThread extends Thread {
           return;
         }
         // TODO: make this wait a config parameter
-        //CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
+        CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
       }
     }
   }

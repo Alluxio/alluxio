@@ -72,10 +72,6 @@ public class JournalIntegrationTest {
     FileInfo fInfo = mTfs.getInfo(mTfs.open(uri));
     mLocalTachyonCluster.stopTFS();
     AddBlockTestUtil(fInfo);
-    String journalFolder = FileSystemMaster.getJournalDirectory(
-        mLocalTachyonCluster.getMaster().getJournalFolder());
-    UnderFileSystem.get(journalFolder, mMasterTachyonConf).delete(journalFolder, true);
-    AddBlockTestUtil(fInfo);
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
@@ -111,7 +107,6 @@ public class JournalIntegrationTest {
    *
    * @throws Exception
    */
-  @Ignore
   @Test
   public void AddCheckpointTest() throws Exception {
     ClientOptions options = new ClientOptions.Builder(mMasterTachyonConf)
@@ -120,7 +115,7 @@ public class JournalIntegrationTest {
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     TachyonURI ckPath = new TachyonURI("/xyz_ck");
     // TODO(cc): what's the counterpart in the new client API for this?
-    //mTfs.createFile(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()));
+    mTfs.loadFileFromUfs(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()), true);
     FileInfo ckFileInfo = mTfs.getInfo(mTfs.open(ckPath));
     mLocalTachyonCluster.stopTFS();
     AddCheckpointTestUtil(fInfo, ckFileInfo);
@@ -134,7 +129,7 @@ public class JournalIntegrationTest {
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != -1);
-    Assert.assertEquals(3, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(2, fsMaster.getFileInfoList(rootId).size());
     Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/xyz")) != -1);
     Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/xyz_ck")) != -1);
     Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/xyz"))));
