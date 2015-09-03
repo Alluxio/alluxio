@@ -26,6 +26,10 @@ import tachyon.util.CommonUtils;
 
 public class JournalTailerThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  // TODO: make the quiet period a configuration parameter.
+  private static final int SHUTDOWN_QUIET_WAIT_TIME_MS = 5 * Constants.SECOND_MS;
+  // TODO: make this sleep time  a config parameter.
+  private static final int JOURNAL_TAILER_SLEEP_TIME_MS = 1 * Constants.SECOND_MS;
 
   private final Master mMaster;
   private final Journal mJournal;
@@ -59,64 +63,49 @@ public class JournalTailerThread extends Thread {
     // only repeats when the checkpoint file is updated after it was read.
     while (true) {
       try {
-        // Load the checkpoint file.
-        JournalReader reader = mJournal.getNewReader();
-        mMaster.processJournalCheckpoint(reader.getCheckpointInputStream());
-
         // The start time (ms) for the initiated shutdown.
         long waitForShutdownStart = -1;
 
+        // Load the checkpoint file.
+        JournalTailer tailer = new JournalTailer(mMaster, mJournal);
+        tailer.processJournalCheckpoint(true);
+
         // Continually process completed log files.
         while (true) {
-          if (!reader.isValid()) {
+          if (!tailer.isValid()) {
             LOG.info("The checkpoint is out of date. Will reload the checkpoint file.");
             break;
           }
 
-          // Process the new completed log file, if it exists.
-          JournalInputStream inputStream = reader.getNextInputStream();
-          if (inputStream != null) {
-            // reset the shutdown clock, since a new completed log file is being processed.
+          if (tailer.processNextJournalLogFiles() > 0) {
+            // Reset the shutdown timer.
             waitForShutdownStart = -1;
-            LOG.info("Processing a newly completed log file.");
-            JournalEntry entry;
-            while ((entry = inputStream.getNextEntry()) != null) {
-              mMaster.processJournalEntry(entry);
-            }
-            inputStream.close();
-            LOG.info("Finished processing the log file.");
           } else {
-            LOG.info("The next complete log file does not exist yet. Sleeping and checking again.");
             if (mInitiateShutdown) {
               if (waitForShutdownStart == -1) {
                 waitForShutdownStart = CommonUtils.getCurrentMs();
-              } else if ((CommonUtils.getCurrentMs() - waitForShutdownStart) > (10
-                  * Constants.SECOND_MS)) {
-                // There have been no new logs for some time period. It is safe to stop the tailer
-                // now.
-                // TODO: make the waiting period a configuration parameter.
-                LOG.info(mMaster.getProcessorName() + " Journal tailer has been shutdown.");
+              } else if ((CommonUtils.getCurrentMs()
+                  - waitForShutdownStart) > SHUTDOWN_QUIET_WAIT_TIME_MS) {
+                // There have been no new logs for the quiet period. Shutdown now.
+                LOG.info(mMaster.getProcessorName()
+                    + " Journal tailer has been shutdown. No new logs for the quiet period.");
                 return;
               }
             }
+            LOG.info("The next complete log file does not exist yet. Sleeping and checking again.");
+            CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
           }
-
-          // TODO: make this wait a config parameter
-          CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
         }
 
-        // TODO: make this wait a config parameter
-        CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
+        CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
       } catch (IOException ioe) {
         // Log the error and continue the loop.
         LOG.error(ioe.getMessage());
-
         if (mInitiateShutdown) {
           LOG.info(mMaster.getProcessorName() + " Journal tailer has been shutdown.");
           return;
         }
-        // TODO: make this wait a config parameter
-        CommonUtils.sleepMs(LOG, 5 * Constants.SECOND_MS);
+        CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
       }
     }
   }
