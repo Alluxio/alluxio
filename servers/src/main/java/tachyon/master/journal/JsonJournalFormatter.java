@@ -49,6 +49,7 @@ import tachyon.master.filesystem.journal.DeleteFileEntry;
 import tachyon.master.filesystem.journal.DependencyEntry;
 import tachyon.master.filesystem.journal.FreeEntry;
 import tachyon.master.filesystem.journal.InodeDirectoryEntry;
+import tachyon.master.filesystem.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.filesystem.journal.InodeFileEntry;
 import tachyon.master.filesystem.journal.RenameEntry;
 import tachyon.master.filesystem.journal.SetPinnedEntry;
@@ -336,6 +337,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("fileId"),
                 entry.getString("destinationPath"),
                 entry.getLong("operationTimeMs"));
+          }
+          case INODE_DIRECTORY_ID_GENERATOR: {
+            return new InodeDirectoryIdGeneratorEntry(
+                entry.getLong("containerId"),
+                entry.getLong("sequenceNumber"));
           }
 
           // RawTable

@@ -38,11 +38,13 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterBase;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.block.ContainerIdGenerator;
 import tachyon.master.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.filesystem.journal.CompleteFileEntry;
 import tachyon.master.filesystem.journal.DeleteFileEntry;
 import tachyon.master.filesystem.journal.DependencyEntry;
 import tachyon.master.filesystem.journal.FreeEntry;
+import tachyon.master.filesystem.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.filesystem.journal.InodeEntry;
 import tachyon.master.filesystem.journal.RenameEntry;
 import tachyon.master.filesystem.journal.SetPinnedEntry;
@@ -50,6 +52,7 @@ import tachyon.master.filesystem.meta.Dependency;
 import tachyon.master.filesystem.meta.DependencyMap;
 import tachyon.master.filesystem.meta.Inode;
 import tachyon.master.filesystem.meta.InodeDirectory;
+import tachyon.master.filesystem.meta.InodeDirectoryIdGenerator;
 import tachyon.master.filesystem.meta.InodeFile;
 import tachyon.master.filesystem.meta.InodeTree;
 import tachyon.master.journal.Journal;
@@ -84,6 +87,8 @@ public final class FileSystemMaster extends MasterBase {
   private final InodeTree mInodeTree;
   // This state must be journaled.
   private final DependencyMap mDependencyMap = new DependencyMap();
+  // This state must be journaled.
+  private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
   private final PrefixList mWhitelist;
 
@@ -98,7 +103,8 @@ public final class FileSystemMaster extends MasterBase {
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
 
-    mInodeTree = new InodeTree(mBlockMaster);
+    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
+    mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator);
 
     // TODO: handle default config value for whitelist.
     mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
@@ -147,6 +153,8 @@ public final class FileSystemMaster extends MasterBase {
       deleteFileFromEntry((DeleteFileEntry) entry);
     } else if (entry instanceof RenameEntry) {
       renameFromEntry((RenameEntry) entry);
+    } else if (entry instanceof InodeDirectoryIdGeneratorEntry) {
+      mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
@@ -156,10 +164,12 @@ public final class FileSystemMaster extends MasterBase {
   public void writeToJournal(JournalOutputStream outputStream) throws IOException {
     mInodeTree.writeToJournal(outputStream);
     mDependencyMap.writeToJournal(outputStream);
+    mDirectoryIdGenerator.writeToJournal(outputStream);
   }
 
   @Override
   public void start(boolean asMaster) throws IOException {
+    mInodeTree.initializeRoot();
     startMaster(asMaster);
     if (isMasterMode()) {
       // TODO: start periodic heartbeat threads.
@@ -413,6 +423,7 @@ public final class FileSystemMaster extends MasterBase {
 
       // Writing the first created inode to the journal will also write its children.
       writeJournalEntry(created.get(0));
+      writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
       flushJournal();
 
       return created.get(created.size() - 1).getId();
@@ -660,6 +671,7 @@ public final class FileSystemMaster extends MasterBase {
         for (Inode inode : created) {
           writeJournalEntry(inode);
         }
+        writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         flushJournal();
       } catch (BlockInfoException bie) {
         // Since we are creating a directory, the block size is ignored, no such exception should

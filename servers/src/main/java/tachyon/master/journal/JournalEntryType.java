@@ -35,6 +35,7 @@ public enum JournalEntryType {
   SET_PINNED,
   DELETE_FILE,
   RENAME,
+  INODE_DIRECTORY_ID_GENERATOR,
 
   // Raw table master entries
   RAW_TABLE,

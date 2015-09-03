@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -47,18 +48,26 @@ public final class FileSystemMasterTest {
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
 
   private final TachyonConf mTachyonConf = new TachyonConf();
-  private final Journal mJournal = new Journal("directory", mTachyonConf);
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
   private long mWorkerId;
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
-    mBlockMaster = new BlockMaster(mJournal, mTachyonConf);
-    mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster, mJournal);
+    Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), mTachyonConf);
+    Journal fsJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), mTachyonConf);
+
+    mBlockMaster = new BlockMaster(blockJournal, mTachyonConf);
+    mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster, fsJournal);
+
+    mBlockMaster.start(true);
+    mFileSystemMaster.start(true);
 
     // set up worker
     mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81));
@@ -68,7 +77,7 @@ public final class FileSystemMasterTest {
   }
 
   @Test
-  public void delteFileTest() throws Exception {
+  public void deleteFileTest() throws Exception {
     // cannot delete root
     long rootId = mFileSystemMaster.getFileId(ROOT_URI);
     Assert.assertFalse(mFileSystemMaster.deleteFile(rootId, true));

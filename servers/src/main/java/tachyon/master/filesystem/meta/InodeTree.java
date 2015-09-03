@@ -29,7 +29,6 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.master.block.BlockId;
 import tachyon.master.IndexedSet;
 import tachyon.master.block.ContainerIdGenerator;
 import tachyon.master.filesystem.journal.InodeDirectoryEntry;
@@ -72,8 +71,6 @@ public final class InodeTree implements JournalSerializable {
    * with file ids.
    */
   private final ContainerIdGenerator mContainerIdGenerator;
-
-  // TODO: journal this state.
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
   /**
@@ -82,15 +79,20 @@ public final class InodeTree implements JournalSerializable {
    */
   private InodeDirectory mCachedInode;
 
-  public InodeTree(ContainerIdGenerator containerIdGenerator) {
+  public InodeTree(ContainerIdGenerator containerIdGenerator,
+      InodeDirectoryIdGenerator directoryIdGenerator) {
     mContainerIdGenerator = containerIdGenerator;
-    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(containerIdGenerator);
+    mDirectoryIdGenerator = directoryIdGenerator;
+  }
 
-    mRoot = new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), -1,
-        System.currentTimeMillis());
-    mInodes.add(mRoot);
+  public void initializeRoot() {
+    if (mRoot == null) {
+      mRoot = new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), -1,
+          System.currentTimeMillis());
+      mInodes.add(mRoot);
 
-    mCachedInode = mRoot;
+      mCachedInode = mRoot;
+    }
   }
 
   public Inode getInodeById(long id) throws FileDoesNotExistException {
@@ -151,12 +153,10 @@ public final class InodeTree implements JournalSerializable {
   public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory, long creationTimeMs)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
-
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
     }
-
     if (!directory && blockSizeBytes < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeBytes);
     }
@@ -453,36 +453,4 @@ public final class InodeTree implements JournalSerializable {
       return mInode;
     }
   }
-  /**
-   * Inode id management for directory inodes. Keep track of a block container id, along with a
-   * block sequence number. If the block sequence number reaches the limit, a new block container id
-   * is retrieved.
-   */
-  private static class InodeDirectoryIdGenerator {
-    private final ContainerIdGenerator mContainerIdGenerator;
-
-    // TODO: journal this state.
-    private long mContainerId;
-    // TODO: journal this state.
-    private long mSequenceNumber;
-
-    InodeDirectoryIdGenerator(ContainerIdGenerator containerIdGenerator) {
-      mContainerIdGenerator = containerIdGenerator;
-      mContainerId = mContainerIdGenerator.getNewContainerId();
-      mSequenceNumber = 0;
-    }
-
-    long getNewDirectoryId() {
-      long directoryId = BlockId.createBlockId(mContainerId, mSequenceNumber);
-      if (mSequenceNumber == BlockId.getMaxSequenceNumber()) {
-        // No more ids in this container. Get a new container for the next id.
-        mContainerId = mContainerIdGenerator.getNewContainerId();
-        mSequenceNumber = 0;
-      } else {
-        mSequenceNumber ++;
-      }
-      return directoryId;
-    }
-  }
-
 }
