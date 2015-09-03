@@ -38,8 +38,8 @@ public final class MasterUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
     mWebAppContext.addServlet(new ServletHolder(
         new WebInterfaceWorkersServlet(master.getBlockMaster())), "/workers");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(masterInfo)),
-        "/configuration");
+    mWebAppContext.addServlet(new ServletHolder(
+        new WebInterfaceConfigurationServlet(master.getFileSystemMaster())), "/configuration");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)),
         "/browse");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(masterInfo)),
