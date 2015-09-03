@@ -13,13 +13,14 @@
  * the License.
  */
 
-package tachyon.metrics;
+package tachyon.worker.block;
 
-public interface MetricsSystemTester {
+public interface BlockWorkerTester {
   /**
    * Grants access to private members of <code>MetricsSystem</code>.
    *
    * @param access object that can be used access private members
    */
-  void receiveAccess(MetricsSystem.PrivateAccess access);
+  void receiveAccess(BlockWorker.PrivateAccess access);
+
 }

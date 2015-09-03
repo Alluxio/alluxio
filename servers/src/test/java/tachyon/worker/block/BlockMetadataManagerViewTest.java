@@ -28,8 +28,10 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Sets;
 
+import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
+import tachyon.exception.OutOfSpaceException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
@@ -204,15 +206,18 @@ public final class BlockMetadataManagerViewTest {
    * TierView as <code>new StorageTierView(mMetadataManager.getTier(tierAlias), this)</code>.
    */
   @Test
-  public void sameTierViewTest() throws Exception {
+  public void sameTierViewTest() {
     int tierAlias = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getTierAlias();
     StorageTierView tierView1 = mMetaManagerView.getTierView(tierAlias);
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getDir(TEST_DIR);
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
-    dir.addBlockMeta(blockMeta);
-
+    try {
+      dir.addBlockMeta(blockMeta);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     StorageTierView tierView2 =
         new StorageTierView(mMetaManager.getTier(tierAlias), mMetaManagerView);
     assertSameTierView(tierView1, tierView2);
@@ -223,15 +228,18 @@ public final class BlockMetadataManagerViewTest {
    * TierViews as constructing by <code>BlockMetadataManager.getTiersBelow(tierAlias)</code>.
    */
   @Test
-  public void sameTierViewsBelowTest() throws Exception {
+  public void sameTierViewsBelowTest() {
     int tierAlias = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getTierAlias();
     List<StorageTierView> tierViews1 = mMetaManagerView.getTierViewsBelow(tierAlias);
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_LEVEL + 1).getDir(TEST_DIR);
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
-    dir.addBlockMeta(blockMeta);
-
+    try {
+      dir.addBlockMeta(blockMeta);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     List<StorageTier> tiers2 = mMetaManager.getTiersBelow(tierAlias);
     Assert.assertEquals(tierViews1.size(), tiers2.size());
     for (int i = 0; i < tierViews1.size(); i ++) {
