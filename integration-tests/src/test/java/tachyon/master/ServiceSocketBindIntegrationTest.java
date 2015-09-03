@@ -217,14 +217,11 @@ public class ServiceSocketBindIntegrationTest {
     }
 
     // Connect to Worker RPC service on loopback, while Worker is listening on local hostname.
-    mWorkerClient = BSContext.INSTANCE.acquireWorkerClient();
     try {
-      mWorkerClient.mustConnect();
+      mWorkerClient = BSContext.INSTANCE.acquireWorkerClient("127.0.0.1");
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
-    } catch (IOException ie) {
+    } catch (RuntimeException rte) {
       // This is expected, since Work RPC service is NOT listening on loopback.
-    } finally {
-      mWorkerClient.close();
     }
 
     // connect Worker data service on loopback, while Worker is listening on local hostname.

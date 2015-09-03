@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.commons.codec.binary.Base64;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,23 +40,23 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
-import tachyon.master.filesystem.meta.DependencyType;
 import tachyon.master.block.journal.BlockIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.filesystem.journal.AddCheckpointEntry;
-import tachyon.master.filesystem.journal.DependencyEntry;
 import tachyon.master.filesystem.journal.CompleteFileEntry;
 import tachyon.master.filesystem.journal.DeleteFileEntry;
+import tachyon.master.filesystem.journal.DependencyEntry;
 import tachyon.master.filesystem.journal.FreeEntry;
 import tachyon.master.filesystem.journal.InodeDirectoryEntry;
 import tachyon.master.filesystem.journal.InodeFileEntry;
 import tachyon.master.filesystem.journal.RenameEntry;
 import tachyon.master.filesystem.journal.SetPinnedEntry;
+import tachyon.master.filesystem.meta.DependencyType;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.user.journal.UserIdGeneratorEntry;
 
-public class JsonJournalFormatter implements JournalFormatter {
+public final class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
     /** Creates a JSON ObjectMapper configured not to close the underlying stream. */
     public static ObjectMapper createObjectMapper() {
@@ -309,6 +309,8 @@ public class JsonJournalFormatter implements JournalFormatter {
           }
           case COMPLETE_FILE: {
             return new CompleteFileEntry(
+                entry.get("blockIds", new TypeReference<List<Long>>() {
+                }),
                 entry.getLong("id"),
                 entry.getLong("length"),
                 entry.getLong("operationTimeMs"));

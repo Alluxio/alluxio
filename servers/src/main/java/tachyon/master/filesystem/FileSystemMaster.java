@@ -377,25 +377,28 @@ public final class FileSystemMaster extends MasterBase {
         }
       }
 
-      completeFileInternal(fileId, fileLength, opTimeMs);
-      writeJournalEntry(new CompleteFileEntry(fileId, fileLength, opTimeMs));
+      completeFileInternal(fileInode.getBlockIds(), fileId, fileLength, opTimeMs);
+      writeJournalEntry(
+          new CompleteFileEntry(fileInode.getBlockIds(), fileId, fileLength, opTimeMs));
       flushJournal();
     }
   }
 
   // TODO(cc) Make it protected instead of public for use in tests,
   // after splitting up MasterInfoIntegrationTest
-  public void completeFileInternal(long fileId, long fileLength, long opTimeMs)
+  public void completeFileInternal(List<Long> blockIds, long fileId, long fileLength, long opTimeMs)
       throws FileDoesNotExistException {
     mDependencyMap.addFileCheckpoint(fileId);
-    Inode inode = mInodeTree.getInodeById(fileId);
-    ((InodeFile) inode).setComplete(fileLength);
-    inode.setLastModificationTimeMs(opTimeMs);
+    InodeFile inodeFile = (InodeFile)mInodeTree.getInodeById(fileId);
+    inodeFile.setBlockIds(blockIds);
+    inodeFile.setComplete(fileLength);
+    inodeFile.setLastModificationTimeMs(opTimeMs);
   }
 
   private void completeFileFromEntry(CompleteFileEntry entry) {
     try {
-      completeFileInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
+      completeFileInternal(entry.getBlockIds(), entry.getFileId(), entry.getFileLength(),
+          entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
     }
