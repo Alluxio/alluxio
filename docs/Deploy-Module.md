@@ -5,6 +5,15 @@ group: Deployment
 priority: 3
 ---
 
+### toc
+* [Summary](#summary)
+* [Prerequisites](#prerequisites)
+* [VirtualBox](#quick-start-with-virtualbox)
+* [AWS EC2](#quick-start-with-aws-ec2)
+* [After Cluster Set Up](#after-cluster-set-up)
+* [Configurations](#configurations)
+* [FAQ](#faq)
+
 ## Summary
 
 In Tachyon source tree, [`deploy/vagrant`](https://github.com/amplab/tachyon/blob/master/deploy/vagrant) directory contains utilities to help you set up a Tachyon cluster on AWS EC2 or virtualbox.
@@ -64,6 +73,7 @@ Set name of keypair to **Keypair** and path to the pem key to **Key_Path** in `c
 Install aws vagrant plugin(To date, version 0.5.0 is tested):
 
     vagrant plugin install vagrant-aws
+    vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
 
 By default, if you don't have a
 [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html)

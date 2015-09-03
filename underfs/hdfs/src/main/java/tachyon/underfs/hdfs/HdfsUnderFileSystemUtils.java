@@ -31,7 +31,7 @@ public class HdfsUnderFileSystemUtils {
     if (System.getProperty(key) != null && conf.get(key) == null) {
       conf.set(key, System.getProperty(key));
     } else if (tachyonConf.containsKey(key)) {
-      conf.set(key, tachyonConf.get(key, null));
+      conf.set(key, tachyonConf.get(key));
     }
   }
 

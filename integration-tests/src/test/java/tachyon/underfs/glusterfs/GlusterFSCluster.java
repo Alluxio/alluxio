@@ -34,10 +34,10 @@ public class GlusterFSCluster extends UnderFileSystemCluster {
     if (conf == null) {
       throw new NullPointerException("Null Tachyon Configuration provided");
     }
-    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null))) {
+    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS))) {
       throw new IllegalArgumentException("Gluster FS Mounts are undefined");
     }
-    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null))) {
+    if (StringUtils.isEmpty(conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES))) {
       throw new IllegalArgumentException("Gluster FS Volumes are undefined");
     }
   }

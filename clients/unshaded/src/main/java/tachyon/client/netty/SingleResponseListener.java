@@ -19,19 +19,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.SettableFuture;
 
-import tachyon.Constants;
 import tachyon.network.protocol.RPCResponse;
 
 /**
  * A simple listener that waits for a single {@link RPCResponse} message from the remote server.
  */
 public final class SingleResponseListener implements ClientHandler.ResponseListener {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private SettableFuture<RPCResponse> mResponse = SettableFuture.create();
 

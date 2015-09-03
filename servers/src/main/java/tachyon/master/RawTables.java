@@ -54,7 +54,7 @@ public class RawTables extends ImageWriter {
    * @param columns The number of columns in the raw table
    * @param metadata The additional metadata of the raw table
    * @return true if success, false otherwise
-   * @throws TachyonException
+   * @throws TachyonException when the operation fails1
    */
   public synchronized boolean addRawTable(int tableId, int columns, ByteBuffer metadata)
       throws TachyonException {
@@ -125,7 +125,7 @@ public class RawTables extends ImageWriter {
    * Get the raw table info.
    *
    * @param tableId the raw table id.
-   * @return <columns, metadata> if the table exist, null otherwise.
+   * @return <code>Pair&lt;columns, metadata&gt;</code> if the table exist, null otherwise.
    */
   public synchronized Pair<Integer, ByteBuffer> getTableInfo(int tableId) {
     return mData.get(tableId);
@@ -158,7 +158,7 @@ public class RawTables extends ImageWriter {
    *
    * @param tableId The id of the raw table
    * @param metadata The new metadata of the raw table
-   * @throws TachyonException
+   * @throws TachyonException when the operation fails
    */
   // TODO add version number.
   public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
@@ -172,7 +172,7 @@ public class RawTables extends ImageWriter {
     if (metadata == null) {
       data.setSecond(ByteBuffer.allocate(0));
     } else {
-      long maxVal = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE, 0L);
+      long maxVal = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
       if (metadata.limit() - metadata.position() >= maxVal) {
         throw new TachyonException("Too big table metadata: " + metadata.toString());
       }

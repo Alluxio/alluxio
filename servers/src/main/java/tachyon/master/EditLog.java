@@ -62,7 +62,7 @@ public final class EditLog {
    * @param path The path of the edit logs.
    * @param currentLogFileNum The smallest completed log number that this master has not loaded
    * @return The last transaction id.
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public static long load(MasterInfo info, String path, int currentLogFileNum) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path, info.getTachyonConf());
@@ -98,7 +98,7 @@ public final class EditLog {
    *
    * @param info The Master Info
    * @param path The path of the edit log
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public static void loadSingleLog(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path, info.getTachyonConf());
@@ -258,7 +258,8 @@ public final class EditLog {
    * @param path The path of the edit logs.
    * @param inactive If a master is replaying an edit log, the current edit log is inactive.
    * @param transactionId The beginning transactionId of the edit log
-   * @throws IOException
+   * @param tachyonConf Tachyon configuration
+   * @throws IOException when the operation fails
    */
   public EditLog(String path, boolean inactive, long transactionId, TachyonConf tachyonConf)
       throws IOException {

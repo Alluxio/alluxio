@@ -57,7 +57,7 @@ public class DataServerIntegrationTest {
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    // Creates a new instance of DataServerTest for different combinations of parameters..
+    // Creates a new instance of DataServerIntegrationTest for different combinations of parameters.
     List<Object[]> list = new ArrayList<Object[]>();
     list.add(new Object[] { IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER,
@@ -190,8 +190,8 @@ public class DataServerIntegrationTest {
     DataServerMessage recvMsg2 = request(block2);
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
-    CommonUtils.sleepMs(null, mWorkerTachyonConf.getInt(
-        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS) * 2 + 10);
+    CommonUtils.sleepMs(mWorkerTachyonConf.getInt(
+        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2 + 10);
     ClientFileInfo fileInfo = mTFS.getFileStatus(-1, new TachyonURI("/readFile1"));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);
   }
@@ -237,8 +237,8 @@ public class DataServerIntegrationTest {
 
     RemoteBlockReader client =
         RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
-    ByteBuffer result = client.readRemoteBlock(block.getLocations().get(0).mHost,
-        block.getLocations().get(0).mSecondaryPort, block.getBlockId(), 0, length);
+    ByteBuffer result = client.readRemoteBlock(new InetSocketAddress(block.getLocations()
+        .get(0).mHost, block.getLocations().get(0).mSecondaryPort), block.getBlockId(), 0, length);
 
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
   }
@@ -262,8 +262,8 @@ public class DataServerIntegrationTest {
 
     RemoteBlockReader client =
         RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
-    ByteBuffer result = client.readRemoteBlock(block.getLocations().get(0).mHost,
-        block.getLocations().get(0).mSecondaryPort, maxBlockId + 1, 0, length);
+    ByteBuffer result = client.readRemoteBlock(new InetSocketAddress(block.getLocations().get(0)
+        .mHost, block.getLocations().get(0).mSecondaryPort), maxBlockId + 1, 0, length);
 
     Assert.assertNull(result);
   }

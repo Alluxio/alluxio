@@ -30,6 +30,11 @@ import com.google.common.io.Files;
 import tachyon.TachyonURI;
 import tachyon.thrift.InvalidPathException;
 
+/**
+ * Provides utility methods for working with files and directories.
+ *
+ * By convention, methods take file path strings as parameters.
+ */
 public class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
 
@@ -38,7 +43,7 @@ public class FileUtils {
    *
    * @param filePath that will change permission
    * @param perms the permission, e.g. "775"
-   * @throws java.io.IOException
+   * @throws IOException when fails to change permission
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
     // TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
@@ -68,13 +73,17 @@ public class FileUtils {
 
   /**
    * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
+   *
+   * @param process process whose stdout/stderr to copy
+   * @throws IOException when operation fails
    */
   private static void redirectIO(final Process process) throws IOException {
-    // Because chmod doesn't have a lot of error or output messages, its safe to process the output
-    // after the process is done. As of java 7, you can have the process redirect to System.out
-    // and System.err without forking a process.
-    // TODO when java 6 support is dropped, switch to
-    // http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+    /*
+     * Because chmod doesn't have a lot of error or output messages, it is safe to process the
+     * output after the process is done. As of java 7, you can have the process redirect to
+     * System.out and System.err without forking a process. TODO when java 6 support is dropped,
+     * switch to http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+     */
     Closer closer = Closer.create();
     try {
       ByteStreams.copy(closer.register(process.getInputStream()), System.out);
@@ -90,26 +99,35 @@ public class FileUtils {
    * Change local file's permission to be 777.
    *
    * @param filePath that will change permission
-   * @throws java.io.IOException
+   * @throws IOException when fails to change file's permission to 777
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "777");
   }
 
   /**
-   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
-   * of the folder containing the 'file'.
+   * Sticky bit can be set primarily on directories in UNIX / Linux.
    *
-   * @param file absolute file path
+   * If the sticky bit of is enabled on a directory, only the owner and the root user can delete /
+   * rename the files or directories within that directory. No one else can delete other users data
+   * in this directory(Where sticky bit is set).
+   *
+   * This is a security measure to avoid deletion of folders and their content (sub-folders and
+   * files), though other users have full permissions.
+   *
+   * Setting the sticky bit on a file is pretty much useless, and it doesn’t do anything.
+   *
+   * @param dir absolute dir path to set the sticky bit
    */
-  public static void setLocalFileStickyBit(String file) {
+  public static void setLocalDirStickyBit(String dir) {
     try {
-      // sticky bit is not implemented in PosixFilePermission
-      if (file.startsWith(TachyonURI.SEPARATOR)) {
-        Runtime.getRuntime().exec("chmod o+t " + file);
+      // Support for sticky bit is platform specific. Check if the path starts with "/" and if so,
+      // assume that the host supports the chmod command.
+      if (dir.startsWith(TachyonURI.SEPARATOR)) {
+        Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {
-      LOG.info("Can not set the sticky bit of the file : " + file);
+      LOG.info("Can not set the sticky bit of the direcotry : " + dir);
     }
   }
 
@@ -118,23 +136,16 @@ public class FileUtils {
    * permissions.
    *
    * @param path The path of the block.
-   * @throws java.io.IOException
+   * @throws IOException when fails to create block path and parent directories with appropriate
+   *         permissions.
    */
   public static void createBlockPath(String path) throws IOException {
-    File localFolder;
     try {
-      localFolder = new File(PathUtils.getParent(path));
+      createStorageDirPath(PathUtils.getParent(path));
     } catch (InvalidPathException e) {
-      throw new IOException(e);
-    }
-
-    if (!localFolder.exists()) {
-      if (localFolder.mkdirs()) {
-        changeLocalFileToFullPermission(localFolder.getAbsolutePath());
-        LOG.info("Folder {} was created!", localFolder);
-      } else {
-        throw new IOException("Failed to create folder " + localFolder);
-      }
+      throw new IOException("Failed to create block path, get parent path of " + path + "failed");
+    } catch (IOException ioe) {
+      throw new IOException("Failed to create block path " + path);
     }
   }
 
@@ -142,30 +153,88 @@ public class FileUtils {
    * Move file from one place to another, can across storage devices (e.g., from memory to SSD) when
    * {@link File#renameTo} may not work.
    *
-   * Current implementation uses {@link com.google.common.io.Files#move(File, File);}, may change if
+   * Current implementation uses {@link com.google.common.io.Files#move(File, File)}, may change if
    * there is a better solution.
    *
-   * @param from source file
-   * @param to destination file
+   * @param srcPath pathname string of source file
+   * @param dstPath pathname string of destination file
    * @throws IOException when fails to move
    */
-  public static void move(File from, File to) throws IOException {
-    Files.move(from, to);
+  public static void move(String srcPath, String dstPath) throws IOException {
+    Files.move(new File(srcPath), new File(dstPath));
   }
 
   /**
-   * Delete the file or directory
+   * Delete the file or directory.
    *
-   * Current implementation uses {@link java.io.File#delete();}, may change if
-   * there is a better solution.
+   * Current implementation uses {@link java.io.File#delete()}, may change if there is a better
+   * solution.
    *
-   * @param file file to delete
+   * @param path pathname string of file or directory
    * @throws IOException when fails to delete
    */
-  public static void delete(File file) throws IOException {
+  public static void delete(String path) throws IOException {
+    File file = new File(path);
     boolean deletionSucceeded = file.delete();
     if (deletionSucceeded == false) {
-      throw new IOException("Failed to delete " + file);
+      throw new IOException("Failed to delete " + path);
     }
+  }
+
+  /**
+   * Create the storage directory path, including any necessary but nonexistent parent directories.
+   * If the directory already exists, do nothing.
+   *
+   * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
+   *
+   * @param path storage directory path to create
+   * @throws IOException when fails to create storage directory path
+   */
+  public static void createStorageDirPath(String path) throws IOException {
+    File dir = new File(path);
+    String absolutePath = dir.getAbsolutePath();
+    if (!dir.exists()) {
+      if (dir.mkdirs()) {
+        changeLocalFileToFullPermission(absolutePath);
+        setLocalDirStickyBit(absolutePath);
+        LOG.info("Folder {} was created!", path);
+      } else {
+        throw new IOException("Failed to create folder " + path);
+      }
+    }
+  }
+
+  /**
+   * Creates an empty file and its intermediate directories if necessary.
+   *
+   * @param filePath pathname string of the file to create
+   * @throws IOException if an I/O error occurred or file already exists
+   */
+  public static void createFile(String filePath) throws IOException {
+    File file = new File(filePath);
+    Files.createParentDirs(file);
+    if (!file.createNewFile()) {
+      throw new IOException("File already exists " + filePath);
+    }
+  }
+
+  /**
+   * Creates an empty directory and its intermediate directories if necessary.
+   *
+   * @param path path of the directory to create
+   * @throws IOException if an I/O error occurred or directory already exists
+   */
+  public static void createDir(String path) throws IOException {
+    new File(path).mkdirs();
+  }
+
+  /**
+   * Checks if a path exists.
+   *
+   * @param path the given path
+   * @return true if path exists, false otherwise
+   */
+  public static boolean exists(String path) {
+    return new File(path).exists();
   }
 }

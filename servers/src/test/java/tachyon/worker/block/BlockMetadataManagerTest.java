@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -30,15 +31,17 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
 // TODO: improve code health of this unittest.
-public class BlockMetadataManagerTest {
+public final class BlockMetadataManagerTest {
   private static final long TEST_USER_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
@@ -54,7 +57,7 @@ public class BlockMetadataManagerTest {
 
   @Before
   public void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     // Setup a two-tier storage
     mTachyonHome = mFolder.newFolder().getAbsolutePath();;
     tachyonConf.set(Constants.TACHYON_HOME, mTachyonHome);
@@ -70,8 +73,7 @@ public class BlockMetadataManagerTest {
         mTachyonHome + "/disk1," + mTachyonHome + "/disk2");
     tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
         3000 + "," + 5000);
-
-    mMetaManager = BlockMetadataManager.newBlockMetadataManager(tachyonConf);
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager();
   }
 
   @Test
@@ -105,7 +107,7 @@ public class BlockMetadataManagerTest {
   public void getTierNotExistingTest() throws Exception {
     int badTierAlias = 2;
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Cannot find tier with alias " + badTierAlias);
+    mThrown.expectMessage(ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(badTierAlias));
     mMetaManager.getTier(badTierAlias);
   }
 
@@ -179,15 +181,15 @@ public class BlockMetadataManagerTest {
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mMetaManager.getBlockMeta(TEST_BLOCK_ID);
   }
 
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to get TempBlockMeta: temp blockId " + TEST_TEMP_BLOCK_ID
-        + " not found");
+    mThrown
+        .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
   }
 
@@ -302,6 +304,13 @@ public class BlockMetadataManagerTest {
 
   @Test
   public void getBlockStoreMetaTest() throws Exception {
-    Assert.assertNotNull(mMetaManager.getBlockStoreMeta());
+    BlockStoreMeta meta = mMetaManager.getBlockStoreMeta();
+    Assert.assertNotNull(meta);
+
+    // Assert the capacities are at alias level [MEM: 1000][SSD: 0][HDD: 8000]
+    List<Long> exceptedCapacityBytesOnTiers = new ArrayList<Long>(Arrays.asList(1000L, 0L, 8000L));
+    List<Long> exceptedUsedBytesOnTiers = new ArrayList<Long>(Arrays.asList(0L, 0L, 0L));
+    Assert.assertEquals(exceptedCapacityBytesOnTiers, meta.getCapacityBytesOnTiers());
+    Assert.assertEquals(exceptedUsedBytesOnTiers, meta.getUsedBytesOnTiers());
   }
 }

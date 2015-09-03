@@ -24,11 +24,13 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
@@ -58,13 +60,16 @@ public class BaseAllocatorTest {
   protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier(3);
 
   @Before
-  public final void before() throws Exception {
+  public void before() throws Exception {
     resetManagerView();
   }
 
   protected void resetManagerView() throws Exception {
+    //TODO: we will probably want to set WorkerContext.tachyonConf
+    TachyonConf tachyonConf = WorkerContext.getConf();
+    tachyonConf.merge(createTestTachyonConf());
     mManagerView = new BlockMetadataManagerView(
-        BlockMetadataManager.newBlockMetadataManager(createTestTachyonConf()),
+        BlockMetadataManager.newBlockMetadataManager(),
         new HashSet<Integer>(), new HashSet<Long>());
   }
 
@@ -136,15 +141,15 @@ public class BaseAllocatorTest {
    * Given an allocator with the location and blockSize,
    * we assert whether the block can be allocated
    */
-  protected void assertTempBlockMeta(Allocator allocator,
-      BlockStoreLocation location, int blockSize,
-      boolean avail)
-      throws IOException {
+  protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
+      int blockSize, boolean avail) throws IOException {
 
     mTestBlockId ++;
 
+    StorageDirView dirView =
+        allocator.allocateBlockWithView(USER_ID, blockSize, location, mManagerView);
     TempBlockMeta tempBlockMeta =
-        allocator.allocateBlockWithView(USER_ID, mTestBlockId, blockSize, location, mManagerView);
+        dirView == null ? null : dirView.createTempBlockMeta(USER_ID, mTestBlockId, blockSize);
 
     if (avail == false) {
       Assert.assertTrue(tempBlockMeta == null);
@@ -167,8 +172,10 @@ public class BaseAllocatorTest {
 
     mTestBlockId ++;
 
+    StorageDirView dirView =
+        allocator.allocateBlockWithView(USER_ID, blockSize, location, mManagerView);
     TempBlockMeta tempBlockMeta =
-        allocator.allocateBlockWithView(USER_ID, mTestBlockId, blockSize, location, mManagerView);
+        dirView == null ? null : dirView.createTempBlockMeta(USER_ID, mTestBlockId, blockSize);
 
     if (avail == false) {
       Assert.assertTrue(tempBlockMeta == null);

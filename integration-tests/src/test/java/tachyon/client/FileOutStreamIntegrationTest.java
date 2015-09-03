@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -39,6 +38,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * Integration tests for <code>tachyon.client.FileOutStream</code>.
@@ -78,27 +78,20 @@ public class FileOutStreamIntegrationTest {
     sLocalTachyonCluster.stop();
   }
 
-  @AfterClass
-  public static final void afterClass() {
-    System.clearProperty("fs.hdfs.impl.disable.cache");
-  }
-
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
     tachyonConf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(mEnableLocalWrite));
     // Only the Netty data server supports remote writes.
     tachyonConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
-    sLocalTachyonCluster.start(tachyonConf);
+    sLocalTachyonCluster.start();
     mTfs = sLocalTachyonCluster.getClient();
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
   }
@@ -231,8 +224,7 @@ public class FileOutStreamIntegrationTest {
     OutStream os = file.getOutStream(WriteType.THROUGH);
     Assert.assertTrue(os instanceof FileOutStream);
     os.write((byte) 0);
-    Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS,
-        Constants.SECOND_MS) * 2);
+    Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
     Assert.assertEquals(origId, mTfs.getUserId());
     os.write((byte) 1);
     os.close();

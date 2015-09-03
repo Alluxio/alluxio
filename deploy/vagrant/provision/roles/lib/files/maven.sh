@@ -1,21 +1,28 @@
-#!/bin/sh
+#!/bin/bash
 
-REPO=/etc/yum.repos.d/epel-apache-maven.repo
+# maven package's location
+MAVEN_LOC=http://apache.arvixe.com/maven/maven-3/3.3.3/binaries/apache-maven-3.3.3-bin.tar.gz
 
-if [ -f "$REPO" ]; then exit 0; fi
+# maven package's name
+MAVEN_FN=$(basename "$MAVEN_LOC")
 
 mkdir -p /vagrant/shared
 cd /vagrant/shared
 
-# install maven
-if [ ! -f epel-apache-maven.repo ]; then
- sudo yum install -y -q wget
- wget -q http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo
+# maven's dir after uncompression
+IFS='-' read -a array <<< "$MAVEN_FN"
+MAVEN_DIR=/vagrant/shared/${array[0]}-${array[1]}-${array[2]}
+
+if [ -d $MAVEN_DIR ] && [ `readlink -f /usr/bin/mvn` == "$MAVEN_DIR/bin/mvn" ]; then 
+  echo "Maven 3 is already installed."
+  exit 0
 fi
 
-sudo cp epel-apache-maven.repo $REPO
-sudo yum install -q -y apache-maven
-sudo ln -f -s /usr/share/apache-maven/bin/mvn /usr/bin/mvn
+# install maven
+wget -q $MAVEN_LOC
+tar xzvf $MAVEN_FN
+sudo ln -f -s "$MAVEN_DIR/bin/mvn" /usr/bin/mvn
+
 # relocate local repo to shared folder
 mkdir -p ~/.m2
 cat > ~/.m2/settings.xml <<EOF

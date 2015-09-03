@@ -4,10 +4,6 @@
 - name: mkdir /vagrant if not exist
   script: mkdir_vagrant.sh
 
-- name: install rsync
-  yum: name=rsync
-  sudo: yes
-
 # src is files/ in the same directory as Vagrantfile
 - name: sync files
   synchronize: >

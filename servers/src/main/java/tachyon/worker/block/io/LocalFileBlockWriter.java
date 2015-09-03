@@ -36,7 +36,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * <p>
  * This class does not provide thread-safety. Corresponding lock must be acquired.
  */
-public class LocalFileBlockWriter implements BlockWriter {
+public final class LocalFileBlockWriter implements BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
@@ -88,8 +88,9 @@ public class LocalFileBlockWriter implements BlockWriter {
     ByteBuffer outputBuf =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, offset, inputBufLength);
     outputBuf.put(inputBuf);
+    int bytesWritten = outputBuf.limit();
     BufferUtils.cleanDirectBuffer(outputBuf);
-    return outputBuf.limit();
+    return bytesWritten;
   }
 
   @Override

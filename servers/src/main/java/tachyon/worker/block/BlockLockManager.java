@@ -25,12 +25,12 @@ import java.util.concurrent.locks.Lock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 import tachyon.Constants;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 
@@ -39,16 +39,17 @@ import tachyon.exception.NotFoundException;
  * <p>
  * This class is thread-safe.
  */
-public class BlockLockManager {
+public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
   // TODO: Make this configurable
   private static final int NUM_LOCKS = 1000;
+
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
+  /** A hashing function to map blockId to one of the locks */
+  private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
-  /** The object that serves all metadata requests for the block store */
-  private final BlockMetadataManager mMetaManager;
   /** A map from a block ID to its lock */
   private final ClientRWLock[] mLockArray = new ClientRWLock[NUM_LOCKS];
   /** A map from a user ID to all the locks hold by this user */
@@ -57,41 +58,43 @@ public class BlockLockManager {
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
   /** To guard access on mLockIdToRecordMap and mUserIdToLockIdsMap */
   private final Object mSharedMapsLock = new Object();
-  /** A hashing function to map blockId to one of the locks */
-  private final HashFunction mHashFunc = Hashing.murmur3_32();
 
-  public BlockLockManager(BlockMetadataManager metaManager) {
-    mMetaManager = Preconditions.checkNotNull(metaManager);
+  public BlockLockManager() {
     for (int i = 0; i < NUM_LOCKS; i ++) {
       mLockArray[i] = new ClientRWLock();
     }
   }
 
   /**
-   * Locks a block if it exists, throws NotFoundException otherwise.
+   * Gets index of the lock that will be used to lock the block
+   *
+   * @param blockId the id of the block
+   * @return hash index of the lock
+   */
+  public static int blockHashIndex(long blockId) {
+    return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % NUM_LOCKS;
+  }
+
+  /**
+   * Locks a block. Note that, lock striping is used so even this block does not exist, a lock id is
+   * still returned.
    *
    * @param userId the ID of user
    * @param blockId the ID of block
    * @param blockLockType READ or WRITE
-   * @return lock id if the block exists
-   * @throws NotFoundException when blockId can not be found
+   * @return lock ID
    */
-  public long lockBlock(long userId, long blockId, BlockLockType blockLockType)
-      throws NotFoundException {
+  public long lockBlock(long userId, long blockId, BlockLockType blockLockType) {
     // hashing blockId into the range of [0, NUM_LOCKS-1]
-    int hashValue = Math.abs(mHashFunc.hashLong(blockId).asInt()) % NUM_LOCKS;
-    ClientRWLock blockLock = mLockArray[hashValue];
+    int index = blockHashIndex(blockId);
+    ClientRWLock blockLock = mLockArray[index];
     Lock lock;
     if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
-    } else { // blockLockType == BlockLockType.WRITE
+    } else {
       lock = blockLock.writeLock();
     }
     lock.lock();
-    if (!mMetaManager.hasBlockMeta(blockId)) {
-      lock.unlock();
-      throw new NotFoundException("Failed to lockBlock: no blockId " + blockId + " found");
-    }
     long lockId = LOCK_ID_GEN.getAndIncrement();
     synchronized (mSharedMapsLock) {
       mLockIdToRecordMap.put(lockId, new LockRecord(userId, blockId, lock));
@@ -115,9 +118,8 @@ public class BlockLockManager {
     Lock lock;
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
-      if (null == record) {
-        throw new NotFoundException("Failed to unlockBlock: lockId " + lockId
-            + " has no lock record");
+      if (record == null) {
+        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
       }
       long userId = record.userId();
       lock = record.lock();
@@ -138,8 +140,7 @@ public class BlockLockManager {
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          throw new NotFoundException("Failed to unlockBlock: lockId " + lockId
-              + " has no lock record");
+          throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
         }
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -152,8 +153,8 @@ public class BlockLockManager {
           return;
         }
       }
-      throw new NotFoundException("Failed to unlock blockId " + blockId + " for userId " + userId
-          + ": no lock is found for userId " + userId);
+      throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER,
+          blockId, userId);
     }
   }
 
@@ -164,24 +165,23 @@ public class BlockLockManager {
    * @param blockId The ID of the block
    * @param lockId The ID of the lock
    * @throws NotFoundException when no lock record can be found for lockId
-   * @throws InvalidStateException when userId or blockId is not consistent with that in the
-   *         lock record for lockId
+   * @throws InvalidStateException when userId or blockId is not consistent with that in the lock
+   *         record for lockId
    */
-  public void validateLock(long userId, long blockId, long lockId) throws NotFoundException,
-      InvalidStateException {
+  public void validateLock(long userId, long blockId, long lockId)
+      throws NotFoundException, InvalidStateException {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (null == record) {
-        throw new NotFoundException("Failed to validateLock: lockId " + lockId
-            + " has no lock record");
+        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
       }
       if (userId != record.userId()) {
-        throw new InvalidStateException("Failed to validateLock: lockId " + lockId
-            + " is owned by userId " + record.userId() + ", not " + userId);
+        throw new InvalidStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_USER, lockId,
+            record.userId(), userId);
       }
       if (blockId != record.blockId()) {
-        throw new InvalidStateException("Failed to validateLock: lockId " + lockId
-            + " is for blockId " + record.blockId() + ", not " + blockId);
+        throw new InvalidStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
+            record.blockId(), blockId);
       }
     }
   }
@@ -200,7 +200,7 @@ public class BlockLockManager {
       for (long lockId : userLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (null == record) {
-          LOG.error("Failed to cleanup userId {}: no lock record for lockId {}", userId, lockId);
+          LOG.error(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
           continue;
         }
         Lock lock = record.lock();
@@ -229,7 +229,7 @@ public class BlockLockManager {
   /**
    * Inner class to keep record of a lock.
    */
-  private static class LockRecord {
+  private static final class LockRecord {
     private final long mUserId;
     private final long mBlockId;
     private final Lock mLock;

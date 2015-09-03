@@ -30,7 +30,7 @@ public abstract class ImageWriter {
    *
    * @param objWriter The object writer to use
    * @param dos The target data output stream
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   abstract void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException;
 

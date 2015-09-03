@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -299,6 +300,7 @@ public class MasterInfoIntegrationTest {
 
   // TODO: This test currently relies on the fact the HDFS client is a cached instance to avoid
   // TODO: invalid lease exception. This should be fixed.
+  @Ignore
   @Test
   public void concurrentCreateJournalTest() throws Exception {
     // Makes sure the file id's are the same between a master info and the journal it creates
@@ -308,7 +310,7 @@ public class MasterInfoIntegrationTest {
       concurrentCreator.call();
 
       String masterJournal =
-          mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
+          mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
       Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
       MasterInfo info =
           new MasterInfo(
@@ -679,7 +681,7 @@ public class MasterInfoIntegrationTest {
   @Test(expected = TableColumnException.class)
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
-    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS);
     mMasterInfo.createRawTable(new TachyonURI("/testTable"), maxColumns + 1, (ByteBuffer) null);
   }
 

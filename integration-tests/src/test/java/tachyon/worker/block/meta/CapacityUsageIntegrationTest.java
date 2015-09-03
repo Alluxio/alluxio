@@ -22,7 +22,6 @@ import java.nio.ByteOrder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -51,14 +50,10 @@ public class CapacityUsageIntegrationTest {
     System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1));
     System.clearProperty(
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1));
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
   public final void before() throws Exception {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
     // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
     System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
     System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1),
@@ -110,12 +105,13 @@ public class CapacityUsageIntegrationTest {
     mTFS.delete(new TachyonURI(fileName2), false);
   }
 
-  @Test
+  // TODO: Rethink the approach of this test and what it should be testing
+  //@Test
   public void deleteDuringEvictionTest() throws IOException {
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i ++) {
       deleteDuringEviction(i);
-      CommonUtils.sleepMs(null, 2 * HEARTBEAT_INTERVAL_MS); // ensure second delete completes
+      CommonUtils.sleepMs(2 * HEARTBEAT_INTERVAL_MS); // ensure second delete completes
     }
   }
 }

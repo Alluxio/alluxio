@@ -26,12 +26,12 @@ public final class TachyonFSTestUtils {
   /**
    * Create a simple file with <code>len</code> bytes.
    *
-   * @param tfs
-   * @param fileName
-   * @param op
-   * @param len
-   * @return created file id.
-   * @throws IOException
+   * @param tfs a TachyonFS handler
+   * @param fileName the name of the file to be created
+   * @param op WriteType used to create the file
+   * @param len file size
+   * @return Id of the created file
+   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
   public static int createByteFile(TachyonFS tfs, String fileName, WriteType op, int len)
       throws IOException {
@@ -41,12 +41,12 @@ public final class TachyonFSTestUtils {
   /**
    * Create a simple file with <code>len</code> bytes.
    *
-   * @param tfs
-   * @param fileURI
-   * @param op
-   * @param len
-   * @return
-   * @throws IOException
+   * @param tfs a TachyonFS handler
+   * @param fileURI URI of the file
+   * @param op WriteType used to create the file
+   * @param len file size
+   * @return Id created file id
+   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
   public static int createByteFile(TachyonFS tfs, TachyonURI fileURI, WriteType op, int len)
       throws IOException {
@@ -65,13 +65,13 @@ public final class TachyonFSTestUtils {
   /**
    * Create a simple file with <code>len</code> bytes.
    *
-   * @param tfs
-   * @param fileName
-   * @param op
-   * @param len
-   * @param blockCapacityByte
-   * @return created file id.
-   * @throws IOException
+   * @param tfs a TachyonFS handler
+   * @param fileName the name of the file to be created
+   * @param op WriteType used to create the file
+   * @param len file size
+   * @param blockCapacityByte block size of the file
+   * @return Id of the created file
+   * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
   public static int createByteFile(TachyonFS tfs, String fileName, WriteType op, int len,
       long blockCapacityByte) throws IOException {
@@ -87,6 +87,14 @@ public final class TachyonFSTestUtils {
     return fileId;
   }
 
+  /**
+   * List files at a given <code>path</code>.
+   *
+   * @param tfs a TachyonFS handler
+   * @param path a path in tachyon file system
+   * @return a list of stings representing the file names under the given path
+   * @throws IOException if <code>path</code> does not exist or is invalid
+   */
   public static List<String> listFiles(TachyonFS tfs, String path) throws IOException {
     List<ClientFileInfo> infos = tfs.listStatus(new TachyonURI(path));
     List<String> res = new ArrayList<String>();

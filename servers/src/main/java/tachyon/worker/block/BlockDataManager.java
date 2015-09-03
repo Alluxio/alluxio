@@ -19,12 +19,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Users;
@@ -39,7 +35,9 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
@@ -50,15 +48,11 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
  * thread-safe.
  */
-public class BlockDataManager {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+public final class BlockDataManager {
   /** Block store delta reporter for master heartbeat */
   private final BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private final BlockStore mBlockStore;
-  /** Master client thread pool */
-  private final ExecutorService mMasterClientExecutorService;
   /** Configuration values */
   private final TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
@@ -66,7 +60,6 @@ public class BlockDataManager {
   /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
 
-  // TODO: See if this can be removed from the class
   /** MasterClient, only used to inform the master of a new block in commitBlock */
   private MasterClient mMasterClient;
   /** UnderFileSystem Client */
@@ -79,34 +72,28 @@ public class BlockDataManager {
   /**
    * Creates a BlockDataManager based on the configuration values.
    *
-   * @param tachyonConf the configuration values to use
    * @param workerSource object for collecting the worker metrics
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(TachyonConf tachyonConf, WorkerSource workerSource)
+  public BlockDataManager(WorkerSource workerSource, MasterClient masterClient)
       throws IOException {
+    // TODO: We may not need to assign the conf to a variable
+    mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mBlockStore = new TieredBlockStore(tachyonConf);
-    mTachyonConf = tachyonConf;
+    mBlockStore = new TieredBlockStore();
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
-    mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1,
-            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+    mMasterClient = masterClient;
 
     // Create Under FileSystem Client
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
     String ufsAddress =
-        mTachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
+        mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
-    InetSocketAddress workerAddress = NetworkAddressUtils.getLocalWorkerAddress(mTachyonConf);
-    mUfs.connectFromWorker(mTachyonConf, NetworkAddressUtils.getFqdnHost(workerAddress));
+    mUfs.connectFromWorker(mTachyonConf,
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf));
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -163,13 +150,13 @@ public class BlockDataManager {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
       }
-    } catch (IOException e) {
+    } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
     }
     long fileSize;
     try {
       fileSize = mUfs.getFileSize(dstPath);
-    } catch (IOException e) {
+    } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
     mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
@@ -194,7 +181,6 @@ public class BlockDataManager {
    *
    * @param userId The id of the client
    * @param blockId The id of the block to commit
-   * @return true if successful, false otherwise
    * @throws AlreadyExistsException if blockId already exists in committed blocks
    * @throws NotFoundException if the temporary block cannot be found
    * @throws InvalidStateException if blockId does not belong to userId
@@ -214,13 +200,13 @@ public class BlockDataManager {
       Long storageDirId = loc.getStorageDirId();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
-      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierLevel());
+      Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
       mMasterClient
           .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
-    } catch (TException te) {
-      throw new IOException("Failed to commit block to master.", te);
+    } catch (IOException ioe) {
+      throw new IOException("Failed to commit block to master.", ioe);
     } finally {
-      mBlockStore.unlockBlock(userId, blockId);
+      mBlockStore.unlockBlock(lockId);
     }
   }
 
@@ -483,8 +469,6 @@ public class BlockDataManager {
    * Stop the block data manager. This method should only be called when terminating the worker.
    */
   public void stop() {
-    mMasterClient.close();
-    mMasterClientExecutorService.shutdown();
   }
 
   /**
@@ -517,7 +501,7 @@ public class BlockDataManager {
    * Set the pinlist for the underlying blockstore.
    * Typically called by PinListSync.
    *
-   * @param pinnedInodes, a set of pinned inodes
+   * @param pinnedInodes a set of pinned inodes
    */
   public void updatePinList(Set<Integer> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);

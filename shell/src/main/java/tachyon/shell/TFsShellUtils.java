@@ -15,12 +15,20 @@
 
 package tachyon.shell;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.thrift.ClientFileInfo;
 
 /**
  * Class for convenience methods used by {@link TFsShell}.
@@ -66,12 +74,168 @@ public class TFsShellUtils {
         return path;
       }
     } else {
-      String hostname = tachyonConf.get(Constants.MASTER_HOSTNAME, "localhost");
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT, Constants.DEFAULT_MASTER_PORT);
-      if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER, false)) {
+      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
+      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
+      if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);
     }
+  }
+
+  /**
+   * Get all the TachyonURIs that match inputURI.
+   * If the path is a regular path, the returned list only contains the corresponding URI;
+   * Else if the path contains wildcards, the returned list contains all the matched URIs
+   * It supports any number of wildcards in inputURI
+   * @param tachyonClient The client used to fetch information of Tachyon files
+   * @param inputURI the input URI (could contain wildcards)
+   * @return A list of TachyonURIs that matches the inputURI
+   * @throws IOException
+   */
+  public static List<TachyonURI> getTachyonURIs(TachyonFS tachyonClient, TachyonURI inputURI)
+      throws IOException {
+    if (!inputURI.getPath().contains(TachyonURI.WILDCARD)) {
+      List<TachyonURI> res = new LinkedList<TachyonURI>();
+      if (tachyonClient.getFileId(inputURI) != -1) {
+        res.add(inputURI);
+      }
+      return res;
+    } else {
+      String inputPath = inputURI.getPath();
+      TachyonURI parentURI =
+          new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(),
+              inputPath.substring(0, inputPath.indexOf(TachyonURI.WILDCARD) + 1)).getParent();
+      return getTachyonURIs(tachyonClient, inputURI, parentURI);
+    }
+  }
+
+  /**
+   * The utility function used to implement getTachyonURIs
+   * Basically, it recursively iterates through the directory from the parent directory of inputURI
+   * (e.g., for input "/a/b/*", it will start from "/a/b") until it finds all the matches;
+   * It does not go into a directory if the prefix mismatches
+   * (e.g., for input "/a/b/*", it won't go inside directory "/a/c")
+   * @param tachyonClient The client used to fetch metadata of Tachyon files
+   * @param inputURI The input URI (could contain wildcards)
+   * @param parentDir The TachyonURI of the directory in which we are searching matched files
+   * @return A list of TachyonURIs of the files that match the inputURI in parentDir
+   * @throws IOException
+   */
+  private static List<TachyonURI> getTachyonURIs(TachyonFS tachyonClient, TachyonURI inputURI,
+      TachyonURI parentDir) throws IOException {
+    List<TachyonURI> res = new LinkedList<TachyonURI>();
+    List<ClientFileInfo> files = tachyonClient.listStatus(parentDir);
+    for (ClientFileInfo file : files) {
+      TachyonURI fileURI =
+          new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), file.getPath());
+      if (match(fileURI, inputURI)) { // if it matches
+        res.add(fileURI);
+      } else {
+        if (file.isFolder) { // if it is a folder, we do it recursively
+          TachyonURI dirURI =
+              new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), file.getPath());
+          String prefix = inputURI.getLeadingPath(dirURI.getDepth());
+          if (prefix != null && match(dirURI, new TachyonURI(prefix))) {
+            res.addAll(getTachyonURIs(tachyonClient, inputURI, dirURI));
+          }
+        }
+      }
+    }
+    return res;
+  }
+
+  /**
+   * Get the Files (on the local filesystem) that matches input path.
+   * If the path is a regular path, the returned list only contains the corresponding file;
+   * Else if the path contains wildcards, the returned list contains all the matched Files
+   * @param inputPath The input file path (could contain wildcards)
+   * @return A list of files that matches inputPath
+   */
+  public static List<File> getFiles(String inputPath) {
+    File file = new File(inputPath);
+    if (!inputPath.contains("*")) {
+      List<File> res = new LinkedList<File>();
+      if (file.exists()) {
+        res.add(file);
+      }
+      return res;
+    } else {
+      String prefix = inputPath.substring(0, inputPath.indexOf(TachyonURI.WILDCARD) + 1);
+      String parent = new File(prefix).getParent();
+      return getFiles(inputPath, parent);
+    }
+  }
+
+  /**
+   * The utility function used to implement getFiles
+   * It follows the same algorithm as getTachyonURIs
+   * @param inputPath The input file path (could contain wildcards)
+   * @param parent The directory in which we are searching matched files
+   * @return A list of files that matches the input path in the parent directory
+   */
+  private static List<File> getFiles(String inputPath, String parent) {
+    List<File> res = new LinkedList<File>();
+    File pFile = new File(parent);
+    if (!pFile.exists() || !pFile.isDirectory()) {
+      return res;
+    }
+    if (pFile.isDirectory() && pFile.canRead()) {
+      for (File file : pFile.listFiles()) {
+        if (match(file.getPath(), inputPath)) { // if it matches
+          res.add(file);
+        } else {
+          if (file.isDirectory()) { // if it is a folder, we do it recursively
+            TachyonURI dirURI = new TachyonURI(file.getPath());
+            String prefix = new TachyonURI(inputPath).getLeadingPath(dirURI.getDepth());
+            if (prefix != null && match(dirURI, new TachyonURI(prefix))) {
+              res.addAll(getFiles(inputPath, dirURI.getPath()));
+            }
+          }
+        }
+      }
+    }
+    return res;
+  }
+
+  /**
+   * The characters that have special regex semantics
+   */
+  private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
+
+  /**
+   * Escape the special characters in a given string
+   * @param str Input string
+   * @return the string with special characters escaped
+   */
+  private static String escape(String str) {
+    return SPECIAL_REGEX_CHARS.matcher(str).replaceAll("\\\\$0");
+  }
+
+  /**
+   * Replace the wildcards with Java's regex semantics
+   */
+  private static String replaceWildcards(String text) {
+    return escape(text).replace("\\*", ".*");
+  }
+
+  /**
+   * Return whether or not fileURI matches the patternURI
+   * @param fileURI The TachyonURI of a particular file
+   * @param patternURI The URI that can contain wildcards
+   * @return true if matches; false if not
+   */
+  private static boolean match(TachyonURI fileURI, TachyonURI patternURI) {
+    return escape(fileURI.getPath()).matches(replaceWildcards(patternURI.getPath()));
+  }
+
+  /**
+   * Return whether or not filePath matches patternPath
+   * @param filePath Path of a given file
+   * @param patternPath Path that can contain wildcards
+   * @return true if matches; false if not
+   */
+  protected static boolean match(String filePath, String patternPath) {
+    return match(new TachyonURI(filePath), new TachyonURI(patternPath));
   }
 }

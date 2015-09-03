@@ -29,7 +29,8 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.TachyonByteBuffer;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -75,7 +76,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
             "BasicCheckpoint Dependency", "Tachyon Examples", "0.3",
             DependencyType.Narrow.getValue(), 512 * Constants.MB);
 
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "createDependency with depId " + depId);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createDependency with depId " + depId));
   }
 
   private boolean readFile(TachyonFS tachyonClient) throws IOException {
@@ -84,16 +85,14 @@ public class BasicCheckpoint implements Callable<Boolean> {
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Reading data from {}", filePath);
       TachyonFile file = tachyonClient.getFile(filePath);
-      TachyonByteBuffer buf = file.readByteBuffer(0);
-      if (buf == null) {
-        file.recache();
-        buf = file.readByteBuffer(0);
-      }
-      buf.mData.order(ByteOrder.nativeOrder());
+      InStream is = file.getInStream(ReadType.CACHE);
+      ByteBuffer buf = ByteBuffer.allocate((int) file.getBlockSizeByte());
+      is.read(buf.array());
+      buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mNumFiles; k ++) {
-        pass = pass && (buf.mData.getInt() == k);
+        pass = pass && (buf.getInt() == k);
       }
-      buf.close();
+      is.close();
     }
     return pass;
   }

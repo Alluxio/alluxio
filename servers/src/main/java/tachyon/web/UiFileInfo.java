@@ -124,11 +124,11 @@ public final class UiFileInfo {
   }
 
   public void addBlock(StorageLevelAlias storageLevelAlias, long blockId, long blockSize,
-      long blockLastAccessTimeMs) {
+      long blockLastAccessTimeMs, List<NetAddress> locations) {
     int tier = storageLevelAlias.getValue() - 1;
     UiBlockInfo block =
         new UiBlockInfo(blockId, blockSize, blockLastAccessTimeMs,
-            storageLevelAlias == StorageLevelAlias.MEM);
+            storageLevelAlias == StorageLevelAlias.MEM, locations);
     mBlocksOnTier.get(tier).add(block);
     mSizeOnTier.set(tier, mSizeOnTier.get(tier) + blockSize);
   }

@@ -60,7 +60,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) throws ServiceException {
     super(tachyonConf);
     AWSCredentials awsCredentials =
-        new AWSCredentials(tachyonConf.get(Constants.S3_ACCESS_KEY, null), tachyonConf.get(
+        new AWSCredentials(tachyonConf.get(Constants.S3_ACCESS_KEY), tachyonConf.get(
             Constants.S3_SECRET_KEY, null));
     mBucketName = bucketName;
     mClient = new RestS3Service(awsCredentials);

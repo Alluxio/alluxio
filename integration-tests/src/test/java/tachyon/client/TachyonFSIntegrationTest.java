@@ -23,7 +23,9 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -48,6 +50,9 @@ public class TachyonFSIntegrationTest {
   private static TachyonFS sTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public final void before() throws IOException {
@@ -95,8 +100,10 @@ public class TachyonFSIntegrationTest {
     fileId = sTfs.createFile(uri);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void createFileWithInvalidPathExceptionTest() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("URI must be absolute, unless it's empty.");
     sTfs.createFile(new TachyonURI("root/testFile1"));
   }
 
@@ -143,8 +150,10 @@ public class TachyonFSIntegrationTest {
     sTfs.createRawTable(uri, 20);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void createRawTableWithInvalidPathExceptionTest1() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("URI must be absolute, unless it's empty.");
     sTfs.createRawTable(new TachyonURI("tables/table1"), 20);
   }
 
@@ -155,7 +164,7 @@ public class TachyonFSIntegrationTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
-    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS, 257);
+    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS);
     sTfs.createRawTable(new TachyonURI("/table"), maxColumns);
   }
 
@@ -171,7 +180,7 @@ public class TachyonFSIntegrationTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest4() throws IOException {
-    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS, 1000);
+    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS);
     sTfs.createRawTable(new TachyonURI(PathUtils.uniqPath()), maxColumns);
   }
 
@@ -206,9 +215,8 @@ public class TachyonFSIntegrationTest {
       sTfs.delete(fileId, true);
       Assert.assertFalse(sTfs.exist(fileURI));
       int timeOutMs =
-          mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS,
-              Constants.SECOND_MS) * 2 + 10;
-      CommonUtils.sleepMs(null, timeOutMs);
+          mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2 + 10;
+      CommonUtils.sleepMs(timeOutMs);
       workers = sTfs.getWorkersInfo();
       Assert.assertEquals(1, workers.size());
       Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
@@ -245,28 +253,38 @@ public class TachyonFSIntegrationTest {
     Assert.assertFalse(fileInfo == fileInfoNotCached);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal1() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft");
     TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort), mMasterTachyonConf);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal2() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
     TachyonFS.get(new TachyonURI("/" + sHost + sPort), mMasterTachyonConf);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal3() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
     TachyonFS.get(new TachyonURI("/" + sHost + ":" + (sPort - 1)), mMasterTachyonConf);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal4() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
     TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort + "/ab/c.txt"), mMasterTachyonConf);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void getTestAbnormal5() throws IOException {
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage("Tachyon scheme must be either tachyon or tachyon-ft.");
     // API user may have this typo: tacyon
     TachyonFS.get(new TachyonURI("tacyon://" + sHost + ":" + sPort), mMasterTachyonConf);
   }

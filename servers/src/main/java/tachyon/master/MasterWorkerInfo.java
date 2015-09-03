@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -181,7 +181,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the worker
-   * 
+   *
    * @param add true if to add, to remove otherwise.
    * @param blockId the ID of the block to be added or removed
    */
@@ -195,7 +195,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes blocks from the worker
-   * 
+   *
    * @param add true if to add, to remove otherwise.
    * @param blockIds IDs of the blocks to be added or removed
    */
@@ -216,7 +216,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
-   * 
+   *
    * @param add true if to add, to remove otherwise.
    * @param blockId the ID of the block to be added or removed
    */
@@ -232,7 +232,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes blocks from the to-be-removed blocks set of the worker.
-   * 
+   *
    * @param add true if to add, to remove otherwise.
    * @param blockIds IDs of blocks to be added or removed
    */
@@ -244,7 +244,7 @@ public class MasterWorkerInfo {
 
   /**
    * Set the used space of the worker in bytes.
-   * 
+   *
    * @param usedBytesOnTiers used bytes on each storage tier
    */
   public synchronized void updateUsedBytes(List<Long> usedBytesOnTiers) {
@@ -257,7 +257,7 @@ public class MasterWorkerInfo {
 
   /**
    * Set the used space of the worker in bytes.
-   * 
+   *
    * @param aliasValue value of StorageLevelAlias
    * @param usedBytesOnTier used bytes on certain storage tier.
    */

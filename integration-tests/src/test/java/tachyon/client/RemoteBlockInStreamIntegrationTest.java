@@ -78,16 +78,12 @@ public class RemoteBlockInStreamIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
     System.clearProperty(Constants.WORKER_DATA_SERVER);
     System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   @Before
   public final void before() throws Exception {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
-
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
@@ -557,6 +553,54 @@ public class RemoteBlockInStreamIntegrationTest {
     is = file.getInStream(ReadType.NO_CACHE);
     Assert.assertTrue(is instanceof RemoteBlockInStream);
     is.close();
+  }
+
+  /*
+   * Tests that reading a remote block with CACHE ReadType will only cache if it is writing with a
+   * local stream.
+   */
+  @Test
+  public void remoteStreamCancelsRecache() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    int len = 2;
+    int fileId = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, WriteType.THROUGH, len);
+    TachyonConf conf = mLocalTachyonCluster.getWorkerTachyonConf();
+    // Turn on localwrite so that local worker can be found
+    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(true));
+    TachyonFS fs = TachyonFS.get(conf);
+    TachyonFile file = fs.getFile(fileId);
+    InStream is = file.getInStream(ReadType.CACHE);
+    Assert.assertFalse(file.isInMemory());
+    Assert.assertTrue(is instanceof RemoteBlockInStream);
+    for (int i = 0; i < len; i ++) {
+      Assert.assertEquals(i, is.read());
+    }
+    is.close();
+    // reading the whole file cause it to recache
+    Assert.assertTrue(file.isInMemory());
+    is = file.getInStream(ReadType.NO_CACHE);
+    Assert.assertTrue(is instanceof LocalBlockInStream);
+    is.close();
+
+    String uniqPath2 = PathUtils.uniqPath();
+    int fileId2 = TachyonFSTestUtils.createByteFile(mTfs, uniqPath2, WriteType.THROUGH, len);
+    // Turn off localwrite so that only remote worker can be found
+    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(false));
+    TachyonFS fs2 = TachyonFS.get(conf);
+    TachyonFile file2 = fs2.getFile(fileId2);
+    InStream is2 = new RemoteBlockInStream(file2, ReadType.CACHE, 0, conf);
+    Assert.assertFalse(file2.isInMemory());
+    Assert.assertTrue(is2 instanceof RemoteBlockInStream);
+    for (int i = 0; i < len; i ++) {
+      Assert.assertEquals(i, is2.read());
+    }
+    is2.close();
+    // even though the whole file was read, recache was cancelled because no local worker is
+    // available
+    Assert.assertFalse(file2.isInMemory());
+    is2 = file2.getInStream(ReadType.NO_CACHE);
+    Assert.assertTrue(is2 instanceof RemoteBlockInStream);
+    is2.close();
   }
 
   /**

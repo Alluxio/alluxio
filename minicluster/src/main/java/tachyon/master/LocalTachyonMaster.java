@@ -25,7 +25,9 @@ import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
+import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.util.UnderFileSystemUtils;
 
 /**
@@ -68,7 +70,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
-    mHostname = NetworkAddressUtils.getLocalHostName(250);
+    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
@@ -85,12 +87,8 @@ public final class LocalTachyonMaster {
     UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),
         tachyonConf);
 
-    tachyonConf.set(Constants.MASTER_HOSTNAME, mHostname);
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
     tachyonConf.set(Constants.UNDERFS_ADDRESS, mUnderFSFolder);
-
-    tachyonConf.set(Constants.MASTER_PORT, "0");
-    tachyonConf.set(Constants.MASTER_WEB_PORT, "0");
 
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
@@ -104,13 +102,13 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     tachyonConf.set(Constants.WEB_THREAD_COUNT, "1");
-    tachyonConf.set(Constants.WEB_RESOURCES, System.getProperty("user.dir") + "/src/main/webapp");
+    tachyonConf.set(Constants.WEB_RESOURCES,
+        PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
     mTachyonMaster = new TachyonMaster(tachyonConf);
 
-    // Reset the ports
-    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getMetaPort()));
-    tachyonConf.set(Constants.MASTER_WEB_PORT, Integer.toString(getMetaPort() + 1));
+    // Reset the master port
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -129,7 +127,9 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated home and port.
    *
-   * @throws IOException unable to do file operation or listen on port
+   * @param tachyonConf Tachyon configuration
+   * @throws IOException when unable to do file operation or listen on port
+   * @return an instance of Tachyon master
    */
   public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
     final String tachyonHome = uniquePath();
@@ -143,22 +143,18 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Creates a new local tachyon master with a isolated port. tachyonHome is expected to be clean
-   * before calling this method.
-   * <p />
-   * Clean is defined as
+   * Creates a new local tachyon master with a isolated port.
    *
-   * <pre>
-   * {@code
-   *   UnderFileSystems.deleteDir(tachyonHome);
-   *   UnderFileSystems.mkdirIfNotExists(tachyonHome);
-   * }
-   * </pre>
-   *
-   * @throws IOException unable to do file operation or listen on port
+   * @param tachyonHome Tachyon home directory
+   * @param tachyonConf Tachyon configuration
+   * @return an instance of Tachyon master
+   * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
+    UnderFileSystemUtils.deleteDir(tachyonHome, tachyonConf);
+    UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
+
     return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome), tachyonConf);
   }
 
@@ -171,6 +167,8 @@ public final class LocalTachyonMaster {
    *
    * This method will not clean up {@link tachyon.util.UnderFileSystemUtils} data. To do that you
    * must call {@link #cleanupUnderfs()}.
+   *
+   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     clearClients();
@@ -193,12 +191,44 @@ public final class LocalTachyonMaster {
     System.clearProperty("tachyon.underfs.address");
   }
 
-  public int getMetaPort() {
-    return mTachyonMaster.getMetaPort();
+  /**
+   * Get the actual bind hostname on RPC service (used by unit test only).
+   *
+   * @return the RPC bind hostname
+   */
+  public String getRPCBindHost() {
+    return mTachyonMaster.getRPCBindHost();
+  }
+
+  /**
+   * Get the actual port that the RPC service is listening on (used by unit test only)
+   *
+   * @return the RPC local port
+   */
+  public int getRPCLocalPort() {
+    return mTachyonMaster.getRPCLocalPort();
+  }
+
+  /**
+   * Get the actual bind hostname on web service (used by unit test only).
+   *
+   * @return the Web bind hostname
+   */
+  public String getWebBindHost() {
+    return mTachyonMaster.getWebBindHost();
+  }
+
+  /**
+   * Get the actual port that the web service is listening on (used by unit test only)
+   *
+   * @return the Web local port
+   */
+  public int getWebLocalPort() {
+    return mTachyonMaster.getWebLocalPort();
   }
 
   public String getUri() {
-    return Constants.HEADER + mHostname + ":" + getMetaPort();
+    return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
   public TachyonFS getClient() throws IOException {

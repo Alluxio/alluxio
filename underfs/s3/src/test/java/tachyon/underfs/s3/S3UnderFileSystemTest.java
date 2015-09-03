@@ -16,7 +16,7 @@
 package tachyon.underfs.s3;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
@@ -26,19 +26,19 @@ import org.powermock.reflect.Whitebox;
  * not require an S3 backend
  */
 public class S3UnderFileSystemTest {
-  private static S3UnderFileSystem sMockS3UnderFileSystem;
+  private S3UnderFileSystem mMockS3UnderFileSystem;
 
-  @BeforeClass
-  public static final void beforeClass() {
-    sMockS3UnderFileSystem = PowerMockito.mock(S3UnderFileSystem.class);
-    Whitebox.setInternalState(sMockS3UnderFileSystem, "mBucketName", "test-bucket");
-    Whitebox.setInternalState(sMockS3UnderFileSystem, "mBucketPrefix", "s3n://test-bucket/");
+  @Before
+  public  final void before() {
+    mMockS3UnderFileSystem = PowerMockito.mock(S3UnderFileSystem.class);
+    Whitebox.setInternalState(mMockS3UnderFileSystem, "mBucketName", "test-bucket");
+    Whitebox.setInternalState(mMockS3UnderFileSystem, "mBucketPrefix", "s3n://test-bucket/");
   }
 
   @Test
   public void convertToFolderNameTest() throws Exception {
     String input1 = "test";
-    String result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "convertToFolderName", input1);
+    String result1 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "convertToFolderName", input1);
 
     Assert.assertEquals(result1, "test_$folder$");
   }
@@ -52,11 +52,11 @@ public class S3UnderFileSystemTest {
     String input31 = "s3n://test-bucket/child";
     String input32 = "s3n://test-bucket/not-parent";
     String result1 =
-        Whitebox.invokeMethod(sMockS3UnderFileSystem, "getChildName", input11, input12);
+        Whitebox.invokeMethod(mMockS3UnderFileSystem, "getChildName", input11, input12);
     String result2 =
-        Whitebox.invokeMethod(sMockS3UnderFileSystem, "getChildName", input21, input22);
+        Whitebox.invokeMethod(mMockS3UnderFileSystem, "getChildName", input21, input22);
     String result3 =
-        Whitebox.invokeMethod(sMockS3UnderFileSystem, "getChildName", input31, input32);
+        Whitebox.invokeMethod(mMockS3UnderFileSystem, "getChildName", input31, input32);
 
     Assert.assertEquals("child", result1);
     Assert.assertEquals("child", result2);
@@ -69,10 +69,10 @@ public class S3UnderFileSystemTest {
     String input2 = "s3n://test-bucket/";
     String input3 = "s3n://test-bucket/parent/child";
     String input4 = "s3n://test-bucket";
-    String result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "getParentKey", input1);
-    String result2 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "getParentKey", input2);
-    String result3 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "getParentKey", input3);
-    String result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "getParentKey", input4);
+    String result1 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "getParentKey", input1);
+    String result2 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "getParentKey", input2);
+    String result3 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "getParentKey", input3);
+    String result4 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "getParentKey", input4);
 
     Assert.assertEquals("s3n://test-bucket", result1);
     Assert.assertNull(result2);
@@ -88,12 +88,12 @@ public class S3UnderFileSystemTest {
     String input4 = "s3n://test-bucket/file";
     String input5 = "s3n://test-bucket/dir/file";
     String input6 = "s3n://test-bucket-wrong/";
-    Boolean result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input1);
-    Boolean result2 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input2);
-    Boolean result3 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input3);
-    Boolean result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input4);
-    Boolean result5 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input5);
-    Boolean result6 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "isRoot", input6);
+    Boolean result1 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input1);
+    Boolean result2 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input2);
+    Boolean result3 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input3);
+    Boolean result4 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input4);
+    Boolean result5 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input5);
+    Boolean result6 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input6);
 
     Assert.assertFalse(result1);
     Assert.assertTrue(result2);
@@ -109,11 +109,11 @@ public class S3UnderFileSystemTest {
     String input2 = "s3n://test-bucket/dir/file";
     String input3 = "s3n://test-bucket/dir_$folder$";
     String result1 =
-        Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input1);
+        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input1);
     String result2 =
-        Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input2);
+        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input2);
     String result3 =
-        Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input3);
+        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input3);
 
     Assert.assertEquals("s3n://test-bucket/", result1);
     Assert.assertEquals("s3n://test-bucket/dir/file", result2);
@@ -128,12 +128,12 @@ public class S3UnderFileSystemTest {
     String input4 = "s3n://test-bucket/dir/file";
     String input5 = "s3n://test-bucket-wrong/dir/file";
     String input6 = "dir/file";
-    String result1 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input1);
-    String result2 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input2);
-    String result3 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input3);
-    String result4 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input4);
-    String result5 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input5);
-    String result6 = Whitebox.invokeMethod(sMockS3UnderFileSystem, "stripPrefixIfPresent", input6);
+    String result1 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input1);
+    String result2 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input2);
+    String result3 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input3);
+    String result4 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input4);
+    String result5 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input5);
+    String result6 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input6);
 
     Assert.assertEquals("s3n://test-bucket", result1);
     Assert.assertEquals("", result2);

@@ -62,18 +62,15 @@ public class Format {
     if (args[0].toUpperCase().equals("MASTER")) {
 
       String masterJournal =
-          tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER, Constants.DEFAULT_JOURNAL_FOLDER);
+          tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
       if (!formatFolder("JOURNAL_FOLDER", masterJournal, tachyonConf)) {
         System.exit(-1);
       }
 
-      String tachyonHome = tachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
-      String ufsAddress =
-          tachyonConf.get(Constants.UNDERFS_ADDRESS, tachyonHome + "/underFSStorage");
       String ufsDataFolder =
-          tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, ufsAddress + "/tachyon/data");
+          tachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
       String ufsWorkerFolder =
-          tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER, ufsAddress + "/tachyon/workers");
+          tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
       if (!formatFolder("UNDERFS_DATA_FOLDER", ufsDataFolder, tachyonConf)
           || !formatFolder("UNDERFS_WORKERS_FOLDER", ufsWorkerFolder, tachyonConf)) {
         System.exit(-1);
@@ -84,7 +81,7 @@ public class Format {
     } else if (args[0].toUpperCase().equals("WORKER")) {
       String workerDataFolder =
           tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-      int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, 1);
+      int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
       for (int level = 0; level < maxStorageLevels; level ++) {
         String tierLevelDirPath =
             String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);

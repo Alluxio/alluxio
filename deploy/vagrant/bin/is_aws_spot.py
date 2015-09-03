@@ -12,12 +12,12 @@ import yaml
 
 from util import error
 
-def is_spot():
-    price = yaml.load(open('conf/ec2.yml')).get('Spot_Price')
+def is_spot(price):
     return price is not None and price != ''
 
 if __name__ == '__main__':
-    if is_spot():
+    price = yaml.load(open('conf/ec2.yml')).get('Spot_Price')
+    if is_spot(price):
       try:
         float(price)
         print(0)

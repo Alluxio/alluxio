@@ -74,7 +74,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       # Provider specific init
       if Provider == "vb"
-        system "bash vbox/buildbox.sh"
         config_vb(n, i, Total, name, TachyonV.type == "Local")
       end
 
@@ -95,6 +94,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           AVAILABILITY_ZONE  = @ec2['Availability_Zone']
           BLOCK_DEVICE_MAPPING = @ec2['Block_Device_Mapping']
           TAG = @ec2['Tag']
+          SUBNET = @ec2['Subnet']
         end
         config_aws(n, i, Total, name)
       end

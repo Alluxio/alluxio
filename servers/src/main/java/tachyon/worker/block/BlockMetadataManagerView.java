@@ -16,6 +16,7 @@
 package tachyon.worker.block;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,9 +25,11 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
 import tachyon.master.BlockInfo;
 import tachyon.worker.block.meta.BlockMeta;
+import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
@@ -44,26 +47,27 @@ public class BlockMetadataManagerView {
   private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
   /** A list of pinned inodes */
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
-  /** A list of blocks that are currently being read */
-  private final Set<Long> mLockedBlocks = new HashSet<Long>();
+  /** Indices of locks that are being used */
+  private final BitSet mInUseLocks = new BitSet();
   /** A map from tier alias to StorageTierView */
   private Map<Integer, StorageTierView> mAliasToTierViews = new HashMap<Integer, StorageTierView>();
-
 
   /**
    * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
    * TODO: incrementally update the view
    *
    * @param manager which the view should be constructed from
-   * @param pinnedInodes, a set of pinned nodes
-   * @param lockedBlocks, a set of locked blocks
-   * @return BlockMetadataManagerView constructed
+   * @param pinnedInodes a set of pinned inodes
+   * @param lockedBlocks a set of locked blocks
    */
   public BlockMetadataManagerView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
       Set<Long> lockedBlocks) {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
-    mLockedBlocks.addAll(Preconditions.checkNotNull(lockedBlocks));
+    Preconditions.checkNotNull(lockedBlocks);
+    for (Long blockId : lockedBlocks) {
+      mInUseLocks.set(BlockLockManager.blockHashIndex(blockId));
+    }
 
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
@@ -74,7 +78,18 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Test if the block is pinned.
+   * Clears all marks of blocks to move in/out in all dir views.
+   */
+  public void clearBlockMarks() {
+    for (StorageTierView tierView : mTierViews) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        dirView.clearBlockMarks();
+      }
+    }
+  }
+
+  /**
+   * Tests if the block is pinned.
    *
    * @param blockId to be tested
    * @return boolean, true if block is pinned
@@ -84,27 +99,49 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Test if the block is locked.
+   * Tests if the block is locked.
    *
    * @param blockId to be tested
    * @return boolean, true if block is locked
    */
   public boolean isBlockLocked(long blockId) {
-    return mLockedBlocks.contains(blockId);
+    int index = BlockLockManager.blockHashIndex(blockId);
+    if (index < mInUseLocks.length()) {
+      return mInUseLocks.get(index);
+    } else {
+      return false;
+    }
   }
 
   /**
-   * Test if the block is evictable
+   * Tests if the block is evictable.
    *
    * @param blockId to be tested
-   * @return boolean, true if the block can be eveicted
+   * @return boolean, true if the block can be evicted
    */
   public boolean isBlockEvictable(long blockId) {
-    return (!isBlockPinned(blockId) && !isBlockLocked(blockId));
+    return (!isBlockPinned(blockId) && !isBlockLocked(blockId) && !isBlockMarked(blockId));
   }
 
   /**
-   * Provide StorageTierView given tierAlias
+   * Test if the block is marked to move out of its current dir in this view.
+   *
+   * @param blockId the Id of the block
+   * @return boolean, true if the block is marked to move out
+   */
+  public boolean isBlockMarked(long blockId) {
+    for (StorageTierView tierView : mTierViews) {
+      for (StorageDirView dirView : tierView.getDirViews()) {
+        if (dirView.isMarkedToMoveOut(blockId)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Provides StorageTierView given tierAlias.
    *
    * @param tierAlias the alias of this tierView
    * @return the StorageTierView object associated with the alias
@@ -113,14 +150,15 @@ public class BlockMetadataManagerView {
   public StorageTierView getTierView(int tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
     if (null == tierView) {
-      throw new IllegalArgumentException("Cannot find tier view with alias: " + tierAlias);
+      throw new IllegalArgumentException(
+          ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierAlias));
     } else {
       return tierView;
     }
   }
 
   /**
-   * Get all tierViews under this managerView
+   * Gets all tierViews under this managerView.
    *
    * @return the list of StorageTierViews
    */
@@ -129,7 +167,7 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get all tierViews before certain tierView
+   * Gets all tierViews before certain tierView.
    *
    * @param tierAlias the alias of a tierView
    * @return the list of StorageTierView
@@ -141,8 +179,22 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Get available bytes given certain location Redirecting to
-   * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}
+   * Get the next storage tier view.
+   *
+   * @param tierView the storage tier view
+   * @return the next storage tier view, null if this is the last tier view.
+   */
+  public StorageTierView getNextTier(StorageTierView tierView) {
+    int nextLevel = tierView.getTierViewLevel() + 1;
+    if (nextLevel < mTierViews.size()) {
+      return mTierViews.get(nextLevel);
+    }
+    return null;
+  }
+
+  /**
+   * Get available bytes given certain location
+   * {@link BlockMetadataManager#getAvailableBytes(BlockStoreLocation)}.
    *
    * @param location location the check available bytes
    * @return available bytes
@@ -153,8 +205,8 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Return null if block is pinned or currently being locked, otherwise return
-   * {@link BlockMetadataManager#getBlockMeta(long)}
+   * Returns null if block is pinned or currently being locked, otherwise returns
+   * {@link BlockMetadataManager#getBlockMeta(long)}.
    *
    * @param blockId the block ID
    * @return metadata of the block or null

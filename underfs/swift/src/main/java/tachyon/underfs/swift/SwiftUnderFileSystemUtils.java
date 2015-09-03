@@ -22,7 +22,7 @@ import tachyon.conf.TachyonConf;
 public class SwiftUnderFileSystemUtils {
 
   /**
-   * Replace default key with user provided key 
+   * Replace default key with user provided key
    * @param conf
    * @param key
    */
@@ -30,7 +30,7 @@ public class SwiftUnderFileSystemUtils {
     if (System.getProperty(key) != null && conf.get(key) == null) {
       conf.set(key, System.getProperty(key));
     } else if (tachyonConf.containsKey(key)) {
-      conf.set(key, tachyonConf.get(key, null));
+      conf.set(key, tachyonConf.get(key));
     }
   }
 }

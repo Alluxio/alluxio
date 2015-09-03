@@ -21,7 +21,6 @@ import java.net.InetSocketAddress;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.ServerConstants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockDataManager;
@@ -36,7 +35,7 @@ public interface DataServer extends Closeable {
         final BlockDataManager blockDataManager, TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_DATA_SERVER, ServerConstants.WORKER_DATA_SERVER_CLASS),
+            conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
             new Class[] { InetSocketAddress.class, BlockDataManager.class, TachyonConf.class },
             new Object[] { dataAddress, blockDataManager, conf });
       } catch (Exception e) {
@@ -44,6 +43,13 @@ public interface DataServer extends Closeable {
       }
     }
   }
+
+  /**
+   * Get the actual bind hostname on DataServer service.
+   *
+   * @return the bind host
+   */
+  String getBindHost();
 
   /**
    * Gets the port the DataServer is listening on.

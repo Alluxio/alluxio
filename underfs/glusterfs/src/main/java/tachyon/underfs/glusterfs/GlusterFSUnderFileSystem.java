@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -44,15 +44,14 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   protected void prepareConfiguration(String path, TachyonConf tachyonConf, Configuration config) {
     if (path.startsWith(SCHEME)) {
       // Configure for Gluster FS
-      config.set("fs.glusterfs.impl", tachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL,
-          "org.apache.hadoop.fs.glusterfs.GlusterFileSystem"));
+      config.set("fs.glusterfs.impl", tachyonConf.get(Constants.UNDERFS_GLUSTERFS_IMPL));
       config.set("mapred.system.dir",
-          tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system"));
+          tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
       config
-          .set("fs.glusterfs.volumes", tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null));
+          .set("fs.glusterfs.volumes", tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
       config.set(
-          "fs.glusterfs.volume.fuse." + tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES, null),
-          tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS, null));
+          "fs.glusterfs.volume.fuse." + tachyonConf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
+          tachyonConf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
     } else {
       // If not Gluster FS fall back to default HDFS behaviour
       // This should only happen if someone creates an instance of this directly rather than via the

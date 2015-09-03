@@ -27,22 +27,23 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.io.BufferUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 
-public class StorageDirTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+public final class StorageDirTest {
   private static final long TEST_USER_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_BLOCK_SIZE = 20;
@@ -66,13 +67,14 @@ public class StorageDirTest {
   public void before() throws Exception {
     // Creates a dummy test dir under mTestDirPath with 1 byte space so initialization can occur
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mFolder.newFolder()
-        .getAbsolutePath());
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", "1b");
+    TachyonConf tachyonConf = WorkerContext.getConf();
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
+        mFolder.newFolder().getAbsolutePath());
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+        "1b");
     tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
 
-    mTier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
+    mTier = StorageTier.newStorageTier(0 /* level */);
     mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta =
@@ -151,9 +153,10 @@ public class StorageDirTest {
     File testDir = mFolder.newFolder();
 
     newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
-
+    StorageLevelAlias alias = StorageLevelAlias.getAlias(TEST_DIR_INDEX);
     mThrown.expect(OutOfSpaceException.class);
-    mThrown.expectMessage("Failed to add BlockMeta");
+    mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
+        TEST_DIR_CAPACITY + 1, TEST_DIR_CAPACITY, alias));
     mDir = newStorageDir(testDir);
     assertMetadataEmpty(mDir, TEST_DIR_CAPACITY);
     // assert file not deleted
@@ -242,16 +245,19 @@ public class StorageDirTest {
   public void addBlockMetaTooBigTest() throws Exception {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
     BlockMeta bigBlockMeta = new BlockMeta(TEST_BLOCK_ID, bigBlockSize, mDir);
+    StorageLevelAlias alias =
+        StorageLevelAlias.getAlias(bigBlockMeta.getBlockLocation().tierAlias());
     mThrown.expect(OutOfSpaceException.class);
-    mThrown.expectMessage("Failed to add BlockMeta: blockId " + TEST_BLOCK_ID + " is "
-        + bigBlockSize + " bytes, but only " + TEST_DIR_CAPACITY + " bytes available");
+    mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
+        bigBlockSize, TEST_DIR_CAPACITY, alias));
     mDir.addBlockMeta(bigBlockMeta);
   }
 
   @Test
   public void addBlockMetaExistingTest() throws Exception {
     mThrown.expect(AlreadyExistsException.class);
-    mThrown.expectMessage("Failed to add BlockMeta: blockId " + TEST_BLOCK_ID + " exists");
+    mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(TEST_BLOCK_ID,
+        StorageLevelAlias.getAlias(TEST_DIR_INDEX)));
     mDir.addBlockMeta(mBlockMeta);
     BlockMeta dupBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mDir.addBlockMeta(dupBlockMeta);
@@ -260,32 +266,35 @@ public class StorageDirTest {
   @Test
   public void removeBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to remove BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mDir.removeBlockMeta(mBlockMeta);
   }
 
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found in ");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mDir.getBlockMeta(TEST_BLOCK_ID);
   }
 
   @Test
   public void addTempBlockMetaTooBigTest() throws Exception {
     final long bigBlockSize = TEST_DIR_CAPACITY + 1;
-    mThrown.expect(OutOfSpaceException.class);
-    mThrown.expectMessage("Failed to add TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " is "
-        + bigBlockSize + " bytes, but only " + TEST_DIR_CAPACITY + " bytes available");
     TempBlockMeta bigTempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, bigBlockSize, mDir);
+    StorageLevelAlias alias =
+        StorageLevelAlias.getAlias(bigTempBlockMeta.getBlockLocation().tierAlias());
+    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_TEMP_BLOCK_ID,
+        bigBlockSize, TEST_DIR_CAPACITY, alias));
     mDir.addTempBlockMeta(bigTempBlockMeta);
   }
 
   @Test
   public void addTempBlockMetaExistingTest() throws Exception {
     mThrown.expect(AlreadyExistsException.class);
-    mThrown.expectMessage("Failed to add TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " exists");
+    mThrown.expectMessage(ExceptionMessage.ADD_EXISTING_BLOCK.getMessage(TEST_TEMP_BLOCK_ID,
+        StorageLevelAlias.getAlias(TEST_DIR_INDEX)));
     mDir.addTempBlockMeta(mTempBlockMeta);
     TempBlockMeta dupTempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
@@ -295,17 +304,17 @@ public class StorageDirTest {
   @Test
   public void removeTempBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to remove TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID + " not "
-        + "found");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mDir.removeTempBlockMeta(mTempBlockMeta);
   }
 
   @Test
   public void removeTempBlockMetaNotOwnerTest() throws Exception {
     final long wrongUserId = TEST_USER_ID + 1;
+    StorageLevelAlias alias = StorageLevelAlias.getAlias(TEST_DIR_INDEX);
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to remove TempBlockMeta: blockId " + TEST_TEMP_BLOCK_ID
-        + " has userId " + wrongUserId + " not found");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_FOR_USER.getMessage(TEST_TEMP_BLOCK_ID,
+        alias, wrongUserId));
     mDir.addTempBlockMeta(mTempBlockMeta);
     TempBlockMeta wrongTempBlockMeta =
         new TempBlockMeta(wrongUserId, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
@@ -315,8 +324,7 @@ public class StorageDirTest {
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_TEMP_BLOCK_ID
-        + " not found in ");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mDir.getBlockMeta(TEST_TEMP_BLOCK_ID);
   }
 
@@ -358,6 +366,32 @@ public class StorageDirTest {
     final long newSize = TEST_TEMP_BLOCK_SIZE + 10;
     mDir.resizeTempBlockMeta(mTempBlockMeta, newSize);
     Assert.assertEquals(TEST_DIR_CAPACITY - newSize, mDir.getAvailableBytes());
+  }
+
+  @Test
+  public void resizeTempBlockMetaInvalidStateExceptionTest() throws Exception {
+    mDir.addTempBlockMeta(mTempBlockMeta);
+    final long newSize = TEST_TEMP_BLOCK_SIZE - 10;
+    try {
+      mDir.resizeTempBlockMeta(mTempBlockMeta, newSize);
+      Assert.fail("Should throw an Exception when newSize is smaller than oldSize");
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof InvalidStateException);
+      Assert.assertTrue(e.getMessage().equals("Shrinking block, not supported!"));
+      Assert.assertEquals(TEST_TEMP_BLOCK_SIZE, mTempBlockMeta.getBlockSize());
+    }
+  }
+
+  @Test
+  public void resizeTempBlockMetaNoAvailableBytesTest() throws Exception {
+    mDir.addTempBlockMeta(mTempBlockMeta);
+    // resize the temp block size to the dir capacity, which is the limit
+    mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY);
+    Assert.assertEquals(TEST_DIR_CAPACITY, mTempBlockMeta.getBlockSize());
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage("Available bytes should always be non-negative");
+    // resize again, now the newSize is more than available bytes, exception thrown
+    mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY + 1);
   }
 
   // TODO: also test claimed space

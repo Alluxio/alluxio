@@ -13,16 +13,27 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.worker;
 
-import tachyon.worker.DataServer;
+import tachyon.conf.TachyonConf;
 
 /**
- * Constants on server side
+ * A WorkerContext object stores TachyonConf
  */
-public class ServerConstants {
+public class WorkerContext {
+  /**
+   * The static configuration object. There is only one TachyonConf object shared within the same
+   * worker process.
+   */
+  private static TachyonConf sTachyonConf = new TachyonConf();
 
-  public static final Class<? extends DataServer> WORKER_DATA_SERVER_CLASS =
-      tachyon.worker.netty.NettyDataServer.class;
-
+  /**
+   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
+   * within the worker process
+   *
+   * @return the tachyonConf for the worker process
+   */
+  public static TachyonConf getConf() {
+    return sTachyonConf;
+  }
 }

@@ -61,8 +61,7 @@ public abstract class BlockInStream extends InStream {
    */
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
       Object ufsConf, TachyonConf tachyonConf) throws IOException {
-    if (tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_READ,
-        Constants.DEFAULT_USER_ENABLE_LOCAL_READ)) {
+    if (tachyonConf.getBoolean(Constants.USER_ENABLE_LOCAL_READ)) {
       LOG.info("Reading with local stream.");
       TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
       if (buf != null) {

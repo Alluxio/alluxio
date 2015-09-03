@@ -101,7 +101,7 @@ public class InodeFile extends Inode {
    * complete or the block's information doesn't match the file's information.
    *
    * @param blockInfo The block to be added
-   * @throws BlockInfoException
+   * @throws BlockInfoException when the operation cannot be completed
    */
   public synchronized void addBlock(BlockInfo blockInfo) throws BlockInfoException {
     if (mIsComplete) {
@@ -135,7 +135,7 @@ public class InodeFile extends Inode {
    * @param workerId The id of the worker
    * @param workerAddress The net address of the worker
    * @param storageDirId The id of the StorageDir which block is located in
-   * @throws BlockInfoException
+   * @throws BlockInfoException when the block index is out of bounds
    */
   public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress,
       long storageDirId) throws BlockInfoException {
@@ -219,13 +219,14 @@ public class InodeFile extends Inode {
    * Get the locations of the specified block.
    *
    * @param blockIndex The index of the block in the file
+   * @param tachyonConf Tachyon configuration
    * @return a list of the worker's net address who caches the block
-   * @throws BlockInfoException
+   * @throws BlockInfoException when the block index is out of bounds
    */
   public synchronized List<NetAddress> getBlockLocations(int blockIndex, TachyonConf tachyonConf)
       throws BlockInfoException {
-    if (blockIndex < 0 || blockIndex > mBlocks.size()) {
-      throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
 
     return mBlocks.get(blockIndex).getLocations(tachyonConf);
@@ -255,12 +256,12 @@ public class InodeFile extends Inode {
    * @param blockIndex The index of the block in the file
    * @param tachyonConf The {@link tachyon.conf.TachyonConf} instance
    * @return the generated ClientBlockInfo
-   * @throws BlockInfoException
+   * @throws BlockInfoException when the block index is out of bounds
    */
   public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex, TachyonConf tachyonConf)
       throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
-      throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
+      throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
 
     return mBlocks.get(blockIndex).generateClientBlockInfo(tachyonConf);
@@ -269,6 +270,7 @@ public class InodeFile extends Inode {
   /**
    * Get file's all blocks' ClientBlockInfo information.
    *
+   * @param tachyonConf Tachyon configuration
    * @return all blocks ClientBlockInfo
    */
   public synchronized List<ClientBlockInfo> getClientBlockInfos(TachyonConf tachyonConf) {
@@ -327,7 +329,7 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Get the number of the blocks of the file
+   * Get the number of the blocks of the file.
    *
    * @return the number of the blocks
    */
@@ -336,8 +338,8 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Return whether the file has checkpointed or not. Note that the file has checkpointed only
-   * if the under file system path is not empty.
+   * Return whether the file has checkpointed or not. Note that the file has checkpointed only if
+   * the under file system path is not empty.
    *
    * @return true if the file has checkpointed, false otherwise
    */
@@ -378,7 +380,7 @@ public class InodeFile extends Inode {
    *
    * @param blockIndex The index of the block in the file
    * @param workerId The id of the removed location worker
-   * @throws BlockInfoException
+   * @throws BlockInfoException when the index is out of bounds
    */
   public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
@@ -414,7 +416,7 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Set the complete flag of the file
+   * Set the complete flag of the file.
    *
    * @param complete If true, the file is complete
    */
@@ -423,7 +425,7 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Set the dependency id of the file
+   * Set the dependency id of the file.
    *
    * @param dependencyId The new dependency id of the file
    */
@@ -436,8 +438,8 @@ public class InodeFile extends Inode {
    * negative.
    *
    * @param length The new length of the file, cannot be negative
-   * @throws SuspectedFileSizeException
-   * @throws BlockInfoException
+   * @throws SuspectedFileSizeException when the length is illegal or is already set
+   * @throws BlockInfoException when a problem adding blocks is encountered
    */
   public synchronized void setLength(long length) throws SuspectedFileSizeException,
       BlockInfoException {

@@ -51,10 +51,12 @@ public abstract class UnderFileSystemCluster {
   private static String sUfsClz;
 
   /**
-   * To start the underfs test bed and register the shutdown hook
+   * Create an underfs test bed and register the shutdown hook.
    *
-   * @throws IOException
-   * @throws InterruptedException
+   * @param baseDir base directory
+   * @param tachyonConf Tachyon configuration
+   * @throws IOException when the operation fails
+   * @return an instance of the UnderFileSystemCluster class
    */
   public static synchronized UnderFileSystemCluster get(String baseDir, TachyonConf tachyonConf)
       throws IOException {
@@ -99,7 +101,7 @@ public abstract class UnderFileSystemCluster {
   protected final TachyonConf mTachyonConf;
 
   /**
-   * This method is only used by the {@link tachyon.client.FileOutStreamIntegrationTest} unit-test
+   * This method is only used by the tachyon.client.FileOutStreamIntegrationTest unit-test.
    *
    * @return true if reads on end of file return negative otherwise false
    */
@@ -119,7 +121,7 @@ public abstract class UnderFileSystemCluster {
    * expected to be called either before or after each test case which avoids certain overhead from
    * the bootstrap.
    *
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public void cleanup() throws IOException {
     if (isStarted()) {
@@ -136,7 +138,7 @@ public abstract class UnderFileSystemCluster {
   /**
    * Check if the cluster started.
    *
-   * @return
+   * @return if the cluster actually started
    */
   public abstract boolean isStarted();
 
@@ -144,7 +146,7 @@ public abstract class UnderFileSystemCluster {
    * Add a shutdown hook. The {@link #shutdown} phase will be automatically called while the process
    * exists.
    *
-   * @throws InterruptedException
+   * @throws IOException when the operation fails
    */
   public void registerJVMOnExistHook() throws IOException {
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
@@ -153,14 +155,14 @@ public abstract class UnderFileSystemCluster {
   /**
    * To stop the underfs cluster system
    *
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public abstract void shutdown() throws IOException;
 
   /**
    * To start the underfs cluster system
    *
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public abstract void start() throws IOException;
 }

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -47,7 +47,7 @@ public class WebInterfaceDownloadLocalServlet extends HttpServlet {
 
   /**
    * Prepares for downloading a file
-   * 
+   *
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object
    * @throws ServletException
@@ -62,7 +62,7 @@ public class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
 
     // Download a file from the local filesystem.
-    String baseDir = mTachyonConf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+    String baseDir = mTachyonConf.get(Constants.TACHYON_HOME);
     File logsDir = new File(baseDir, "logs");
 
     // Only allow filenames as the path, to avoid downloading arbitrary local files.

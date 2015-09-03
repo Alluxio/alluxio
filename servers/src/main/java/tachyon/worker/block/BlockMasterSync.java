@@ -25,13 +25,16 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -46,13 +49,11 @@ import tachyon.util.ThreadFactoryUtils;
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
-public class BlockMasterSync implements Runnable {
+public final class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+  private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** The executor service for the master client thread */
-  private final ExecutorService mMasterClientExecutorService;
   /** The net address of the worker */
   private final NetAddress mWorkerAddress;
   /** The configuration values */
@@ -68,22 +69,20 @@ public class BlockMasterSync implements Runnable {
   private volatile boolean mRunning;
   /** The id of the worker */
   private long mWorkerId;
+  /** The thread pool to remove block */
+  private final ExecutorService mFixedExecutionService =
+          Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      NetAddress workerAddress) {
+      NetAddress workerAddress, MasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
-    mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1,
-            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+    mMasterClient = masterClient;
     mHeartbeatIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mHeartbeatTimeoutMs =
-        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
     mWorkerId = 0;
@@ -110,9 +109,9 @@ public class BlockMasterSync implements Runnable {
       mWorkerId =
           mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
-    } catch (BlockInfoException bie) {
-      LOG.error("Failed to register with master.", bie);
-      throw new IOException(bie);
+    } catch (IOException ioe) {
+      LOG.error("Failed to register with master.", ioe);
+      throw ioe;
     }
   }
 
@@ -147,7 +146,7 @@ public class BlockMasterSync implements Runnable {
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if heartbeat timeout is reached
         LOG.error("Failed to receive or execute master heartbeat command.", ioe);
-        resetMasterClient();
+        mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
@@ -161,8 +160,6 @@ public class BlockMasterSync implements Runnable {
    */
   public void stop() {
     mRunning = false;
-    mMasterClient.close();
-    mMasterClientExecutorService.shutdown();
   }
 
   /**
@@ -185,7 +182,8 @@ public class BlockMasterSync implements Runnable {
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
-          mBlockDataManager.removeBlock(Users.MASTER_COMMAND_USER_ID, block);
+          mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
+                  Users.MASTER_COMMAND_USER_ID, block));
         }
         break;
       // No action required
@@ -205,12 +203,31 @@ public class BlockMasterSync implements Runnable {
   }
 
   /**
-   * Closes and creates a new master client, in case the master changes.
+   * Thread to remove block from master
    */
-  private void resetMasterClient() {
-    mMasterClient.close();
-    mMasterClient =
-        new MasterClient(NetworkAddressUtils.getMasterAddress(mTachyonConf),
-            mMasterClientExecutorService, mTachyonConf);
+  private class BlockRemover implements Runnable {
+    private BlockDataManager mBlockDataManager;
+    private long mUserId;
+    private long mBlockId;
+
+    public BlockRemover(BlockDataManager blockDataManager, long userId, long blockId) {
+      mBlockDataManager = blockDataManager;
+      mUserId = userId;
+      mBlockId = blockId;
+    }
+
+    @Override
+    public void run() {
+      try {
+        mBlockDataManager.removeBlock(mUserId, mBlockId);
+      } catch (IOException ioe) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
+      } catch (InvalidStateException e) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted.");
+      } catch (NotFoundException e) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
+      }
+    }
+
   }
 }

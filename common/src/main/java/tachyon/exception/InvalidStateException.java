@@ -24,12 +24,22 @@ package tachyon.exception;
  * <li>user A wants to commit a temp block owned by user B</li>
  * </ul>
  */
-public class InvalidStateException extends Exception {
+public final class InvalidStateException extends AbstractTachyonException {
+  private static final long serialVersionUID = -7966393090688326795L;
+
   public InvalidStateException(String message) {
     super(message);
   }
 
   public InvalidStateException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public InvalidStateException(ExceptionMessage message, Object... params) {
+    super(message, params);
+  }
+
+  public InvalidStateException(ExceptionMessage message, Throwable cause, Object... params) {
+    super(message, cause, params);
   }
 }

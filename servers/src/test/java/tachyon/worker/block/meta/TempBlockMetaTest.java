@@ -24,6 +24,7 @@ import org.junit.rules.TemporaryFolder;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 
 public class TempBlockMetaTest {
   private static final long TEST_USER_ID = 2;
@@ -39,12 +40,14 @@ public class TempBlockMetaTest {
   public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
     // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
-    TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.path", mTestDirPath);
-    tachyonConf.set("tachyon.worker.tieredstore.level0.dirs.quota", "100b");
+    TachyonConf tachyonConf = WorkerContext.getConf();
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
+        mTestDirPath);
+    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+        "100b");
     tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
 
-    StorageTier tier = StorageTier.newStorageTier(tachyonConf, 0 /* level */);
+    StorageTier tier = StorageTier.newStorageTier(0 /* level */);
     StorageDir dir = tier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }

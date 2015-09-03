@@ -203,12 +203,16 @@ def main(args):
         info('getting instance IPs...')
         for r in requests:
             instance_id = r.instance_id
+            info('waiting for ip to be allocated to the machine')
             ip = conn.get_only_instances([instance_id])[0].ip_address
+            while ip is None:
+                time.sleep(1)
+                ip = conn.get_only_instances([instance_id])[0].ip_address
             instance_id_to_tag_ip[instance_id] = (rid_tag[r.id], ip)
         info('mocking vagrant info under .vagrant...')
         mock_vagrant_info(instance_id_to_tag_ip)
         info('creation of spot instances done')
-        info('wating for ssh to be available...')
+        info('waiting for ssh to be available...')
         wait_for_ssh([ip for tag, ip in instance_id_to_tag_ip.values()])
         info('ssh for all instances are ready')
     elif args.cancel:

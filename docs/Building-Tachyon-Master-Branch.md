@@ -5,6 +5,18 @@ nickname: Building Master Branch
 group: Development
 ---
 
+### toc
+* [Building Master](#)
+* [Unit Tests](#unit-tests)
+* [Distro Support](#distro-support)
+    * [Apache](#apache)
+    * [Cloudera](#cloudera)
+    * [MapR](#mapr)
+    * [Pivotal](#pivotal)
+    * [Hortonworks](#hortonworks)
+* [System Settings](#system-settings)
+    * [Mac](#mac)
+
 This guide describes how to compile Tachyon from the beginning.
 
 The prerequisite for this guide is that you have [Java 6 (or above)](Java-Setup.html),
@@ -54,7 +66,7 @@ You can also stop the system by using:
 
     $ ./bin/tachyon-stop.sh
 
-# Unit tests
+# Unit Tests
 
 To run all unit tests:
 

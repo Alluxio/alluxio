@@ -17,15 +17,16 @@ package tachyon.worker.block.meta;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * Represents a tier of storage, for example memory or SSD. It serves as a container of
@@ -34,7 +35,7 @@ import tachyon.util.io.PathUtils;
  * <p>
  * This class does not guarantee thread safety.
  */
-public class StorageTier {
+public final class StorageTier {
   /** Alias of this tier, e.g., memory tier is 1, SSD tier is 2 and HDD tier is 3 */
   private final int mTierAlias;
   /** Level of this tier in tiered storage, highest level is 0 */
@@ -43,22 +44,23 @@ public class StorageTier {
   private long mCapacityBytes;
   private List<StorageDir> mDirs;
 
-  private StorageTier(TachyonConf tachyonConf, int tierLevel) {
+  private StorageTier(int tierLevel) {
     mTierLevel = tierLevel;
 
     String tierLevelAliasProp =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
-    StorageLevelAlias alias = tachyonConf.getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
+    StorageLevelAlias alias = WorkerContext.getConf()
+        .getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
     mTierAlias = alias.getValue();
   }
 
-  private void initStorageTier(TachyonConf tachyonConf) throws AlreadyExistsException, IOException,
+  private void initStorageTier() throws AlreadyExistsException, IOException,
       OutOfSpaceException {
     String workerDataFolder =
-        tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+        WorkerContext.getConf().get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
-    String[] dirPaths = tachyonConf.get(tierDirPathConf, "/mnt/ramdisk").split(",");
+    String[] dirPaths = WorkerContext.getConf().get(tierDirPathConf, "/mnt/ramdisk").split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
     // /mnt/ramdisk/tachyonworker
@@ -68,7 +70,7 @@ public class StorageTier {
 
     String tierDirCapacityConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, mTierLevel);
-    String[] dirQuotas = tachyonConf.get(tierDirCapacityConf, "0").split(",");
+    String[] dirQuotas = WorkerContext.getConf().get(tierDirCapacityConf, "0").split(",");
 
     mDirs = new ArrayList<StorageDir>(dirPaths.length);
 
@@ -82,10 +84,10 @@ public class StorageTier {
     mCapacityBytes = totalCapacity;
   }
 
-  public static StorageTier newStorageTier(TachyonConf tachyonConf, int tierLevel)
+  public static StorageTier newStorageTier(int tierLevel)
       throws AlreadyExistsException, IOException, OutOfSpaceException {
-    StorageTier ret = new StorageTier(tachyonConf, tierLevel);
-    ret.initStorageTier(tachyonConf);
+    StorageTier ret = new StorageTier(tierLevel);
+    ret.initStorageTier();
     return ret;
   }
 
@@ -114,6 +116,6 @@ public class StorageTier {
   }
 
   public List<StorageDir> getStorageDirs() {
-    return mDirs;
+    return Collections.unmodifiableList(mDirs);
   }
 }

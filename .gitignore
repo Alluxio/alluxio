@@ -1,5 +1,7 @@
 **/tachyon-site.properties
 *.iml
+*.swp
+*.swo
 .DS_STORE
 .checkstyle
 .classpath
@@ -15,7 +17,6 @@ deploy/vagrant/files/
 deploy/vagrant/shared/
 deploy/vagrant/vbox/.vagrant/
 deploy/vagrant/vbox/tachyon-dev.box
-deploy/vagrant/vbox/shared/
 deploy/vagrant/conf/init.yml
 deploy/vagrant/spot/roles/create_ec2/vars/
 deploy/vagrant/spot/roles/tag_ec2/vars/

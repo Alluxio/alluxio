@@ -33,7 +33,9 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
@@ -42,11 +44,11 @@ import tachyon.worker.block.BlockStoreLocation;
 
 /**
  * Represents a directory in a storage tier. It has a fixed capacity allocated to it on
- * instantiation. It contains the set of blocks currently in the storage directory
+ * instantiation. It contains the set of blocks currently in the storage directory.
  * <p>
  * This class does not guarantee thread safety.
  */
-public class StorageDir {
+public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
   /** A map from block ID to block meta data */
@@ -74,7 +76,7 @@ public class StorageDir {
   }
 
   /**
-   * Factory method to create {@link StorageDir}
+   * Factory method to create {@link StorageDir}.
    *
    * It will load meta data of existing committed blocks in the dirPath specified. Only files with
    * directory depth 1 under dirPath and whose file name can be parsed into {@code long} will be
@@ -87,6 +89,7 @@ public class StorageDir {
    * @param dirPath filesystem path of this dir for actual storage
    * @return the new created StorageDir
    * @throws AlreadyExistsException when meta data of existing committed blocks already exists
+   * @throws IOException if the storage directory cannot be created with the appropriate permissions
    * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
   public static StorageDir newStorageDir(StorageTier tier, int dirIndex, long capacityBytes,
@@ -97,7 +100,7 @@ public class StorageDir {
   }
 
   /**
-   * Initialize meta data for existing blocks in this StorageDir
+   * Initializes meta data for existing blocks in this StorageDir.
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath} are legal,
    * should be in format like {dir}/{blockId}. other paths will be deleted.
@@ -107,18 +110,10 @@ public class StorageDir {
    * @throws OutOfSpaceException when meta data can not be added due to limited left space
    */
   private void initializeMeta() throws AlreadyExistsException, IOException, OutOfSpaceException {
-    File dir = new File(mDirPath);
+    // Create the storage directory path
+    FileUtils.createStorageDirPath(mDirPath);
 
-    // Create the storage directory path if it does not exist
-    if (!dir.exists()) {
-      // TODO: Make this a utility method
-      if (dir.mkdirs()) {
-        FileUtils.changeLocalFilePermission(mDirPath, "777");
-        FileUtils.setLocalFileStickyBit(mDirPath);
-      } else {
-        throw new IOException("Failed to create storage dir " + mDirPath);
-      }
-    }
+    File dir = new File(mDirPath);
     File[] paths = dir.listFiles();
     if (paths == null) {
       return;
@@ -246,7 +241,7 @@ public class StorageDir {
   }
 
   /**
-   * Gets the BlockMeta from this storage dir by its block ID or throws IOException.
+   * Gets the BlockMeta from this storage dir by its block ID.
    *
    * @param blockId the block ID
    * @return BlockMeta of the given block or null
@@ -255,14 +250,13 @@ public class StorageDir {
   public BlockMeta getBlockMeta(long blockId) throws NotFoundException {
     BlockMeta blockMeta = mBlockIdToBlockMap.get(blockId);
     if (blockMeta == null) {
-      throw new NotFoundException("Failed to get BlockMeta: blockId " + blockId + " not found in "
-          + toString());
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     return blockMeta;
   }
 
   /**
-   * Gets the BlockMeta from this storage dir by its block ID or throws IOException.
+   * Gets the BlockMeta from this storage dir by its block ID.
    *
    * @param blockId the block ID
    * @return TempBlockMeta of the given block or null
@@ -271,14 +265,13 @@ public class StorageDir {
   public TempBlockMeta getTempBlockMeta(long blockId) throws NotFoundException {
     TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.get(blockId);
     if (tempBlockMeta == null) {
-      throw new NotFoundException("Failed to get TempBlockMeta: blockId " + blockId
-          + " not found in " + toString());
+      throw new NotFoundException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
     }
     return tempBlockMeta;
   }
 
   /**
-   * Adds the metadata of a new block into this storage dir or throws IOException.
+   * Adds the metadata of a new block into this storage dir.
    *
    * @param blockMeta the meta data of the block
    * @throws AlreadyExistsException if blockId already exists
@@ -290,37 +283,44 @@ public class StorageDir {
     long blockSize = blockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      throw new OutOfSpaceException("Failed to add BlockMeta: blockId " + blockId + " is "
-          + blockSize + " bytes, but only " + getAvailableBytes() + " bytes available");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
+          getAvailableBytes(), alias);
     }
     if (hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("Failed to add BlockMeta: blockId " + blockId + " exists");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
   }
 
   /**
-   * Adds the metadata of a new block into this storage dir or throws IOException.
+   * Adds the metadata of a new block into this storage dir.
    *
    * @param tempBlockMeta the meta data of a temp block to add
    * @throws AlreadyExistsException if blockId already exists
    * @throws OutOfSpaceException when not enough space to hold block
    */
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws OutOfSpaceException,
-      AlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws OutOfSpaceException, AlreadyExistsException {
     Preconditions.checkNotNull(tempBlockMeta);
     long userId = tempBlockMeta.getUserId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      throw new OutOfSpaceException("Failed to add TempBlockMeta: blockId " + blockId + " is "
-          + blockSize + " bytes, but only " + getAvailableBytes() + " bytes available");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
+          getAvailableBytes(), alias);
     }
     if (hasTempBlockMeta(blockId)) {
-      throw new AlreadyExistsException("Failed to add TempBlockMeta: blockId " + blockId
-          + " exists");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
@@ -334,7 +334,7 @@ public class StorageDir {
   }
 
   /**
-   * Removes a block from this storage dir or throws IOException.
+   * Removes a block from this storage dir.
    *
    * @param blockMeta the meta data of the block
    * @throws NotFoundException if no block is found
@@ -344,13 +344,13 @@ public class StorageDir {
     long blockId = blockMeta.getBlockId();
     BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
     if (deletedBlockMeta == null) {
-      throw new NotFoundException("Failed to remove BlockMeta: blockId " + blockId + " not found");
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     reclaimSpace(blockMeta.getBlockSize(), true);
   }
 
   /**
-   * Removes a temp block from this storage dir or throws IOException.
+   * Removes a temp block from this storage dir.
    *
    * @param tempBlockMeta the meta data of the temp block to remove
    * @throws NotFoundException if no temp block is found
@@ -361,17 +361,13 @@ public class StorageDir {
     final long userId = tempBlockMeta.getUserId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
     if (deletedTempBlockMeta == null) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId
-          + " not found");
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     Set<Long> userBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (userBlocks == null) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId
-          + " has userId " + userId + " not found");
-    }
-    if (!userBlocks.contains(blockId)) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId + " not "
-          + "associated with userId " + userId);
+    if (userBlocks == null || !userBlocks.contains(blockId)) {
+      StorageLevelAlias alias = StorageLevelAlias.getAlias(this.getDirIndex());
+      throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_USER, blockId, alias,
+          userId);
     }
     Preconditions.checkState(userBlocks.remove(blockId));
     if (userBlocks.isEmpty()) {
@@ -381,7 +377,7 @@ public class StorageDir {
   }
 
   /**
-   * Changes the size of a temp block or throws IOException.
+   * Changes the size of a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to resize
    * @param newSize the new size after change in bytes
@@ -390,34 +386,16 @@ public class StorageDir {
   public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
       throws InvalidStateException {
     long oldSize = tempBlockMeta.getBlockSize();
-    tempBlockMeta.setBlockSize(newSize);
     if (newSize > oldSize) {
       reserveSpace(newSize - oldSize, false);
+      tempBlockMeta.setBlockSize(newSize);
     } else if (newSize < oldSize) {
       throw new InvalidStateException("Shrinking block, not supported!");
     }
   }
 
-  private void reserveSpace(long size, boolean committed) {
-    Preconditions.checkState(size <= mAvailableBytes.get(),
-        "Available bytes should always be non-negative ");
-    mAvailableBytes.addAndGet(-size);
-    if (committed) {
-      mCommittedBytes.addAndGet(size);
-    }
-  }
-
-  private void reclaimSpace(long size, boolean committed) {
-    Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
-        "Available bytes should always be less than total capacity bytes");
-    mAvailableBytes.addAndGet(size);
-    if (committed) {
-      mCommittedBytes.addAndGet(-size);
-    }
-  }
-
   /**
-   * Cleans up the temp block meta data for each block id passed in
+   * Cleans up the temp block meta data for each block id passed in.
    *
    * @param userId the ID of the client associated with the temporary blocks
    * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or
@@ -472,7 +450,28 @@ public class StorageDir {
     return userTempBlocks;
   }
 
+  /**
+   * @return the block store location of this directory.
+   */
   public BlockStoreLocation toBlockStoreLocation() {
     return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
+  }
+
+  private void reclaimSpace(long size, boolean committed) {
+    Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
+        "Available bytes should always be less than total capacity bytes");
+    mAvailableBytes.addAndGet(size);
+    if (committed) {
+      mCommittedBytes.addAndGet(-size);
+    }
+  }
+
+  private void reserveSpace(long size, boolean committed) {
+    Preconditions.checkState(size <= mAvailableBytes.get(),
+        "Available bytes should always be non-negative");
+    mAvailableBytes.addAndGet(-size);
+    if (committed) {
+      mCommittedBytes.addAndGet(size);
+    }
   }
 }

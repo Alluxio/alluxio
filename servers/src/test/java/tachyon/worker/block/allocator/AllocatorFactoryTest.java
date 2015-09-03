@@ -28,7 +28,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
-import tachyon.worker.block.evictor.EvictorTestUtils;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 /**
  * Test {@link Allocator.Factory} by passing different allocate strategy class
@@ -46,7 +46,7 @@ public class AllocatorFactoryTest {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mTachyonConf = new TachyonConf();
-    mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
         Collections.<Long>emptySet());
   }

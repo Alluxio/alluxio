@@ -47,7 +47,7 @@ public class UnderStorageSystemInterfaceIntegrationTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
     mLocalTachyonCluster.start();
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS, null);
+    mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
   }
 

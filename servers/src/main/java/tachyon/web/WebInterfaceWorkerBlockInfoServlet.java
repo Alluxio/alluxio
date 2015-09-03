@@ -75,7 +75,6 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
         request.setAttribute("blockSizeByte", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
-
         getServletContext().getRequestDispatcher("/worker/viewFileBlocks.jsp").forward(request,
             response);
         return;
@@ -95,6 +94,8 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
+      } finally {
+        tachyonClient.close();
       }
     }
 
@@ -104,6 +105,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      tachyonClient.close();
       return;
     }
 
@@ -139,6 +141,8 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       request.setAttribute("fatalError", nfe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
+    } finally {
+      tachyonClient.close();
     }
 
     getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
@@ -219,7 +223,9 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         StorageLevelAlias storageLevelAlias =
             StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
         // The block last access time is not available. Use -1 for now.
-        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1);
+        // It's not necessary to show location information here since
+        // we are viewing at the context of this worker.
+        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1, null);
       }
     }
     if (!blockExistOnWorker) {

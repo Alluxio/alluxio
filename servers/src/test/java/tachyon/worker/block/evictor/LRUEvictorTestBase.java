@@ -15,54 +15,22 @@
 
 package tachyon.worker.block.evictor;
 
-import java.io.File;
-import java.util.Collections;
-
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-import tachyon.worker.block.BlockMetadataManager;
-import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListener;
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.meta.StorageDir;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 /**
  * Sanity check on specific behavior of LRUEvictor such as evicting/moving least recently used
  * blocks and cascading LRU eviction.
  */
-public class LRUEvictorTest {
-  private static final long USER_ID = 2;
-  private static final long BLOCK_ID = 10;
-
-  private BlockMetadataManager mMetaManager;
-  private BlockMetadataManagerView mManagerView;
-  private Evictor mEvictor;
-
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
-
+public class LRUEvictorTestBase extends EvictorTestBase {
   @Before
   public final void before() throws Exception {
-    File tempFolder = mTestFolder.newFolder();
-    mMetaManager = EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
-            Collections.<Long>emptySet());
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class.getName());
-    mEvictor = Evictor.Factory.createEvictor(conf, mManagerView);
-  }
-
-  private void cache(long userId, long blockId, long bytes, int tierLevel, int dirIdx)
-      throws Exception {
-    StorageDir dir = mMetaManager.getTiers().get(tierLevel).getDir(dirIdx);
-    EvictorTestUtils.cache(userId, blockId, bytes, dir, mMetaManager, mEvictor);
+    init(LRUEvictor.class.getName());
   }
 
   // access the block to update evictor
@@ -72,9 +40,10 @@ public class LRUEvictorTest {
 
   @Test
   public void evictInBottomTierTest() throws Exception {
-    int bottomTierLevel = EvictorTestUtils.TIER_LEVEL[EvictorTestUtils.TIER_LEVEL.length - 1];
+    int bottomTierLevel =
+        TieredBlockStoreTestUtils.TIER_LEVEL[TieredBlockStoreTestUtils.TIER_LEVEL.length - 1];
     // capacity increases with index
-    long[] bottomTierDirCapacity = EvictorTestUtils.TIER_CAPACITY[bottomTierLevel];
+    long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[bottomTierLevel];
     int nDir = bottomTierDirCapacity.length;
     // fill in dirs from larger to smaller capacity with blockId equal to BLOCK_ID plus dir index
     for (int i = nDir - 1; i >= 0; i --) {
@@ -101,8 +70,8 @@ public class LRUEvictorTest {
     // Two tiers, each dir in the second tier has more space than any dir in the first tier. Fill in
     // the first tier, leave the second tier empty. Request space from the first tier, blocks should
     // be moved from the first to the second tier without eviction.
-    int firstTierLevel = EvictorTestUtils.TIER_LEVEL[0];
-    long[] firstTierDirCapacity = EvictorTestUtils.TIER_CAPACITY[0];
+    int firstTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[0];
+    long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0];
     int nDir = firstTierDirCapacity.length;
     for (int i = 0; i < nDir; i ++) {
       cache(USER_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierLevel, i);
@@ -129,8 +98,8 @@ public class LRUEvictorTest {
     // first tier, blocks should be moved from the first to the second tier, and some blocks in the
     // second tier should be evicted to hold blocks moved from the first tier.
     long blockId = BLOCK_ID;
-    for (int tierLevel : EvictorTestUtils.TIER_LEVEL) {
-      long[] tierCapacity = EvictorTestUtils.TIER_CAPACITY[tierLevel];
+    for (int tierLevel : TieredBlockStoreTestUtils.TIER_LEVEL) {
+      long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[tierLevel];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
         cache(USER_ID, blockId, tierCapacity[dirIdx], tierLevel, dirIdx);
         blockId ++;
@@ -138,9 +107,9 @@ public class LRUEvictorTest {
     }
 
     BlockStoreLocation anyDirInFirstTier =
-        BlockStoreLocation.anyDirInTier(EvictorTestUtils.TIER_LEVEL[0] + 1);
-    int nDirInFirstTier = EvictorTestUtils.TIER_CAPACITY[0].length;
-    long smallestCapacity = EvictorTestUtils.TIER_CAPACITY[0][0];
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_LEVEL[0] + 1);
+    int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY[0].length;
+    long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0][0];
     for (int i = 0; i < nDirInFirstTier; i ++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);
@@ -158,5 +127,78 @@ public class LRUEvictorTest {
       access(blockIdMovedInFirstTier);
       access(blockIdEvictedInSecondTier);
     }
+  }
+
+  @Test
+  public void cascadingEvictionTest3() throws Exception {
+    // First Tier 2000, 3000
+    // Second Tier 10000, 20000, 30000
+    int blockSize = 1000;
+    cache(USER_ID, 101, blockSize, 0, 0);
+    cache(USER_ID, 102, blockSize, 0, 0);
+    cache(USER_ID, 103, blockSize, 0, 1);
+    cache(USER_ID, 104, blockSize, 0, 1);
+    cache(USER_ID, 105, blockSize, 0, 1);
+    cache(USER_ID, 106, 9500, 1, 2);
+
+    // After caching blocks, the free space looks like
+    // First Tier 0, 0
+    // Second Tier 10000, 20000, 200500
+    BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier(1);
+    BlockStoreLocation firstDirSecondTier = new BlockStoreLocation(2, 1, 0);
+    BlockStoreLocation secondDirSecondTier = new BlockStoreLocation(2, 1, 1);
+    BlockStoreLocation thirdDirSecondTier = new BlockStoreLocation(2, 1, 2);
+
+    EvictionPlan plan = mEvictor.freeSpaceWithView(blockSize * 2, anyDirInFirstTier, mManagerView);
+    Assert.assertNotNull(plan);
+    Assert.assertEquals(0, plan.toEvict().size());
+    Assert.assertEquals(2, plan.toMove().size());
+
+    // 2 blocks to move. The first one should be moved the 3rd dir as it has max free space.
+    long blockId = plan.toMove().get(0).getFirst();
+    Assert.assertEquals(101, blockId);
+    BlockStoreLocation dstLocation = plan.toMove().get(0).getSecond();
+    Assert.assertEquals(thirdDirSecondTier, dstLocation);
+
+    // The second one should be moved the 2nd dir because after the first move the second dir
+    // has the max free space.
+    blockId = plan.toMove().get(1).getFirst();
+    Assert.assertEquals(102, blockId);
+    dstLocation = plan.toMove().get(1).getSecond();
+    Assert.assertEquals(secondDirSecondTier, dstLocation);
+
+    cache(USER_ID, 107, 10000, 1, 0);
+    cache(USER_ID, 108, 20000, 1, 1);
+    cache(USER_ID, 109, 19000, 1, 2);
+    access(106);
+
+    // After caching more blocks, the free space looks like
+    // First Tier 0, 0
+    // Second Tier 0, 0, 1500
+    plan = mEvictor.freeSpaceWithView(blockSize * 3, anyDirInFirstTier, mManagerView);
+    Assert.assertNotNull(plan);
+    Assert.assertEquals(1, plan.toEvict().size());
+    Assert.assertEquals(3, plan.toMove().size());
+
+    blockId = plan.toEvict().get(0);
+    Assert.assertEquals(107, blockId);
+
+    // 3 blocks to move. The first one should be moved the 3rd dir as it has max free space.
+    blockId = plan.toMove().get(0).getFirst();
+    Assert.assertEquals(103, blockId);
+    dstLocation = plan.toMove().get(0).getSecond();
+    Assert.assertEquals(thirdDirSecondTier, dstLocation);
+
+    // The other two should be moved the 1st dir because the 1st dir has the max free space
+    // after evicting block 107.
+    blockId = plan.toMove().get(1).getFirst();
+    Assert.assertEquals(104, blockId);
+    dstLocation = plan.toMove().get(1).getSecond();
+    Assert.assertEquals(firstDirSecondTier, dstLocation);
+
+    blockId = plan.toMove().get(2).getFirst();
+    Assert.assertEquals(105, blockId);
+    dstLocation = plan.toMove().get(1).getSecond();
+    Assert.assertEquals(firstDirSecondTier, dstLocation);
   }
 }

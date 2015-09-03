@@ -14,7 +14,7 @@ Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on t
 any code change. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It has more than
-[80 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 30 institutions,
+[100 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 30 institutions,
 including [Yahoo](https://www.yahoo.com/), [Intel](http://www.intel.com/),
 [Red Hat](http://www.redhat.com/), and [Tachyon Nexus](http://www.tachyonnexus.com/).
 The project is the storage layer of the Berkeley Data Analytics
@@ -90,7 +90,7 @@ line.
 understand an existing underlayer storage system.
 * [FAQ](FAQ.html)
 * [Tachyon Java API (Javadoc)](api/java/index.html)
-* [Tiered Storage (Alpha)](Tiered-Storage-on-Tachyon.html)
+* [Tiered Storage (Beta)](Tiered-Storage-on-Tachyon.html)
 
 **Tachyon Presentations:**
 

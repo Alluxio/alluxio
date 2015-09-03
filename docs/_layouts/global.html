@@ -31,8 +31,6 @@
         ga('create', 'UA-47563775-2', 'tachyon-project.org');
         ga('send', 'pageview');
     </script>
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/ScrollMagic.min.js"></script>
 </head>
 <body>
 <!--[if lt IE 7]>
@@ -110,23 +108,24 @@
                                     Issues</a></li>
                             {% elsif groupName == "More" %}
                                 <li class="divider"></li>
-                                <li>Presentations:</li>
+                                <li><p>Presentations</p></li>
                                 <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
                                 <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
                                 <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
                                 <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
                                 <li class="divider"></li>
-                                <li><a href="http://tachyon-project.org/master">Master branch document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.7.0">V0.7.0 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.6.4">V0.6.4 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.6.3">V0.6.3 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.6.2">V0.6.2 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.6.1">V0.6.1 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.6.0">V0.6.0 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.5.0">V0.5.0 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.4.1">V0.4.1 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.4.0">V0.4.0 Document</a></li>
-                                <li><a href="http://tachyon-project.org/v0.3.0">V0.3.0 Document</a></li>
+                                <li><a href="/documentation/master">Master branch document</a></li>
+                                <li><a href="/documentation/v0.7.1">V0.7.1 Document</a></li>
+                                <li><a href="/documentation/v0.7.0">V0.7.0 Document</a></li>
+                                <li><a href="/documentation/v0.6.4">V0.6.4 Document</a></li>
+                                <li><a href="/documentation/v0.6.3">V0.6.3 Document</a></li>
+                                <li><a href="/documentation/v0.6.2">V0.6.2 Document</a></li>
+                                <li><a href="/documentation/v0.6.1">V0.6.1 Document</a></li>
+                                <li><a href="/documentation/v0.6.0">V0.6.0 Document</a></li>
+                                <li><a href="/documentation/v0.5.0">V0.5.0 Document</a></li>
+                                <li><a href="/documentation/v0.4.1">V0.4.1 Document</a></li>
+                                <li><a href="/documentation/v0.4.0">V0.4.0 Document</a></li>
+                                <li><a href="/documentation/v0.3.0">V0.3.0 Document</a></li>
                             {% endif %}
                         </ul>
                     </li>
@@ -207,15 +206,7 @@
     })
 </script>
 
-<script>
-    var controller = new ScrollMagic.Controller();
-
-    new ScrollMagic.Scene({
-        offset: 20
-    })
-    .setClassToggle(".navbar-inner", "shrunk")
-    .addTo(controller);
-</script>
+<script src="js/scrollspy.js"></script>
 
 </body>
 </html>

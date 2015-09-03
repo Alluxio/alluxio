@@ -31,7 +31,7 @@ import com.google.common.collect.Sets;
 
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
-import tachyon.worker.block.evictor.EvictorTestUtils;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public class StorageDirViewTest {
   private static final int TEST_TIER_LEVEL = 0;
@@ -53,7 +53,7 @@ public class StorageDirViewTest {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     BlockMetadataManager metaManager =
-        EvictorTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+        TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView =
         Mockito.spy(new BlockMetadataManagerView(metaManager, Sets.<Integer>newHashSet(), Sets
             .<Long>newHashSet()));

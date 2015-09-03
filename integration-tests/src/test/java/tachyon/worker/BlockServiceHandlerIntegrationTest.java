@@ -62,13 +62,10 @@ public class BlockServiceHandlerIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Before
   public final void before() throws Exception {
-    // Disable hdfs client caching to avoid file system close() affecting other clients
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
@@ -280,7 +277,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Sleeps for a duration so that the worker heartbeat to master can be processed
   private void waitForHeartbeat() {
-    CommonUtils.sleepMs(null, mWorkerTachyonConf.getInt(
-        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS) * 3);
+    CommonUtils
+        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 3);
   }
 }

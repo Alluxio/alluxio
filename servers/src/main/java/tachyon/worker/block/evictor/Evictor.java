@@ -22,6 +22,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.allocator.Allocator;
 
 /**
  * Interface for the eviction policy in Tachyon
@@ -35,12 +36,13 @@ public interface Evictor {
      * @param view BlockMetadataManagerView to pass to Evictor
      * @return the generated Evictor
      */
-    public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view) {
+    public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view,
+        Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.getClass(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class),
-            new Class[]{BlockMetadataManagerView.class},
-            new Object[]{view});
+            conf.<Evictor>getClass(Constants.WORKER_EVICT_STRATEGY_CLASS),
+            new Class[]{BlockMetadataManagerView.class, Allocator.class},
+            new Object[]{view, allocator});
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -52,7 +54,7 @@ public interface Evictor {
    * After eviction, at least one StorageDir in the location
    * has the specific amount of free space after eviction. The location can be a specific
    * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
-   * The view is generated and passed by the calling {@link BlockStore}.
+   * The view is generated and passed by the calling tachyon.worker.block.BlockStore.
    *
    * <P>
    * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,

@@ -120,7 +120,7 @@ public class Users {
         mUsers.get(userId).heartbeat();
       } else {
         int userTimeoutMs =
-            mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS, 10 * Constants.SECOND_MS);
+            mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
         mUsers.put(userId, new UserInfo(userId, userTimeoutMs));
       }
     }

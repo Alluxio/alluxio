@@ -13,15 +13,22 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.util;
+
+import org.apache.commons.lang3.SystemUtils;
 
 /**
- * Constants on server side
+ * OS related utility functions 
  */
-public class ClientConstants {
+public final class OSUtils {
+  private OSUtils() {}
 
-  public static final Class<? extends RemoteBlockReader> USER_REMOTE_BLOCK_READER_CLASS =
-      tachyon.client.netty.NettyRemoteBlockReader.class;
-  public static final Class<? extends RemoteBlockWriter> USER_REMOTE_BLOCK_WRITER_CLASS =
-      tachyon.client.netty.NettyRemoteBlockWriter.class;
+  /**
+   * @return true if current OS is Windows 
+   */
+  public static boolean isWindows() {
+    return SystemUtils.IS_OS_WINDOWS;
+  }
 }
+
+
