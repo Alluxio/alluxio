@@ -73,7 +73,7 @@ public final class TachyonFSTestUtils {
   public static TachyonFile createByteFile(TachyonFileSystem tfs, TachyonURI fileURI,
       CacheType cacheType, UnderStorageType underStorageType, int len) throws IOException {
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setCacheType(cacheType)
+        new ClientOptions.Builder(ClientContext.getConf()).setCacheType(cacheType)
             .setUnderStorageType(underStorageType).build();
     FileOutStream os = tfs.getOutStream(fileURI, options);
 
@@ -100,7 +100,7 @@ public final class TachyonFSTestUtils {
       CacheType cacheType, UnderStorageType underStorageType, int len, long blockCapacityByte)
       throws IOException {
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setCacheType(cacheType)
+        new ClientOptions.Builder(ClientContext.getConf()).setCacheType(cacheType)
             .setUnderStorageType(underStorageType).setBlockSize(blockCapacityByte).build();
     FileOutStream os = tfs.getOutStream(new TachyonURI(fileName), options);
 
