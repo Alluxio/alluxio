@@ -188,7 +188,6 @@ public class TFSRenameIntegrationTest {
     }
   }
 
-  @Ignore
   @Test
   public void errorRenameTest() throws Exception {
     // Rename /dirA to /dirA/dirB should fail
