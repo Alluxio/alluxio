@@ -173,8 +173,8 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
     request
         .setAttribute("freeCapacity",
-            FormatUtils.getSizeFromBytes((mMaster.getBlockMaster().getCapacityBytes() -
-                mMaster.getBlockMaster().getUsedBytes())));
+            FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
+                - mMaster.getBlockMaster().getUsedBytes()));
 
     String ufsDataFolder = mMaster.getTachyonConf().get(Constants.UNDERFS_DATA_FOLDER,
         Constants.DEFAULT_DATA_FOLDER);
