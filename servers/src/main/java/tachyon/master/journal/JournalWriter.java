@@ -74,6 +74,7 @@ public class JournalWriter {
     mUfs = UnderFileSystem.get(mJournalDirectory, mTachyonConf);
   }
 
+  // TODO: when this max size is a config parameter, this method can be removed.
   public static void setMaxLogSize(int sizeInBytes) {
     sMaxLogSize = sizeInBytes;
   }
@@ -307,6 +308,7 @@ public class JournalWriter {
         ((FSDataOutputStream) mOutputStream).sync();
       }
       if (mOutputStream.size() > sMaxLogSize) {
+        LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + sMaxLogSize);
         // rotate the current log.
         mOutputStream.close();
         completeCurrentLog();
