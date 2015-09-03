@@ -44,9 +44,9 @@ public abstract class OutStream extends OutputStream {
   }
 
   /**
-   * Cancel the write operations to the OutStream
+   * Cancel the write operations to the OutStream.
    *
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public abstract void cancel() throws IOException;
 

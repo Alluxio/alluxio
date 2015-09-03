@@ -56,6 +56,7 @@ public abstract class BlockInStream extends InStream {
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the tachyonFile
    * @param ufsConf the under file system configuration
+   * @param tachyonConf the TachyonConf instance for this file output stream.
    * @return A new LocalBlockInStream or RemoteBlockInStream
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */

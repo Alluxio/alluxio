@@ -195,7 +195,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Updates the latest block access time on the worker.
    *
    * @param blockId the local block's id
-   * @throws IOException when it cannot access the block
+   * @throws IOException if the block cannot be accessed
    */
   synchronized void accessLocalBlock(long blockId) throws IOException {
     if (mWorkerClient.isLocal()) {
@@ -207,7 +207,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Notifies the worker that the checkpoint file of the indicated file id has been added.
    *
    * @param fid the file id
-   * @throws IOException when the underlying worker RPC fails
+   * @throws IOException if the underlying worker RPC failed
    */
   synchronized void addCheckpoint(int fid) throws IOException {
     mWorkerClient.addCheckpoint(fid);
@@ -218,7 +218,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fid the file id
    * @return true if succeed, false otherwise
-   * @throws IOException when the underlying worker RPC fails
+   * @throws IOException if the underlying worker RPC failed
    */
   synchronized boolean asyncCheckpoint(int fid) throws IOException {
     return mWorkerClient.asyncCheckpoint(fid);
@@ -228,7 +228,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Notifies the worker that the block is cached.
    *
    * @param blockId the block id
-   * @throws IOException when the underlying worker RPC fails
+   * @throws IOException if the underlying worker RPC failed
    */
   public synchronized void cacheBlock(long blockId) throws IOException {
     mWorkerClient.cacheBlock(blockId);
@@ -238,7 +238,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Notifies the worker the block is canceled.
    *
    * @param blockId the block id
-   * @throws IOException when the underlying worker RPC fails
+   * @throws IOException if the underlying worker RPC failed
    */
   public synchronized void cancelBlock(long blockId) throws IOException {
     mWorkerClient.cancelBlock(blockId);
@@ -247,7 +247,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Closes the client connections to both the master and worker.
    *
-   * @throws IOException when it fails to close the connections
+   * @throws IOException if the connections could not be closed
    */
   @Override
   public synchronized void close() throws IOException {
@@ -262,7 +262,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Marks the file as complete.
    *
    * @param fid the file id
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   synchronized void completeFile(int fid) throws IOException {
     mMasterClient.user_completeFile(fid);
@@ -273,7 +273,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param ufsConf the configuration of UnderFileSystem
    * @return the UnderFileSystem temporary folder
-   * @throws IOException when the underlying worker RPC or under file system interaction fails
+   * @throws IOException if the underlying worker RPC or under file system interaction failed
    */
   synchronized String createAndGetUserUfsTempFolder(Object ufsConf) throws IOException {
     String tmpFolder = mWorkerClient.getUserUfsTempFolder();
@@ -303,7 +303,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param dependencyType the dependency's type, Wide or Narrow
    * @param childrenBlockSizeByte the block size of the dependency's output files
    * @return the dependency's id
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized int createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
@@ -321,7 +321,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   @Override
   public synchronized int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
@@ -337,7 +337,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the RawTable's path
    * @param columns number of columns it has
    * @return the id if succeed, -1 otherwise
-   * @throws IOException when number of columns is invalid or the underlying master RPC fails
+   * @throws IOException if the number of columns is invalid or the underlying master RPC failed
    */
   public synchronized int createRawTable(TachyonURI path, int columns) throws IOException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
@@ -350,7 +350,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param columns number of columns it has
    * @param metadata the meta data of the RawTable
    * @return the id if succeed, -1 otherwise
-   * @throws IOException when number of columns is invalid or the underlying master RPC fails
+   * @throws IOException if the number of columns is invalid or the underlying master RPC failed
    */
   public synchronized int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
@@ -373,7 +373,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
    *        or not.
    * @return true if deletes successfully, false otherwise
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   @Override
   public synchronized boolean delete(int fileId, TachyonURI path, boolean recursive)
@@ -387,7 +387,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param path the file's path in Tachyon file system
    * @return true if it exists, false otherwise
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized boolean exist(TachyonURI path) throws IOException {
     return getFileStatus(-1, path, false) != null;
@@ -400,7 +400,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fileId the file id
    * @param blockIndex The index of the block in the file.
    * @return the block id if exists
-   * @throws IOException if the file does not exist, or connection issue.
+   * @throws IOException if the file does not exist, or connection issue was encountered
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
     ClientFileInfo info = getFileStatus(fileId, true);
@@ -428,7 +428,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param blockId the id of the block
    * @return the ClientBlockInfo of the specified block
-   * @throws IOException when the underlying master RPC fails.
+   * @throws IOException if the underlying master RPC failed
    */
   synchronized ClientBlockInfo getClientBlockInfo(long blockId) throws IOException {
     return mMasterClient.user_getClientBlockInfo(blockId);
@@ -439,7 +439,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param depId the dependency id
    * @return the ClientDependencyInfo of the specified dependency
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized ClientDependencyInfo getClientDependencyInfo(int depId) throws IOException {
     return mMasterClient.getClientDependencyInfo(depId);
@@ -463,7 +463,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fid file id.
    * @return <code>TachyonFile</code> of the file id, or null if the file does not exist
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized TachyonFile getFile(int fid) throws IOException {
     return getFile(fid, true);
@@ -473,8 +473,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * Gets <code>TachyonFile</code> based on the file id. If useCachedMetadata, this will not see
    * changes to the file's pin setting, or other dynamic properties.
    *
+   * @param fid the file id
+   * @param useCachedMetadata whether to use cached metadata
    * @return TachyonFile of the file id, or null if the file does not exist.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
     ClientFileInfo clientFileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI, useCachedMetadata);
@@ -489,7 +491,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param path file path.
    * @return TachyonFile of the path, or null if the file does not exist.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized TachyonFile getFile(TachyonURI path) throws IOException {
     validateUri(path);
@@ -503,7 +505,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path file path.
    * @param useCachedMetadata whether to use the file metadata cache
    * @return TachyonFile of the path, or null if the file does not exist.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized TachyonFile getFile(TachyonURI path, boolean useCachedMetadata)
       throws IOException {
@@ -520,7 +522,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fid the file id
    * @return the list of the blocks' info
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized List<ClientBlockInfo> getFileBlocks(int fid) throws IOException {
     // TODO(hy): Should read from mClientFileInfos if possible. Should add timeout to improve this.
@@ -551,7 +553,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the path of the queried file. If fielId is not -1, this parameter is ignored.
    * @param useCachedMetaData whether to use the cached data or not.
    * @return the clientFileInfo.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   private synchronized <K> ClientFileInfo getFileStatus(Map<K, ClientFileInfo> cache, K key,
       int fileId, String path, boolean useCachedMetaData) throws IOException {
@@ -588,7 +590,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the path of the file or folder. valid iff fileId is -1.
    * @param useCachedMetadata if true use the local cached meta data
    * @return the ClientFileInfo of the file. null if the file does not exist.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized ClientFileInfo getFileStatus(int fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
@@ -612,7 +614,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fileId the file id of the file or folder.
    * @param useCachedMetadata if true use the local cached meta data
    * @return the ClientFileInfo of the file. null if the file does not exist.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized ClientFileInfo getFileStatus(int fileId, boolean useCachedMetadata)
       throws IOException {
@@ -625,7 +627,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId the id of the block
    * @param initialBytes the initial bytes allocated for the block file
    * @return the temporary path of the block file
-   * @throws IOException when the underlying worker RPC fails
+   * @throws IOException if the underlying worker RPC failed
    */
   public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
       throws IOException {
@@ -640,7 +642,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param id the id of the raw table
    * @return the RawTable
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized RawTable getRawTable(int id) throws IOException {
     ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
@@ -652,7 +654,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param path the path of the raw table
    * @return the RawTable
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
     validateUri(path);
@@ -663,7 +665,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * @return the address of the UnderFileSystem
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized String getUfsAddress() throws IOException {
     return mMasterClient.user_getUfsAddress();
@@ -681,7 +683,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Returns the userId of the master client. This is only used for testing.
    *
    * @return the userId of the master client
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   long getUserId() throws IOException {
     return mMasterClient.getUserId();
@@ -689,7 +691,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * @return get the total number of bytes used in Tachyon cluster
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized long getUsedBytes() throws IOException {
     return mMasterClient.getUsedBytes();
@@ -697,7 +699,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * @return get the capacity of Tachyon cluster
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized long getCapacityBytes() throws IOException {
     return mMasterClient.getCapacityBytes();
@@ -712,7 +714,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
   /**
    * @return all the works' info
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
     return mMasterClient.getWorkersInfo();
@@ -750,7 +752,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param path the target directory/file path
    * @return A list of ClientFileInfo, null if the file or folder does not exist.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   @Override
   public synchronized List<ClientFileInfo> listStatus(TachyonURI path) throws IOException {
@@ -765,7 +767,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be
    *        non-negative.
    * @return the path of the block file locked
-   * @throws IOException when the underlying worker RPC fails
+   * @throws IOException if the underlying worker RPC failed
    */
   synchronized String lockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
@@ -798,7 +800,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the path of the folder to be created
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return true if the folder is created successfully or already existing. false otherwise.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   @Override
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
@@ -809,8 +811,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * An alias for setPinned(fid, true).
    *
-   * @return the file id
-   * @throws IOException when the underlying worker RPC fails
+   * @param fid the file id
+   * @throws IOException if the underlying worker RPC failed
    * @see #setPinned(int, boolean)
    */
   public synchronized void pinFile(int fid) throws IOException {
@@ -826,7 +828,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
    *        or not
    * @return true if in-memory free successfully, false otherwise.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   @Override
   public synchronized boolean freepath(int fileId, TachyonURI path, boolean recursive)
@@ -840,7 +842,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param blockId the id of the block
    * @return true if success, false otherwise
-   * @throws IOException when the underlying worker RPC fails
+   * @throws IOException if the underlying worker RPC failed
    */
   public synchronized boolean promoteBlock(long blockId) throws IOException {
     if (mWorkerClient.isLocal()) {
@@ -857,7 +859,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
    * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   @Override
   public synchronized boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath)
@@ -871,7 +873,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Reports the lost file to master.
    *
    * @param fileId the lost file id
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized void reportLostFile(int fileId) throws IOException {
     mMasterClient.user_reportLostFile(fileId);
@@ -881,7 +883,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Requests the dependency's needed files.
    *
    * @param depId the dependency id
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized void requestFilesInDependency(int depId) throws IOException {
     mMasterClient.user_requestFilesInDependency(depId);
@@ -893,7 +895,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId the id of the block that space will be allocated for
    * @param requestSpaceBytes size to request in bytes
    * @return the size bytes that allocated to the block, -1 if no local worker exists
-   * @throws IOException when the underlying file does not exist
+   * @throws IOException if the underlying file does not exist
    */
   public synchronized long requestSpace(long blockId, long requestSpaceBytes) throws IOException {
     if (!hasLocalWorker()) {
@@ -920,7 +922,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param fid the file id
    * @param pinned the target "pinned" flag value
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized void setPinned(int fid, boolean pinned) throws IOException {
     mMasterClient.user_setPinned(fid, pinned);
@@ -942,7 +944,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
    *        non-negative.
-   * @throws IOException when the underlying workerRPC fails
+   * @throws IOException if the underlying worker RPC failed
    */
   synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
@@ -970,8 +972,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * An alias for setPinned(fid, false).
    *
-   * @return the file id
-   * @throws IOException when the underlying worker RPC fails
+   * @param fid the file id
+   * @throws IOException if the underlying worker RPC failed
    * @see #setPinned(int, boolean)
    */
   public synchronized void unpinFile(int fid) throws IOException {
@@ -983,7 +985,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param id the raw table's id
    * @param metadata the new meta data
-   * @throws IOException when the underlying master RPC fails
+   * @throws IOException if the underlying master RPC failed
    */
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
     mMasterClient.user_updateRawTableMetadata(id, metadata);
@@ -992,7 +994,7 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Validates the given uri, throws an appropriate Exception if the uri is invalid.
    *
-   * @param uri The uri to validate
+   * @param uri the uri to validate
    */
   private void validateUri(TachyonURI uri) {
     Preconditions.checkNotNull(uri, "URI cannot be null.");
