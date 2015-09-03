@@ -138,6 +138,8 @@ public class TachyonConf {
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
+    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+        String.valueOf(ChannelType.defaultType()));
     defaultProps.setProperty(Constants.USER_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
 
