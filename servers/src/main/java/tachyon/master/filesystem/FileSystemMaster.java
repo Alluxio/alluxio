@@ -830,7 +830,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist.
    */
-  public TachyonURI getPath(int fileId) throws FileDoesNotExistException {
+  public TachyonURI getPath(long fileId) throws FileDoesNotExistException {
     return mInodeTree.getPath(mInodeTree.getInodeById(fileId));
   }
 

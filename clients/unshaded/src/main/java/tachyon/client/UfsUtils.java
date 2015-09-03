@@ -161,7 +161,7 @@ public class UfsUtils {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
         }
-        int fileId = tfs.createFile(tfsPath, ufsPath);
+        long fileId = tfs.createFile(tfsPath, ufsPath);
         if (fileId == -1) {
           LOG.warn("Failed to create tachyon file: " + tfsPath);
         } else {
