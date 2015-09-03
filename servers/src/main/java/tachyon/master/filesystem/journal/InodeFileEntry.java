@@ -46,11 +46,6 @@ public class InodeFileEntry extends InodeEntry {
     InodeFile inode = new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
         mCreationTimeMs);
 
-    // Create block ids for the file.
-    for (long blockId : mBlocks) {
-      inode.getNewBlockId();
-    }
-
     // Set flags.
     if (mIsComplete) {
       inode.setComplete(mLength);

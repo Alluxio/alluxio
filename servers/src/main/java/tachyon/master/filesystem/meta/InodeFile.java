@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.master.block.BlockId;
 import tachyon.master.filesystem.journal.InodeFileEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -34,7 +36,7 @@ public final class InodeFile extends Inode {
   private final long mBlockSizeBytes;
 
   // list of block ids.
-  private final List<Long> mBlocks;
+  private List<Long> mBlocks;
 
   // length of inode file in bytes.
   private long mLength = 0;
@@ -182,6 +184,10 @@ public final class InodeFile extends Inode {
     return mIsComplete;
   }
 
+  public synchronized void setBlockIds(List<Long> blockIds) {
+    mBlocks = Preconditions.checkNotNull(blockIds);
+  }
+
   /**
    * Set whether the file is cacheable or not.
    *
@@ -193,15 +199,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Set the path of the file in under file system.
-   *
-   * @param ufsPath The new path of the file in under file system
-   */
-  public synchronized void setUfsPath(String ufsPath) {
-    mUfsPath = ufsPath;
-  }
-
-  /**
    * The file is complete. Set the complete flag true, and set the length
    *
    * @param length the length of the complete file
@@ -209,6 +206,15 @@ public final class InodeFile extends Inode {
   public synchronized void setComplete(long length) {
     mIsComplete = true;
     mLength = length;
+  }
+
+  /**
+   * Set the path of the file in under file system.
+   *
+   * @param ufsPath The new path of the file in under file system
+   */
+  public synchronized void setUfsPath(String ufsPath) {
+    mUfsPath = ufsPath;
   }
 
   /**
