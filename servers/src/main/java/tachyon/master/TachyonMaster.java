@@ -44,6 +44,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
 
 /**
@@ -94,6 +95,8 @@ public class TachyonMaster {
   private TServer mMasterServiceServer;
   private LeaderSelectorClient mLeaderSelectorClient = null;
   private boolean mIsServing = false;
+
+  private long mStarttimeMs = -1;
 
   public TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
@@ -227,6 +230,13 @@ public class TachyonMaster {
   }
 
   /**
+   * Get the millisecond when Tachyon Master starts serving, return -1 when not started.
+   */
+  public long getStarttimeMs() {
+    return mStarttimeMs;
+  }
+
+  /**
    * Get whether the system is the leader in zookeeper mode, for unit test only.
    *
    * @return true if the system is the leader under zookeeper mode, false otherwise.
@@ -332,8 +342,6 @@ public class TachyonMaster {
   }
 
   private void startServing() {
-    // TODO: init MasterUIWebServer
-
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     processor.registerProcessor(mUserMaster.getProcessorName(), mUserMaster.getProcessor());
@@ -351,11 +359,14 @@ public class TachyonMaster {
     mIsServing = true;
 
     // start web ui
-    // mWebServer.startWebServer();
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, mMasterAddress, this, mTachyonConf);
+    mWebServer.startWebServer();
 
     String leaderStart = (mUseZookeeper) ? "(gained leadership)" : "";
     LOG.info("Tachyon Master version " + Version.VERSION + " started " + leaderStart + " @ "
         + mMasterAddress);
+
+    mStarttimeMs = System.currentTimeMillis();
 
     // start thrift rpc server
     mMasterServiceServer.serve();
