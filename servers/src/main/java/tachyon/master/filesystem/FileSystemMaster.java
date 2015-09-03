@@ -247,6 +247,7 @@ public final class FileSystemMaster extends MasterBase {
     mDependencyMap.addFileCheckpoint(fileId);
     tFile.setLastModificationTimeMs(opTimeMs);
     tFile.setComplete(length);
+    // TODO: This probably should always be true since the last mod time is updated
     return needLog;
   }
 
@@ -261,6 +262,10 @@ public final class FileSystemMaster extends MasterBase {
     } catch (BlockInfoException bie) {
       throw new RuntimeException(bie);
     }
+  }
+
+  public TachyonConf getTachyonConf() {
+    return mTachyonConf;
   }
 
   /**
@@ -662,7 +667,6 @@ public final class FileSystemMaster extends MasterBase {
         Throwables.propagate(bie);
       }
     }
-
   }
 
   public boolean rename(long fileId, TachyonURI dstPath)
@@ -731,8 +735,8 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileDoesNotExistException {
     Inode srcInode = mInodeTree.getInodeById(fileId);
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
-    Inode dstInode = mInodeTree.getInodeByPath(dstPath);
-    Inode dstParentInode = mInodeTree.getInodeById(dstInode.getParentId());
+    TachyonURI dstParentURI = dstPath.getParent();
+    Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
     ((InodeDirectory) srcParentInode).removeChild(srcInode);
     srcParentInode.setLastModificationTimeMs(opTimeMs);
     srcInode.setParentId(dstParentInode.getId());
@@ -782,10 +786,6 @@ public final class FileSystemMaster extends MasterBase {
       if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
         // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
         // true
-        return false;
-      }
-      if (mInodeTree.isRootId(inode.getId())) {
-        // The root cannot be freed.
         return false;
       }
       freeInternal(inode);

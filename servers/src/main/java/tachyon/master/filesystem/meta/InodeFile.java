@@ -240,7 +240,7 @@ public final class InodeFile extends Inode {
       getNewBlockId();
       length -= blockSize;
     }
-    setComplete(length);
+    setComplete(mLength);
   }
 
   @Override
