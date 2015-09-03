@@ -31,15 +31,14 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
-import com.google.common.collect.Sets;
-
 import org.junit.rules.ExpectedException;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.filesystem.FileSystemMaster;
 import tachyon.master.rawtable.RawTableMaster;
@@ -81,7 +80,7 @@ public class MasterInfoIntegrationTest {
         long fileId = mFsMaster.createFile(path, Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
       } else {
-        mFsMaster.mkdirs(path, true);
+        mFsMaster.mkdirs(path, false);
         Assert.assertNotNull(mFsMaster.getFileId(path));
       }
 
@@ -125,7 +124,13 @@ public class MasterInfoIntegrationTest {
 
     private void doDelete(TachyonURI path) throws Exception {
       mFsMaster.deleteFile(mFsMaster.getFileId(path), true);
-      Assert.assertEquals(-1, mFsMaster.getFileId(path));
+      boolean exception = false;
+      try {
+        mFsMaster.getFileId(path);
+      } catch (InvalidPathException ipe) {
+        exception = true;
+      }
+      Assert.assertTrue(exception);
     }
 
     public void exec(int depth, int concurrencyDepth, TachyonURI path) throws Exception {
@@ -349,7 +354,7 @@ public class MasterInfoIntegrationTest {
         new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentDeleter.call();
 
-    Assert.assertEquals(1,
+    Assert.assertEquals(0,
         mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/"))).size());
   }
 
@@ -572,7 +577,7 @@ public class MasterInfoIntegrationTest {
     long fileId =
         mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long opTimeMs = System.currentTimeMillis();
-    mFsMaster.completeFileInternal(fileId, 0, opTimeMs);
+    mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
