@@ -32,13 +32,14 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import org.junit.rules.ExpectedException;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.filesystem.FileSystemMaster;
 import tachyon.master.rawtable.RawTableMaster;
@@ -571,7 +572,7 @@ public class MasterInfoIntegrationTest {
     long fileId =
         mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long opTimeMs = System.currentTimeMillis();
-    mFsMaster.completeFileInternal(fileId, 0, opTimeMs);
+    mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }

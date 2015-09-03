@@ -15,22 +15,30 @@
 
 package tachyon.master.filesystem.journal;
 
+import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class CompleteFileEntry implements JournalEntry {
+public final class CompleteFileEntry implements JournalEntry {
+  private final List<Long> mBlockIds;
   private final long mId;
   private final long mLength;
   private final long mOpTimeMs;
 
-  public CompleteFileEntry(long id, long length, long opTimeMs) {
+  public CompleteFileEntry(List<Long> blockIds, long id, long length, long opTimeMs) {
+    mBlockIds = Preconditions.checkNotNull(blockIds);
     mId = id;
     mLength = length;
     mOpTimeMs = opTimeMs;
+  }
+
+  public List<Long> getBlockIds() {
+    return mBlockIds;
   }
 
   public long getFileId() {
@@ -53,6 +61,7 @@ public class CompleteFileEntry implements JournalEntry {
   @Override
   public Map<String, Object> getParameters() {
     Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
+    parameters.put("blockIds", mBlockIds);
     parameters.put("id", mId);
     parameters.put("length", mLength);
     parameters.put("operationTimeMs", mOpTimeMs);
