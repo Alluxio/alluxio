@@ -42,7 +42,7 @@ public final class MasterUIWebServer extends UIWebServer {
         new WebInterfaceConfigurationServlet(master.getFileSystemMaster())), "/configuration");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(master)), "/browse");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(master)), "/memory");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)),
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(master)),
         "/dependency");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
         "/download");
