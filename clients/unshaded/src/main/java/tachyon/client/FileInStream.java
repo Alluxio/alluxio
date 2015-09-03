@@ -41,6 +41,7 @@ public class FileInStream extends InStream {
    * @param file the file to be read
    * @param opType the InStream's read type
    * @param tachyonConf the TachyonConf instance for this stream.
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public FileInStream(TachyonFile file, ReadType opType, TachyonConf tachyonConf)
       throws IOException {
@@ -54,6 +55,7 @@ public class FileInStream extends InStream {
    * @param opType the InStream's read type
    * @param ufsConf the under file system configuration
    * @param tachyonConf the TachyonConf instance for this stream.
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public FileInStream(TachyonFile file, ReadType opType, Object ufsConf, TachyonConf tachyonConf)
       throws IOException {
