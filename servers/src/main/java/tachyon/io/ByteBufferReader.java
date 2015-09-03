@@ -20,15 +20,15 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Reader for bytebuffer.
+ * Reader for a <code>ByteBuffer</code>.
  */
 public abstract class ByteBufferReader {
   /**
-   * Get most efficient ByteBufferReader for the ByteBuffer.
+   * Gets the most efficient <code>ByteBufferReader</code> for the <code>ByteBuffer</code>.
    *
-   * @param buf the ByteBuffer to read.
-   * @return The most efficient ByteBufferReader for buf.
-   * @throws IOException
+   * @param buf the <code>ByteBuffer</code> to read
+   * @return the most efficient <code>ByteBufferReader</code> for the given buffer
+   * @throws IOException if the given buffer is null
    */
   public static ByteBufferReader getByteBufferReader(ByteBuffer buf) throws IOException {
     // if (buf.order() == ByteOrder.nativeOrder()) {
@@ -43,6 +43,10 @@ public abstract class ByteBufferReader {
 
   protected ByteBuffer mBuf;
 
+  /**
+   * @param buf <code>ByteBuffer</code> to read
+   * @throws IOException if the given buffer is null
+   */
   ByteBufferReader(ByteBuffer buf) throws IOException {
     if (buf == null) {
       throw new IOException("ByteBuffer is null");
@@ -51,33 +55,93 @@ public abstract class ByteBufferReader {
     mBuf = buf;
   }
 
+  /**
+   * Reads a <code>byte</code> from the buffer.
+   *
+   * @return the <code>byte</code> read
+   */
   public abstract byte get();
 
+  /**
+   * Reads a sequence of bytes from the buffer into the given byte array.
+   *
+   * @param dst the byte array to write to
+   */
   public abstract void get(byte[] dst);
 
+  /**
+   * Reads a sequence of bytes from the buffer into the <tt>dst[offset]</tt> through
+   * <tt>dst[offest + length - 1]</tt> portion of the given byte array.
+   *
+   * @param dst the byte array to write to
+   * @param offset the offset to start the operation at
+   * @param length the number of bytes to transfer
+   */
   public abstract void get(byte[] dst, int offset, int length);
 
+  /**
+   * Reads a <code>char</code> from the buffer.
+   *
+   * @return the <code>char</code> read
+   */
   public abstract char getChar();
 
+  /**
+   * Reads a <code>double</code> from the buffer.
+   *
+   * @return the <code>double</code> read
+   */
   public abstract double getDouble();
 
+  /**
+   * Reads a <code>float</code> from the buffer.
+   *
+   * @return the <code>floar</code> read
+   */
   public abstract float getFloat();
 
+  /**
+   * Reads a <code>int</code> from the buffer.
+   *
+   * @return the <code>int</code> read
+   */
   public abstract int getInt();
 
+  /**
+   * Reads a <code>long</code> from the buffer.
+   *
+   * @return the <code>long</code> read
+   */
   public abstract long getLong();
 
+  /**
+   * Reads a <code>short</code> from the buffer.
+   *
+   * @return the <code>short</code> read
+   */
   public abstract short getShort();
 
+  /**
+   * @return <code>ByteOrder</code> of the underlying buffer
+   */
   public ByteOrder order() {
     return mBuf.order();
   }
 
-  public void order(ByteOrder bo) {
-    mBuf.order(bo);
+  /**
+   * @param newByteOrder <code>ByteOrder</code> to use
+   */
+  public void order(ByteOrder newByteOrder) {
+    mBuf.order(newByteOrder);
   }
 
+  /**
+   * @return the buffer position
+   */
   public abstract int position();
 
+  /**
+   * @param newPosition the position to use
+   */
   public abstract void position(int newPosition);
 }
