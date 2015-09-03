@@ -28,12 +28,9 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.next.CacheType;
-import tachyon.client.next.ClientOptions;
-import tachyon.client.next.TachyonFSTestUtils;
-import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFile;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;

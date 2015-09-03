@@ -23,7 +23,7 @@ import java.util.List;
 
 import com.google.common.base.Supplier;
 
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**

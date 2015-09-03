@@ -33,7 +33,7 @@ import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.next.file.FileInStream;
+import tachyon.client.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
 import tachyon.thrift.BlockInfo;

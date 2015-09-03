@@ -30,14 +30,13 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.FileSystemMasterClient;
-import tachyon.client.next.CacheType;
-import tachyon.client.next.ClientOptions;
-import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.FileOutStream;
-import tachyon.client.next.file.TachyonFileSystem;
-import tachyon.client.next.file.TachyonFile;
+import tachyon.client.CacheType;
+import tachyon.client.ClientOptions;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.ThreadFactoryUtils;
 
 public class PinIntegrationTest {

@@ -28,10 +28,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import tachyon.client.next.CacheType;
-import tachyon.client.next.TachyonFSTestUtils;
-import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.CacheType;
+import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 
 /**

@@ -25,12 +25,12 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.next.CacheType;
-import tachyon.client.next.ClientOptions;
-import tachyon.client.next.OutStream;
-import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFileSystem;
-import tachyon.client.next.file.TachyonFile;
+import tachyon.client.CacheType;
+import tachyon.client.ClientOptions;
+import tachyon.client.OutStream;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;

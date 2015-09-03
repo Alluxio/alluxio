@@ -30,12 +30,11 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
-import tachyon.client.next.ClientOptions;
-import tachyon.client.next.TachyonFSTestUtils;
-import tachyon.client.next.file.TachyonFileSystem;
-import tachyon.client.next.file.TachyonFile;
+import tachyon.client.ClientOptions;
+import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonClusterMultiMaster;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 

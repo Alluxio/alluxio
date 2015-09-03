@@ -24,12 +24,9 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.next.CacheType;
-import tachyon.client.next.ClientOptions;
-import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.FileInStream;
-import tachyon.client.next.file.FileOutStream;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;

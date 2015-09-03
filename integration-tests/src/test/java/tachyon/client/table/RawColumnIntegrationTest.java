@@ -15,19 +15,11 @@
 
 package tachyon.client.table;
 
-import java.io.IOException;
-
-import org.apache.thrift.TException;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
-import tachyon.client.TachyonFile;
-import tachyon.client.next.file.TachyonFileSystem;
-import tachyon.conf.TachyonConf;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -64,7 +56,7 @@ public class RawColumnIntegrationTest {
     }
   }
 */
-  
+
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);

@@ -39,7 +39,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
-import tachyon.client.next.file.FileOutStream;
+import tachyon.client.file.FileOutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
