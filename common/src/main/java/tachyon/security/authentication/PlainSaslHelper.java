@@ -35,11 +35,10 @@ import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthenticationFactory.AuthType;
 
 /**
- * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
- * There is a new provider {@link PlainSaslServerProvider} needed to support server-side
- * PLAIN mechanism.
- * PlainSaslHelper is used to register this provider.
- * It also provides methods to generate PLAIN transport for server and client.
+ * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism. There is a new
+ * provider {@link PlainSaslServerProvider} needed to support server-side PLAIN mechanism.
+ * PlainSaslHelper is used to register this provider. It also provides methods to generate PLAIN
+ * transport for server and client.
  */
 public class PlainSaslHelper {
   static {
@@ -50,12 +49,13 @@ public class PlainSaslHelper {
    * @return true if the provider was registered
    */
   public static boolean isPlainSaslProviderAdded() {
-    return Security.getProvider(PlainSaslServerProvider.PROVIDER) != null;
+    return Security.getProvider(PlainSaslServerProvider.PROVIDER_NAME) != null;
   }
 
   /**
    * For server side, get a PLAIN mechanism TTransportFactory. A callback handler is hooked for
    * specific authentication methods.
+   *
    * @param authType the authentication type
    * @param conf TachyonConf
    * @return a corresponding TTransportFactory, which is PLAIN mechanism
@@ -64,16 +64,17 @@ public class PlainSaslHelper {
   public static TTransportFactory getPlainServerTransportFactory(AuthType authType,
       TachyonConf conf) throws SaslException {
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
-    AuthenticationProvider provider = AuthenticationProviderFactory
-        .getAuthenticationProvider(authType, conf);
-    saslFactory.addServerDefinition("PLAIN", null, null, new HashMap<String, String>(),
-        new PlainSaslServer.PlainServerCallbackHandler(provider));
+    AuthenticationProvider provider =
+        AuthenticationProviderFactory.getAuthenticationProvider(authType, conf);
+    saslFactory.addServerDefinition(PlainSaslServerProvider.MECHANISM, null, null,
+        new HashMap<String, String>(), new PlainSaslServer.PlainServerCallbackHandler(provider));
 
     return saslFactory;
   }
 
   /**
    * Get a PLAIN mechanism transport for client side.
+   *
    * @param username User Name of PlainClient
    * @param password Password of PlainClient
    * @param wrappedTransport The original Transport
@@ -82,8 +83,9 @@ public class PlainSaslHelper {
    */
   public static TTransport getPlainClientTransport(String username, String password,
       TTransport wrappedTransport) throws SaslException {
-    return new TSaslClientTransport("PLAIN", null, null, null, new HashMap<String, String>(),
-        new PlainClientCallbackHandler(username, password), wrappedTransport);
+    return new TSaslClientTransport(PlainSaslServerProvider.MECHANISM, null, null, null,
+        new HashMap<String, String>(), new PlainClientCallbackHandler(username, password),
+        wrappedTransport);
   }
 
   /**
