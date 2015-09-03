@@ -27,8 +27,8 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.FileOutStream;
@@ -61,7 +61,7 @@ public class BasicOperations implements Callable<Boolean> {
   private void createFile(TachyonFS tachyonClient) throws IOException {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    int fileId = tachyonClient.createFile(mFilePath);
+    long fileId = tachyonClient.createFile(mFilePath);
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
   }
 

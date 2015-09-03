@@ -23,8 +23,8 @@ import java.util.concurrent.Callable;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
@@ -87,13 +87,13 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     TachyonFile file = client.getFile(filePath);
     if (file == null) {
       // file doesn't exist yet, so create it
-      int fileId = client.createFile(filePath);
+      long fileId = client.createFile(filePath);
       file = client.getFile(fileId);
     } else if (deleteIfExists) {
       // file exists, so delete it and recreate
       client.delete(new TachyonURI(file.getPath()), false);
 
-      int fileId = client.createFile(filePath);
+      long fileId = client.createFile(filePath);
       file = client.getFile(fileId);
     }
     return file;

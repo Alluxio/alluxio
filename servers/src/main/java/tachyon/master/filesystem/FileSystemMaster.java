@@ -35,8 +35,8 @@ import tachyon.PrefixList;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.block.BlockId;
 import tachyon.master.MasterBase;
+import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.filesystem.journal.AddCheckpointEntry;
 import tachyon.master.filesystem.journal.CompleteFileEntry;
@@ -827,7 +827,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist.
    */
-  public TachyonURI getPath(int fileId) throws FileDoesNotExistException {
+  public TachyonURI getPath(long fileId) throws FileDoesNotExistException {
     return mInodeTree.getPath(mInodeTree.getInodeById(fileId));
   }
 

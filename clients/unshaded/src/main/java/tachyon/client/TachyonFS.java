@@ -521,7 +521,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the list of the blocks' info
    * @throws IOException
    */
-  public synchronized List<FileBlockInfo> getFileBlocks(int fid) throws IOException {
+  public synchronized List<FileBlockInfo> getFileBlocks(long fid) throws IOException {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
     return mFSMasterClient.getFileBlockInfoList(fid);
   }
@@ -532,7 +532,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the path in Tachyon file system
    * @return the file id if exists, -1 otherwise
    */
-  public synchronized int getFileId(TachyonURI path) {
+  public synchronized long getFileId(TachyonURI path) {
     try {
       FileInfo fileInfo = getFileStatus(-1, path, false);
       return fileInfo == null ? -1 : fileInfo.getFileId();
@@ -641,7 +641,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the RawTable
    * @throws IOException
    */
-  public synchronized RawTable getRawTable(int id) throws IOException {
+  public synchronized RawTable getRawTable(long id) throws IOException {
     throw new UnsupportedOperationException("Raw table is currently unsupported");
     //RawTableInfo rawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
     //return new RawTable(this, rawTableInfo);
@@ -809,7 +809,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /** Alias for setPinned(fid, true). */
-  public synchronized void pinFile(int fid) throws IOException {
+  public synchronized void pinFile(long fid) throws IOException {
     setPinned(fid, true);
   }
 
@@ -869,7 +869,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fileId the lost file id
    * @throws IOException
    */
-  public synchronized void reportLostFile(int fileId) throws IOException {
+  public synchronized void reportLostFile(long fileId) throws IOException {
     mFSMasterClient.reportLostFile(fileId);
   }
 
@@ -915,7 +915,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Calling setPinned() on a folder will recursively set the "pinned" flag on all of that folder's
    * children. This may be an expensive operation for folders with many files/subfolders.
    */
-  public synchronized void setPinned(int fid, boolean pinned) throws IOException {
+  public synchronized void setPinned(long fid, boolean pinned) throws IOException {
     mFSMasterClient.setPinned(fid, pinned);
   }
 
@@ -960,7 +960,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /** Alias for setPinned(fid, false). */
-  public synchronized void unpinFile(int fid) throws IOException {
+  public synchronized void unpinFile(long fid) throws IOException {
     setPinned(fid, false);
   }
 
