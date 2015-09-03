@@ -44,6 +44,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
+import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
 
 /**
@@ -341,8 +342,6 @@ public class TachyonMaster {
   }
 
   private void startServing() {
-    // TODO: init MasterUIWebServer
-
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     processor.registerProcessor(mUserMaster.getProcessorName(), mUserMaster.getProcessor());
@@ -360,7 +359,8 @@ public class TachyonMaster {
     mIsServing = true;
 
     // start web ui
-    // mWebServer.startWebServer();
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, mMasterAddress, this, mTachyonConf);
+    mWebServer.startWebServer();
 
     String leaderStart = (mUseZookeeper) ? "(gained leadership)" : "";
     LOG.info("Tachyon Master version " + Version.VERSION + " started " + leaderStart + " @ "
