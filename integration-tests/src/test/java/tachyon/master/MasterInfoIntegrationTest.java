@@ -29,10 +29,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -78,8 +81,8 @@ public class MasterInfoIntegrationTest {
         long fileId = mFsMaster.createFile(path, Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
       } else {
-        long fileId = mFsMaster.createFile(path, 0, true);
-        Assert.assertEquals(fileId, mFsMaster.getFileId(path));
+        mFsMaster.mkdirs(path, true);
+        Assert.assertNotNull(mFsMaster.getFileId(path));
       }
 
       if (concurrencyDepth > 0) {
@@ -237,6 +240,9 @@ public class MasterInfoIntegrationTest {
 
   private TachyonConf mMasterTachyonConf;
 
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
   @Test
   public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, FileNotFoundException,
@@ -276,7 +282,7 @@ public class MasterInfoIntegrationTest {
     long fileId = mFsMaster.getFileId(path);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals("testFolder", fileInfo.getName());
-    Assert.assertEquals(2, fileInfo.getFileId());
+    Assert.assertEquals(1, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
     Assert.assertEquals("", fileInfo.getUfsPath());
     Assert.assertTrue(fileInfo.isFolder);
@@ -424,6 +430,7 @@ public class MasterInfoIntegrationTest {
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile"))).isFolder);
   }
 
+  @Ignore
   @Test
   public void createRawTableTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, FileDoesNotExistException, TachyonException {
@@ -437,6 +444,8 @@ public class MasterInfoIntegrationTest {
   @Test
   public void deleteDirectoryWithDirectoriesTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Could not find path: /testFolder/testFolder2/testFile2");
     mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
     mFsMaster.mkdirs(new TachyonURI("/testFolder/testFolder2"), true);
     long fileId =
@@ -445,17 +454,13 @@ public class MasterInfoIntegrationTest {
     long fileId2 =
         mFsMaster.createFile(new TachyonURI("/testFolder/testFolder2/testFile2"),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(3, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
-    Assert.assertTrue(mFsMaster.deleteFile(2, true));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertEquals(-1,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+    Assert.assertTrue(mFsMaster.deleteFile(1, true));
+    mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2"));
   }
 
   @Test
@@ -469,14 +474,14 @@ public class MasterInfoIntegrationTest {
     long fileId2 =
         mFsMaster.createFile(new TachyonURI("/testFolder/testFolder2/testFile2"),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(3, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
     Assert.assertFalse(mFsMaster.deleteFile(2, false));
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(3, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
@@ -485,15 +490,16 @@ public class MasterInfoIntegrationTest {
   @Test
   public void deleteDirectoryWithFilesTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Could not find path: /testFolder");
     mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
     long fileId =
         mFsMaster.createFile(new TachyonURI("/testFolder/testFile"),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertTrue(mFsMaster.deleteFile(2, true));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertTrue(mFsMaster.deleteFile(1, true));
+    mFsMaster.getFileId(new TachyonURI("/testFolder"));
   }
 
   @Test
@@ -503,30 +509,34 @@ public class MasterInfoIntegrationTest {
     long fileId =
         mFsMaster.createFile(new TachyonURI("/testFolder/testFile"),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertFalse(mFsMaster.deleteFile(2, false));
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertFalse(mFsMaster.deleteFile(1, false));
+    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
   }
 
   @Test
   public void deleteEmptyDirectoryTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException {
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Could not find path: /testFolder");
     mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertTrue(mFsMaster.deleteFile(2, true));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertTrue(mFsMaster.deleteFile(1, true));
+    mFsMaster.getFileId(new TachyonURI("/testFolder"));
   }
 
   @Test
   public void deleteFileTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage("Could not find path: /testFile");
     long fileId =
         mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFile")));
     Assert.assertTrue(mFsMaster.deleteFile(fileId, true));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFile")));
+    mFsMaster.getFileId(new TachyonURI("/testFile"));
   }
 
   @Test
@@ -567,6 +577,9 @@ public class MasterInfoIntegrationTest {
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
 
+  // TODO: Should writing in a file in a directory update its last mod time? If so we need to log
+  // it in the journal
+  @Ignore
   @Test
   public void lastModificationTimeCreateFileTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
@@ -586,7 +599,7 @@ public class MasterInfoIntegrationTest {
         mFsMaster.createFile(new TachyonURI("/testFolder/testFile"),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long folderId = mFsMaster.getFileId(new TachyonURI("/testFolder"));
-    Assert.assertEquals(2, folderId);
+    Assert.assertEquals(1, folderId);
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     long opTimeMs = System.currentTimeMillis();
     Assert.assertTrue(mFsMaster.deleteFileInternal(fileId, true, opTimeMs));
@@ -626,10 +639,9 @@ public class MasterInfoIntegrationTest {
     for (FileInfo info : infoList) {
       // TODO: After info.getFileId return long, remove this type cast
       long id = new Long(info.getFileId());
-      if (info.isFolder) {
-        listedDirIds.add(id);
-      } else {
-        listedIds.add(id);
+      listedDirIds.add(id);
+      for (FileInfo fileInfo : mFsMaster.getFileInfoList(id)) {
+        listedIds.add((long) fileInfo.getFileId());
       }
     }
     Assert.assertEquals(ids, listedIds);
@@ -683,7 +695,7 @@ public class MasterInfoIntegrationTest {
         new TachyonURI("/testFile2")));
   }
 
-  @Test(expected = FileDoesNotExistException.class)
+  @Test(expected = InvalidPathException.class)
   public void renameNonexistentTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
     mFsMaster.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);

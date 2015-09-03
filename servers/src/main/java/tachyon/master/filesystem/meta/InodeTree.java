@@ -233,7 +233,8 @@ public final class InodeTree implements JournalSerializable {
     ret.add(lastInode);
     mInodes.add(lastInode);
     currentInodeDirectory.addChild(lastInode);
-    currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
+    // TODO: If this should be updated, we need to write the corresponding journal entry
+    // currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
     return ret;
