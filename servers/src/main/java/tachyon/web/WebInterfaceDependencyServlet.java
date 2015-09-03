@@ -50,7 +50,8 @@ public final class WebInterfaceDependencyServlet extends HttpServlet {
     List<String> parentFileNames = new ArrayList<String>();
     List<String> childrenFileNames = new ArrayList<String>();
     try {
-      DependencyInfo dependencyInfo = mMaster.getFileSystemMaster().getClientDependencyInfo(dependencyId);
+      DependencyInfo dependencyInfo =
+          mMaster.getFileSystemMaster().getClientDependencyInfo(dependencyId);
       for (long pId : dependencyInfo.parents) {
         parentFileNames.add(mMaster.getFileSystemMaster().getPath((int) pId).toString());
       }
