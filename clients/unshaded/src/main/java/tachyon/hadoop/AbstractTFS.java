@@ -347,8 +347,10 @@ abstract class AbstractTFS extends FileSystem {
     if (useHdfs()) {
       fromHdfsToTachyon(tPath);
     }
-    TachyonFile file = mTFS.getFile(tPath);
-    if (file == null) {
+    TachyonFile file;
+    try {
+      file = mTFS.getFile(tPath);
+    } catch (IOException ioe) {
       LOG.info("File does not exist: " + path);
       throw new FileNotFoundException("File does not exist: " + path);
     }
@@ -509,7 +511,12 @@ abstract class AbstractTFS extends FileSystem {
 
     TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
     TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
-    FileInfo info = mTFS.getFileStatus(-1, dstPath);
+    FileInfo info;
+    try {
+      info = mTFS.getFileStatus(-1, dstPath);
+    } catch (IOException ioe) {
+      info = null;
+    }
     // If the destination is an existing folder, try to move the src into the folder
     if (info != null && info.isFolder) {
       dstPath = dstPath.join(srcPath.getName());
