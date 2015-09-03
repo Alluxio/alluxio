@@ -918,18 +918,13 @@ public final class FileSystemMaster extends MasterBase {
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
-    fileBlockInfo.blockId = blockInfo.blockId;
-    fileBlockInfo.length = blockInfo.length;
-    List<NetAddress> addressList = new ArrayList<NetAddress>();
-    for (BlockLocation blockLocation : blockInfo.locations) {
-      addressList.add(blockLocation.workerAddress);
-    }
-    fileBlockInfo.locations = addressList;
+    fileBlockInfo.blockInfo = blockInfo;
+    fileBlockInfo.underFsLocations = new ArrayList<NetAddress>();
 
     // The sequence number part of the block id is the block index.
     fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
 
-    if (fileBlockInfo.locations.isEmpty() && file.hasCheckpointed()) {
+    if (fileBlockInfo.blockInfo.locations.isEmpty() && file.hasCheckpointed()) {
       // No tachyon locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       UnderFileSystem ufs = UnderFileSystem.get(file.getUfsPath(), mTachyonConf);
@@ -953,7 +948,7 @@ public final class FileSystemMaster extends MasterBase {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.locations.add(new NetAddress(resolvedHost, -1, resolvedPort));
+          fileBlockInfo.underFsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort));
         }
       }
     }

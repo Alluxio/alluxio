@@ -28,6 +28,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
@@ -37,9 +39,12 @@ import tachyon.client.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockLocation;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.NetAddress;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -209,8 +214,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       UiFileInfo toAdd = new UiFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
-          toAdd.setFileLocations(mMaster.getFileSystemMaster().getFileBlockInfoList(toAdd.getId())
-              .get(0).getLocations());
+          FileBlockInfo blockInfo =
+              mMaster.getFileSystemMaster().getFileBlockInfoList(toAdd.getId()).get(0);
+          List<NetAddress> addrs = Lists.newArrayList(blockInfo.getUnderFsLocations());
+          // add the in-memory block locations
+          for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
+            addrs.add(location.getWorkerAddress());
+          }
+          toAdd.setFileLocations(addrs);
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("FileDoesNotExistException",
