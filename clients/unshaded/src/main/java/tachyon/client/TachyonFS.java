@@ -384,6 +384,9 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean delete(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
+    if (fileId == -1) {
+      fileId = mFSMasterClient.getFileId(path.getPath());
+    }
     return mFSMasterClient.deleteFile(fileId, recursive);
   }
 
@@ -397,11 +400,11 @@ public class TachyonFS extends AbstractTachyonFS {
   // TODO: Consider making an exists function
   public synchronized boolean exist(TachyonURI path) throws IOException {
     try {
-      getFileStatus(-1, path, false);
+      FileInfo info = getFileStatus(-1, path, false);
+      return null != info;
     } catch (IOException ioe) {
       return false;
     }
-    return true;
   }
 
   /**
@@ -573,12 +576,14 @@ public class TachyonFS extends AbstractTachyonFS {
       }
     }
 
-    fileId = mFSMasterClient.getFileId(path);
-    info = mFSMasterClient.getFileInfo(fileId);
+    if (fileId == -1) {
+      fileId = mFSMasterClient.getFileId(path);
+    }
     if (fileId == -1) {
       cache.remove(key);
       return null;
     }
+    info = mFSMasterClient.getFileInfo(fileId);
     path = info.getPath();
 
     // TODO: LRU
@@ -601,13 +606,11 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
-    if (fileId != -1) {
-      return getFileStatus(mIdToClientFileInfo, fileId, fileId,
-          TachyonURI.EMPTY_URI.getPath(), useCachedMetadata);
+    if (fileId == -1) {
+      fileId = mFSMasterClient.getFileId(path.getPath());
     }
-    validateUri(path);
-    String p = path.getPath();
-    return getFileStatus(mPathToClientFileInfo, p, fileId, p, useCachedMetadata);
+    return getFileStatus(mIdToClientFileInfo, fileId, fileId, TachyonURI.EMPTY_URI.getPath(),
+        useCachedMetadata);
   }
 
   @Override
@@ -838,6 +841,9 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean freepath(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
+    if (fileId == -1) {
+      fileId = mFSMasterClient.getFileId(path.getPath());
+    }
     return mFSMasterClient.free(fileId, recursive);
   }
 
@@ -870,6 +876,9 @@ public class TachyonFS extends AbstractTachyonFS {
       throws IOException {
     validateUri(srcPath);
     validateUri(dstPath);
+    if (fileId == -1) {
+      fileId = mFSMasterClient.getFileId(srcPath.getPath());
+    }
     return mFSMasterClient.renameFile(fileId, dstPath.getPath());
   }
 
