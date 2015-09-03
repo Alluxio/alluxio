@@ -25,8 +25,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
@@ -41,7 +44,7 @@ public class RemoteBlockInStream extends BlockInStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The block info of the block we are reading */
-  private FileBlockInfo mBlockInfo;
+  private FileBlockInfo mFileBlockInfo;
   /**
    * An input stream for the checkpointed copy of the block. If we are ever unable to read part of
    * the block from the workers, we use this checkpoint stream
@@ -140,7 +143,7 @@ public class RemoteBlockInStream extends BlockInStream {
       throw new IOException("File " + mFile.getPath() + " is not ready to read");
     }
 
-    mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
+    mFileBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
 
     mRecache = readType.isCache();
 
@@ -200,7 +203,7 @@ public class RemoteBlockInStream extends BlockInStream {
     }
     if (mRecache && mBlockOutStream != null) {
       // We only finish re-caching if we've gotten to the end of the file
-      if (mBlockPos == mBlockInfo.length) {
+      if (mBlockPos == mFileBlockInfo.blockInfo.length) {
         mBlockOutStream.close();
       } else {
         mBlockOutStream.cancel();
@@ -238,13 +241,13 @@ public class RemoteBlockInStream extends BlockInStream {
       throw new IndexOutOfBoundsException();
     } else if (len == 0) {
       return 0;
-    } else if (mBlockPos == mBlockInfo.length) {
+    } else if (mBlockPos == mFileBlockInfo.blockInfo.length) {
       return -1;
     }
 
     // We read at most len bytes, but if mBlockPos + len exceeds the length of the file, we only
     // read up to the end of the file
-    len = (int) Math.min(len, mBlockInfo.length - mBlockPos);
+    len = (int) Math.min(len, mFileBlockInfo.blockInfo.length - mBlockPos);
     int bytesLeft = len;
     // Lazy initialization of the out stream for caching to avoid collisions with other caching
     // attempts that are invalidated later due to seek/skips
@@ -284,7 +287,7 @@ public class RemoteBlockInStream extends BlockInStream {
       // underfs
       if (!setupStreamFromUnderFs()) {
         LOG.error("Failed to read at position " + mBlockPos + " in block "
-            + mBlockInfo.getBlockId() + " from workers or underfs");
+            + mFileBlockInfo.blockInfo.getBlockId() + " from workers or underfs");
         // Return the number of bytes we managed to read
         return len - bytesLeft;
       }
@@ -311,50 +314,47 @@ public class RemoteBlockInStream extends BlockInStream {
    * Reads from a remote byte buffer.
    *
    * @param tachyonFS a TachyonFS
-   * @param blockInfo the block information
+   * @param fileBlockInfo the block information
    * @param offset offset to start the read at
    * @param len number of bytes to read
    * @param conf Tachyon configuration
    * @return <code>ByteBuffer</code> containing the bytes read
    */
-  public ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, FileBlockInfo blockInfo,
+  public ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, FileBlockInfo fileBlockInfo,
       long offset, long len, TachyonConf conf) {
     ByteBuffer buf = null;
 
     try {
-      List<NetAddress> blockLocations = blockInfo.getLocations();
+      long blockId = fileBlockInfo.blockInfo.blockId;
+      List<NetAddress> blockLocations = Lists.newArrayList();
+      for (BlockLocation location : fileBlockInfo.blockInfo.locations) {
+        blockLocations.add(location.getWorkerAddress());
+      }
       LOG.info("Block locations:" + blockLocations);
       String localhost = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, conf);
 
+      // read the data in remote machine's memory
       for (NetAddress blockLocation : blockLocations) {
         String host = blockLocation.mHost;
         int port = blockLocation.mSecondaryPort;
 
-        // The data is not in remote machine's memory if primary port == -1. We check primary port
-        // because if the data is in the under storage, the secondary port (data transfer port)
-        // will be set.
-        if (blockLocation.mPort == -1) {
-          continue;
-        }
-
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress()) || host.equals(localhost)) {
           LOG.warn("Master thinks the local machine has data, but not!"
-              + "(or local read is disabled) blockId:{}", blockInfo.blockId);
+              + "(or local read is disabled) blockId:{}", blockId);
         }
         LOG.info(host + ":" + port + " current host is " + localhost + " "
             + NetworkAddressUtils.getLocalIpAddress(conf));
 
         try {
-          buf =
-              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
-                  blockInfo.blockId, offset, len, conf);
+          buf = retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port), blockId,
+              offset, len, conf);
           if (buf != null) {
             break;
           }
         } catch (IOException e) {
-          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
-              + host + ":" + port + " with offset " + offset + " and length " + len, e);
+          LOG.error("Fail to retrieve byte buffer for block " + blockId + " from remote " + host
+              + ":" + port + " with offset " + offset + " and length " + len, e);
           buf = null;
         }
       }
@@ -378,9 +378,9 @@ public class RemoteBlockInStream extends BlockInStream {
   public void seek(long pos) throws IOException {
     if (pos < 0) {
       throw new IOException("Seek position is negative: " + pos);
-    } else if (pos > mBlockInfo.length) {
+    } else if (pos > mFileBlockInfo.blockInfo.length) {
       throw new IOException("Seek position is past block size: " + pos + ", Block Size = "
-          + mBlockInfo.length);
+          + mFileBlockInfo.blockInfo.length);
     } else if (pos == mBlockPos) {
       // There's nothing to do
       return;
@@ -407,8 +407,8 @@ public class RemoteBlockInStream extends BlockInStream {
       UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, mUFSConf, mTachyonConf);
       mCheckpointInputStream = underfsClient.open(checkpointPath);
       // We skip to the offset of the block in the file, so we're at the beginning of the block.
-      if (mCheckpointInputStream.skip(mBlockInfo.offset) != mBlockInfo.offset) {
-        throw new IOException("Failed to skip to the block offset " + mBlockInfo.offset
+      if (mCheckpointInputStream.skip(mFileBlockInfo.offset) != mFileBlockInfo.offset) {
+        throw new IOException("Failed to skip to the block offset " + mFileBlockInfo.offset
             + " in the checkpoint file");
       }
       mCheckpointPos = 0;
@@ -418,7 +418,7 @@ public class RemoteBlockInStream extends BlockInStream {
       long skipped = mCheckpointInputStream.skip(mBlockPos - mCheckpointPos);
       if (skipped <= 0) {
         throw new IOException("Failed to skip to the position " + mBlockPos + " for block "
-            + mBlockInfo);
+            + mFileBlockInfo);
       }
       mCheckpointPos += skipped;
     }
@@ -432,7 +432,7 @@ public class RemoteBlockInStream extends BlockInStream {
     }
     // Since we're not doing a straight read-through, we've invalidated our re-caching attempt.
     cancelRecache();
-    long skipped = Math.min(n, mBlockInfo.length - mBlockPos);
+    long skipped = Math.min(n, mFileBlockInfo.blockInfo.length - mBlockPos);
     mBlockPos += skipped;
     return skipped;
   }
@@ -449,7 +449,7 @@ public class RemoteBlockInStream extends BlockInStream {
   private boolean updateCurrentBuffer() throws IOException {
     long bufferSize = mTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
     if (mCurrentBuffer != null && mBufferStartPos <= mBlockPos
-        && mBlockPos < Math.min(mBufferStartPos + bufferSize, mBlockInfo.length)) {
+        && mBlockPos < Math.min(mBufferStartPos + bufferSize, mFileBlockInfo.blockInfo.length)) {
       // We move the buffer to read at mBlockPos
       mCurrentBuffer.position((int) (mBlockPos - mBufferStartPos));
       return true;
@@ -458,18 +458,18 @@ public class RemoteBlockInStream extends BlockInStream {
     // We must read in a new block. By starting at mBlockPos, we ensure that the next byte read will
     // be the one at mBlockPos
     mBufferStartPos = mBlockPos;
-    long length = Math.min(bufferSize, mBlockInfo.length - mBufferStartPos);
+    long length = Math.min(bufferSize, mFileBlockInfo.blockInfo.length - mBufferStartPos);
     LOG.info(String.format("Try to find remote worker and read block %d from %d, with len %d",
-        mBlockInfo.blockId, mBufferStartPos, length));
+        mFileBlockInfo.blockInfo.blockId, mBufferStartPos, length));
 
     for (int i = 0; i < MAX_REMOTE_READ_ATTEMPTS; i ++) {
       mCurrentBuffer =
-          readRemoteByteBuffer(mTachyonFS, mBlockInfo, mBufferStartPos, length, mTachyonConf);
+          readRemoteByteBuffer(mTachyonFS, mFileBlockInfo, mBufferStartPos, length, mTachyonConf);
       if (mCurrentBuffer != null) {
         return true;
       }
       // The read failed, refresh the block info and try again
-      mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
+      mFileBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
     }
     return false;
   }

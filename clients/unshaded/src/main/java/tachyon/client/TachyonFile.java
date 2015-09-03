@@ -18,9 +18,12 @@ package tachyon.client;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -31,6 +34,7 @@ import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.FileOutStream;
 import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -184,7 +188,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public String getLocalFilename(int blockIndex) throws IOException {
     FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    long blockId = blockInfo.getBlockId();
+    long blockId = blockInfo.blockInfo.getBlockId();
     int blockLockId = mTachyonFS.getBlockLockId();
     String filename = mTachyonFS.lockBlock(blockId, blockLockId);
     if (filename != null) {
@@ -200,17 +204,24 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public List<String> getLocationHosts() throws IOException {
-    List<String> ret = new ArrayList<String>();
+    Set<String> ret = Sets.newHashSet();
     if (getNumberOfBlocks() > 0) {
-      List<NetAddress> locations = getClientBlockInfo(0).getLocations();
-      if (locations != null) {
-        for (NetAddress location : locations) {
+      // under FS locations
+      List<NetAddress> underFsLocations = getClientBlockInfo(0).getUnderFsLocations();
+      if (underFsLocations != null) {
+        for (NetAddress location : underFsLocations) {
           ret.add(location.mHost);
+        }
+      }
+      List<BlockLocation> blockLocations = getClientBlockInfo(0).getBlockInfo().getLocations();
+      if (blockLocations != null) {
+        for (BlockLocation location : blockLocations) {
+          ret.add(location.workerAddress.mHost);
         }
       }
     }
 
-    return ret;
+    return new ArrayList<String>(ret);
   }
 
   /**
@@ -359,7 +370,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public boolean promoteBlock(int blockIndex) throws IOException {
     FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    return mTachyonFS.promoteBlock(blockInfo.getBlockId());
+    return mTachyonFS.promoteBlock(blockInfo.blockInfo.getBlockId());
   }
 
   /**

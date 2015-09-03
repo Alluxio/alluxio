@@ -33,6 +33,8 @@ import org.apache.hadoop.util.Progressable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
@@ -310,20 +312,25 @@ abstract class AbstractTFS extends FileSystem {
     for (int k = 0; k < blocks.size(); k ++) {
       FileBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
-      long end = offset + info.getLength();
+      long end = offset + info.blockInfo.getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<String>();
         ArrayList<String> hosts = new ArrayList<String>();
-        for (NetAddress addr : info.getLocations()) {
+        List<NetAddress> addrs = Lists.newArrayList(info.getUnderFsLocations());
+        // add the existing in-memory block locations
+        for (tachyon.thrift.BlockLocation location : info.getBlockInfo().getLocations()) {
+          addrs.add(location.getWorkerAddress());
+        }
+        for (NetAddress addr : info.getUnderFsLocations()) {
           // Name format is "hostname:data transfer port"
           String name = addr.mHost + ":" + addr.mSecondaryPort;
           LOG.debug("getFileBlockLocations : adding name : '" + name + "");
           names.add(name);
           hosts.add(addr.mHost);
         }
-        blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names), CommonUtils
-            .toStringArray(hosts), offset, info.getLength()));
+        blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
+            CommonUtils.toStringArray(hosts), offset, info.blockInfo.getLength()));
       }
     }
 
@@ -375,6 +382,7 @@ abstract class AbstractTFS extends FileSystem {
    *      org.apache.hadoop.conf.Configuration)
    */
   // TODO The @Override needs to be removed to pass compilation, why?
+  @Override
   public abstract String getScheme();
 
   /**

@@ -36,12 +36,10 @@ struct BlockInfo {
 }
 
 // Information about files.
-// TODO: Just include a BlockInfo in this FileBlockInfo
 struct FileBlockInfo {
-  1: i64 blockId
+  1: BlockInfo blockInfo
   2: i64 offset
-  3: i64 length
-  4: list<NetAddress> locations
+  4: list<NetAddress> underFsLocations
 }
 
 // TODO: make fileId into i64
@@ -73,7 +71,7 @@ struct DependencyInfo {
 
 // Information about raw tables.
 struct RawTableInfo {
-  1: i32 id
+  1: i64 id
   2: string name
   3: string path
   4: i32 columns
