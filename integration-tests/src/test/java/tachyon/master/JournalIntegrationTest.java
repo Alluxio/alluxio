@@ -222,7 +222,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != -1);
-    Assert.assertEquals(30, fsMaster.getFileBlockInfoList(rootId).size());
+    Assert.assertEquals(5, fsMaster.getFileInfoList(rootId).size());
     for (int i = 0; i < 5; i ++) {
       for (int j = 0; j < 5; j ++) {
         Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/i" + i + "/j" + j)) != -1);
