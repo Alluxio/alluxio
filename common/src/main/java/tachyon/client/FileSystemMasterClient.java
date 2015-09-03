@@ -75,7 +75,7 @@ public final class FileSystemMasterClient extends MasterClient {
       try {
         return mClient.getFileId(path);
       } catch (InvalidPathException e) {
-        return -1L;
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
