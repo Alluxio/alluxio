@@ -59,7 +59,7 @@ public class MetricsSystem {
 
   /**
    * PrivateAccess can be used to access private members of the MetricsSystem. This access is
-   * limited only to classes that implement the MetricsSystemTester class and is expected to only by
+   * limited only to classes that implement the MetricsSystemTester class and is expected to only be
    * used by tests.
    */
   public class PrivateAccess {

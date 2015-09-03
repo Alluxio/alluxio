@@ -52,7 +52,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * components that may care about the access times of the blocks (for example, Evictor, UI).
    *
    * @param blockId the id of the block to access
-   * @throws TException
+   * @throws TException if the underlying worker RPC fails
    */
   @Override
   public void accessBlock(long blockId) throws TException {
@@ -70,7 +70,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param userId the id of the client requesting the checkpoint
    * @param fileId the id of the file that was written to the under storage system
-   * @throws TException
+   * @throws TException if the underlying worker RPC fails
    */
   @Override
   public void addCheckpoint(long userId, int fileId) throws TException {
@@ -94,7 +94,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param userId the id of the client requesting the commit
    * @param blockId the id of the block to commit
-   * @throws TException
+   * @throws TException if the underlying worker RPC fails
    */
   // TODO: Reconsider this exception handling
   @Override
@@ -120,7 +120,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param userId the id of the client requesting the abort
    * @param blockId the id of the block to be aborted
-   * @throws TException
+   * @throws TException if the underlying worker RPC fails
    */
   @Override
   public void cancelBlock(long userId, long blockId) throws TException {
@@ -155,8 +155,8 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param blockId the id of the block to be locked
    * @param userId the id of the
-   * @throws FileDoesNotExistException
-   * @throws TException
+   * @throws FileDoesNotExistException if the underlying file is not found
+   * @throws TException if the underlying worker RPC fails
    */
   @Override
   public String lockBlock(long blockId, long userId) throws FileDoesNotExistException, TException {
@@ -177,7 +177,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * otherwise.
    *
    * @param blockId the id of the block to move to the top layer
-   * @throws TException
+   * @throws TException if the underlying worker RPC fails
    */
   // TODO: This may be better as void
   @Override
@@ -211,8 +211,8 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @param userId the id of the client requesting the create
    * @param blockId the id of the new block to create
    * @param initialBytes the initial number of bytes to allocate for this block
-   * @throws TException
-   * @throws tachyon.thrift.OutOfSpaceException
+   * @throws OutOfSpaceException if there is no space available
+   * @throws TException if the underlying worker RPC fails
    */
   @Override
   public String requestBlockLocation(long userId, long blockId, long initialBytes)

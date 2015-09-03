@@ -95,6 +95,69 @@ public final class BlockWorker {
   private MetricsSystem mWorkerMetricsSystem;
 
   /**
+   * PrivateAccess can be used to access private members of the BlockWorker. This access is
+   * limited only to classes that implement the BlockWorkerTester class and is expected to only be
+   * used by tests.
+   */
+  public class PrivateAccess {
+    /**
+     * @return the worker service handler
+     */
+    public BlockServiceHandler getWorkerServiceHandler() {
+      return mServiceHandler;
+    }
+
+    /**
+     * @return the worker RPC service bind host
+     */
+    public String getRPCBindHost() {
+      return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
+          .toString();
+    }
+
+    /**
+     * @return the worker RPC service port
+     */
+    public int getRPCLocalPort() {
+      return mPort;
+    }
+
+    /**
+     * @return the worker data service bind host
+     */
+    public String getDataBindHost() {
+      return mDataServer.getBindHost();
+    }
+
+    /**
+     * @return the worker data service port
+     */
+    public int getDataLocalPort() {
+      return mDataServer.getPort();
+    }
+
+    /**
+     * @return the worker web service bind host
+     */
+    public String getWebBindHost() {
+      return mWebServer.getBindHost();
+    }
+
+    /**
+     * @return the worker web service port
+     */
+    public int getWebLocalPort() {
+      return mWebServer.getLocalPort();
+    }
+
+    private PrivateAccess() {} // prevent instantiation
+  }
+
+  public void access(BlockWorkerTester tester) {
+    tester.receiveAccess(new PrivateAccess());
+  }
+
+  /**
    * Creates a Tachyon Block Worker.
    *
    * @throws IOException for other exceptions
@@ -269,53 +332,5 @@ public final class BlockWorker {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
     }
-  }
-
-  // For unit test purposes only
-  public BlockServiceHandler getWorkerServiceHandler() {
-    return mServiceHandler;
-  }
-
-  /**
-   * Get the actual bind hostname on RPC service (used by unit test only).
-   */
-  public String getRPCBindHost() {
-    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
-        .toString();
-  }
-
-  /**
-   * Get the actual port that the Data service is listening on (used by unit test only)
-   */
-  public int getRPCLocalPort() {
-    return mPort;
-  }
-
-  /**
-   * Get the actual bind hostname on Data service (used by unit test only).
-   */
-  public String getDataBindHost() {
-    return mDataServer.getBindHost();
-  }
-
-  /**
-   * Get the actual port that the RPC service is listening on (used by unit test only)
-   */
-  public int getDataLocalPort() {
-    return mDataServer.getPort();
-  }
-
-  /**
-   * Get the actual bind hostname on web service (used by unit test only).
-   */
-  public String getWebBindHost() {
-    return mWebServer.getBindHost();
-  }
-
-  /**
-   * Get the actual port that the web service is listening on (used by unit test only)
-   */
-  public int getWebLocalPort() {
-    return mWebServer.getLocalPort();
   }
 }

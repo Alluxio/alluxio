@@ -43,6 +43,8 @@ import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
+import tachyon.worker.block.BlockWorker;
+import tachyon.worker.block.BlockWorkerTester;
 
 /**
  * Integration tests for tachyon.BlockServiceHandler
@@ -59,6 +61,14 @@ public class BlockServiceHandlerIntegrationTest {
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
 
+  class PrivateAccess implements BlockWorkerTester {
+    BlockWorker.PrivateAccess mPrivateAccess;
+
+    public void receiveAccess(BlockWorker.PrivateAccess access) {
+      mPrivateAccess = access;
+    }
+  }
+
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
@@ -66,11 +76,12 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
         Constants.GB);
     mLocalTachyonCluster.start();
-    mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
+    PrivateAccess worker = new PrivateAccess();
+    mLocalTachyonCluster.getWorker().access(worker);
+    mWorkerServiceHandler = worker.mPrivateAccess.getWorkerServiceHandler();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();

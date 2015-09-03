@@ -46,6 +46,7 @@ public class MetricsSystemTest {
   public void metricsSystemTest() {
     class PrivateAccess implements MetricsSystemTester {
       MetricsSystem.PrivateAccess mPrivateAccess;
+
       public void receiveAccess(MetricsSystem.PrivateAccess access) {
         mPrivateAccess = access;
       }
@@ -65,7 +66,7 @@ public class MetricsSystemTest {
 
     MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mMetricsConfig, mTachyonConf);
     PrivateAccess worker = new PrivateAccess();
-    masterMetricsSystem.access(worker);
+    workerMetricsSystem.access(worker);
     workerMetricsSystem.start();
 
     Assert.assertNotNull(workerMetricsSystem.getServletHandler());
