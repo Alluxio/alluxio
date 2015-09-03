@@ -88,6 +88,7 @@ public class TieredStoreIntegrationTest {
     ClientOptions options =
         new ClientOptions.Builder(new TachyonConf()).setCacheType(CacheType.CACHE).build();
     InStream in = mTFS.getInStream(file, options);
+    Assert.assertEquals(0, in.read());
 
     // Delete the file
     mTFS.delete(file);
@@ -104,7 +105,8 @@ public class TieredStoreIntegrationTest {
 
     // However, the previous read should still be able to read it as the data still exists
     byte[] res = new byte[MEM_CAPACITY_BYTES];
-    Assert.assertEquals(MEM_CAPACITY_BYTES, in.read(res, 0, MEM_CAPACITY_BYTES));
+    Assert.assertEquals(MEM_CAPACITY_BYTES - 1, in.read(res, 1, MEM_CAPACITY_BYTES - 1));
+    res[0] = 0;
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MEM_CAPACITY_BYTES, res));
     in.close();
 
