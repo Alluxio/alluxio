@@ -83,7 +83,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    *         place), false otherwise.
    * @throws IOException
    */
-  public synchronized boolean delete(int fid, boolean recursive) throws IOException {
+  public synchronized boolean delete(long fid, boolean recursive) throws IOException {
     return delete(fid, TachyonURI.EMPTY_URI, recursive);
   }
 

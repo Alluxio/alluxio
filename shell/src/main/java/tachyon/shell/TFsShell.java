@@ -40,9 +40,9 @@ import tachyon.client.WriteType;
 import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.FileOutStream;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.util.FormatUtils;
 
 /**
@@ -191,7 +191,7 @@ public class TFsShell implements Closeable {
       if (tFile != null && tFile.isDirectory()) {
         dstPath = dstPath.join(src.getName());
       }
-      int fileId = tachyonClient.createFile(dstPath);
+      long fileId = tachyonClient.createFile(dstPath);
       if (fileId == -1) {
         return -1;
       }
@@ -314,7 +314,7 @@ public class TFsShell implements Closeable {
    */
   public int fileinfo(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(path);
+    long fileId = tachyonClient.getFileId(path);
     if (fileId == -1) {
       System.out.println(path + " does not exist.");
       return -1;
@@ -336,7 +336,7 @@ public class TFsShell implements Closeable {
    */
   public int location(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(path);
+    long fileId = tachyonClient.getFileId(path);
     if (fileId == -1) {
       System.out.println(path + " does not exist.");
       return -1;
@@ -474,7 +474,7 @@ public class TFsShell implements Closeable {
    */
   public int pin(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(path);
+    long fileId = tachyonClient.getFileId(path);
 
     try {
       tachyonClient.pinFile(fileId);
@@ -576,7 +576,7 @@ public class TFsShell implements Closeable {
 
   public int report(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(path);
+    long fileId = tachyonClient.getFileId(path);
     tachyonClient.reportLostFile(fileId);
     System.out.println(path + " with file id " + fileId + " has reported been report lost.");
     return 0;
@@ -811,7 +811,7 @@ public class TFsShell implements Closeable {
    */
   public int unpin(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(path);
+    long fileId = tachyonClient.getFileId(path);
     try {
       tachyonClient.unpinFile(fileId);
       System.out.println("File '" + path + "' was successfully unpinned.");

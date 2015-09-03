@@ -1,0 +1,407 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package tachyon.client;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
+
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import tachyon.Constants;
+import tachyon.TachyonURI;
+import tachyon.client.table.RawTable;
+import tachyon.conf.TachyonConf;
+import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.FileInfo;
+import tachyon.thrift.WorkerInfo;
+import tachyon.util.CommonUtils;
+import tachyon.util.io.BufferUtils;
+import tachyon.util.io.PathUtils;
+
+/**
+ * Integration tests on TachyonClient (Reuse the LocalTachyonCluster).
+ */
+public class TachyonFSIntegrationTest {
+  private static final int WORKER_CAPACITY_BYTES = 20000;
+  private static final int USER_QUOTA_UNIT_BYTES = 1000;
+  private static LocalTachyonCluster sLocalTachyonCluster = null;
+  private static String sHost = null;
+  private static int sPort = -1;
+  private static TachyonFS sTfs = null;
+  private TachyonConf mMasterTachyonConf;
+  private TachyonConf mWorkerTachyonConf;
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
+  @Before
+  public final void before() throws IOException {
+    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    mMasterTachyonConf.set(Constants.MAX_COLUMNS, "257");
+    mWorkerTachyonConf = sLocalTachyonCluster.getWorkerTachyonConf();
+  }
+
+  @AfterClass
+  public static final void afterClass() throws Exception {
+    sLocalTachyonCluster.stop();
+  }
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
+    sLocalTachyonCluster.start();
+    sTfs = sLocalTachyonCluster.getOldClient();
+    sHost = sLocalTachyonCluster.getMasterHostname();
+    sPort = sLocalTachyonCluster.getMasterPort();
+  }
+
+  @Test
+  public void getRootTest() throws IOException {
+    Assert.assertEquals(1, sTfs.getFileId(new TachyonURI(TachyonURI.SEPARATOR)));
+  }
+
+  @Test
+  public void createFileTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    for (int k = 1; k < 5; k ++) {
+      TachyonURI uri = new TachyonURI(uniqPath + k);
+      long fileId = sTfs.createFile(uri);
+      Assert.assertTrue(sTfs.exist(uri));
+      Assert.assertEquals(fileId, sTfs.getFileId(uri));
+    }
+  }
+
+  @Test(expected = IOException.class)
+  public void createFileWithFileAlreadyExistExceptionTest() throws IOException {
+    TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
+    long fileId = sTfs.createFile(uri);
+    Assert.assertEquals(fileId, sTfs.getFileId(uri));
+    fileId = sTfs.createFile(uri);
+  }
+
+  @Test
+  public void createFileWithInvalidPathExceptionTest() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("URI must be absolute, unless it's empty.");
+    sTfs.createFile(new TachyonURI("root/testFile1"));
+  }
+
+  @Test
+  public void createRawTableTestEmptyMetadata() throws IOException {
+    String uniqPath = PathUtils.uniqPath() + "/table1";
+    long fileId = sTfs.createRawTable(new TachyonURI(uniqPath), 20);
+    RawTable table = sTfs.getRawTable(fileId);
+    Assert.assertEquals(fileId, table.getId());
+    Assert.assertEquals(uniqPath, table.getPath());
+    Assert.assertEquals(20, table.getColumns());
+    Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
+
+    table = sTfs.getRawTable(new TachyonURI(uniqPath));
+    Assert.assertEquals(fileId, table.getId());
+    Assert.assertEquals(uniqPath, table.getPath());
+    Assert.assertEquals(20, table.getColumns());
+    Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
+  }
+
+  @Test
+  public void createRawTableTestWithMetadata() throws IOException {
+    String uniqPath = PathUtils.uniqPath() + "/table1";
+    TachyonURI uri = new TachyonURI(uniqPath);
+    long fileId = sTfs.createRawTable(uri, 20, BufferUtils.getIncreasingByteBuffer(9));
+    RawTable table = sTfs.getRawTable(fileId);
+    Assert.assertEquals(fileId, table.getId());
+    Assert.assertEquals(uniqPath, table.getPath());
+    Assert.assertEquals(20, table.getColumns());
+    Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(9), table.getMetadata());
+
+    table = sTfs.getRawTable(uri);
+    Assert.assertEquals(fileId, table.getId());
+    Assert.assertEquals(uniqPath, table.getPath());
+    Assert.assertEquals(20, table.getColumns());
+    Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(9), table.getMetadata());
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithFileAlreadyExistExceptionTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath() + "/table";
+    TachyonURI uri = new TachyonURI(uniqPath);
+    sTfs.createRawTable(uri, 20);
+    sTfs.createRawTable(uri, 20);
+  }
+
+  @Test
+  public void createRawTableWithInvalidPathExceptionTest1() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("URI must be absolute, unless it's empty.");
+    sTfs.createRawTable(new TachyonURI("tables/table1"), 20);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithInvalidPathExceptionTest2() throws IOException {
+    sTfs.createRawTable(new TachyonURI("/tab les/table1"), 20);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithTableColumnExceptionTest1() throws IOException {
+    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS, 257);
+    sTfs.createRawTable(new TachyonURI("/table"), maxColumns);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithTableColumnExceptionTest2() throws IOException {
+    sTfs.createRawTable(new TachyonURI(PathUtils.uniqPath()), 0);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithTableColumnExceptionTest3() throws IOException {
+    sTfs.createRawTable(new TachyonURI(PathUtils.uniqPath()), -1);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithTableColumnExceptionTest4() throws IOException {
+    int maxColumns = mMasterTachyonConf.getInt(Constants.MAX_COLUMNS);
+    sTfs.createRawTable(new TachyonURI(PathUtils.uniqPath()), maxColumns);
+  }
+
+  @Test
+  public void deleteFileTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    List<WorkerInfo> workers = sTfs.getWorkersInfo();
+    Assert.assertEquals(1, workers.size());
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
+    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
+
+    // Delete non-existing files.
+    Assert.assertTrue(sTfs.delete(new TachyonURI(uniqPath), false));
+    Assert.assertTrue(sTfs.delete(new TachyonURI(uniqPath), true));
+
+    for (int k = 0; k < 5; k ++) {
+      TachyonURI fileURI = new TachyonURI(uniqPath + k);
+      long fileId =
+          TachyonFSTestUtils.createByteFile(sTfs, fileURI, WriteType.MUST_CACHE, writeBytes);
+      TachyonFile file = sTfs.getFile(fileId);
+      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(sTfs.exist(fileURI));
+
+      workers = sTfs.getWorkersInfo();
+      Assert.assertEquals(1, workers.size());
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
+    }
+
+    for (int k = 0; k < 5; k ++) {
+      TachyonURI fileURI = new TachyonURI(uniqPath + k);
+      long fileId = sTfs.getFileId(fileURI);
+      sTfs.delete(fileId, true);
+      Assert.assertFalse(sTfs.exist(fileURI));
+      int timeOutMs =
+          mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2 + 10;
+      CommonUtils.sleepMs(timeOutMs);
+      workers = sTfs.getWorkersInfo();
+      Assert.assertEquals(1, workers.size());
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
+    }
+  }
+
+  @Test
+  public void getFileStatusTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
+    TachyonURI uri = new TachyonURI(uniqPath);
+    long fileId = TachyonFSTestUtils.createByteFile(sTfs, uri, WriteType.MUST_CACHE, writeBytes);
+    TachyonFile file = sTfs.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+    Assert.assertTrue(sTfs.exist(uri));
+    FileInfo fileInfo = sTfs.getFileStatus(fileId, false);
+    Assert.assertTrue(fileInfo.getPath().equals(uniqPath));
+  }
+
+  @Test
+  public void getFileStatusCacheTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
+    TachyonURI uri = new TachyonURI(uniqPath);
+    long fileId = TachyonFSTestUtils.createByteFile(sTfs, uri, WriteType.MUST_CACHE, writeBytes);
+    TachyonFile file = sTfs.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+    Assert.assertTrue(sTfs.exist(uri));
+    FileInfo fileInfo = sTfs.getFileStatus(fileId, false);
+    Assert.assertTrue(fileInfo.getPath().equals(uniqPath));
+    FileInfo fileInfoCached = sTfs.getFileStatus(fileId, true);
+    FileInfo fileInfoNotCached = sTfs.getFileStatus(fileId, false);
+    Assert.assertTrue(fileInfo == fileInfoCached);
+    Assert.assertFalse(fileInfo == fileInfoNotCached);
+  }
+
+  @Test
+  public void getTestAbnormal1() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft");
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort), mMasterTachyonConf);
+  }
+
+  @Test
+  public void getTestAbnormal2() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
+    TachyonFS.get(new TachyonURI("/" + sHost + sPort), mMasterTachyonConf);
+  }
+
+  @Test
+  public void getTestAbnormal3() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + (sPort - 1)), mMasterTachyonConf);
+  }
+
+  @Test
+  public void getTestAbnormal4() throws IOException {
+    mThrown.expect(NullPointerException.class);
+    mThrown.expectMessage("Tachyon scheme cannot be null. Use tachyon or tachyon-ft.");
+    TachyonFS.get(new TachyonURI("/" + sHost + ":" + sPort + "/ab/c.txt"), mMasterTachyonConf);
+  }
+
+  @Test
+  public void getTestAbnormal5() throws IOException {
+    mThrown.expect(IllegalStateException.class);
+    mThrown.expectMessage("Tachyon scheme must be either tachyon or tachyon-ft.");
+    // API user may have this typo: tacyon
+    TachyonFS.get(new TachyonURI("tacyon://" + sHost + ":" + sPort), mMasterTachyonConf);
+  }
+
+  private void getTestHelper(TachyonFS tfs) throws IOException {
+    TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
+    long fileId = tfs.createFile(uri);
+    Assert.assertEquals(fileId, tfs.getFileId(uri));
+    Assert.assertNotNull(tfs.getFile(fileId));
+  }
+
+  @Test
+  public void getTestNormal1() throws IOException {
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort),
+        mMasterTachyonConf);
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void getTestNormal2() throws IOException {
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/"),
+        mMasterTachyonConf);
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void getTestNormal3() throws IOException {
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + sHost + ":" + sPort + "/ab/c.txt"),
+        mMasterTachyonConf);
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void getTestNormal4() throws IOException {
+    TachyonConf copyConf = new TachyonConf(mMasterTachyonConf);
+    copyConf.set(Constants.MASTER_HOSTNAME, sHost);
+    copyConf.set(Constants.MASTER_PORT, Integer.toString(sPort));
+    copyConf.set(Constants.USE_ZOOKEEPER, "false");
+
+    TachyonFS tfs = TachyonFS.get(copyConf);
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void mkdirTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    for (int k = 0; k < 10; k ++) {
+      Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k)));
+      Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k)));
+    }
+  }
+
+  @Test
+  public void renameFileTest1() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    long fileId = sTfs.createFile(new TachyonURI(uniqPath + 1));
+    for (int k = 1; k < 10; k ++) {
+      TachyonURI fileA = new TachyonURI(uniqPath + k);
+      TachyonURI fileB = new TachyonURI(uniqPath + (k + 1));
+      Assert.assertTrue(sTfs.exist(fileA));
+      Assert.assertTrue(sTfs.rename(fileA, fileB));
+      Assert.assertEquals(fileId, sTfs.getFileId(fileB));
+      Assert.assertFalse(sTfs.exist(fileA));
+    }
+  }
+
+  @Test
+  public void renameFileTest2() throws IOException {
+    TachyonURI uniqUri = new TachyonURI(PathUtils.uniqPath());
+    long fileId = sTfs.createFile(uniqUri);
+    Assert.assertTrue(sTfs.rename(uniqUri, uniqUri));
+    Assert.assertEquals(fileId, sTfs.getFileId(uniqUri));
+  }
+
+  @Test
+  public void renameFileTest3() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    TachyonURI file0 = new TachyonURI(uniqPath + 0);
+    long fileId = sTfs.createFile(file0);
+    TachyonFile file = sTfs.getFile(file0);
+    for (int k = 1; k < 10; k ++) {
+      TachyonURI fileA = new TachyonURI(uniqPath + (k - 1));
+      TachyonURI fileB = new TachyonURI(uniqPath + k);
+      Assert.assertTrue(sTfs.exist(fileA));
+      Assert.assertTrue(file.rename(fileB));
+      Assert.assertEquals(fileId, sTfs.getFileId(fileB));
+      Assert.assertFalse(sTfs.exist(fileA));
+    }
+  }
+
+  @Test
+  public void toStringTest() throws IOException {
+    TachyonFS tfs = null;
+    String[] originUrls =
+        new String[] {"tachyon://127.0.0.1:19998", "tachyon-ft://127.0.0.1:19998",};
+    String[] resultUrls =
+        new String[] {"tachyon://localhost/127.0.0.1:19998",
+            "tachyon-ft://localhost/127.0.0.1:19998",};
+    for (int i = 0, n = originUrls.length; i < n; i ++) {
+      String originUrl = originUrls[i];
+      String resultUrl = resultUrls[i];
+      tfs = TachyonFS.get(new TachyonURI(originUrl), mMasterTachyonConf);
+      Assert.assertEquals(resultUrl, tfs.toString());
+      tfs = TachyonFS.get(new TachyonURI(originUrl + "/a/b"), mMasterTachyonConf);
+      Assert.assertEquals(resultUrl, tfs.toString());
+    }
+
+    TachyonConf copyConf = new TachyonConf(mMasterTachyonConf);
+    copyConf.set(Constants.MASTER_HOSTNAME, "localhost");
+    copyConf.set(Constants.MASTER_PORT, "19998");
+
+    copyConf.set(Constants.USE_ZOOKEEPER, "false");
+    tfs = TachyonFS.get(copyConf);
+    Assert.assertEquals("tachyon://localhost/127.0.0.1:19998", tfs.toString());
+
+    copyConf.set(Constants.USE_ZOOKEEPER, "true");
+    tfs = TachyonFS.get(copyConf);
+    Assert.assertEquals("tachyon-ft://localhost/127.0.0.1:19998", tfs.toString());
+  }
+}

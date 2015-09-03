@@ -90,8 +90,8 @@ public class JournalTailerThread extends Thread {
             if (mInitiateShutdown) {
               if (waitForShutdownStart == -1) {
                 waitForShutdownStart = CommonUtils.getCurrentMs();
-              } else if ((CommonUtils.getCurrentMs() - waitForShutdownStart) > (10 *
-                  Constants.SECOND_MS)) {
+              } else if ((CommonUtils.getCurrentMs() - waitForShutdownStart) > (10
+                  * Constants.SECOND_MS)) {
                 // There have been no new logs for some time period. It is safe to stop the tailer
                 // now.
                 // TODO: make the waiting period a configuration parameter.
