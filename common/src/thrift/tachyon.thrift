@@ -46,7 +46,7 @@ struct FileBlockInfo {
 
 // TODO: make fileId into i64
 struct FileInfo {
-  1: i32 fileId
+  1: i64 fileId
   2: string name
   3: string path
   4: string ufsPath
