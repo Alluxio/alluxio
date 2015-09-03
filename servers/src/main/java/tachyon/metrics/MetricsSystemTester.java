@@ -13,27 +13,13 @@
  * the License.
  */
 
-package tachyon.metrics.source;
+package tachyon.metrics;
 
-import com.codahale.metrics.MetricRegistry;
-
-/**
- * Source is where the metrics generated. It uses a MetricRegistry to register the metrics for
- * monitoring.
- */
-public interface Source {
+public interface MetricsSystemTester {
   /**
-   * Gets the name of the Source.
+   * Grants access to private members.
    *
-   * @return the name of the Source
+   * @param access object that can be used access private members
    */
-  public String getName();
-
-  /**
-   * Gets the instance of the MetricRegistry. A MetricRegistry is used to register the metrics, and
-   * is passed to a Sink so that the sink knows which metrics to report.
-   *
-   * @return the instance of the MetricRegistry
-   */
-  public MetricRegistry getMetricRegistry();
+  void receiveAccess(MetricsSystem.PrivateAccess access);
 }

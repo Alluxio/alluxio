@@ -58,11 +58,42 @@ public class MetricsSystem {
   private MetricsServlet mMetricsServlet;
 
   /**
-   * Check if the poll period is smaller that the minimal poll period which is 1 second.
+   * PrivateAccess can be used to access private members of the MetricsSystem. This access is
+   * limited only to classes that implement the MetricsSystemTester class and is expected to only by
+   * used by tests.
+   */
+  public class PrivateAccess {
+    /**
+     * Gets the sinks.
+     *
+     * @return a list of registered Sinks
+     */
+    public List<Sink> getSinks() {
+      return mSinks;
+    }
+
+    /**
+     * Gets the sources. Used by unit tests only.
+     *
+     * @return a list of registered Sources
+     */
+    public List<Source> getSources() {
+      return mSources;
+    }
+
+    private PrivateAccess() {} // prevent instantiation
+  }
+
+  public void access(MetricsSystemTester tester) {
+    tester.receiveAccess(new PrivateAccess());
+  }
+
+  /**
+   * Checks if the poll period is smaller that the minimal poll period which is 1 second.
    *
    * @param pollUnit the polling unit.
    * @param pollPeriod the polling period.
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException if the polling period is invalid
    */
   public static void checkMinimalPollingPeriod(TimeUnit pollUnit, int pollPeriod)
       throws IllegalArgumentException {
@@ -74,10 +105,10 @@ public class MetricsSystem {
   }
 
   /**
-   * Creates a MetricsSystem and initialize the configuration.
+   * Creates a <code>MetricsSystem</code> using the default metrics config.
    *
-   * @param instance the instance name.
-   * @param tachyonConf The {@link TachyonConf} instance for configuration properties.
+   * @param instance the instance name
+   * @param tachyonConf the {@link TachyonConf} instance for configuration properties.
    */
   public MetricsSystem(String instance, TachyonConf tachyonConf) {
     mInstance = instance;
@@ -86,11 +117,11 @@ public class MetricsSystem {
   }
 
   /**
-   * Creates a MetricsSystem.
+   * Creates a <code>MetricsSystem</code> using the given <code>MetricsConfig</code>.
    *
-   * @param instance the instance name.
-   * @param metricsConfig the MetricsConfig object.
-   * @param tachyonConf the {@link TachyonConf} instance for configuration properties.
+   * @param instance the instance name
+   * @param metricsConfig the <code>MetricsConfig</code> object.
+   * @param tachyonConf the {@link TachyonConf} instance for configuration properties
    */
   public MetricsSystem(String instance, MetricsConfig metricsConfig, TachyonConf tachyonConf) {
     mInstance = instance;
@@ -99,10 +130,10 @@ public class MetricsSystem {
   }
 
   /***
-   * Get the ServletContextHandler of the metrics servlet.
+   * Gets the ServletContextHandler of the metrics servlet.
    *
    * @return the ServletContextHandler if the metrics system is running and the metrics servlet
-   *         exists, otherwise null.
+   *         exists, otherwise null
    */
   public ServletContextHandler getServletHandler() {
     if (mRunning && mMetricsServlet != null) {
@@ -112,27 +143,9 @@ public class MetricsSystem {
   }
 
   /**
-   * Gets the sinks. Used by unit tests only.
+   * Registers a Source.
    *
-   * @return A list of registered Sinks.
-   */
-  public List<Sink> getSinks() {
-    return mSinks;
-  }
-
-  /**
-   * Gets the sources. Used by unit tests only.
-   *
-   * @return A list of registered Sources.
-   */
-  public List<Source> getSources() {
-    return mSources;
-  }
-
-  /**
-   * Register a Source.
-   *
-   * @param source the source to register.
+   * @param source the source to register
    */
   public void registerSource(Source source) {
     mSources.add(source);
@@ -144,7 +157,7 @@ public class MetricsSystem {
   }
 
   /**
-   * Register all the sources configured in the metrics config file.
+   * Registers all the sources configured in the metrics config.
    */
   private void registerSources() {
     Properties instConfig = mMetricsConfig.getInstanceProperties(mInstance);
@@ -163,7 +176,7 @@ public class MetricsSystem {
   }
 
   /**
-   * Register all the sinks configured in the metrics config file.
+   * Registers all the sinks configured in the metrics config.
    */
   private void registerSinks() {
     Properties instConfig = mMetricsConfig.getInstanceProperties(mInstance);
@@ -189,9 +202,9 @@ public class MetricsSystem {
   }
 
   /**
-   * Remove a Source.
+   * Removes a Source.
    *
-   * @param source the source to remove.
+   * @param source the source to remove
    */
   public void removeSource(Source source) {
     mSources.remove(source);
