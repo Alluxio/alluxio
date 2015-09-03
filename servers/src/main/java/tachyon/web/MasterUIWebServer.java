@@ -19,24 +19,23 @@ import java.net.InetSocketAddress;
 
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterInfo;
+import tachyon.master.TachyonMaster;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
+
+import com.google.common.base.Preconditions;
 
 /**
  * A master's UI web server
  */
 public final class MasterUIWebServer extends UIWebServer {
 
-  public MasterUIWebServer(ServiceType service, InetSocketAddress address, MasterInfo masterInfo,
+  public MasterUIWebServer(ServiceType service, InetSocketAddress address, TachyonMaster master,
       TachyonConf conf) {
     super(service, address, conf);
-    Preconditions.checkNotNull(masterInfo, "Master information cannot be null");
+    Preconditions.checkNotNull(master, "TachyonMaster cannot be null");
 
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)),
-        "/home");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkersServlet(masterInfo)),
         "/workers");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(masterInfo)),
