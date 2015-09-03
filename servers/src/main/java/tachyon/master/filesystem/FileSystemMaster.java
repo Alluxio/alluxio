@@ -247,6 +247,7 @@ public final class FileSystemMaster extends MasterBase {
     mDependencyMap.addFileCheckpoint(fileId);
     tFile.setLastModificationTimeMs(opTimeMs);
     tFile.setComplete(length);
+    // TODO: This probably should always be true since the last mod time is updated
     return needLog;
   }
 
