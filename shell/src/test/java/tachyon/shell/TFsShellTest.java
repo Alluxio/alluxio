@@ -356,7 +356,7 @@ public class TFsShellTest {
    * @Test public void locationTest() throws IOException { TachyonFile file =
    * TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
    * UnderStorageType.NO_PERSIST, 10); mFsShell.run(new String[] {"location", "/testFile"});
-   * 
+   *
    * FileInfo fileInfo = mTfs.getInfo(file); Assert.assertNotNull(fileInfo); List<String>
    * locationsList = tFile.getLocationHosts(); String[] commandParameters = new String[3 +
    * locationsList.size()]; commandParameters[0] = "location"; commandParameters[1] = "/testFile";
@@ -641,9 +641,7 @@ public class TFsShellTest {
         UnderStorageType.NO_PERSIST, 10);
     mFsShell.run(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-    CommonUtils.sleepMs(
-        tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Constants.SECOND_MS)
-            * 2 + 10);
+    CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS));
     Assert.assertFalse(mTfs.getInfo(file).getInMemoryPercentage() == 100);
   }
 
