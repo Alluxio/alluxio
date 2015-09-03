@@ -84,7 +84,12 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private TachyonFile getOrCreate(TachyonFS client, TachyonURI filePath, boolean deleteIfExists)
       throws IOException {
-    TachyonFile file = client.getFile(filePath);
+    TachyonFile file;
+    try {
+      file = client.getFile(filePath);
+    } catch (IOException ioe) {
+      file = null;
+    }
     if (file == null) {
       // file doesn't exist yet, so create it
       long fileId = client.createFile(filePath);
