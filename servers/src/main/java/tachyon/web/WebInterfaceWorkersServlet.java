@@ -35,7 +35,7 @@ import tachyon.util.FormatUtils;
 /**
  * Servlet that provides data for displaying detail info of all workers.
  */
-final class WebInterfaceWorkersServlet extends HttpServlet {
+public final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by
    * array indexes.
