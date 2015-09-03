@@ -23,8 +23,7 @@ import java.util.regex.Pattern;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
@@ -88,7 +87,7 @@ public class TFsShellUtils {
    * Get all the TachyonURIs that match inputURI. If the path is a regular path, the returned list
    * only contains the corresponding URI; Else if the path contains wildcards, the returned list
    * contains all the matched URIs It supports any number of wildcards in inputURI
-   * 
+   *
    * @param tachyonClient The client used to fetch information of Tachyon files
    * @param inputURI the input URI (could contain wildcards)
    * @return A list of TachyonURIs that matches the inputURI

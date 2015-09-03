@@ -35,8 +35,8 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.next.block.BSContext;
-import tachyon.client.next.file.FSContext;
+import tachyon.client.block.BSContext;
+import tachyon.client.file.FSContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.DependencyInfo;
@@ -450,19 +450,10 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-<<<<<<< HEAD
-   * Get a DependencyInfo by the dependency id
    *
    * @param depId the dependency id
    * @return the DependencyInfo of the specified dependency
-   * @throws IOException
-=======
-   * Gets a ClientDependencyInfo by the dependency id.
-   *
-   * @param depId the dependency id
-   * @return the ClientDependencyInfo of the specified dependency
    * @throws IOException when the underlying master RPC fails
->>>>>>> master
    */
   public synchronized DependencyInfo getClientDependencyInfo(int depId) throws IOException {
     return mFSMasterClient.getDependencyInfo(depId);
@@ -611,13 +602,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param fileId the file id of the file or folder.
    * @param path the path of the file or folder. valid iff fileId is -1.
    * @param useCachedMetadata if true use the local cached meta data
-<<<<<<< HEAD
    * @return the FileInfo of the file. null if the file does not exist.
-   * @throws IOException
-=======
-   * @return the ClientFileInfo of the file. null if the file does not exist.
    * @throws IOException when the underlying master RPC fails
->>>>>>> master
    */
   public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
@@ -634,21 +620,12 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-<<<<<<< HEAD
-   * Get FileInfo object based on fileId.
-   *
-   * @param fileId the file id of the file or folder.
-   * @param useCachedMetadata if true use the local cached meta data
-   * @return the FileInfo of the file. null if the file does not exist.
-   * @throws IOException
-=======
    * Gets <code>ClientFileInfo</code> object based on fileId.
    *
    * @param fileId the file id of the file or folder.
    * @param useCachedMetadata if true use the local cached meta data
-   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @return the FileInfo of the file. null if the file does not exist.
    * @throws IOException when the underlying master RPC fails
->>>>>>> master
    */
   public synchronized FileInfo getFileStatus(long fileId, boolean useCachedMetadata)
       throws IOException {
@@ -718,13 +695,8 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Returns the userId of the worker client. This is only used for testing.
    *
-<<<<<<< HEAD
    * @return the userId of the worker client
-   * @throws IOException
-=======
-   * @return the userId of the master client
    * @throws IOException when the underlying master RPC fails
->>>>>>> master
    */
   long getUserId() throws IOException {
     return mWorkerClient.getUserId();
@@ -788,21 +760,12 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-<<<<<<< HEAD
-   * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its FileInfo.
-   *
-   * @param path the target directory/file path
-   * @return A list of FileInfo, null if the file or folder does not exist.
-   * @throws IOException
-=======
    * If the <code>path</code> is a directory, returns all the direct entries in it. If the
    * <code>path</code> is a file, returns its ClientFileInfo.
    *
    * @param path the target directory/file path
-   * @return A list of ClientFileInfo, null if the file or folder does not exist.
+   * @return A list of FileInfo, null if the file or folder does not exist.
    * @throws IOException when the underlying master RPC fails
->>>>>>> master
    */
   @Override
   public synchronized List<FileInfo> listStatus(TachyonURI path) throws IOException {

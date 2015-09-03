@@ -37,11 +37,11 @@ import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.RemoteBlockReader;
-import tachyon.client.next.CacheType;
-import tachyon.client.next.TachyonFSTestUtils;
-import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFileSystem;
-import tachyon.client.next.file.TachyonFile;
+import tachyon.client.CacheType;
+import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.network.protocol.RPCResponse;
@@ -52,7 +52,6 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.DataServerMessage;
 
 /**
  * Integration tests for tachyon.worker.DataServer.

@@ -26,6 +26,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
@@ -37,6 +38,7 @@ import tachyon.util.UnderFileSystemUtils;
 public class UfsUtilsIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+  private TachyonFileSystem mTachyonFileSystem = null;
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 
@@ -51,6 +53,7 @@ public class UfsUtilsIntegrationTest {
     mLocalTachyonCluster.start();
 
     mTfs = mLocalTachyonCluster.getOldClient();
+    mTachyonFileSystem = mLocalTachyonCluster.getClient();
 
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
     mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
@@ -82,7 +85,7 @@ public class UfsUtilsIntegrationTest {
     List<String> paths = null;
     for (String exclusion : exclusions) {
       try {
-        paths = TachyonFSTestUtils.listFiles(mTfs, exclusion);
+        paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, exclusion);
         Assert.fail("NO FileDoesNotExistException is expected here");
       } catch (IOException ioe) {
         Assert.assertNotNull(ioe);
@@ -91,7 +94,7 @@ public class UfsUtilsIntegrationTest {
     }
 
     for (String inclusion : inclusions) {
-      paths = TachyonFSTestUtils.listFiles(mTfs, inclusion);
+      paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, inclusion);
       Assert.assertNotNull(paths);
     }
   }

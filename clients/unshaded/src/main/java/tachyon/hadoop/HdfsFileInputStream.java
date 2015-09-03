@@ -35,7 +35,7 @@ import tachyon.Constants;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.next.file.FileInStream;
+import tachyon.client.file.FileInStream;
 import tachyon.conf.TachyonConf;
 
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {

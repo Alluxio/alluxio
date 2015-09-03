@@ -31,11 +31,11 @@ import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.next.CacheType;
-import tachyon.client.next.ClientOptions;
-import tachyon.client.next.file.FileInStream;
-import tachyon.client.next.file.TachyonFile;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.CacheType;
+import tachyon.client.ClientOptions;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.filesystem.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
