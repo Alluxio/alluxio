@@ -109,11 +109,13 @@ public class RemoteBlockInStream extends BlockInStream {
   private RemoteBlockReader mCurrentReader = null;
 
   /**
+   * Creates a new <code>RemoteBlockInStream</code> without under file system configuration.
+   *
    * @param file the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the file
    * @param tachyonConf the TachyonConf instance for this file output stream.
-   * @throws IOException
+   * @throws IOException if the underlying file is not complete or its metadata is corrupted
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonConf tachyonConf)
       throws IOException {
@@ -121,11 +123,14 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
+   * Creates a new <code>RemoteBlockInStream</code> with under file system configuration.
+   *
    * @param file the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the file
    * @param ufsConf the under file system configuration
-   * @throws IOException
+   * @param tachyonConf the TachyonConf instance for this file output stream.
+   * @throws IOException if the underlying file is not complete or its metadata is corrupted
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf,
       TachyonConf tachyonConf) throws IOException {
@@ -143,9 +148,9 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
-   * Only called by {@link getDummyStream}.
-   * An alternative to construct a RemoteBlockInstream, bypassing all the checks.
-   * The returned RemoteBlockInStream can be used to call {#link #readRemoteByteBuffer}.
+   * An alternative to construct a RemoteBlockInstream, bypassing all the checks. The returned
+   * RemoteBlockInStream can be used to call {#link #readRemoteByteBuffer}. Only called by
+   * {@link #getDummyStream()}.
    *
    * @param file, any, could be null
    * @param readType, any type
@@ -160,25 +165,24 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
-   * Return a dummy RemoteBlockInStream object.
-   * The object can be used to perform near-stateless read using {@link #readRemoteByteBuffer}.
-   * (The only state kept is a handler for the underlying reader, so we can close the reader
-   * when we close the dummy stream.)
+   * Return a dummy RemoteBlockInStream object. The object can be used to perform near-stateless
+   * read using {@link #readRemoteByteBuffer}. (The only state kept is a handler for the underlying
+   * reader, so we can close the reader when we close the dummy stream.)
    *
    * <p>
    * See {@link tachyon.client.TachyonFile#readRemoteByteBuffer(FileBlockInfo)} for usage.
-   * 
+   *
    * @return a dummy RemoteBlockInStream object.
    */
   public static RemoteBlockInStream getDummyStream() {
-    return new RemoteBlockInStream(new TachyonFile(null, -1, null),
-        ReadType.NO_CACHE, -1, null, null, true);
+    return new RemoteBlockInStream(new TachyonFile(null, -1, null), ReadType.NO_CACHE, -1, null,
+        null, true);
   }
 
   /**
    * Cancels the re-caching attempt
    *
-   * @throws IOException
+   * @throws IOException when the underlying stream cannot be canceled
    */
   private void cancelRecache() throws IOException {
     if (mRecache) {
@@ -303,6 +307,16 @@ public class RemoteBlockInStream extends BlockInStream {
     return len;
   }
 
+  /**
+   * Reads from a remote byte buffer.
+   *
+   * @param tachyonFS a TachyonFS
+   * @param blockInfo the block information
+   * @param offset offset to start the read at
+   * @param len number of bytes to read
+   * @param conf Tachyon configuration
+   * @return <code>ByteBuffer</code> containing the bytes read
+   */
   public ByteBuffer readRemoteByteBuffer(TachyonFS tachyonFS, FileBlockInfo blockInfo,
       long offset, long len, TachyonConf conf) {
     ByteBuffer buf = null;
@@ -352,8 +366,8 @@ public class RemoteBlockInStream extends BlockInStream {
     return buf;
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
-      long blockId, long offset, long length, TachyonConf conf) throws IOException {
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId,
+      long offset, long length, TachyonConf conf) throws IOException {
     // always clear the previous reader before assigning it to a new one
     closeReader();
     mCurrentReader = RemoteBlockReader.Factory.createRemoteBlockReader(conf);
@@ -433,8 +447,7 @@ public class RemoteBlockInStream extends BlockInStream {
    * @throws IOException
    */
   private boolean updateCurrentBuffer() throws IOException {
-    long bufferSize =
-        mTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
+    long bufferSize = mTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
     if (mCurrentBuffer != null && mBufferStartPos <= mBlockPos
         && mBlockPos < Math.min(mBufferStartPos + bufferSize, mBlockInfo.length)) {
       // We move the buffer to read at mBlockPos

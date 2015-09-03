@@ -98,7 +98,7 @@ public abstract class MasterClient implements Closeable {
     }
 
     Exception lastException = null;
-    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT, 29);
+    int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT);
     RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, maxConnectsTry);
     do {
       mMasterAddress = getMasterAddress();

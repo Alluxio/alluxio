@@ -28,7 +28,6 @@ import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.allocator.MaxFreeAllocator;
-import tachyon.worker.block.meta.StorageDir;
 
 /**
  * Base class for unit tests of evictors.

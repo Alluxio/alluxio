@@ -62,16 +62,17 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
-    int quietPeriodSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, 2);
-    int timeoutSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, 15);
+    int quietPeriodSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD);
+    int timeoutSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT);
     mChannelFuture.channel().close().awaitUninterruptibly();
     mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
     mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
   }
 
   private ServerBootstrap createBootstrap() {
-    final ServerBootstrap boot = createBootstrapOfType(
-        mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.defaultType()));
+    final ServerBootstrap boot =
+        createBootstrapOfType(mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+            ChannelType.defaultType()));
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -84,18 +85,21 @@ public final class NettyDataServer implements DataServer {
     boot.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
         (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_WATERMARK_LOW));
 
-    // more buffer settings
-    final int optBacklog = mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG, -1);
-    if (optBacklog > 0) {
-      boot.option(ChannelOption.SO_BACKLOG, optBacklog);
+    // more buffer settings on Netty socket option, one can tune them by specifying
+    // properties, e.g.:
+    // tachyon.worker.network.netty.backlog=50
+    // tachyon.worker.network.netty.buffer.send=64KB
+    // tachyon.worker.network.netty.buffer.receive=64KB
+    if (mTachyonConf.containsKey(Constants.WORKER_NETTY_BACKLOG)) {
+      boot.option(ChannelOption.SO_BACKLOG, mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG));
     }
-    final int optSendBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_SEND_BUFFER, -1);
-    if (optSendBuffer > 0) {
-      boot.option(ChannelOption.SO_SNDBUF, optSendBuffer);
+    if (mTachyonConf.containsKey(Constants.WORKER_NETTY_SEND_BUFFER)) {
+      boot.option(ChannelOption.SO_SNDBUF,
+          (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_SEND_BUFFER));
     }
-    final int optReceiveBuffer = mTachyonConf.getInt(Constants.WORKER_NETTY_RECEIVE_BUFFER, -1);
-    if (optReceiveBuffer > 0) {
-      boot.option(ChannelOption.SO_RCVBUF, optReceiveBuffer);
+    if (mTachyonConf.containsKey(Constants.WORKER_NETTY_RECEIVE_BUFFER)) {
+      boot.option(ChannelOption.SO_RCVBUF,
+          (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_RECEIVE_BUFFER));
     }
     return boot;
   }

@@ -202,10 +202,10 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * TODO: We need to refactor this method after having a new internal API support (TACHYON-46).
-   * <p>
    * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
    * create(), except fails if parent directory doesn't already exist.
+   *
+   * TODO(hy): We need to refactor this method after having a new internal API support (TACHYON-46).
    *
    * @param cPath the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
@@ -213,8 +213,9 @@ abstract class AbstractTFS extends FileSystem {
    * @param bufferSize the size of the buffer to be used.
    * @param replication required block replication for the file.
    * @param blockSize the size in bytes of the buffer to be used.
-   * @param progress
-   * @throws IOException
+   * @param progress queryable progress
+   * @throws IOException if 1) overwrite is not specified and the path already exists, 2) if the
+   *         path is a folder, or 3) the parent directory does not exist
    * @see #setPermission(Path, FsPermission)
    * @deprecated API only for 0.20-append
    */
@@ -332,7 +333,9 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Return the status of a single file. If the file does not exist in Tachyon, query it from HDFS.
+   * {@inheritDoc}
+   *
+   * If the file does not exist in Tachyon, query it from HDFS.
    */
   @Override
   public FileStatus getFileStatus(Path path) throws IOException {
@@ -363,8 +366,8 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means to
-   * make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
+   * Gets the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
+   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
    *
    * @return schema hadoop should map to.
    *
@@ -395,7 +398,9 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Initialize the class, have a lazy connection with Tachyon through mTFS.
+   * {@inheritDoc}
+   *
+   * Sets up a lazy connection to Tachyon through mTFS.
    */
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
@@ -467,7 +472,7 @@ abstract class AbstractTFS extends FileSystem {
    * @param cPath path to create
    * @param permission permissions to grant the created folder
    * @return true if the indicated folder is created successfully, false otherwise
-   * @throws IOException
+   * @throws IOException if the folder cannot be created (e.g., it already exists)
    */
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
@@ -485,7 +490,7 @@ abstract class AbstractTFS extends FileSystem {
    * @param cPath the file name to open
    * @param bufferSize the size in bytes of the buffer to be used
    * @return an FSDataInputStream at the indicated path of a file
-   * @throws IOException if the file cannot be opened (i.e., the path is a folder)
+   * @throws IOException if the file cannot be opened (e.g., the path is a folder)
    */
   @Override
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
@@ -542,9 +547,9 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * When underfs has a schema, then we can use the hdfs underfs code base.
-   * <p />
+   * <p>
    * When this check is not done, {@link #fromHdfsToTachyon(TachyonURI)} is called, which loads the
-   * default filesystem (hadoop's). When there is no schema, then it may default to tachyon which
+   * default filesystem (hadoop's). When there is no schema, then it may default to Tachyon which
    * causes a recursive loop.
    *
    * @see <a href="https://tachyon.atlassian.net/browse/TACHYON-54">TACHYON-54</a>

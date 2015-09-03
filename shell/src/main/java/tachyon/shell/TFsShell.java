@@ -39,6 +39,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.client.next.file.FileInStream;
 import tachyon.client.next.file.FileOutStream;
+import tachyon.client.next.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -319,6 +320,10 @@ public class TFsShell implements Closeable {
       System.out.println(path + " does not exist.");
       return -1;
     }
+    if (tachyonClient.getFileStatus(fileId, false).isIsFolder()) {
+      System.out.println(path + " is a directory path so does not have file blocks.");
+      return -1;
+    }
     List<FileBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
     System.out.println(path + " with file id " + fileId + " has the following blocks: ");
     for (FileBlockInfo block : blocks) {
@@ -525,7 +530,7 @@ public class TFsShell implements Closeable {
   public int getNumOfArgs(String cmd) {
     if (cmd.equals("getUsedBytes")
         || cmd.equals("getCapacityBytes")) {
-      return 1;
+      return 0;
     } else if (cmd.equals("cat")
         || cmd.equals("count")
         || cmd.equals("ls")
@@ -543,12 +548,12 @@ public class TFsShell implements Closeable {
         || cmd.equals("unpin")
         || cmd.equals("free")
         || cmd.equals("du")) {
-      return 2;
+      return 1;
     } else if (cmd.equals("copyFromLocal")
         || cmd.equals("copyToLocal")
         || cmd.equals("request")
         || cmd.equals("mv")) {
-      return 3;
+      return 2;
     } else {
       return -1;
     }
@@ -669,80 +674,99 @@ public class TFsShell implements Closeable {
     // Sanity check on the number of arguments
     String cmd = argv[0];
     int numOfArgs = getNumOfArgs(cmd);
-    if (numOfArgs != argv.length) {
+
+    if (numOfArgs == -1) { // Unknown command (we didn't find the cmd in our dict)
+      System.out.println(cmd + " is an unknown command.\n");
+      printUsage();
+      return -1;
+    }
+
+    if (numOfArgs != argv.length - 1) {
       System.out.println(cmd + " takes " + numOfArgs + " arguments.\n");
       printUsage();
       return -1;
     }
 
-    TachyonURI path = new TachyonURI(argv[1]);
-    int exitCode = -1;
+    // Handle the command
     try {
-      // Commands need 0 argument
-      if (cmd.equals("getUsedBytes")) {
-        return getUsedBytes();
-      } else if (cmd.equals("getCapacityBytes")) {
-        return getCapacityBytes();
+      if (numOfArgs == 0) { // commands need 0 argument
+        if (cmd.equals("getUsedBytes")) {
+          return getUsedBytes();
+        } else if (cmd.equals("getCapacityBytes")) {
+          return getCapacityBytes();
+        }
+      } else if (numOfArgs == 1) { // commands need 1 argument
+        TachyonURI inputPath = new TachyonURI(argv[1]);
+
+        // mkdir & touch & count does not support wildcard by semantics
+        if (cmd.equals("mkdir")) {
+          return mkdir(inputPath);
+        } else if (cmd.equals("touch")) {
+          return touch(inputPath);
+        } else if (cmd.equals("count")) {
+          return count(inputPath);
+        }
+
+        List<TachyonURI> paths = TFsShellUtils.getTachyonURIs(TachyonFileSystem.get(), inputPath);
+        if (paths.size() == 0) { // A unified sanity check on the paths
+          System.out.println(inputPath + " does not exist.");
+          return -1;
+        }
+
+        int exitCode = 0;
+        for (TachyonURI path : paths) {
+          try {
+            if (cmd.equals("cat")) {
+              exitCode |= cat(path);
+            } else if (cmd.equals("ls")) {
+              exitCode |= ls(path);
+            } else if (cmd.equals("lsr")) {
+              exitCode |= lsr(path);
+            } else if (cmd.equals("rm")) {
+              exitCode |= rm(path);
+            } else if (cmd.equals("rmr")) {
+              exitCode |= rmr(path);
+            } else if (cmd.equals("tail")) {
+              exitCode |= tail(path);
+            } else if (cmd.equals("load")) {
+              exitCode |= load(path);
+            } else if (cmd.equals("fileinfo")) {
+              exitCode |= fileinfo(path);
+            } else if (cmd.equals("location")) {
+              exitCode |= location(path);
+            } else if (cmd.equals("report")) {
+              exitCode |= report(path);
+            } else if (cmd.equals("pin")) {
+              exitCode |= pin(path);
+            } else if (cmd.equals("unpin")) {
+              exitCode |= unpin(path);
+            } else if (cmd.equals("free")) {
+              exitCode |= free(path);
+            } else if (cmd.equals("du")) {
+              exitCode |= du(path);
+            }
+          } catch (IOException ioe) {
+            System.out.println(ioe.getMessage());
+            exitCode |= -1;
+          }
+        }
+        return exitCode;
+
+      } else if (numOfArgs == 2) { // commands need 2 arguments
+        if (cmd.equals("copyFromLocal")) {
+          return copyFromLocal(argv);
+        } else if (cmd.equals("copyToLocal")) {
+          return copyToLocal(argv);
+        } else if (cmd.equals("request")) {
+          return request(argv);
+        } else if (cmd.equals("mv")) {
+          return rename(argv);
+        }
       }
-
-      //Commands need 1 argument
-      if (cmd.equals("cat")) {
-        return cat(path);
-      } else if (cmd.equals("count")) {
-        return count(path);
-      } else if (cmd.equals("ls")) {
-        return ls(path);
-      } else if (cmd.equals("lsr")) {
-        return lsr(path);
-      } else if (cmd.equals("mkdir")) {
-        return mkdir(path);
-      } else if (cmd.equals("rm")) {
-        return rm(path);
-      } else if (cmd.equals("rmr")) {
-        return rmr(path);
-      } else if (cmd.equals("tail")) {
-        return tail(path);
-      } else if (cmd.equals("touch")) {
-        return touch(path);
-      } else if (cmd.equals("load")) {
-        return load(path);
-      } else if (cmd.equals("fileinfo")) {
-        return fileinfo(path);
-      } else if (cmd.equals("location")) {
-        return location(path);
-      } else if (cmd.equals("report")) {
-        return report(path);
-      } else if (cmd.equals("pin")) {
-        return pin(path);
-      } else if (cmd.equals("unpin")) {
-        return unpin(path);
-      } else if (cmd.equals("free")) {
-        return free(path);
-      } else if (cmd.equals("du")) {
-        return du(path);
-      }
-
-      // Commands need 2 arguments
-      if (cmd.equals("copyFromLocal")) {
-        return copyFromLocal(argv);
-      } else if (cmd.equals("copyToLocal")) {
-        return copyToLocal(argv);
-      } else if (cmd.equals("request")) {
-        return request(argv);
-      } else if (cmd.equals("mv")) {
-        return rename(argv);
-      }
-
-      // Unknown command
-      System.out.println(cmd + " is an unknown command.\n");
-      printUsage();
-      return -1;
-
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
     }
-
-    return exitCode;
+    return -1;
   }
 
   /**

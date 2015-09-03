@@ -254,11 +254,8 @@ public final class BlockWorker {
    * @return a thrift server
    */
   private TThreadPoolServer createThriftServer() {
-    int minWorkerThreads =
-        mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS, Runtime.getRuntime()
-            .availableProcessors());
-    int maxWorkerThreads =
-        mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
+    int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
+    int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
     return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)

@@ -25,7 +25,7 @@ import tachyon.thrift.FileInfo;
 
 public final class TachyonFSTestUtils {
   /**
-   * Create a simple file with <code>len</code> bytes.
+   * Creates a simple file with <code>len</code> bytes.
    *
    * @param tfs a TachyonFS handler
    * @param fileName the name of the file to be created
@@ -40,7 +40,7 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Create a simple file with <code>len</code> bytes.
+   * Creates a simple file with <code>len</code> bytes.
    *
    * @param tfs a TachyonFS handler
    * @param fileURI URI of the file
@@ -64,7 +64,7 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * Create a simple file with <code>len</code> bytes.
+   * Creates a simple file with <code>len</code> bytes.
    *
    * @param tfs a TachyonFS handler
    * @param fileName the name of the file to be created
@@ -89,7 +89,7 @@ public final class TachyonFSTestUtils {
   }
 
   /**
-   * List files at a given <code>path</code>.
+   * Lists files at a given <code>path</code>.
    *
    * @param tfs a TachyonFS handler
    * @param path a path in tachyon file system

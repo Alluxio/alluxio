@@ -13,25 +13,22 @@
  * the License.
  */
 
-package tachyon.hadoop;
+package tachyon.util;
 
-import tachyon.Constants;
+import org.apache.commons.lang3.SystemUtils;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working with
- * Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFS API
- * may not be as efficient as the performance of using the Tachyon native API defined in
- * {@link tachyon.client.TachyonFS}, which TFS is built on top of.
+ * OS related utility functions 
  */
-public final class TFS extends AbstractTFS {
+public final class OSUtils {
+  private OSUtils() {}
 
-  @Override
-  public String getScheme() {
-    return Constants.SCHEME;
-  }
-
-  @Override
-  protected boolean isZookeeperMode() {
-    return false;
+  /**
+   * @return true if current OS is Windows 
+   */
+  public static boolean isWindows() {
+    return SystemUtils.IS_OS_WINDOWS;
   }
 }
+
+

@@ -62,9 +62,19 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private final TachyonConf mTachyonConf;
 
+  /**
+   * @param tfs the TachyonFS
+   * @param fileId the file id
+   * @param hdfsPath the HDFS path
+   * @param conf Hadoop configuration
+   * @param bufferSize the buffer size
+   * @param stats filesystem statistics
+   * @param tachyonConf Tachyon configuration
+   * @throws IOException if the underlying file does not exist or its stream cannot be created
+   */
   public HdfsFileInputStream(TachyonFS tfs, long fileId, Path hdfsPath, Configuration conf,
       int bufferSize, FileSystem.Statistics stats, TachyonConf tachyonConf) throws IOException {
-    LOG.debug("PartitionInputStreamHdfs({}, {}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
+    LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
         bufferSize, stats);
     mTachyonConf = tachyonConf;
     long bufferBytes = mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
@@ -86,11 +96,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Method available() is not supported in HdfsFileInputStream and an IOException will be thrown
-   * to override the default behavior of returning 0 in all cases.
+   * This method is not supported in <code>HdfsFileInputStream</code>.
    *
-   * @return not supported.
-   * @throws IOException
+   * @return N/A
+   * @throws IOException always
    */
   @Override
   public int available() throws IOException {
@@ -124,9 +133,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mHdfsInputStream.seek(position);
   }
 
-  /**
-   * Return the current offset from the start of the file
-   */
   @Override
   public long getPos() throws IOException {
     return mCurrentPosition;
@@ -188,10 +194,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     return 1;
   }
 
-  /**
-   * Read up to the specified number of bytes, from a given position within a file, and return the
-   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
-   */
   @Override
   public synchronized int read(long position, byte[] buffer, int offset, int length)
       throws IOException {
@@ -253,11 +255,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Read a number of bytes equal to the length of the buffer, from a given position within a file.
-   * This does not change the current offset of a file, and is thread-safe.
-   * <p>
-   * This method is not supported in HdfsFileInputStream and an IOException will be thrown.
-   * </p>
+   * This method is not supported in <code>HdfsFileInputStream</code>.
+   *
+   * @return N/A
+   * @throws IOException always
    */
   @Override
   public void readFully(long position, byte[] buffer) throws IOException {
@@ -265,21 +266,16 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Read the specified number of bytes, from a given position within a file. This does not change
-   * the current offset of a file, and is thread-safe.
-   * <p>
-   * This method is not supported in HdfsFileInputStream and an IOException will be thrown.
-   * </p>
+   * This method is not supported in <code>HdfsFileInputStream</code>.
+   *
+   * @return N/A
+   * @throws IOException always
    */
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
     throw new IOException("Not supported");
   }
 
-  /**
-   * Seek to the given offset from the start of the file. The next read() will be from that
-   * location. Seek can not pass the end of the file.
-   */
   @Override
   public void seek(long pos) throws IOException {
     if (pos == mCurrentPosition) {
@@ -304,10 +300,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Seeks a different copy of the data. Returns true if found a new source, false otherwise.
-   * <p>
-   * This method is not supported in HdfsFileInputStream and an IOException will be thrown.
-   * </p>
+   * This method is not supported in <code>HdfsFileInputStream</code>.
+   *
+   * @return N/A
+   * @throws IOException always
    */
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {

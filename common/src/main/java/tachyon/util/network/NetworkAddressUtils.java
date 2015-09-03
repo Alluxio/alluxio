@@ -28,7 +28,6 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.commons.lang3.SystemUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +38,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
+import tachyon.util.OSUtils;
 
 /**
  * Common network address related utilities shared by all components in Tachyon.
@@ -49,7 +49,7 @@ public final class NetworkAddressUtils {
   /**
    * Check if the underlying OS is Windows.
    */
-  public static final boolean WINDOWS = SystemUtils.IS_OS_WINDOWS;
+  public static final boolean WINDOWS = OSUtils.isWindows();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
@@ -244,7 +244,7 @@ public final class NetworkAddressUtils {
    * @return the service port number.
    */
   public static int getPort(ServiceType service, TachyonConf conf) {
-    return conf.getInt(service.mPortKey, service.mDefaultPort);
+    return conf.getInt(service.mPortKey);
   }
 
   /**
@@ -283,9 +283,7 @@ public final class NetworkAddressUtils {
     if (sLocalHost != null) {
       return sLocalHost;
     }
-    int hostResolutionTimeout =
-        conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
-            Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalHostName(hostResolutionTimeout);
   }
 
@@ -320,9 +318,7 @@ public final class NetworkAddressUtils {
     if (sLocalIP != null) {
       return sLocalIP;
     }
-    int hostResolutionTimeout =
-        conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
-            Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalIpAddress(hostResolutionTimeout);
   }
 

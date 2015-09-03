@@ -6,7 +6,7 @@
   <packaging>pom</packaging>
   <name>Tachyon Parent</name>
   <description>Parent POM of Tachyon project: a Reliable Memory Centric Distributed Storage System</description>
-  <url>http://tachyonproject.org/</url>
+  <url>http://tachyon-project.org/</url>
   <licenses>
     <license>
       <name>Apache License</name>

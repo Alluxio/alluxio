@@ -34,13 +34,14 @@ interface TachyonFSCore extends Closeable {
    *        not exist in the under file system yet.
    * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
+   * @throws IOException when the operation fails
    * @return The file id, which is globally unique.
    */
   int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
       throws IOException;
 
   /**
-   * Deletes a file or folder
+   * Deletes a file or folder.
    *
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
    *        Otherwise, the method uses the path parameter.
@@ -48,7 +49,8 @@ interface TachyonFSCore extends Closeable {
    * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
    *        or not
    * @return true if deletes successfully, false otherwise.
-   * @throws IOException
+   * @throws IOException when the operation fails
+
    */
   boolean delete(long fileId, TachyonURI path, boolean recursive) throws IOException;
 
@@ -58,7 +60,7 @@ interface TachyonFSCore extends Closeable {
    * @param fileId the file id of the file or folder.
    * @param path the path of the file or folder. valid iff fileId is -1.
    * @return the FileInfo of the file or folder, null if the file or folder does not exist.
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   FileInfo getFileStatus(long fileId, TachyonURI path) throws IOException;
 
@@ -71,7 +73,7 @@ interface TachyonFSCore extends Closeable {
    *
    * @param path the target directory/file path
    * @return A list of FileInfo, null if the file or folder does not exist.
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   List<FileInfo> listStatus(TachyonURI path) throws IOException;
 
@@ -81,7 +83,7 @@ interface TachyonFSCore extends Closeable {
    * @param path the path of the folder to be created
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return true if the folder is created successfully or already existing. false otherwise.
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   boolean mkdirs(TachyonURI path, boolean recursive) throws IOException;
 
@@ -93,19 +95,20 @@ interface TachyonFSCore extends Closeable {
    * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
    * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   boolean rename(long fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
 
  /**
-  * Memory free of a file or folder
+  * Frees memory of a file or folder.
+  *
   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
   *        Otherwise, the method uses the path parameter.
   * @param path The path of the file / folder. It could be empty iff id is not -1.
   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
   *        or not
   * @return true if in-memory free successfully, false otherwise.
-  * @throws IOException
+  * @throws IOException when the operation fails
   */
   boolean freepath(long fileId, TachyonURI path, boolean recursive) throws IOException;
 }
