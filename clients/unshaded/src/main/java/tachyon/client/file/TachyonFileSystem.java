@@ -31,8 +31,12 @@ import tachyon.thrift.FileInfo;
  * input/output streams.
  */
 public class TachyonFileSystem implements Closeable, TachyonFSCore {
+  /** A cached instance of the TachyonFileSystem */
   private static TachyonFileSystem sCachedClient;
 
+  /**
+   * @return a TachyonFileSystem instance, there is only one instance available at any time
+   */
   public static synchronized TachyonFileSystem get() {
     if (null == sCachedClient) {
       sCachedClient = new TachyonFileSystem();
@@ -40,8 +44,12 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     return sCachedClient;
   }
 
+  /** The file system context which contains shared resources, such as the fs master client */
   private FSContext mContext;
 
+  /**
+   * Constructor, currently TachyonFileSystem does not retain any state
+   */
   private TachyonFileSystem() {
     mContext = FSContext.INSTANCE;
   }
@@ -56,7 +64,11 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   }
 
   /**
-   * Deletes a file. If the file is a folder, its contents will be deleted recursively.
+   * Deletes a file. If the file is a folder, its contents will be deleted recursively. The
+   * delete will abort on a failure, but previous deletes that occurred will still be effective.
+   * The delete will only synchronously be propagated to the master. The file metadata will not
+   * be available after this call, but the data in Tachyon or under storage space may still
+   * reside until the delete is propagated.
    *
    * @param file the handler of the file to delete.
    * @throws IOException if the master is unable to delete the file
@@ -73,7 +85,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
 
   /**
    * Removes the file from Tachyon Storage. The underlying under storage system file will not be
-   * removed. If the file is a folder, its contents will be freed recursively.
+   * removed. If the file is a folder, its contents will be freed recursively. This method is
+   * asynchronous and will be propagated to the workers through their heartbeats.
    *
    * @param file the handler for the file
    * @throws IOException if the master is unable to free the file
@@ -89,7 +102,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   }
 
   /**
-   * Gets the FileInfo object that represents the Tachyon file
+   * Gets the FileInfo object that represents the Tachyon file. The file info is a snapshot of the
+   * file metadata, and the locations, last modified time, and path are possibly inconsistent.
    *
    * @param file the handler for the file.
    * @return the FileInfo of the file, null if the file does not exist.
@@ -152,6 +166,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     }
   }
 
+  // TODO: We should remove this when the TachyonFS code is fully deprecated
   @Deprecated
   public FileOutStream getOutStream(long fileId, ClientOptions options) throws IOException {
     return new ClientFileOutStream(fileId, options);
@@ -159,7 +174,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
 
   /**
    * If the file is a folder, return the {@link FileInfo} of all the direct entries in it.
-   * Otherwise return the FileInfo for the file.
+   * Otherwise return the FileInfo for the file. The file infos are snapshots of the
+   * file metadata, and the locations, last modified time, and path are possibly inconsistent.
    *
    * @param file the handler for the file
    * @return a list of FileInfos representing the files which are children of the given file
@@ -175,6 +191,17 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     }
   }
 
+  /**
+   * Adds metadata about a file in the under storage system to Tachyon. Only metadata will be
+   * updated and no data will be transferred. The data can be added to Tachyon space by doing an
+   * operation with the cache option specified, for example reading.
+   *
+   * @param path the path to create the file in Tachyon
+   * @param ufsPath the under storage system path of the file that will back the Tachyon file
+   * @param recursive if true, the parent directories to the file in Tachyon will be created
+   * @return the file id of the resulting file in Tachyon
+   * @throws IOException if the Tachyon path is invalid or the ufsPath does not exist
+   */
   public long loadFileFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive) throws
       IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -222,7 +249,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   }
 
   /**
-   * Sets the pin status of a file. A pinned file will never be evicted for any reason.
+   * Sets the pin status of a file. A pinned file will never be evicted for any reason. The pin
+   * status is propagated asynchronously from this method call on the worker heartbeats.
    *
    * @param file the file handler for the file to pin
    * @param pinned true to pin the file, false to unpin it
