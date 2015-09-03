@@ -44,24 +44,35 @@ public class MetricsSystemTest {
 
   @Test
   public void metricsSystemTest() {
+    class PrivateAccess implements MetricsSystemTester {
+      MetricsSystem.PrivateAccess mPrivateAccess;
+      public void receiveAccess(MetricsSystem.PrivateAccess access) {
+        mPrivateAccess = access;
+      }
+    }
+
     MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig, mTachyonConf);
+    PrivateAccess master = new PrivateAccess();
+    masterMetricsSystem.access(master);
     masterMetricsSystem.start();
 
     Assert.assertNotNull(masterMetricsSystem.getServletHandler());
-    Assert.assertEquals(2, masterMetricsSystem.getSinks().size());
-    Assert.assertEquals(1, masterMetricsSystem.getSources().size());
+    Assert.assertEquals(2, master.mPrivateAccess.getSinks().size());
+    Assert.assertEquals(1, master.mPrivateAccess.getSources().size());
     masterMetricsSystem.registerSource(new MasterSource(null));
-    Assert.assertEquals(2, masterMetricsSystem.getSources().size());
+    Assert.assertEquals(2, master.mPrivateAccess.getSources().size());
     masterMetricsSystem.stop();
 
     MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mMetricsConfig, mTachyonConf);
+    PrivateAccess worker = new PrivateAccess();
+    masterMetricsSystem.access(worker);
     workerMetricsSystem.start();
 
     Assert.assertNotNull(workerMetricsSystem.getServletHandler());
-    Assert.assertEquals(1, workerMetricsSystem.getSinks().size());
-    Assert.assertEquals(1, workerMetricsSystem.getSources().size());
+    Assert.assertEquals(1, worker.mPrivateAccess.getSinks().size());
+    Assert.assertEquals(1, worker.mPrivateAccess.getSources().size());
     workerMetricsSystem.registerSource(new WorkerSource());
-    Assert.assertEquals(2, workerMetricsSystem.getSources().size());
+    Assert.assertEquals(2, worker.mPrivateAccess.getSources().size());
     workerMetricsSystem.stop();
   }
 }
