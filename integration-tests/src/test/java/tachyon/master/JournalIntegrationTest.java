@@ -501,7 +501,6 @@ public class JournalIntegrationTest {
    *
    * @throws Exception
    */
-  @Ignore
   @Test
   public void RenameTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
@@ -526,7 +525,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != -1);
-    Assert.assertEquals(111, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(10, fsMaster.getFileInfoList(rootId).size());
     for (int i = 0; i < 10; i ++) {
       for (int j = 0; j < 10; j ++) {
         Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/ii" + i + "/jj" + j)) != -1);

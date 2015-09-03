@@ -31,11 +31,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -81,7 +80,7 @@ public class MasterInfoIntegrationTest {
         long fileId = mFsMaster.createFile(path, Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
       } else {
-        mFsMaster.mkdirs(path, true);
+        mFsMaster.mkdirs(path, false);
         Assert.assertNotNull(mFsMaster.getFileId(path));
       }
 
@@ -125,7 +124,13 @@ public class MasterInfoIntegrationTest {
 
     private void doDelete(TachyonURI path) throws Exception {
       mFsMaster.deleteFile(mFsMaster.getFileId(path), true);
-      Assert.assertEquals(-1, mFsMaster.getFileId(path));
+      boolean exception = false;
+      try {
+        mFsMaster.getFileId(path);
+      } catch (InvalidPathException ipe) {
+        exception = true;
+      }
+      Assert.assertTrue(exception);
     }
 
     public void exec(int depth, int concurrencyDepth, TachyonURI path) throws Exception {
@@ -349,7 +354,7 @@ public class MasterInfoIntegrationTest {
         new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentDeleter.call();
 
-    Assert.assertEquals(1,
+    Assert.assertEquals(0,
         mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/"))).size());
   }
 
