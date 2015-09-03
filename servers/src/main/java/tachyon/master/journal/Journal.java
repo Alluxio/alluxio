@@ -76,7 +76,7 @@ public class Journal {
    * @return The absolute path of the completed log for a given log number.
    */
   public String getCompletedLogFilePath(int logNumber) {
-    return getCompletedDirectory() + String.format("%s.%7d", mEntryLogFilenameBase, logNumber);
+    return getCompletedDirectory() + String.format("%s.%07d", mEntryLogFilenameBase, logNumber);
   }
 
   public JournalFormatter getJournalFormatter() {
