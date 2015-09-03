@@ -26,13 +26,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.next.CacheType;
-import tachyon.client.next.ClientOptions;
-import tachyon.client.next.InStream;
-import tachyon.client.next.TachyonFSTestUtils;
-import tachyon.client.next.UnderStorageType;
-import tachyon.client.next.file.TachyonFile;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.InStream;
+import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
@@ -104,7 +101,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void lockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    tachyon.client.next.InStream is = null;
+    tachyon.client.InStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -135,7 +132,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void lockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    tachyon.client.next.InStream is = null;
+    tachyon.client.InStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;

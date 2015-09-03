@@ -24,8 +24,8 @@ import com.google.common.base.Joiner;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
-import tachyon.client.next.ClientContext;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.ClientContext;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;

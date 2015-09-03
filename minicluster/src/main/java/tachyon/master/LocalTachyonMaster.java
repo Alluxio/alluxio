@@ -24,9 +24,8 @@ import com.google.common.base.Supplier;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.master.TachyonMaster;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;

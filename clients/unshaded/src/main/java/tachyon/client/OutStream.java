@@ -18,50 +18,16 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import tachyon.conf.TachyonConf;
-
 /**
- * <code>OutStream</code> is the base class of output stream for TachyonFile streaming output. To
- * get an instance of this class, one should call the method <code>getOutStream</code> of
- * <code>tachyon.client.TachyonFile</code>, rather than constructing a new instance directly in the
- * client code.
+ * Provides a stream API to write to Tachyon. Only one OutStream should be opened for a Tachyon
+ * object. This class is not thread safe and should only be used by one thread.
  */
 public abstract class OutStream extends OutputStream {
-  protected final TachyonFile mFile;
-  protected final TachyonFS mTachyonFS;
-  protected final WriteType mWriteType;
-  protected final TachyonConf mTachyonConf;
-
   /**
-   * @param file the output file of the OutStream
-   * @param writeType the OutStream's write type
-   */
-  OutStream(TachyonFile file, WriteType writeType, TachyonConf tachyonConf) {
-    mFile = file;
-    mTachyonFS = mFile.mTachyonFS;
-    mWriteType = writeType;
-    mTachyonConf = tachyonConf;
-  }
-
-  /**
-   * Cancel the write operations to the OutStream
+   * Cancels the write to Tachyon storage. This will delete all the temporary data and metadata
+   * that has been written to the worker(s). This method should be called when a write is aborted.
    *
-   * @throws IOException
+   * @throws IOException if there is a failure when the worker invalidates the cache attempt
    */
   public abstract void cancel() throws IOException;
-
-  @Override
-  public abstract void close() throws IOException;
-
-  @Override
-  public abstract void flush() throws IOException;
-
-  @Override
-  public abstract void write(byte[] b) throws IOException;
-
-  @Override
-  public abstract void write(byte[] b, int off, int len) throws IOException;
-
-  @Override
-  public abstract void write(int b) throws IOException;
 }

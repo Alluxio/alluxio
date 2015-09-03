@@ -28,11 +28,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.next.ClientOptions;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.ClientOptions;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
-import tachyon.master.LocalTachyonClusterMultiMaster;
 import tachyon.master.filesystem.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;

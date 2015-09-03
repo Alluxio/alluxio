@@ -15,21 +15,14 @@
 
 package tachyon.client.table;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
-import tachyon.client.next.file.FileInStream;
-import tachyon.client.next.file.FileOutStream;
-import tachyon.client.next.file.TachyonFileSystem;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.io.BufferUtils;
 
 /**
  * Integration tests for tachyon.client.RawTable.

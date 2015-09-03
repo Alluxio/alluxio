@@ -29,9 +29,8 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
-import tachyon.client.next.block.BSContext;
+import tachyon.client.block.BSContext;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerClient;
