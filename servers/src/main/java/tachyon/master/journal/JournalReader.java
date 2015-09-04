@@ -72,7 +72,7 @@ public class JournalReader {
     if (mCheckpointRead) {
       throw new IOException("Checkpoint file has already been read.");
     }
-    mCheckpointOpenedTime = getCheckpointLastModifiedTime();
+    mCheckpointOpenedTime = getCheckpointLastModifiedTimeMs();
 
     LOG.info("Opening journal checkpoint file: " + mCheckpointPath);
     JournalInputStream jis =
@@ -93,7 +93,7 @@ public class JournalReader {
     if (!mCheckpointRead) {
       throw new IOException("Must read the checkpoint file before getting input stream.");
     }
-    if (getCheckpointLastModifiedTime() != mCheckpointOpenedTime) {
+    if (getCheckpointLastModifiedTimeMs() != mCheckpointOpenedTime) {
       throw new IOException("Checkpoint file has been updated. This reader is no longer valid.");
     }
     String currentLogPath = mJournal.getCompletedLogFilePath(mCurrentLogNumber);
@@ -117,7 +117,7 @@ public class JournalReader {
    * @return the last modified time of the checkpoint file in ms.
    * @throws IOException
    */
-  public long getCheckpointLastModifiedTime() throws IOException {
+  public long getCheckpointLastModifiedTimeMs() throws IOException {
     if (!mUfs.exists(mCheckpointPath)) {
       throw new IOException("Checkpoint file " + mCheckpointPath + " does not exist.");
     }

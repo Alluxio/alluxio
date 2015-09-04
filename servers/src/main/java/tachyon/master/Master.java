@@ -55,8 +55,8 @@ public interface Master extends JournalSerializable {
   void processJournalEntry(JournalEntry entry) throws IOException;
 
   /**
-   * Start the master, as the leader master or standby. Here, the master should initialize state and
-   * possibly start threads required for operation.
+   * Starts the master, as the leader master or the standby master. Here, the master should
+   * initialize state and possibly start threads required for operation.
    *
    * If isLeader is true, the master should also initialize the journal and write the checkpoint
    * file.
@@ -68,8 +68,8 @@ public interface Master extends JournalSerializable {
   void start(boolean isLeader) throws IOException;
 
   /**
-   * Stop the master. Here, anything created or started in {@link #start(boolean)} should be cleaned
-   * up and shutdown.
+   * Stops the master. Here, anything created or started in {@link #start(boolean)} should be
+   * cleaned up and shutdown.
    *
    * @throws IOException
    */

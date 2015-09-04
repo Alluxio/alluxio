@@ -38,10 +38,10 @@ public abstract class MasterBase implements Master {
   private final Journal mJournal;
   private final ExecutorService mExecutorService;
 
-  // true if this master is in leader mode, and not standby mode.
+  /** true if this master is in leader mode, and not standby mode. */
   private boolean mIsLeader = false;
 
-  // The thread that tails the journal when the master is in standby mode.
+  /** The thread that tails the journal when the master is in standby mode. */
   private JournalTailerThread mStandbyJournalTailer = null;
 
   private JournalWriter mJournalWriter = null;
@@ -72,7 +72,7 @@ public abstract class MasterBase implements Master {
       JournalTailer catchupTailer = new JournalTailer(this, mJournal);
       boolean checkpointExists = true;
       try {
-        catchupTailer.getCheckpointLastModifiedTime();
+        catchupTailer.getCheckpointLastModifiedTimeMs();
       } catch (IOException ioe) {
         // The checkpoint doesn't exist yet. This is probably the first execution ever, or this is a
         // testing master.
