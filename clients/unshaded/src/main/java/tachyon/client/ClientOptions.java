@@ -20,17 +20,23 @@ import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 
 /**
- * Represents the set of operation specific configuration options a user can pass in to a Tachyon
+ * Represents the set of operation specific configuration options a user can pass into a Tachyon
  * client. Not all options will be valid for all operations.
  */
 public class ClientOptions {
 
+  /**
+   * Builder for the <code>ClientOptions<</code>.
+   */
   public static class Builder {
     private long mBlockSize;
     private CacheType mCacheType;
     private UnderStorageType mUnderStorageType;
     private NetAddress mLocation;
 
+    /**
+     * @param conf Tachyon configuration
+     */
     public Builder(TachyonConf conf) {
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
       mCacheType = conf.getEnum(Constants.USER_DEFAULT_CACHE_TYPE, CacheType.CACHE);
@@ -39,25 +45,46 @@ public class ClientOptions {
       mLocation = null;
     }
 
+    /**
+     * @param cacheType the cache type to use
+     * @return the builder
+     */
     public Builder setCacheType(CacheType cacheType) {
       mCacheType = cacheType;
       return this;
     }
 
+    /**
+     * @param location the location to use
+     * @return the builder
+     */
     public Builder setLocation(NetAddress location) {
       throw new UnsupportedOperationException("Set location is currently unsupported.");
     }
 
+    /**
+     * @param underStorageType the under storage type to use
+     * @return the builder
+     */
     public Builder setUnderStorageType(UnderStorageType underStorageType) {
       mUnderStorageType = underStorageType;
       return this;
     }
 
+    /**
+     * @param blockSize the block size to use
+     * @return the builder
+     */
     public Builder setBlockSize(long blockSize) {
       mBlockSize = blockSize;
       return this;
     }
 
+    /**
+     * Builds a new instance of <code>ClientOptions</code>
+     *
+     * @return a <code>ClientOptions</code> instance
+     */
     public ClientOptions build() {
       return new ClientOptions(this);
     }
@@ -68,6 +95,9 @@ public class ClientOptions {
   private final UnderStorageType mUnderStorageType;
   private final NetAddress mLocation;
 
+  /**
+   * @return the default <code>ClientOptions</code>
+   */
   public static ClientOptions defaults() {
     return new Builder(new TachyonConf()).build();
   }
@@ -79,18 +109,30 @@ public class ClientOptions {
     mLocation = builder.mLocation;
   }
 
+  /**
+   * @return the block size
+   */
   public long getBlockSize() {
     return mBlockSize;
   }
 
+  /**
+   * @return the cache type
+   */
   public CacheType getCacheType() {
     return mCacheType;
   }
 
+  /**
+   * @return the under storage type
+   */
   public UnderStorageType getUnderStorageType() {
     return mUnderStorageType;
   }
 
+  /**
+   * @return the location
+   */
   public NetAddress getLocation() {
     return mLocation;
   }

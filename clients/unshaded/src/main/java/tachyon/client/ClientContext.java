@@ -52,9 +52,6 @@ public class ClientContext {
   }
 
   /**
-   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
-   * within the client
-   *
    * @return the tachyonConf for the client process
    */
   public static TachyonConf getConf() {
@@ -62,24 +59,32 @@ public class ClientContext {
   }
 
   /**
-   * Returns the {@link InetSocketAddress} of the master node.
-   *
    * @return the master address
    */
   public static InetSocketAddress getMasterAddress() {
     return sMasterAddress;
   }
 
+  /**
+   * Acquires a user master client from the user master client pool.
+   *
+   * @return the user master client
+   */
   public static UserMasterClient acquireUserMasterClient() {
     return sUserClientPool.acquire();
   }
 
+  /**
+   * Releases a user master client back to the user master client pool.
+   *
+   * @param userMasterClient user master client to release
+   */
   public static void releaseUserMasterClient(UserMasterClient userMasterClient) {
     sUserClientPool.release(userMasterClient);
   }
 
   /**
-   * This method is only for testing purposes
+   * This method is only for testing purposes.
    *
    * @param conf new configuration to use
    */
