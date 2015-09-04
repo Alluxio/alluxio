@@ -90,7 +90,7 @@ echo "TachyonMaster" >> files/workers
 [[ "$PROVIDER" == "aws" ]] && sgid=$(python bin/init_aws.py | tail -n 1)
 # pass security group id to vagrant up
 export AWS_SECURITY_GROUP_ID_TACH=$sgid
-if [[ "$PROVIDER" == "aws" && "$IS_SPOT" == "$(python bin/is_aws_spot.py)" ]]; then
+if [[ "$PROVIDER" == "aws" && "$(python bin/is_aws_spot.py)" == "0" ]]; then
   # register handler to be run when exit 1
   trap "python bin/spot_request.py --cancel" ERR
   python bin/spot_request.py --submit
