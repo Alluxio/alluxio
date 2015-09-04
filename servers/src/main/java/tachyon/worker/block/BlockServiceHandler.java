@@ -211,7 +211,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @param userId the id of the client requesting the create
    * @param blockId the id of the new block to create
    * @param initialBytes the initial number of bytes to allocate for this block
-   * @throws OutOfSpaceException if there is no space available
+   * @throws tachyon.thrift.OutOfSpaceException if there is no space available
    * @throws TException if the underlying worker RPC fails
    */
   @Override
