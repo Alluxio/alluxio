@@ -38,6 +38,13 @@ public class RemoteBlockInStream extends BlockInStream {
 
   private long mPos;
 
+  /**
+   * Creates a new remote block input stream.
+   *
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param location the location
+   */
   // TODO: Modify the locking so the stream owns the lock instead of the data server
   public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
     mBlockId = blockId;

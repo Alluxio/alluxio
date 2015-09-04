@@ -31,8 +31,8 @@ import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
 
 /**
- * A shared context in each client JVM for common Block Store client functionality such as a pool
- * of master clients and a pool of local worker clients. Any remote clients will be created and
+ * A shared context in each client JVM for common Block Store client functionality such as a pool of
+ * master clients and a pool of local worker clients. Any remote clients will be created and
  * destroyed on a per use basis.
  */
 public enum BSContext {
@@ -42,12 +42,16 @@ public enum BSContext {
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
   private final ExecutorService mRemoteBlockWorkerExecutor;
 
-  private BSContext() {
+  /**
+   * Creates a new block stream context.
+   */
+  BSContext() {
     mBlockMasterClientPool =
-        new BlockMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
-    // TODO: Get size from configuration
+        new BlockMasterClientPool(ClientContext.getMasterAddress());
+    // TODO: Get the capacity from configuration
+    final int CAPACITY = 10;
     mRemoteBlockWorkerExecutor =
-        Executors.newFixedThreadPool(10,
+        Executors.newFixedThreadPool(CAPACITY,
             ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
 
     NetAddress localWorkerAddress =
@@ -58,12 +62,14 @@ public enum BSContext {
       mLocalBlockWorkerClientPool = null;
     } else {
       mLocalBlockWorkerClientPool =
-          new BlockWorkerClientPool(localWorkerAddress, ClientContext.getConf());
+          new BlockWorkerClientPool(localWorkerAddress);
     }
   }
 
   /**
-   * Reinitializes the Block Store context. This method should only be used in ClientContext.
+   * Re-initializes the Block Store context. This method should only be used in ClientContext.
+   *
+   * TODO: Prevent classes other than ClientContext from accessing this method.
    */
   public void resetContext() {
     mBlockMasterClientPool.close();
@@ -71,7 +77,7 @@ public enum BSContext {
       mLocalBlockWorkerClientPool.close();
     }
     mBlockMasterClientPool =
-        new BlockMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
+        new BlockMasterClientPool(ClientContext.getMasterAddress());
     NetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
@@ -80,7 +86,7 @@ public enum BSContext {
       mLocalBlockWorkerClientPool = null;
     } else {
       mLocalBlockWorkerClientPool =
-          new BlockWorkerClientPool(localWorkerAddress, ClientContext.getConf());
+          new BlockWorkerClientPool(localWorkerAddress);
     }
   }
 
@@ -105,18 +111,28 @@ public enum BSContext {
     }
   }
 
+  /**
+   * Acquires a block master client from the block master client pool.
+   *
+   * @return the acquired block master client
+   */
   public BlockMasterClient acquireMasterClient() {
     return mBlockMasterClientPool.acquire();
   }
 
+  /**
+   * Releases a block master client into the block master client pool.
+   *
+   * @param masterClient a block master client to release
+   */
   public void releaseMasterClient(BlockMasterClient masterClient) {
     mBlockMasterClientPool.release(masterClient);
   }
 
   /**
-   * Obtains a worker client to a worker in the system, or throws exception if no workers are
-   * available. A local client is preferred to be returned but not guaranteed. The caller should
-   * use {@link WorkerClient#isLocal} to verify if the client is local before assuming so.
+   * Obtains a worker client to a worker in the system. A local client is preferred to be returned
+   * but not guaranteed. The caller should use {@link WorkerClient#isLocal} to verify if the client
+   * is local before assuming so.
    *
    * @return a WorkerClient to a worker in the Tachyon system
    */
@@ -129,12 +145,10 @@ public enum BSContext {
   }
 
   /**
-   * Obtains a worker client to the worker with the given hostname in the system, or throws
-   * exception if the worker is not available.
-   * available.
+   * Obtains a worker client to the worker with the given hostname in the system.
    *
    * @param hostname the hostname of the worker to get a client to, empty String indicates all
-   *                 workers are eligible
+   *        workers are eligible
    * @return a WorkerClient connected to the worker with the given hostname
    */
   public WorkerClient acquireWorkerClient(String hostname) {
@@ -165,10 +179,10 @@ public enum BSContext {
   }
 
   /**
-   * Releases the WorkerClient back to the client pool, or destroys it if it was a remote client
+   * Releases the WorkerClient back to the client pool, or destroys it if it was a remote client.
    *
-   * @param workerClient the worker client to release, the client should not be accessed after
-   *                     this method is called
+   * @param workerClient the worker client to release, the client should not be accessed after this
+   *        method is called
    */
   public void releaseWorkerClient(WorkerClient workerClient) {
     // If the client is local and the pool exists, release the client to the pool, otherwise just

@@ -49,6 +49,13 @@ public class LocalBlockOutStream extends BlockOutStream {
   private long mAvailableBytes;
   private long mWrittenBytes;
 
+  /**
+   * Creates a new local block output stream.
+   *
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @throws IOException if an I/O error occurs
+   */
   public LocalBlockOutStream(long blockId, long blockSize) throws IOException {
     mCloser = Closer.create();
     mBlockSize = blockSize;
