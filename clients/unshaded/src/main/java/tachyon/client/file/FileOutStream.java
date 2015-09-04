@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.annotation.PublicApi;
 import tachyon.client.CacheType;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
@@ -41,6 +42,7 @@ import tachyon.worker.WorkerClient;
  * {@link tachyon.client.UnderStorageType} is PERSIST, another stream will write the data to
  * the under storage system.
  */
+@PublicApi
 public final class FileOutStream extends OutStream {
   private final long mFileId;
   private final ClientOptions mOptions;

@@ -20,13 +20,11 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
-import tachyon.annotation.PublicApi;
 import tachyon.thrift.FileInfo;
 
 /**
  * Interface for Tachyon client APIs
  */
-@PublicApi
 @Deprecated
 interface TachyonFSCore extends Closeable {
   /**
