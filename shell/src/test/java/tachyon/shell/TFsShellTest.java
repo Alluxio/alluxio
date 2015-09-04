@@ -23,7 +23,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -195,12 +194,12 @@ public class TFsShellTest {
     String cmdOut =
         getCommandOutput(new String[] {"copyFromLocal", testFile.getPath(), tachyonURI});
     // then
-    Assert.assertThat(cmdOut, CoreMatchers.equalTo(mOutput.toString()));
+    Assert.assertEquals(cmdOut, mOutput.toString());
     TachyonFile file = mTfs.open(new TachyonURI("/destFileURI"));
     FileInfo fileInfo = mTfs.getInfo(file);
-    Assert.assertThat(fileInfo.length, CoreMatchers.equalTo(10L));
+    Assert.assertEquals(10L, fileInfo.length);
     byte[] read = readContent(file, 10);
-    Assert.assertThat(BufferUtils.equalIncreasingByteArray(10, read), CoreMatchers.equalTo(true));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
   }
 
   @Test
