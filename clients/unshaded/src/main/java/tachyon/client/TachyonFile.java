@@ -363,7 +363,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
   /**
    * Advanced API.
    *
-   * Returns a TachyonByteBuffer of the block specified by the blockIndex
+   * Returns a TachyonByteBuffer of the block specified by the blockIndex.
+   *
+   * Currently unsupported.
    *
    * @param blockIndex The block index of the current file to read.
    * @return TachyonByteBuffer containing the block.
@@ -377,6 +379,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   /**
    * Gets the the whole block.
    *
+   * Currently unsupported.
+   *
    * @param blockIndex The block index of the current file to read.
    * @return TachyonByteBuffer containing the block.
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
@@ -387,6 +391,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Read local block return a TachyonByteBuffer
+   *
+   * Currently unsupported.
    *
    * @param blockIndex The id of the block
    * @param offset The start position to read
@@ -403,6 +409,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   /**
    * Get the the whole block from remote workers.
    *
+   * Currently unsupported.
+   *
    * @param blockInfo The blockInfo of the block to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying stream throws IOException during close()
@@ -413,6 +421,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Re-caches this file into memory.
+   *
+   * Currently unsupported.
    *
    * TODO(hy): remove this method. do streaming cache. This is not a right API.
    *
@@ -425,6 +435,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Re-caches the given block into memory.
+   *
+   * Currently unsupported.
    *
    * @param blockIndex The block index of the current file
    * @return true if succeed, false otherwise
