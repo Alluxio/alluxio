@@ -27,10 +27,10 @@ import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
+import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.util.UnderFileSystemUtils;
 
 /**
  * Constructs an isolated master. Primary users of this class are the
@@ -92,7 +92,6 @@ public final class LocalTachyonMaster {
         Constants.BLOCK_MASTER_SERVICE_NAME,
         Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
         Constants.RAW_TABLE_MASTER_SERVICE_NAME,
-        Constants.USER_MASTER_SERVICE_NAME,
     };
     for (String masterServiceName : masterServiceNames) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
