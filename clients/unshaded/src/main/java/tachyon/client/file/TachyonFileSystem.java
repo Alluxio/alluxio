@@ -282,4 +282,22 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
       mContext.releaseMasterClient(masterClient);
     }
   }
+
+  public void reportLostFile(TachyonFile file) throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.reportLostFile(file.getFileId());
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  public void requestFilesInDependency(int depId) throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.requestFilesInDependency(depId);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
 }

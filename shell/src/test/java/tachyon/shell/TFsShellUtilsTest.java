@@ -30,10 +30,10 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.WriteType;
 import tachyon.client.CacheType;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
+import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -94,17 +94,29 @@ public class TFsShellUtilsTest {
     };
   }
 
-  public String resetTachyonFileHierarchy(WriteType writeType) throws IOException {
-    return resetTachyonFileHierarchy(mTfs, writeType);
+  public String resetTachyonFileHierarchy() throws IOException {
+    return resetTachyonFileHierarchy(mTfs);
   }
 
-  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs, WriteType writeType)
-      throws IOException {
+  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) throws IOException {
     /**
-     * Generate such local structure /testWildCards ├── foo | ├── foobar1 | └── foobar2 ├── bar |
-     * └── foobar3 └── foobar4
+     * Generate such local structure /testWildCards
+     *                                ├── foo |
+     *                                        ├── foobar1
+     *                                        └── foobar2
+     *                                ├── bar |
+     *                                        └── foobar3
+     *                                └── foobar4
      */
-    tfs.delete(tfs.open(new TachyonURI("/testWildCards")));
+    TachyonFile fd;
+    try {
+      fd = tfs.open(new TachyonURI("/testWildCars"));
+    } catch (IOException ioe) {
+      fd = null;
+    }
+    if (fd != null) {
+      tfs.delete(fd);
+    }
     tfs.mkdirs(new TachyonURI("/testWildCards"));
     tfs.mkdirs(new TachyonURI("/testWildCards/foo"));
     tfs.mkdirs(new TachyonURI("/testWildCards/bar"));
@@ -127,8 +139,13 @@ public class TFsShellUtilsTest {
   public static String resetLocalFileHierarchy(LocalTachyonCluster localTachyonCluster)
       throws IOException {
     /**
-     * Generate such local structure /testWildCards ├── foo | ├── foobar1 | └── foobar2 ├── bar |
-     * └── foobar3 └── foobar4
+     * Generate such local structure /testWildCards
+     *                                ├── foo |
+     *                                        ├── foobar1
+     *                                        └── foobar2
+     *                                ├── bar |
+     *                                        └── foobar3
+     *                                └── foobar4
      */
     FileUtils.deleteDirectory(new File(localTachyonCluster.getTachyonHome() + "/testWildCards"));
     new File(localTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
@@ -164,7 +181,7 @@ public class TFsShellUtilsTest {
 
   public String resetFsHierarchy(FsType fsType) throws IOException {
     if (fsType == FsType.TFS) {
-      return resetTachyonFileHierarchy(WriteType.MUST_CACHE);
+      return resetTachyonFileHierarchy();
     } else if (fsType == FsType.LOCAL) {
       return resetLocalFileHierarchy();
     } else {
