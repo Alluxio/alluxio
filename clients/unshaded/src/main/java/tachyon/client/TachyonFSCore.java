@@ -20,12 +20,11 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
-import tachyon.thrift.FileInfo;
+import tachyon.thrift.ClientFileInfo;
 
 /**
  * Interface for Tachyon client APIs
  */
-@Deprecated
 interface TachyonFSCore extends Closeable {
   /**
    * Creates a new file in the file system.
@@ -53,30 +52,30 @@ interface TachyonFSCore extends Closeable {
    * @throws IOException when the operation fails
 
    */
-  boolean delete(long fileId, TachyonURI path, boolean recursive) throws IOException;
+  boolean delete(int fileId, TachyonURI path, boolean recursive) throws IOException;
 
   /**
-   * Gets the FileInfo object that represents the fileId, or the path if fileId is -1.
+   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
    *
    * @param fileId the file id of the file or folder.
    * @param path the path of the file or folder. valid iff fileId is -1.
-   * @return the FileInfo of the file or folder, null if the file or folder does not exist.
+   * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
    * @throws IOException when the operation fails
    */
-  FileInfo getFileStatus(long fileId, TachyonURI path) throws IOException;
+  ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException;
 
   /** Returns a URI whose scheme and authority identify this FileSystem. */
   TachyonURI getUri();
 
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its FileInfo.
+   * <code>path</code> is a file, return its ClientFileInfo.
    *
    * @param path the target directory/file path
-   * @return A list of FileInfo, null if the file or folder does not exist.
+   * @return A list of ClientFileInfo, null if the file or folder does not exist.
    * @throws IOException when the operation fails
    */
-  List<FileInfo> listStatus(TachyonURI path) throws IOException;
+  List<ClientFileInfo> listStatus(TachyonURI path) throws IOException;
 
   /**
    * Creates a folder.
@@ -98,7 +97,7 @@ interface TachyonFSCore extends Closeable {
    * @return true if renames successfully, false otherwise.
    * @throws IOException when the operation fails
    */
-  boolean rename(long fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
+  boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
 
  /**
   * Frees memory of a file or folder.
@@ -111,5 +110,5 @@ interface TachyonFSCore extends Closeable {
   * @return true if in-memory free successfully, false otherwise.
   * @throws IOException when the operation fails
   */
-  boolean freepath(long fileId, TachyonURI path, boolean recursive) throws IOException;
+  boolean freepath(int fileId, TachyonURI path, boolean recursive) throws IOException;
 }

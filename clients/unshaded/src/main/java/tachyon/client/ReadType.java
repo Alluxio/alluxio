@@ -18,7 +18,6 @@ package tachyon.client;
 /**
  * Different read types for a TachyonFile.
  */
-@Deprecated
 public enum ReadType {
   /**
    * Read the file and but do not cache it explicitly.

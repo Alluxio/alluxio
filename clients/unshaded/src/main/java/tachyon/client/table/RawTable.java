@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import com.google.common.base.Preconditions;
 
 import tachyon.client.TachyonFS;
-import tachyon.thrift.RawTableInfo;
+import tachyon.thrift.ClientRawTableInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -30,52 +30,52 @@ import tachyon.util.io.BufferUtils;
  */
 public class RawTable {
   private final TachyonFS mTachyonFS;
-  private final RawTableInfo mRawTableInfo;
+  private final ClientRawTableInfo mClientRawTableInfo;
 
   /**
    * Creates a new <code>RawTable</code>
    *
    * @param tachyonClient the <code>TachyonFS</code> client
-   * @param rawTableInfo information describing the table
+   * @param clientRawTableInfo information describing the table
    */
-  public RawTable(TachyonFS tachyonClient, RawTableInfo rawTableInfo) {
+  public RawTable(TachyonFS tachyonClient, ClientRawTableInfo clientRawTableInfo) {
     mTachyonFS = tachyonClient;
-    mRawTableInfo = rawTableInfo;
+    mClientRawTableInfo = clientRawTableInfo;
   }
 
   /**
    * @return the number of columns of the raw table
    */
   public int getColumns() {
-    return mRawTableInfo.getColumns();
+    return mClientRawTableInfo.getColumns();
   }
 
   /**
    * @return the id of the raw table
    */
-  public long getId() {
-    return mRawTableInfo.getId();
+  public int getId() {
+    return mClientRawTableInfo.getId();
   }
 
   /**
    * @return the meta data of the raw table
    */
   public ByteBuffer getMetadata() {
-    return BufferUtils.cloneByteBuffer(mRawTableInfo.metadata);
+    return BufferUtils.cloneByteBuffer(mClientRawTableInfo.metadata);
   }
 
   /**
    * @return the name of the raw table
    */
   public String getName() {
-    return mRawTableInfo.getName();
+    return mClientRawTableInfo.getName();
   }
 
   /**
    * @return the path of the raw table
    */
   public String getPath() {
-    return mRawTableInfo.getPath();
+    return mClientRawTableInfo.getPath();
   }
 
   /**
@@ -85,9 +85,9 @@ public class RawTable {
    * @return the RawColumn
    */
   public RawColumn getRawColumn(int columnIndex) {
-    Preconditions.checkArgument(columnIndex >= 0 && columnIndex < mRawTableInfo.getColumns(),
-        mRawTableInfo.getPath() + " does not have column " + columnIndex + ". It has "
-            + mRawTableInfo.getColumns() + " columns.");
+    Preconditions.checkArgument(columnIndex >= 0 && columnIndex < mClientRawTableInfo.getColumns(),
+        mClientRawTableInfo.getPath() + " does not have column " + columnIndex + ". It has "
+            + mClientRawTableInfo.getColumns() + " columns.");
 
     return new RawColumn(mTachyonFS, this, columnIndex);
   }
@@ -99,7 +99,7 @@ public class RawTable {
    * @throws IOException if an event that prevents the metadata from being updated is encountered.
    */
   public void updateMetadata(ByteBuffer metadata) throws IOException {
-    mTachyonFS.updateRawTableMetadata(mRawTableInfo.getId(), metadata);
-    mRawTableInfo.setMetadata(BufferUtils.cloneByteBuffer(metadata));
+    mTachyonFS.updateRawTableMetadata(mClientRawTableInfo.getId(), metadata);
+    mClientRawTableInfo.setMetadata(BufferUtils.cloneByteBuffer(metadata));
   }
 }

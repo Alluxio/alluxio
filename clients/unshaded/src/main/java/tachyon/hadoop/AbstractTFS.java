@@ -36,15 +36,15 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.UfsUtils;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.DependencyInfo;
-import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileInfo;
+import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientDependencyInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.client.UfsUtils;
 import tachyon.util.CommonUtils;
 
 /**
@@ -78,7 +78,7 @@ abstract class AbstractTFS extends FileSystem {
     }
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     fromHdfsToTachyon(path);
-    long fileId = mTFS.getFileId(path);
+    int fileId = mTFS.getFileId(path);
     TachyonFile file = mTFS.getFile(fileId);
 
     if (file.length() > 0) {
@@ -136,7 +136,7 @@ abstract class AbstractTFS extends FileSystem {
               + "overwritten with create.");
         }
       }
-      long fileId = mTFS.createFile(path, blockSize);
+      int fileId = mTFS.createFile(path, blockSize);
       TachyonFile file = mTFS.getFile(fileId);
       file.setUFSConf(getConf());
 
@@ -155,9 +155,8 @@ abstract class AbstractTFS extends FileSystem {
       depPath = path.getPath();
       depPath = depPath.substring(depPath.indexOf("part-") + 5);
       int index = Integer.parseInt(depPath);
-      DependencyInfo info = mTFS.getClientDependencyInfo(depId);
-      // TODO: file id should be long
-      long fileId = info.getChildren().get(index).intValue();
+      ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
+      int fileId = info.getChildren().get(index);
       LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
@@ -176,9 +175,8 @@ abstract class AbstractTFS extends FileSystem {
       depPath = path.getPath();
       depPath = depPath.substring(depPath.indexOf("part-") + 5);
       int index = Integer.parseInt(depPath);
-      DependencyInfo info = mTFS.getClientDependencyInfo(depId);
-      // TODO: file id should be long
-      long fileId = info.getChildren().get(index).intValue();
+      ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
+      int fileId = info.getChildren().get(index);
       LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
@@ -187,7 +185,7 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    long fileId;
+    int fileId;
     WriteType type = getWriteType();
     if (mTFS.exist(path)) {
       fileId = mTFS.getFileId(path);
@@ -300,15 +298,15 @@ abstract class AbstractTFS extends FileSystem {
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(file.getPath()));
     fromHdfsToTachyon(path);
-    long fileId = mTFS.getFileId(path);
+    int fileId = mTFS.getFileId(path);
     if (fileId == -1) {
       throw new FileNotFoundException("File does not exist: " + file.getPath());
     }
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
-    List<FileBlockInfo> blocks = mTFS.getFileBlocks(fileId);
+    List<ClientBlockInfo> blocks = mTFS.getFileBlocks(fileId);
     for (int k = 0; k < blocks.size(); k ++) {
-      FileBlockInfo info = blocks.get(k);
+      ClientBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
       long end = offset + info.getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
@@ -350,10 +348,8 @@ abstract class AbstractTFS extends FileSystem {
     if (useHdfs()) {
       fromHdfsToTachyon(tPath);
     }
-    TachyonFile file;
-    try {
-      file = mTFS.getFile(tPath);
-    } catch (IOException ioe) {
+    TachyonFile file = mTFS.getFile(tPath);
+    if (file == null) {
       LOG.info("File does not exist: " + path);
       throw new FileNotFoundException("File does not exist: " + path);
     }
@@ -374,7 +370,6 @@ abstract class AbstractTFS extends FileSystem {
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
-  // TODO The @Override needs to be removed to pass compilation, why?
   public abstract String getScheme();
 
   /**
@@ -452,10 +447,10 @@ abstract class AbstractTFS extends FileSystem {
       throw new FileNotFoundException("File does not exist: " + path);
     }
 
-    List<FileInfo> files = mTFS.listStatus(tPath);
+    List<ClientFileInfo> files = mTFS.listStatus(tPath);
     FileStatus[] ret = new FileStatus[files.size()];
     for (int k = 0; k < files.size(); k ++) {
-      FileInfo info = files.get(k);
+      ClientFileInfo info = files.get(k);
       // TODO replicate 3 with the number of disk replications.
       ret[k] =
           new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeByte(),
@@ -501,7 +496,7 @@ abstract class AbstractTFS extends FileSystem {
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     fromHdfsToTachyon(path);
-    long fileId = mTFS.getFileId(path);
+    int fileId = mTFS.getFileId(path);
 
     return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId, Utils.getHDFSPath(path,
         mUnderFSAddress), getConf(), bufferSize, mStatistics, mTachyonConf));
@@ -516,12 +511,7 @@ abstract class AbstractTFS extends FileSystem {
 
     TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
     TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
-    FileInfo info;
-    try {
-      info = mTFS.getFileStatus(-1, dstPath);
-    } catch (IOException ioe) {
-      info = null;
-    }
+    ClientFileInfo info = mTFS.getFileStatus(-1, dstPath);
     // If the destination is an existing folder, try to move the src into the folder
     if (info != null && info.isFolder) {
       dstPath = dstPath.join(srcPath.getName());

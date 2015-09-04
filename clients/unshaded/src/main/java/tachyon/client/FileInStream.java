@@ -1,0 +1,214 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package tachyon.client;
+
+import java.io.IOException;
+
+import tachyon.conf.TachyonConf;
+
+/**
+ * FileInStream implementation of TachyonFile.
+ */
+public class FileInStream extends InStream {
+  private final long mFileLength;
+  private final long mBlockCapacity;
+
+  private long mCurrentPosition;
+  private int mCurrentBlockIndex;
+  private BlockInStream mCurrentBlockInStream;
+  private long mCurrentBlockLeft;
+
+  private boolean mClosed = false;
+
+  private Object mUFSConf = null;
+
+  /**
+   * Creates a new <code>FileInStream</code> without under file system configuration.
+   *
+   * @param file the file to be read
+   * @param opType the InStream's read type
+   * @param tachyonConf the TachyonConf instance for this stream.
+   */
+  public FileInStream(TachyonFile file, ReadType opType, TachyonConf tachyonConf)
+      throws IOException {
+    this(file, opType, null, tachyonConf);
+  }
+
+  /**
+   * Creates a new <code>FileInStream</code> with under file system configuration.
+   *
+   * @param file the file to be read
+   * @param opType the InStream's read type
+   * @param ufsConf the under file system configuration
+   * @param tachyonConf the TachyonConf instance for this stream.
+   */
+  public FileInStream(TachyonFile file, ReadType opType, Object ufsConf, TachyonConf tachyonConf)
+      throws IOException {
+    super(file, opType, tachyonConf);
+
+    mFileLength = file.length();
+    mBlockCapacity = file.getBlockSizeByte();
+
+    mCurrentPosition = 0;
+    mCurrentBlockIndex = -1;
+    mCurrentBlockInStream = null;
+    mCurrentBlockLeft = 0;
+
+    mUFSConf = ufsConf;
+  }
+
+  private void checkAndAdvanceBlockInStream() throws IOException {
+    if (mCurrentBlockLeft == 0) {
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.close();
+      }
+
+      mCurrentBlockIndex = getCurrentBlockIndex();
+      mCurrentBlockInStream = BlockInStream.get(mFile, mReadType, mCurrentBlockIndex, mUFSConf,
+          mTachyonConf);
+      mCurrentBlockLeft = mBlockCapacity;
+    }
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (!mClosed && mCurrentBlockInStream != null) {
+      mCurrentBlockInStream.close();
+    }
+
+    mClosed = true;
+  }
+
+  private int getCurrentBlockIndex() {
+    return (int) (mCurrentPosition / mBlockCapacity);
+  }
+
+  @Override
+  public int read() throws IOException {
+    if (mCurrentPosition >= mFileLength) {
+      return -1;
+    }
+
+    checkAndAdvanceBlockInStream();
+
+    mCurrentPosition ++;
+    mCurrentBlockLeft --;
+    return mCurrentBlockInStream.read();
+  }
+
+  @Override
+  public int read(byte[] b) throws IOException {
+    return read(b, 0, b.length);
+  }
+
+  @Override
+  public int read(byte[] b, int off, int len) throws IOException {
+    if (b == null) {
+      throw new NullPointerException();
+    } else if (off < 0 || len < 0 || len > b.length - off) {
+      throw new IndexOutOfBoundsException();
+    } else if (len == 0) {
+      return 0;
+    } else if (mCurrentPosition >= mFileLength) {
+      return -1;
+    }
+
+    int tOff = off;
+    int tLen = len;
+
+    while (tLen > 0 && mCurrentPosition < mFileLength) {
+      checkAndAdvanceBlockInStream();
+
+      int tRead = mCurrentBlockInStream.read(b, tOff, tLen);
+      if (tRead == -1) {
+        // mCurrentBlockInStream has reached its block boundary
+        continue;
+      }
+
+      mCurrentPosition += tRead;
+      mCurrentBlockLeft -= tRead;
+      tLen -= tRead;
+      tOff += tRead;
+    }
+
+    return len - tLen;
+  }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    if (mCurrentPosition == pos) {
+      return;
+    }
+    if (pos < 0) {
+      throw new IOException("Seek position is negative: " + pos);
+    } else if (pos > mFileLength) {
+      throw new IOException("Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
+    }
+
+    if ((int) (pos / mBlockCapacity) != mCurrentBlockIndex) {
+      mCurrentBlockIndex = (int) (pos / mBlockCapacity);
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.close();
+      }
+      mCurrentBlockInStream = BlockInStream.get(mFile, mReadType, mCurrentBlockIndex, mUFSConf,
+          mTachyonConf);
+    }
+    mCurrentBlockInStream.seek(pos % mBlockCapacity);
+    mCurrentPosition = pos;
+    mCurrentBlockLeft = mBlockCapacity - (pos % mBlockCapacity);
+  }
+
+  @Override
+  public long skip(long n) throws IOException {
+    if (n <= 0) {
+      return 0;
+    }
+
+    long ret = n;
+    if (mCurrentPosition + n >= mFile.length()) {
+      ret = mFile.length() - mCurrentPosition;
+      mCurrentPosition += ret;
+    } else {
+      mCurrentPosition += n;
+    }
+
+    int tBlockIndex = (int) (mCurrentPosition / mBlockCapacity);
+    if (tBlockIndex != mCurrentBlockIndex) {
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.close();
+      }
+
+      mCurrentBlockIndex = tBlockIndex;
+      mCurrentBlockInStream = BlockInStream.get(mFile, mReadType, mCurrentBlockIndex, mUFSConf,
+          mTachyonConf);
+      long shouldSkip = mCurrentPosition % mBlockCapacity;
+      long skip = mCurrentBlockInStream.skip(shouldSkip);
+      mCurrentBlockLeft = mBlockCapacity - skip;
+      if (skip != shouldSkip) {
+        throw new IOException("The underlayer BlockInStream only skip " + skip + " instead of "
+            + shouldSkip);
+      }
+    } else {
+      long skip = mCurrentBlockInStream.skip(ret);
+      if (skip != ret) {
+        throw new IOException("The underlayer BlockInStream only skip " + skip + " instead of "
+            + ret);
+      }
+    }
+
+    return ret;
+  }
+}

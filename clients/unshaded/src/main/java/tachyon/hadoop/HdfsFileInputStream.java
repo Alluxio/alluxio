@@ -16,9 +16,10 @@
 package tachyon.hadoop;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 
+import com.google.common.primitives.Ints;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -29,13 +30,11 @@ import org.apache.hadoop.fs.Seekable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.primitives.Ints;
-
 import tachyon.Constants;
+import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.file.FileInStream;
+import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
@@ -43,7 +42,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private long mCurrentPosition;
   private TachyonFS mTFS;
-  private long mFileId;
+  private int mFileId;
   private Path mHdfsPath;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
@@ -52,7 +51,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   private FSDataInputStream mHdfsInputStream = null;
 
-  private FileInStream mTachyonFileInputStream = null;
+  private InStream mTachyonFileInputStream = null;
 
   private boolean mClosed = false;
 
@@ -72,7 +71,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    * @param tachyonConf Tachyon configuration
    * @throws IOException if the underlying file does not exist or its stream cannot be created
    */
-  public HdfsFileInputStream(TachyonFS tfs, long fileId, Path hdfsPath, Configuration conf,
+  public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
       int bufferSize, FileSystem.Statistics stats, TachyonConf tachyonConf) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
         bufferSize, stats);
