@@ -141,10 +141,6 @@ exception DependencyDoesNotExistException {
   1: string message
 }
 
-service UserMasterService {
-  i64 getUserId()
-}
-
 service BlockMasterService {
   i64 workerGetWorkerId(1: NetAddress workerNetAddress)
 

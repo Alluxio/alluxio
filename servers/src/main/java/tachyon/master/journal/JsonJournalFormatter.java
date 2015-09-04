@@ -55,7 +55,6 @@ import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
 import tachyon.master.rawtable.journal.RawTableEntry;
-import tachyon.master.user.journal.UserIdGeneratorEntry;
 
 public final class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -231,12 +230,6 @@ public final class JsonJournalFormatter implements JournalFormatter {
           return null;
         }
         switch (entry.mType) {
-          // User
-          case USER_ID_GENERATOR: {
-            return new UserIdGeneratorEntry(
-                entry.getLong("nextUserId"));
-          }
-
           // Block
           case BLOCK_ID_GENERATOR: {
             return new BlockIdGeneratorEntry(

@@ -38,7 +38,6 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.rawtable.RawTableMaster;
-import tachyon.master.user.UserMaster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -84,13 +83,11 @@ public class TachyonMaster {
   private final InetSocketAddress mMasterAddress;
 
   // The masters
-  protected UserMaster mUserMaster;
   protected BlockMaster mBlockMaster;
   protected FileSystemMaster mFileSystemMaster;
   protected RawTableMaster mRawTableMaster;
 
   // The journals for the masters
-  protected final Journal mUserMasterJournal;
   protected final Journal mBlockMasterJournal;
   protected final Journal mFileSystemMasterJournal;
   protected final Journal mRawTableMasterJournal;
@@ -133,8 +130,6 @@ public class TachyonMaster {
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
       // Create the journals.
-      mUserMasterJournal = new Journal(UserMaster.getJournalDirectory(journalDirectory),
-          mTachyonConf);
       mBlockMasterJournal = new Journal(BlockMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
       mFileSystemMasterJournal = new Journal(FileSystemMaster.getJournalDirectory(journalDirectory),
@@ -142,7 +137,6 @@ public class TachyonMaster {
       mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
 
-      mUserMaster = new UserMaster(mUserMasterJournal);
       mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf);
       mFileSystemMaster =
           new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
@@ -261,7 +255,6 @@ public class TachyonMaster {
     try {
       connectToUFS();
 
-      mUserMaster.start(isLeader);
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
       mRawTableMaster.start(isLeader);
@@ -274,7 +267,6 @@ public class TachyonMaster {
 
   protected void stopMasters() {
     try {
-      mUserMaster.stop();
       mBlockMaster.stop();
       mFileSystemMaster.stop();
       mRawTableMaster.stop();
@@ -301,7 +293,6 @@ public class TachyonMaster {
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    processor.registerProcessor(mUserMaster.getProcessorName(), mUserMaster.getProcessor());
     processor.registerProcessor(mBlockMaster.getProcessorName(), mBlockMaster.getProcessor());
     processor.registerProcessor(mFileSystemMaster.getProcessorName(),
         mFileSystemMaster.getProcessor());
