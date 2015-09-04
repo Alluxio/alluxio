@@ -33,6 +33,9 @@ public class TachyonBlockStore implements Closeable {
 
   private static TachyonBlockStore sCachedClient = null;
 
+  /**
+   * @return a new instance of Tachyon block store
+   */
   public static synchronized TachyonBlockStore get() {
     if (null == sCachedClient) {
       sCachedClient = new TachyonBlockStore();
@@ -42,6 +45,9 @@ public class TachyonBlockStore implements Closeable {
 
   private final BSContext mContext;
 
+  /**
+   * Creates a Tachyon block store.
+   */
   public TachyonBlockStore() {
     mContext = BSContext.INSTANCE;
   }

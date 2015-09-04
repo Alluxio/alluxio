@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import tachyon.client.BlockMasterClient;
+import tachyon.client.ClientContext;
 import tachyon.client.ResourcePool;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
@@ -30,17 +31,21 @@ import tachyon.util.ThreadFactoryUtils;
  * using the client.
  */
 public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
+  private static final int CAPACITY = 10;
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
-  private final TachyonConf mTachyonConf;
 
-  public BlockMasterClientPool(InetSocketAddress masterAddress, TachyonConf conf) {
-    // TODO: Get capacity from conf
-    super(10);
-    mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
+  /**
+   * Creates a new block master client pool.
+   *
+   * @param masterAddress the master address
+   */
+  public BlockMasterClientPool(InetSocketAddress masterAddress) {
+    // TODO: Get the capacity from configuration
+    super(CAPACITY);
+    mExecutorService = Executors.newFixedThreadPool(CAPACITY, ThreadFactoryUtils.build(
         "block-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
-    mTachyonConf = conf;
   }
 
   @Override
@@ -51,6 +56,6 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
 
   @Override
   public BlockMasterClient createNewResource() {
-    return new BlockMasterClient(mMasterAddress, mExecutorService, mTachyonConf);
+    return new BlockMasterClient(mMasterAddress, mExecutorService, ClientContext.getConf());
   }
 }

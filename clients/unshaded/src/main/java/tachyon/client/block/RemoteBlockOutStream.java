@@ -42,6 +42,13 @@ public class RemoteBlockOutStream extends BlockOutStream {
   private long mFlushedBytes;
   private long mWrittenBytes;
 
+  /**
+   * Creates a new block output stream.
+   *
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @throws IOException if I/O error occurs
+   */
   public RemoteBlockOutStream(long blockId, long blockSize) throws IOException {
     mBlockId = blockId;
     mBlockSize = blockSize;

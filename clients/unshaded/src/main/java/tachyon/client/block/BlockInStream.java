@@ -32,6 +32,15 @@ import tachyon.util.network.NetworkAddressUtils;
  * method.
  */
 public abstract class BlockInStream extends InStream {
+  /**
+   * Creates a block input stream.
+   *
+   * @param blockId the block id
+   * @param blockSize the block size (for remote block input streams)
+   * @param location the block location (for remote block input streams)
+   * @return a block input stream
+   * @throws IOException if an I/O error occurs
+   */
   public static BlockInStream get(long blockId, long blockSize, NetAddress location)
       throws IOException {
     String localHostname = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());

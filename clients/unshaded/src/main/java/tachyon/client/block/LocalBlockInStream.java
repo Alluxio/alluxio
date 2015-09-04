@@ -40,6 +40,12 @@ public class LocalBlockInStream extends BlockInStream {
 
   private boolean mClosed;
 
+  /**
+   * Creates a new local block input stream.
+   *
+   * @param blockId the block id
+   * @throws IOException if I/O error occurs
+   */
   public LocalBlockInStream(long blockId) throws IOException {
     mBlockId = blockId;
     mClosed = false;

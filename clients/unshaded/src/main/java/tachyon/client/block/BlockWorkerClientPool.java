@@ -32,17 +32,21 @@ import tachyon.worker.WorkerClient;
  * using the client.
  */
 public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
+  private static final int CAPACITY = 10;
   private final ExecutorService mExecutorService;
   private final NetAddress mWorkerNetAddress;
-  private final TachyonConf mTachyonConf;
 
-  public BlockWorkerClientPool(NetAddress workerNetAddress, TachyonConf conf) {
-    // TODO: Get capacity from conf
-    super(10000);
-    mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
+  /**
+   * Creates a new block worker client pool.
+   *
+   * @param workerAddress the worker address
+   */
+  public BlockWorkerClientPool(NetAddress workerAddress) {
+    // TODO: Get the capacity from configuration
+    super(CAPACITY);
+    mExecutorService = Executors.newFixedThreadPool(CAPACITY, ThreadFactoryUtils.build(
         "block-worker-heartbeat-%d", true));
-    mWorkerNetAddress = workerNetAddress;
-    mTachyonConf = conf;
+    mWorkerNetAddress = workerAddress;
   }
 
   @Override

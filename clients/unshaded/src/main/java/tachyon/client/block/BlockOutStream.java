@@ -29,7 +29,7 @@ import tachyon.client.OutStream;
  */
 public abstract class BlockOutStream extends OutStream {
   /**
-   * Gets the remaining number of bytes that can be written to this block.
+   * @return the remaining number of bytes that can be written to this block
    */
   public abstract long remaining();
 }
