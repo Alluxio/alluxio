@@ -18,6 +18,9 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.InputStream;
 
+import tachyon.annotation.PublicApi;
+
+@PublicApi
 public abstract class InStream extends InputStream {
   /**
    * Gets the remaining number of bytes left in the stream, starting at the current position.
