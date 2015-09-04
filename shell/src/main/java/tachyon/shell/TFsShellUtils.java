@@ -21,6 +21,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
@@ -96,11 +98,7 @@ public class TFsShellUtils {
   public static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
       TachyonURI inputURI) throws IOException {
     if (!inputURI.getPath().contains(TachyonURI.WILDCARD)) {
-      List<TachyonURI> res = new LinkedList<TachyonURI>();
-      if (tachyonClient.open(inputURI) != null) {
-        res.add(inputURI);
-      }
-      return res;
+      return Lists.newArrayList(inputURI);
     } else {
       String inputPath = inputURI.getPath();
       TachyonURI parentURI =
