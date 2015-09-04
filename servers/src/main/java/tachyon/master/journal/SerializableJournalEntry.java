@@ -19,6 +19,7 @@ import java.util.Map;
 
 /**
  * This kind of JournalEntry will have a parameter field named transactionId.
+ * TODO (Gene): didn't see transactionId in the class (HY).
  */
 public class SerializableJournalEntry implements JournalEntry {
   private final long mSequenceNumber;
@@ -42,5 +43,4 @@ public class SerializableJournalEntry implements JournalEntry {
   public Map<String, Object> getParameters() {
     return mEntry.getParameters();
   }
-
 }

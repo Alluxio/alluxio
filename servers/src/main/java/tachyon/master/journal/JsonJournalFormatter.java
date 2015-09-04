@@ -70,6 +70,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
     public static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
     public static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writer();
 
+    // TODO (Gene): mSequenceNumber is not being used.
     public final long mSequenceNumber;
     public final JournalEntryType mType;
     public Map<String, JsonNode> mParameters = Maps.newHashMap();

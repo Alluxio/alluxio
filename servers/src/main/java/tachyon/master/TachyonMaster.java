@@ -48,7 +48,7 @@ import tachyon.web.MasterUIWebServer;
 import tachyon.web.UIWebServer;
 
 /**
- * Entry point for the Master program.
+ * Entry point for the Tachyon Master program.
  */
 public class TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -69,7 +69,7 @@ public class TachyonMaster {
     }
   }
 
-
+  // TODO (Gene): Add javadoc for these important variables. Like the one for mPort.
   private final TachyonConf mTachyonConf;
   private final boolean mUseZookeeper;
   private final int mMaxWorkerThreads;
@@ -174,70 +174,71 @@ public class TachyonMaster {
   }
 
   /**
-   * Get the externally resolvable address of this master.
+   * Gets the externally resolvable address of this master.
    */
   public InetSocketAddress getMasterAddress() {
     return mMasterAddress;
   }
 
   /**
-   * Get the actual bind hostname on RPC service (used by unit test only).
+   * Gets the actual bind hostname on RPC service (used by unit test only).
    */
   public String getRPCBindHost() {
     return NetworkAddressUtils.getThriftSocket(mTServerSocket).getLocalSocketAddress().toString();
   }
 
   /**
-   * Get the actual port that the RPC service is listening on (used by unit test only)
+   * Gets the actual port that the RPC service is listening on (used by unit test only)
    */
-  public int getRPCLocalPort() {
+  int getRPCLocalPort() {
     return mPort;
   }
 
   /**
-   * Get the actual bind hostname on web service (used by unit test only).
+   * Gets the actual bind hostname on web service (used by unit test only).
    */
-  public String getWebBindHost() {
+  String getWebBindHost() {
     return mWebServer.getBindHost();
   }
 
   /**
-   * Get the actual port that the web service is listening on (used by unit test only)
+   * Gets the actual port that the web service is listening on (used by unit test only)
    */
-  public int getWebLocalPort() {
+  int getWebLocalPort() {
     return mWebServer.getLocalPort();
   }
 
   /**
-   * Get internal {@link FileSystemMaster}, for unit test only.
+   * Gets internal {@link FileSystemMaster}, for unit test only.
    */
   public FileSystemMaster getFileSystemMaster() {
     return mFileSystemMaster;
   }
 
   /**
-   * Get internal {@link RawTableMaster}, for unit test only.
+   * Gets internal {@link RawTableMaster}, for unit test only.
    */
-  public RawTableMaster getRawTableMaster() {
+  RawTableMaster getRawTableMaster() {
     return mRawTableMaster;
   }
 
   /**
-   * Get internal {@link BlockMaster}, for unit test only.
+   * Gets internal {@link BlockMaster}, for unit test only.
+   * TODO (Gene): this method is used by more than unit tests. Is this right?
    */
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
   }
 
   /**
-   * Get the millisecond when Tachyon Master starts serving, return -1 when not started.
+   * Gets the millisecond when Tachyon Master starts serving, return -1 when not started.
    */
   public long getStarttimeMs() {
     return mStarttimeMs;
   }
 
   /**
-   * Get whether the system is the leader in zookeeper mode, for unit test only.
+   * Gets whether the system is the leader in zookeeper mode, for unit test only.
    *
    * @return true if the system is the leader under zookeeper mode, false otherwise.
    */
@@ -246,7 +247,7 @@ public class TachyonMaster {
   }
 
   /**
-   * Start a Tachyon master server.
+   * Starts a Tachyon master server.
    */
   public void start() throws Exception {
     if (mUseZookeeper) {
@@ -274,7 +275,7 @@ public class TachyonMaster {
             stopServing();
             stopMaster();
 
-            // When transitioning from master to standby, recreate the masters with a readonly
+            // When transitioning from master to standby, recreate the masters with a read only
             // journal.
             mUserMaster = new UserMaster(mUserMasterJournal.getReadOnlyJournal());
             mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal(), mTachyonConf);
@@ -296,8 +297,8 @@ public class TachyonMaster {
     }
   }
 
-  /*
-   * Stop a Tachyon master server. Should only be called by tests.
+  /**
+   * Stops a Tachyon master server. Should only be called by tests.
    */
   public void stop() throws Exception {
     if (mIsServing) {
