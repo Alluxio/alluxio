@@ -62,11 +62,14 @@ public class LocalBlockOutStream extends BlockOutStream {
   private boolean mClosed = false;
 
   /**
+   * Creates a new <code>LocalBlockOutStream</code> with a default initial size allocated to the
+   * block.
+   *
    * @param file the file the block belongs to
    * @param opType the OutStream's write type
    * @param blockIndex the index of the block in the file
    * @param tachyonConf the TachyonConf instance for this file output stream.
-   * @throws IOException
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   LocalBlockOutStream(TachyonFile file, WriteType opType, int blockIndex, TachyonConf tachyonConf)
       throws IOException {
@@ -75,15 +78,18 @@ public class LocalBlockOutStream extends BlockOutStream {
   }
 
   /**
+   * Creates a new <code>LocalBlockOutStream</code> with the given initial size allocated to the
+   * block.
+   *
    * @param file the file the block belongs to
    * @param opType the OutStream's write type
    * @param blockIndex the index of the block in the file
    * @param initialBytes the initial size bytes that will be allocated to the block
    * @param tachyonConf the TachyonConf instance for this file output stream.
-   * @throws IOException
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   LocalBlockOutStream(TachyonFile file, WriteType opType, int blockIndex, long initialBytes,
-                      TachyonConf tachyonConf) throws IOException {
+      TachyonConf tachyonConf) throws IOException {
     super(file, opType, tachyonConf);
 
     // BlockOutStream.get() already checks for the local worker, but this verifies the local worker
@@ -100,11 +106,11 @@ public class LocalBlockOutStream extends BlockOutStream {
     mBlockOffset = mBlockCapacityByte * blockIndex;
     mCanWrite = true;
 
-    // TODO: Use the new LocalFileBlockWriter api for writing local files.
+    // TODO(hy): Use the new LocalFileBlockWriter api for writing local files.
     mLocalFilePath = mTachyonFS.getLocalBlockTemporaryPath(mBlockId, initialBytes);
     mLocalFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
-    // change the permission of the temporary file in order that the worker can move it.
+    // Change the permission of the temporary file in order that the worker can move it.
     FileUtils.changeLocalFileToFullPermission(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created! tachyonFile: " + file + ", blockIndex: " + blockIndex
         + ", blockId: " + mBlockId + ", blockCapacityByte: " + mBlockCapacityByte);

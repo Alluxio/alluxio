@@ -40,6 +40,11 @@ public enum ExceptionMessage {
   TIER_ALIAS_NOT_FOUND("Tier with alias {0} not found"),
   TIER_VIEW_ALIAS_NOT_FOUND("Tier view with alias {0} not found"),
 
+  // storageDir
+  ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),
+  BLOCK_NOT_FOUND_FOR_USER("blockId {0} in {1} not found for user {2}"),
+  NO_SPACE_FOR_BLOCK_META("blockId {0} is {1} bytes, but only {2} bytes available in {3}"),
+
   // tieredBlockStore
   BLOCK_ID_FOR_DIFFERENT_USER("BlockId {0} is owned by userId {1} not {2}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted block {0}"),
@@ -50,8 +55,6 @@ public enum ExceptionMessage {
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted block {0}"),
   TEMP_BLOCK_ID_COMMITTED("Temp blockId {0} is not available, because it is already committed"),
   TEMP_BLOCK_ID_EXISTS("Temp blockId {0} is not available, because it already exists"),
-
-
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
