@@ -20,11 +20,13 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.thrift.FileInfo;
 
 /**
  * Interface for Tachyon client APIs
  */
+@PublicApi
 interface TachyonFSCore extends Closeable {
   /**
    * Creates a new file in the file system.

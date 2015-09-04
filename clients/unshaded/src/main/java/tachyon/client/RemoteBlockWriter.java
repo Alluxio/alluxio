@@ -22,12 +22,14 @@ import java.net.InetSocketAddress;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
  * The interface to write a remote block to the data server.
  */
+@PublicApi
 public interface RemoteBlockWriter extends Closeable {
 
   class Factory {
