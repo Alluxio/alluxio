@@ -34,7 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.master.filesystem.meta.DependencyType;
+import tachyon.master.file.meta.DependencyType;
 
 /**
  * Unit Test for journal entries. Test the read/write correctness of each operation.
