@@ -219,12 +219,10 @@ public class TFsShellTest {
     Assert.assertEquals(new String(read), dataString);
   }
 
-
-  // TODO Why does this cause the test to hang there?
-  //  @Test
-  //  public void copyToLocalLargeTest() throws IOException {
-  //    copyToLocalWithBytes(SIZE_BYTES);
-  //  }
+  @Test
+  public void copyToLocalLargeTest() throws IOException {
+    copyToLocalWithBytes(SIZE_BYTES);
+  }
 
   @Test
   public void copyToLocalTest() throws IOException {
