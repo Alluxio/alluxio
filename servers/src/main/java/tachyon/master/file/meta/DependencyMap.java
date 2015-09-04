@@ -45,6 +45,7 @@ public class DependencyMap implements JournalSerializable {
           return o.mId;
         }
       };
+  @SuppressWarnings("unchecked")
   private final IndexedSet<Dependency> mDependencyMap = new IndexedSet<Dependency>(mIdIndex);
   private final Map<Long, Dependency> mFileIdToDependency;
 
