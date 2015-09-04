@@ -55,12 +55,17 @@ public class ClientContext {
    * Returns the one and only static {@link TachyonConf} object which is shared among all classes
    * within the client
    *
-   * @return the tachyonConf for the worker process
+   * @return the tachyonConf for the client process
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
   }
 
+  /**
+   * Returns the {@link InetSocketAddress} of the master node.
+   *
+   * @return the master address
+   */
   public static InetSocketAddress getMasterAddress() {
     return sMasterAddress;
   }
@@ -75,6 +80,7 @@ public class ClientContext {
 
   /**
    * This method is only for testing purposes
+   *
    * @param conf new configuration to use
    */
   // TODO: Find a better way to handle testing confs
