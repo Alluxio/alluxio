@@ -121,4 +121,33 @@ public class TachyonBlockStore implements Closeable {
     // TODO: Handle the case when a location is specified
     return null;
   }
+
+  /**
+   * Gets the total capacity of Tachyon's BlockStore.
+   *
+   * @return the capacity in bytes
+   * @throws IOException
+   */
+  public long getCapacityBytes() throws IOException {
+    BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
+    try {
+      return blockMasterClient.getCapacityBytes();
+    } finally {
+      mContext.releaseMasterClient(blockMasterClient);
+    }
+  }
+
+  /**
+   * Gets the used bytes of Tachyon's BlockStore.
+   *
+   * @throws IOException
+   */
+  public long getUsedBytes() throws IOException {
+    BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
+    try {
+      return blockMasterClient.getUsedBytes();
+    } finally {
+      mContext.releaseMasterClient(blockMasterClient);
+    }
+  }
 }
