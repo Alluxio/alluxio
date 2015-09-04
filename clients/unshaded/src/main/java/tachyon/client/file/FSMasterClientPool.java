@@ -19,24 +19,28 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import tachyon.client.ClientContext;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.ResourcePool;
-import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
 
 class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
-
+  private static final int CAPACITY = 10;
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
-  private final TachyonConf mTachyonConf;
 
-  public FSMasterClientPool(InetSocketAddress masterAddress, TachyonConf conf) {
+  /**
+   * Creates a new file stream master client pool.
+   *
+   * @param masterAddress the master address
+   */
+  public FSMasterClientPool(InetSocketAddress masterAddress) {
     // TODO: Get capacity from conf
-    super(10);
+    super(CAPACITY);
     mExecutorService =
-        Executors.newFixedThreadPool(10, ThreadFactoryUtils.build("fs-master-heartbeat-%d", true));
+        Executors.newFixedThreadPool(CAPACITY,
+            ThreadFactoryUtils.build("fs-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
-    mTachyonConf = conf;
   }
 
   @Override
@@ -47,6 +51,6 @@ class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
 
   @Override
   public FileSystemMasterClient createNewResource() {
-    return new FileSystemMasterClient(mMasterAddress, mExecutorService, mTachyonConf);
+    return new FileSystemMasterClient(mMasterAddress, mExecutorService, ClientContext.getConf());
   }
 }

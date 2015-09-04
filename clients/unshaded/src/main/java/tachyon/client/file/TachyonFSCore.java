@@ -54,8 +54,8 @@ interface TachyonFSCore {
   FileInfo getInfo(TachyonFile file) throws IOException;
 
   /**
-   * If the file is a folder, return the {@link FileInfo} of all the direct entries in it.
-   * Otherwise return the FileInfo for the file.
+   * If the file is a folder, returns the {@link FileInfo} of all the direct entries in it.
+   * Otherwise returns the FileInfo for the file.
    *
    * @param file the handler for the file
    * @return a list of FileInfos representing the files which are children of the given file

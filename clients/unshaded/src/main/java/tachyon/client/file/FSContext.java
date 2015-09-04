@@ -29,29 +29,47 @@ public enum FSContext {
   private FSMasterClientPool mFileSystemMasterClientPool;
   private final TachyonBlockStore mTachyonBlockStore;
 
-  private FSContext() {
+  /**
+   * Creates a new file stream context.
+   */
+  FSContext() {
     mFileSystemMasterClientPool =
-        new FSMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
+        new FSMasterClientPool(ClientContext.getMasterAddress());
     mTachyonBlockStore = TachyonBlockStore.get();
   }
 
   /**
-   * Reinitializes the File System Context. This method should only be used in ClientContext.
+   * Re-initializes the File System Context. This method should only be used in ClientContext.
+   *
+   * TODO: Prevent classes other than ClientContext from accessing this method.
    */
   public void resetContext() {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool =
-        new FSMasterClientPool(ClientContext.getMasterAddress(), ClientContext.getConf());
+        new FSMasterClientPool(ClientContext.getMasterAddress());
   }
 
+  /**
+   * Acquires a block master client from the block master client pool.
+   *
+   * @return the acquired block master client
+   */
   public FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
   }
 
+  /**
+   * Releases a block master client into the block master client pool.
+   *
+   * @param masterClient a block master client to release
+   */
   public void releaseMasterClient(FileSystemMasterClient masterClient) {
     mFileSystemMasterClientPool.release(masterClient);
   }
 
+  /**
+   * @return the Tachyon block store
+   */
   public TachyonBlockStore getTachyonBS() {
     return mTachyonBlockStore;
   }

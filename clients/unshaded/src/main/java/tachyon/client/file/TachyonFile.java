@@ -21,10 +21,18 @@ package tachyon.client.file;
 public class TachyonFile {
   private final long mFileId;
 
+  /**
+   * Creates a new Tachyon file.
+   *
+   * @param fileId the file id
+   */
   public TachyonFile(long fileId) {
     mFileId = fileId;
   }
 
+  /**
+   * @return the file id
+   */
   public long getFileId() {
     return mFileId;
   }

@@ -48,6 +48,12 @@ public final class FileInStream extends InStream {
   private BlockInStream mCurrentBlockInStream;
   private BlockOutStream mCurrentCacheStream;
 
+  /**
+   * Creates a new file input stream.
+   *
+   * @param info the file information
+   * @param options the client options
+   */
   public FileInStream(FileInfo info, ClientOptions options) {
     mBlockSize = info.getBlockSizeByte();
     mFileLength = info.getLength();

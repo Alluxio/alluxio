@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.client.ResourcePool;
-import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
