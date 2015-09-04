@@ -23,12 +23,14 @@ import java.nio.ByteBuffer;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
  * The interface to read remote block from data server.
  */
+@PublicApi
 public interface RemoteBlockReader extends Closeable {
 
   class Factory {
