@@ -61,15 +61,8 @@ public abstract class MasterBase implements Master {
     inputStream.close();
   }
 
-  protected boolean isMasterMode() {
-    return !mIsStandbyMode;
-  }
-
-  protected boolean isStandbyMode() {
-    return mIsStandbyMode;
-  }
-
-  protected void startMaster(boolean asMaster) throws IOException {
+  @Override
+  public void start(boolean asMaster) throws IOException {
     LOG.info("Starting master. asMaster: " + asMaster);
     mIsStandbyMode = !asMaster;
     if (asMaster) {
@@ -124,6 +117,14 @@ public abstract class MasterBase implements Master {
         mJournalWriter = null;
       }
     }
+  }
+
+  protected boolean isMasterMode() {
+    return !mIsStandbyMode;
+  }
+
+  protected boolean isStandbyMode() {
+    return mIsStandbyMode;
   }
 
   protected void writeJournalEntry(JournalEntry entry) {
