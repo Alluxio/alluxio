@@ -15,6 +15,15 @@
 
 package tachyon.master.block;
 
+/**
+ * This class provides a set of methods related to block Ids. Each block Id is a value of long with
+ * the following two parts:
+ * <ul>
+ * <li>The most significant 5 bytes (40 bits) represent the container Id of this block and</li>
+ * <li>The least significant 3 bytes (24 bits) represent the sequence number of this block in the
+ * container.</li>
+ * </ul>
+ */
 public final class BlockId {
 
   private static final int CONTAINER_ID_BITS = 40;
