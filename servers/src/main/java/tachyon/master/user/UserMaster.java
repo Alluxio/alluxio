@@ -70,8 +70,8 @@ public class UserMaster extends MasterBase {
   }
 
   @Override
-  public void start(boolean asMaster) throws IOException {
-    super.start(asMaster);
+  public void start(boolean isLeader) throws IOException {
+    super.start(isLeader);
   }
 
   @Override
