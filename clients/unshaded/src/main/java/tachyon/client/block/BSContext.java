@@ -15,7 +15,6 @@
 
 package tachyon.client.block;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,7 +22,6 @@ import java.util.concurrent.Executors;
 import com.google.common.base.Preconditions;
 
 import tachyon.client.BlockMasterClient;
-import tachyon.client.UserMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
@@ -161,16 +159,9 @@ public enum BSContext {
       // TODO: Better exception usage
       throw new RuntimeException("No Tachyon worker available for host: " + hostname);
     }
-    UserMasterClient userMasterClient = ClientContext.acquireUserMasterClient();
-    try {
-      long clientId = userMasterClient.getUserId();
-      return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
-          clientId, false, new ClientMetrics());
-    } catch (IOException ioe) {
-      throw new RuntimeException("Failed to get an ID from the master.", ioe);
-    } finally {
-      ClientContext.releaseUserMasterClient(userMasterClient);
-    }
+    long clientId = ClientContext.getRandomNonNegativeLong();
+    return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
+        clientId, false, new ClientMetrics());
   }
 
   /**
