@@ -38,7 +38,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.MasterBase;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.block.ContainerIdGenerator;
 import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
