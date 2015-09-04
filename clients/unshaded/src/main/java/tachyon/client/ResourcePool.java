@@ -71,6 +71,7 @@ public abstract class ResourcePool<T> {
    * it. This method should only be called when the capacity of the pool has not been reached. If
    * creating the resource will take a significant amount of time, the inheriting class should
    * avoid calling this method and instead initialize all the resources in the constructor.
+   *
    * @return a resource which will be added to the pool of resources.
    */
   public abstract T createNewResource();
