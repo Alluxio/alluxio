@@ -73,7 +73,7 @@ struct DependencyInfo {
 
 // Information about raw tables.
 struct RawTableInfo {
-  1: i32 id
+  1: i64 id
   2: string name
   3: string path
   4: i32 columns
@@ -223,7 +223,7 @@ service FileSystemMasterService {
     throws (1: FileDoesNotExistException fdnee)
 
   bool createDirectory(1: string path, 2: bool recursive)
-    throws (1: FileAlreadyExistException faee, 2: TachyonException te)
+    throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe)
 
   bool free(1: i64 fileId, 2: bool recursive)
     throws (1: FileDoesNotExistException fdnee)
