@@ -26,6 +26,7 @@ public enum CacheType {
   NO_CACHE(2);
 
   private final int mValue;
+
   CacheType(int value) {
     mValue = value;
   }
