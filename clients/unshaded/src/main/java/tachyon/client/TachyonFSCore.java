@@ -25,6 +25,7 @@ import tachyon.thrift.FileInfo;
 /**
  * Interface for Tachyon client APIs
  */
+@Deprecated
 interface TachyonFSCore extends Closeable {
   /**
    * Creates a new file in the file system.
