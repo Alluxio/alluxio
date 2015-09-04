@@ -437,11 +437,10 @@ public class TFsShellTest {
     Assert.assertEquals(0, mFsShell.run(new String[] {"mkdir", "/testFile1"}));
   }
 
-  // TODO Why does this cause the test to hang there?
-  //  @Test
-  //  public void mkdirInvalidPathTest() throws IOException {
-  //    Assert.assertEquals(-1, mFsShell.run(new String[] {"mkdir", "/test File Invalid Path"}));
-  //  }
+  @Test
+  public void mkdirInvalidPathTest() throws IOException {
+    Assert.assertEquals(-1, mFsShell.run(new String[] {"mkdir", "/test File Invalid Path"}));
+  }
 
   @Test
   public void mkdirShortPathTest() throws IOException {
