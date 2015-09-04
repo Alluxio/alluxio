@@ -158,7 +158,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   @Override
   public boolean createDirectory(String path, boolean recursive)
-      throws FileAlreadyExistException, TachyonException, TException {
+      throws FileAlreadyExistException, InvalidPathException, TException {
     mFileSystemMaster.mkdirs(new TachyonURI(path), recursive);
     return true;
   }
