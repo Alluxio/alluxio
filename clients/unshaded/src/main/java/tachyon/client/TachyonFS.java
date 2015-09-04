@@ -345,7 +345,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the id if succeed, -1 otherwise
    * @throws IOException when number of columns is invalid or the underlying master RPC fails
    */
-  public synchronized int createRawTable(TachyonURI path, int columns) throws IOException {
+  public synchronized long createRawTable(TachyonURI path, int columns) throws IOException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
   }
 
@@ -358,7 +358,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the id if succeed, -1 otherwise
    * @throws IOException when number of columns is invalid or the underlying master RPC fails
    */
-  public synchronized int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
+  public synchronized long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
     validateUri(path);
     int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
@@ -1005,7 +1005,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param metadata the new meta data
    * @throws IOException when the underlying master RPC fails
    */
-  public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
+  public synchronized void updateRawTableMetadata(long id, ByteBuffer metadata) throws IOException {
     throw new UnsupportedOperationException("Raw table is currently unsupported");
     //mMasterClient.user_updateRawTableMetadata(id, metadata);
   }
