@@ -73,7 +73,7 @@ struct DependencyInfo {
 
 // Information about raw tables.
 struct RawTableInfo {
-  1: i32 id
+  1: i64 id
   2: string name
   3: string path
   4: i32 columns
