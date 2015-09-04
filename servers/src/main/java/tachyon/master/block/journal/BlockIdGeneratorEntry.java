@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+// TODO (Gene): Add javadoc
 public class BlockIdGeneratorEntry implements JournalEntry {
   private final long mNextContainerId;
 

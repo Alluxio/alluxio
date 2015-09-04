@@ -20,7 +20,7 @@ import java.io.IOException;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.filesystem.FileSystemMaster;
+import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 
 public class MasterTestUtils {

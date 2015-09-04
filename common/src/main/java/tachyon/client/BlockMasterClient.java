@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.MasterClient;
+import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
@@ -35,12 +35,12 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 
 /**
- * The BlockMaster client, for clients.
+ * A wrapper for the thrift client to interact with the block master, used by tachyon clients.
  *
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety.
  */
 // TODO: better deal with exceptions.
-public final class BlockMasterClient extends MasterClient {
+public final class BlockMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private BlockMasterService.Client mClient = null;
@@ -84,6 +84,13 @@ public final class BlockMasterClient extends MasterClient {
     return null;
   }
 
+  /**
+   * Return the BlockInfo for a block id
+   *
+   * @param blockId the block id to get the BlockInfo for
+   * @return the BlockInfo
+   * @throws IOException
+   */
   public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -98,9 +105,9 @@ public final class BlockMasterClient extends MasterClient {
   }
 
   /**
-   * Get the total capacity in bytes.
+   * Get the total Tachyon capacity in bytes, on all the tiers of all the workers.
    *
-   * @return capacity in bytes
+   * @return total capacity in bytes
    * @throws IOException
    */
   public synchronized long getCapacityBytes() throws IOException {
@@ -117,7 +124,7 @@ public final class BlockMasterClient extends MasterClient {
   }
 
   /**
-   * Get the amount of used space in bytes.
+   * Get the total amount of used space in bytes, on all the tiers of all the workers.
    *
    * @return amount of used space in bytes
    * @throws IOException
@@ -135,6 +142,19 @@ public final class BlockMasterClient extends MasterClient {
     return -1;
   }
 
+  // TODO: split out the following worker specific interactions to a separate block master client
+  // for the worker.
+
+  /**
+   * Commits a block on a worker.
+   *
+   * @param workerId the worker id committing the block
+   * @param usedBytesOnTier the amount of used bytes on the tier the block is committing to
+   * @param tier the tier the block is being committed to
+   * @param blockId the block id being committed
+   * @param length the length of the block being committed
+   * @throws IOException
+   */
   public synchronized void workerCommitBlock(long workerId, long usedBytesOnTier, int tier, long
       blockId, long length) throws IOException {
     while (!mIsClosed) {
@@ -149,6 +169,13 @@ public final class BlockMasterClient extends MasterClient {
     }
   }
 
+  /**
+   * Returns a worker id for a workers net address.
+   *
+   * @param address the net address to get a worker id for
+   * @return a worker id
+   * @throws IOException
+   */
   public synchronized long workerGetId(NetAddress address) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -162,6 +189,17 @@ public final class BlockMasterClient extends MasterClient {
     return -1L;
   }
 
+  /**
+   * The method the worker should periodically execute to heartbeat back to the master.
+   *
+   * @param workerId the worker id
+   * @param usedBytesOnTiers a list of used bytes on each tier
+   * @param removedBlocks a list of block removed from this worker
+   * @param addedBlocks the added blocks for each storage dir. It maps storage dir id, to a list of
+   *        added block for that storage dir.
+   * @return an optional command for the worker to execute
+   * @throws IOException
+   */
   public synchronized Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers, List<Long>
       removedBlocks, Map<Long, List<Long>> addedBlocks) throws IOException {
     while (!mIsClosed) {
@@ -176,6 +214,17 @@ public final class BlockMasterClient extends MasterClient {
     return null;
   }
 
+  /**
+   * The method to worker should execute to register with the block master.
+   *
+   * @param workerId the worker id of the worker registering
+   * @param totalBytesOnTiers list of total bytes on each tier
+   * @param usedBytesOnTiers list of the used byes on each tier
+   * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
+   *        dir
+   * @return the worker id
+   * @throws IOException
+   */
   public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers, List<Long>
       usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
     while (!mIsClosed) {

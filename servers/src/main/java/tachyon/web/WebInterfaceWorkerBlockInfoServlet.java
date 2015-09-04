@@ -36,7 +36,6 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.NotFoundException;
 import tachyon.master.block.BlockId;
-import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.worker.block.BlockDataManager;

@@ -28,17 +28,13 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 
 /**
- * Though its name indicates that it provides the tests for {@link tachyon.master.MasterClient},
- * this class is more like unit-testing the internal implementation of tachyon Master via a
- * {@link tachyon.master.MasterClient}, and thus it depends on many components in tachyon.master.
- * As a result, we place MasterClient in tachyon-common and this test in tachyon-integration-tests.
+ * Test the internal implementation of tachyon Master via a
+ * {@link tachyon.client.FileSystemMasterClient}.
  *
  * <p>
  * TODO: Rename this class.
- *
  */
 public class FileSystemMasterClientIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -86,15 +82,15 @@ public class FileSystemMasterClientIntegrationTest {
     fsMasterClient.close();
   }
 
-  // TODO: Cannot find counterpart for {@link MasterClient#user_getWorker} in new master clients
-  //@Test(timeout = 3000, expected = NoWorkerException.class)
-  //public void user_getWorkerReturnsWhenNotLocal() throws Exception {
-  //  // This test was created to show that an infinite loop occurs.
-  //  // The timeout will protect against this, and the change was to throw a IOException
-  //  // in the cases we don't want to disconnect from master
-  //  MasterClient masterClient =
-  //      new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
-  //  masterClient.user_getWorker(false, "host.doesnotexist.fail");
-  //  masterClient.close();
-  //}
+  // TODO: Cannot find counterpart for {@link MasterClientBase#user_getWorker} in new master clients
+  // @Test(timeout = 3000, expected = NoWorkerException.class)
+  // public void user_getWorkerReturnsWhenNotLocal() throws Exception {
+  // // This test was created to show that an infinite loop occurs.
+  // // The timeout will protect against this, and the change was to throw a IOException
+  // // in the cases we don't want to disconnect from master
+  // MasterClientBase masterClient =
+  // new MasterClientBase(mMasterInfo.getMasterAddress(), mExecutorService, mMasterTachyonConf);
+  // masterClient.user_getWorker(false, "host.doesnotexist.fail");
+  // masterClient.close();
+  // }
 }

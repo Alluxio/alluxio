@@ -70,13 +70,13 @@ public class UserMaster extends MasterBase {
   }
 
   @Override
-  public void start(boolean asMaster) throws IOException {
-    startMaster(asMaster);
+  public void start(boolean isLeader) throws IOException {
+    super.start(isLeader);
   }
 
   @Override
   public void stop() throws IOException {
-    stopMaster();
+    super.stop();
   }
 
   public long getUserId() {

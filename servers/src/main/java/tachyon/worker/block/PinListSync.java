@@ -93,7 +93,7 @@ public final class PinListSync implements Runnable {
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if sync timeout is reached
         LOG.error("Failed to receive pinlist.", ioe);
-        // TODO: Add this method to MasterClient
+        // TODO: Add this method to MasterClientBase
         // mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastSyncMs >= mSyncTimeoutMs) {

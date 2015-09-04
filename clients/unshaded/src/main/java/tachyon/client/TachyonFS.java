@@ -54,9 +54,10 @@ import tachyon.worker.WorkerClient;
 /**
  * Client API to use Tachyon as a file system. This API is not compatible with HDFS file system API;
  * while tachyon.hadoop.AbstractTFS provides another API that exposes Tachyon as HDFS file system.
- * Under the hood, this class maintains a MasterClient to talk to the master server and
+ * Under the hood, this class maintains a MasterClientBase to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
  */
+@Deprecated
 public class TachyonFS extends AbstractTachyonFS {
 
   /**
