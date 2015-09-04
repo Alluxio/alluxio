@@ -38,7 +38,7 @@ public class ClientContext {
 
   private static InetSocketAddress sMasterAddress;
 
-  private static UserMasterClientPool sUserClientPool;
+  private static SessionMasterClientPool sSessionClientPool;
 
   static {
     sTachyonConf = new TachyonConf();
@@ -48,7 +48,7 @@ public class ClientContext {
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
-    sUserClientPool = new UserMasterClientPool(sMasterAddress, sTachyonConf);
+    sSessionClientPool = new SessionMasterClientPool(sMasterAddress, sTachyonConf);
   }
 
   /**
@@ -70,12 +70,12 @@ public class ClientContext {
     return sMasterAddress;
   }
 
-  public static UserMasterClient acquireUserMasterClient() {
-    return sUserClientPool.acquire();
+  public static SessionMasterClient acquireSessionMasterClient() {
+    return sSessionClientPool.acquire();
   }
 
-  public static void releaseUserMasterClient(UserMasterClient userMasterClient) {
-    sUserClientPool.release(userMasterClient);
+  public static void releaseSessionMasterClient(SessionMasterClient userMasterClient) {
+    sSessionClientPool.release(userMasterClient);
   }
 
   /**
@@ -85,14 +85,14 @@ public class ClientContext {
    */
   // TODO: Find a better way to handle testing confs
   public static synchronized void reinitializeWithConf(TachyonConf conf) {
-    sUserClientPool.close();
+    sSessionClientPool.close();
     sTachyonConf = conf;
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
     int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
-    sUserClientPool = new UserMasterClientPool(sMasterAddress, sTachyonConf);
+    sSessionClientPool = new SessionMasterClientPool(sMasterAddress, sTachyonConf);
 
     BSContext.INSTANCE.resetContext();
     FSContext.INSTANCE.resetContext();

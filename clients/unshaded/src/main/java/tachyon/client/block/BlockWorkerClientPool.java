@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import tachyon.client.UserMasterClient;
+import tachyon.client.SessionMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.client.ResourcePool;
 import tachyon.conf.TachyonConf;
@@ -55,27 +55,27 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
 
   @Override
   public WorkerClient createNewResource() {
-    UserMasterClient userMasterClient = ClientContext.acquireUserMasterClient();
+    SessionMasterClient userMasterClient = ClientContext.acquireSessionMasterClient();
     try {
-      long clientId = userMasterClient.getUserId();
+      long clientId = userMasterClient.getSessionId();
       return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
           clientId, true, new ClientMetrics());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to create new BlockWorker Client.", ioe);
     } finally {
-      ClientContext.releaseUserMasterClient(userMasterClient);
+      ClientContext.releaseSessionMasterClient(userMasterClient);
     }
   }
 
   @Override
   public void release(WorkerClient workerClient) {
-    UserMasterClient userMasterClient = ClientContext.acquireUserMasterClient();
+    SessionMasterClient userMasterClient = ClientContext.acquireSessionMasterClient();
     try {
-      workerClient.createNewSession(userMasterClient.getUserId());
+      workerClient.createNewSession(userMasterClient.getSessionId());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to create new BlockWorker Client.", ioe);
     } finally {
-      ClientContext.releaseUserMasterClient(userMasterClient);
+      ClientContext.releaseSessionMasterClient(userMasterClient);
     }
     super.release(workerClient);
   }

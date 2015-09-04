@@ -26,47 +26,47 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.UserMasterService;
+import tachyon.thrift.SessionMasterService;
 
 /**
- * The UserMaster client, for clients.
+ * The SessionMaster client, for clients.
  *
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety.
  */
-public final class UserMasterClient extends MasterClientBase {
+public final class SessionMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private UserMasterService.Client mClient = null;
+  private SessionMasterService.Client mClient = null;
 
-  public UserMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
+  public SessionMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
   }
 
   @Override
   protected String getServiceName() {
-    return Constants.USER_MASTER_SERVICE_NAME;
+    return Constants.SESSION_MASTER_SERVICE_NAME;
   }
 
   @Override
   protected void afterConnect() {
-    mClient = new UserMasterService.Client(mProtocol);
+    mClient = new SessionMasterService.Client(mProtocol);
   }
 
   @Override
   protected void afterDisconnect() {}
 
   /**
-   * Get a user id
+   * Get a session id
    *
-   * @return a new user id
+   * @return a new session id
    * @throws IOException
    */
-  public synchronized long getUserId() throws IOException {
+  public synchronized long getSessionId() throws IOException {
     while (!mIsClosed) {
       connect();
       try {
-        return mClient.getUserId();
+        return mClient.getSessionId();
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

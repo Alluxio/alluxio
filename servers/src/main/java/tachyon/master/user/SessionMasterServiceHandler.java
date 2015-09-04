@@ -17,17 +17,17 @@ package tachyon.master.user;
 
 import org.apache.thrift.TException;
 
-import tachyon.thrift.UserMasterService;
+import tachyon.thrift.SessionMasterService;
 
-public class UserMasterServiceHandler implements UserMasterService.Iface {
-  private final UserMaster mUserMaster;
+public class SessionMasterServiceHandler implements SessionMasterService.Iface {
+  private final SessionMaster mSessionMaster;
 
-  public UserMasterServiceHandler(UserMaster userMaster) {
-    mUserMaster = userMaster;
+  public SessionMasterServiceHandler(SessionMaster sessionMaster) {
+    mSessionMaster = sessionMaster;
   }
 
   @Override
-  public long getUserId() throws TException {
-    return mUserMaster.getUserId();
+  public long getSessionId() throws TException {
+    return mSessionMaster.getUserId();
   }
 }

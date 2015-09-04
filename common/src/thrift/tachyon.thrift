@@ -73,7 +73,7 @@ struct DependencyInfo {
 
 // Information about raw tables.
 struct RawTableInfo {
-  1: i32 id
+  1: i64 id
   2: string name
   3: string path
   4: i32 columns
@@ -141,8 +141,8 @@ exception DependencyDoesNotExistException {
   1: string message
 }
 
-service UserMasterService {
-  i64 getUserId()
+service SessionMasterService {
+  i64 getSessionId()
 }
 
 service BlockMasterService {

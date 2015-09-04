@@ -27,32 +27,32 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.user.journal.UserIdGeneratorEntry;
-import tachyon.thrift.UserMasterService;
+import tachyon.thrift.SessionMasterService;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
-public class UserMaster extends MasterBase {
+public class SessionMaster extends MasterBase {
 
   private final AtomicLong mNextUserId = new AtomicLong(1);
 
   public static String getJournalDirectory(String baseDirectory) {
-    return PathUtils.concatPath(baseDirectory, Constants.USER_MASTER_SERVICE_NAME);
+    return PathUtils.concatPath(baseDirectory, Constants.SESSION_MASTER_SERVICE_NAME);
   }
 
-  public UserMaster(Journal journal) {
+  public SessionMaster(Journal journal) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("user-master-%d", true)));
   }
 
   @Override
   public TProcessor getProcessor() {
-    return new UserMasterService.Processor<UserMasterServiceHandler>(
-        new UserMasterServiceHandler(this));
+    return new SessionMasterService.Processor<SessionMasterServiceHandler>(
+        new SessionMasterServiceHandler(this));
   }
 
   @Override
   public String getProcessorName() {
-    return Constants.USER_MASTER_SERVICE_NAME;
+    return Constants.SESSION_MASTER_SERVICE_NAME;
   }
 
   @Override
