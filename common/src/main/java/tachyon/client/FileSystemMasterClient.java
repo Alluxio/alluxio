@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.MasterClient;
+import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyInfo;
@@ -45,7 +45,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety.
  */
 // TODO: split out worker-specific calls to a fs master client for workers.
-public final class FileSystemMasterClient extends MasterClient {
+public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystemMasterService.Client mClient = null;

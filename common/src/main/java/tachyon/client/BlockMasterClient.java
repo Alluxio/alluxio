@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.MasterClient;
+import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
@@ -40,7 +40,7 @@ import tachyon.thrift.WorkerInfo;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety.
  */
 // TODO: better deal with exceptions.
-public final class BlockMasterClient extends MasterClient {
+public final class BlockMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private BlockMasterService.Client mClient = null;

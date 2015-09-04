@@ -106,7 +106,7 @@ public final class BlockWorker {
     mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 
-    // Setup MasterClient along with its heartbeat ExecutorService
+    // Setup MasterClientBase along with its heartbeat ExecutorService
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
