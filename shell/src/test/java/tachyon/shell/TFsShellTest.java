@@ -479,9 +479,9 @@ public class TFsShellTest {
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
     mFsShell.rename(new String[] {"rename", "/test", "/test2"});
     toCompare.append(getCommandOutput(new String[] {"mv", "/test", "/test2"}));
-    Assert.assertNotNull(mTfs.open(new TachyonURI("/test2/File1")));
-    Assert.assertNull(mTfs.open(new TachyonURI("/test")));
-    Assert.assertNull(mTfs.open(new TachyonURI("/test/File1")));
+    Assert.assertTrue(isFileExist(new TachyonURI("/test2/File1")));
+    Assert.assertFalse(isFileExist(new TachyonURI("/test")));
+    Assert.assertFalse(isFileExist(new TachyonURI("/test/File1")));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 
@@ -490,12 +490,12 @@ public class TFsShellTest {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run(new String[] {"mkdir", "/testFolder1"});
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
-    Assert.assertNotNull(mTfs.open(new TachyonURI("/testFolder1")));
+    Assert.assertTrue(isFileExist(new TachyonURI("/testFolder1")));
     mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"});
     toCompare.append(getCommandOutput(new String[] {"mv", "/testFolder1", "/testFolder"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
-    Assert.assertNotNull(mTfs.open(new TachyonURI("/testFolder")));
-    Assert.assertNull(mTfs.open(new TachyonURI("/testFolder1")));
+    Assert.assertTrue(isFileExist(new TachyonURI("/testFolder")));
+    Assert.assertFalse(isFileExist(new TachyonURI("/testFolder1")));
   }
 
   @Test
@@ -537,15 +537,15 @@ public class TFsShellTest {
     TachyonURI testFolder1 = new TachyonURI("/testFolder1");
     TachyonURI testFolder2 = new TachyonURI("/testFolder1/testFolder2");
     TachyonURI testFile2 = new TachyonURI("/testFolder1/testFolder2/testFile2");
-    Assert.assertNotNull(mTfs.open(testFolder1));
-    Assert.assertNotNull(mTfs.open(testFolder2));
-    Assert.assertNotNull(mTfs.open(testFile2));
+    Assert.assertTrue(isFileExist(testFolder1));
+    Assert.assertTrue(isFileExist(testFolder2));
+    Assert.assertTrue(isFileExist(testFile2));
     mFsShell.run(new String[] {"rm", "/testFolder1/testFolder2/testFile2"});
     toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
-    Assert.assertNotNull(mTfs.open(testFolder1));
-    Assert.assertNotNull(mTfs.open(testFolder2));
-    Assert.assertNull(mTfs.open(testFile2));
+    Assert.assertTrue(isFileExist(testFolder1));
+    Assert.assertTrue(isFileExist(testFolder2));
+    Assert.assertFalse(isFileExist(testFile2));
   }
 
   @Test
@@ -559,21 +559,21 @@ public class TFsShellTest {
     TachyonURI testFolder1 = new TachyonURI("/testFolder1");
     TachyonURI testFolder2 = new TachyonURI("/testFolder1/testFolder2");
     TachyonURI testFile2 = new TachyonURI("/testFolder1/testFolder2/testFile2");
-    Assert.assertNotNull(mTfs.open(testFolder1));
-    Assert.assertNotNull(mTfs.open(testFolder2));
-    Assert.assertNotNull(mTfs.open(testFile2));
+    Assert.assertTrue(isFileExist(testFolder1));
+    Assert.assertTrue(isFileExist(testFolder2));
+    Assert.assertTrue(isFileExist(testFile2));
     mFsShell.run(new String[] {"rmr", "/testFolder1/testFolder2/testFile2"});
     toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
-    Assert.assertNotNull(mTfs.open(testFolder1));
-    Assert.assertNotNull(mTfs.open(testFolder2));
-    Assert.assertNull(mTfs.open(testFile2));
+    Assert.assertTrue(isFileExist(testFolder1));
+    Assert.assertTrue(isFileExist(testFolder2));
+    Assert.assertFalse(isFileExist(testFile2));
     mFsShell.run(new String[] {"rmr", "/testFolder1"});
     toCompare.append(getCommandOutput(new String[] {"rmr", "/testFolder1"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
-    Assert.assertNull(mTfs.open(testFolder1));
-    Assert.assertNull(mTfs.open(testFolder2));
-    Assert.assertNull(mTfs.open(testFile2));
+    Assert.assertFalse(isFileExist(testFolder1));
+    Assert.assertFalse(isFileExist(testFolder2));
+    Assert.assertFalse(isFileExist(testFile2));
   }
 
   @Test
@@ -665,5 +665,14 @@ public class TFsShellTest {
     expected += "/testRoot/testDir is 50 bytes\n";
 
     Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  private boolean isFileExist(TachyonURI path) {
+    try {
+      mTfs.open(path);
+      return true;
+    } catch (IOException ioe) {
+      return false;
+    }
   }
 }
