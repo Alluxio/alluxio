@@ -24,6 +24,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Abstract implementation of {@link tachyon.client.TachyonFSCore} APIs.
  */
+@Deprecated
 abstract class AbstractTachyonFS implements TachyonFSCore {
   protected final TachyonConf mTachyonConf;
 

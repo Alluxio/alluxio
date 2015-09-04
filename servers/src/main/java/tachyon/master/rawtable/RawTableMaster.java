@@ -27,7 +27,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterBase;
-import tachyon.master.filesystem.FileSystemMaster;
+import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -96,17 +96,17 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public void start(boolean asMaster) throws IOException {
-    startMaster(asMaster);
-    if (isMasterMode()) {
+  public void start(boolean isLeader) throws IOException {
+    super.start(isLeader);
+    if (isLeaderMode()) {
       // TODO: start periodic heartbeat threads.
     }
   }
 
   @Override
   public void stop() throws IOException {
-    stopMaster();
-    if (isMasterMode()) {
+    super.stop();
+    if (isLeaderMode()) {
       // TODO: stop heartbeat threads.
     }
   }

@@ -61,7 +61,7 @@ Try to use Port to install Thrift:
     sudo port install thrift
 
 The last command MAY fail, according to this [issue](https://trac.macports.org/ticket/41172). In
-this case, we recommend building Thrift 0.9.1 from source (Assuming you use MacPort's default
+this case, we recommend building Thrift 0.9.2 from source (Assuming you use MacPort's default
 directory /opt/local):
 
     ./configure --prefix=/opt/local/ --with-boost=/opt/local/lib --with-libevent=/opt/local/lib CXXFLAGS="-I/usr/include/4.2.1 -L/opt/local/lib"
@@ -115,9 +115,9 @@ Upgraded autoconf to 2.69 (yum will most likely pull 2.63 which won't work with 
 
 Download and install Apache Thrift source
 
-    wget 'https://github.com/apache/thrift/archive/0.9.1.tar.gz'
-    tar zxvf 0.9.1
-    cd thrift-0.9.1/
+    wget 'https://github.com/apache/thrift/archive/0.9.2.tar.gz'
+    tar zxvf 0.9.2
+    cd thrift-0.9.2/
     ./bootstrap.sh
     ./configure --enable-libs=no
     make

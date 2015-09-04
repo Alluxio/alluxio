@@ -33,7 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.filesystem.FileSystemMaster;
+import tachyon.master.file.FileSystemMaster;
 
 /**
  * Servlet that provides data for displaying the system's configuration.

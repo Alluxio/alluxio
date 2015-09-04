@@ -36,16 +36,15 @@ public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Journal mJournal;
+  private final ExecutorService mExecutorService;
 
-  // true if this master is in standby mode.
-  private boolean mIsStandbyMode = false;
+  /** true if this master is in leader mode, and not standby mode. */
+  private boolean mIsLeader = false;
 
-  // The thread that tails the journal when the master is in standby mode.
+  /** The thread that tails the journal when the master is in standby mode. */
   private JournalTailerThread mStandbyJournalTailer = null;
 
   private JournalWriter mJournalWriter = null;
-
-  private final ExecutorService mExecutorService;
 
   protected MasterBase(Journal journal, ExecutorService executorService) {
     mJournal = Preconditions.checkNotNull(journal);
@@ -61,29 +60,22 @@ public abstract class MasterBase implements Master {
     inputStream.close();
   }
 
-  protected boolean isMasterMode() {
-    return !mIsStandbyMode;
-  }
-
-  protected boolean isStandbyMode() {
-    return mIsStandbyMode;
-  }
-
-  protected void startMaster(boolean asMaster) throws IOException {
-    LOG.info("Starting master. asMaster: " + asMaster);
-    mIsStandbyMode = !asMaster;
-    if (asMaster) {
-      // initialize the journal and write out the checkpoint file.
-
+  @Override
+  public void start(boolean isLeader) throws IOException {
+    LOG.info("Starting master. isLeader: " + isLeader);
+    mIsLeader = isLeader;
+    if (mIsLeader) {
+      // Replay all the state of the checkpoint and the completed log files.
       // TODO: only do this if this is a fresh start, not if this master had already been tailing
       // the journal.
       LOG.info(getProcessorName() + ": process completed logs before becoming master.");
       JournalTailer catchupTailer = new JournalTailer(this, mJournal);
       boolean checkpointExists = true;
       try {
-        catchupTailer.getCheckpointLastModifiedTime();
+        catchupTailer.getCheckpointLastModifiedTimeMs();
       } catch (IOException ioe) {
-        // The checkpoint doesn't exist yet.
+        // The checkpoint doesn't exist yet. This is probably the first execution ever, or this is a
+        // testing master.
         checkpointExists = false;
       }
       if (checkpointExists) {
@@ -91,14 +83,14 @@ public abstract class MasterBase implements Master {
         catchupTailer.processNextJournalLogFiles();
       }
 
+      // initialize the journal and write out the checkpoint file (the state of all completed logs).
       mJournalWriter = mJournal.getNewWriter();
       writeToJournal(mJournalWriter.getCheckpointOutputStream());
       mJournalWriter.getCheckpointOutputStream().close();
 
       // Final catchup stage. The last in-progress file (if it existed) was marked as complete when
-      // the checkpoint write was closed. That last file must be processed to get to the latest
-      // state. Read and process the completed file.
-
+      // the checkpoint file was closed. That last completed file must be processed to get to the
+      // latest state. Read and process the completed file.
       LOG.info(getProcessorName() + ": process the last completed log before becoming master.");
       catchupTailer = new JournalTailer(this, mJournal);
       catchupTailer.processJournalCheckpoint(false);
@@ -110,8 +102,9 @@ public abstract class MasterBase implements Master {
     }
   }
 
-  protected void stopMaster() throws IOException {
-    LOG.info("Stopping master. isMaster: " + isMasterMode());
+  @Override
+  public void stop() throws IOException {
+    LOG.info("Stopping master. isLeader: " + isLeaderMode());
     if (isStandbyMode()) {
       if (mStandbyJournalTailer != null) {
         // stop and wait for the journal tailer thread.
@@ -124,6 +117,14 @@ public abstract class MasterBase implements Master {
         mJournalWriter = null;
       }
     }
+  }
+
+  protected boolean isLeaderMode() {
+    return mIsLeader;
+  }
+
+  protected boolean isStandbyMode() {
+    return !mIsLeader;
   }
 
   protected void writeJournalEntry(JournalEntry entry) {

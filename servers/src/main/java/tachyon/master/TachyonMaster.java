@@ -31,17 +31,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.LeaderSelectorClient;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.filesystem.FileSystemMaster;
+import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.master.user.UserMaster;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.MasterUIWebServer;
@@ -61,7 +59,14 @@ public class TachyonMaster {
     }
 
     try {
-      TachyonMaster master = new TachyonMaster(new TachyonConf());
+      TachyonConf conf = new TachyonConf();
+      TachyonMaster master;
+      if (conf.getBoolean(Constants.USE_ZOOKEEPER)) {
+        // fault tolerant mode.
+        master = new TachyonMasterFaultTolerant(conf);
+      } else {
+        master = new TachyonMaster(conf);
+      }
       master.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
@@ -69,9 +74,8 @@ public class TachyonMaster {
     }
   }
 
-
-  private final TachyonConf mTachyonConf;
-  private final boolean mUseZookeeper;
+  // TODO (Gene): add javadoc for all important variables. like the one for mPort.
+  protected final TachyonConf mTachyonConf;
   private final int mMaxWorkerThreads;
   private final int mMinWorkerThreads;
   /** metadata port (RPC local port) */
@@ -80,28 +84,26 @@ public class TachyonMaster {
   private final InetSocketAddress mMasterAddress;
 
   // The masters
-  private UserMaster mUserMaster;
-  private BlockMaster mBlockMaster;
-  private FileSystemMaster mFileSystemMaster;
-  private RawTableMaster mRawTableMaster;
+  protected UserMaster mUserMaster;
+  protected BlockMaster mBlockMaster;
+  protected FileSystemMaster mFileSystemMaster;
+  protected RawTableMaster mRawTableMaster;
 
   // The journals for the masters
-  private final Journal mUserMasterJournal;
-  private final Journal mBlockMasterJournal;
-  private final Journal mFileSystemMasterJournal;
-  private final Journal mRawTableMasterJournal;
+  protected final Journal mUserMasterJournal;
+  protected final Journal mBlockMasterJournal;
+  protected final Journal mFileSystemMasterJournal;
+  protected final Journal mRawTableMasterJournal;
 
   private UIWebServer mWebServer;
   private TServer mMasterServiceServer;
-  private LeaderSelectorClient mLeaderSelectorClient = null;
-  private boolean mIsServing = false;
 
-  private long mStarttimeMs = -1;
+  private boolean mIsServing = false;
+  private long mStartTimeMs = -1;
 
   public TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
 
-    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
     mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
 
@@ -147,17 +149,6 @@ public class TachyonMaster {
       mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
 
       // TODO: implement metrics.
-
-      if (mUseZookeeper) {
-        // InetSocketAddress.toString causes test issues, so build the string by hand
-        String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf)
-            + ":" + mMasterAddress.getPort();
-        String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS);
-        String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH);
-        String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH);
-        mLeaderSelectorClient =
-            new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
-      }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -233,95 +224,47 @@ public class TachyonMaster {
    * Get the millisecond when Tachyon Master starts serving, return -1 when not started.
    */
   public long getStarttimeMs() {
-    return mStarttimeMs;
+    return mStartTimeMs;
   }
 
   /**
-   * Get whether the system is the leader in zookeeper mode, for unit test only.
+   * Get whether the system is serving the rpc server.
    *
-   * @return true if the system is the leader under zookeeper mode, false otherwise.
+   * @return true if the system is the leader (serving the rpc server), false otherwise.
    */
   boolean isServing() {
     return mIsServing;
   }
 
   /**
-   * Start a Tachyon master server.
+   * Start the Tachyon master server.
    */
   public void start() throws Exception {
-    if (mUseZookeeper) {
-      try {
-        mLeaderSelectorClient.start();
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        throw Throwables.propagate(e);
-      }
-
-      Thread currentThread = Thread.currentThread();
-      mLeaderSelectorClient.setCurrentMasterThread(currentThread);
-      boolean started = false;
-      while (true) {
-        if (mLeaderSelectorClient.isLeader()) {
-          if (started) {
-            stopMaster();
-          }
-          startMaster(true);
-          started = true;
-          startServing();
-        } else {
-          // this is not the leader
-          if (mIsServing || !started) {
-            stopServing();
-            stopMaster();
-
-            // When transitioning from master to standby, recreate the masters with a readonly
-            // journal.
-            mUserMaster = new UserMaster(mUserMasterJournal.getReadOnlyJournal());
-            mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal(), mTachyonConf);
-            mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
-                mFileSystemMasterJournal.getReadOnlyJournal());
-            mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
-                mRawTableMasterJournal.getReadOnlyJournal());
-            startMaster(false);
-            started = true;
-          }
-        }
-
-        CommonUtils.sleepMs(LOG, 100);
-      }
-    } else {
-      // not using zookeeper.
-      startMaster(true);
-      startServing();
-    }
+    startMasters(true);
+    startServing();
   }
 
-  /*
-   * Stop a Tachyon master server. Should only be called by tests.
+  /**
+   * Stop the Tachyon master server. Should only be called by tests.
    */
   public void stop() throws Exception {
     if (mIsServing) {
       LOG.info("Stopping Tachyon Master @ " + mMasterAddress);
       stopServing();
-      stopMaster();
+      stopMasters();
       mTServerSocket.close();
       mIsServing = false;
     }
-    if (mUseZookeeper) {
-      if (mLeaderSelectorClient != null) {
-        mLeaderSelectorClient.close();
-      }
-    }
   }
 
-  private void startMaster(boolean asMaster) {
+  protected void startMasters(boolean isLeader) {
     try {
       connectToUFS();
 
-      mUserMaster.start(asMaster);
-      mBlockMaster.start(asMaster);
-      mFileSystemMaster.start(asMaster);
-      mRawTableMaster.start(asMaster);
+      mUserMaster.start(isLeader);
+      mBlockMaster.start(isLeader);
+      mFileSystemMaster.start(isLeader);
+      mRawTableMaster.start(isLeader);
 
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -329,7 +272,7 @@ public class TachyonMaster {
     }
   }
 
-  private void stopMaster() {
+  protected void stopMasters() {
     try {
       mUserMaster.stop();
       mBlockMaster.stop();
@@ -342,6 +285,20 @@ public class TachyonMaster {
   }
 
   private void startServing() {
+    startServingWebServer();
+    LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
+    startServingRPCServer();
+    LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress);
+  }
+
+  protected void startServingWebServer() {
+    // start web ui
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
+        ServiceType.MASTER_WEB, mTachyonConf), this, mTachyonConf);
+    mWebServer.startWebServer();
+  }
+
+  protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     processor.registerProcessor(mUserMaster.getProcessorName(), mUserMaster.getProcessor());
@@ -356,27 +313,13 @@ public class TachyonMaster {
         .processor(processor).transportFactory(new TFramedTransport.Factory())
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
-    mIsServing = true;
-
-    // start web ui
-    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-        ServiceType.MASTER_WEB, mTachyonConf), this, mTachyonConf);
-    mWebServer.startWebServer();
-
-    String leaderStart = (mUseZookeeper) ? "(gained leadership)" : "";
-    LOG.info("Tachyon Master version " + Version.VERSION + " started " + leaderStart + " @ "
-        + mMasterAddress);
-
-    mStarttimeMs = System.currentTimeMillis();
-
     // start thrift rpc server
+    mIsServing = true;
+    mStartTimeMs = System.currentTimeMillis();
     mMasterServiceServer.serve();
-    String leaderStop = (mUseZookeeper) ? "(lost leadership)" : "";
-    LOG.info("Tachyon Master version " + Version.VERSION + " ended " + leaderStop + " @ "
-        + mMasterAddress);
   }
 
-  private void stopServing() throws Exception {
+  protected void stopServing() throws Exception {
     if (mMasterServiceServer != null) {
       mMasterServiceServer.stop();
     }
@@ -385,7 +328,6 @@ public class TachyonMaster {
     }
     mIsServing = false;
   }
-
 
   /**
    * Checks to see if the journal directory is formatted.

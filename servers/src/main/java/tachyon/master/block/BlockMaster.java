@@ -66,6 +66,7 @@ import tachyon.util.FormatUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
+// TODO (Gene): Add javadoc
 public final class BlockMaster extends MasterBase implements ContainerIdGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -108,7 +109,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
-  // This state much be journaled.
+  // This state must be journaled.
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
 
   public static String getJournalDirectory(String baseDirectory) {
@@ -164,20 +165,21 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   @Override
-  public void start(boolean asMaster) throws IOException {
-    startMaster(asMaster);
-    if (isMasterMode()) {
+  public void start(boolean isLeader) throws IOException {
+    super.start(isLeader);
+    if (isLeaderMode()) {
       mLostWorkerDetectionService =
-          getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
-              new LostWorkerDetectionHeartbeatExecutor(),
-              mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+          getExecutorService().submit(
+              new HeartbeatThread("Lost worker detection service",
+                  new LostWorkerDetectionHeartbeatExecutor(), mTachyonConf
+                      .getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
   @Override
   public void stop() throws IOException {
-    stopMaster();
-    if (isMasterMode()) {
+    super.stop();
+    if (isLeaderMode()) {
       if (mLostWorkerDetectionService != null) {
         mLostWorkerDetectionService.cancel(true);
       }
