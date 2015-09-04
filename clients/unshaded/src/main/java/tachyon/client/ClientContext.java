@@ -16,6 +16,7 @@
 package tachyon.client;
 
 import java.net.InetSocketAddress;
+import java.util.Random;
 
 import com.google.common.base.Preconditions;
 
@@ -38,7 +39,7 @@ public class ClientContext {
 
   private static InetSocketAddress sMasterAddress;
 
-  private static UserMasterClientPool sUserClientPool;
+  private static Random sRandom;
 
   static {
     sTachyonConf = new TachyonConf();
@@ -48,7 +49,7 @@ public class ClientContext {
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
-    sUserClientPool = new UserMasterClientPool(sMasterAddress, sTachyonConf);
+    sRandom = new Random();
   }
 
   /**
@@ -66,21 +67,10 @@ public class ClientContext {
   }
 
   /**
-   * Acquires a user master client from the user master client pool.
-   *
-   * @return the user master client
+   * @return a random long, that is not negative
    */
-  public static UserMasterClient acquireUserMasterClient() {
-    return sUserClientPool.acquire();
-  }
-
-  /**
-   * Releases a user master client back to the user master client pool.
-   *
-   * @param userMasterClient user master client to release
-   */
-  public static void releaseUserMasterClient(UserMasterClient userMasterClient) {
-    sUserClientPool.release(userMasterClient);
+  public static long getRandomNonNegativeLong() {
+    return sRandom.nextLong();
   }
 
   /**
@@ -90,14 +80,13 @@ public class ClientContext {
    */
   // TODO: Find a better way to handle testing confs
   public static synchronized void reinitializeWithConf(TachyonConf conf) {
-    sUserClientPool.close();
     sTachyonConf = conf;
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
     int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
-    sUserClientPool = new UserMasterClientPool(sMasterAddress, sTachyonConf);
+    sRandom = new Random();
 
     BSContext.INSTANCE.resetContext();
     FSContext.INSTANCE.resetContext();
