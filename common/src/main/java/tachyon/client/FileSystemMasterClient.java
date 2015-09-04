@@ -30,6 +30,7 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
@@ -348,6 +349,36 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  public synchronized void reportLostFile(long fileId) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        mClient.reportLostFile(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
+  }
+
+  public synchronized void requestFilesInDependency(int depId) throws IOException {
+    while (!mIsClosed) {
+      connect();
+      try {
+        mClient.requestFilesInDependency(depId);
+      } catch (DependencyDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("This connection has been closed.");
+  }
+
   // TODO: See if these methods can/should be implemented
 
   public synchronized void userHeartbeat() throws IOException {
@@ -362,13 +393,5 @@ public final class FileSystemMasterClient extends MasterClientBase {
 
   public synchronized DependencyInfo getDependencyInfo(int dependencyId) throws IOException {
     return null;
-  }
-
-  public synchronized void reportLostFile(long fileId) throws IOException {
-
-  }
-
-  public synchronized void requestFilesInDependency(int depId) throws IOException {
-
   }
 }
