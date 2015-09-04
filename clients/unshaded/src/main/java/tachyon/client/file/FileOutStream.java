@@ -59,6 +59,13 @@ public final class FileOutStream extends OutStream {
   private BlockOutStream mCurrentBlockOutStream;
   private List<BlockOutStream> mPreviousBlockOutStreams;
 
+  /**
+   * Creates a new file output stream.
+   *
+   * @param fileId the file id
+   * @param options the client options
+   * @throws IOException if an I/O error occurs
+   */
   public FileOutStream(long fileId, ClientOptions options) throws IOException {
     mFileId = fileId;
     mOptions = options;

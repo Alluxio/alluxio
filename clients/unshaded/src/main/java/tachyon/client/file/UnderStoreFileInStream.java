@@ -36,6 +36,14 @@ public class UnderStoreFileInStream extends BlockInStream {
   private long mPos;
   private InputStream mUnderStoreStream;
 
+  /**
+   * Creates a new under storage file input stream.
+   *
+   * @param initPos the initial position
+   * @param length the length
+   * @param ufsPath the under file system path
+   * @throws IOException if an I/O error occurs
+   */
   public UnderStoreFileInStream(long initPos, long length, String ufsPath) throws IOException {
     mInitPos = initPos;
     mLength = length;
