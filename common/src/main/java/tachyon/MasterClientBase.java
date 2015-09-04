@@ -39,7 +39,7 @@ import tachyon.util.network.NetworkAddressUtils;
 /**
  * The base class for master clients.
  */
-public abstract class MasterClient implements Closeable {
+public abstract class MasterClientBase implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected final boolean mUseZookeeper;
@@ -51,8 +51,8 @@ public abstract class MasterClient implements Closeable {
   protected volatile boolean mConnected;
   protected volatile boolean mIsClosed;
 
-  public MasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
-      TachyonConf tachyonConf) {
+  public MasterClientBase(InetSocketAddress masterAddress, ExecutorService executorService,
+                          TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     if (!mUseZookeeper) {
