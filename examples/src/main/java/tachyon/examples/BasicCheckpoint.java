@@ -36,7 +36,7 @@ import tachyon.client.ClientOptions;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.master.filesystem.meta.DependencyType;
+import tachyon.master.file.meta.DependencyType;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 

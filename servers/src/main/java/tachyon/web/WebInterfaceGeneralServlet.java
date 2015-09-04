@@ -29,7 +29,7 @@ import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.Version;
 import tachyon.master.TachyonMaster;
-import tachyon.master.filesystem.meta.DependencyVariables;
+import tachyon.master.file.meta.DependencyVariables;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 
