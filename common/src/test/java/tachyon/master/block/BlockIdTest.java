@@ -18,7 +18,7 @@ package tachyon.master.block;
 import org.junit.Assert;
 import org.junit.Test;
 
-public final class BlockIdTests {
+public final class BlockIdTest {
 
   private static final long MAX_SEQUENCE_NUMBER = 16777215L;
 
