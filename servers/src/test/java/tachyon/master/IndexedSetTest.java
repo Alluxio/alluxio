@@ -24,8 +24,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.master.IndexedSet;
-
 public class IndexedSetTest {
   private static class Pair {
     private int mInt;
