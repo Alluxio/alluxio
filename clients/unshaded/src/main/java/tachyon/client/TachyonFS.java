@@ -57,6 +57,7 @@ import tachyon.worker.WorkerClient;
  * Under the hood, this class maintains a MasterClient to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
  */
+@Deprecated
 public class TachyonFS extends AbstractTachyonFS {
 
   /**
