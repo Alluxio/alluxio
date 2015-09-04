@@ -909,7 +909,8 @@ public class TFsShell implements Closeable {
    * @return total size of the specified path in byte.
    * @throws IOException
    */
-  private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path) throws IOException {
+  private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
+      throws IOException {
     long sizeInBytes = 0;
     List<FileInfo> files = tachyonFS.listStatus(tachyonFS.open(path));
     for (FileInfo file : files) {
