@@ -23,6 +23,10 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.master.Master;
 
+/**
+ * This class tails the journal for a master. It will process the journal checkpoint file, and then
+ * process all existing completed log files.
+ */
 public final class JournalTailer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -65,11 +69,15 @@ public final class JournalTailer {
   public void processJournalCheckpoint(boolean applyToMaster) throws IOException {
     // Load the checkpoint file.
     LOG.info("Loading checkpoint file: " + mJournal.getCheckpointFilePath());
+    // The checkpoint stream must be retrieved before retrieving any log file streams, because the
+    // journal reader verifies that the checkpoint was read before the log files.
+    JournalInputStream is = mReader.getCheckpointInputStream();
+
     if (applyToMaster) {
-      // TODO (Gene): `is` is not closed.
-      JournalInputStream is = mReader.getCheckpointInputStream();
+      // Only apply the checkpoint to the master, if specified.
       mMaster.processJournalCheckpoint(is);
     }
+    is.close();
   }
 
   /**
