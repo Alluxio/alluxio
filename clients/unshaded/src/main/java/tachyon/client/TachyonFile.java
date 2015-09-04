@@ -35,6 +35,7 @@ import tachyon.thrift.NetAddress;
 /**
  * Tachyon File.
  */
+@Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
