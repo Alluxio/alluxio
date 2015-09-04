@@ -51,8 +51,15 @@ public abstract class MasterClientBase implements Closeable {
   protected volatile boolean mConnected;
   protected volatile boolean mIsClosed;
 
+  /**
+   * Creates a new master client base.
+   *
+   * @param masterAddress the master address
+   * @param executorService the executor service
+   * @param tachyonConf the Tachyon configuration
+   */
   public MasterClientBase(InetSocketAddress masterAddress, ExecutorService executorService,
-                          TachyonConf tachyonConf) {
+      TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     if (!mUseZookeeper) {
@@ -71,21 +78,21 @@ public abstract class MasterClientBase implements Closeable {
   protected abstract String getServiceName();
 
   /**
-   * This called after the connection is made to the master. Here, implementations should create
+   * This method is called after the connection is made to the master. Implementations should create
    * internal state to finish the connection process.
    */
   protected abstract void afterConnect();
 
   /**
-   * This called after the connection is disconnected. Here, implementations should clean up any
+   * This method is called after the connection is disconnected. Implementations should clean up any
    * additional state created for the connection.
    */
   protected abstract void afterDisconnect();
 
   /**
-   * Connect with the master; an exception is thrown if this fails.
+   * Connects with the master.
    *
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized void connect() throws IOException {
     if (mConnected) {
@@ -99,15 +106,18 @@ public abstract class MasterClientBase implements Closeable {
 
     Exception lastException = null;
     int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT);
-    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, maxConnectsTry);
+    final int BASE_SLEEP_MS = 50;
+    RetryPolicy retry =
+        new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
     do {
       mMasterAddress = getMasterAddress();
 
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with "
           + getServiceName() + " master @ " + mMasterAddress);
 
-      TProtocol binaryProtocol = new TBinaryProtocol(new TFramedTransport(
-          new TSocket(NetworkAddressUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(new TFramedTransport(new TSocket(
+              NetworkAddressUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();
@@ -125,13 +135,13 @@ public abstract class MasterClientBase implements Closeable {
     } while (retry.attemptRetry() && !mIsClosed);
 
     // Reaching here indicates that we did not successfully connect.
-    throw new IOException("Failed to connect to " + getServiceName() + " master @ " + mMasterAddress
-        + " after " + (retry.getRetryCount()) + " attempts", lastException);
+    throw new IOException("Failed to connect to " + getServiceName() + " master @ "
+        + mMasterAddress + " after " + (retry.getRetryCount()) + " attempts", lastException);
   }
 
   /**
-   * Close the connection with the Tachyon Master and do the necessary cleanup. It should be used if
-   * the client has not connected with the master for a while, for example.
+   * Closes the connection with the Tachyon Master and do the necessary cleanup. It should be used
+   * if the client has not connected with the master for a while, for example.
    */
   public synchronized void disconnect() {
     if (mConnected) {
@@ -157,7 +167,8 @@ public abstract class MasterClientBase implements Closeable {
   }
 
   /**
-   * Close the connection with the master permanently. This instance should be reused after closing.
+   * Closes the connection with the master permanently. This instance should be reused after
+   * closing.
    */
   @Override
   public synchronized void close() {
