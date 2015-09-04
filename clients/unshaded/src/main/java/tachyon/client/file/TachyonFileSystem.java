@@ -140,7 +140,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
       if (info.isFolder) {
         throw new IOException("Cannot get an instream to a folder.");
       }
-      return new ClientFileInStream(info, options);
+      return new FileInStream(info, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -160,7 +160,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId = masterClient.createFile(path.getPath(), options.getBlockSize(), true);
-      return new ClientFileOutStream(fileId, options);
+      return new FileOutStream(fileId, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -169,7 +169,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   // TODO: We should remove this when the TachyonFS code is fully deprecated
   @Deprecated
   public FileOutStream getOutStream(long fileId, ClientOptions options) throws IOException {
-    return new ClientFileOutStream(fileId, options);
+    return new FileOutStream(fileId, options);
   }
 
   /**
