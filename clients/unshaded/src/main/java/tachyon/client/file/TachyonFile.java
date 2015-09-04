@@ -16,7 +16,7 @@
 package tachyon.client.file;
 
 /**
- * A file handler for a file in Tachyon. It is just a wrapper around the file ID for now.
+ * A file handler for a file in Tachyon. It is a wrapper around the file ID for now.
  */
 public class TachyonFile {
   private final long mFileId;

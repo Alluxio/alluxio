@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -64,11 +64,11 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   }
 
   /**
-   * Deletes a file. If the file is a folder, its contents will be deleted recursively. The
-   * delete will abort on a failure, but previous deletes that occurred will still be effective.
-   * The delete will only synchronously be propagated to the master. The file metadata will not
-   * be available after this call, but the data in Tachyon or under storage space may still
-   * reside until the delete is propagated.
+   * Deletes a file. If the file is a folder, its contents will be deleted recursively. The delete
+   * will abort on a failure, but previous deletes that occurred will still be effective. The delete
+   * will only synchronously be propagated to the master. The file metadata will not be available
+   * after this call, but the data in Tachyon or under storage space may still reside until the
+   * delete is propagated.
    *
    * @param file the handler of the file to delete.
    * @throws IOException if the master is unable to delete the file
@@ -123,9 +123,9 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   }
 
   /**
-   * Gets a {@link FileInStream} for the specified file. The stream's settings can be customized
-   * by setting the options parameter. The user should close the stream after finishing the
-   * operations on it.
+   * Gets a {@link FileInStream} for the specified file. The stream's settings can be customized by
+   * setting the options parameter. The user should close the stream after finishing the operations
+   * on it.
    *
    * @param file the handler for the file.
    * @param options the set of options specific to this operation.
@@ -148,8 +148,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
 
   /**
    * Creates a file and gets the {@link FileOutStream} for the specified file. This should only be
-   * called to write a file that does not exist. Once close is called on the output stream, the
-   * file will be completed. Append or update of a completed file is currently not supported.
+   * called to write a file that does not exist. Once close is called on the output stream, the file
+   * will be completed. Append or update of a completed file is currently not supported.
    *
    * @param path the Tachyon path of the file
    * @param options the set of options specific to this operation
@@ -173,9 +173,9 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   }
 
   /**
-   * If the file is a folder, return the {@link FileInfo} of all the direct entries in it.
-   * Otherwise return the FileInfo for the file. The file infos are snapshots of the
-   * file metadata, and the locations, last modified time, and path are possibly inconsistent.
+   * If the file is a folder, return the {@link FileInfo} of all the direct entries in it. Otherwise
+   * return the FileInfo for the file. The file infos are snapshots of the file metadata, and the
+   * locations, last modified time, and path are possibly inconsistent.
    *
    * @param file the handler for the file
    * @return a list of FileInfos representing the files which are children of the given file
@@ -202,8 +202,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @return the file id of the resulting file in Tachyon
    * @throws IOException if the Tachyon path is invalid or the ufsPath does not exist
    */
-  public long loadFileFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive) throws
-      IOException {
+  public long loadFileFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive)
+      throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.loadFileFromUfs(path.getPath(), ufsPath.getPath(), -1L, recursive);
