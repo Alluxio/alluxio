@@ -97,7 +97,7 @@ public class RawTableMaster extends MasterBase {
 
   @Override
   public void start(boolean asMaster) throws IOException {
-    startMaster(asMaster);
+    super.start(asMaster);
     if (isMasterMode()) {
       // TODO: start periodic heartbeat threads.
     }
