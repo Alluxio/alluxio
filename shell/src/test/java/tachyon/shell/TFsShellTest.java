@@ -221,34 +221,27 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalLargeTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, SIZE_BYTES);
-    mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
-        mLocalTachyonCluster.getTachyonHome() + "/testFile"});
-    Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
-        mLocalTachyonCluster.getTachyonHome() + "/testFile"}), mOutput.toString());
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
-    FileInputStream fis = new FileInputStream(testFile);
-    byte[] read = new byte[SIZE_BYTES];
-    fis.read(read);
-    fis.close();
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+    copyToLocalWithBytes(SIZE_BYTES);
   }
 
   @Test
   public void copyToLocalTest() throws IOException {
+    copyToLocalWithBytes(10);
+  }
+
+  private void copyToLocalWithBytes(int bytes) throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, 10);
+        UnderStorageType.NO_PERSIST, bytes);
     mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"}), mOutput.toString());
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
     FileInputStream fis = new FileInputStream(testFile);
-    byte[] read = new byte[10];
+    byte[] read = new byte[bytes];
     fis.read(read);
     fis.close();
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(bytes, read));
   }
 
   @Test
