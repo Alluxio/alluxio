@@ -51,8 +51,8 @@ public final class JournalTailer {
    * @return the last modified time of the checkpoint file in ms.
    * @throws IOException
    */
-  public long getCheckpointLastModifiedTime() throws IOException {
-    return mReader.getCheckpointLastModifiedTime();
+  public long getCheckpointLastModifiedTimeMs() throws IOException {
+    return mReader.getCheckpointLastModifiedTimeMs();
   }
 
   /**
@@ -65,14 +65,15 @@ public final class JournalTailer {
   public void processJournalCheckpoint(boolean applyToMaster) throws IOException {
     // Load the checkpoint file.
     LOG.info("Loading checkpoint file: " + mJournal.getCheckpointFilePath());
-    JournalInputStream is = mReader.getCheckpointInputStream();
     if (applyToMaster) {
+      // TODO (Gene): `is` is not closed.
+      JournalInputStream is = mReader.getCheckpointInputStream();
       mMaster.processJournalCheckpoint(is);
     }
   }
 
   /**
-   * Process all the next journal log files. {@link #processJournalCheckpoint(boolean)} must have
+   * Processes all the next journal log files. {@link #processJournalCheckpoint(boolean)} must have
    * been called previously.
    *
    * @return the number of log files processed.
