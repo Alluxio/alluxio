@@ -38,7 +38,7 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.rawtable.RawTableMaster;
-import tachyon.master.user.UserMaster;
+import tachyon.master.user.SessionMaster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -84,7 +84,7 @@ public class TachyonMaster {
   private final InetSocketAddress mMasterAddress;
 
   // The masters
-  protected UserMaster mUserMaster;
+  protected SessionMaster mUserMaster;
   protected BlockMaster mBlockMaster;
   protected FileSystemMaster mFileSystemMaster;
   protected RawTableMaster mRawTableMaster;
@@ -133,7 +133,7 @@ public class TachyonMaster {
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
       // Create the journals.
-      mUserMasterJournal = new Journal(UserMaster.getJournalDirectory(journalDirectory),
+      mUserMasterJournal = new Journal(SessionMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
       mBlockMasterJournal = new Journal(BlockMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
@@ -142,7 +142,7 @@ public class TachyonMaster {
       mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
 
-      mUserMaster = new UserMaster(mUserMasterJournal);
+      mUserMaster = new SessionMaster(mUserMasterJournal);
       mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf);
       mFileSystemMaster =
           new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);

@@ -1005,7 +1005,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param metadata the new meta data
    * @throws IOException when the underlying master RPC fails
    */
-  public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
+  public synchronized void updateRawTableMetadata(long id, ByteBuffer metadata) throws IOException {
     throw new UnsupportedOperationException("Raw table is currently unsupported");
     //mMasterClient.user_updateRawTableMetadata(id, metadata);
   }

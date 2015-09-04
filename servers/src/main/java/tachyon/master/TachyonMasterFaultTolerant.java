@@ -29,7 +29,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.rawtable.RawTableMaster;
-import tachyon.master.user.UserMaster;
+import tachyon.master.user.SessionMaster;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -92,7 +92,7 @@ public class TachyonMasterFaultTolerant extends TachyonMaster {
 
           // When transitioning from master to standby, recreate the masters with a readonly
           // journal.
-          mUserMaster = new UserMaster(mUserMasterJournal.getReadOnlyJournal());
+          mUserMaster = new SessionMaster(mUserMasterJournal.getReadOnlyJournal());
           mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal(), mTachyonConf);
           mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
               mFileSystemMasterJournal.getReadOnlyJournal());

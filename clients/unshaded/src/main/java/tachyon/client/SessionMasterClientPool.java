@@ -19,21 +19,19 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import tachyon.client.ResourcePool;
-import tachyon.client.UserMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
 
-public class UserMasterClientPool extends ResourcePool<UserMasterClient> {
+public final class SessionMasterClientPool extends ResourcePool<SessionMasterClient> {
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
   private final TachyonConf mTachyonConf;
 
-  public UserMasterClientPool(InetSocketAddress masterAddress, TachyonConf conf) {
+  public SessionMasterClientPool(InetSocketAddress masterAddress, TachyonConf conf) {
     // TODO: Get capacity from conf
     super(10);
     mExecutorService = Executors.newFixedThreadPool(10, ThreadFactoryUtils.build(
-        "user-master-heartbeat-%d", true));
+        "session-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
     mTachyonConf = conf;
   }
@@ -45,7 +43,7 @@ public class UserMasterClientPool extends ResourcePool<UserMasterClient> {
   }
 
   @Override
-  public UserMasterClient createNewResource() {
-    return new UserMasterClient(mMasterAddress, mExecutorService, mTachyonConf);
+  public SessionMasterClient createNewResource() {
+    return new SessionMasterClient(mMasterAddress, mExecutorService, mTachyonConf);
   }
 }

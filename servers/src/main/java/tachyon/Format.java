@@ -71,7 +71,7 @@ public class Format {
           Constants.BLOCK_MASTER_SERVICE_NAME,
           Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
           Constants.RAW_TABLE_MASTER_SERVICE_NAME,
-          Constants.USER_MASTER_SERVICE_NAME,
+          Constants.SESSION_MASTER_SERVICE_NAME,
       };
       for (String masterServiceName : masterServiceNames) {
         if (!formatFolder(masterServiceName + "JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,

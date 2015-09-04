@@ -92,7 +92,7 @@ public final class LocalTachyonMaster {
         Constants.BLOCK_MASTER_SERVICE_NAME,
         Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
         Constants.RAW_TABLE_MASTER_SERVICE_NAME,
-        Constants.USER_MASTER_SERVICE_NAME,
+        Constants.SESSION_MASTER_SERVICE_NAME,
     };
     for (String masterServiceName : masterServiceNames) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
