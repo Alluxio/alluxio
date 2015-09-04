@@ -31,6 +31,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -46,7 +47,7 @@ import tachyon.worker.block.io.BlockReader;
  * The Server to serve data file read requests from remote machines. The current implementation is
  * based on non-blocking NIO.
  */
-public class NIODataServer implements Runnable, DataServer {
+public final class NIODataServer implements Runnable, DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // The host:port combination to listen on
@@ -61,10 +62,10 @@ public class NIODataServer implements Runnable, DataServer {
   // Instance of TachyonConf
   private final TachyonConf mTachyonConf;
 
-  private final Map<SocketChannel, DataServerMessage> mSendingData = Collections
-      .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
-  private final Map<SocketChannel, DataServerMessage> mReceivingData = Collections
-      .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
+  private final Map<SocketChannel, DataServerMessage> mSendingData =
+      Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
+  private final Map<SocketChannel, DataServerMessage> mReceivingData =
+      Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The block data manager.
   private final BlockDataManager mDataManager;
@@ -82,10 +83,10 @@ public class NIODataServer implements Runnable, DataServer {
   public NIODataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ " + address);
-    mTachyonConf = tachyonConf;
-    TachyonConf.assertValidPort(address, mTachyonConf);
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
+    TachyonConf.assertValidPort(Preconditions.checkNotNull(address), mTachyonConf);
     mAddress = address;
-    mDataManager = dataManager;
+    mDataManager = Preconditions.checkNotNull(dataManager);
     try {
       mSelector = initSelector();
       mListenerThread = new Thread(this);
@@ -110,10 +111,11 @@ public class NIODataServer implements Runnable, DataServer {
   }
 
   /**
-   * Close the data server.
+   * Closes the data server.
    *
    * @throws IOException
    */
+  @Override
   public void close() throws IOException {
     mShutdown = true;
     mServerChannel.close();
@@ -121,7 +123,7 @@ public class NIODataServer implements Runnable, DataServer {
   }
 
   /**
-   * Get the actual bind hostname on DataServer service.
+   * Gets the actual bind hostname on DataServer service.
    *
    * @return the bind host
    */
@@ -136,6 +138,14 @@ public class NIODataServer implements Runnable, DataServer {
   @Override
   public int getPort() {
     return mServerChannel.socket().getLocalPort();
+  }
+
+  /**
+   * @return true if the server is closed, false otherwise
+   */
+  @Override
+  public boolean isClosed() {
+    return mShutdownComplete;
   }
 
   private Selector initSelector() throws IOException {
@@ -175,14 +185,6 @@ public class NIODataServer implements Runnable, DataServer {
       }
       throw e;
     }
-  }
-
-  /**
-   * @return true if the server is closed, false otherwise
-   */
-  @Override
-  public boolean isClosed() {
-    return mShutdownComplete;
   }
 
   private void read(SelectionKey key) throws Exception {
@@ -243,14 +245,14 @@ public class NIODataServer implements Runnable, DataServer {
       } finally {
         reader.close();
       }
-      DataServerMessage tResponseMessage =
-          DataServerMessage.createBlockResponseMessage(true, blockId, tMessage.getOffset(),
-              dataLen, data);
+      DataServerMessage tResponseMessage = DataServerMessage.createBlockResponseMessage(true,
+          blockId, tMessage.getOffset(), dataLen, data);
       tResponseMessage.setLockId(lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }
   }
 
+  @Override
   public void run() {
     while (!mShutdown) {
       try {

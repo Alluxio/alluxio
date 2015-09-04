@@ -244,18 +244,6 @@ public final class TachyonConf {
     return mProperties.containsKey(key);
   }
 
-  public int getInt(String key, final int defaultValue) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
-      try {
-        return Integer.parseInt(lookup(rawValue));
-      } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as integer.");
-      }
-    }
-    return defaultValue;
-  }
-
   public int getInt(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);

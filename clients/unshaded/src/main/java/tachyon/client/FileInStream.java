@@ -36,10 +36,11 @@ public class FileInStream extends InStream {
   private Object mUFSConf = null;
 
   /**
+   * Creates a new <code>FileInStream</code> without under file system configuration.
+   *
    * @param file the file to be read
    * @param opType the InStream's read type
    * @param tachyonConf the TachyonConf instance for this stream.
-   * @throws IOException
    */
   public FileInStream(TachyonFile file, ReadType opType, TachyonConf tachyonConf)
       throws IOException {
@@ -47,11 +48,12 @@ public class FileInStream extends InStream {
   }
 
   /**
+   * Creates a new <code>FileInStream</code> with under file system configuration.
+   *
    * @param file the file to be read
    * @param opType the InStream's read type
    * @param ufsConf the under file system configuration
    * @param tachyonConf the TachyonConf instance for this stream.
-   * @throws IOException
    */
   public FileInStream(TachyonFile file, ReadType opType, Object ufsConf, TachyonConf tachyonConf)
       throws IOException {

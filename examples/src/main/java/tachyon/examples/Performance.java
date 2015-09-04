@@ -38,7 +38,6 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -109,7 +108,7 @@ public class Performance {
       mMsg = msg;
     }
 
-    public void memoryCopyParition() throws IOException {
+    public void memoryCopyPartition() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
         LOG.info(FormatUtils.byteBufferToString(mBuf));
@@ -173,7 +172,7 @@ public class Performance {
     @Override
     public void run() {
       try {
-        memoryCopyParition();
+        memoryCopyPartition();
       } catch (IOException e) {
         throw Throwables.propagate(e);
       }
@@ -229,18 +228,18 @@ public class Performance {
     }
 
     public void readPartition() throws IOException {
-      TachyonByteBuffer buf;
       if (sDebugMode) {
+        ByteBuffer buf = ByteBuffer.allocate((int) sBlockSizeBytes);
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-          buf = file.readByteBuffer(0);
-          IntBuffer intBuf;
-          intBuf = buf.mData.order(ByteOrder.nativeOrder()).asIntBuffer();
+          InputStream is = file.getInStream(ReadType.CACHE);
+          is.read(buf.array());
+          buf.order(ByteOrder.nativeOrder());
           for (int i = 0; i < sBlocksPerFile; i ++) {
             for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
-              int tmp = intBuf.get();
+              int tmp = buf.getInt();
               if ((k == 0 && tmp == (i + mWorkerId)) || (k != 0 && tmp == k)) {
                 LOG.debug("Partition at {} is {}", k, tmp);
               } else {
@@ -248,7 +247,7 @@ public class Performance {
               }
             }
           }
-          buf.close();
+          is.close();
         }
       }
 
@@ -272,19 +271,20 @@ public class Performance {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
           TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-          buf = file.readByteBuffer(0);
+          InputStream is = file.getInStream(ReadType.CACHE);
           for (int i = 0; i < sBlocksPerFile; i ++) {
-            buf.mData.get(mBuf.array());
+            is.read(mBuf.array());
           }
           sum += mBuf.get(pId % 16);
 
           if (sDebugMode) {
-            buf.mData.order(ByteOrder.nativeOrder()).flip();
-            LOG.info(FormatUtils.byteBufferToString(buf.mData));
+            mBuf.order(ByteOrder.nativeOrder());
+            mBuf.flip();
+            LOG.info(FormatUtils.byteBufferToString(mBuf));
           }
-          buf.mData.clear();
+          mBuf.clear();
           logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
-          buf.close();
+          is.close();
         }
       }
       sResults[mWorkerId] = sum;

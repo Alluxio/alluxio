@@ -13,34 +13,22 @@
  * the License.
  */
 
-package tachyon.worker.block.meta;
+package tachyon.util;
 
-import java.io.File;
+import org.apache.commons.lang3.SystemUtils;
 
 /**
- * Represents the metadata of a block in Tachyon managed storage.
+ * OS related utility functions 
  */
-public final class BlockMeta extends BlockMetaBase {
-  private final long mBlockSize;
+public final class OSUtils {
+  private OSUtils() {}
 
-  public BlockMeta(long blockId, long blockSize, StorageDir dir) {
-    super(blockId, dir);
-    mBlockSize = blockSize;
-  }
-
-  public BlockMeta(TempBlockMeta tempBlock) {
-    super(tempBlock.getBlockId(), tempBlock.getParentDir());
-    // NOTE: TempBlockMeta must be committed after the actual data block file is moved.
-    mBlockSize = new File(tempBlock.getCommitPath()).length();
-  }
-
-  @Override
-  public long getBlockSize() {
-    return mBlockSize;
-  }
-
-  @Override
-  public String getPath() {
-    return commitPath(mDir, mBlockId);
+  /**
+   * @return true if current OS is Windows 
+   */
+  public static boolean isWindows() {
+    return SystemUtils.IS_OS_WINDOWS;
   }
 }
+
+
