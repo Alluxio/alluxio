@@ -31,8 +31,8 @@ import org.apache.hadoop.mapred.Reporter;
 /**
  * Base mapper class for IO operations.
  * <p>
- * Two abstract method {@link #doIO(Reporter, String, long)} and
- * {@link #collectStats(OutputCollector, String,long, Object)} should be
+ * Two abstract method {@link #doIO(org.apache.hadoop.mapred.Reporter, String, long)} and
+ * {@link #collectStats(org.apache.hadoop.mapred.OutputCollector, String,long, Object)} should be
  * overloaded in derived classes to define the IO operation and the statistics data to be collected
  * by subsequent reducers.
  *
@@ -73,8 +73,8 @@ public abstract class IOMapperBase<T> extends Configured implements
    * @param name file name
    * @param value offset within the file
    * @return object that is passed as a parameter to
-   *         {@link #collectStats(OutputCollector, String,long, Object)}
-   * @throws IOException
+   *         {@link #collectStats(org.apache.hadoop.mapred.OutputCollector, String,long, Object)}
+   * @throws java.io.IOException
    */
   abstract T doIO(Reporter reporter, String name, long value) throws IOException;
 
@@ -84,7 +84,7 @@ public abstract class IOMapperBase<T> extends Configured implements
    *
    * @param name file name
    * @return the stream
-   * @throws IOException
+   * @throws java.io.IOException
    */
   public Closeable getIOStream(String name) throws IOException {
     return null;
@@ -97,8 +97,8 @@ public abstract class IOMapperBase<T> extends Configured implements
    * @param name file name
    * @param execTime IO execution time
    * @param doIOReturnValue value returned by
-   *        {@link #doIO(Reporter, String,long)}
-   * @throws IOException
+   *        {@link #doIO(org.apache.hadoop.mapred.Reporter, String,long)}
+   * @throws java.io.IOException
    */
   abstract void collectStats(OutputCollector<Text, Text> output, String name, long execTime,
       T doIOReturnValue) throws IOException;
@@ -110,9 +110,9 @@ public abstract class IOMapperBase<T> extends Configured implements
    * which is the offset within the file.
    *
    * The parameters are passed to the abstract method
-   * {@link #doIO(Reporter, String,long)}, which performs the io operation,
+   * {@link #doIO(org.apache.hadoop.mapred.Reporter, String,long)}, which performs the io operation,
    * usually read or write data, and then
-   * {@link #collectStats(OutputCollector, String,long, Object)} is called
+   * {@link #collectStats(org.apache.hadoop.mapred.OutputCollector, String,long, Object)} is called
    * to prepare stat data for a subsequent reducer.
    */
   public void map(Text key, LongWritable value, OutputCollector<Text, Text> output,

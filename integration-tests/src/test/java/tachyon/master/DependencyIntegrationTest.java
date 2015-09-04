@@ -15,13 +15,24 @@
 
 package tachyon.master;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
-import tachyon.master.file.meta.DependencyVariables;
 
 public class DependencyIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -43,8 +54,7 @@ public class DependencyIntegrationTest {
     DependencyVariables.VARIABLES.put("port", mPortValue);
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
-/*
-  // TODO: re-enable when lineage is implemented.
+
   @Test
   public void ParseCommandPrefixTest() {
     String cmd = "java test.jar $master:$port";
@@ -102,5 +112,4 @@ public class DependencyIntegrationTest {
     Assert.assertEquals(dep.getUncheckpointedChildrenFiles(),
         decoded.get("unCheckpointedChildrenFiles", intListRef));
   }
-*/
 }

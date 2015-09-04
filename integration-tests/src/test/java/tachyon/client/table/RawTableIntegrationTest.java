@@ -15,21 +15,32 @@
 
 package tachyon.client.table;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.file.FileInStream;
-import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.TachyonURI;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
+import tachyon.client.OutStream;
+import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
+import tachyon.client.WriteType;
+import tachyon.io.Utils;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Integration tests for tachyon.client.RawTable.
  */
 public class RawTableIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private TachyonFS mTfs = null;
   private int mMaxCols = 1000;
 
   @After
@@ -45,7 +56,6 @@ public class RawTableIntegrationTest {
     mMaxCols =  mLocalTachyonCluster.getMasterTachyonConf().getInt(Constants.MAX_COLUMNS);
   }
 
-/*
   @Test
   public void getColumnsTest() throws IOException {
     for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
@@ -160,7 +170,7 @@ public class RawTableIntegrationTest {
       RawColumn rawCol = table.getRawColumn(k);
       rawCol.createPartition(0);
       TachyonFile file = rawCol.getPartition(0);
-      FileOutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
+      OutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
       outStream.write(BufferUtils.getIncreasingByteArray(10));
       outStream.close();
     }
@@ -168,7 +178,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      FileInStream is = file.getInStream(ReadType.CACHE);
+      InStream is = file.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
@@ -178,7 +188,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      FileInStream is = file.getInStream(ReadType.CACHE);
+      InStream is = file.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
@@ -206,5 +216,4 @@ public class RawTableIntegrationTest {
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(k % 16), table.getMetadata());
     }
   }
-*/
 }

@@ -15,27 +15,34 @@
 
 package tachyon.client.table;
 
+import java.io.IOException;
+
+import org.apache.thrift.TException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.TachyonURI;
+import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterInfo;
 
 /**
  * Integration tests for tachyon.client.RawColumn.
  */
 public class RawColumnIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private TachyonFS mTfs = null;
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
   }
 
-  // TODO: renable when there is a raw table client.
-/*
   @Test
   public void basicTest() throws IOException, TException {
     TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -55,7 +62,6 @@ public class RawColumnIntegrationTest {
       Assert.assertEquals(5, column.partitions());
     }
   }
-*/
 
   @Before
   public final void before() throws Exception {

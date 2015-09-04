@@ -18,9 +18,6 @@ package tachyon.worker;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.thrift.TException;
 import org.junit.After;
@@ -30,24 +27,19 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.BlockMasterClient;
-import tachyon.client.CacheType;
-import tachyon.client.ClientOptions;
 import tachyon.client.OutStream;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.block.BlockId;
+import tachyon.master.MasterInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
@@ -60,81 +52,65 @@ public class BlockServiceHandlerIntegrationTest {
   private static final long USER_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
-  private final ExecutorService mExecutorService =
-      Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("test-executor-%d", true));
-
   private LocalTachyonCluster mLocalTachyonCluster = null;
+  private MasterInfo mMasterInfo = null;
   private BlockServiceHandler mWorkerServiceHandler = null;
-  private TachyonFileSystem mTfs = null;
+  private TachyonFS mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
-  private BlockMasterClient mBlockMasterClient;
 
   @After
   public final void after() throws Exception {
-    mTfs.close();
-    mBlockMasterClient.close();
     mLocalTachyonCluster.stop();
   }
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
-    mLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
+    mLocalTachyonCluster.start();
     mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
+    mMasterInfo = mLocalTachyonCluster.getMasterInfo();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
-
-    mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mExecutorService, mWorkerTachyonConf);
   }
 
   // Tests that checkpointing a file successfully informs master of the update
   @Test
   public void addCheckpointTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
 
     String tmpFolder = mWorkerServiceHandler.getUserUfsTempFolder(USER_ID);
     UnderFileSystem ufs = UnderFileSystem.get(tmpFolder, mMasterTachyonConf);
     ufs.mkdirs(tmpFolder, true);
-    String filename = PathUtils.concatPath(tmpFolder, file.getFileId());
+    String filename = PathUtils.concatPath(tmpFolder, fileId);
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
-    mWorkerServiceHandler.addCheckpoint(USER_ID, (int) file.getFileId());
+    mWorkerServiceHandler.addCheckpoint(USER_ID, fileId);
 
     // No space should be used in Tachyon, but the file should be complete
-    Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
-    Assert.assertTrue(mTfs.getInfo(file).isComplete);
+    Assert.assertEquals(0, mMasterInfo.getUsedBytes());
+    Assert.assertTrue(mTfs.getFile(fileId).isComplete());
   }
 
   // Tests that caching a block successfully persists the block if the block exists
   @Test
   public void cacheBlockTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
-
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
-    // Construct the block ids for the file.
-    final long blockId0 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
-    final long blockId1 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 1);
+    final long blockId0 = mTfs.getBlockId(fileId, 0);
+    final long blockId1 = mTfs.getBlockId(fileId, 1);
 
     String filename = mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId0, blockSize);
     createBlockFile(filename, blockSize);
     mWorkerServiceHandler.cacheBlock(USER_ID, blockId0);
 
     // The master should be immediately updated with the persisted block
-    Assert.assertEquals(blockSize, mBlockMasterClient.getUsedBytes());
+    Assert.assertEquals(blockSize, mMasterInfo.getUsedBytes());
 
     // Attempting to cache a non existent block should throw an exception
     Exception exception = null;
@@ -149,12 +125,9 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that cancelling a block will remove the temporary file
   @Test
   public void cancelBlockTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
-
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
-    final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
+    final long blockId = mTfs.getBlockId(fileId, 0);
 
     String filename = mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId, blockSize);
     createBlockFile(filename, blockSize);
@@ -165,21 +138,17 @@ public class BlockServiceHandlerIntegrationTest {
 
     // The master should not have recorded any used space after the block is cancelled
     waitForHeartbeat();
-    Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
+    Assert.assertEquals(0, mMasterInfo.getUsedBytes());
   }
 
   // Tests that lock block returns the correct path
   @Test
   public void lockBlockTest() throws Exception {
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
+    final long blockId = mTfs.getBlockId(fileId, 0);
 
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
-        .setCacheType(CacheType.CACHE).build();
-    OutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
-
-    final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
-
+    OutStream out = mTfs.getFile(fileId).getOutStream(WriteType.MUST_CACHE);
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
 
@@ -202,14 +171,10 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that lock block returns error on failure
   @Test
   public void lockBlockFailureTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
-    final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
-
+    final int fileId = mTfs.createFile(new TachyonURI("/testFile"));
     Exception exception = null;
     try {
-      mWorkerServiceHandler.lockBlock(blockId, USER_ID);
+      mWorkerServiceHandler.lockBlock(mTfs.getBlockId(fileId, 0), USER_ID);
     } catch (FileDoesNotExistException fdne) {
       exception = fdne;
     }
@@ -222,30 +187,27 @@ public class BlockServiceHandlerIntegrationTest {
   @Test
   public void evictionTest() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
-    TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTfs, "/file1", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, blockSize);
+    int fId1 = TachyonFSTestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE, blockSize);
 
     // File should be in memory after it is written with MUST_CACHE
-    FileInfo fileInfo1 = mTfs.getInfo(file1);
+    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
 
-    TachyonFile file2 = TachyonFSTestUtils.createByteFile(mTfs, "/file2", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, blockSize);
+    int fId2 = TachyonFSTestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE, blockSize);
 
     // Both file 1 and 2 should be in memory since the combined size is not larger than worker space
-    fileInfo1 = mTfs.getInfo(file1);
-    FileInfo fileInfo2 = mTfs.getInfo(file2);
+    fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
+    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(fId2);
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
 
-    TachyonFile file3 = TachyonFSTestUtils.createByteFile(mTfs, "/file3", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, blockSize);
+    int fId3 = TachyonFSTestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE, blockSize);
 
     waitForHeartbeat();
 
-    fileInfo1 = mTfs.getInfo(file1);
-    fileInfo2 = mTfs.getInfo(file2);
-    FileInfo fileInfo3 = mTfs.getInfo(file3);
+    fileInfo1 = mMasterInfo.getClientFileInfo(fId1);
+    fileInfo2 = mMasterInfo.getClientFileInfo(fId2);
+    ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(fId3);
 
     // File 3 should be in memory and one of file 1 or 2 should be in memory
     Assert.assertEquals(100, fileInfo3.inMemoryPercentage);

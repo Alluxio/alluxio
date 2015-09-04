@@ -16,9 +16,6 @@
 package tachyon.master;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -29,78 +26,60 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.FileSystemMasterClient;
-import tachyon.client.CacheType;
-import tachyon.client.ClientOptions;
-import tachyon.client.UnderStorageType;
-import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFile;
-import tachyon.conf.TachyonConf;
-import tachyon.util.ThreadFactoryUtils;
+import tachyon.client.TachyonFS;
 
 public class PinIntegrationTest {
-  private final ExecutorService mExecutorService =
-      Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("test-executor-%d", true));
-
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
-  private FileSystemMasterClient mFSMasterClient;
+  private MasterInfo mMasterInfo = null;
+  private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mFSMasterClient = new FileSystemMasterClient(
-        new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()),
-        mExecutorService, mLocalTachyonCluster.getWorkerTachyonConf());
+    mMasterInfo = mLocalTachyonCluster.getMasterInfo();
   }
 
   @After
   public final void after() throws Exception {
-    mFSMasterClient.close();
     mLocalTachyonCluster.stop();
   }
 
   @Test
   public void recursivePinness() throws Exception {
-    TachyonFile dir0 = mTfs.open(new TachyonURI("/"));
-    TachyonURI folderURI = new TachyonURI("/myFolder");
-    TachyonURI fileURI = new TachyonURI("/myFolder/myFile");
+    int dir0Id = mTfs.getFileId(new TachyonURI("/"));
+    TachyonURI folder = new TachyonURI("/myFolder");
+    TachyonURI file = new TachyonURI("/myFolder/myFile");
 
-    mTfs.mkdirs(folderURI);
-    TachyonFile dir = mTfs.open(folderURI);
+    mTfs.mkdir(folder);
+    int dir1Id = mTfs.getFileId(folder);
 
-    TachyonFile file = createEmptyFile(fileURI);
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
+    int fileId = mTfs.createFile(file);
+    Assert.assertFalse(mTfs.getFile(fileId).needPin());
 
-    mTfs.setPin(file, true);
-    Assert.assertTrue(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
-        Sets.newHashSet(file.getFileId()));
+    mTfs.pinFile(fileId);
+    Assert.assertTrue(mTfs.getFile(file).needPin());
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(fileId));
 
-    mTfs.setPin(file, false);
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Integer>newHashSet());
+    mTfs.unpinFile(fileId);
+    Assert.assertFalse(mTfs.getFile(file).needPin());
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
 
     // Pinning a folder should recursively pin subfolders.
-    mTfs.setPin(dir, true);
-    Assert.assertTrue(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
-        Sets.newHashSet(file.getFileId()));
+    mTfs.pinFile(dir1Id);
+    Assert.assertTrue(mTfs.getFile(file).needPin());
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(fileId));
 
     // Same with unpinning.
-    mTfs.setPin(dir0, false);
-    Assert.assertFalse(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()), Sets.<Integer>newHashSet());
+    mTfs.unpinFile(dir0Id);
+    Assert.assertFalse(mTfs.getFile(file).needPin());
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
 
     // The last pin command always wins.
-    mTfs.setPin(file, true);
-    Assert.assertTrue(mTfs.getInfo(file).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
-        Sets.newHashSet(file.getFileId()));
+    mTfs.pinFile(fileId);
+    Assert.assertTrue(mTfs.getFile(file).needPin());
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(fileId));
   }
 
   @Test
@@ -108,51 +87,40 @@ public class PinIntegrationTest {
     // Children should inherit the isPinned value of their parents on creation.
 
     // Pin root
-    TachyonFile root = mTfs.open(new TachyonURI("/"));
-    mTfs.setPin(root, true);
+    int rootId = mTfs.getFileId(new TachyonURI("/"));
+    mTfs.pinFile(rootId);
 
     // Child file should be pinned
-    TachyonFile file0 = createEmptyFile(new TachyonURI("/file0"));
-    Assert.assertTrue(mTfs.getInfo(file0).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
-        Sets.newHashSet(file0.getFileId()));
+    int file0Id = mTfs.createFile(new TachyonURI("/file0"));
+    Assert.assertTrue(mMasterInfo.getClientFileInfo(file0Id).isPinned);
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // Child folder should be pinned
-    mTfs.mkdirs(new TachyonURI("/folder"));
-    TachyonFile folder = mTfs.open(new TachyonURI("/folder"));
-    Assert.assertTrue(mTfs.getInfo(folder).isPinned);
+    mTfs.mkdir(new TachyonURI("/folder"));
+    int folderId = mTfs.getFileId(new TachyonURI("/folder"));
+    Assert.assertTrue(mMasterInfo.getClientFileInfo(folderId).isPinned);
 
-    // Grandchild file also pinned
-    TachyonFile file1 = createEmptyFile(new TachyonURI("/folder/file1"));
-    Assert.assertTrue(mTfs.getInfo(file1).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
-        Sets.newHashSet(file0.getFileId(), file1.getFileId()));
+    // Granchild file also pinned
+    int file1Id = mTfs.createFile(new TachyonURI("/folder/file1"));
+    Assert.assertTrue(mMasterInfo.getClientFileInfo(file1Id).isPinned);
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()),
+        Sets.newHashSet(file0Id, file1Id));
 
     // Unpinning child folder should cause its children to be unpinned as well
-    mTfs.setPin(folder, false);
-    Assert.assertFalse(mTfs.getInfo(folder).isPinned);
-    Assert.assertFalse(mTfs.getInfo(file1).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
-        Sets.newHashSet(file0.getFileId()));
+    mTfs.unpinFile(folderId);
+    Assert.assertFalse(mMasterInfo.getClientFileInfo(folderId).isPinned);
+    Assert.assertFalse(mMasterInfo.getClientFileInfo(file1Id).isPinned);
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // And new grandchildren should be unpinned too.
-    TachyonFile file2 = createEmptyFile(new TachyonURI("/folder/file2"));
-    Assert.assertFalse(mTfs.getInfo(file2).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
-        Sets.newHashSet(file0.getFileId()));
+    int file2Id = mTfs.createFile(new TachyonURI("/folder/file2"));
+    Assert.assertFalse(mMasterInfo.getClientFileInfo(file2Id).isPinned);
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // But toplevel children still should be pinned!
-    TachyonFile file3 = createEmptyFile(new TachyonURI("/file3"));
-    Assert.assertTrue(mTfs.getInfo(file3).isPinned);
-    Assert.assertEquals(Sets.newHashSet(mFSMasterClient.getPinList()),
-        Sets.newHashSet(file0.getFileId(), file3.getFileId()));
-  }
-
-  private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf())
-        .setCacheType(CacheType.CACHE).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
-    FileOutStream os = mTfs.getOutStream(fileURI, options);
-    os.close();
-    return mTfs.open(fileURI);
+    int file3Id = mTfs.createFile(new TachyonURI("/file3"));
+    Assert.assertTrue(mMasterInfo.getClientFileInfo(file3Id).isPinned);
+    Assert.assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()),
+        Sets.newHashSet(file0Id, file3Id));
   }
 }
