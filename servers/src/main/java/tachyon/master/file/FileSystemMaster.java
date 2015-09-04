@@ -177,7 +177,7 @@ public final class FileSystemMaster extends MasterBase {
 
   @Override
   public void stop() throws IOException {
-    stopMaster();
+    super.stop();
     if (isLeaderMode()) {
       // TODO: stop heartbeat threads.
     }

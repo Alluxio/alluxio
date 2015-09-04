@@ -76,7 +76,7 @@ public class UserMaster extends MasterBase {
 
   @Override
   public void stop() throws IOException {
-    stopMaster();
+    super.stop();
   }
 
   public long getUserId() {

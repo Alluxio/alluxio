@@ -102,8 +102,9 @@ public abstract class MasterBase implements Master {
     }
   }
 
-  protected void stopMaster() throws IOException {
-    LOG.info("Stopping master. isMaster: " + isLeaderMode());
+  @Override
+  public void stop() throws IOException {
+    LOG.info("Stopping master. isLeader: " + isLeaderMode());
     if (isStandbyMode()) {
       if (mStandbyJournalTailer != null) {
         // stop and wait for the journal tailer thread.

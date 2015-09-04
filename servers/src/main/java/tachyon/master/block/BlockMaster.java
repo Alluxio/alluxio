@@ -176,7 +176,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
 
   @Override
   public void stop() throws IOException {
-    stopMaster();
+    super.stop();
     if (isLeaderMode()) {
       if (mLostWorkerDetectionService != null) {
         mLostWorkerDetectionService.cancel(true);
