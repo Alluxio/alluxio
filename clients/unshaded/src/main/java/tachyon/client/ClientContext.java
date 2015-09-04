@@ -70,7 +70,7 @@ public class ClientContext {
    * @return a random long, that is not negative
    */
   public static long getRandomNonNegativeLong() {
-    return sRandom.nextLong();
+    return Math.abs(sRandom.nextLong());
   }
 
   /**
