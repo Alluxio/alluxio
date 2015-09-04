@@ -53,7 +53,7 @@ public class RawTable {
   /**
    * @return the id of the raw table
    */
-  public int getId() {
+  public long getId() {
     return mRawTableInfo.getId();
   }
 

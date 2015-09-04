@@ -46,7 +46,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   private final WriteType mWriteType;
   private final int mDataLength = 20;
   private final int mMetadataLength = 5;
-  private int mId;
+  private long mId;
 
   public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
       WriteType writeType) {
