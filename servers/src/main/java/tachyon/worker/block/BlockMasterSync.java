@@ -149,7 +149,7 @@ public final class BlockMasterSync implements Runnable {
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if heartbeat timeout is reached
         LOG.error("Failed to receive or execute master heartbeat command.", ioe);
-        // TODO: Add this method in MasterClient
+        // TODO: Add this method in MasterClientBase
         //mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {

@@ -78,7 +78,7 @@ public class WorkerClient implements Closeable {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Create a WorkerClient, with a given MasterClient.
+   * Create a WorkerClient, with a given MasterClientBase.
    *
    * @param workerNetAddress
    * @param executorService

@@ -40,7 +40,7 @@ public abstract class ResourcePool<T> {
   /**
    * Acquires an object of type T, this operation is blocking if no clients are available.
    *
-   * @return a MasterClient, guaranteed to be only available to the caller
+   * @return a MasterClientBase, guaranteed to be only available to the caller
    */
   public T acquire() {
     // If the resource pool is empty but capacity is not yet full, create a new resource.
