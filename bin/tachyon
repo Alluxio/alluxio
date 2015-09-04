@@ -40,7 +40,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicRawTable|BasicCheckpoint|BasicNonByteBuffer> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
+  Usage="Usage: tachyon runTest <Basic|BasicCheckpoint|BasicNonByteBuffer> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
 
   if [ "$#" -ne 2 ]; then
     echo $Usage
@@ -59,10 +59,6 @@ function runTest {
     Basic)
       file+="/BasicFile_$2"
       class="tachyon.examples.BasicOperations"
-      ;;
-    BasicRawTable)
-      file+="/BasicRawTable_$2"
-      class="tachyon.examples.BasicRawTableOperations"
       ;;
     BasicCheckpoint)
       file+="/BasicCheckpoint"
@@ -218,7 +214,7 @@ elif [ "$COMMAND" == "runTests" ]; then
   failed=0
   for op in ${opArr[@]}
   do
-    for example in Basic BasicRawTable BasicCheckpoint BasicNonByteBuffer
+    for example in Basic BasicCheckpoint BasicNonByteBuffer
     do
       echo $LAUNCHER $bin/tachyon runTest $example $op
       $LAUNCHER $bin/tachyon runTest $example $op

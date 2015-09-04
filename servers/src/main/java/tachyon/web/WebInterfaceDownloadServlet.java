@@ -26,32 +26,33 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
-import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
-import tachyon.client.TachyonFS;
-import tachyon.conf.TachyonConf;
-import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.client.CacheType;
+import tachyon.client.ClientOptions;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.master.file.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 
 /**
  * Servlet for downloading a file
  */
-public class WebInterfaceDownloadServlet extends HttpServlet {
+public final class WebInterfaceDownloadServlet extends HttpServlet {
   private static final long serialVersionUID = 7329267100965731815L;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final transient MasterInfo mMasterInfo;
+  private final transient FileSystemMaster mFsMaster;
 
-  public WebInterfaceDownloadServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+  public WebInterfaceDownloadServlet(FileSystemMaster fsMaster) {
+    mFsMaster = Preconditions.checkNotNull(fsMaster);
   }
 
   /**
@@ -71,11 +72,12 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
     }
     TachyonURI currentPath = new TachyonURI(requestPath);
     try {
-      ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
-      if (null == clientFileInfo) {
+      long fileId = mFsMaster.getFileId(currentPath);
+      FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+      if (null == fileInfo) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
-      downloadFile(new TachyonURI(clientFileInfo.getPath()), request, response);
+      downloadFile(new TachyonURI(fileInfo.getPath()), request, response);
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
@@ -96,15 +98,10 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
    */
   private void downloadFile(TachyonURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException {
-    String masterAddress =
-        Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
-            + mMasterInfo.getMasterAddress().getPort();
-    TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress), new TachyonConf());
-    TachyonFile tFile = tachyonClient.getFile(path);
-    if (tFile == null) {
-      throw new FileDoesNotExistException(path.toString());
-    }
-    long len = tFile.length();
+    TachyonFileSystem tachyonClient = TachyonFileSystem.get();
+    TachyonFile fd = tachyonClient.open(path);
+    FileInfo tFile = tachyonClient.getInfo(fd);
+    long len = tFile.getLength();
     String fileName = path.getName();
     response.setContentType("application/octet-stream");
     if (len <= Integer.MAX_VALUE) {
@@ -114,10 +111,12 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
     }
     response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
 
-    InStream is = null;
+    FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      is = tFile.getInStream(ReadType.NO_CACHE);
+      ClientOptions op = new ClientOptions.Builder(mFsMaster.getTachyonConf()).setCacheType(
+          CacheType.NO_CACHE).build();
+      is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);
     } finally {
@@ -129,10 +128,6 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
         is.close();
       }
     }
-    try {
-      tachyonClient.close();
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
+    tachyonClient.close();
   }
 }

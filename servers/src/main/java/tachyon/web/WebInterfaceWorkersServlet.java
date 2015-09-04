@@ -28,14 +28,14 @@ import com.google.common.collect.Ordering;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientWorkerInfo;
+import tachyon.master.block.BlockMaster;
+import tachyon.thrift.WorkerInfo;
 import tachyon.util.FormatUtils;
 
 /**
  * Servlet that provides data for displaying detail info of all workers.
  */
-public class WebInterfaceWorkersServlet extends HttpServlet {
+public final class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association by
    * array indexes.
@@ -50,7 +50,7 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
     private final int mUsedPercent;
     private final String mUptimeClockTime;
 
-    private NodeInfo(ClientWorkerInfo workerInfo) {
+    private NodeInfo(WorkerInfo workerInfo) {
       mHost = workerInfo.getAddress().getMHost();
       mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
       mWorkerState = workerInfo.getState();
@@ -97,11 +97,11 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7454493761603179826L;
 
-  private final transient MasterInfo mMasterInfo;
+  private final transient BlockMaster mBlockMaster;
   private final transient TachyonConf mTachyonConf;
 
-  public WebInterfaceWorkersServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+  public WebInterfaceWorkersServlet(BlockMaster blockMaster) {
+    mBlockMaster = blockMaster;
     mTachyonConf = new TachyonConf();
   }
 
@@ -123,19 +123,19 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Order the nodes by hostName and generate NodeInfo list for UI display
    *
-   * @param workerInfos The list of ClientWorkerInfo objects
+   * @param workerInfos The list of WorkerInfo objects
    * @return The list of NodeInfo objects
    */
-  private NodeInfo[] generateOrderedNodeInfos(List<ClientWorkerInfo> workerInfos) {
+  private NodeInfo[] generateOrderedNodeInfos(List<WorkerInfo> workerInfos) {
     NodeInfo[] ret = new NodeInfo[workerInfos.size()];
-    Collections.sort(workerInfos, new Ordering<ClientWorkerInfo>() {
+    Collections.sort(workerInfos, new Ordering<WorkerInfo>() {
       @Override
-      public int compare(ClientWorkerInfo info0, ClientWorkerInfo info1) {
+      public int compare(WorkerInfo info0, WorkerInfo info1) {
         return info0.getAddress().getMHost().compareTo(info1.getAddress().getMHost());
       }
     });
     int index = 0;
-    for (ClientWorkerInfo workerInfo : workerInfos) {
+    for (WorkerInfo workerInfo : workerInfos) {
       ret[index ++] = new NodeInfo(workerInfo);
     }
 
@@ -151,11 +151,11 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
-    List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
+    List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
     request.setAttribute("normalNodeInfos", normalNodeInfos);
 
-    List<ClientWorkerInfo> lostWorkerInfos = mMasterInfo.getLostWorkersInfo();
+    List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfo();
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
 

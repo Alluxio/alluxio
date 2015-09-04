@@ -62,12 +62,12 @@
             <th>In Memory</th>
             <th>Locations</th>
           </tr>
-          <% for (UiBlockInfo blockInfo : ((List<UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
+          <% for (UiBlockInfo masterBlockInfo : ((List<UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
             <tr>
-              <td><%= blockInfo.getID() %></td>
-              <td><%= blockInfo.getBlockLength() %></td>
+              <td><%= masterBlockInfo.getID() %></td>
+              <td><%= masterBlockInfo.getBlockLength() %></td>
               <td>
-                <% if(blockInfo.inMemory()) { %>
+                <% if(masterBlockInfo.inMemory()) { %>
                   Yes
                 <% } else { %>
                   No

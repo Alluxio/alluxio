@@ -89,11 +89,11 @@
             </tr>
             <% for (int i = 0; i < StorageLevelAlias.SIZE; i ++) { %>
               <% List<UiBlockInfo> blocks = ((List<List<UiBlockInfo>>) request.getAttribute("fileBlocksOnTier")).get(i); %>
-              <% for (UiBlockInfo blockInfo : blocks) { %>
+              <% for (UiBlockInfo masterBlockInfo : blocks) { %>
                 <tr>
-                  <td><%= blockInfo.getID() %></td>
+                  <td><%= masterBlockInfo.getID() %></td>
                   <td><%= StorageLevelAlias.values()[i].name() %></td>
-                  <td><%= blockInfo.getBlockLength() %></td>
+                  <td><%= masterBlockInfo.getBlockLength() %></td>
                 </tr>
               <% } %>
             <% } %>
