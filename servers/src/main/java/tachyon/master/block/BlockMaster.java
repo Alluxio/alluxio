@@ -164,9 +164,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   @Override
-  public void start(boolean asMaster) throws IOException {
-    super.start(asMaster);
-    if (isMasterMode()) {
+  public void start(boolean isLeader) throws IOException {
+    super.start(isLeader);
+    if (isLeaderMode()) {
       mLostWorkerDetectionService =
           getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
               new LostWorkerDetectionHeartbeatExecutor(),
@@ -177,7 +177,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   @Override
   public void stop() throws IOException {
     stopMaster();
-    if (isMasterMode()) {
+    if (isLeaderMode()) {
       if (mLostWorkerDetectionService != null) {
         mLostWorkerDetectionService.cancel(true);
       }

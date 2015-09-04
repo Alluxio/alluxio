@@ -167,10 +167,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   @Override
-  public void start(boolean asMaster) throws IOException {
+  public void start(boolean isLeader) throws IOException {
     mInodeTree.initializeRoot();
-    super.start(asMaster);
-    if (isMasterMode()) {
+    super.start(isLeader);
+    if (isLeaderMode()) {
       // TODO: start periodic heartbeat threads.
     }
   }
@@ -178,7 +178,7 @@ public final class FileSystemMaster extends MasterBase {
   @Override
   public void stop() throws IOException {
     stopMaster();
-    if (isMasterMode()) {
+    if (isLeaderMode()) {
       // TODO: stop heartbeat threads.
     }
   }
