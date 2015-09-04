@@ -18,10 +18,13 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import tachyon.annotation.PublicApi;
+
 /**
  * Provides a stream API to write to Tachyon. Only one OutStream should be opened for a Tachyon
  * object. This class is not thread safe and should only be used by one thread.
  */
+@PublicApi
 public abstract class OutStream extends OutputStream {
   /**
    * Cancels the write to Tachyon storage. This will delete all the temporary data and metadata
