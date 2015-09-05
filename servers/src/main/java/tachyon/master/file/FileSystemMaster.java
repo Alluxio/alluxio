@@ -231,7 +231,7 @@ public final class FileSystemMaster extends MasterBase {
       long currLength = length;
       for (long blockId : tFile.getBlockIds()) {
         long blockSize = Math.min(currLength, tFile.getBlockSizeBytes());
-        mBlockMaster.commitBlock(blockId, blockSize);
+        mBlockMaster.commitBlockInUFS(blockId, blockSize);
         currLength -= blockSize;
       }
 
@@ -652,7 +652,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Create a directory at path.
+   * Creates a directory at path.
    *
    * @param path the path of the directory
    * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,
