@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -20,7 +20,11 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.InvalidPathException;
 
 /**
  * Interface for Tachyon client APIs
@@ -39,7 +43,8 @@ interface TachyonFSCore extends Closeable {
    * @return The file id, which is globally unique.
    */
   int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
-      throws IOException;
+      throws IOException, InvalidPathException, FileAlreadyExistException, BlockInfoException,
+      FileDoesNotExistException;
 
   /**
    * Deletes a file or folder.
@@ -51,9 +56,9 @@ interface TachyonFSCore extends Closeable {
    *        or not
    * @return true if deletes successfully, false otherwise.
    * @throws IOException when the operation fails
-
    */
-  boolean delete(long fileId, TachyonURI path, boolean recursive) throws IOException;
+  boolean delete(long fileId, TachyonURI path, boolean recursive) throws IOException,
+      InvalidPathException;
 
   /**
    * Gets the FileInfo object that represents the fileId, or the path if fileId is -1.
@@ -63,7 +68,8 @@ interface TachyonFSCore extends Closeable {
    * @return the FileInfo of the file or folder, null if the file or folder does not exist.
    * @throws IOException when the operation fails
    */
-  FileInfo getFileStatus(long fileId, TachyonURI path) throws IOException;
+  FileInfo getFileStatus(long fileId, TachyonURI path) throws IOException, InvalidPathException,
+      FileDoesNotExistException;
 
   /** Returns a URI whose scheme and authority identify this FileSystem. */
   TachyonURI getUri();
@@ -76,7 +82,8 @@ interface TachyonFSCore extends Closeable {
    * @return A list of FileInfo, null if the file or folder does not exist.
    * @throws IOException when the operation fails
    */
-  List<FileInfo> listStatus(TachyonURI path) throws IOException;
+  List<FileInfo> listStatus(TachyonURI path) throws IOException, InvalidPathException,
+      FileDoesNotExistException;
 
   /**
    * Creates a folder.
@@ -86,7 +93,8 @@ interface TachyonFSCore extends Closeable {
    * @return true if the folder is created successfully or already existing. false otherwise.
    * @throws IOException when the operation fails
    */
-  boolean mkdirs(TachyonURI path, boolean recursive) throws IOException;
+  boolean mkdirs(TachyonURI path, boolean recursive) throws IOException, FileAlreadyExistException,
+      InvalidPathException;
 
   /**
    * Renames a file or folder to another path.
@@ -98,18 +106,20 @@ interface TachyonFSCore extends Closeable {
    * @return true if renames successfully, false otherwise.
    * @throws IOException when the operation fails
    */
-  boolean rename(long fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
+  boolean rename(long fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException,
+      InvalidPathException, FileDoesNotExistException;
 
- /**
-  * Frees memory of a file or folder.
-  *
-  * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-  *        Otherwise, the method uses the path parameter.
-  * @param path The path of the file / folder. It could be empty iff id is not -1.
-  * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
-  *        or not
-  * @return true if in-memory free successfully, false otherwise.
-  * @throws IOException when the operation fails
-  */
-  boolean freepath(long fileId, TachyonURI path, boolean recursive) throws IOException;
+  /**
+   * Frees memory of a file or folder.
+   *
+   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
+   *        Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty iff id is not -1.
+   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
+   *        or not
+   * @return true if in-memory free successfully, false otherwise.
+   * @throws IOException when the operation fails
+   */
+  boolean freepath(long fileId, TachyonURI path, boolean recursive) throws IOException,
+      InvalidPathException, FileDoesNotExistException;
 }

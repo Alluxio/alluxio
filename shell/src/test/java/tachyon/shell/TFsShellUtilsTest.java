@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,8 +64,9 @@ public class TFsShellUtilsTest {
 
   @Test
   public void getFilePathTest() throws IOException {
-    String[] paths = new String[] {Constants.HEADER + "localhost:19998/dir",
-        Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
+    String[] paths =
+        new String[] {Constants.HEADER + "localhost:19998/dir",
+            Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
       String result = TFsShellUtils.getFilePath(path, new TachyonConf());
@@ -94,24 +96,27 @@ public class TFsShellUtilsTest {
     };
   }
 
-  public String resetTachyonFileHierarchy() throws IOException {
+  public String resetTachyonFileHierarchy() throws IOException, TException {
     return resetTachyonFileHierarchy(mTfs);
   }
 
-  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) throws IOException {
+  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) throws IOException,
+      TException {
     /**
      * Generate such local structure /testWildCards
-     *                                ├── foo |
-     *                                        ├── foobar1
-     *                                        └── foobar2
-     *                                ├── bar |
-     *                                        └── foobar3
-     *                                └── foobar4
+                ├── foo |
+                        ├── foobar1
+                        └── foobar2
+                ├── bar |
+                        └── foobar3
+                └── foobar4
      */
     TachyonFile fd;
     try {
       fd = tfs.open(new TachyonURI("/testWildCars"));
     } catch (IOException ioe) {
+      fd = null;
+    } catch (TException ioe) {
       fd = null;
     }
     if (fd != null) {
@@ -140,12 +145,12 @@ public class TFsShellUtilsTest {
       throws IOException {
     /**
      * Generate such local structure /testWildCards
-     *                                ├── foo |
-     *                                        ├── foobar1
-     *                                        └── foobar2
-     *                                ├── bar |
-     *                                        └── foobar3
-     *                                └── foobar4
+                ├── foo |
+                        ├── foobar1
+                        └── foobar2
+                ├── bar |
+                        └── foobar3
+                └── foobar4
      */
     FileUtils.deleteDirectory(new File(localTachyonCluster.getTachyonHome() + "/testWildCards"));
     new File(localTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
@@ -160,7 +165,7 @@ public class TFsShellUtilsTest {
     return localTachyonCluster.getTachyonHome() + "/testWildCards";
   }
 
-  public List<String> getPaths(String path, FsType fsType) throws IOException {
+  public List<String> getPaths(String path, FsType fsType) throws IOException, TException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
       List<TachyonURI> tPaths = TFsShellUtils.getTachyonURIs(mTfs, new TachyonURI(path));
@@ -179,7 +184,7 @@ public class TFsShellUtilsTest {
     return ret;
   }
 
-  public String resetFsHierarchy(FsType fsType) throws IOException {
+  public String resetFsHierarchy(FsType fsType) throws IOException, TException {
     if (fsType == FsType.TFS) {
       return resetTachyonFileHierarchy();
     } else if (fsType == FsType.LOCAL) {
@@ -190,7 +195,7 @@ public class TFsShellUtilsTest {
   }
 
   @Test
-  public void getPathTest() throws IOException {
+  public void getPathTest() throws IOException, TException {
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
 

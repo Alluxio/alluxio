@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,7 +68,7 @@ public class MasterFaultToleranceIntegrationTest {
    * @throws java.io.IOException
    */
   private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
-      throws IOException {
+      throws IOException, TException {
     mTfs.mkdirs(folderName);
     answer.add(new Pair<Long, TachyonURI>(mTfs.open(folderName).getFileId(), folderName));
 
@@ -85,21 +86,22 @@ public class MasterFaultToleranceIntegrationTest {
    * @param answer the correct results
    * @throws java.io.IOException
    */
-  private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException {
+  private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException,
+      TException {
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
           mTfs.getInfo(new TachyonFile(answer.get(k).getFirst())).getPath());
-      Assert.assertEquals(answer.get(k).getFirst().intValue(),
-          mTfs.open(answer.get(k).getSecond()).getFileId());
+      Assert.assertEquals(answer.get(k).getFirst().intValue(), mTfs.open(answer.get(k).getSecond())
+          .getFileId());
     }
   }
 
   @Ignore
   @Test
-  public void faultTest() throws IOException {
+  public void faultTest() throws IOException, TException {
     int clients = 10;
     List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
     for (int k = 0; k < clients; k ++) {
@@ -125,7 +127,7 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Ignore
   @Test
-  public void getClientsTest() throws IOException {
+  public void getClientsTest() throws IOException, TException {
     int clients = 10;
     ClientOptions option = new ClientOptions.Builder(new TachyonConf()).setBlockSize(1024).build();
     for (int k = 0; k < clients; k ++) {

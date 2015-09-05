@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -263,7 +264,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException when the underlying master RPC fails
    */
   synchronized void completeFile(long fid) throws IOException {
-    mFSMasterClient.completeFile(fid);
+    try {
+      mFSMasterClient.completeFile(fid);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -307,7 +312,7 @@ public class TachyonFS extends AbstractTachyonFS {
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
     return mFSMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
-        framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+            framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
   }
 
   /**
@@ -326,11 +331,15 @@ public class TachyonFS extends AbstractTachyonFS {
       boolean recursive) throws IOException {
     validateUri(path);
     // TODO: This is not safe
-    if (blockSizeByte > 0) {
-      return (int) mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
-    } else {
-      return (int) mFSMasterClient.loadFileFromUfs(path.getPath(), ufsPath.getPath(),
-          blockSizeByte, recursive);
+    try {
+      if (blockSizeByte > 0) {
+        return (int) mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
+      } else {
+        return (int) mFSMasterClient.loadFileFromUfs(path.getPath(), ufsPath.getPath(),
+                blockSizeByte, recursive);
+      }
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
     }
   }
 
@@ -385,10 +394,14 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean delete(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
-    if (fileId == -1) {
-      fileId = mFSMasterClient.getFileId(path.getPath());
+    try {
+      if (fileId == -1) {
+        fileId = mFSMasterClient.getFileId(path.getPath());
+      }
+      return mFSMasterClient.deleteFile(fileId, recursive);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
     }
-    return mFSMasterClient.deleteFile(fileId, recursive);
   }
 
   /**
@@ -428,7 +441,11 @@ public class TachyonFS extends AbstractTachyonFS {
       return info.blockIds.get(blockIndex);
     }
 
-    return mFSMasterClient.getFileBlockInfo(fileId, blockIndex).getBlockId();
+    try {
+      return mFSMasterClient.getFileBlockInfo(fileId, blockIndex).getBlockId();
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -541,7 +558,11 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized List<FileBlockInfo> getFileBlocks(long fid) throws IOException {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
-    return mFSMasterClient.getFileBlockInfoList(fid);
+    try {
+      return mFSMasterClient.getFileBlockInfoList(fid);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -580,21 +601,25 @@ public class TachyonFS extends AbstractTachyonFS {
       }
     }
 
-    if (fileId == -1) {
-      fileId = mFSMasterClient.getFileId(path);
-    }
-    if (fileId == -1) {
-      cache.remove(key);
-      return null;
-    }
-    info = mFSMasterClient.getFileInfo(fileId);
-    path = info.getPath();
+    try {
+      if (fileId == -1) {
+        fileId = mFSMasterClient.getFileId(path);
+      }
+      if (fileId == -1) {
+        cache.remove(key);
+        return null;
+      }
+      info = mFSMasterClient.getFileInfo(fileId);
+      path = info.getPath();
 
-    // TODO(hy): LRU
-    mIdToClientFileInfo.put(fileId, info);
-    mPathToClientFileInfo.put(path, info);
+      // TODO(hy): LRU
+      mIdToClientFileInfo.put(fileId, info);
+      mPathToClientFileInfo.put(path, info);
 
-    return info;
+      return info;
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -611,7 +636,11 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
     if (fileId == -1) {
-      fileId = mFSMasterClient.getFileId(path.getPath());
+      try {
+        fileId = mFSMasterClient.getFileId(path.getPath());
+      } catch (TException e) {
+        throw new IOException(e.getMessage());
+      }
     }
     return getFileStatus(mIdToClientFileInfo, fileId, fileId, TachyonURI.EMPTY_URI.getPath(),
         useCachedMetadata);
@@ -783,7 +812,11 @@ public class TachyonFS extends AbstractTachyonFS {
   @Override
   public synchronized List<FileInfo> listStatus(TachyonURI path) throws IOException {
     validateUri(path);
-    return mFSMasterClient.getFileInfoList(getFileStatus(-1, path).getFileId());
+    try {
+      return mFSMasterClient.getFileInfoList(getFileStatus(-1, path).getFileId());
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -831,7 +864,11 @@ public class TachyonFS extends AbstractTachyonFS {
   @Override
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
-    return mFSMasterClient.createDirectory(path.getPath(), recursive);
+    try {
+      return mFSMasterClient.createDirectory(path.getPath(), recursive);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -859,10 +896,14 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean freepath(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
-    if (fileId == -1) {
-      fileId = mFSMasterClient.getFileId(path.getPath());
+    try {
+      if (fileId == -1) {
+        fileId = mFSMasterClient.getFileId(path.getPath());
+      }
+      return mFSMasterClient.free(fileId, recursive);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
     }
-    return mFSMasterClient.free(fileId, recursive);
   }
 
   /**
@@ -894,10 +935,14 @@ public class TachyonFS extends AbstractTachyonFS {
       throws IOException {
     validateUri(srcPath);
     validateUri(dstPath);
-    if (fileId == -1) {
-      fileId = mFSMasterClient.getFileId(srcPath.getPath());
+    try {
+      if (fileId == -1) {
+        fileId = mFSMasterClient.getFileId(srcPath.getPath());
+      }
+      return mFSMasterClient.renameFile(fileId, dstPath.getPath());
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
     }
-    return mFSMasterClient.renameFile(fileId, dstPath.getPath());
   }
 
   /**
@@ -956,7 +1001,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException when the underlying master RPC fails
    */
   public synchronized void setPinned(long fid, boolean pinned) throws IOException {
-    mFSMasterClient.setPinned(fid, pinned);
+    try {
+      mFSMasterClient.setPinned(fid, pinned);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**

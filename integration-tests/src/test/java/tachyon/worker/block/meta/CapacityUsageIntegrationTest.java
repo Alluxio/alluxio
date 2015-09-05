@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -75,7 +76,7 @@ public class CapacityUsageIntegrationTest {
   }
 
   private TachyonFile createAndWriteFile(TachyonURI filePath, CacheType cacheType,
-      UnderStorageType underStorageType, int len) throws IOException {
+      UnderStorageType underStorageType, int len) throws IOException, TException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < len; k ++) {
@@ -90,7 +91,7 @@ public class CapacityUsageIntegrationTest {
     return mTFS.open(filePath);
   }
 
-  private void deleteDuringEviction(int i) throws IOException {
+  private void deleteDuringEviction(int i) throws IOException, TException {
     final String fileName1 = "/file" + i + "_1";
     final String fileName2 = "/file" + i + "_2";
     TachyonFile file1 = createAndWriteFile(new TachyonURI(fileName1), CacheType.CACHE,
@@ -109,7 +110,7 @@ public class CapacityUsageIntegrationTest {
 
   // TODO: Rethink the approach of this test and what it should be testing
   // @Test
-  public void deleteDuringEvictionTest() throws IOException {
+  public void deleteDuringEvictionTest() throws IOException, TException {
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i ++) {
       deleteDuringEviction(i);

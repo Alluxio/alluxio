@@ -30,6 +30,9 @@ import tachyon.client.OutStream;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BSContext;
 import tachyon.client.block.BlockOutStream;
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerClient;
@@ -149,6 +152,12 @@ public final class FileOutStream extends OutStream {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(mFileId);
+      } catch (BlockInfoException e) {
+        throw new IOException(e.getMessage());
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      } catch (SuspectedFileSizeException e) {
+        throw new IOException(e.getMessage());
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
@@ -169,7 +178,11 @@ public final class FileOutStream extends OutStream {
     if (mShouldCacheCurrentBlock) {
       try {
         if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
-          getNextBlock();
+          try {
+            getNextBlock();
+          } catch (FileDoesNotExistException e) {
+            throw new IOException(e.getMessage());
+          }
         }
         mCurrentBlockOutStream.write(b);
         mCachedBytes ++;
@@ -200,7 +213,11 @@ public final class FileOutStream extends OutStream {
         int tOff = off;
         while (tLen > 0) {
           if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
-            getNextBlock();
+            try {
+              getNextBlock();
+            } catch (FileDoesNotExistException e) {
+              throw new IOException(e.getMessage());
+            }
           }
           long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
           if (currentBlockLeftBytes >= tLen) {
@@ -224,7 +241,7 @@ public final class FileOutStream extends OutStream {
     }
   }
 
-  private void getNextBlock() throws IOException {
+  private void getNextBlock() throws IOException, FileDoesNotExistException {
     if (mCurrentBlockOutStream != null) {
       Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0, "The current block still "
           + "has space left, no need to get new block");
@@ -238,7 +255,7 @@ public final class FileOutStream extends OutStream {
     }
   }
 
-  private long getNextBlockId() throws IOException {
+  private long getNextBlockId() throws IOException, FileDoesNotExistException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getNewBlockIdForFile(mFileId);

@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,12 +23,15 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
+import tachyon.retry.ExponentialBackoffRetry;
+import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
@@ -74,7 +77,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   @Override
-  protected void afterDisconnect() {
+  protected void afterDisconnect() {}
+
+  private ExponentialBackoffRetry getRetryPolicy() {
+    return new ExponentialBackoffRetry(10, Constants.SECOND_MS, 30);
   }
 
   /**
@@ -82,19 +88,23 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the file id for the given path
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getFileId(String path) throws IOException {
-    while (!mIsClosed) {
+  public synchronized long getFileId(String path) throws IOException, InvalidPathException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.getFileId(path);
       } catch (InvalidPathException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -102,21 +112,24 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs
    */
-  public synchronized FileInfo getFileInfo(long fileId) throws IOException {
-    while (!mIsClosed) {
+  public synchronized FileInfo getFileInfo(long fileId) throws IOException,
+      FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.getFileInfo(fileId);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -124,21 +137,24 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the list of file information for the given file id
    * @throws IOException if an I/O error occurs
    */
-  public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException {
-    while (!mIsClosed) {
+  public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException,
+      FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.getFileInfoList(fileId);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -149,21 +165,26 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   // TODO: Not sure if this is necessary
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws IOException {
-    while (!mIsClosed) {
+      throws IOException, BlockInfoException, FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.getFileBlockInfo(fileId, fileBlockIndex);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (BlockInfoException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -172,19 +193,24 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO: Not sure if this is necessary
-  public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException {
-    while (!mIsClosed) {
+  public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException,
+      FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.getFileBlockInfoList(fileId);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -192,38 +218,47 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return a new block id for the given file id
    * @throws IOException if an I/O error occurs.
    */
-  public synchronized long getNewBlockIdForFile(long fileId) throws IOException {
-    while (!mIsClosed) {
+  public synchronized long getNewBlockIdForFile(long fileId) throws IOException,
+      FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.getNewBlockIdForFile(fileId);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
    * @return the set of pinned file ids
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Set<Long> getPinList() throws IOException {
-    while (!mIsClosed) {
+  public synchronized Set<Long> getPinList() throws IOException, InvalidPathException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.workerGetPinIdList();
       } catch (InvalidPathException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -231,16 +266,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized String getUfsAddress() throws IOException {
-    while (!mIsClosed) {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.getUfsAddress();
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -253,23 +291,27 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
-      throws IOException {
-    while (!mIsClosed) {
+      throws IOException, BlockInfoException, InvalidPathException, FileAlreadyExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.createFile(path, blockSizeBytes, recursive);
       } catch (BlockInfoException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
       } catch (InvalidPathException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
       } catch (FileAlreadyExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -283,19 +325,23 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized long loadFileFromUfs(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws IOException {
-    while (!mIsClosed) {
+      boolean recursive) throws IOException, FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.loadFileFromUfs(path, ufsPath, blockSizeByte, recursive);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -304,24 +350,29 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void completeFile(long fileId) throws IOException {
-    while (!mIsClosed) {
+  public synchronized void completeFile(long fileId) throws IOException, FileDoesNotExistException,
+      SuspectedFileSizeException, BlockInfoException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         mClient.completeFile(fileId);
         return;
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
       } catch (SuspectedFileSizeException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
       } catch (BlockInfoException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -333,18 +384,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException  if an I/O error occurs
    */
   public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException {
-    while (!mIsClosed) {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.deleteFile(fileId, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -355,19 +407,24 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean renameFile(long fileId, String dstPath) throws IOException {
-    while (!mIsClosed) {
+  public synchronized boolean renameFile(long fileId, String dstPath) throws IOException,
+      FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.renameFile(fileId, dstPath);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -377,20 +434,25 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param pinned the pinned status to use
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void setPinned(long fileId, boolean pinned) throws IOException {
-    while (!mIsClosed) {
+  public synchronized void setPinned(long fileId, boolean pinned) throws IOException,
+      FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         mClient.setPinned(fileId, pinned);
         return;
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -401,21 +463,27 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException {
-    while (!mIsClosed) {
+  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException,
+      FileAlreadyExistException, InvalidPathException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.createDirectory(path, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+      } catch (FileAlreadyExistException e) {
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (InvalidPathException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -426,21 +494,24 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean free(long fileId, boolean recursive) throws IOException {
-    while (!mIsClosed) {
+  public synchronized boolean free(long fileId, boolean recursive) throws IOException,
+      FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.free(fileId, recursive);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**
@@ -454,19 +525,23 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
-      String checkpointPath) throws IOException {
-    while (!mIsClosed) {
+      String checkpointPath) throws IOException, FileDoesNotExistException {
+    RetryPolicy retry = getRetryPolicy();
+    while (true) {
       connect();
       try {
         return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
       } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
+        LOG.error(e.getMessage(), e);
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
+        if (!retry.attemptRetry()) {
+          throw new IOException(e.getMessage());
+        }
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
   }
 
   /**

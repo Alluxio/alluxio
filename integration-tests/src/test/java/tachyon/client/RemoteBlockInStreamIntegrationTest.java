@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -120,7 +121,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>void read()</code>. Read from underfs.
    */
   @Test
-  public void readTest1() throws IOException {
+  public void readTest1() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -181,7 +182,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>void read(byte[] b)</code>. Read from underfs.
    */
   @Test
-  public void readTest2() throws IOException {
+  public void readTest2() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -218,7 +219,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>void read(byte[] b, int off, int len)</code>. Read from underfs.
    */
   @Test
-  public void readTest3() throws IOException {
+  public void readTest3() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -255,7 +256,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>void read()</code>. Read from remote data server.
    */
   @Test
-  public void readTest4() throws IOException {
+  public void readTest4() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -286,7 +287,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>void read(byte[] b)</code>. Read from remote data server.
    */
   @Test
-  public void readTest5() throws IOException {
+  public void readTest5() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -313,7 +314,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>void read(byte[] b, int off, int len)</code>. Read from remote data server.
    */
   @Test
-  public void readTest6() throws IOException {
+  public void readTest6() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -340,7 +341,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>void read(byte[] b)</code>. Read from underfs.
    */
   @Test
-  public void readTest7() throws IOException {
+  public void readTest7() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -361,9 +362,10 @@ public class RemoteBlockInStreamIntegrationTest {
    * position.
    *
    * @throws IOException
+   * @throws TException
    */
   @Test
-  public void seekExceptionTest1() throws IOException {
+  public void seekExceptionTest1() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Seek position is negative: -1");
     String uniqPath = PathUtils.uniqPath();
@@ -385,9 +387,10 @@ public class RemoteBlockInStreamIntegrationTest {
    * that is past block size.
    *
    * @throws IOException
+   * @throws TException
    */
   @Test
-  public void seekExceptionTest2() throws IOException {
+  public void seekExceptionTest2() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
     String uniqPath = PathUtils.uniqPath();
@@ -408,9 +411,10 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>void seek(long pos)</code>.
    *
    * @throws IOException
+   * @throws TException
    */
   @Test
-  public void seekTest() throws IOException {
+  public void seekTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -433,7 +437,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Test <code>long skip(long len)</code>.
    */
   @Test
-  public void skipTest() throws IOException {
+  public void skipTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -462,7 +466,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that reading a file the whole way through with the CACHE ReadType will recache it
    */
   @Test
-  public void completeFileReadTriggersRecache() throws IOException {
+  public void completeFileReadTriggersRecache() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     int len = 2;
     TachyonFile f =
@@ -481,7 +485,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * recache
    */
   @Test
-  public void incompleteFileReadCancelsRecache() throws IOException {
+  public void incompleteFileReadCancelsRecache() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile f =
         TachyonFSTestUtils.createByteFile(mTfs, uniqPath, mWriteUnderStore, 2);
@@ -498,7 +502,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that reading a file consisting of more than one block from the underfs works
    */
   @Test
-  public void readMultiBlockFile() throws IOException {
+  public void readMultiBlockFile() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     int blockSizeByte = 10;
     int numBlocks = 10;
@@ -523,7 +527,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that seeking around a file cached locally works.
    */
   @Test
-  public void seekAroundLocalBlock() throws IOException {
+  public void seekAroundLocalBlock() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     // The number of bytes per remote block read should be set to 100 in the before function
     TachyonFile f = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, mWriteTachyon, 200);

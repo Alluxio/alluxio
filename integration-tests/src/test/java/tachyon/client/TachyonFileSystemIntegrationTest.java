@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -17,6 +17,7 @@ package tachyon.client;
 
 import java.io.IOException;
 
+import org.apache.thrift.TException;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,7 +56,7 @@ public class TachyonFileSystemIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Before
-  public final void before() throws IOException {
+  public final void before() throws IOException, TException {
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     mMasterTachyonConf.set(Constants.MAX_COLUMNS, "257");
     mWorkerTachyonConf = sLocalTachyonCluster.getWorkerTachyonConf();
@@ -69,8 +70,8 @@ public class TachyonFileSystemIntegrationTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     System.setProperty(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
-    sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES,
-        Constants.GB);
+    sLocalTachyonCluster =
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     sLocalTachyonCluster.start();
     sTfs = sLocalTachyonCluster.getClient();
     sHost = sLocalTachyonCluster.getMasterHostname();
@@ -84,12 +85,12 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void getRootTest() throws IOException {
+  public void getRootTest() throws IOException, TException {
     Assert.assertEquals(0, sTfs.getInfo(sTfs.open(new TachyonURI("/"))).getFileId());
   }
 
   @Test
-  public void createFileTest() throws IOException {
+  public void createFileTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = 1; k < 5; k ++) {
       TachyonURI uri = new TachyonURI(uniqPath + k);
@@ -99,7 +100,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test(expected = IOException.class)
-  public void createFileWithFileAlreadyExistExceptionTest() throws IOException {
+  public void createFileWithFileAlreadyExistExceptionTest() throws IOException, TException {
     TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uri, sWriteBoth).close();
     Assert.assertNotNull(sTfs.getInfo(sTfs.open(uri)));
@@ -109,7 +110,7 @@ public class TachyonFileSystemIntegrationTest {
   // TODO: Validate the URI
   @Ignore
   @Test
-  public void createFileWithInvalidPathExceptionTest() throws IOException {
+  public void createFileWithInvalidPathExceptionTest() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("URI must be absolute, unless it's empty.");
     sTfs.getOutStream(new TachyonURI("root/testFile1"), sWriteBoth);
@@ -119,13 +120,12 @@ public class TachyonFileSystemIntegrationTest {
 
   // TODO: Check worker capacity?
   @Test
-  public void deleteFileTest() throws IOException {
+  public void deleteFileTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
 
     for (int k = 0; k < 5; k ++) {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
-      TachyonFile f =
-          TachyonFSTestUtils.createByteFile(sTfs, fileURI.getPath(), sWriteBoth, k);
+      TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, fileURI.getPath(), sWriteBoth, k);
       Assert.assertTrue(sTfs.getInfo(f).getInMemoryPercentage() == 100);
       Assert.assertNotNull(sTfs.getInfo(f));
     }
@@ -139,7 +139,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void getFileStatusTest() throws IOException {
+  public void getFileStatusTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
@@ -151,7 +151,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void mkdirTest() throws IOException {
+  public void mkdirTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = 0; k < 10; k ++) {
       Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k)));
@@ -160,7 +160,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void renameFileTest1() throws IOException {
+  public void renameFileTest1() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonURI path1 = new TachyonURI(uniqPath + 1);
     sTfs.getOutStream(path1, sWriteBoth).close();
@@ -178,7 +178,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void renameFileTest2() throws IOException {
+  public void renameFileTest2() throws IOException, TException {
     TachyonURI uniqUri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uniqUri, sWriteBoth).close();
     TachyonFile f = sTfs.open(uniqUri);
