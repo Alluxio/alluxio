@@ -33,7 +33,7 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.thrift.FileInfo;
 
 /**
- * Tachyon file system's folder representation in master.
+ * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -54,7 +54,7 @@ public final class InodeDirectory extends Inode {
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
   /**
-   * Create a new InodeFolder.
+   * Creates a new InodeFolder.
    *
    * @param name The name of the folder
    * @param id The inode id of the folder
@@ -94,9 +94,7 @@ public final class InodeDirectory extends Inode {
   @Override
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
-
-    // TODO: make this a long.
-    ret.fileId = (int) getId();
+    ret.fileId = getId();
     ret.name = getName();
     ret.path = path;
     ret.ufsPath = "";
@@ -110,13 +108,10 @@ public final class InodeDirectory extends Inode {
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
-
     return ret;
   }
 
   /**
-   * Returns the child with the given inode id.
-   *
    * @param id The inode id of the child
    * @return the inode with the given id, or null if there is no child with that id
    */
@@ -125,8 +120,6 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * Returns the child with the given name.
-   *
    * @param name The name of the child
    * @return the inode with the given name, or null if there is no child with that name
    */
@@ -135,8 +128,6 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * Returns the folder's children.
-   *
    * @return an unmodifiable set of the children inodes.
    */
   public synchronized Set<Inode> getChildren() {
@@ -144,8 +135,6 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * Returns the ids of the children.
-   *
    * @return the ids of the children
    */
   public synchronized Set<Long> getChildrenIds() {
@@ -157,16 +146,14 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * Returns the number of children the folder has.
-   *
-   * @return the number of children in the folder.
+   * @return the number of children in the directory.
    */
   public synchronized int getNumberOfChildren() {
     return mChildren.size();
   }
 
   /**
-   * Removes the given inode from the folder.
+   * Removes the given inode from the directory.
    *
    * @param child The Inode to remove
    * @return true if the inode was removed, false otherwise.
@@ -176,7 +163,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * Removes the given child by its name from the folder.
+   * Removes the given child by its name from the directory.
    *
    * @param name The name of the Inode to remove.
    * @return true if the inode was removed, false otherwise.
