@@ -47,7 +47,6 @@ import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
 import tachyon.master.file.journal.DependencyEntry;
-import tachyon.master.file.journal.FreeEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
@@ -69,11 +68,16 @@ public final class JsonJournalFormatter implements JournalFormatter {
     public static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
     public static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writer();
 
-    // TODO (Gene): mSequenceNumber is not being used.
     public final long mSequenceNumber;
     public final JournalEntryType mType;
     public Map<String, JsonNode> mParameters = Maps.newHashMap();
 
+    /**
+     * Constructor for serializing entries.
+     *
+     * @param SequenceNumber the sequence number for the entry.
+     * @param type the type of the entry.
+     */
     public JsonEntry(long SequenceNumber, JournalEntryType type) {
       mSequenceNumber = SequenceNumber;
       mType = type;
@@ -116,7 +120,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
      * @return deserialized value of this parameter in {@code Boolean}
      */
     public Boolean getBoolean(String name) {
-      return this.get(name, Boolean.class);
+      return get(name, Boolean.class);
     }
 
     /**
@@ -161,7 +165,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
      * @return deserialized value of this parameter in {@code Integer}
      */
     public Integer getInt(String name) {
-      return this.get(name, Number.class).intValue();
+      return get(name, Number.class).intValue();
     }
 
     /**
@@ -172,7 +176,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
      * @return deserialized value of this parameter in {@code Long}
      */
     public Long getLong(String name) {
-      return this.get(name, Number.class).longValue();
+      return get(name, Number.class).longValue();
     }
 
     /**
@@ -182,7 +186,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
      * @return deserialized value of this parameter in {@code String}
      */
     public String getString(String name) {
-      return this.get(name, String.class);
+      return get(name, String.class);
     }
 
     /**
@@ -220,6 +224,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
     return new JournalInputStream() {
       private JsonParser mParser = JsonEntry.createObjectMapper().getFactory()
           .createParser(inputStream);
+      private long mLatestSequenceNumber = 0;
 
       @Override
       public JournalEntry getNextEntry() throws IOException {
@@ -229,6 +234,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
         } catch (JsonProcessingException e) {
           return null;
         }
+        mLatestSequenceNumber = entry.mSequenceNumber;
         switch (entry.mType) {
           // Block
           case BLOCK_ID_GENERATOR: {
@@ -310,10 +316,6 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("length"),
                 entry.getLong("operationTimeMs"));
           }
-          case FREE: {
-            return new FreeEntry(
-                entry.getLong("id"));
-          }
           case SET_PINNED: {
             return new SetPinnedEntry(
                 entry.getLong("id"),
@@ -353,6 +355,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
       @Override
       public void close() throws IOException {
         inputStream.close();
+      }
+
+      @Override
+      public long getLatestSequenceNumber() {
+        return mLatestSequenceNumber;
       }
     };
   }

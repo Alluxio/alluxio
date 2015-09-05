@@ -19,9 +19,27 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-// TODO
+/**
+ * This describes the interface for serializing and deserializing entries in the journal.
+ */
 public interface JournalFormatter {
+  /**
+   * Serializes the given entry and writes it to the given output stream.
+   *
+   * @param entry The journal entry to serialize
+   * @param outputStream the output stream to serialize the entry to
+   * @throws IOException
+   */
   void serialize(SerializableJournalEntry entry, OutputStream outputStream) throws IOException;
 
+  /**
+   * Returns a {@link JournalInputStream} from the given input stream. The returned input stream
+   * produces a stream of {@link JournalEntry} objects.
+   *
+   * @param inputStream The input stream to deserialize
+   * @return a {@link JournalInputStream} for reading all the journal entries in the given input
+   *         stream.
+   * @throws IOException
+   */
   JournalInputStream deserialize(InputStream inputStream) throws IOException;
 }

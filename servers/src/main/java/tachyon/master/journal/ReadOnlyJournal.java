@@ -18,16 +18,13 @@ package tachyon.master.journal;
 import tachyon.conf.TachyonConf;
 
 /**
- * This encapsulates the journal for a master. The journal is made up of 2 components:
- * - The checkpoint: the full state of the master
- * - The entries: incremental entries to apply to the checkpoint.
- *
- * To construct the full state of the master, all the entries must be applied to the checkpoint in
- * order. The entry file most recently being written to is in the base journal folder, where the
- * completed entry files are in the "completed/" sub-directory.
+ * The read-only version of {@link Journal}. It prevents access to a journal writer.
  */
 public class ReadOnlyJournal extends Journal {
-
+  /**
+   * @param directory the base directory for the journal
+   * @param tachyonConf the tachyon conf
+   */
   public ReadOnlyJournal(String directory, TachyonConf tachyonConf) {
     super(directory, tachyonConf);
   }
@@ -36,5 +33,4 @@ public class ReadOnlyJournal extends Journal {
   public JournalWriter getNewWriter() {
     throw new IllegalStateException("Cannot get a writer for a read-only journal.");
   }
-
 }
