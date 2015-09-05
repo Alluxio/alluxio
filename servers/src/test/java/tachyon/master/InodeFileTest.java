@@ -129,6 +129,35 @@ public class InodeFileTest {
     Assert.assertEquals(testLength, inodeFile.getLength());
   }
 
+  @Test
+  public void setLengthTest() throws SuspectedFileSizeException, BlockInfoException {
+    int blockSizeBytes = 1000;
+    int testFileLength = 3500;
+    int expectedNumOfBlocks = (int) Math.ceil((double)testFileLength / blockSizeBytes);
+    InodeFile inodeFile =
+        new InodeFile("testFile1", 1, 0, blockSizeBytes, System.currentTimeMillis());
+    inodeFile.setLength(testFileLength);
+    Assert.assertEquals(expectedNumOfBlocks, inodeFile.getNumberOfBlocks());
+  }
+
+  @Test
+  public void setLengthTestBlocksShouldBeReconstructed() throws SuspectedFileSizeException,
+    BlockInfoException {
+    int blockSizeBytes = 1000;
+    int testFileLength1 = 3500;
+    int testFileLength2 = 6500;
+    int newNumOfBlocks = (int) Math.ceil((double)testFileLength2 / blockSizeBytes);
+    InodeFile inodeFile =
+        new InodeFile("testFile1", 1, 0, blockSizeBytes, System.currentTimeMillis());
+    inodeFile.setLength(testFileLength1);
+    Assert.assertTrue(inodeFile.isComplete());
+    // Dummy manual setup, so that we can set the length again and check the new
+    // state of mBlocks simply.
+    inodeFile.setComplete(false);
+    inodeFile.setLength(testFileLength2);
+    Assert.assertEquals(newNumOfBlocks, inodeFile.getNumberOfBlocks());
+  }
+
   @Test(expected = SuspectedFileSizeException.class)
   public void inodeRepeatedLengthSetTest() throws SuspectedFileSizeException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
