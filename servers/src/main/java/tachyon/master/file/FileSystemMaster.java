@@ -160,10 +160,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    mInodeTree.writeToJournal(outputStream);
-    mDependencyMap.writeToJournal(outputStream);
-    mDirectoryIdGenerator.writeToJournal(outputStream);
+  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+    mInodeTree.streamToJournalCheckpoint(outputStream);
+    mDependencyMap.streamToJournalCheckpoint(outputStream);
+    outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
   }
 
   @Override
@@ -467,8 +467,10 @@ public final class FileSystemMaster extends MasterBase {
       List<Inode> created =
           createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
 
-      // Writing the first created inode to the journal will also write its children.
-      writeJournalEntry(created.get(0));
+      // Journal all of the created inodes.
+      for (Inode inode : created) {
+        writeJournalEntry(inode.toJournalEntry());
+      }
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
       flushJournal();
 
@@ -791,8 +793,9 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       try {
         List<Inode> created = mInodeTree.createPath(path, 0, recursive, true);
+        // Journal all of the created inodes.
         for (Inode inode : created) {
-          writeJournalEntry(inode);
+          writeJournalEntry(inode.toJournalEntry());
         }
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         flushJournal();
