@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,15 +68,16 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mWriteBoth = new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(CacheType.CACHE)
-        .setUnderStorageType(UnderStorageType.PERSIST).build();
+    mWriteBoth =
+        new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(CacheType.CACHE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
     mWriteUnderStorage =
         new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(CacheType.NO_CACHE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
   }
 
   @Test
-  public void lockBlockTest1() throws IOException {
+  public void lockBlockTest1() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -86,8 +88,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     for (int k = 0; k < numOfFiles; k ++) {
       Assert.assertTrue(mTfs.getInfo(files.get(k)).getInMemoryPercentage() == 100);
     }
-    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
-        mWriteBoth, fileSize));
+    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
 
     CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
 
@@ -98,7 +99,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest2() throws IOException {
+  public void lockBlockTest2() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     tachyon.client.InStream is = null;
@@ -129,7 +130,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest3() throws IOException {
+  public void lockBlockTest3() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     tachyon.client.InStream is = null;
@@ -165,7 +166,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest1() throws IOException {
+  public void unlockBlockTest1() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     InStream is = null;
@@ -196,7 +197,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest2() throws IOException {
+  public void unlockBlockTest2() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     InStream is = null;
@@ -230,7 +231,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest3() throws IOException {
+  public void unlockBlockTest3() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     InStream is = null;
@@ -240,8 +241,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
     for (int k = 0; k < numOfFiles; k ++) {
-      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth,
-          fileSize));
+      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth, fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));

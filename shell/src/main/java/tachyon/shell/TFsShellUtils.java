@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -27,7 +27,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.InvalidPathException;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -77,7 +79,7 @@ public class TFsShellUtils {
       }
     } else {
       String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
-      int port =  tachyonConf.getInt(Constants.MASTER_PORT);
+      int port = tachyonConf.getInt(Constants.MASTER_PORT);
       if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
@@ -96,24 +98,25 @@ public class TFsShellUtils {
    * @throws IOException
    */
   public static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
-      TachyonURI inputURI) throws IOException {
+                                                TachyonURI inputURI)
+      throws IOException, InvalidPathException, FileDoesNotExistException {
     if (!inputURI.getPath().contains(TachyonURI.WILDCARD)) {
       return Lists.newArrayList(inputURI);
     } else {
       String inputPath = inputURI.getPath();
       TachyonURI parentURI =
-          new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(),
-              inputPath.substring(0, inputPath.indexOf(TachyonURI.WILDCARD) + 1)).getParent();
+          new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), inputPath.substring(0,
+              inputPath.indexOf(TachyonURI.WILDCARD) + 1)).getParent();
       return getTachyonURIs(tachyonClient, inputURI, parentURI);
     }
   }
 
   /**
-   * The utility function used to implement getTachyonURIs
-   * Basically, it recursively iterates through the directory from the parent directory of inputURI
-   * (e.g., for input "/a/b/*", it will start from "/a/b") until it finds all the matches;
-   * It does not go into a directory if the prefix mismatches
-   * (e.g., for input "/a/b/*", it won't go inside directory "/a/c")
+   * The utility function used to implement getTachyonURIs Basically, it recursively iterates
+   * through the directory from the parent directory of inputURI (e.g., for input "/a/b/*", it will
+   * start from "/a/b") until it finds all the matches; It does not go into a directory if the
+   * prefix mismatches (e.g., for input "/a/b/*", it won't go inside directory "/a/c")
+   * 
    * @param tachyonClient The client used to fetch metadata of Tachyon files
    * @param inputURI The input URI (could contain wildcards)
    * @param parentDir The TachyonURI of the directory in which we are searching matched files
@@ -121,7 +124,8 @@ public class TFsShellUtils {
    * @throws IOException
    */
   private static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
-      TachyonURI inputURI, TachyonURI parentDir) throws IOException {
+      TachyonURI inputURI, TachyonURI parentDir) throws IOException, InvalidPathException,
+      FileDoesNotExistException {
     List<TachyonURI> res = new LinkedList<TachyonURI>();
     List<FileInfo> files = tachyonClient.listStatus(tachyonClient.open(parentDir));
     for (FileInfo file : files) {
@@ -144,9 +148,10 @@ public class TFsShellUtils {
   }
 
   /**
-   * Get the Files (on the local filesystem) that matches input path.
-   * If the path is a regular path, the returned list only contains the corresponding file;
-   * Else if the path contains wildcards, the returned list contains all the matched Files
+   * Get the Files (on the local filesystem) that matches input path. If the path is a regular path,
+   * the returned list only contains the corresponding file; Else if the path contains wildcards,
+   * the returned list contains all the matched Files
+   * 
    * @param inputPath The input file path (could contain wildcards)
    * @return A list of files that matches inputPath
    */
@@ -166,8 +171,8 @@ public class TFsShellUtils {
   }
 
   /**
-   * The utility function used to implement getFiles
-   * It follows the same algorithm as getTachyonURIs
+   * The utility function used to implement getFiles It follows the same algorithm as getTachyonURIs
+   * 
    * @param inputPath The input file path (could contain wildcards)
    * @param parent The directory in which we are searching matched files
    * @return A list of files that matches the input path in the parent directory
@@ -203,6 +208,7 @@ public class TFsShellUtils {
 
   /**
    * Escape the special characters in a given string
+   * 
    * @param str Input string
    * @return the string with special characters escaped
    */
@@ -219,6 +225,7 @@ public class TFsShellUtils {
 
   /**
    * Return whether or not fileURI matches the patternURI
+   * 
    * @param fileURI The TachyonURI of a particular file
    * @param patternURI The URI that can contain wildcards
    * @return true if matches; false if not
@@ -229,6 +236,7 @@ public class TFsShellUtils {
 
   /**
    * Return whether or not filePath matches patternPath
+   * 
    * @param filePath Path of a given file
    * @param patternPath Path that can contain wildcards
    * @return true if matches; false if not

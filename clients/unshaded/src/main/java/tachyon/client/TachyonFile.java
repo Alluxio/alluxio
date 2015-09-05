@@ -29,7 +29,9 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -167,7 +169,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } else {
       optionsBuilder.setCacheType(CacheType.NO_CACHE);
     }
-    return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
+    try {
+      return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
+    } catch (InvalidPathException e) {
+      throw new IOException(e.getMessage());
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**

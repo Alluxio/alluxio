@@ -17,6 +17,8 @@ package tachyon.client;
 
 import java.io.IOException;
 
+import org.apache.thrift.TException;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
@@ -62,7 +64,11 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
       throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
     }
 
-    return createFile(path, TachyonURI.EMPTY_URI, blockSizeByte, true);
+    try {
+      return createFile(path, TachyonURI.EMPTY_URI, blockSizeByte, true);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -77,7 +83,11 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException If file already exists, or path is invalid.
    */
   public synchronized int createFile(TachyonURI path, TachyonURI ufsPath) throws IOException {
-    return createFile(path, ufsPath, -1, true);
+    try {
+      return createFile(path, ufsPath, -1, true);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -90,7 +100,11 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException
    */
   public synchronized boolean delete(long fid, boolean recursive) throws IOException {
-    return delete(fid, TachyonURI.EMPTY_URI, recursive);
+    try {
+      return delete(fid, TachyonURI.EMPTY_URI, recursive);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -103,7 +117,11 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException
    */
   public synchronized boolean delete(TachyonURI path, boolean recursive) throws IOException {
-    return delete(-1, path, recursive);
+    try {
+      return delete(-1, path, recursive);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -115,7 +133,11 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException
    */
   public synchronized boolean mkdir(TachyonURI path) throws IOException {
-    return mkdirs(path, true);
+    try {
+      return mkdirs(path, true);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -127,7 +149,11 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException
    */
   public synchronized boolean rename(long fileId, TachyonURI dstPath) throws IOException {
-    return rename(fileId, TachyonURI.EMPTY_URI, dstPath);
+    try {
+      return rename(fileId, TachyonURI.EMPTY_URI, dstPath);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -139,7 +165,11 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException
    */
   public synchronized boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws IOException {
-    return rename(-1, srcPath, dstPath);
+    try {
+      return rename(-1, srcPath, dstPath);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
  /**
@@ -152,6 +182,10 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   * @throws IOException
   */
   public synchronized boolean freepath(TachyonURI path, boolean recursive) throws IOException {
-    return freepath(-1, path, recursive);
+    try {
+      return freepath(-1, path, recursive);
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 }
