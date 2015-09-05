@@ -140,7 +140,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Return whether the inode is deleted or not.
+   * Returns whether the inode is deleted or not.
    *
    * @return true if the inode is deleted, false otherwise
    */
@@ -149,7 +149,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Return whether the inode is a directory or not
+   * Returns whether the inode is a directory or not
    *
    * @return true if the inode is a directory, false otherwise
    */
@@ -158,7 +158,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Return whether the inode is a file or not
+   * Returns whether the inode is a file or not
    *
    * @return true if the inode is a file, false otherwise
    */
@@ -167,7 +167,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Get the pinned flag of the inode
+   * Gets the pinned flag of the inode
    *
    * @return true if the inode is pinned, false otherwise
    */
@@ -176,14 +176,14 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Restore a deleted inode.
+   * Restores a deleted inode.
    */
   public synchronized void restore() {
     mDeleted = false;
   }
 
   /**
-   * Set the last modification time of the inode
+   * Sets the last modification time of the inode
    *
    * @param lastModificationTimeMs The last modification time, in milliseconds
    */
@@ -192,7 +192,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Set the name of the inode
+   * Sets the name of the inode
    *
    * @param name The new name of the inode
    */
@@ -201,7 +201,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Set the parent folder of the inode
+   * Sets the parent folder of the inode
    *
    * @param parentId The new parent
    */
@@ -210,7 +210,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Set the pinned flag of the inode
+   * Sets the pinned flag of the inode
    *
    * @param pinned If true, the inode need pinned, and a pinned file is never evicted from memory
    */

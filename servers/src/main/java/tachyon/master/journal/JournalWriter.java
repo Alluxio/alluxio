@@ -22,6 +22,8 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
@@ -38,7 +40,7 @@ import tachyon.underfs.UnderFileSystem;
  * The latest state can be reconstructed by reading the checkpoint file, and applying all the
  * completed logs and then the remaining log in progress.
  */
-public class JournalWriter {
+public final class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make this a config parameter.
   private static int sMaxLogSize = 10 * Constants.MB;
@@ -66,8 +68,8 @@ public class JournalWriter {
   private long mNextEntrySequenceNumber = 1;
 
   JournalWriter(Journal journal, TachyonConf tachyonConf) {
-    mJournal = journal;
-    mTachyonConf = tachyonConf;
+    mJournal = Preconditions.checkNotNull(journal);
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mJournalDirectory = mJournal.getDirectory();
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";

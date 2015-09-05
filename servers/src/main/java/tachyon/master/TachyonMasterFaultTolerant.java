@@ -36,7 +36,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 /**
  * The fault tolerant version of TachyonMaster that uses zookeeper and standby masters.
  */
-public class TachyonMasterFaultTolerant extends TachyonMaster {
+public final class TachyonMasterFaultTolerant extends TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
@@ -61,8 +61,9 @@ public class TachyonMasterFaultTolerant extends TachyonMaster {
   }
 
   /**
-   * Start a Tachyon master server.
+   * Starts a Tachyon master server.
    */
+  @Override
   public void start() throws Exception {
     try {
       mLeaderSelectorClient.start();
@@ -106,8 +107,9 @@ public class TachyonMasterFaultTolerant extends TachyonMaster {
   }
 
   /**
-   * Stop a Tachyon master server. Should only be called by tests.
+   * Stops a Tachyon master server. Should only be called by tests.
    */
+  @Override
   public void stop() throws Exception {
     super.stop();
     if (mLeaderSelectorClient != null) {
