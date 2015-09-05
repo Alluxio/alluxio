@@ -49,7 +49,7 @@ public abstract class Inode implements JournalSerializable {
   private boolean mDeleted = false;
 
   /**
-   * Create an inode.
+   * Creates an inode.
    *
    * @param name the name of the inode.
    * @param id the id of the inode, which is globally unique.
@@ -82,7 +82,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Generate a FileInfo of the file or folder.
+   * Generates a FileInfo of the file or folder.
    *
    * @param path The path of the file
    * @return generated FileInfo
@@ -90,8 +90,6 @@ public abstract class Inode implements JournalSerializable {
   public abstract FileInfo generateClientFileInfo(String path);
 
   /**
-   * Get the create time of the inode.
-   *
    * @return the create time, in milliseconds
    */
   public long getCreationTimeMs() {
@@ -99,8 +97,6 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Get the id of the inode
-   *
    * @return the id of the inode
    */
   public synchronized long getId() {
@@ -108,8 +104,6 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Get the last modification time of the inode
-   *
    * @return the last modification time, in milliseconds
    */
   public synchronized long getLastModificationTimeMs() {
@@ -117,8 +111,6 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Get the name of the inode
-   *
    * @return the name of the inode
    */
   public synchronized String getName() {
@@ -126,8 +118,6 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Get the id of the parent folder
-   *
    * @return the id of the parent folder
    */
   public synchronized long getParentId() {
@@ -140,8 +130,6 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Return whether the inode is deleted or not.
-   *
    * @return true if the inode is deleted, false otherwise
    */
   public boolean isDeleted() {
@@ -149,8 +137,6 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Return whether the inode is a directory or not
-   *
    * @return true if the inode is a directory, false otherwise
    */
   public boolean isDirectory() {
@@ -158,8 +144,6 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Return whether the inode is a file or not
-   *
    * @return true if the inode is a file, false otherwise
    */
   public boolean isFile() {
@@ -167,8 +151,6 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Get the pinned flag of the inode
-   *
    * @return true if the inode is pinned, false otherwise
    */
   public synchronized boolean isPinned() {
@@ -176,14 +158,14 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Restore a deleted inode.
+   * Restores a deleted inode.
    */
   public synchronized void restore() {
     mDeleted = false;
   }
 
   /**
-   * Set the last modification time of the inode
+   * Sets the last modification time of the inode
    *
    * @param lastModificationTimeMs The last modification time, in milliseconds
    */
@@ -192,7 +174,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Set the name of the inode
+   * Sets the name of the inode
    *
    * @param name The new name of the inode
    */
@@ -201,7 +183,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Set the parent folder of the inode
+   * Sets the parent folder of the inode
    *
    * @param parentId The new parent
    */
@@ -210,7 +192,7 @@ public abstract class Inode implements JournalSerializable {
   }
 
   /**
-   * Set the pinned flag of the inode
+   * Sets the pinned flag of the inode
    *
    * @param pinned If true, the inode need pinned, and a pinned file is never evicted from memory
    */

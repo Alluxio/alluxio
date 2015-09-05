@@ -36,6 +36,9 @@ public class InodeDirectoryIdGenerator implements JournalSerializable {
   private long mContainerId;
   private long mSequenceNumber;
 
+  /**
+   * @param containerIdGenerator the container id generator to use
+   */
   public InodeDirectoryIdGenerator(ContainerIdGenerator containerIdGenerator) {
     mContainerIdGenerator = containerIdGenerator;
   }
@@ -65,6 +68,7 @@ public class InodeDirectoryIdGenerator implements JournalSerializable {
   public void fromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
     mContainerId = entry.getContainerId();
     mSequenceNumber = entry.getSequenceNumber();
+    mInitialized = true;
   }
 
   private void initialize() {

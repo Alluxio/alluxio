@@ -45,9 +45,10 @@ import tachyon.util.io.PathUtils;
 
 public final class InodeTree implements JournalSerializable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // Only the root inode should have the empty string as its name.
+  /** Only the root inode should have the empty string as its name. */
   private static final String ROOT_INODE_NAME = "";
 
+  /** The root of the entire file system. */
   private InodeDirectory mRoot;
 
   private final IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
@@ -79,6 +80,10 @@ public final class InodeTree implements JournalSerializable {
    */
   private InodeDirectory mCachedInode;
 
+  /**
+   * @param containerIdGenerator the container id generator to use to get new container ids.
+   * @param directoryIdGenerator the directory id generator to use to get new directory ids.
+   */
   public InodeTree(ContainerIdGenerator containerIdGenerator,
       InodeDirectoryIdGenerator directoryIdGenerator) {
     mContainerIdGenerator = containerIdGenerator;
@@ -95,6 +100,11 @@ public final class InodeTree implements JournalSerializable {
     }
   }
 
+  /**
+   * @param id the id to get the inode for
+   * @return the inode with the given id
+   * @throws FileDoesNotExistException
+   */
   public Inode getInodeById(long id) throws FileDoesNotExistException {
     Inode inode = mInodes.getFirstByField(mIdIndex, id);
     if (inode == null) {
@@ -103,6 +113,11 @@ public final class InodeTree implements JournalSerializable {
     return inode;
   }
 
+  /**
+   * @param path the path to get the inode for
+   * @return the inode with the given path
+   * @throws InvalidPathException
+   */
   public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
     TraversalResult traversalResult = traverseToInode(PathUtils.getPathComponents(path.toString()));
     if (!traversalResult.isFound()) {
@@ -111,6 +126,10 @@ public final class InodeTree implements JournalSerializable {
     return traversalResult.getInode();
   }
 
+  /**
+   * @param inode the inode to get the path for
+   * @return the path for a given inode
+   */
   public TachyonURI getPath(Inode inode) {
     if (isRootId(inode.getId())) {
       return new TachyonURI(TachyonURI.SEPARATOR);
@@ -121,18 +140,15 @@ public final class InodeTree implements JournalSerializable {
     return getPath(mInodes.getFirstByField(mIdIndex, inode.getParentId())).join(inode.getName());
   }
 
+  /**
+   * @return the root inode
+   */
   public InodeDirectory getRoot() {
     return mRoot;
   }
 
-  public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory)
-          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
-    return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis());
-  }
-
   /**
-   * Create a file or directory at path.
+   * Creates a file or directory at the given path.
    *
    * @param path the path
    * @param blockSizeBytes block size in bytes, if it is to create a file, the blockSizeBytes should
@@ -141,6 +157,29 @@ public final class InodeTree implements JournalSerializable {
    *        path, otherwise, throw InvalidPathException if there some necessary parent directories
    *        is nonexistent
    * @param directory if it is true, create a directory, otherwise, create a file
+   * @return a list of Inodes created in the order of creation time. If no Inodes are created, the
+   *         list will be empty
+   * @throws FileAlreadyExistException
+   * @throws BlockInfoException
+   * @throws InvalidPathException
+   */
+  public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
+      boolean directory)
+          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
+    return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis());
+  }
+
+  /**
+   * Creates a file or directory at path.
+   *
+   * @param path the path
+   * @param blockSizeBytes block size in bytes, if it is to create a file, the blockSizeBytes should
+   *        not be fewer than 1, otherwise, it is ignored, can be set to 0
+   * @param recursive if it is true, create any necessary but nonexistent parent directories of the
+   *        path, otherwise, throw InvalidPathException if there some necessary parent directories
+   *        is nonexistent
+   * @param directory if it is true, create a directory, otherwise, create a file
+   * @param creationTimeMs the time to create the inode
    * @return a list of Inodes created in the order of creation time. If no Inodes are created, the
    *         list will be empty
    * @throws FileAlreadyExistException when there is already a file at path if we want to create a
@@ -274,6 +313,11 @@ public final class InodeTree implements JournalSerializable {
     inode.delete();
   }
 
+  /**
+   * Deletes a single inode from the inode tree by removing it from the parent inode.
+   *
+   * @param inode The {@link Inode} to delete
+   */
   public void deleteInode(Inode inode) throws FileDoesNotExistException {
     deleteInode(inode, System.currentTimeMillis());
   }
@@ -304,17 +348,30 @@ public final class InodeTree implements JournalSerializable {
     }
   }
 
+  /**
+   * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
+   * recursively.
+   *
+   * @param inode The {@link Inode} to set the pinned state for.
+   * @param pinned The pinned state to set for the inode (and possible descendants).
+   */
   public void setPinned(Inode inode, boolean pinned) {
     setPinned(inode, pinned, System.currentTimeMillis());
   }
 
-  // TODO: this should return block container ids, not file ids.
+  /**
+   * @return the set of file ids which are pinned.
+   */
   public Set<Long> getPinIdSet() {
     return Sets.newHashSet(mPinnedInodeFileIds);
   }
 
-  public boolean isRootId(long id) {
-    return id == mRoot.getId();
+  /**
+   * @param fileId the file id to check
+   * @return true if the given file id is the root id
+   */
+  public boolean isRootId(long fileId) {
+    return fileId == mRoot.getId();
   }
 
   @Override
