@@ -80,19 +80,42 @@ public class JournalWriter {
   }
 
   /**
+   * Marks all logs as completed.
+   */
+  public synchronized void completeAllLogs() throws IOException {
+    LOG.info("Marking all logs as complete.");
+    // Loop over all complete logs starting from the beginning, to determine the next log number.
+    mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
+    String logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
+    while (mUfs.exists(logFilename)) {
+      mNextCompleteLogNumber ++;
+      // generate the next completed log filename in the sequence.
+      logFilename = mJournal.getCompletedLogFilePath(mNextCompleteLogNumber);
+    }
+    completeCurrentLog();
+  }
+
+  /**
    * Returns an output stream for the journal checkpoint. The returned output stream is a singleton
    * for this writer.
    *
+   * @param latestSequenceNumber the sequence number of the latest journal entry. This sequence
+   *        number will be used to determine the next sequence numbers for the subsequent journal
+   *        entries.
    * @return the output stream for the journal checkpoint.
    * @throws IOException
    */
-  public synchronized JournalOutputStream getCheckpointOutputStream() throws IOException {
+  public synchronized JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber)
+      throws IOException {
     if (mCheckpointOutputStream == null) {
       LOG.info("Creating tmp checkpoint file: " + mTempCheckpointPath);
       if (!mUfs.exists(mJournalDirectory)) {
         LOG.info("Creating journal folder: " + mJournalDirectory);
         mUfs.mkdirs(mJournalDirectory, true);
       }
+      mNextEntrySequenceNumber = latestSequenceNumber + 1;
+      LOG.info("Latest journal sequence number: " + latestSequenceNumber
+          + " Next journal sequence number: " + mNextEntrySequenceNumber);
       mCheckpointOutputStream =
           new CheckpointOutputStream(new DataOutputStream(mUfs.create(mTempCheckpointPath)));
     }

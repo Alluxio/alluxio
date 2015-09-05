@@ -17,6 +17,15 @@ package tachyon.master.journal;
 
 import java.io.IOException;
 
+/**
+ * This interface enables streaming out to the journal.
+ */
 public interface JournalSerializable {
+  /**
+   * Writes to the journal, in a streaming fashion, via the {@link JournalOutputStream}
+   *
+   * @param outputStream the output stream to stream out to the journal.
+   * @throws IOException
+   */
   void writeToJournal(JournalOutputStream outputStream) throws IOException;
 }

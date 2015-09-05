@@ -28,20 +28,27 @@ import tachyon.conf.TachyonConf;
  * completed entry files are in the "completed/" sub-directory.
  */
 public class Journal {
+  /** The log number for the first completed log file. */
   public static final int FIRST_COMPLETED_LOG_NUMBER = 1;
+  /** The directory for completed log files, relative to the base journal directory. */
   private static final String COMPLETED_DIRECTORY = "completed/";
+  /** The file extension for the current log file. */
   private static final String CURRENT_LOG_EXTENSION = ".out";
-
-  // TODO: should this be a config parameter?
   /** The filename of the checkpoint file. */
-  private final String mCheckpointFilename = "checkpoint.data";
-  // TODO: should this be a config parameter?
+  private static final String CHECKPOINT_FILENAME = "checkpoint.data";
   /** The base of the entry log filenames, without the file extension. */
-  private final String mEntryLogFilenameBase = "log";
-  private final String mDirectory;
+  private static final String ENTRY_LOG_FILENAME_BASE = "log";
+
   private final TachyonConf mTachyonConf;
+  /** The directory where this journal is stored. */
+  private final String mDirectory;
+  /** The formatter for this journal. */
   private final JournalFormatter mJournalFormatter;
 
+  /**
+   * @param directory the base directory for this journal
+   * @param tachyonConf the tachyon conf
+   */
   public Journal(String directory, TachyonConf tachyonConf) {
     if (!directory.endsWith(TachyonURI.SEPARATOR)) {
       // Ensure directory format.
@@ -49,24 +56,35 @@ public class Journal {
     }
     mDirectory = directory;
     mTachyonConf = tachyonConf;
-    // TODO: maybe this can be constructed, specified by a parameter in tachyonConf.
     mJournalFormatter = new JsonJournalFormatter();
   }
 
+  /**
+   * @return the base directory for this journal
+   */
   public String getDirectory() {
     return mDirectory;
   }
 
+  /**
+   * @return the directory for where the completed log files are stored
+   */
   public String getCompletedDirectory() {
     return mDirectory + COMPLETED_DIRECTORY;
   }
 
+  /**
+   * @return the absolute path for the journal checkpoint file
+   */
   public String getCheckpointFilePath() {
-    return mDirectory + mCheckpointFilename;
+    return mDirectory + CHECKPOINT_FILENAME;
   }
 
+  /**
+   * @return the absolute path for the current log file.
+   */
   public String getCurrentLogFilePath() {
-    return mDirectory + mEntryLogFilenameBase + CURRENT_LOG_EXTENSION;
+    return mDirectory + ENTRY_LOG_FILENAME_BASE + CURRENT_LOG_EXTENSION;
   }
 
   /**
@@ -76,21 +94,33 @@ public class Journal {
    * @return The absolute path of the completed log for a given log number.
    */
   public String getCompletedLogFilePath(int logNumber) {
-    return getCompletedDirectory() + String.format("%s.%07d", mEntryLogFilenameBase, logNumber);
+    return getCompletedDirectory() + String.format("%s.%07d", ENTRY_LOG_FILENAME_BASE, logNumber);
   }
 
+  /**
+   * @return the formatter for this journal
+   */
   public JournalFormatter getJournalFormatter() {
     return mJournalFormatter;
   }
 
+  /**
+   * @return a readonly version of this journal
+   */
   public ReadOnlyJournal getReadOnlyJournal() {
     return new ReadOnlyJournal(mDirectory, mTachyonConf);
   }
 
+  /**
+   * @return the writer for this journal
+   */
   public JournalWriter getNewWriter() {
     return new JournalWriter(this, mTachyonConf);
   }
 
+  /**
+   * @return the reader for this journal
+   */
   public JournalReader getNewReader() {
     return new JournalReader(this, mTachyonConf);
   }
