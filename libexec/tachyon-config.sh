@@ -32,8 +32,8 @@ fi
 # Make sure tachyon-env.sh exists  
 if [ ! -e $TACHYON_CONF_DIR/tachyon-env.sh ]; then
   echo "Cannot find tachyon-env.sh in $TACHYON_CONF_DIR."
-  echo "Please create one manually or using $TACHYON_HOME/bin/tachyon bootstrap-conf function."
-  exit 0
+  echo "Please create one manually or using '$TACHYON_HOME/bin/tachyon bootstrap-conf'."
+  exit 1
 fi
 
 . $TACHYON_CONF_DIR/tachyon-env.sh
