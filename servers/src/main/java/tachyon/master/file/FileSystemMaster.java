@@ -42,7 +42,6 @@ import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
 import tachyon.master.file.journal.DependencyEntry;
-import tachyon.master.file.journal.FreeEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.RenameEntry;
@@ -144,8 +143,6 @@ public final class FileSystemMaster extends MasterBase {
       completeFileFromEntry((CompleteFileEntry) entry);
     } else if (entry instanceof AddCheckpointEntry) {
       completeFileCheckpointFromEntry((AddCheckpointEntry) entry);
-    } else if (entry instanceof FreeEntry) {
-      freeFromEntry((FreeEntry) entry);
     } else if (entry instanceof SetPinnedEntry) {
       setPinnedFromEntry((SetPinnedEntry) entry);
     } else if (entry instanceof DeleteFileEntry) {
@@ -799,40 +796,25 @@ public final class FileSystemMaster extends MasterBase {
         // true
         return false;
       }
-      freeInternal(inode);
-      writeJournalEntry(new FreeEntry(fileId));
-      flushJournal();
-    }
 
-    return true;
-  }
+      List<Inode> freeInodes = new ArrayList<Inode>();
+      freeInodes.add(inode);
+      if (inode.isDirectory()) {
+        freeInodes.addAll(mInodeTree.getInodeChildrenRecursive((InodeDirectory) inode));
+      }
 
-  private void freeInternal(Inode inode) {
-    List<Inode> freeInodes = new ArrayList<Inode>();
-    freeInodes.add(inode);
-    if (inode.isDirectory()) {
-      freeInodes.addAll(mInodeTree.getInodeChildrenRecursive((InodeDirectory) inode));
-    }
+      // We go through each inode.
+      for (int i = freeInodes.size() - 1; i >= 0; i --) {
+        Inode freeInode = freeInodes.get(i);
 
-    // We go through each inode.
-    for (int i = freeInodes.size() - 1; i >= 0; i--) {
-      Inode freeInode = freeInodes.get(i);
-
-      if (freeInode.isFile()) {
-        // Remove corresponding blocks from workers.
-        mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
+        if (freeInode.isFile()) {
+          // Remove corresponding blocks from workers.
+          mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds());
+        }
       }
     }
+    return true;
   }
-
-  private void freeFromEntry(FreeEntry entry) {
-    try {
-      freeInternal(mInodeTree.getInodeById(entry.getId()));
-    } catch (FileDoesNotExistException fdnee) {
-      throw new RuntimeException(fdnee);
-    }
-  }
-
 
   /**
    * Gets the path of a file with the given id

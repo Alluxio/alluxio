@@ -34,18 +34,28 @@ public class JournalTailerThread extends Thread {
   private final Master mMaster;
   private final Journal mJournal;
   /** This become true when this class is instructed to shutdown. */
-  private boolean mInitiateShutdown = false;
+  private volatile boolean mInitiateShutdown = false;
 
+  /**
+   * @param master the master to apply the journal entries to
+   * @param journal the journal to tail
+   */
   public JournalTailerThread(Master master, Journal journal) {
     mMaster = master;
     mJournal = journal;
   }
 
+  /**
+   * Initiate the shutdown of this tailer thread.
+   */
   public void shutdown() {
     LOG.info(mMaster.getProcessorName() + " Journal tailer shutdown has been initiated.");
     mInitiateShutdown = true;
   }
 
+  /**
+   * Initiate the shutdown of this tailer thread, and also wait for it to finish.
+   */
   public void shutdownAndJoin() {
     shutdown();
     try {
@@ -61,7 +71,7 @@ public class JournalTailerThread extends Thread {
     LOG.info(mMaster.getProcessorName() + " Journal tailer started.");
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
-    while (true) {
+    while (!mInitiateShutdown) {
       try {
         // The start time (ms) for the initiated shutdown.
         long waitForShutdownStart = -1;
@@ -71,12 +81,7 @@ public class JournalTailerThread extends Thread {
         tailer.processJournalCheckpoint(true);
 
         // Continually process completed log files.
-        while (true) {
-          if (!tailer.isValid()) {
-            LOG.info("The checkpoint is out of date. Will reload the checkpoint file.");
-            break;
-          }
-
+        while (tailer.isValid()) {
           if (tailer.processNextJournalLogFiles() > 0) {
             // Reset the shutdown timer.
             waitForShutdownStart = -1;
@@ -96,17 +101,13 @@ public class JournalTailerThread extends Thread {
             CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
           }
         }
-
+        LOG.info("The checkpoint is out of date. Will reload the checkpoint file.");
         CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
       } catch (IOException ioe) {
         // Log the error and continue the loop.
         LOG.error(ioe.getMessage());
-        if (mInitiateShutdown) {
-          LOG.info(mMaster.getProcessorName() + " Journal tailer has been shutdown.");
-          return;
-        }
-        CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
       }
     }
+    LOG.info(mMaster.getProcessorName() + " Journal tailer has been shutdown.");
   }
 }

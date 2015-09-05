@@ -45,6 +45,13 @@ public final class BlockMasterClient extends MasterClientBase {
 
   private BlockMasterService.Client mClient = null;
 
+  /**
+   * Creates a new block master client.
+   *
+   * @param masterAddress the master address
+   * @param executorService the executor service
+   * @param tachyonConf the Tachyon configuration
+   */
   public BlockMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
@@ -65,10 +72,10 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Get the info of a list of workers.
+   * Gets the info of a list of workers.
    *
    * @return A list of worker info returned by master
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
     while (!mIsClosed) {
@@ -85,11 +92,11 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Return the BlockInfo for a block id
+   * Returns the BlockInfo for a block id.
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the BlockInfo
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
     while (!mIsClosed) {
@@ -105,10 +112,10 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Get the total Tachyon capacity in bytes, on all the tiers of all the workers.
+   * Gets the total Tachyon capacity in bytes, on all the tiers of all the workers.
    *
    * @return total capacity in bytes
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized long getCapacityBytes() throws IOException {
     while (!mIsClosed) {
@@ -124,10 +131,10 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Get the total amount of used space in bytes, on all the tiers of all the workers.
+   * Gets the total amount of used space in bytes, on all the tiers of all the workers.
    *
    * @return amount of used space in bytes
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized long getUsedBytes() throws IOException {
     while (!mIsClosed) {
@@ -153,7 +160,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @param tier the tier the block is being committed to
    * @param blockId the block id being committed
    * @param length the length of the block being committed
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized void workerCommitBlock(long workerId, long usedBytesOnTier, int tier, long
       blockId, long length) throws IOException {
@@ -174,7 +181,7 @@ public final class BlockMasterClient extends MasterClientBase {
    *
    * @param address the net address to get a worker id for
    * @return a worker id
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized long workerGetId(NetAddress address) throws IOException {
     while (!mIsClosed) {
@@ -198,7 +205,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @param addedBlocks the added blocks for each storage dir. It maps storage dir id, to a list of
    *        added block for that storage dir.
    * @return an optional command for the worker to execute
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers, List<Long>
       removedBlocks, Map<Long, List<Long>> addedBlocks) throws IOException {
@@ -215,7 +222,7 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * The method to worker should execute to register with the block master.
+   * The method the worker should execute to register with the block master.
    *
    * @param workerId the worker id of the worker registering
    * @param totalBytesOnTiers list of total bytes on each tier
@@ -223,7 +230,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
    *        dir
    * @return the worker id
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers, List<Long>
       usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {

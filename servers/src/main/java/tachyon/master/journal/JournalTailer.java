@@ -30,10 +30,19 @@ import tachyon.master.Master;
 public final class JournalTailer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The master to apply all the journal entries to. */
   private final Master mMaster;
+  /** The journal to tail. */
   private final Journal mJournal;
+  /** The journal reader to read journal entries. */
   private final JournalReader mReader;
+  /** This keeps track of the latest sequence number seen in the journal entries. */
+  private long mLatestSequenceNumber = 0;
 
+  /**
+   * @param master the master to apply the journal entries to
+   * @param journal the journal to tail
+   */
   public JournalTailer(Master master, Journal journal) {
     mMaster = master;
     mJournal = journal;
@@ -41,22 +50,29 @@ public final class JournalTailer {
   }
 
   /**
-   * Returns whether or not the tailer is currently valid.
-   *
-   * @return true if this tailer is valid.
+   * @return true if this tailer is valid, false otherwise.
    */
   public boolean isValid() {
     return mReader.isValid();
   }
 
   /**
-   * Returns the last modified time for the checkpoint file.
-   *
-   * @return the last modified time of the checkpoint file in ms.
-   * @throws IOException
+   * @return true if the checkpoint exists.
    */
-  public long getCheckpointLastModifiedTimeMs() throws IOException {
-    return mReader.getCheckpointLastModifiedTimeMs();
+  public boolean checkpointExists() {
+    try {
+      mReader.getCheckpointLastModifiedTimeMs();
+      return true;
+    } catch (IOException ioe) {
+      return false;
+    }
+  }
+
+  /**
+   * @return the sequence number of the latest entry in the journal read so far.
+   */
+  public long getLatestSequenceNumber() {
+    return mLatestSequenceNumber;
   }
 
   /**
@@ -77,25 +93,23 @@ public final class JournalTailer {
       // Only apply the checkpoint to the master, if specified.
       mMaster.processJournalCheckpoint(is);
     }
+    // update the latest sequence number seen.
+    mLatestSequenceNumber = is.getLatestSequenceNumber();
     is.close();
   }
 
   /**
-   * Processes all the next journal log files. {@link #processJournalCheckpoint(boolean)} must have
-   * been called previously.
+   * Processes all the next completed journal log files. This method will return when the next
+   * complete file is not found.
    *
-   * @return the number of log files processed.
+   * {@link #processJournalCheckpoint(boolean)} must have been called previously.
+   *
+   * @return the number of completed log files processed.
    * @throws IOException
    */
   public int processNextJournalLogFiles() throws IOException {
-    int numProcessed = 0;
-    while (true) {
-      if (!mReader.isValid()) {
-        LOG.info("The checkpoint is out of date. Must reload checkpoint file. "
-            + mJournal.getCheckpointFilePath());
-        return numProcessed;
-      }
-
+    int numFilesProcessed = 0;
+    while (mReader.isValid()) {
       // Process the new completed log file, if it exists.
       JournalInputStream inputStream = mReader.getNextInputStream();
       if (inputStream != null) {
@@ -103,13 +117,18 @@ public final class JournalTailer {
         JournalEntry entry;
         while ((entry = inputStream.getNextEntry()) != null) {
           mMaster.processJournalEntry(entry);
+          // update the latest sequence number seen.
+          mLatestSequenceNumber = inputStream.getLatestSequenceNumber();
         }
         inputStream.close();
-        numProcessed ++;
+        numFilesProcessed ++;
         LOG.info("Finished processing the log file.");
       } else {
-        return numProcessed;
+        return numFilesProcessed;
       }
     }
+    LOG.info("The checkpoint is out of date. Must reload checkpoint file. "
+        + mJournal.getCheckpointFilePath());
+    return numFilesProcessed;
   }
 }

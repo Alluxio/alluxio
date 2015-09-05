@@ -40,14 +40,19 @@ public class JournalReader {
   private final UnderFileSystem mUfs;
   private final String mCheckpointPath;
 
-  // true if the checkpoint has already been read.
+  /** true if the checkpoint has already been read. */
   private boolean mCheckpointRead = false;
-  // The modified time (in ms) for the opened checkpoint file.
+  /** The modified time (in ms) for the opened checkpoint file. */
   private long mCheckpointOpenedTime = -1;
-  // The modified time (in ms) for the latest checkpoint file.
+  /** The modified time (in ms) for the latest checkpoint file. */
   private long mLatestCheckpointModifiedTime = -1;
+  /** The log number for the completed log file. */
   private int mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
+  /**
+   * @param journal the handle to the journal
+   * @param tachyonConf the tachyon conf
+   */
   JournalReader(Journal journal, TachyonConf tachyonConf) {
     mJournal = journal;
     mTachyonConf = tachyonConf;
@@ -62,10 +67,7 @@ public class JournalReader {
    * @return true if the checkpoint file has not been modified.
    */
   public boolean isValid() {
-    if (!mCheckpointRead || (mCheckpointOpenedTime != mLatestCheckpointModifiedTime)) {
-      return false;
-    }
-    return true;
+    return mCheckpointRead && (mCheckpointOpenedTime == mLatestCheckpointModifiedTime);
   }
 
   public JournalInputStream getCheckpointInputStream() throws IOException {
@@ -83,8 +85,6 @@ public class JournalReader {
   }
 
   /**
-   * Returns the input stream for the next completed log file, or null if it doesn't exist yet.
-   *
    * @return the input stream for the next completed log file. Will return null if the next
    *         completed log file does not exist yet.
    * @throws IOException
@@ -112,8 +112,6 @@ public class JournalReader {
   }
 
   /**
-   * Returns the last modified time for the checkpoint file.
-   *
    * @return the last modified time of the checkpoint file in ms.
    * @throws IOException
    */

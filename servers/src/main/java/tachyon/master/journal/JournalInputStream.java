@@ -17,11 +17,14 @@ package tachyon.master.journal;
 
 import java.io.IOException;
 
+/**
+ * This input stream retrieves {@link JournalEntry} from journal checkpoint files and journal log
+ * files.
+ */
 public interface JournalInputStream {
   /**
-   * Returns the next {@link JournalEntry} in the stream.
-   *
-   * @return the next {@link JournalEntry}. returns null if the are no more entries.
+   * @return the next {@link JournalEntry} in the stream, null if the are no more entries in the
+   *         stream.
    */
   JournalEntry getNextEntry() throws IOException;
 
@@ -29,4 +32,9 @@ public interface JournalInputStream {
    * Closes the stream.
    */
   void close() throws IOException;
+
+  /**
+   * @return the sequence number of the latest journal entry seen in the stream.
+   */
+  long getLatestSequenceNumber();
 }

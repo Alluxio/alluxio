@@ -51,6 +51,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
 
   private FileSystemMasterService.Client mClient = null;
 
+  /**
+   * Creates a new file system master client.
+   *
+   * @param masterAddress the master address
+   * @param executorService the executor service
+   * @param tachyonConf the Tachyon configuration
+   */
   public FileSystemMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
@@ -70,6 +77,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
   protected void afterDisconnect() {
   }
 
+  /**
+   * @param path the path
+   * @return the file id for the given path
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized long getFileId(String path) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -85,6 +97,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * @param fileId the file id
+   * @return the file info for the given file id
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized FileInfo getFileInfo(long fileId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -102,6 +119,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * @param fileId the file id
+   * @return the list of file information for the given file id
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -119,6 +141,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * @param fileId the file id
+   * @param fileBlockIndex the file block index
+   * @return the file block information
+   * @throws IOException if an I/O error occurs
+   */
   // TODO: Not sure if this is necessary
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException {
@@ -138,6 +166,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * @param fileId the file id
+   * @return the list of file block information for the given file id
+   * @throws IOException if an I/O error occurs
+   */
   // TODO: Not sure if this is necessary
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException {
     while (!mIsClosed) {
@@ -154,6 +187,11 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * @param fileId the file id
+   * @return a new block id for the given file id
+   * @throws IOException if an I/O error occurs.
+   */
   public synchronized long getNewBlockIdForFile(long fileId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -169,6 +207,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * @return the set of pinned file ids
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized Set<Long> getPinList() throws IOException {
     while (!mIsClosed) {
       connect();
@@ -184,6 +226,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * @return the under file system address
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized String getUfsAddress() throws IOException {
     while (!mIsClosed) {
       connect();
@@ -197,6 +243,15 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Creates a new file.
+   *
+   * @param path the file path
+   * @param blockSizeBytes the file size
+   * @param recursive whether parent directories should be created if not present yet
+   * @return the file id
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
       throws IOException {
     while (!mIsClosed) {
@@ -217,6 +272,16 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Loads a file from the under file system.
+   *
+   * @param path the file path
+   * @param ufsPath the under file system path
+   * @param blockSizeByte the file size
+   * @param recursive whether parent directories should be loaded if not present yet
+   * @return the file id
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized long loadFileFromUfs(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
     while (!mIsClosed) {
@@ -233,6 +298,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Marks a file as completed.
+   *
+   * @param fileId the file id
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized void completeFile(long fileId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -253,6 +324,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Deletes a file.
+   *
+   * @param fileId the file id
+   * @param recursive whether to delete the file recursively (when it is a directory)
+   * @return whether operation succeeded or not
+   * @throws IOException  if an I/O error occurs
+   */
   public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -268,6 +347,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Renames a file.
+   *
+   * @param fileId the file id
+   * @param dstPath new file path
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized boolean renameFile(long fileId, String dstPath) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -283,6 +370,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Sets the "pinned" status for a file.
+   *
+   * @param fileId the file id
+   * @param pinned the pinned status to use
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized void setPinned(long fileId, boolean pinned) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -299,6 +393,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Creates a new directory.
+   *
+   * @param path the directory path
+   * @param recursive whether parent directories should be created if they don't exist yet
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized boolean createDirectory(String path, boolean recursive) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -316,6 +418,14 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Frees a file.
+   *
+   * @param fileId the file id
+   * @param recursive whether free the file recursively (when it is a directory)
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized boolean free(long fileId, boolean recursive) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -333,6 +443,16 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Adds a checkpoint.
+   *
+   * @param workerId the worker id
+   * @param fileId the file id
+   * @param length the checkpoint length
+   * @param checkpointPath the checkpoint path
+   * @return whether operation succeeded or not
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
       String checkpointPath) throws IOException {
     while (!mIsClosed) {
@@ -349,6 +469,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Reports a lost file.
+   *
+   * @param fileId the file id
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized void reportLostFile(long fileId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -364,6 +490,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
     throw new IOException("This connection has been closed.");
   }
 
+  /**
+   * Requests files in a dependency.
+   *
+   * @param depId the dependency id
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized void requestFilesInDependency(int depId) throws IOException {
     while (!mIsClosed) {
       connect();
@@ -381,16 +513,47 @@ public final class FileSystemMasterClient extends MasterClientBase {
 
   // TODO: See if these methods can/should be implemented
 
-  public synchronized void userHeartbeat() throws IOException {
+  /**
+   * Sends a heartbeat message.
+   *
+   * Not implemented.
+   *
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized void userHeartbeat() throws IOException {}
 
-  }
-
+  /**
+   * Creates a dependency.
+   *
+   * Not implemented.
+   *
+   * @param parents the dependency parents
+   * @param children the dependency children
+   * @param commandPrefix the prefix of the dependency command
+   * @param data the dependency data
+   * @param comment a comment
+   * @param framework the framework
+   * @param frameworkVersion the framework version
+   * @param dependencyType the dependency type
+   * @param childrenBlockSizeByte the children block size (in bytes)
+   * @return the dependency id
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
     return -1;
   }
 
+  /**
+   * Gets dependency information for a dependency.
+   *
+   * Not implemented.
+   *
+   * @param dependencyId the dependency id
+   * @return the dependency information
+   * @throws IOException if an I/O error occurs
+   */
   public synchronized DependencyInfo getDependencyInfo(int dependencyId) throws IOException {
     return null;
   }

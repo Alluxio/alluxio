@@ -34,6 +34,7 @@ public class InodeDirectoryEntry extends InodeEntry {
   public InodeDirectory toInodeDirectory() {
     InodeDirectory inode = new InodeDirectory(mName, mId, mParentId, mCreationTimeMs);
     inode.setPinned(mIsPinned);
+    inode.setLastModificationTimeMs(mLastModificationTimeMs);
     return inode;
   }
 
