@@ -26,17 +26,19 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 
 /**
- * A set of objects that can be indexed by specific fields of the object, and different IndexedSet
- * instances can use different fields to index. The field type must be comparable. The field value
- * must not be changed after being added to the set, otherwise, behavior for all operations is not
- * specified.
+ * A set of objects that are indexed and thus can be queried by specific fields of the object.
+ * Different IndexedSet instances may specify different fields to index. The field type must be
+ * comparable. The field value must not be changed after an object is added to the set, otherwise,
+ * behavior for all operations is not specified.
  *
+ * <p>
  * This class is thread safe.
  */
 public class IndexedSet<T> implements Iterable<T> {
@@ -59,9 +61,9 @@ public class IndexedSet<T> implements Iterable<T> {
    *
    * @param <T> type of objects in this IndexedSet
    */
-  public static interface FieldIndex<T> {
+  public interface FieldIndex<T> {
     /**
-     * Get the value of the field that serves as index.
+     * Gets the value of the field that serves as index.
      *
      * @param o the instance to get the field value from
      * @return the field value, which is just an Object
@@ -70,7 +72,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Construct a new IndexedSet with at least one field as the index.
+   * Constructs a new IndexedSet instance with at least one field as the index.
    *
    * @param field at least one field is needed to index the set of objects
    * @param otherFields other fields to index the set
@@ -101,13 +103,15 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Add an object o to the set if there is no other object o2 such that (o == null ? o2 == null :
-   * o.equals(o2)). If this set already contains the object, the call leaves the set unchanged.
+   * Adds an object o to the set if there is no other object o2 such that
+   * {@code (o == null ? o2 == null : o.equals(o2))}. If this set already contains the object, the
+   * call leaves the set unchanged.
    *
    * @param object the object to add
    * @return true if the object is successfully added to all indexes, otherwise false
    */
   public boolean add(T object) {
+    Preconditions.checkNotNull(object);
     synchronized (mLock) {
       boolean success = mObjects.add(object);
       for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
@@ -182,7 +186,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Remove an object from the set.
+   * Removes an object from the set.
    *
    * @param object the object to remove
    * @return true if the object is in the set and removed successfully, otherwise false
@@ -209,7 +213,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Remove the subset of objects with the specified field value.
+   * Removes the subset of objects with the specified field value.
    *
    * @param index the field index
    * @param value the field value
