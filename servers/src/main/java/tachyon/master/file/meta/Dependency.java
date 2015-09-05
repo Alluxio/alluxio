@@ -15,7 +15,6 @@
 
 package tachyon.master.file.meta;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,15 +31,15 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.journal.DependencyEntry;
-import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
+import tachyon.master.journal.JournalEntry;
+import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.thrift.DependencyInfo;
 import tachyon.util.io.BufferUtils;
 
 /**
  * Describe the lineage between files. Used for recomputation.
  */
-public class Dependency implements JournalSerializable {
+public class Dependency implements JournalEntryRepresentable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public final int mId;
@@ -271,9 +270,9 @@ public class Dependency implements JournalSerializable {
   }
 
   @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(new DependencyEntry(mId, mParentFiles, mChildrenFiles, mCommandPrefix,
-        mData, mComment, mFramework, mFrameworkVersion, mDependencyType, mParentDependencies,
-        mChildrenDependencies, mCreationTimeMs, getUncheckpointedChildrenFiles(), mLostFileIds));
+  public JournalEntry toJournalEntry() {
+    return new DependencyEntry(mId, mParentFiles, mChildrenFiles, mCommandPrefix, mData, mComment,
+        mFramework, mFrameworkVersion, mDependencyType, mParentDependencies, mChildrenDependencies,
+        mCreationTimeMs, getUncheckpointedChildrenFiles(), mLostFileIds);
   }
 }

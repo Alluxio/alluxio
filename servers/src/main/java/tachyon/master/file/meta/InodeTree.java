@@ -18,7 +18,9 @@ package tachyon.master.file.meta;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -34,8 +36,8 @@ import tachyon.master.block.ContainerIdGenerator;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeFileEntry;
+import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -43,7 +45,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
-public final class InodeTree implements JournalSerializable {
+public final class InodeTree implements JournalCheckpointStreamable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Only the root inode should have the empty string as its name. */
   private static final String ROOT_INODE_NAME = "";
@@ -375,8 +377,18 @@ public final class InodeTree implements JournalSerializable {
   }
 
   @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    mRoot.writeToJournal(outputStream);
+  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+    // Write tree via breadth-first traversal, so that during deserialization, it may be more
+    // efficient than depth-first during deserialization due to parent directory's locality.
+    Queue<Inode> inodes = new LinkedList<Inode>();
+    inodes.add(mRoot);
+    while (!inodes.isEmpty()) {
+      Inode inode = inodes.poll();
+      outputStream.writeEntry(inode.toJournalEntry());
+      if (inode.isDirectory()) {
+        inodes.addAll(((InodeDirectory) inode).getChildren());
+      }
+    }
   }
 
   /**

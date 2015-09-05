@@ -18,14 +18,14 @@ package tachyon.master.journal;
 import java.io.IOException;
 
 /**
- * This interface enables streaming out to the journal.
+ * This interface enables streaming out to the journal checkpoint.
  */
-public interface JournalSerializable {
+public interface JournalCheckpointStreamable {
   /**
    * Writes to the journal, in a streaming fashion, via the {@link JournalOutputStream}
    *
-   * @param outputStream the output stream to stream out to the journal.
+   * @param outputStream the output stream to write to for the journal checkpoint.
    * @throws IOException
    */
-  void writeToJournal(JournalOutputStream outputStream) throws IOException;
+  void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException;
 }

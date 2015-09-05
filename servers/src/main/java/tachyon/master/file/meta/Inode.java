@@ -15,16 +15,13 @@
 
 package tachyon.master.file.meta;
 
-import java.io.IOException;
-
-import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
+import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.thrift.FileInfo;
 
 /**
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
-public abstract class Inode implements JournalSerializable {
+public abstract class Inode implements JournalEntryRepresentable {
   private final long mCreationTimeMs;
   protected final boolean mIsFolder;
 
@@ -208,7 +205,4 @@ public abstract class Inode implements JournalSerializable {
         .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
         .append(")").toString();
   }
-
-  @Override
-  public abstract void writeToJournal(JournalOutputStream outputStream) throws IOException;
 }

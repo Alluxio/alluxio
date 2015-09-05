@@ -15,15 +15,14 @@
 
 package tachyon.master.rawtable.meta;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
+import tachyon.master.journal.JournalEntry;
+import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.util.io.BufferUtils;
 
-public class RawTable implements JournalSerializable {
+public class RawTable implements JournalEntryRepresentable {
   /** Table ID */
   private final long mId;
   /** Number of columns */
@@ -82,7 +81,7 @@ public class RawTable implements JournalSerializable {
   }
 
   @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(new RawTableEntry(mId, mColumns, mMetadata));
+  public JournalEntry toJournalEntry() {
+    return new RawTableEntry(mId, mColumns, mMetadata);
   }
 }

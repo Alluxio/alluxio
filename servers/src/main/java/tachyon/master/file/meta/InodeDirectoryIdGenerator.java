@@ -15,21 +15,18 @@
 
 package tachyon.master.file.meta;
 
-import java.io.IOException;
-
 import tachyon.master.block.BlockId;
 import tachyon.master.block.ContainerIdGenerator;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
+import tachyon.master.journal.JournalEntryRepresentable;
 
 /**
  * Inode id management for directory inodes. Keep track of a block container id, along with a
  * block sequence number. If the block sequence number reaches the limit, a new block container id
  * is retrieved.
  */
-public class InodeDirectoryIdGenerator implements JournalSerializable {
+public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
   private final ContainerIdGenerator mContainerIdGenerator;
 
   private boolean mInitialized = false;
@@ -41,11 +38,6 @@ public class InodeDirectoryIdGenerator implements JournalSerializable {
    */
   public InodeDirectoryIdGenerator(ContainerIdGenerator containerIdGenerator) {
     mContainerIdGenerator = containerIdGenerator;
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(toJournalEntry());
   }
 
   synchronized long getNewDirectoryId() {
@@ -61,6 +53,7 @@ public class InodeDirectoryIdGenerator implements JournalSerializable {
     return directoryId;
   }
 
+  @Override
   public synchronized JournalEntry toJournalEntry() {
     return new InodeDirectoryIdGeneratorEntry(mContainerId, mSequenceNumber);
   }
