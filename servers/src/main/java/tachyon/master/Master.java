@@ -19,11 +19,11 @@ import java.io.IOException;
 
 import org.apache.thrift.TProcessor;
 
+import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
-import tachyon.master.journal.JournalSerializable;
 
-public interface Master extends JournalSerializable {
+public interface Master extends JournalCheckpointStreamable {
   /**
    * Returns the thrift processor for this master.
    *

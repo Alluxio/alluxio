@@ -13,32 +13,14 @@
  * the License.
  */
 
-package tachyon.master.block;
+package tachyon.master.journal;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-import tachyon.master.block.journal.BlockIdGeneratorEntry;
-import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalEntryRepresentable;
-
-public class BlockIdGenerator implements JournalEntryRepresentable {
-
-  private final AtomicLong mNextContainerId;
-
-  public BlockIdGenerator() {
-    mNextContainerId = new AtomicLong(0);
-  }
-
-  public synchronized long getNewBlockContainerId() {
-    return mNextContainerId.getAndIncrement();
-  }
-
-  public synchronized void setNextContainerId(long id) {
-    mNextContainerId.set(id);
-  }
-
-  @Override
-  public synchronized JournalEntry toJournalEntry() {
-    return new BlockIdGeneratorEntry(mNextContainerId.get());
-  }
+/**
+ * This interface enables representing a class as a {@link JournalEntry}.
+ */
+public interface JournalEntryRepresentable {
+  /**
+   * @return the {@link JournalEntry} representing this object.
+   */
+  JournalEntry toJournalEntry();
 }

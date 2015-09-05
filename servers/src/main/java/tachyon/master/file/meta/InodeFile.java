@@ -15,7 +15,6 @@
 
 package tachyon.master.file.meta;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,13 +22,13 @@ import com.google.common.base.Preconditions;
 
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
-import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalEntry;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
- * Tachyon file system's file representation in master.
+ * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
   private final long mBlockContainerId;
@@ -46,7 +45,7 @@ public final class InodeFile extends Inode {
   private String mUfsPath = "";
 
   /**
-   * Create a new InodeFile.
+   * Creates a new InodeFile.
    *
    * @param name The name of the file
    * @param blockContainerId The block container id for this file. All blocks for this file will
@@ -67,11 +66,9 @@ public final class InodeFile extends Inode {
   @Override
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
-
-    // TODO: make this a long.
     // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
     // block master
-    ret.fileId = (int) getId();
+    ret.fileId = getId();
     ret.name = getName();
     ret.path = path;
     ret.ufsPath = mUfsPath;
@@ -84,22 +81,17 @@ public final class InodeFile extends Inode {
     ret.isCache = mCache;
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
-
     return ret;
   }
 
   /**
-   * Get all the blocks of the file. It will return a duplication of the block list.
-   *
-   * @return a duplication of all the blocks' ids of the file
+   * @return a duplication of all the block ids of the file
    */
   public synchronized List<Long> getBlockIds() {
     return new ArrayList<Long>(mBlocks);
   }
 
   /**
-   * Get the block size of the file
-   *
    * @return the block size in bytes
    */
   public long getBlockSizeBytes() {
@@ -107,8 +99,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the path of the file in under file system
-   *
    * @return the path of the file in under file system
    */
   public synchronized String getUfsPath() {
@@ -116,17 +106,13 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the length of the file in bytes. This is not accurate before the file is closed.
-   *
-   * @return the length of the file in bytes
+   * @return the length of the file in bytes. This is not accurate before the file is closed.
    */
   public synchronized long getLength() {
     return mLength;
   }
 
   /**
-   * Get the id for a new block of the file.
-   *
    * @return the id of a new block of the file
    */
   public synchronized long getNewBlockId() {
@@ -148,16 +134,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the number of the blocks of the file
-   *
-   * @return the number of the blocks
-   */
-  public synchronized int getNumberOfBlocks() {
-    return mBlocks.size();
-  }
-
-  /**
-   * Return whether the file has checkpointed or not. Note that the file has checkpointed only if
+   * Returns whether the file has checkpointed or not. Note that the file has checkpointed only if
    * the under file system path is not empty.
    *
    * @return true if the file has checkpointed, false otherwise
@@ -167,8 +144,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Return whether the file is cacheable or not.
-   *
    * @return true if the file is cacheable, false otherwise
    */
   public synchronized boolean isCache() {
@@ -176,8 +151,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Return whether the file is complete or not.
-   *
    * @return true if the file is complete, false otherwise
    */
   public synchronized boolean isComplete() {
@@ -189,7 +162,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Set whether the file is cacheable or not.
+   * Sets whether the file is cacheable or not.
    *
    * @param cache If true, the file is cacheable
    */
@@ -199,7 +172,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * The file is complete. Set the complete flag true, and set the length
+   * The file is complete. Sets the complete flag true, and sets the length.
    *
    * @param length the length of the complete file
    */
@@ -209,7 +182,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Set the path of the file in under file system.
+   * Sets the path of the file in under file system.
    *
    * @param ufsPath The new path of the file in under file system
    */
@@ -218,7 +191,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Set the length of the file. Cannot set the length if the file is complete or the length is
+   * Sets the length of the file. Cannot set the length if the file is complete or the length is
    * negative.
    *
    * @param length The new length of the file, cannot be negative
@@ -253,10 +226,9 @@ public final class InodeFile extends Inode {
   }
 
   @Override
-  public synchronized void writeToJournal(JournalOutputStream outputStream)
-      throws IOException {
-    outputStream.writeEntry(new InodeFileEntry(getCreationTimeMs(), getId(), getName(),
-        getParentId(), isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(),
-        isComplete(), isCache(), getUfsPath(), mBlocks));
+  public synchronized JournalEntry toJournalEntry() {
+    return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPinned(),
+        getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isComplete(), isCache(),
+        getUfsPath(), mBlocks);
   }
 }

@@ -29,13 +29,13 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.master.IndexedSet;
+import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
 
 /**
  * This class maintains the dependency related metadata information for the lineage feature.
  */
-public class DependencyMap implements JournalSerializable {
+public class DependencyMap implements JournalCheckpointStreamable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final IndexedSet.FieldIndex<Dependency> mIdIndex =
@@ -147,9 +147,9 @@ public class DependencyMap implements JournalSerializable {
   }
 
   @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     for (Dependency dependency : mDependencyMap) {
-      dependency.writeToJournal(outputStream);
+      outputStream.writeEntry(dependency.toJournalEntry());
     }
   }
 }

@@ -28,7 +28,6 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
 import tachyon.master.journal.JournalTailer;
 import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
@@ -109,7 +108,7 @@ public abstract class MasterBase implements Master {
       // completed logs).
       JournalOutputStream checkpointStream =
           mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);
-      writeToJournal(checkpointStream);
+      streamToJournalCheckpoint(checkpointStream);
       checkpointStream.close();
     } else {
       // in standby mode. Start the journal tailer thread.
@@ -149,17 +148,6 @@ public abstract class MasterBase implements Master {
     }
     try {
       mJournalWriter.getEntryOutputStream().writeEntry(entry);
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    }
-  }
-
-  protected void writeJournalEntry(JournalSerializable entry) {
-    if (mJournalWriter == null) {
-      throw new RuntimeException("Cannot write entry: journal writer is null.");
-    }
-    try {
-      entry.writeToJournal(mJournalWriter.getEntryOutputStream());
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }

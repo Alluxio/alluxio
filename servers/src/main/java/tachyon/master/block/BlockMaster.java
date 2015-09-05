@@ -156,8 +156,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    mBlockIdGenerator.writeToJournal(outputStream);
+  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+    outputStream.writeEntry(mBlockIdGenerator.toJournalEntry());
     outputStream.writeEntry(new WorkerIdGeneratorEntry(mNextWorkerId.get()));
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       outputStream.writeEntry(new BlockInfoEntry(blockInfo.getBlockId(), blockInfo.getLength()));
