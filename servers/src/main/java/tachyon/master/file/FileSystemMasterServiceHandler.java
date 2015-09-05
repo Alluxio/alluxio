@@ -100,8 +100,8 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   @Override
   public long createFile(String path, long blockSizeBytes, boolean recursive)
-      throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
-      TachyonException, TException {
+          throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
+          TachyonException, InvalidPathException {
     return mFileSystemMaster.createFile(new TachyonURI(path), blockSizeBytes, recursive);
   }
 
