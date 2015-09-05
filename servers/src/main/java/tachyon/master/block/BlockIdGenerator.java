@@ -22,7 +22,7 @@ import tachyon.master.block.journal.BlockIdGeneratorEntry;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalSerializable;
 
-public class BlockIdGenerator implements JournalSerializable {
+public final class BlockIdGenerator implements JournalSerializable {
 
   private final AtomicLong mNextContainerId;
 

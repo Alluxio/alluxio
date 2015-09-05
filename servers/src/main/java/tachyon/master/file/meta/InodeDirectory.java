@@ -54,7 +54,7 @@ public final class InodeDirectory extends Inode {
   private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
 
   /**
-   * Create a new InodeFolder.
+   * Creates a new InodeFolder.
    *
    * @param name The name of the folder
    * @param id The inode id of the folder

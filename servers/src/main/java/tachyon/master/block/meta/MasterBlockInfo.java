@@ -48,7 +48,7 @@ public final class MasterBlockInfo {
   }
 
   /**
-   * Add a location of the block. It means that the worker has the block in one of its tiers.
+   * Adds a location of the block. It means that the worker has the block in one of its tiers.
    *
    * @param workerId The id of the worker
    * @param tierAlias The int value of the tier alias that this block is on
@@ -70,7 +70,7 @@ public final class MasterBlockInfo {
   }
 
   /**
-   * Get the locations of the block, which are the workers' net address who has the data of the
+   * Gets the locations of the block, which are the workers' net address who has the data of the
    * block in its tiered storage. The list is sorted by the storage level alias(MEM, SSD, HDD). That
    * is, the worker who has the data of the block in its memory is in the top of the list.
    *

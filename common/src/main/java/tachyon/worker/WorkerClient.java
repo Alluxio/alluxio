@@ -30,6 +30,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
@@ -44,15 +46,13 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
 import tachyon.util.network.NetworkAddressUtils;
-import tachyon.worker.ClientMetrics;
-import tachyon.worker.WorkerClientHeartbeatExecutor;
 
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
  *
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safety.
  */
-public class WorkerClient implements Closeable {
+public final class WorkerClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
@@ -78,7 +78,7 @@ public class WorkerClient implements Closeable {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Create a WorkerClient, with a given MasterClientBase.
+   * Creates a WorkerClient, with a given MasterClientBase.
    *
    * @param workerNetAddress
    * @param executorService
@@ -88,8 +88,8 @@ public class WorkerClient implements Closeable {
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long userId, boolean isLocal, ClientMetrics clientMetrics) {
-    mWorkerNetAddress = workerNetAddress;
-    mExecutorService = executorService;
+    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
+    mExecutorService = Preconditions.checkNotNull(executorService);
     mTachyonConf = conf;
     mUserId = userId;
     mIsLocal = isLocal;
@@ -283,7 +283,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Get the user temporary folder in the under file system of the specified user.
+   * Gets the user temporary folder in the under file system of the specified user.
    *
    * @return The user temporary folder in the under file system
    * @throws IOException
@@ -314,7 +314,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Lock the block, therefore, the worker will not evict the block from the memory until it is
+   * Locks the block, therefore, the worker will not evict the block from the memory until it is
    * unlocked.
    *
    * @param blockId The id of the block
@@ -335,7 +335,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Connect to the worker.
+   * Connects to the worker.
    *
    * @throws IOException
    */
@@ -350,7 +350,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Promote block back to the top StorageTier
+   * Promotes block back to the top StorageTier
    *
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
@@ -368,7 +368,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Get temporary path for the block from the worker
+   * Gets temporary path for the block from the worker
    *
    * @param blockId The id of the block
    * @param initialBytes The initial size bytes allocated for the block
@@ -392,7 +392,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Request space for some block from worker
+   * Requests space for some block from worker
    *
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
@@ -415,7 +415,7 @@ public class WorkerClient implements Closeable {
   }
 
   /**
-   * Unlock the block
+   * Unlocks the block
    *
    * @param blockId The id of the block
    * @return true if success, false otherwise

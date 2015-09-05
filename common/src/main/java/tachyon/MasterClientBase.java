@@ -29,6 +29,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.conf.TachyonConf;
@@ -53,14 +54,14 @@ public abstract class MasterClientBase implements Closeable {
 
   public MasterClientBase(InetSocketAddress masterAddress, ExecutorService executorService,
                           TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     if (!mUseZookeeper) {
-      mMasterAddress = masterAddress;
+      mMasterAddress = Preconditions.checkNotNull(masterAddress);
     }
     mConnected = false;
     mIsClosed = false;
-    mExecutorService = executorService;
+    mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
   /**
@@ -83,7 +84,7 @@ public abstract class MasterClientBase implements Closeable {
   protected abstract void afterDisconnect();
 
   /**
-   * Connect with the master; an exception is thrown if this fails.
+   * Connects with the master; an exception is thrown if this fails.
    *
    * @throws IOException
    */
@@ -130,8 +131,8 @@ public abstract class MasterClientBase implements Closeable {
   }
 
   /**
-   * Close the connection with the Tachyon Master and do the necessary cleanup. It should be used if
-   * the client has not connected with the master for a while, for example.
+   * Closes the connection with the Tachyon Master and do the necessary cleanup. It should be used
+   * if the client has not connected with the master for a while, for example.
    */
   public synchronized void disconnect() {
     if (mConnected) {
@@ -157,7 +158,8 @@ public abstract class MasterClientBase implements Closeable {
   }
 
   /**
-   * Close the connection with the master permanently. This instance should be reused after closing.
+   * Closes the connection with the master permanently. This instance should be reused after
+   * closing.
    */
   @Override
   public synchronized void close() {

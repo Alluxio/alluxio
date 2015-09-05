@@ -275,7 +275,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   /**
-   * Commit a block on a specific worker.
+   * Commits a block on a specific worker.
    *
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the updated used bytes on the tier of the worker
@@ -307,12 +307,12 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   /**
-   * Commit a block, but without a worker location. This means the block is only in ufs.
+   * Commits a block, but without a worker location. This means the block is only in ufs.
    *
    * @param blockId the id of the block to commit
    * @param length the length of the block
    */
-  public void commitBlock(long blockId, long length) {
+  public void commitBlockInUFS(long blockId, long length) {
     LOG.debug("Commit block: {}", FormatUtils.parametersToString(blockId, length));
 
     MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);

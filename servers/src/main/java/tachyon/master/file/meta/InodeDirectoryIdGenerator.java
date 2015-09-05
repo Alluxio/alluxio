@@ -17,6 +17,8 @@ package tachyon.master.file.meta;
 
 import java.io.IOException;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.master.block.BlockId;
 import tachyon.master.block.ContainerIdGenerator;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
@@ -37,7 +39,7 @@ public class InodeDirectoryIdGenerator implements JournalSerializable {
   private long mSequenceNumber;
 
   public InodeDirectoryIdGenerator(ContainerIdGenerator containerIdGenerator) {
-    mContainerIdGenerator = containerIdGenerator;
+    mContainerIdGenerator = Preconditions.checkNotNull(containerIdGenerator);
   }
 
   @Override

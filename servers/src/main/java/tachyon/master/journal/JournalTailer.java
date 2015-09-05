@@ -20,6 +20,8 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.master.Master;
 
@@ -35,8 +37,8 @@ public final class JournalTailer {
   private final JournalReader mReader;
 
   public JournalTailer(Master master, Journal journal) {
-    mMaster = master;
-    mJournal = journal;
+    mMaster = Preconditions.checkNotNull(master);
+    mJournal = Preconditions.checkNotNull(journal);
     mReader = mJournal.getNewReader();
   }
 
@@ -60,7 +62,7 @@ public final class JournalTailer {
   }
 
   /**
-   * Load and (optionally) process the journal checkpoint file.
+   * Loads and (optionally) processes the journal checkpoint file.
    *
    * @param applyToMaster if true, apply all the checkpoint events to the master. Otherwise, simply
    *        open the checkpoint file.

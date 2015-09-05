@@ -98,7 +98,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
     }
 
     /**
-     * Get the value for parameterized type class such as {@code List<Integer>} using the help of
+     * Gets the value for parameterized type class such as {@code List<Integer>} using the help of
      * <code>TypeReference</code>
      *
      * @param name the name of the parameter

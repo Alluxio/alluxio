@@ -46,7 +46,7 @@ public final class InodeFile extends Inode {
   private String mUfsPath = "";
 
   /**
-   * Create a new InodeFile.
+   * Creates a new InodeFile.
    *
    * @param name The name of the file
    * @param blockContainerId The block container id for this file. All blocks for this file will
@@ -68,10 +68,9 @@ public final class InodeFile extends Inode {
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
 
-    // TODO: make this a long.
     // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
     // block master
-    ret.fileId = (int) getId();
+    ret.fileId = getId();
     ret.name = getName();
     ret.path = path;
     ret.ufsPath = mUfsPath;
@@ -89,7 +88,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get all the blocks of the file. It will return a duplication of the block list.
+   * Gets all the blocks of the file. It will return a duplication of the block list.
    *
    * @return a duplication of all the blocks' ids of the file
    */
@@ -98,7 +97,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the block size of the file
+   * Gets the block size of the file
    *
    * @return the block size in bytes
    */
@@ -107,7 +106,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the path of the file in under file system
+   * Gets the path of the file in under file system
    *
    * @return the path of the file in under file system
    */
@@ -116,7 +115,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the length of the file in bytes. This is not accurate before the file is closed.
+   * Gets the length of the file in bytes. This is not accurate before the file is closed.
    *
    * @return the length of the file in bytes
    */
@@ -125,7 +124,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the id for a new block of the file.
+   * Gets the id for a new block of the file.
    *
    * @return the id of a new block of the file
    */
@@ -148,7 +147,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the number of the blocks of the file
+   * Gets the number of the blocks of the file
    *
    * @return the number of the blocks
    */
@@ -157,7 +156,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Return whether the file has checkpointed or not. Note that the file has checkpointed only if
+   * Returns whether the file has checkpointed or not. Note that the file has checkpointed only if
    * the under file system path is not empty.
    *
    * @return true if the file has checkpointed, false otherwise
@@ -167,7 +166,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Return whether the file is cacheable or not.
+   * Returns whether the file is cacheable or not.
    *
    * @return true if the file is cacheable, false otherwise
    */
@@ -176,7 +175,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Return whether the file is complete or not.
+   * Returns whether the file is complete or not.
    *
    * @return true if the file is complete, false otherwise
    */
@@ -189,7 +188,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Set whether the file is cacheable or not.
+   * Sets whether the file is cacheable or not.
    *
    * @param cache If true, the file is cacheable
    */
@@ -209,7 +208,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Set the path of the file in under file system.
+   * Sets the path of the file in under file system.
    *
    * @param ufsPath The new path of the file in under file system
    */
@@ -218,7 +217,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Set the length of the file. Cannot set the length if the file is complete or the length is
+   * Sets the length of the file. Cannot set the length if the file is complete or the length is
    * negative.
    *
    * @param length The new length of the file, cannot be negative

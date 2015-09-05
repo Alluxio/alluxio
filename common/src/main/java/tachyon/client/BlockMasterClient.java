@@ -65,7 +65,7 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Get the info of a list of workers.
+   * Gets the info of a list of workers.
    *
    * @return A list of worker info returned by master
    * @throws IOException
@@ -85,7 +85,7 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Return the BlockInfo for a block id
+   * Returns the BlockInfo for a block id
    *
    * @param blockId the block id to get the BlockInfo for
    * @return the BlockInfo
@@ -105,7 +105,7 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Get the total Tachyon capacity in bytes, on all the tiers of all the workers.
+   * Gets the total Tachyon capacity in bytes, on all the tiers of all the workers.
    *
    * @return total capacity in bytes
    * @throws IOException
@@ -124,7 +124,7 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Get the total amount of used space in bytes, on all the tiers of all the workers.
+   * Gets the total amount of used space in bytes, on all the tiers of all the workers.
    *
    * @return amount of used space in bytes
    * @throws IOException
