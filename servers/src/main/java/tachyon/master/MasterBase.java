@@ -27,23 +27,29 @@ import tachyon.Constants;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
-import tachyon.master.journal.JournalSerializable;
+import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalTailer;
 import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
 
+/**
+ * This is the base class for all masters, and contains common functionality. Common functionality
+ * mostly consists of journal operations, like initializing it, tailing it when in standby mode, or
+ * writing to it when the master is the leader.
+ */
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** A handler to the journal for this master. */
   private final Journal mJournal;
+  /** The executor used for running maintenance threads for the master. */
   private final ExecutorService mExecutorService;
 
   /** true if this master is in leader mode, and not standby mode. */
   private boolean mIsLeader = false;
-
   /** The thread that tails the journal when the master is in standby mode. */
   private JournalTailerThread mStandbyJournalTailer = null;
-
+  /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
 
   protected MasterBase(Journal journal, ExecutorService executorService) {
@@ -62,39 +68,48 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void start(boolean isLeader) throws IOException {
-    LOG.info("Starting master. isLeader: " + isLeader);
+    LOG.info(getProcessorName() + ": Starting master. isLeader: " + isLeader);
     mIsLeader = isLeader;
     if (mIsLeader) {
-      // Replay all the state of the checkpoint and the completed log files.
+      mJournalWriter = mJournal.getNewWriter();
+
+      /**
+       * The sequence for dealing with the journal before starting as the leader:
+       *
+       * Phase 1. Mark all the logs as completed. Since this master is the leader, it is allowed to
+       * write the journal, so it can mark the current log as completed. After this step, the
+       * current log file will not exist, and all logs will be complete.
+       *
+       * Phase 2. Reconstruct the state from the journal. This uses the JournalTailer to process all
+       * of the checkpoint and the complete log files. Since all logs are complete, after this step,
+       * the master will reflect the state of all of the journal entries.
+       *
+       * Phase 3. Write out the checkpoint file. Since this master is completely up-to-date, it
+       * writes out the checkpoint file. When the checkpoint file is closed, it will then delete the
+       * complete log files.
+       */
+
+      // Phase 1: Mark all logs as complete, including the current log. After this call, the current
+      // log should not exist, and all the log files will be complete.
+      mJournalWriter.completeAllLogs();
+
+      // Phase 2: Replay all the state of the checkpoint and the completed log files.
       // TODO: only do this if this is a fresh start, not if this master had already been tailing
       // the journal.
       LOG.info(getProcessorName() + ": process completed logs before becoming master.");
       JournalTailer catchupTailer = new JournalTailer(this, mJournal);
-      boolean checkpointExists = true;
-      try {
-        catchupTailer.getCheckpointLastModifiedTimeMs();
-      } catch (IOException ioe) {
-        // The checkpoint doesn't exist yet. This is probably the first execution ever, or this is a
-        // testing master.
-        checkpointExists = false;
-      }
-      if (checkpointExists) {
+      if (catchupTailer.checkpointExists()) {
         catchupTailer.processJournalCheckpoint(true);
         catchupTailer.processNextJournalLogFiles();
       }
+      long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
 
-      // initialize the journal and write out the checkpoint file (the state of all completed logs).
-      mJournalWriter = mJournal.getNewWriter();
-      writeToJournal(mJournalWriter.getCheckpointOutputStream());
-      mJournalWriter.getCheckpointOutputStream().close();
-
-      // Final catchup stage. The last in-progress file (if it existed) was marked as complete when
-      // the checkpoint file was closed. That last completed file must be processed to get to the
-      // latest state. Read and process the completed file.
-      LOG.info(getProcessorName() + ": process the last completed log before becoming master.");
-      catchupTailer = new JournalTailer(this, mJournal);
-      catchupTailer.processJournalCheckpoint(false);
-      catchupTailer.processNextJournalLogFiles();
+      // Phase 3: initialize the journal and write out the checkpoint file (the state of all
+      // completed logs).
+      JournalOutputStream checkpointStream =
+          mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);
+      streamToJournalCheckpoint(checkpointStream);
+      checkpointStream.close();
     } else {
       // in standby mode. Start the journal tailer thread.
       mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
@@ -104,7 +119,7 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info("Stopping master. isLeader: " + isLeaderMode());
+    LOG.info(getProcessorName() + ":Stopping master. isLeader: " + isLeaderMode());
     if (isStandbyMode()) {
       if (mStandbyJournalTailer != null) {
         // stop and wait for the journal tailer thread.
@@ -138,17 +153,6 @@ public abstract class MasterBase implements Master {
     }
   }
 
-  protected void writeJournalEntry(JournalSerializable entry) {
-    if (mJournalWriter == null) {
-      throw new RuntimeException("Cannot write entry: journal writer is null.");
-    }
-    try {
-      entry.writeToJournal(mJournalWriter.getEntryOutputStream());
-    } catch (IOException ioe) {
-      throw new RuntimeException(ioe);
-    }
-  }
-
   protected void flushJournal() {
     if (mJournalWriter == null) {
       throw new RuntimeException("Cannot flush journal: Journal writer is null.");
@@ -160,6 +164,9 @@ public abstract class MasterBase implements Master {
     }
   }
 
+  /**
+   * @return the executor service for this master.
+   */
   protected ExecutorService getExecutorService() {
     return mExecutorService;
   }

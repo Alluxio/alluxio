@@ -13,35 +13,19 @@
  * the License.
  */
 
-package tachyon.master.file.journal;
+package tachyon.master.journal;
 
-import java.util.Map;
+import java.io.IOException;
 
-import com.google.common.collect.Maps;
-
-import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalEntryType;
-
-public class FreeEntry implements JournalEntry {
-  private final long mId;
-
-  public FreeEntry(long id) {
-    mId = id;
-  }
-
-  public long getId() {
-    return mId;
-  }
-
-  @Override
-  public JournalEntryType getType() {
-    return JournalEntryType.FREE;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("id", mId);
-    return parameters;
-  }
+/**
+ * This interface enables streaming out to the journal checkpoint.
+ */
+public interface JournalCheckpointStreamable {
+  /**
+   * Writes to the journal, in a streaming fashion, via the {@link JournalOutputStream}
+   *
+   * @param outputStream the output stream to write to for the journal checkpoint.
+   * @throws IOException
+   */
+  void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException;
 }

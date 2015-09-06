@@ -15,18 +15,15 @@
 
 package tachyon.master.block;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import tachyon.master.block.journal.BlockIdGeneratorEntry;
-import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
+import tachyon.master.journal.JournalEntry;
+import tachyon.master.journal.JournalEntryRepresentable;
 
-public final class BlockIdGenerator implements JournalSerializable {
+public final class BlockIdGenerator implements JournalEntryRepresentable {
 
   private final AtomicLong mNextContainerId;
-
-  // TODO: when needed, add functionality to create new full block ids.
 
   public BlockIdGenerator() {
     mNextContainerId = new AtomicLong(0);
@@ -41,7 +38,7 @@ public final class BlockIdGenerator implements JournalSerializable {
   }
 
   @Override
-  public synchronized void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(new BlockIdGeneratorEntry(mNextContainerId.get()));
+  public synchronized JournalEntry toJournalEntry() {
+    return new BlockIdGeneratorEntry(mNextContainerId.get());
   }
 }

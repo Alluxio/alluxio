@@ -15,36 +15,31 @@
 
 package tachyon.master.file.meta;
 
-import java.io.IOException;
-
 import com.google.common.base.Preconditions;
 
 import tachyon.master.block.BlockId;
 import tachyon.master.block.ContainerIdGenerator;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.journal.JournalEntry;
-import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
+import tachyon.master.journal.JournalEntryRepresentable;
 
 /**
  * Inode id management for directory inodes. Keep track of a block container id, along with a
  * block sequence number. If the block sequence number reaches the limit, a new block container id
  * is retrieved.
  */
-public class InodeDirectoryIdGenerator implements JournalSerializable {
+public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
   private final ContainerIdGenerator mContainerIdGenerator;
 
   private boolean mInitialized = false;
   private long mContainerId;
   private long mSequenceNumber;
 
+  /**
+   * @param containerIdGenerator the container id generator to use
+   */
   public InodeDirectoryIdGenerator(ContainerIdGenerator containerIdGenerator) {
     mContainerIdGenerator = Preconditions.checkNotNull(containerIdGenerator);
-  }
-
-  @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(toJournalEntry());
   }
 
   synchronized long getNewDirectoryId() {
@@ -60,6 +55,7 @@ public class InodeDirectoryIdGenerator implements JournalSerializable {
     return directoryId;
   }
 
+  @Override
   public synchronized JournalEntry toJournalEntry() {
     return new InodeDirectoryIdGeneratorEntry(mContainerId, mSequenceNumber);
   }
@@ -67,6 +63,7 @@ public class InodeDirectoryIdGenerator implements JournalSerializable {
   public void fromJournalEntry(InodeDirectoryIdGeneratorEntry entry) {
     mContainerId = entry.getContainerId();
     mSequenceNumber = entry.getSequenceNumber();
+    mInitialized = true;
   }
 
   private void initialize() {

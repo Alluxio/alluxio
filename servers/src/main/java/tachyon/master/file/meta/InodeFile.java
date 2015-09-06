@@ -15,7 +15,6 @@
 
 package tachyon.master.file.meta;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,13 +22,13 @@ import com.google.common.base.Preconditions;
 
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
-import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.JournalEntry;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
- * Tachyon file system's file representation in master.
+ * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
   private final long mBlockContainerId;
@@ -67,7 +66,6 @@ public final class InodeFile extends Inode {
   @Override
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
-
     // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
     // block master
     ret.fileId = getId();
@@ -83,22 +81,35 @@ public final class InodeFile extends Inode {
     ret.isCache = mCache;
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
-
     return ret;
   }
 
   /**
+<<<<<<< HEAD
    * Gets all the blocks of the file. It will return a duplication of the block list.
    *
    * @return a duplication of all the blocks' ids of the file
+||||||| merged common ancestors
+   * Get all the blocks of the file. It will return a duplication of the block list.
+   *
+   * @return a duplication of all the blocks' ids of the file
+=======
+   * @return a duplication of all the block ids of the file
+>>>>>>> upstream/wip_master_client
    */
   public synchronized List<Long> getBlockIds() {
     return new ArrayList<Long>(mBlocks);
   }
 
   /**
+<<<<<<< HEAD
    * Gets the block size of the file
    *
+||||||| merged common ancestors
+   * Get the block size of the file
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return the block size in bytes
    */
   public long getBlockSizeBytes() {
@@ -106,8 +117,14 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
    * Gets the path of the file in under file system
    *
+||||||| merged common ancestors
+   * Get the path of the file in under file system
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return the path of the file in under file system
    */
   public synchronized String getUfsPath() {
@@ -115,17 +132,31 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
    * Gets the length of the file in bytes. This is not accurate before the file is closed.
    *
    * @return the length of the file in bytes
+||||||| merged common ancestors
+   * Get the length of the file in bytes. This is not accurate before the file is closed.
+   *
+   * @return the length of the file in bytes
+=======
+   * @return the length of the file in bytes. This is not accurate before the file is closed.
+>>>>>>> upstream/wip_master_client
    */
   public synchronized long getLength() {
     return mLength;
   }
 
   /**
+<<<<<<< HEAD
    * Gets the id for a new block of the file.
    *
+||||||| merged common ancestors
+   * Get the id for a new block of the file.
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return the id of a new block of the file
    */
   public synchronized long getNewBlockId() {
@@ -147,15 +178,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Gets the number of the blocks of the file
-   *
-   * @return the number of the blocks
-   */
-  public synchronized int getNumberOfBlocks() {
-    return mBlocks.size();
-  }
-
-  /**
    * Returns whether the file has checkpointed or not. Note that the file has checkpointed only if
    * the under file system path is not empty.
    *
@@ -166,8 +188,14 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
    * Returns whether the file is cacheable or not.
    *
+||||||| merged common ancestors
+   * Return whether the file is cacheable or not.
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return true if the file is cacheable, false otherwise
    */
   public synchronized boolean isCache() {
@@ -175,8 +203,14 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
    * Returns whether the file is complete or not.
    *
+||||||| merged common ancestors
+   * Return whether the file is complete or not.
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return true if the file is complete, false otherwise
    */
   public synchronized boolean isComplete() {
@@ -198,7 +232,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * The file is complete. Set the complete flag true, and set the length
+   * The file is complete. Sets the complete flag true, and sets the length.
    *
    * @param length the length of the complete file
    */
@@ -252,10 +286,9 @@ public final class InodeFile extends Inode {
   }
 
   @Override
-  public synchronized void writeToJournal(JournalOutputStream outputStream)
-      throws IOException {
-    outputStream.writeEntry(new InodeFileEntry(getCreationTimeMs(), getId(), getName(),
-        getParentId(), isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(),
-        isComplete(), isCache(), getUfsPath(), mBlocks));
+  public synchronized JournalEntry toJournalEntry() {
+    return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPinned(),
+        getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isComplete(), isCache(),
+        getUfsPath(), mBlocks);
   }
 }

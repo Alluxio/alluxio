@@ -15,8 +15,12 @@
 
 package tachyon.master.journal;
 
-import java.io.IOException;
-
-public interface JournalSerializable {
-  void writeToJournal(JournalOutputStream outputStream) throws IOException;
+/**
+ * This interface enables representing a class as a {@link JournalEntry}.
+ */
+public interface JournalEntryRepresentable {
+  /**
+   * @return the {@link JournalEntry} representing this object.
+   */
+  JournalEntry toJournalEntry();
 }
