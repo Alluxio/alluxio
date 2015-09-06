@@ -292,13 +292,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   /**
-<<<<<<< HEAD
-   * Commits a block on a specific worker.
-||||||| merged common ancestors
-   * Commit a block on a specific worker.
-=======
    * Marks a block as committed on a specific worker. Called by workers via RPC.
->>>>>>> upstream/wip_master_client
    *
    * @param workerId the worker id committing the block
    * @param usedBytesOnTier the updated used bytes on the tier of the worker
@@ -330,14 +324,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   }
 
   /**
-<<<<<<< HEAD
-   * Commits a block, but without a worker location. This means the block is only in ufs.
-||||||| merged common ancestors
-   * Commit a block, but without a worker location. This means the block is only in ufs.
-=======
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.
    * Called by internal masters.
->>>>>>> upstream/wip_master_client
    *
    * @param blockId the id of the block to commit
    * @param length the length of the block
