@@ -37,9 +37,9 @@ import tachyon.thrift.WorkerInfo;
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon clients.
  *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety.
+ * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
+ * to provide retries.
  */
-// TODO: better deal with exceptions.
 public final class BlockMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -78,9 +78,9 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
-
       try {
         return mClient.getWorkerInfoList();
       } catch (TException e) {
@@ -88,7 +88,7 @@ public final class BlockMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    return null;
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -99,7 +99,8 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getBlockInfo(blockId);
@@ -108,7 +109,7 @@ public final class BlockMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    return null;
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -118,7 +119,8 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized long getCapacityBytes() throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getCapacityBytes();
@@ -127,7 +129,7 @@ public final class BlockMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    return -1;
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -137,7 +139,8 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized long getUsedBytes() throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getUsedBytes();
@@ -146,7 +149,7 @@ public final class BlockMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    return -1;
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   // TODO: split out the following worker specific interactions to a separate block master client
@@ -164,7 +167,8 @@ public final class BlockMasterClient extends MasterClientBase {
    */
   public synchronized void workerCommitBlock(long workerId, long usedBytesOnTier, int tier, long
       blockId, long length) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.workerCommitBlock(workerId, usedBytesOnTier, tier, blockId, length);
@@ -174,6 +178,7 @@ public final class BlockMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -183,8 +188,10 @@ public final class BlockMasterClient extends MasterClientBase {
    * @return a worker id
    * @throws IOException if an I/O error occurs
    */
+  // TODO: rename to workerRegister?
   public synchronized long workerGetId(NetAddress address) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.workerGetWorkerId(address);
@@ -193,7 +200,7 @@ public final class BlockMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    return -1L;
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -209,7 +216,8 @@ public final class BlockMasterClient extends MasterClientBase {
    */
   public synchronized Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers, List<Long>
       removedBlocks, Map<Long, List<Long>> addedBlocks) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.workerHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
@@ -218,7 +226,7 @@ public final class BlockMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    return null;
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -232,9 +240,11 @@ public final class BlockMasterClient extends MasterClientBase {
    * @return the worker id
    * @throws IOException if an I/O error occurs
    */
+  // TODO: rename to workerBlockReport or workerInitialize?
   public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers, List<Long>
       usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
@@ -244,6 +254,6 @@ public final class BlockMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    return -1;
+    throw new IOException("Failed after " + retry + " retries.");
   }
 }

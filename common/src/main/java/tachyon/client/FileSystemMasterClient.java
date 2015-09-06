@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,8 @@ import tachyon.thrift.SuspectedFileSizeException;
 /**
  * The FileSystemMaster client, for clients.
  *
- * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety.
+ * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
+ * to provide retries.
  */
 // TODO: split out worker-specific calls to a fs master client for workers.
 public final class FileSystemMasterClient extends MasterClientBase {
@@ -83,7 +85,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized long getFileId(String path) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileId(path);
@@ -94,7 +97,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -103,7 +106,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized FileInfo getFileInfo(long fileId) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileInfo(fileId);
@@ -116,7 +120,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -125,7 +129,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileInfoList(fileId);
@@ -138,7 +143,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -150,7 +155,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
   // TODO: Not sure if this is necessary
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileBlockInfo(fileId, fileBlockIndex);
@@ -163,7 +169,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -173,7 +179,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   // TODO: Not sure if this is necessary
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileBlockInfoList(fileId);
@@ -184,7 +191,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -193,7 +200,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs.
    */
   public synchronized long getNewBlockIdForFile(long fileId) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getNewBlockIdForFile(fileId);
@@ -204,7 +212,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -212,7 +220,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized Set<Long> getPinList() throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.workerGetPinIdList();
@@ -223,7 +232,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -231,7 +240,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized String getUfsAddress() throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getUfsAddress();
@@ -240,7 +250,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -254,7 +264,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
       throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.createFile(path, blockSizeBytes, recursive);
@@ -269,7 +280,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -284,7 +295,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized long loadFileFromUfs(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.loadFileFromUfs(path, ufsPath, blockSizeByte, recursive);
@@ -295,7 +307,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -305,7 +317,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized void completeFile(long fileId) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.completeFile(fileId);
@@ -321,7 +334,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -333,7 +346,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException  if an I/O error occurs
    */
   public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.deleteFile(fileId, recursive);
@@ -344,7 +358,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -356,7 +370,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean renameFile(long fileId, String dstPath) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.renameFile(fileId, dstPath);
@@ -367,7 +382,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -378,7 +393,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized void setPinned(long fileId, boolean pinned) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.setPinned(fileId, pinned);
@@ -390,7 +406,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -402,7 +418,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean createDirectory(String path, boolean recursive) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.createDirectory(path, recursive);
@@ -415,7 +432,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -427,7 +444,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean free(long fileId, boolean recursive) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.free(fileId, recursive);
@@ -440,7 +458,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -455,7 +473,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
       String checkpointPath) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
@@ -466,7 +485,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -476,7 +495,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized void reportLostFile(long fileId) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.reportLostFile(fileId);
@@ -487,7 +507,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -497,7 +517,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized void requestFilesInDependency(int depId) throws IOException {
-    while (!mIsClosed) {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.requestFilesInDependency(depId);
@@ -508,19 +529,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mConnected = false;
       }
     }
-    throw new IOException("This connection has been closed.");
+    throw new IOException("Failed after " + retry + " retries.");
   }
-
-  // TODO: See if these methods can/should be implemented
-
-  /**
-   * Sends a heartbeat message.
-   *
-   * Not implemented.
-   *
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized void userHeartbeat() throws IOException {}
 
   /**
    * Creates a dependency.
@@ -542,7 +552,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
-    return -1;
+    throw new UnsupportedOperationException("not implemented");
   }
 
   /**
@@ -555,6 +565,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized DependencyInfo getDependencyInfo(int dependencyId) throws IOException {
-    return null;
+    throw new UnsupportedOperationException("not implemented");
   }
 }
