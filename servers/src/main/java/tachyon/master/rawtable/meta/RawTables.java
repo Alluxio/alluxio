@@ -19,15 +19,15 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import tachyon.master.IndexedSet;
+import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.journal.JournalSerializable;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.util.io.BufferUtils;
 
 /**
  * All RawTables managed by RawTableMaster.
  */
-public class RawTables implements JournalSerializable {
+public class RawTables implements JournalCheckpointStreamable {
   private final IndexedSet.FieldIndex<RawTable> mIdIndex = new IndexedSet.FieldIndex<RawTable>() {
     @Override
     public Object getFieldValue(RawTable o) {
@@ -124,9 +124,9 @@ public class RawTables implements JournalSerializable {
   }
 
   @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
+  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     for (RawTable table : mTables) {
-      table.writeToJournal(outputStream);
+      outputStream.writeEntry(table.toJournalEntry());
     }
   }
 }

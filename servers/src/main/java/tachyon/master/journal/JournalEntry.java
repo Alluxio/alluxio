@@ -20,10 +20,14 @@ import java.util.Map;
 // TODO: In the future, implementations of this interface can be represented as ProtoBuf
 public interface JournalEntry {
 
+  /**
+   * @return the {@link JournalEntryType} of this entry.
+   */
   JournalEntryType getType();
 
   /**
-   * Gets parameters of this entry which is a map from parameter name to parameter value.
+   *
+   * @return parameters of this entry which is a map from parameter name to parameter value.
    */
   Map<String, Object> getParameters();
 }

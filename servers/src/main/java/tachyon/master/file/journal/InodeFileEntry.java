@@ -52,8 +52,13 @@ public class InodeFileEntry extends InodeEntry {
     if (mIsComplete) {
       inode.setComplete(mLength);
     }
+    if (mBlocks != null) {
+      inode.setBlockIds(mBlocks);
+    }
     inode.setPinned(mIsPinned);
     inode.setCache(mIsCache);
+    inode.setLastModificationTimeMs(mLastModificationTimeMs);
+    inode.setUfsPath(mUfsPath);
 
     return inode;
   }

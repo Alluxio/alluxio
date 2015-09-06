@@ -91,8 +91,8 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public void writeToJournal(JournalOutputStream outputStream) throws IOException {
-    mRawTables.writeToJournal(outputStream);
+  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+    mRawTables.streamToJournalCheckpoint(outputStream);
   }
 
   @Override

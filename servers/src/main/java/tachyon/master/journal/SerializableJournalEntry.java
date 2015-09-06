@@ -18,8 +18,7 @@ package tachyon.master.journal;
 import java.util.Map;
 
 /**
- * This kind of JournalEntry will have a parameter field named transactionId.
- * TODO (Gene): didn't see transactionId in the class (HY).
+ * A {@link JournalEntry} with a sequence number.
  */
 public class SerializableJournalEntry implements JournalEntry {
   private final long mSequenceNumber;
@@ -30,6 +29,9 @@ public class SerializableJournalEntry implements JournalEntry {
     mEntry = entry;
   }
 
+  /**
+   * @return the sequence number for this entry.
+   */
   public long getSequenceNumber() {
     return mSequenceNumber;
   }
