@@ -15,6 +15,8 @@
 
 package tachyon.master.journal;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 
@@ -55,7 +57,8 @@ public class Journal {
       directory += TachyonURI.SEPARATOR;
     }
     mDirectory = directory;
-    mTachyonConf = tachyonConf;
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
+    // TODO: maybe this can be constructed, specified by a parameter in tachyonConf.
     mJournalFormatter = new JsonJournalFormatter();
   }
 

@@ -85,13 +85,31 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
+   * Gets all the blocks of the file. It will return a duplication of the block list.
+   *
+   * @return a duplication of all the blocks' ids of the file
+||||||| merged common ancestors
+   * Get all the blocks of the file. It will return a duplication of the block list.
+   *
+   * @return a duplication of all the blocks' ids of the file
+=======
    * @return a duplication of all the block ids of the file
+>>>>>>> upstream/wip_master_client
    */
   public synchronized List<Long> getBlockIds() {
     return new ArrayList<Long>(mBlocks);
   }
 
   /**
+<<<<<<< HEAD
+   * Gets the block size of the file
+   *
+||||||| merged common ancestors
+   * Get the block size of the file
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return the block size in bytes
    */
   public long getBlockSizeBytes() {
@@ -99,6 +117,14 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
+   * Gets the path of the file in under file system
+   *
+||||||| merged common ancestors
+   * Get the path of the file in under file system
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return the path of the file in under file system
    */
   public synchronized String getUfsPath() {
@@ -106,13 +132,31 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
+   * Gets the length of the file in bytes. This is not accurate before the file is closed.
+   *
+   * @return the length of the file in bytes
+||||||| merged common ancestors
+   * Get the length of the file in bytes. This is not accurate before the file is closed.
+   *
+   * @return the length of the file in bytes
+=======
    * @return the length of the file in bytes. This is not accurate before the file is closed.
+>>>>>>> upstream/wip_master_client
    */
   public synchronized long getLength() {
     return mLength;
   }
 
   /**
+<<<<<<< HEAD
+   * Gets the id for a new block of the file.
+   *
+||||||| merged common ancestors
+   * Get the id for a new block of the file.
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return the id of a new block of the file
    */
   public synchronized long getNewBlockId() {
@@ -144,6 +188,14 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
+   * Returns whether the file is cacheable or not.
+   *
+||||||| merged common ancestors
+   * Return whether the file is cacheable or not.
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return true if the file is cacheable, false otherwise
    */
   public synchronized boolean isCache() {
@@ -151,6 +203,14 @@ public final class InodeFile extends Inode {
   }
 
   /**
+<<<<<<< HEAD
+   * Returns whether the file is complete or not.
+   *
+||||||| merged common ancestors
+   * Return whether the file is complete or not.
+   *
+=======
+>>>>>>> upstream/wip_master_client
    * @return true if the file is complete, false otherwise
    */
   public synchronized boolean isComplete() {

@@ -20,11 +20,13 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.master.Master;
 import tachyon.util.CommonUtils;
 
-public class JournalTailerThread extends Thread {
+public final class JournalTailerThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make the quiet period a configuration parameter.
   private static final int SHUTDOWN_QUIET_WAIT_TIME_MS = 5 * Constants.SECOND_MS;
@@ -41,8 +43,8 @@ public class JournalTailerThread extends Thread {
    * @param journal the journal to tail
    */
   public JournalTailerThread(Master master, Journal journal) {
-    mMaster = master;
-    mJournal = journal;
+    mMaster = Preconditions.checkNotNull(master);
+    mJournal = Preconditions.checkNotNull(journal);
   }
 
   /**

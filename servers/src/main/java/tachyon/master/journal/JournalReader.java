@@ -20,6 +20,8 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
@@ -54,8 +56,8 @@ public class JournalReader {
    * @param tachyonConf the tachyon conf
    */
   JournalReader(Journal journal, TachyonConf tachyonConf) {
-    mJournal = journal;
-    mTachyonConf = tachyonConf;
+    mJournal = Preconditions.checkNotNull(journal);
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mUfs = UnderFileSystem.get(mJournal.getDirectory(), mTachyonConf);
     mCheckpointPath = mJournal.getCheckpointFilePath();
   }

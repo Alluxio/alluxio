@@ -235,7 +235,7 @@ public final class FileSystemMaster extends MasterBase {
       long currLength = length;
       for (long blockId : file.getBlockIds()) {
         long blockSize = Math.min(currLength, file.getBlockSizeBytes());
-        mBlockMaster.commitBlock(blockId, blockSize);
+        mBlockMaster.commitBlockInUFS(blockId, blockSize);
         currLength -= blockSize;
       }
 
@@ -778,7 +778,13 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+<<<<<<< HEAD
+   * Creates a directory at path.
+||||||| merged common ancestors
+   * Create a directory at path.
+=======
    * Creates a directory for a given path. Called via RPC, and internal masters.
+>>>>>>> upstream/wip_master_client
    *
    * @param path the path of the directory
    * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,

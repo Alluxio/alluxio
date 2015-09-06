@@ -159,70 +159,70 @@ public class TachyonMaster {
   }
 
   /**
-   * Get the externally resolvable address of this master.
+   * Gets the externally resolvable address of this master.
    */
   public InetSocketAddress getMasterAddress() {
     return mMasterAddress;
   }
 
   /**
-   * Get the actual bind hostname on RPC service (used by unit test only).
+   * Gets the actual bind hostname on RPC service (used by unit test only).
    */
   public String getRPCBindHost() {
     return NetworkAddressUtils.getThriftSocket(mTServerSocket).getLocalSocketAddress().toString();
   }
 
   /**
-   * Get the actual port that the RPC service is listening on (used by unit test only)
+   * Gets the actual port that the RPC service is listening on (used by unit test only)
    */
   public int getRPCLocalPort() {
     return mPort;
   }
 
   /**
-   * Get the actual bind hostname on web service (used by unit test only).
+   * Gets the actual bind hostname on web service (used by unit test only).
    */
   public String getWebBindHost() {
     return mWebServer.getBindHost();
   }
 
   /**
-   * Get the actual port that the web service is listening on (used by unit test only)
+   * Gets the actual port that the web service is listening on (used by unit test only)
    */
   public int getWebLocalPort() {
     return mWebServer.getLocalPort();
   }
 
   /**
-   * Get internal {@link FileSystemMaster}, for unit test only.
+   * Gets internal {@link FileSystemMaster}, for unit test only.
    */
   public FileSystemMaster getFileSystemMaster() {
     return mFileSystemMaster;
   }
 
   /**
-   * Get internal {@link RawTableMaster}, for unit test only.
+   * Gets internal {@link RawTableMaster}, for unit test only.
    */
   public RawTableMaster getRawTableMaster() {
     return mRawTableMaster;
   }
 
   /**
-   * Get internal {@link BlockMaster}, for unit test only.
+   * Gets internal {@link BlockMaster}, for unit test only.
    */
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
   }
 
   /**
-   * Get the millisecond when Tachyon Master starts serving, return -1 when not started.
+   * Gets the millisecond when Tachyon Master starts serving, return -1 when not started.
    */
   public long getStarttimeMs() {
     return mStartTimeMs;
   }
 
   /**
-   * Get whether the system is serving the rpc server.
+   * Gets whether the system is serving the rpc server.
    *
    * @return true if the system is the leader (serving the rpc server), false otherwise.
    */
@@ -231,7 +231,7 @@ public class TachyonMaster {
   }
 
   /**
-   * Start the Tachyon master server.
+   * Starts the Tachyon master server.
    */
   public void start() throws Exception {
     startMasters(true);
@@ -239,7 +239,7 @@ public class TachyonMaster {
   }
 
   /**
-   * Stop the Tachyon master server. Should only be called by tests.
+   * Stops the Tachyon master server. Should only be called by tests.
    */
   public void stop() throws Exception {
     if (mIsServing) {
