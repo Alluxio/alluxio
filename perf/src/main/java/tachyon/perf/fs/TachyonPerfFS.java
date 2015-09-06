@@ -24,8 +24,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.google.common.base.Throwables;
-
 import tachyon.TachyonURI;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
@@ -49,13 +47,8 @@ public class TachyonPerfFS implements PerfFS {
   private TachyonFS mTfs;
 
   private TachyonPerfFS() {
-    try {
-      mTachyonConf = new TachyonConf();
-      mTfs = TachyonFS.get(mTachyonConf);
-    } catch (IOException e) {
-      LOG.error("Failed to get TachyonFS", e);
-      Throwables.propagate(e);
-    }
+    mTachyonConf = new TachyonConf();
+    mTfs = TachyonFS.get(mTachyonConf);
   }
 
   /**
