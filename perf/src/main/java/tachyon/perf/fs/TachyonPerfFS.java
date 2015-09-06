@@ -49,13 +49,8 @@ public class TachyonPerfFS implements PerfFS {
   private TachyonFS mTfs;
 
   private TachyonPerfFS() {
-    try {
-      mTachyonConf = new TachyonConf();
-      mTfs = TachyonFS.get(mTachyonConf);
-    } catch (IOException e) {
-      LOG.error("Failed to get TachyonFS", e);
-      Throwables.propagate(e);
-    }
+    mTachyonConf = new TachyonConf();
+    mTfs = TachyonFS.get(mTachyonConf);
   }
 
   /**
