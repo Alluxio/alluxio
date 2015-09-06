@@ -122,18 +122,18 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info(getServiceName() + ":Stopping master. isLeader: " + isLeaderMode());
-    if (isStandbyMode()) {
+    LOG.info(getServiceName() + ":Stopping master. isLeader: " + mIsLeader);
+    if (mIsLeader) {
+      // Stop this leader master.
+      if (mJournalWriter != null) {
+        mJournalWriter.close();
+        mJournalWriter = null;
+      }
+    } else {
       if (mStandbyJournalTailer != null) {
         // stop and wait for the journal tailer thread.
         mStandbyJournalTailer.shutdownAndJoin();
         mStandbyJournalTailer = null;
-      }
-    } else {
-      // Stop this master.
-      if (mJournalWriter != null) {
-        mJournalWriter.close();
-        mJournalWriter = null;
       }
     }
   }
