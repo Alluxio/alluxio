@@ -42,6 +42,8 @@ import tachyon.util.network.NetworkAddressUtils;
  */
 public abstract class MasterClientBase implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  /** The number of times to retry a particular RPC. */
+  protected static final int RPC_MAX_NUM_RETRY = 30;
 
   protected final boolean mUseZookeeper;
   protected final ExecutorService mExecutorService;
@@ -49,8 +51,13 @@ public abstract class MasterClientBase implements Closeable {
 
   protected InetSocketAddress mMasterAddress = null;
   protected TProtocol mProtocol = null;
-  protected volatile boolean mConnected;
-  protected volatile boolean mIsClosed;
+  /** Is true if this client is currently connected to the master. */
+  protected boolean mConnected = false;
+  /**
+   * Is true if this client was closed by the user. No further actions are possible after the client
+   * is closed.
+   */
+  protected boolean mClosed = false;
 
   /**
    * Creates a new master client base.
@@ -63,11 +70,7 @@ public abstract class MasterClientBase implements Closeable {
       TachyonConf tachyonConf) {
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
-    if (!mUseZookeeper) {
-      mMasterAddress = Preconditions.checkNotNull(masterAddress);
-    }
-    mConnected = false;
-    mIsClosed = false;
+    mMasterAddress = Preconditions.checkNotNull(masterAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
@@ -82,13 +85,17 @@ public abstract class MasterClientBase implements Closeable {
    * This method is called after the connection is made to the master. Implementations should create
    * internal state to finish the connection process.
    */
-  protected abstract void afterConnect();
+  protected void afterConnect() {
+    // Empty implementation.
+  }
 
   /**
    * This method is called after the connection is disconnected. Implementations should clean up any
    * additional state created for the connection.
    */
-  protected abstract void afterDisconnect();
+  protected void afterDisconnect() {
+    // Empty implementation.
+  }
 
   /**
    * Connects with the master.
@@ -100,44 +107,37 @@ public abstract class MasterClientBase implements Closeable {
       return;
     }
     disconnect();
+    Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    if (mIsClosed) {
-      throw new IOException("Client is closed, will not try to connect");
-    }
-
-    Exception lastException = null;
     int maxConnectsTry = mTachyonConf.getInt(Constants.MASTER_RETRY_COUNT);
     final int BASE_SLEEP_MS = 50;
     RetryPolicy retry =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
-    do {
+    while (!mClosed) {
       mMasterAddress = getMasterAddress();
-
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with "
           + getServiceName() + " master @ " + mMasterAddress);
 
-      TProtocol binaryProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(
-              NetworkAddressUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+      TProtocol binaryProtocol = new TBinaryProtocol(new TFramedTransport(
+          new TSocket(NetworkAddressUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();
+        LOG.info("Client registered with " + getServiceName() + " master @ " + mMasterAddress);
+        mConnected = true;
+        afterConnect();
+        return;
       } catch (TTransportException e) {
-        lastException = e;
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName()
             + " master @ " + mMasterAddress + " : " + e.getMessage());
-        continue;
+        if (!retry.attemptRetry()) {
+          break;
+        }
       }
-
-      LOG.info("Client registered with " + getServiceName() + " master @ " + mMasterAddress);
-      mConnected = true;
-      afterConnect();
-      return;
-    } while (retry.attemptRetry() && !mIsClosed);
-
+    }
     // Reaching here indicates that we did not successfully connect.
-    throw new IOException("Failed to connect to " + getServiceName() + " master @ "
-        + mMasterAddress + " after " + (retry.getRetryCount()) + " attempts", lastException);
+    throw new IOException("Failed to connect to " + getServiceName() + " master @ " + mMasterAddress
+        + " after " + (retry.getRetryCount()) + " attempts");
   }
 
   /**
@@ -168,13 +168,13 @@ public abstract class MasterClientBase implements Closeable {
   }
 
   /**
-   * Closes the connection with the master permanently. This instance should be reused after
+   * Closes the connection with the master permanently. This instance should be not be reused after
    * closing.
    */
   @Override
   public synchronized void close() {
     disconnect();
-    mIsClosed = true;
+    mClosed = true;
   }
 
   /**
