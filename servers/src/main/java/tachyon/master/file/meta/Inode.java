@@ -127,14 +127,6 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-<<<<<<< HEAD
-   * Returns whether the inode is deleted or not.
-   *
-||||||| merged common ancestors
-   * Return whether the inode is deleted or not.
-   *
-=======
->>>>>>> upstream/wip_master_client
    * @return true if the inode is deleted, false otherwise
    */
   public boolean isDeleted() {
@@ -142,14 +134,6 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-<<<<<<< HEAD
-   * Returns whether the inode is a directory or not
-   *
-||||||| merged common ancestors
-   * Return whether the inode is a directory or not
-   *
-=======
->>>>>>> upstream/wip_master_client
    * @return true if the inode is a directory, false otherwise
    */
   public boolean isDirectory() {
@@ -157,14 +141,6 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-<<<<<<< HEAD
-   * Returns whether the inode is a file or not
-   *
-||||||| merged common ancestors
-   * Return whether the inode is a file or not
-   *
-=======
->>>>>>> upstream/wip_master_client
    * @return true if the inode is a file, false otherwise
    */
   public boolean isFile() {
@@ -172,14 +148,6 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-<<<<<<< HEAD
-   * Gets the pinned flag of the inode
-   *
-||||||| merged common ancestors
-   * Get the pinned flag of the inode
-   *
-=======
->>>>>>> upstream/wip_master_client
    * @return true if the inode is pinned, false otherwise
    */
   public synchronized boolean isPinned() {

@@ -778,13 +778,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-<<<<<<< HEAD
-   * Creates a directory at path.
-||||||| merged common ancestors
-   * Create a directory at path.
-=======
    * Creates a directory for a given path. Called via RPC, and internal masters.
->>>>>>> upstream/wip_master_client
    *
    * @param path the path of the directory
    * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,
