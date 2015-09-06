@@ -16,10 +16,12 @@
 package tachyon.master.block.meta;
 
 /**
- * The location of the block.
+ * The location of a Tachyon block.
  */
 public final class MasterBlockLocation {
+  /** The id of the Tachyon worker. */
   private final long mWorkerId;
+  /** The tier that the block is on in this worker. */
   private int mTier;
 
   MasterBlockLocation(long workerId, int tier) {

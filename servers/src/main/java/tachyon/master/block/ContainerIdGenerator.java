@@ -16,5 +16,8 @@
 package tachyon.master.block;
 
 public interface ContainerIdGenerator {
+  /**
+   * @return a unique block container id
+   */
   long getNewContainerId();
 }
