@@ -51,7 +51,7 @@ public final class JournalTailerThread extends Thread {
    * Initiate the shutdown of this tailer thread.
    */
   public void shutdown() {
-    LOG.info(mMaster.getProcessorName() + " Journal tailer shutdown has been initiated.");
+    LOG.info(mMaster.getServiceName() + " Journal tailer shutdown has been initiated.");
     mInitiateShutdown = true;
   }
 
@@ -70,7 +70,7 @@ public final class JournalTailerThread extends Thread {
 
   @Override
   public void run() {
-    LOG.info(mMaster.getProcessorName() + " Journal tailer started.");
+    LOG.info(mMaster.getServiceName() + " Journal tailer started.");
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
     while (!mInitiateShutdown) {
@@ -94,7 +94,7 @@ public final class JournalTailerThread extends Thread {
               } else if ((CommonUtils.getCurrentMs()
                   - waitForShutdownStart) > SHUTDOWN_QUIET_WAIT_TIME_MS) {
                 // There have been no new logs for the quiet period. Shutdown now.
-                LOG.info(mMaster.getProcessorName()
+                LOG.info(mMaster.getServiceName()
                     + " Journal tailer has been shutdown. No new logs for the quiet period.");
                 return;
               }
@@ -110,6 +110,6 @@ public final class JournalTailerThread extends Thread {
         LOG.error(ioe.getMessage());
       }
     }
-    LOG.info(mMaster.getProcessorName() + " Journal tailer has been shutdown.");
+    LOG.info(mMaster.getServiceName() + " Journal tailer has been shutdown.");
   }
 }

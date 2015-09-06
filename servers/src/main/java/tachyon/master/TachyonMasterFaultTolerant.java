@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -43,6 +44,7 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
 
   public TachyonMasterFaultTolerant(TachyonConf tachyonConf) {
     super(tachyonConf);
+    Preconditions.checkArgument(tachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
 
     // Set up zookeeper specific functionality.
     try {
@@ -78,15 +80,14 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
 
     while (true) {
       if (mLeaderSelectorClient.isLeader()) {
-        if (started) {
-          stopMasters();
-        }
+        stopMasters();
         startMasters(true);
         started = true;
         startServing();
       } else {
         // This master should be standby, and not the leader
         if (isServing() || !started) {
+          // Need to transition this master to standby mode.
           stopServing();
           stopMasters();
 
@@ -100,6 +101,7 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
           startMasters(false);
           started = true;
         }
+        // This master is already in standby mode. No further actions needed.
       }
 
       CommonUtils.sleepMs(LOG, 100);
