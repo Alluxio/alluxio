@@ -1980,12 +1980,14 @@ public class MasterInfo extends ImageWriter {
         }
         case InodeFolder: {
           Inode inode = InodeFolder.loadImage(parser, ele);
-          addToInodeMap(inode, mFileIdToInodes);
-          recomputePinnedFiles(inode, Optional.<Boolean>absent());
-
+          // if inode's ID is not 1, we lost the root node.
           if (inode.getId() != 1) {
             throw new IOException("Invalid element type " + ele);
           }
+
+          addToInodeMap(inode, mFileIdToInodes);
+          recomputePinnedFiles(inode, Optional.<Boolean>absent());
+
           mRoot = (InodeFolder) inode;
 
           break;
