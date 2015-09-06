@@ -44,7 +44,6 @@ struct FileBlockInfo {
   4: list<NetAddress> locations
 }
 
-// TODO: make fileId into i64
 struct FileInfo {
   1: i64 fileId
   2: string name

@@ -119,7 +119,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   @Override
-  public String getProcessorName() {
+  public String getServiceName() {
     return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
   }
 

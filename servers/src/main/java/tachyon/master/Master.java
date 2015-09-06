@@ -36,7 +36,7 @@ public interface Master extends JournalCheckpointStreamable {
    *
    * @return a {@link String} representing this master service name.
    */
-  String getProcessorName();
+  String getServiceName();
 
   /**
    * Processes the journal checkpoint file.

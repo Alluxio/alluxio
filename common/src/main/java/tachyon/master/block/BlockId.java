@@ -32,12 +32,10 @@ public final class BlockId {
   private static final long SEQUENCE_NUMBER_MASK = (1L << SEQUENCE_NUMBER_BITS) - 1;
 
   private BlockId() {
-    // util class
+    // prevent instantiation of a util class
   }
 
   /**
-   * Returns a block id with the specified container id and sequence number.
-   *
    * @param containerId the container id to create the block id with
    * @param sequenceNumber the sequence number to create the block id with
    * @return the block id constructed with the container id and sequence number
@@ -49,29 +47,23 @@ public final class BlockId {
   }
 
   /**
-   * Returns the container id of the specified block id.
-   *
    * @param blockId the block id to get the container id for
-   * @return the container id
+   * @return the container id of a specified block id
    */
   public static long getContainerId(long blockId) {
     return (blockId >> SEQUENCE_NUMBER_BITS) & CONTAINER_ID_MASK;
   }
 
   /**
-   * Returns the sequence number of the specified block id.
-   *
    * @param blockId the block id to get the sequene number for
-   * @return the sequence number
+   * @return the sequence number of the specified block id
    */
   public static long getSequenceNumber(long blockId) {
     return blockId & SEQUENCE_NUMBER_MASK;
   }
 
   /**
-   * Returns the maximum possible sequence number for block ids.
-   *
-   * @return the maximum possible sequence number
+   * @return the maximum possible sequence number for block ids
    */
   public static long getMaxSequenceNumber() {
     return SEQUENCE_NUMBER_MASK;
