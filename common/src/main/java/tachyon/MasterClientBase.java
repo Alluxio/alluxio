@@ -29,6 +29,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.conf.TachyonConf;
@@ -60,14 +61,14 @@ public abstract class MasterClientBase implements Closeable {
    */
   public MasterClientBase(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     if (!mUseZookeeper) {
-      mMasterAddress = masterAddress;
+      mMasterAddress = Preconditions.checkNotNull(masterAddress);
     }
     mConnected = false;
     mIsClosed = false;
-    mExecutorService = executorService;
+    mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
   /**

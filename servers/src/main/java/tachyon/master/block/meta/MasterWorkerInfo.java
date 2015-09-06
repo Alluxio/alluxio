@@ -24,6 +24,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
@@ -63,7 +64,7 @@ public final class MasterWorkerInfo {
 
   public MasterWorkerInfo(long id, NetAddress address) {
     mId = id;
-    mWorkerAddress = address;
+    mWorkerAddress = Preconditions.checkNotNull(address);
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
     mBlocks = new HashSet<Long>();

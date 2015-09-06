@@ -18,6 +18,8 @@ package tachyon.master.file.journal;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.master.block.BlockId;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.journal.JournalEntryType;
@@ -39,7 +41,7 @@ public class InodeFileEntry extends InodeEntry {
     mIsComplete = isComplete;
     mIsCache = isCache;
     mUfsPath = ufsPath;
-    mBlocks = blocks;
+    mBlocks = Preconditions.checkNotNull(blocks);
   }
 
   public InodeFile toInodeFile() {

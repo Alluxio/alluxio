@@ -172,7 +172,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Get the first object from the set of objects with the specified field value.
+   * Gets the first object from the set of objects with the specified field value.
    *
    * @param index the field index
    * @param value the field value

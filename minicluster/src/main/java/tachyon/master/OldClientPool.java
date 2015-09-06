@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.TachyonURI;
@@ -37,7 +38,7 @@ public final class OldClientPool implements Closeable {
   private final List<TachyonFS> mClients = Collections.synchronizedList(new ArrayList<TachyonFS>());
 
   public OldClientPool(Supplier<String> uriSupplier) {
-    mUriSuppliers = uriSupplier;
+    mUriSuppliers = Preconditions.checkNotNull(uriSupplier);
   }
 
   /**

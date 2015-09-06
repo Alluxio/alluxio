@@ -15,6 +15,8 @@
 
 package tachyon.master.file.meta;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.master.block.BlockId;
 import tachyon.master.block.ContainerIdGenerator;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
@@ -37,7 +39,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
    * @param containerIdGenerator the container id generator to use
    */
   public InodeDirectoryIdGenerator(ContainerIdGenerator containerIdGenerator) {
-    mContainerIdGenerator = containerIdGenerator;
+    mContainerIdGenerator = Preconditions.checkNotNull(containerIdGenerator);
   }
 
   synchronized long getNewDirectoryId() {
