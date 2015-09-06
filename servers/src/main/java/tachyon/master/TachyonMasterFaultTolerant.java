@@ -20,6 +20,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -36,13 +37,14 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 /**
  * The fault tolerant version of TachyonMaster that uses zookeeper and standby masters.
  */
-public class TachyonMasterFaultTolerant extends TachyonMaster {
+public final class TachyonMasterFaultTolerant extends TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
   public TachyonMasterFaultTolerant(TachyonConf tachyonConf) {
     super(tachyonConf);
+    Preconditions.checkArgument(tachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
 
     // Set up zookeeper specific functionality.
     try {
@@ -61,8 +63,9 @@ public class TachyonMasterFaultTolerant extends TachyonMaster {
   }
 
   /**
-   * Start a Tachyon master server.
+   * Starts a Tachyon master server.
    */
+  @Override
   public void start() throws Exception {
     try {
       mLeaderSelectorClient.start();
@@ -77,15 +80,14 @@ public class TachyonMasterFaultTolerant extends TachyonMaster {
 
     while (true) {
       if (mLeaderSelectorClient.isLeader()) {
-        if (started) {
-          stopMasters();
-        }
+        stopMasters();
         startMasters(true);
         started = true;
         startServing();
       } else {
         // This master should be standby, and not the leader
         if (isServing() || !started) {
+          // Need to transition this master to standby mode.
           stopServing();
           stopMasters();
 
@@ -99,6 +101,7 @@ public class TachyonMasterFaultTolerant extends TachyonMaster {
           startMasters(false);
           started = true;
         }
+        // This master is already in standby mode. No further actions needed.
       }
 
       CommonUtils.sleepMs(LOG, 100);
@@ -106,8 +109,9 @@ public class TachyonMasterFaultTolerant extends TachyonMaster {
   }
 
   /**
-   * Stop a Tachyon master server. Should only be called by tests.
+   * Stops a Tachyon master server. Should only be called by tests.
    */
+  @Override
   public void stop() throws Exception {
     super.stop();
     if (mLeaderSelectorClient != null) {

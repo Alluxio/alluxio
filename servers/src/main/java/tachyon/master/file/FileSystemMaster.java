@@ -119,7 +119,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   @Override
-  public String getProcessorName() {
+  public String getServiceName() {
     return Constants.FILE_SYSTEM_MASTER_SERVICE_NAME;
   }
 
@@ -235,7 +235,7 @@ public final class FileSystemMaster extends MasterBase {
       long currLength = length;
       for (long blockId : file.getBlockIds()) {
         long blockSize = Math.min(currLength, file.getBlockSizeBytes());
-        mBlockMaster.commitBlock(blockId, blockSize);
+        mBlockMaster.commitBlockInUFS(blockId, blockSize);
         currLength -= blockSize;
       }
 

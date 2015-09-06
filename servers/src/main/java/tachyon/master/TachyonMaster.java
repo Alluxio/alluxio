@@ -58,6 +58,7 @@ public class TachyonMaster {
     }
 
     try {
+      // TODO: create a master context with the tachyon conf.
       TachyonConf conf = new TachyonConf();
       TachyonMaster master;
       if (conf.getBoolean(Constants.USE_ZOOKEEPER)) {
@@ -150,80 +151,76 @@ public class TachyonMaster {
   }
 
   /**
-   * Returns the underlying {@link TachyonConf} instance for the Worker.
-   *
-   * @return TachyonConf of the Master
+   * @return the underlying {@link TachyonConf} instance for the master.
    */
   public TachyonConf getTachyonConf() {
     return mTachyonConf;
   }
 
   /**
-   * Get the externally resolvable address of this master.
+   * @return the externally resolvable address of this master.
    */
   public InetSocketAddress getMasterAddress() {
     return mMasterAddress;
   }
 
   /**
-   * Get the actual bind hostname on RPC service (used by unit test only).
+   * @return the actual bind hostname on RPC service (used by unit test only).
    */
   public String getRPCBindHost() {
     return NetworkAddressUtils.getThriftSocket(mTServerSocket).getLocalSocketAddress().toString();
   }
 
   /**
-   * Get the actual port that the RPC service is listening on (used by unit test only)
+   * @return the actual port that the RPC service is listening on (used by unit test only)
    */
   public int getRPCLocalPort() {
     return mPort;
   }
 
   /**
-   * Get the actual bind hostname on web service (used by unit test only).
+   * @return the actual bind hostname on web service (used by unit test only).
    */
   public String getWebBindHost() {
     return mWebServer.getBindHost();
   }
 
   /**
-   * Get the actual port that the web service is listening on (used by unit test only)
+   * @return the actual port that the web service is listening on (used by unit test only)
    */
   public int getWebLocalPort() {
     return mWebServer.getLocalPort();
   }
 
   /**
-   * Get internal {@link FileSystemMaster}, for unit test only.
+   * @return internal {@link FileSystemMaster}, for unit test only.
    */
   public FileSystemMaster getFileSystemMaster() {
     return mFileSystemMaster;
   }
 
   /**
-   * Get internal {@link RawTableMaster}, for unit test only.
+   * @return internal {@link RawTableMaster}, for unit test only.
    */
   public RawTableMaster getRawTableMaster() {
     return mRawTableMaster;
   }
 
   /**
-   * Get internal {@link BlockMaster}, for unit test only.
+   * @return internal {@link BlockMaster}, for unit test only.
    */
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
   }
 
   /**
-   * Get the millisecond when Tachyon Master starts serving, return -1 when not started.
+   * @return the millisecond when Tachyon Master starts serving, return -1 when not started.
    */
   public long getStarttimeMs() {
     return mStartTimeMs;
   }
 
   /**
-   * Get whether the system is serving the rpc server.
-   *
    * @return true if the system is the leader (serving the rpc server), false otherwise.
    */
   boolean isServing() {
@@ -231,7 +228,7 @@ public class TachyonMaster {
   }
 
   /**
-   * Start the Tachyon master server.
+   * Starts the Tachyon master server.
    */
   public void start() throws Exception {
     startMasters(true);
@@ -239,7 +236,7 @@ public class TachyonMaster {
   }
 
   /**
-   * Stop the Tachyon master server. Should only be called by tests.
+   * Stops the Tachyon master server. Should only be called by tests.
    */
   public void stop() throws Exception {
     if (mIsServing) {
@@ -293,10 +290,10 @@ public class TachyonMaster {
   protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
-    processor.registerProcessor(mBlockMaster.getProcessorName(), mBlockMaster.getProcessor());
-    processor.registerProcessor(mFileSystemMaster.getProcessorName(),
+    processor.registerProcessor(mBlockMaster.getServiceName(), mBlockMaster.getProcessor());
+    processor.registerProcessor(mFileSystemMaster.getServiceName(),
         mFileSystemMaster.getProcessor());
-    processor.registerProcessor(mRawTableMaster.getProcessorName(), mRawTableMaster.getProcessor());
+    processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
 
     // create master thrift service with the multiplexed processor.
     mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
@@ -313,9 +310,11 @@ public class TachyonMaster {
   protected void stopServing() throws Exception {
     if (mMasterServiceServer != null) {
       mMasterServiceServer.stop();
+      mMasterServiceServer = null;
     }
     if (mWebServer != null) {
       mWebServer.shutdownWebServer();
+      mWebServer = null;
     }
     mIsServing = false;
   }
@@ -330,6 +329,9 @@ public class TachyonMaster {
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(journalDirectory, mTachyonConf);
     if (!ufs.providesStorage()) {
+      // TODO: Should the journal really be allowed on a ufs without storage?
+      // This ufs doesn't provide storage. Allow the master to use this ufs for the journal.
+      LOG.info("Journal directory doesn't provide storage: " + journalDirectory);
       return true;
     }
     String[] files = ufs.list(journalDirectory);

@@ -20,11 +20,13 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.master.Master;
 import tachyon.util.CommonUtils;
 
-public class JournalTailerThread extends Thread {
+public final class JournalTailerThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make the quiet period a configuration parameter.
   private static final int SHUTDOWN_QUIET_WAIT_TIME_MS = 5 * Constants.SECOND_MS;
@@ -41,15 +43,15 @@ public class JournalTailerThread extends Thread {
    * @param journal the journal to tail
    */
   public JournalTailerThread(Master master, Journal journal) {
-    mMaster = master;
-    mJournal = journal;
+    mMaster = Preconditions.checkNotNull(master);
+    mJournal = Preconditions.checkNotNull(journal);
   }
 
   /**
    * Initiate the shutdown of this tailer thread.
    */
   public void shutdown() {
-    LOG.info(mMaster.getProcessorName() + " Journal tailer shutdown has been initiated.");
+    LOG.info(mMaster.getServiceName() + " Journal tailer shutdown has been initiated.");
     mInitiateShutdown = true;
   }
 
@@ -68,7 +70,7 @@ public class JournalTailerThread extends Thread {
 
   @Override
   public void run() {
-    LOG.info(mMaster.getProcessorName() + " Journal tailer started.");
+    LOG.info(mMaster.getServiceName() + " Journal tailer started.");
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
     while (!mInitiateShutdown) {
@@ -92,7 +94,7 @@ public class JournalTailerThread extends Thread {
               } else if ((CommonUtils.getCurrentMs()
                   - waitForShutdownStart) > SHUTDOWN_QUIET_WAIT_TIME_MS) {
                 // There have been no new logs for the quiet period. Shutdown now.
-                LOG.info(mMaster.getProcessorName()
+                LOG.info(mMaster.getServiceName()
                     + " Journal tailer has been shutdown. No new logs for the quiet period.");
                 return;
               }
@@ -108,6 +110,6 @@ public class JournalTailerThread extends Thread {
         LOG.error(ioe.getMessage());
       }
     }
-    LOG.info(mMaster.getProcessorName() + " Journal tailer has been shutdown.");
+    LOG.info(mMaster.getServiceName() + " Journal tailer has been shutdown.");
   }
 }

@@ -60,15 +60,18 @@ public abstract class MasterBase implements Master {
   @Override
   public void processJournalCheckpoint(JournalInputStream inputStream) throws IOException {
     JournalEntry entry;
-    while ((entry = inputStream.getNextEntry()) != null) {
-      processJournalEntry(entry);
+    try {
+      while ((entry = inputStream.getNextEntry()) != null) {
+        processJournalEntry(entry);
+      }
+    } finally {
+      inputStream.close();
     }
-    inputStream.close();
   }
 
   @Override
   public void start(boolean isLeader) throws IOException {
-    LOG.info(getProcessorName() + ": Starting master. isLeader: " + isLeader);
+    LOG.info(getServiceName() + ": Starting master. isLeader: " + isLeader);
     mIsLeader = isLeader;
     if (mIsLeader) {
       mJournalWriter = mJournal.getNewWriter();
@@ -96,7 +99,7 @@ public abstract class MasterBase implements Master {
       // Phase 2: Replay all the state of the checkpoint and the completed log files.
       // TODO: only do this if this is a fresh start, not if this master had already been tailing
       // the journal.
-      LOG.info(getProcessorName() + ": process completed logs before becoming master.");
+      LOG.info(getServiceName() + ": process completed logs before becoming master.");
       JournalTailer catchupTailer = new JournalTailer(this, mJournal);
       if (catchupTailer.checkpointExists()) {
         catchupTailer.processJournalCheckpoint(true);
@@ -119,11 +122,12 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info(getProcessorName() + ":Stopping master. isLeader: " + isLeaderMode());
+    LOG.info(getServiceName() + ":Stopping master. isLeader: " + isLeaderMode());
     if (isStandbyMode()) {
       if (mStandbyJournalTailer != null) {
         // stop and wait for the journal tailer thread.
         mStandbyJournalTailer.shutdownAndJoin();
+        mStandbyJournalTailer = null;
       }
     } else {
       // Stop this master.
@@ -143,9 +147,7 @@ public abstract class MasterBase implements Master {
   }
 
   protected void writeJournalEntry(JournalEntry entry) {
-    if (mJournalWriter == null) {
-      throw new RuntimeException("Cannot write entry: journal writer is null.");
-    }
+    Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().writeEntry(entry);
     } catch (IOException ioe) {
@@ -154,9 +156,7 @@ public abstract class MasterBase implements Master {
   }
 
   protected void flushJournal() {
-    if (mJournalWriter == null) {
-      throw new RuntimeException("Cannot flush journal: Journal writer is null.");
-    }
+    Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().flush();
     } catch (IOException ioe) {

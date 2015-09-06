@@ -76,7 +76,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   @Override
-  public String getProcessorName() {
+  public String getServiceName() {
     return Constants.RAW_TABLE_MASTER_SERVICE_NAME;
   }
 
@@ -98,17 +98,11 @@ public class RawTableMaster extends MasterBase {
   @Override
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
-    if (isLeaderMode()) {
-      // TODO: start periodic heartbeat threads.
-    }
   }
 
   @Override
   public void stop() throws IOException {
     super.stop();
-    if (isLeaderMode()) {
-      // TODO: stop heartbeat threads.
-    }
   }
 
   /**
