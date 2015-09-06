@@ -33,15 +33,15 @@ public abstract class BlockInStream extends InStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Get a new BlockInStream of the given block without under file system configuration. The block
-   * is decided by the tachyonFile and blockIndex
+   * Creates a new <code>BlockInStream</code> without under file system configuration. The block is
+   * decided by the tachyonFile and blockIndex.
    *
    * @param tachyonFile the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the tachyonFile
    * @param tachyonConf the TachyonConf instance for this file output stream.
    * @return A new LocalBlockInStream or RemoteBlockInStream
-   * @throws IOException
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
       TachyonConf tachyonConf) throws IOException {
@@ -49,15 +49,15 @@ public abstract class BlockInStream extends InStream {
   }
 
   /**
-   * Get a new BlockInStream of the given block with the under file system configuration. The block
-   * is decided by the tachyonFile and blockIndex
+   * Creates a new <code>BlockInStream</code> with the under file system configuration. The block is
+   * decided by the tachyonFile and blockIndex.
    *
    * @param tachyonFile the file the block belongs to
    * @param readType the InStream's read type
    * @param blockIndex the index of the block in the tachyonFile
    * @param ufsConf the under file system configuration
    * @return A new LocalBlockInStream or RemoteBlockInStream
-   * @throws IOException
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
       Object ufsConf, TachyonConf tachyonConf) throws IOException {
@@ -65,10 +65,10 @@ public abstract class BlockInStream extends InStream {
       LOG.info("Reading with local stream.");
       TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
       if (buf != null) {
-//      TODO: Rethink this code path to work with the worker locking design
-//      if (readType.isPromote()) {
-//        tachyonFile.promoteBlock(blockIndex);
-//      }
+        // TODO(calvin): Rethink this code path to work with the worker locking design.
+        // if (readType.isPromote()) {
+        // tachyonFile.promoteBlock(blockIndex);
+        // }
         return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf, tachyonConf);
       }
     }
@@ -82,10 +82,10 @@ public abstract class BlockInStream extends InStream {
   protected boolean mClosed = false;
 
   /**
-   * @param file
-   * @param readType
-   * @param blockIndex
-   * @param tachyonConf the TachyonConf instance for this file output stream.
+   * @param file the parent file
+   * @param readType the BlockInStream's read type
+   * @param blockIndex the index of the block
+   * @param tachyonConf the TachyonConf instance
    */
   BlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonConf tachyonConf) {
     super(file, readType, tachyonConf);
