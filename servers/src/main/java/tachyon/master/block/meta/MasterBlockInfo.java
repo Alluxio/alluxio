@@ -24,6 +24,9 @@ import java.util.Set;
 
 import tachyon.StorageLevelAlias;
 
+/**
+ * The metadata for a Tachyon block, managed by the block master.
+ */
 public final class MasterBlockInfo {
   private final long mBlockId;
   private final long mLength;
@@ -39,10 +42,16 @@ public final class MasterBlockInfo {
     mWorkerIdToAlias = new HashMap<Long, Integer>();
   }
 
+  /**
+   * @return the length of the block
+   */
   public long getLength() {
     return mLength;
   }
 
+  /**
+   * @return the block id
+   */
   public long getBlockId() {
     return mBlockId;
   }
@@ -57,14 +66,25 @@ public final class MasterBlockInfo {
     mWorkerIdToAlias.put(workerId, tierAlias);
   }
 
+  /**
+   * Removes the worker from the locations of this block
+   *
+   * @param workerId the worker id to remove
+   */
   public void removeWorker(long workerId) {
     mWorkerIdToAlias.remove(workerId);
   }
 
+  /**
+   * @return all the worker ids that this block is on
+   */
   public Set<Long> getWorkers() {
     return Collections.unmodifiableSet(mWorkerIdToAlias.keySet());
   }
 
+  /**
+   * @return the number of workers this block is on
+   */
   public int getNumLocations() {
     return mWorkerIdToAlias.size();
   }
@@ -102,9 +122,10 @@ public final class MasterBlockInfo {
 
   @Override
   public synchronized String toString() {
-    // TODO
     StringBuilder sb = new StringBuilder("MasterBlockInfo(");
     sb.append("mBlockId: ").append(mBlockId);
+    sb.append(", mLength: ").append(mLength);
+    sb.append(")");
     return sb.toString();
   }
 }

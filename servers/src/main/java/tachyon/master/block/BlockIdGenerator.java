@@ -21,6 +21,9 @@ import tachyon.master.block.journal.BlockIdGeneratorEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryRepresentable;
 
+/**
+ * This class generates unique block ids.
+ */
 public final class BlockIdGenerator implements JournalEntryRepresentable {
 
   private final AtomicLong mNextContainerId;
@@ -29,6 +32,9 @@ public final class BlockIdGenerator implements JournalEntryRepresentable {
     mNextContainerId = new AtomicLong(0);
   }
 
+  /**
+   * @return a unique block container id
+   */
   public synchronized long getNewBlockContainerId() {
     return mNextContainerId.getAndIncrement();
   }

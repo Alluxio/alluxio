@@ -32,6 +32,9 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 
+/**
+ * Metadata for a Tachyon worker.
+ */
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address */
@@ -70,14 +73,15 @@ public final class MasterWorkerInfo {
   }
 
   /**
+   * Marks the worker as registered, while updating all of its metadata.
    *
-   * @param totalBytesOnTiers
-   * @param usedBytesOnTiers
-   * @param newBlocks
+   * @param totalBytesOnTiers list of total bytes on each tier
+   * @param usedBytesOnTiers list of the used byes on each tier
+   * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker.
    */
   public Set<Long> register(final List<Long> totalBytesOnTiers, final List<Long> usedBytesOnTiers,
-      final Set<Long> newBlocks) {
+      final Set<Long> blocks) {
     // validate the number of tiers
     if (totalBytesOnTiers.size() != usedBytesOnTiers.size()) {
       throw new IllegalArgumentException(
@@ -105,13 +109,13 @@ public final class MasterWorkerInfo {
       LOG.info("re-registering an existing workerId: " + mId);
 
       // Compute the difference between the existing block data, and the new data.
-      removedBlocks = Sets.difference(mBlocks, newBlocks);
+      removedBlocks = Sets.difference(mBlocks, blocks);
     } else {
       removedBlocks = Collections.emptySet();
     }
 
     // Set the new block information.
-    mBlocks = new HashSet<Long>(newBlocks);
+    mBlocks = new HashSet<Long>(blocks);
 
     mIsRegistered = true;
     return removedBlocks;
