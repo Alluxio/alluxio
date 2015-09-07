@@ -16,31 +16,18 @@
 package tachyon.client.block;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-import com.google.common.base.Preconditions;
-
-import tachyon.Constants;
 import tachyon.client.RemoteBlockWriter;
 import tachyon.client.ClientContext;
-import tachyon.util.io.BufferUtils;
 import tachyon.worker.WorkerClient;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write
  * through a Tachyon worker which will then write the block to a file in Tachyon storage.
  */
-public class RemoteBlockOutStream extends BlockOutStream {
-  private final long mBlockId;
-  private final long mBlockSize;
-  private final BSContext mContext;
-  private final ByteBuffer mBuffer;
+public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private final RemoteBlockWriter mRemoteWriter;
   private final WorkerClient mWorkerClient;
-
-  private boolean mClosed;
-  private long mFlushedBytes;
-  private long mWrittenBytes;
 
   /**
    * Creates a new block output stream.
@@ -50,12 +37,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
    * @throws IOException if I/O error occurs
    */
   public RemoteBlockOutStream(long blockId, long blockSize) throws IOException {
-    mBlockId = blockId;
-    mBlockSize = blockSize;
-    mContext = BSContext.INSTANCE;
-    mBuffer =
-        ByteBuffer.allocate((int) ClientContext.getConf()
-            .getBytes(Constants.USER_FILE_BUFFER_BYTES));
+    super(blockId, blockSize);
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
     mWorkerClient = mContext.acquireWorkerClient();
     mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId, mWorkerClient.getUserId());
@@ -77,6 +59,7 @@ public class RemoteBlockOutStream extends BlockOutStream {
     if (mClosed) {
       return;
     }
+    flush();
     mRemoteWriter.close();
     if (mFlushedBytes == mBlockSize) {
       mWorkerClient.cacheBlock(mBlockId);
@@ -88,67 +71,14 @@ public class RemoteBlockOutStream extends BlockOutStream {
   }
 
   @Override
-  public long remaining() {
-    return mBlockSize - mWrittenBytes;
-  }
-
-  @Override
-  public void write(int b) throws IOException {
-    failIfClosed();
-    Preconditions.checkState(mWrittenBytes + 1 <= mBlockSize, "Out of capacity.");
-    if (mBuffer.position() >= mBuffer.limit()) {
-      flushBufferToRemote();
-    }
-    BufferUtils.putIntByteBuffer(mBuffer, b);
-    mWrittenBytes ++;
-  }
-
-  @Override
-  public void write(byte[] b) throws IOException {
-    write(b, 0, b.length);
-  }
-
-  @Override
-  public void write(byte[] b, int off, int len) throws IOException {
-    failIfClosed();
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
-        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
-    Preconditions.checkState(mWrittenBytes + len <= mBlockSize, "Out of capacity.");
-    if (len == 0) {
-      return;
-    }
-
-    if (mBuffer.position() > 0 && mBuffer.position() + len > mBuffer.limit()) {
-      // Write the non-empty buffer if the new write will overflow it.
-      flushBufferToRemote();
-    }
-
-    if (len > mBuffer.limit() / 2) {
-      // This write is "large", so do not write it to the buffer, but write it out directly to the
-      // remote block.
-      if (mBuffer.position() > 0) {
-        // Make sure all bytes in the buffer are written out first, to prevent out-of-order writes.
-        flushBufferToRemote();
-      }
-      writeToRemoteBlock(b, off, len);
-    } else {
-      // Write the data to the buffer, and not directly to the remote block.
-      mBuffer.put(b, off, len);
-    }
-
-    mWrittenBytes += len;
-  }
-
-  private void failIfClosed() throws IOException {
-    if (mClosed) {
-      throw new IOException("Cannot do operations on a closed RemoteBlockOutStream");
-    }
-  }
-
-  private void flushBufferToRemote() throws IOException {
+  public void flush() throws IOException {
     writeToRemoteBlock(mBuffer.array(), 0, mBuffer.position());
     mBuffer.clear();
+  }
+
+  @Override
+  protected void unBufferedWrite(byte[] b, int off, int len) throws IOException {
+    writeToRemoteBlock(b, off, len);
   }
 
   private void writeToRemoteBlock(byte[] b, int off, int len) throws IOException {

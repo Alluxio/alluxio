@@ -24,7 +24,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientOptions;
 import tachyon.client.InStream;
 import tachyon.client.block.BlockInStream;
-import tachyon.client.block.BlockOutStream;
+import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
@@ -36,19 +36,29 @@ import tachyon.thrift.FileInfo;
  */
 @PublicApi
 public final class FileInStream extends InStream {
+  /** Whether the data should be written into Tachyon space */
   private final boolean mShouldCache;
+  /** Standard block size in bytes of the file, guaranteed for all but the last block */
   private final long mBlockSize;
+  /** Total length of the file in bytes */
   private final long mFileLength;
+  /** File System context containing the FileSystemMasterClient pool */
   private final FSContext mContext;
+  /** Block ids associated with this file */
   private final List<Long> mBlockIds;
+  /** Path to the under storage system file that backs this Tachyon file */
   private final String mUfsPath;
-  private final ClientOptions mOptions;
 
+  /** If the stream is closed, this can only go from false to true */
   private boolean mClosed;
+  /** Whether or not the current block should be cached. */
   private boolean mShouldCacheCurrentBlock;
+  /** Current position of the stream */
   private long mPos;
+  /** Current BlockInStream backing this stream */
   private BlockInStream mCurrentBlockInStream;
-  private BlockOutStream mCurrentCacheStream;
+  /** Current BlockOutStream writing the data into Tachyon, this may be null */
+  private BufferedBlockOutStream mCurrentCacheStream;
 
   /**
    * Creates a new file input stream.
@@ -61,7 +71,6 @@ public final class FileInStream extends InStream {
     mFileLength = info.getLength();
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
-    mOptions = options;
     mContext = FSContext.INSTANCE;
     mShouldCache = options.getCacheType().shouldCache();
     mShouldCacheCurrentBlock = mShouldCache;
@@ -116,32 +125,34 @@ public final class FileInStream extends InStream {
       return -1;
     }
 
-    int tOff = off;
-    int tLen = len;
+    int currentOffset = off;
+    int bytesLeftToRead = len;
 
-    while (tLen > 0 && mPos < mFileLength) {
+    while (bytesLeftToRead > 0 && mPos < mFileLength) {
       checkAndAdvanceBlockInStream();
 
-      int tRead = mCurrentBlockInStream.read(b, tOff, tLen);
-      if (tRead > 0 && mShouldCacheCurrentBlock) {
+      int bytesToRead = (int) Math.min(bytesLeftToRead, mCurrentBlockInStream.remaining());
+
+      int bytesRead = mCurrentBlockInStream.read(b, currentOffset, bytesToRead);
+      if (bytesRead > 0 && mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream.write(b, tOff, tRead);
+          mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
           // TODO: Log debug maybe?
           mShouldCacheCurrentBlock = false;
         }
       }
-      if (tRead == -1) {
+      if (bytesRead == -1) {
         // mCurrentBlockInStream has reached its block boundary
         continue;
       }
 
-      mPos += tRead;
-      tLen -= tRead;
-      tOff += tRead;
+      mPos += bytesRead;
+      bytesLeftToRead -= bytesRead;
+      currentOffset += bytesRead;
     }
 
-    return len - tLen;
+    return len - bytesLeftToRead;
   }
 
   @Override
@@ -181,6 +192,14 @@ public final class FileInStream extends InStream {
     return toSkip;
   }
 
+  /**
+   * Convenience method for updating mCurrentBlockInStream, mShouldCacheCurrentBlock, and
+   * mCurrentCacheStream. If the block boundary has been reached, the current BlockInStream is
+   * closed and a the next one is opened. mShouldCacheCurrent block is reset to the original
+   * mShouldCache. mCurrentCacheStream is also closed and a new one is created for the next block.
+   *
+   * @throws IOException if the next BlockInStream cannot be obtained
+   */
   private void checkAndAdvanceBlockInStream() throws IOException {
     long currentBlockId = getBlockCurrentBlockId();
     if (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0) {
@@ -203,6 +222,7 @@ public final class FileInStream extends InStream {
       closeCacheStream();
       if (mShouldCacheCurrentBlock) {
         try {
+          // TODO: Specify the location to be local
           mCurrentCacheStream =
               mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
@@ -213,6 +233,12 @@ public final class FileInStream extends InStream {
     }
   }
 
+  /**
+   * Convenience method for checking if mCurrentCacheStream is not null and closing it with the
+   * appropriate close or cancel command.
+   *
+   * @throws IOException if the close fails
+   */
   private void closeCacheStream() throws IOException {
     if (mCurrentCacheStream == null) {
       return;
@@ -222,14 +248,26 @@ public final class FileInStream extends InStream {
     } else {
       mCurrentCacheStream.cancel();
     }
+    mShouldCacheCurrentBlock = false;
   }
 
+  /**
+   * @return the current block id based on mPos
+   *
+   */
   private long getBlockCurrentBlockId() {
     int index = (int) (mPos / mBlockSize);
     Preconditions.checkState(index < mBlockIds.size(), "Current block index exceeds max index.");
     return mBlockIds.get(index);
   }
 
+  /**
+   * Similar to checkAndAdvanceBlockInStream, but a specific position can be specified and the
+   * stream pointer will be at that offset after this method completes.
+   *
+   * @param newPos the new position to set the stream to
+   * @throws IOException if the stream at the specified position cannot be opened
+   */
   // TODO: This can be combined with check and advance
   private void moveBlockInStream(long newPos) throws IOException {
     long oldBlockId = getBlockCurrentBlockId();
