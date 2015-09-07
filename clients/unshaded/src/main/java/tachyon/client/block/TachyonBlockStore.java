@@ -18,10 +18,14 @@ package tachyon.client.block;
 import java.io.Closeable;
 import java.io.IOException;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.client.BlockMasterClient;
+import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
@@ -105,7 +109,7 @@ public class TachyonBlockStore implements Closeable {
    * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public BlockOutStream getOutStream(long blockId, long blockSize, NetAddress location)
+  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, NetAddress location)
       throws IOException {
     if (blockSize == -1) {
       BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
@@ -115,7 +119,7 @@ public class TachyonBlockStore implements Closeable {
         mContext.releaseMasterClient(blockMasterClient);
       }
     }
-    // No specified location to read from
+    // No specified location to write to
     if (null == location) {
       // Local client, attempt to do direct write to local storage
       if (mContext.hasLocalWorker()) {
@@ -123,6 +127,11 @@ public class TachyonBlockStore implements Closeable {
       }
       // Client is not local or the data is not available on the local worker, use remote stream
       return new RemoteBlockOutStream(blockId, blockSize);
+    }
+    // Location is local
+    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location.getMHost())) {
+      Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
+      return new LocalBlockOutStream(blockId, blockSize);
     }
     // TODO: Handle the case when a location is specified
     return null;

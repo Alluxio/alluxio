@@ -58,18 +58,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.14</version>
-        <configuration>
-          <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
-          <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

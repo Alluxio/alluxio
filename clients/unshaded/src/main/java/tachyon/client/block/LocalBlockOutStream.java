@@ -35,19 +35,12 @@ import tachyon.worker.WorkerClient;
  * Provides a streaming API to write to a Tachyon block. This output stream will directly write
  * the input to a file in local Tachyon storage.
  */
-public class LocalBlockOutStream extends BlockOutStream {
+public class LocalBlockOutStream extends BufferedBlockOutStream {
   private final Closer mCloser;
-  private final long mBlockSize;
-  private final long mBlockId;
-  private final BSContext mContext;
   private final WorkerClient mWorkerClient;
-  private final String mBlockPath;
-  private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
 
-  private boolean mClosed;
-  private long mAvailableBytes;
-  private long mWrittenBytes;
+  private long mReservedBytes;
 
   /**
    * Creates a new local block output stream.
@@ -57,36 +50,24 @@ public class LocalBlockOutStream extends BlockOutStream {
    * @throws IOException if an I/O error occurs
    */
   public LocalBlockOutStream(long blockId, long blockSize) throws IOException {
+    super(blockId, blockSize);
     mCloser = Closer.create();
-    mBlockSize = blockSize;
-    mBlockId = blockId;
-    mContext = BSContext.INSTANCE;
-
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     try {
-      // TODO: Get the initial size from the configuration
       long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
-      mBlockPath = mWorkerClient.requestBlockLocation(blockId, initialSize);
-      // TODO: Handle this in the worker?
-      FileUtils.createBlockPath(mBlockPath);
-      mAvailableBytes += initialSize;
-
-      mLocalFile = mCloser.register(new RandomAccessFile(mBlockPath, "rw"));
-      mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
+      String blockPath = mWorkerClient.requestBlockLocation(mBlockId, initialSize);
+      mReservedBytes += initialSize;
+      FileUtils.createBlockPath(blockPath);
+      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
+      mLocalFileChannel = mCloser.register(localFile.getChannel());
       // change the permission of the temporary file in order that the worker can move it.
-      FileUtils.changeLocalFileToFullPermission(mBlockPath);
+      FileUtils.changeLocalFileToFullPermission(blockPath);
       // TODO: Add a log message to indicate the file creation
     } catch (IOException ioe) {
       mContext.releaseWorkerClient(mWorkerClient);
       throw ioe;
-    }
-  }
-
-  private void failIfClosed() throws IOException {
-    if (mClosed) {
-      throw new IOException("Cannot write to a closed OutputStream");
     }
   }
 
@@ -116,50 +97,31 @@ public class LocalBlockOutStream extends BlockOutStream {
   }
 
   @Override
-  public long remaining() {
-    return mBlockSize - mWrittenBytes;
+  public void flush() throws IOException {
+    int bytesToWrite = mBuffer.position();
+    if (mReservedBytes < bytesToWrite) {
+      mReservedBytes += requestSpace(bytesToWrite - mReservedBytes);
+    }
+    MappedByteBuffer mappedBuffer =
+        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mFlushedBytes, bytesToWrite);
+    mappedBuffer.put(mBuffer.array(), 0, bytesToWrite);
+    BufferUtils.cleanDirectBuffer(mappedBuffer);
+    mReservedBytes -= bytesToWrite;
+    mFlushedBytes += bytesToWrite;
+    mBuffer.clear();
   }
 
   @Override
-  public void write(byte[] b) throws IOException {
-    write(b, 0, b.length);
-  }
-
-  @Override
-  public void write(byte[] b, int off, int len) throws IOException {
-    failIfClosed();
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
-        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
-
-    if (mAvailableBytes < len) {
-      mAvailableBytes += requestSpace(len - mAvailableBytes);
+  protected void unBufferedWrite(byte[] b, int off, int len) throws IOException {
+    if (mReservedBytes < len) {
+      mReservedBytes += requestSpace(len - mReservedBytes);
     }
-
-    MappedByteBuffer out =
-        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mWrittenBytes, len);
-    out.put(b, off, len);
-    BufferUtils.cleanDirectBuffer(out);
-    mAvailableBytes -= len;
-    mWrittenBytes += len;
-  }
-
-  @Override
-  public void write(int b) throws IOException {
-    failIfClosed();
-    if (mWrittenBytes + 1 > mBlockSize) {
-      // TODO: Handle this error better
-      throw new IOException("Block capacity exceeded.");
-    }
-    if (mAvailableBytes < 1) {
-      mAvailableBytes += requestSpace(1);
-    }
-    ByteBuffer buf = ByteBuffer.allocate(1);
-    BufferUtils.putIntByteBuffer(buf, b);
-    buf.flip();
-    mLocalFileChannel.write(buf);
-    mAvailableBytes --;
-    mWrittenBytes ++;
+    MappedByteBuffer mappedBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE,
+        mFlushedBytes, len);
+    mappedBuffer.put(b, off, len);
+    BufferUtils.cleanDirectBuffer(mappedBuffer);
+    mReservedBytes -= len;
+    mFlushedBytes += len;
   }
 
   private long requestSpace(long requestBytes) throws IOException {
