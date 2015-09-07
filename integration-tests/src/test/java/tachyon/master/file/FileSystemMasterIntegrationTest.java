@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master;
+package tachyon.master.file;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -39,8 +39,9 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.FileSystemMaster;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -55,7 +56,7 @@ import tachyon.thrift.TachyonException;
  * Unit tests for tachyon.MasterInfo
  */
 // TODO(cc) Split this into BlockMasterIntegrationTest, FileSystemMasterIntegrationTest, etc.
-public class MasterInfoIntegrationTest {
+public class FileSystemMasterIntegrationTest {
   class ConcurrentCreator implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
