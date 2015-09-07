@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientOptions;
 import tachyon.client.InStream;
 import tachyon.client.block.BlockInStream;
@@ -33,6 +34,7 @@ import tachyon.thrift.FileInfo;
  * blocks in the file and abstracts the switching between streams. The backing streams can read from
  * Tachyon space in the local machine, remote machines, or the under storage system.
  */
+@PublicApi
 public final class FileInStream extends InStream {
   private final boolean mShouldCache;
   private final long mBlockSize;
