@@ -19,8 +19,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.NetAddress;
@@ -38,6 +42,8 @@ import tachyon.worker.WorkerClient;
 public enum BSContext {
   INSTANCE;
 
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
   private final ExecutorService mRemoteBlockWorkerExecutor;
@@ -46,8 +52,7 @@ public enum BSContext {
    * Creates a new block stream context.
    */
   BSContext() {
-    mBlockMasterClientPool =
-        new BlockMasterClientPool(ClientContext.getMasterAddress());
+    mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
     // TODO: Get the capacity from configuration
     final int CAPACITY = 10;
     mRemoteBlockWorkerExecutor =
@@ -61,8 +66,7 @@ public enum BSContext {
     if (null == localWorkerAddress) {
       mLocalBlockWorkerClientPool = null;
     } else {
-      mLocalBlockWorkerClientPool =
-          new BlockWorkerClientPool(localWorkerAddress);
+      mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
     }
   }
 
@@ -76,8 +80,7 @@ public enum BSContext {
     if (mLocalBlockWorkerClientPool != null) {
       mLocalBlockWorkerClientPool.close();
     }
-    mBlockMasterClientPool =
-        new BlockMasterClientPool(ClientContext.getMasterAddress());
+    mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
     NetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
@@ -85,11 +88,16 @@ public enum BSContext {
     if (null == localWorkerAddress) {
       mLocalBlockWorkerClientPool = null;
     } else {
-      mLocalBlockWorkerClientPool =
-          new BlockWorkerClientPool(localWorkerAddress);
+      mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
     }
   }
 
+  /**
+   * Gets the worker address based on its hostname by querying the master.
+   *
+   * @param hostname Hostname of the worker to query
+   * @return NetAddress of hostname, or null if no worker found
+   */
   private NetAddress getWorkerAddress(String hostname) {
     BlockMasterClient masterClient = acquireMasterClient();
     try {
@@ -105,6 +113,7 @@ public enum BSContext {
       }
       return null;
     } catch (Exception e) {
+      LOG.error("getWorkerAddress for " + hostname + " failed due to exception " + e.getMessage());
       return null;
     } finally {
       releaseMasterClient(masterClient);
@@ -187,9 +196,12 @@ public enum BSContext {
   public void releaseWorkerClient(WorkerClient workerClient) {
     // If the client is local and the pool exists, release the client to the pool, otherwise just
     // close the client
-    if (mLocalBlockWorkerClientPool != null && workerClient.isLocal()) {
+    if (workerClient.isLocal()) {
+      // Return local worker client to its resource pool
+      Preconditions.checkState(mLocalBlockWorkerClientPool != null);
       mLocalBlockWorkerClientPool.release(workerClient);
     } else {
+      // Destroy remote worker client
       workerClient.close();
     }
   }
