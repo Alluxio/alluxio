@@ -45,6 +45,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.BufferUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Unit tests on TFsShell.
@@ -235,7 +236,7 @@ public class TFsShellTest {
   }
   
   private void fileReadTest(String fileName, int size) throws IOException {
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/" + fileName);
+    File testFile = new File(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), fileName));
     FileInputStream fis = new FileInputStream(testFile);
     byte[] read = new byte[size];
     fis.read(read);
@@ -869,6 +870,7 @@ public class TFsShellTest {
     Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar1")));
     Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar2")));
     Assert.assertNotNull(mTfs.getFile(new TachyonURI("/testDir/foobar3")));
+    Assert.assertNull(mTfs.getFile(new TachyonURI("/testDir/foobar4")));
   }
 
   @Test
