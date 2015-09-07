@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -100,7 +101,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void lockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    tachyon.client.InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -131,7 +132,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void lockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    tachyon.client.InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -167,7 +168,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void unlockBlockTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -198,7 +199,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void unlockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -232,7 +233,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void unlockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf1 = null;
     ByteBuffer buf2 = null;
     int numOfFiles = 5;

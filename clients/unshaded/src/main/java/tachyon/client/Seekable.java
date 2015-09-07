@@ -16,19 +16,18 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.io.InputStream;
 
-public abstract class InStream extends InputStream {
-  /**
-   * Gets the remaining number of bytes left in the stream, starting at the current position.
-   */
-  public abstract long remaining();
-
+/**
+ * This interface should be implemented by all Tachyon streams which support moving the read
+ * position to a specific byte offset.
+ */
+// TODO: Evaluate if this should be ByteSeekable
+public interface Seekable {
   /**
    * Moves the starting read position of the stream to the specified position which is relative to
    * the start of the stream. Seeking to a position before the current read position is supported.
    *
-   * @param pos The position to seek to, it must be between 0 and the size of the block - 1.
+   * @param pos The position to seek to, it must be between 0 and the end of the stream - 1.
    * @throws IOException if the seek fails due to an error accessing the stream at the position
    */
   public abstract void seek(long pos) throws IOException;
