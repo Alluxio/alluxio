@@ -78,13 +78,13 @@ public final class WorkerClient implements Closeable {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Creates a WorkerClient, with a given MasterClientBase.
+   * Creates a WorkerClient.
    *
-   * @param workerNetAddress
-   * @param executorService
-   * @param conf
-   * @param userId
-   * @param clientMetrics
+   * @param workerNetAddress to worker's location
+   * @param executorService the executor service
+   * @param conf Tachyon configuration
+   * @param sessionId the id of the session
+   * @param clientMetrics metrics of the lcient.
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long userId, boolean isLocal, ClientMetrics clientMetrics) {
