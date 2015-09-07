@@ -32,6 +32,7 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
+import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -126,7 +127,7 @@ public class FileOutStreamIntegrationTest {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
       Assert.assertEquals(fileLen, info.getLength());
-      InStream is = mTfs.getInStream(file, op);
+      FileInStream is = mTfs.getInStream(file, op);
       byte[] res = new byte[(int) info.getLength()];
       Assert.assertEquals((int) info.getLength(), is.read(res));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
