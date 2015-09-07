@@ -42,20 +42,17 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.rawtable.RawTableMaster;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
-import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TachyonException;
 
 /**
  * Unit tests for tachyon.MasterInfo
  */
-// TODO(cc) Split this into BlockMasterIntegrationTest, FileSystemMasterIntegrationTest, etc.
 public class FileSystemMasterIntegrationTest {
   class ConcurrentCreator implements Callable<Void> {
     private int mDepth;
@@ -436,17 +433,6 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile"))).isFolder);
   }
 
-  @Ignore
-  @Test
-  public void createRawTableTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, FileDoesNotExistException, TachyonException {
-    RawTableMaster tableMaster =
-        mLocalTachyonCluster.getMaster().getInternalMaster().getRawTableMaster();
-    tableMaster.createRawTable(new TachyonURI("/testTable"), 1, null);
-    Assert.assertTrue(
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testTable"))).isFolder);
-  }
-
   @Test
   public void deleteDirectoryWithDirectoriesTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
@@ -676,14 +662,6 @@ public class FileSystemMasterIntegrationTest {
   //  Assert.assertEquals(111, mMasterInfo.ls(new TachyonURI(TachyonURI.SEPARATOR), true).size());
   //}
 
-  @Test(expected = TableColumnException.class)
-  public void negativeColumnTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, TachyonException {
-    RawTableMaster tableMaster =
-        mLocalTachyonCluster.getMaster().getInternalMaster().getRawTableMaster();
-    tableMaster.createRawTable(new TachyonURI("/testTable"), -1, null);
-  }
-
   @Test(expected = FileDoesNotExistException.class)
   public void notFileCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
@@ -717,15 +695,6 @@ public class FileSystemMasterIntegrationTest {
         Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testDir1/testDir2")),
         new TachyonURI("/testDir1/testDir2/testDir3/testDir4"));
-  }
-
-  @Test(expected = TableColumnException.class)
-  public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, TachyonException {
-    RawTableMaster tableMaster =
-        mLocalTachyonCluster.getMaster().getInternalMaster().getRawTableMaster();
-    int maxColumns = new TachyonConf().getInt(Constants.MAX_COLUMNS);
-    tableMaster.createRawTable(new TachyonURI("/testTable"), maxColumns + 1, null);
   }
 
   // TODO: Journal format has changed, maybe add Version to the format and add this test back

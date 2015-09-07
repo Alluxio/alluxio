@@ -427,8 +427,8 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  protected void completeFileInternal(List<Long> blockIds, long fileId, long fileLength, long opTimeMs)
-      throws FileDoesNotExistException {
+  protected void completeFileInternal(List<Long> blockIds, long fileId, long fileLength,
+      long opTimeMs) throws FileDoesNotExistException {
     mDependencyMap.addFileCheckpoint(fileId);
     InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
     inodeFile.setBlockIds(blockIds);
