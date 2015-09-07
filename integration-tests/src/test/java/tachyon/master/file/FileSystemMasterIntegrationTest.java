@@ -373,9 +373,10 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH2)).size());
   }
 
-  @Test(expected = FileAlreadyExistException.class)
+  @Test
   public void createAlreadyExistFileTest() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
+    mThrown.expect(FileAlreadyExistException.class);
     mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     mFsMaster.mkdirs(new TachyonURI("/testFile"), true);
   }
@@ -388,21 +389,24 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertTrue(fileInfo.isFolder);
   }
 
-  @Test(expected = InvalidPathException.class)
+  @Test
   public void createFileInvalidPathTest() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
+    mThrown.expect(InvalidPathException.class);
     mFsMaster.createFile(new TachyonURI("testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
   }
 
-  @Test(expected = FileAlreadyExistException.class)
+  @Test
   public void createFileInvalidPathTest2() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
+    mThrown.expect(FileAlreadyExistException.class);
     mFsMaster.createFile(new TachyonURI("/"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
   }
 
-  @Test(expected = InvalidPathException.class)
+  @Test
   public void createFileInvalidPathTest3() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
+    mThrown.expect(InvalidPathException.class);
     mFsMaster.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     mFsMaster.createFile(new TachyonURI("/testFile1/testFile2"), Constants.DEFAULT_BLOCK_SIZE_BYTE,
         true);
@@ -662,9 +666,10 @@ public class FileSystemMasterIntegrationTest {
   //  Assert.assertEquals(111, mMasterInfo.ls(new TachyonURI(TachyonURI.SEPARATOR), true).size());
   //}
 
-  @Test(expected = FileDoesNotExistException.class)
+  @Test
   public void notFileCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+    mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.mkdirs(new TachyonURI("/testFile"), true);
     mFsMaster.completeFileCheckpoint(-1, mFsMaster.getFileId(new TachyonURI("/testFile")), 0,
         new TachyonURI("/testPath"));
@@ -679,17 +684,19 @@ public class FileSystemMasterIntegrationTest {
         new TachyonURI("/testFile2")));
   }
 
-  @Test(expected = InvalidPathException.class)
+  @Test
   public void renameNonexistentTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
+    mThrown.expect(InvalidPathException.class);
     mFsMaster.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testFile2")),
         new TachyonURI("/testFile3"));
   }
 
-  @Test(expected = InvalidPathException.class)
+  @Test
   public void renameToDeeper() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
+    mThrown.expect(InvalidPathException.class);
     mFsMaster.mkdirs(new TachyonURI("/testDir1/testDir2"), true);
     mFsMaster.createFile(new TachyonURI("/testDir1/testDir2/testDir3/testFile3"),
         Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
