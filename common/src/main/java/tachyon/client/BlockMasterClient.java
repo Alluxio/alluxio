@@ -37,7 +37,7 @@ import tachyon.thrift.WorkerInfo;
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon clients.
  *
- * TODO: (jsimsa) The functions in this wrapper contain very similar boilerplate. It would make
+ * TODO(jsimsa): The functions in this wrapper contain very similar boilerplate. It would make
  * sense to have a single "Retry" utility is used to to execute ther while () { try ... catch ... }
  * logic, parametrized by the RPC to invoke.
  *
@@ -71,10 +71,6 @@ public final class BlockMasterClient extends MasterClientBase {
     mClient = new BlockMasterService.Client(mProtocol);
   }
 
-  @Override
-  protected void afterDisconnect() {
-  }
-
   /**
    * Gets the info of a list of workers.
    *
@@ -83,7 +79,7 @@ public final class BlockMasterClient extends MasterClientBase {
    */
   public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getWorkerInfoList();
@@ -104,7 +100,7 @@ public final class BlockMasterClient extends MasterClientBase {
    */
   public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getBlockInfo(blockId);
@@ -124,7 +120,7 @@ public final class BlockMasterClient extends MasterClientBase {
    */
   public synchronized long getCapacityBytes() throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getCapacityBytes();
@@ -144,7 +140,7 @@ public final class BlockMasterClient extends MasterClientBase {
    */
   public synchronized long getUsedBytes() throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getUsedBytes();
@@ -172,7 +168,7 @@ public final class BlockMasterClient extends MasterClientBase {
   public synchronized void workerCommitBlock(long workerId, long usedBytesOnTier, int tier, long
       blockId, long length) throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.workerCommitBlock(workerId, usedBytesOnTier, tier, blockId, length);
@@ -195,7 +191,7 @@ public final class BlockMasterClient extends MasterClientBase {
   // TODO: rename to workerRegister?
   public synchronized long workerGetId(NetAddress address) throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.workerGetWorkerId(address);
@@ -221,7 +217,7 @@ public final class BlockMasterClient extends MasterClientBase {
   public synchronized Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers, List<Long>
       removedBlocks, Map<Long, List<Long>> addedBlocks) throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.workerHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
@@ -248,7 +244,7 @@ public final class BlockMasterClient extends MasterClientBase {
   public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers, List<Long>
       usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,

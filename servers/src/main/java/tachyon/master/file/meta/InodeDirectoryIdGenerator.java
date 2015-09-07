@@ -18,7 +18,7 @@ package tachyon.master.file.meta;
 import com.google.common.base.Preconditions;
 
 import tachyon.master.block.BlockId;
-import tachyon.master.block.ContainerIdGenerator;
+import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryRepresentable;
@@ -29,7 +29,7 @@ import tachyon.master.journal.JournalEntryRepresentable;
  * is retrieved.
  */
 public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
-  private final ContainerIdGenerator mContainerIdGenerator;
+  private final ContainerIdGenerable mContainerIdGenerator;
 
   private boolean mInitialized = false;
   private long mContainerId;
@@ -38,7 +38,7 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
   /**
    * @param containerIdGenerator the container id generator to use
    */
-  public InodeDirectoryIdGenerator(ContainerIdGenerator containerIdGenerator) {
+  public InodeDirectoryIdGenerator(ContainerIdGenerable containerIdGenerator) {
     mContainerIdGenerator = Preconditions.checkNotNull(containerIdGenerator);
   }
 
