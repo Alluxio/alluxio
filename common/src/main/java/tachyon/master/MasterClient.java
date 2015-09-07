@@ -671,7 +671,7 @@ public final class MasterClient implements Closeable {
    *
    * @param blockId the id of the block
    * @return the ClientBlockInfo of the specified block
-   * @throws IOException if the file does not exist or its block information is corrupted.
+   * @throws IOException if the underlying file does not exist or its metadata is corrupted.
    */
   public synchronized ClientBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
     while (!mIsClosed) {

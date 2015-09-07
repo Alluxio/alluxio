@@ -28,7 +28,6 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.commons.lang3.SystemUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +38,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
+import tachyon.util.OSUtils;
 
 /**
  * Common network address related utilities shared by all components in Tachyon.
@@ -49,7 +49,7 @@ public final class NetworkAddressUtils {
   /**
    * Check if the underlying OS is Windows.
    */
-  public static final boolean WINDOWS = SystemUtils.IS_OS_WINDOWS;
+  public static final boolean WINDOWS = OSUtils.isWindows();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
@@ -121,21 +121,27 @@ public final class NetworkAddressUtils {
     }
 
     /**
-     * Gets service name
+     * Gets service name.
+     *
+     * @return service name
      */
     public String getServiceName() {
       return mServiceName;
     }
 
     /**
-     * Gets the key of connect hostname
+     * Gets the key of connect hostname.
+     *
+     * @return key of connect hostname
      */
     public String getHostNameKey() {
       return mHostNameKey;
     }
 
     /**
-     * Gets the key of bind hostname
+     * Gets the key of bind hostname.
+     *
+     * @return key of bindhostname
      */
     public String getBindHostKey() {
       return mBindHostKey;
@@ -143,6 +149,8 @@ public final class NetworkAddressUtils {
 
     /**
      * Gets the key of service port
+     *
+     * @return key of service port
      */
     public String getPortKey() {
       return mPortKey;
@@ -150,6 +158,8 @@ public final class NetworkAddressUtils {
 
     /**
      * Gets the default port number on service
+     *
+     * @return default port
      */
     public int getDefaultPort() {
       return mDefaultPort;
@@ -234,7 +244,7 @@ public final class NetworkAddressUtils {
    * @return the service port number.
    */
   public static int getPort(ServiceType service, TachyonConf conf) {
-    return conf.getInt(service.mPortKey, service.mDefaultPort);
+    return conf.getInt(service.mPortKey);
   }
 
   /**
@@ -273,9 +283,7 @@ public final class NetworkAddressUtils {
     if (sLocalHost != null) {
       return sLocalHost;
     }
-    int hostResolutionTimeout =
-        conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
-            Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalHostName(hostResolutionTimeout);
   }
 
@@ -310,9 +318,7 @@ public final class NetworkAddressUtils {
     if (sLocalIP != null) {
       return sLocalIP;
     }
-    int hostResolutionTimeout =
-        conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS,
-            Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalIpAddress(hostResolutionTimeout);
   }
 
@@ -385,7 +391,7 @@ public final class NetworkAddressUtils {
    *        reachable
    * @return a <code>boolean</code> indicating if the given address is externally resolvable
    *         address.
-   * @throws IOException
+   * @throws IOException if the address resolution fails
    */
   private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
     return (!address.isAnyLocalAddress() && !address.isLinkLocalAddress()
@@ -434,7 +440,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Get FQDN(Full Qualified Domain Name) from representations of network address in Tachyon, except
+   * Get FQDN(Full Qualified Domain Name) from Java representations of network address, except
    * String representation which should be handled by #resolveHostName(String hostname) which will
    * handle the situation where hostname is null.
    *
@@ -445,6 +451,13 @@ public final class NetworkAddressUtils {
     return addr.getAddress().getCanonicalHostName();
   }
 
+  /**
+   * Get FQDN(Full Qualified Domain Name) from Tachyon representation of network address.
+   *
+   * @param addr the input network address representation
+   * @return the resolved FQDN host name
+   * @throws UnknownHostException if the host is not known
+   */
   public static String getFqdnHost(NetAddress addr) throws UnknownHostException {
     return resolveHostName(addr.getMHost());
   }
@@ -464,7 +477,7 @@ public final class NetworkAddressUtils {
    * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used is not
    * exposed in the API, so this function will use reflection to get access to it.
    *
-   * @throws java.lang.RuntimeException if reflection calls fail
+   * @throws RuntimeException if reflection calls fail
    */
   public static ServerSocket getThriftSocket(final TServerSocket thriftSocket) {
     try {
@@ -479,11 +492,11 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Parse InetSocketAddress from a String
+   * Parse InetSocketAddress from a String.
    *
-   * @param address
+   * @param address socket address to parse
    * @return InetSocketAddress of the String
-   * @throws IOException
+   * @throws IOException if the socket address is invalid
    */
   public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
     if (address == null) {

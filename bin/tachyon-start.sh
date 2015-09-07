@@ -198,11 +198,19 @@ case "${WHAT}" in
       echo "Mount failed, not starting"
       exit 1
     fi
+    if [ ! -z $2 ] && [ $2 != "-f" ]; then
+      echo -e "$Usage"
+      exit 1
+    fi
     start_master $2
     sleep 2
     start_worker NoMount
     ;;
   master)
+    if [ ! -z $2 ] && [ $2 != "-f" ]; then
+      echo -e "$Usage"
+      exit 1
+    fi
     start_master $2
     ;;
   worker)

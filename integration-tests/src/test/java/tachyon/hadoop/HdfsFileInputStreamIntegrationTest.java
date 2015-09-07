@@ -143,6 +143,7 @@ public class HdfsFileInputStreamIntegrationTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
     Assert.assertEquals(0, mUfsInputStream.getPos());
 
+    buf = new byte[FILE_LEN - 10];
     Arrays.fill(buf, (byte) 0);
     length = mInMemInputStream.read(10, buf, 0, FILE_LEN - 10);
     Assert.assertEquals(FILE_LEN - 10, length);

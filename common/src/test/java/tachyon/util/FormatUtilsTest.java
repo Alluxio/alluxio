@@ -15,12 +15,163 @@
 
 package tachyon.util;
 
+import java.nio.ByteBuffer;
+import java.text.Normalizer;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
 
 public class FormatUtilsTest {
+  @Test
+  public void parametersToStringTest() {
+    class TestCase {
+      String mExpected;
+      Object[] mInput;
+
+      public TestCase(String expected, Object[] objs) {
+        mExpected = expected;
+        mInput = objs;
+      }
+    }
+
+    List<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase("()", null));
+    testCases.add(new TestCase("(null)", new Object[] {null}));
+    testCases.add(new TestCase("()", new Object[] {""}));
+    testCases.add(new TestCase("(foo)", new Object[] {"foo"}));
+    testCases.add(new TestCase("(foo, bar)", new Object[] {"foo", "bar"}));
+    testCases.add(new TestCase("(foo, , bar)", new Object[] {"foo", "", "bar"}));
+    testCases.add(new TestCase("(, foo, )", new Object[] {"", "foo", ""}));
+    testCases.add(new TestCase("(, , )", new Object[] {"", "", ""}));
+    testCases.add(new TestCase("(1)", new Object[] {1}));
+    testCases.add(new TestCase("(1, 2, 3)", new Object[] {1, 2, 3}));
+
+    for (TestCase testCase : testCases) {
+      Assert.assertEquals(testCase.mExpected, FormatUtils.parametersToString(testCase.mInput));
+    }
+  }
+
+  @Test
+  public void byteBufferToStringTest() {
+    class TestCase {
+      String mExpected;
+      ByteBuffer mInput;
+
+      public TestCase(String expected, ByteBuffer input) {
+        mExpected = expected;
+        mInput = input;
+      }
+    }
+
+    List<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {})));
+    testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0})));
+    testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0, 0})));
+    testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0, 0, 0})));
+    testCases.add(new TestCase("1", ByteBuffer.wrap(new byte[] {0, 0, 0, 1})));
+    testCases.add(new TestCase("1", ByteBuffer.wrap(new byte[] {0, 0, 0, 1, 0})));
+    testCases.add(new TestCase("1", ByteBuffer.wrap(new byte[] {0, 0, 0, 1, 0, 0})));
+    testCases.add(new TestCase("1", ByteBuffer.wrap(new byte[] {0, 0, 0, 1, 0, 0, 0})));
+    testCases.add(new TestCase("1 2", ByteBuffer.wrap(new byte[] {0, 0, 0, 1, 0, 0, 0, 2})));
+
+    for (TestCase testCase : testCases) {
+      Assert.assertEquals(testCase.mExpected, FormatUtils.byteBufferToString(testCase.mInput));
+    }
+  }
+
+  @Test
+  public void formatTimeTakenMsTest() {
+    class TestCase {
+      Pattern mExpected;
+      String mInputMessage;
+
+      public TestCase(String expectedRE, String inputMessage) {
+        mExpected = Pattern.compile(expectedRE);
+        mInputMessage = inputMessage;
+      }
+    }
+
+    List<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase("^Task A took (.*) ms.$", "Task A"));
+    testCases.add(new TestCase("^Task B took (.*) ms.$", "Task B"));
+
+    long delta = 100;
+    for (TestCase testCase : testCases) {
+      String result =
+          FormatUtils.formatTimeTakenMs(CommonUtils.getCurrentMs() - delta, testCase.mInputMessage);
+      Matcher match = testCase.mExpected.matcher(result);
+      Assert.assertTrue(match.matches());
+      Assert.assertTrue(delta <= Long.parseLong(match.group(1)));
+      Assert.assertTrue(Long.parseLong(match.group(1)) <= 2 * delta);
+    }
+  }
+
+  @Test
+  public void formatTimeTakenNsTest() {
+    class TestCase {
+      Pattern mExpected;
+      String mInputMessage;
+
+      public TestCase(String expectedRE, String inputMessage) {
+        mExpected = Pattern.compile(expectedRE);
+        mInputMessage = inputMessage;
+      }
+    }
+
+    List<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase("^Task A took (.*) ns.$", "Task A"));
+    testCases.add(new TestCase("^Task B took (.*) ns.$", "Task B"));
+
+    long delta = 100000000;
+    for (TestCase testCase : testCases) {
+      String result =
+          FormatUtils.formatTimeTakenNs(System.nanoTime() - delta, testCase.mInputMessage);
+      Matcher match = testCase.mExpected.matcher(result);
+      Assert.assertTrue(match.matches());
+      Assert.assertTrue(delta <= Long.parseLong(match.group(1)));
+      Assert.assertTrue(Long.parseLong(match.group(1)) <= 2 * delta);
+    }
+  }
+
+  @Test
+  public void getSizeFromBytesTest() {
+    class TestCase {
+      String mExpected;
+      long mInput;
+
+      public TestCase(String expected, long input) {
+        mExpected = expected;
+        mInput = input;
+      }
+    }
+
+    List<TestCase> testCases = new LinkedList<TestCase>();
+    testCases.add(new TestCase("4.00 B", 1L << 2));
+    testCases.add(new TestCase("8.00 B", 1L << 3));
+    testCases.add(new TestCase("4096.00 B", 1L << 12));
+    testCases.add(new TestCase("8.00 KB", 1L << 13));
+    testCases.add(new TestCase("4096.00 KB", 1L << 22));
+    testCases.add(new TestCase("8.00 MB", 1L << 23));
+    testCases.add(new TestCase("4096.00 MB", 1L << 32));
+    testCases.add(new TestCase("8.00 GB", 1L << 33));
+    testCases.add(new TestCase("4096.00 GB", 1L << 42));
+    testCases.add(new TestCase("8.00 TB", 1L << 43));
+    testCases.add(new TestCase("4096.00 TB", 1L << 52));
+    testCases.add(new TestCase("8.00 PB", 1L << 53));
+    testCases.add(new TestCase("4096.00 PB", 1L << 62));
+
+    for (TestCase testCase : testCases) {
+      Assert.assertEquals(testCase.mExpected, FormatUtils.getSizeFromBytes(testCase.mInput));
+    }
+  }
+
   @Test
   public void parseSpaceSizeTest() {
     long max = 10240;
