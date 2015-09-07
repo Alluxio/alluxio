@@ -31,7 +31,7 @@ import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
@@ -115,7 +115,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     ServletOutputStream out = null;
     try {
       ClientOptions op = new ClientOptions.Builder(mFsMaster.getTachyonConf()).setCacheType(
-          CacheType.NO_CACHE).build();
+          TachyonStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);

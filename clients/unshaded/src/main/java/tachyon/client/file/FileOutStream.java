@@ -23,7 +23,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
@@ -46,7 +46,7 @@ import tachyon.worker.WorkerClient;
 public final class FileOutStream extends OutStream {
   private final long mFileId;
   private final long mBlockSize;
-  private final CacheType mCacheType;
+  private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FSContext mContext;
   private final OutputStream mUnderStorageOutputStream;
@@ -69,7 +69,7 @@ public final class FileOutStream extends OutStream {
   public FileOutStream(long fileId, ClientOptions options) throws IOException {
     mFileId = fileId;
     mBlockSize = options.getBlockSize();
-    mCacheType = options.getCacheType();
+    mTachyonStorageType = options.getCacheType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FSContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
@@ -88,7 +88,7 @@ public final class FileOutStream extends OutStream {
     }
     mClosed = false;
     mCanceled = false;
-    mShouldCacheCurrentBlock = mCacheType.shouldCache();
+    mShouldCacheCurrentBlock = mTachyonStorageType.shouldStore();
   }
 
   @Override
@@ -127,7 +127,7 @@ public final class FileOutStream extends OutStream {
       }
     }
 
-    if (mCacheType.shouldCache()) {
+    if (mTachyonStorageType.shouldStore()) {
       try {
         if (mCanceled) {
           for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
@@ -227,7 +227,7 @@ public final class FileOutStream extends OutStream {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    if (mCacheType.shouldCache()) {
+    if (mTachyonStorageType.shouldStore()) {
       mCurrentBlockOutStream =
           mContext.getTachyonBS().getOutStream(getNextBlockId(), mBlockSize, null);
       mShouldCacheCurrentBlock = true;

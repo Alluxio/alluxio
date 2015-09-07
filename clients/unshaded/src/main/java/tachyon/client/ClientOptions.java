@@ -30,7 +30,7 @@ public class ClientOptions {
    */
   public static class Builder {
     private long mBlockSize;
-    private CacheType mCacheType;
+    private TachyonStorageType mTachyonStorageType;
     private UnderStorageType mUnderStorageType;
     private NetAddress mLocation;
 
@@ -39,18 +39,19 @@ public class ClientOptions {
      */
     public Builder(TachyonConf conf) {
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
-      mCacheType = conf.getEnum(Constants.USER_DEFAULT_CACHE_TYPE, CacheType.CACHE);
+      mTachyonStorageType =
+          conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.STORE);
       mUnderStorageType =
           conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.NO_PERSIST);
       mLocation = null;
     }
 
     /**
-     * @param cacheType the cache type to use
+     * @param tachyonStorageType the cache type to use
      * @return the builder
      */
-    public Builder setCacheType(CacheType cacheType) {
-      mCacheType = cacheType;
+    public Builder setCacheType(TachyonStorageType tachyonStorageType) {
+      mTachyonStorageType = tachyonStorageType;
       return this;
     }
 
@@ -91,7 +92,7 @@ public class ClientOptions {
   }
 
   private final long mBlockSize;
-  private final CacheType mCacheType;
+  private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final NetAddress mLocation;
 
@@ -104,7 +105,7 @@ public class ClientOptions {
 
   private ClientOptions(ClientOptions.Builder builder) {
     mBlockSize = builder.mBlockSize;
-    mCacheType = builder.mCacheType;
+    mTachyonStorageType = builder.mTachyonStorageType;
     mUnderStorageType = builder.mUnderStorageType;
     mLocation = builder.mLocation;
   }
@@ -119,8 +120,8 @@ public class ClientOptions {
   /**
    * @return the cache type
    */
-  public CacheType getCacheType() {
-    return mCacheType;
+  public TachyonStorageType getCacheType() {
+    return mTachyonStorageType;
   }
 
   /**

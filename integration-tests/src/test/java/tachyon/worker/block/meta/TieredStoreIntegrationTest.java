@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.InStream;
 import tachyon.client.TachyonFSTestUtils;
@@ -78,7 +78,7 @@ public class TieredStoreIntegrationTest {
   // Tests that deletes go through despite failing initially due to concurrent read
   @Test
   public void deleteWhileReadTest() throws Exception {
-    TachyonFile file = TachyonFSTestUtils.createByteFile(mTFS, "/test1", CacheType.CACHE,
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
@@ -86,7 +86,7 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(file).getInMemoryPercentage() == 100);
     // Open the file
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setCacheType(CacheType.CACHE).build();
+        new ClientOptions.Builder(new TachyonConf()).setCacheType(TachyonStorageType.STORE).build();
     InStream in = mTFS.getInStream(file, options);
     Assert.assertEquals(0, in.read());
 
@@ -113,8 +113,9 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // After the file is closed, the master's delete should go through and new files can be created
-    TachyonFile newFile = TachyonFSTestUtils.createByteFile(mTFS, "/test2", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
+    TachyonFile newFile =
+        TachyonFSTestUtils.createByteFile(mTFS, "/test2", TachyonStorageType.STORE,
+            UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
     Assert.assertTrue(mTFS.getInfo(newFile).getInMemoryPercentage() == 100);
   }
@@ -123,8 +124,9 @@ public class TieredStoreIntegrationTest {
   @Test
   public void pinFileTest() throws Exception {
     // Create a file that fills the entire Tachyon store
-    TachyonFile file = TachyonFSTestUtils.createByteFile(mTFS, "/test1", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
+    TachyonFile file =
+        TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
+            UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // Pin the file
     mTFS.setPin(file, true);
@@ -136,15 +138,15 @@ public class TieredStoreIntegrationTest {
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
     mThrown.expect(IOException.class);
-    TachyonFSTestUtils.createByteFile(mTFS, "/test2", CacheType.CACHE, UnderStorageType.NO_PERSIST,
-        MEM_CAPACITY_BYTES);
+    TachyonFSTestUtils.createByteFile(mTFS, "/test2", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
   }
 
   // Tests that pinning a file and then unpinning
   @Test
   public void unpinFileTest() throws Exception {
     // Create a file that fills the entire Tachyon store
-    TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTFS, "/test1", CacheType.CACHE,
+    TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // Pin the file
@@ -163,7 +165,7 @@ public class TieredStoreIntegrationTest {
 
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed
-    TachyonFile file2 = TachyonFSTestUtils.createByteFile(mTFS, "/test2", CacheType.CACHE,
+    TachyonFile file2 = TachyonFSTestUtils.createByteFile(mTFS, "/test2", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // File 2 should be in memory and File 1 should be evicted

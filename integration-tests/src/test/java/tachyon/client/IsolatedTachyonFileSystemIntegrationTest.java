@@ -26,8 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.InStream;
-import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -67,10 +65,11 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mWriteBoth = new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(CacheType.CACHE)
-        .setUnderStorageType(UnderStorageType.PERSIST).build();
+    mWriteBoth =
+        new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
     mWriteUnderStorage =
-        new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(CacheType.NO_CACHE)
+        new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
   }
 

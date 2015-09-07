@@ -30,7 +30,7 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.FileSystemMasterClient;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
@@ -149,8 +149,9 @@ public class PinIntegrationTest {
   }
 
   private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf())
-        .setCacheType(CacheType.CACHE).setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    ClientOptions options =
+        new ClientOptions.Builder(new TachyonConf()).setCacheType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     FileOutStream os = mTfs.getOutStream(fileURI, options);
     os.close();
     return mTfs.open(fileURI);

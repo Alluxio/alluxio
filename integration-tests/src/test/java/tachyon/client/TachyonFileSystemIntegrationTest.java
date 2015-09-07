@@ -28,7 +28,6 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -77,10 +76,11 @@ public class TachyonFileSystemIntegrationTest {
     sPort = sLocalTachyonCluster.getMasterPort();
     sWriteBoth =
         new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
-            .setCacheType(CacheType.CACHE).setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setCacheType(TachyonStorageType.STORE).setUnderStorageType(UnderStorageType.PERSIST)
+            .build();
     sReadCache =
         new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf()).setCacheType(
-            CacheType.CACHE).build();
+            TachyonStorageType.STORE).build();
   }
 
   @Test

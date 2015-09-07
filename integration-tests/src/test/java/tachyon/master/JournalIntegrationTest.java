@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
@@ -108,8 +108,9 @@ public class JournalIntegrationTest {
    */
   @Test
   public void AddCheckpointTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(mMasterTachyonConf)
-        .setCacheType(CacheType.NO_CACHE).setUnderStorageType(UnderStorageType.PERSIST).build();
+    ClientOptions options =
+        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(TachyonStorageType.NO_STORE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
     TachyonFSTestUtils.createByteFile(mTfs, "/xyz", options, 10);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     TachyonURI ckPath = new TachyonURI("/xyz_ck");

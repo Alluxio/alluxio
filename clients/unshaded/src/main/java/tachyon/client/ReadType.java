@@ -53,13 +53,13 @@ public enum ReadType {
   }
 
   /**
-   * @return true if the read type is CACHE, false otherwise
+   * @return true if the read type is STORE, false otherwise
    *
    * TODO(calvin): Add CACHE_PROMOTE back when it is enabled again.
    */
   public boolean isCache() {
     return mValue == CACHE.mValue;
-    // return mValue == CACHE.mValue || mValue == CACHE_PROMOTE.mValue;
+    // return mValue == STORE.mValue || mValue == CACHE_PROMOTE.mValue;
   }
 
   /**

@@ -33,7 +33,7 @@ import tachyon.worker.WorkerClient;
 public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   /**
    * The capacity for this pool must be large, since each block written will hold a client until
-   * block is committed. For writes, this is at the end of the file completion.
+   * the block is committed at the end of the file completion.
    */
   private static final int CAPACITY = 10000;
   private final ExecutorService mExecutorService;
