@@ -54,7 +54,7 @@
     <hr>
     <% if (request.getAttribute("fileBlocks") != null) { %>
       <div>
-        <h5>Detailed blocks information (block capacity is <%= request.getAttribute("blockSizeByte") %> Bytes):</h5>
+        <h5>Detailed blocks information (block capacity is <%= request.getAttribute("blockSizeBytes") %> Bytes):</h5>
         <table class="table table-bordered table-striped">
           <tr>
             <th>ID</th>

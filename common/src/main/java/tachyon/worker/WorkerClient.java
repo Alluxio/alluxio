@@ -227,9 +227,9 @@ public final class WorkerClient implements Closeable {
   private synchronized boolean connect() throws IOException {
     if (!mConnected) {
       String host = NetworkAddressUtils.getFqdnHost(mWorkerNetAddress);
-      int port = mWorkerNetAddress.mPort;
+      int port = mWorkerNetAddress.rpcPort;
       mWorkerAddress = new InetSocketAddress(host, port);
-      mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.mSecondaryPort);
+      mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
       mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));

@@ -67,7 +67,7 @@ public final class FileInStream extends InStream {
    * @param options the client options
    */
   public FileInStream(FileInfo info, ClientOptions options) {
-    mBlockSize = info.getBlockSizeByte();
+    mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();

@@ -317,10 +317,10 @@ abstract class AbstractTFS extends FileSystem {
         ArrayList<String> hosts = new ArrayList<String>();
         for (NetAddress addr : info.getLocations()) {
           // Name format is "hostname:data transfer port"
-          String name = addr.mHost + ":" + addr.mSecondaryPort;
+          String name = addr.host + ":" + addr.dataPort;
           LOG.debug("getFileBlockLocations : adding name : '" + name + "");
           names.add(name);
-          hosts.add(addr.mHost);
+          hosts.add(addr.host);
         }
         blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names), CommonUtils
             .toStringArray(hosts), offset, info.getLength()));
@@ -458,7 +458,7 @@ abstract class AbstractTFS extends FileSystem {
       FileInfo info = files.get(k);
       // TODO replicate 3 with the number of disk replications.
       ret[k] =
-          new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeByte(),
+          new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeBytes(),
               info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null, new Path(
                   mTachyonHeader + info.getPath()));
     }
