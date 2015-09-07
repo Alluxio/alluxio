@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -180,6 +181,7 @@ public class JournalShutdownIntegrationTest {
     cluster.stopUFS();
   }
 
+  @Ignore
   @Test
   public void multiMasterJournalCrashIntegrationTest() throws Exception {
     LocalTachyonClusterMultiMaster cluster = setupMultiMasterCluster();
