@@ -124,7 +124,7 @@ public class TachyonMaster {
           mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
       UnderFileSystem ufs = UnderFileSystem.get(journalFolder, mTachyonConf);
       if (ufs.providesStorage()) {
-        Preconditions.checkState(isFormatted(journalFolder, formatFilePrefix),
+        Preconditions.checkState(isFormatted(ufs, journalFolder, formatFilePrefix),
             "Tachyon was not formatted! The journal folder is " + journalFolder);
       }
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf);
@@ -210,11 +210,10 @@ public class TachyonMaster {
     return mWebServer.getLocalPort();
   }
 
-  private boolean isFormatted(String folder, String path) throws IOException {
+  private boolean isFormatted(UnderFileSystem ufs, String folder, String path) throws IOException {
     if (!folder.endsWith(TachyonURI.SEPARATOR)) {
       folder += TachyonURI.SEPARATOR;
     }
-    UnderFileSystem ufs = UnderFileSystem.get(folder, mTachyonConf);
     String[] files = ufs.list(folder);
     if (files == null) {
       return false;
