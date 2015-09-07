@@ -24,40 +24,40 @@ import javax.security.sasl.SaslServer;
 import javax.security.sasl.SaslServerFactory;
 
 /**
- * The Java SunSASL provider supports CRAM-MD5, DIGEST-MD5 and GSSAPI mechanism for server side.
- * When the SASL using PLAIN mechanism, there is no support the SASL server.
- * So there is a new provider needed to register to support server-side PLAIN mechanism.
+ * The Java SunSASL provider supports CRAM-MD5, DIGEST-MD5 and GSSAPI mechanisms on the server side.
+ * When the SASL is using PLAIN mechanism, there is no support the SASL server. So there is a new
+ * provider needed to register to support server-side PLAIN mechanism.
  */
 public class PlainSaslServerProvider extends Provider {
-  public static final String PROVIDER = "SaslPlain";
+  public static final String PROVIDER_NAME = "SaslPlain";
   public static final String MECHANISM = "PLAIN";
 
   public PlainSaslServerProvider() {
-    super(PROVIDER, 1.0, "Plain SASL provider");
+    super(PROVIDER_NAME, 1.0, "Plain SASL server provider");
     put("SaslServerFactory." + MECHANISM, PlainSaslServerFactory.class.getName());
   }
 
   /**
-   * PlainSaslServerFactory is used to create instances of
-   * {@link PlainSaslServer}. The parameter mechanism must be "PLAIN" when this
-   * PlainSaslServerFactory is called, or null will be returned.
+   * This class is used to create an instances of {@link PlainSaslServer}. The parameter
+   * mechanism must be "PLAIN" when this PlainSaslServerFactory is called, or null will be returned.
    */
   public static class PlainSaslServerFactory implements SaslServerFactory {
     /**
-     * Creates a SaslServer using the parameters supplied.
-     * It returns null if no SaslServer can be created using the parameters supplied.
-     * Throws SaslException if it cannot create a SaslServer because of an error.
+     * Creates a SaslServer using the parameters supplied. It returns null if no SaslServer can be
+     * created using the parameters supplied. Throws SaslException if it cannot create a SaslServer
+     * because of an error.
+     *
      * @param mechanism The name of a SASL mechanism. (e.g. "PLAIN").
-     * @param protocol The non-null string name of the protocol for which
-     * the authentication is being performed.
+     * @param protocol The non-null string name of the protocol for which the authentication is
+     *        being performed.
      * @param serverName The non-null fully qualified host name of the server to authenticate to.
-     * @param props The possibly null set of properties used to select the SASL
-     * mechanism and to configure the authentication exchange of the selected mechanism.
-     * @param callbackHandler. The possibly null callback handler to used by the SASL
-     * mechanisms to do further operation.
-     * @return A possibly null SaslServer created using the parameters supplied.
-     * If null, this factory cannot produce a SaslServer using the parameters supplied.
-     * @exception SaslException If cannot create a SaslServer because of an error.
+     * @param props The possibly null set of properties used to select the SASL mechanism and to
+     *        configure the authentication exchange of the selected mechanism.
+     * @param callbackHandler The possibly null callback handler to used by the SASL mechanisms to
+     *        do further operation.
+     * @return A possibly null SaslServer created using the parameters supplied. If null, this
+     *         factory cannot produce a SaslServer using the parameters supplied.
+     * @exception SaslException If it cannot create a SaslServer because of an error.
      */
     @Override
     public SaslServer createSaslServer(String mechanism, String protocol, String serverName,

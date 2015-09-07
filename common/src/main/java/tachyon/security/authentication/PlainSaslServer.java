@@ -27,30 +27,38 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.security.AuthorizedClientUser;
 
 /**
- * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism.
- * There is a new provider needed to register to support server-side PLAIN mechanism.
- * There are three basic steps in implementing a SASL security provider:
- * 1.Write a class that implements the SaslServer interface
- * 2.Write a factory class implements the SaslServerFactory
- * 3.Write a JCA provider that registers the factory
+ * This class provides PLAIN SASL authentication.
  *
- * When this SaslServer does authentication work (in the method evaluateResponse()),
- * it always assign authentication ID to authorization ID currently.
+ * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism. There is a new
+ * provider needed to register to support server-side PLAIN mechanism. This class completes three
+ * basic steps to implement a SASL security provider:
+ * <ol>
+ * <li>Write a class that implements the SaslServer interface</li>
+ * <li>Write a factory class implements the SaslServerFactory</li>
+ * <li>Write a JCA provider that registers the factory</li>
+ * </ol>
+ *
+ * NOTE: When this SaslServer works on authentication (i.e., in the method evaluateResponse()), it
+ * always assigns authentication ID to authorization ID currently.
+ *
  * TODO: Authorization ID and authentication ID could be different after supporting impersonation.
  */
 public class PlainSaslServer implements SaslServer {
   /**
-   * This ID represent the authorized client user, who has been authenticated successfully.
-   * It is associated with the client connection thread for following action authorization usage.
+   * This ID represent the authorized client user, who has been authenticated successfully. It is
+   * associated with the client connection thread for following action authorization usage.
    */
   private String mAuthorizationId;
   private boolean mCompleted;
   private CallbackHandler mHandler;
 
   PlainSaslServer(CallbackHandler handler) throws SaslException {
+    mCompleted = false;
     mHandler = handler;
   }
 
@@ -61,15 +69,12 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public byte[] evaluateResponse(byte[] response) throws SaslException {
-    if (mCompleted) {
-      throw new IllegalStateException("PLAIN authentication has completed");
-    }
-    if (response == null) {
-      throw new IllegalArgumentException("Received null response");
-    }
+    Preconditions.checkState(!mCompleted, "PLAIN authentication has completed");
+    Preconditions.checkArgument(response != null, "Received null response");
+
     try {
       // parse the response
-      // message   = [authorizationId] UTF8NUL authenticationId UTF8NUL passwd'
+      // message = [authorizationId] UTF8NUL authenticationId UTF8NUL passwd'
       // authorizationId may be empty,then the authorizationId = authenticationId
       String payload;
       try {
@@ -127,7 +132,7 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public String getAuthorizationID() {
-    throwIfNotComplete();
+    checkNotComplete();
     return mAuthorizationId;
   }
 
@@ -143,7 +148,7 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public Object getNegotiatedProperty(String propName) {
-    throwIfNotComplete();
+    checkNotComplete();
     return Sasl.QOP.equals(propName) ? "auth" : null;
   }
 
@@ -159,16 +164,16 @@ public class PlainSaslServer implements SaslServer {
     mAuthorizationId = null;
   }
 
-  private void throwIfNotComplete() {
+  private void checkNotComplete() {
     if (!mCompleted) {
       throw new IllegalStateException("PLAIN authentication not completed");
     }
   }
 
   /**
-   * PlainServerCallbackHandler is used by the SASL mechanisms to get further information
-   * to complete the authentication. For example, a SASL mechanism might use this callback handler
-   * to do verification operation.
+   * PlainServerCallbackHandler is used by the SASL mechanisms to get further information to
+   * complete the authentication. For example, a SASL mechanism might use this callback handler to
+   * do verification operation.
    */
   public static final class PlainServerCallbackHandler implements CallbackHandler {
     private final AuthenticationProvider mAuthenticationPrivoder;
