@@ -47,7 +47,7 @@ public class ClientOptions {
     }
 
     /**
-     * @param tachyonStorageType the cache type to use
+     * @param tachyonStorageType the Tachyon storage type to use
      * @return the builder
      */
     public Builder setCacheType(TachyonStorageType tachyonStorageType) {
@@ -120,7 +120,7 @@ public class ClientOptions {
   /**
    * @return the cache type
    */
-  public TachyonStorageType getCacheType() {
+  public TachyonStorageType getTachyonStorageType() {
     return mTachyonStorageType;
   }
 

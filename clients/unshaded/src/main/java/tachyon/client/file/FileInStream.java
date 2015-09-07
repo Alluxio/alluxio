@@ -72,7 +72,7 @@ public final class FileInStream extends InStream {
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
     mContext = FSContext.INSTANCE;
-    mShouldCache = options.getCacheType().shouldStore();
+    mShouldCache = options.getTachyonStorageType().shouldStore();
     mShouldCacheCurrentBlock = mShouldCache;
     mClosed = false;
   }
