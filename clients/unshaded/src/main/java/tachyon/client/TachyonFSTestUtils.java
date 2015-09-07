@@ -38,7 +38,7 @@ public final class TachyonFSTestUtils {
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
       ClientOptions options, int len) throws IOException {
-    return createByteFile(tfs, fileName, options.getCacheType(), options.getUnderStorageType(),
+    return createByteFile(tfs, fileName, options.getTachyonStorageType(), options.getUnderStorageType(),
         len, options.getBlockSize());
   }
 
@@ -47,7 +47,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileName the name of the file to be created
-   * @param tachyonStorageType CacheType used to create the file
+   * @param tachyonStorageType TachyonStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @return the TachyonFile of the created file
@@ -64,7 +64,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileURI URI of the file
-   * @param tachyonStorageType CacheType used to create the file
+   * @param tachyonStorageType TachyonStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @return the TachyonFile of the created file
@@ -90,7 +90,7 @@ public final class TachyonFSTestUtils {
    *
    * @param tfs a TachyonFileSystem handler
    * @param fileName the name of the file to be created
-   * @param tachyonStorageType CacheType used to create the file
+   * @param tachyonStorageType TachyonStorageType used to create the file
    * @param underStorageType UnderStorageType used to create the file
    * @param len file size
    * @param blockCapacityByte block size of the file

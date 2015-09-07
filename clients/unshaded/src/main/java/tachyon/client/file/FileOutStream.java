@@ -69,7 +69,7 @@ public final class FileOutStream extends OutStream {
   public FileOutStream(long fileId, ClientOptions options) throws IOException {
     mFileId = fileId;
     mBlockSize = options.getBlockSize();
-    mTachyonStorageType = options.getCacheType();
+    mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FSContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
