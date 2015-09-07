@@ -42,12 +42,13 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
- * The FileSystemMaster client, for clients.
+ * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.
  *
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
 // TODO: split out worker-specific calls to a fs master client for workers.
+// TODO: figure out a retry utility to make all the retry logic in this file better.
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -75,10 +76,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
     mClient = new FileSystemMasterService.Client(mProtocol);
   }
 
-  @Override
-  protected void afterDisconnect() {
-  }
-
   /**
    * @param path the path
    * @return the file id for the given path
@@ -86,7 +83,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized long getFileId(String path) throws IOException {
     int retry = 0;
-    while (!mClosed && !mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileId(path);
@@ -343,7 +340,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param recursive whether to delete the file recursively (when it is a directory)
    * @return whether operation succeeded or not
-   * @throws IOException  if an I/O error occurs
+   * @throws IOException if an I/O error occurs
    */
   public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException {
     int retry = 0;
