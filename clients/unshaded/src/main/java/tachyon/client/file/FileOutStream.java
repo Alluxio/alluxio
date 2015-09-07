@@ -29,7 +29,7 @@ import tachyon.client.FileSystemMasterClient;
 import tachyon.client.OutStream;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BSContext;
-import tachyon.client.block.BlockOutStream;
+import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerClient;
@@ -43,7 +43,6 @@ import tachyon.worker.WorkerClient;
  */
 public final class FileOutStream extends OutStream {
   private final long mFileId;
-  private final ClientOptions mOptions;
   private final long mBlockSize;
   private final CacheType mCacheType;
   private final UnderStorageType mUnderStorageType;
@@ -55,9 +54,8 @@ public final class FileOutStream extends OutStream {
   private boolean mCanceled;
   private boolean mClosed;
   private boolean mShouldCacheCurrentBlock;
-  private long mCachedBytes;
-  private BlockOutStream mCurrentBlockOutStream;
-  private List<BlockOutStream> mPreviousBlockOutStreams;
+  private BufferedBlockOutStream mCurrentBlockOutStream;
+  private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
   /**
    * Creates a new file output stream.
@@ -68,12 +66,11 @@ public final class FileOutStream extends OutStream {
    */
   public FileOutStream(long fileId, ClientOptions options) throws IOException {
     mFileId = fileId;
-    mOptions = options;
     mBlockSize = options.getBlockSize();
     mCacheType = options.getCacheType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FSContext.INSTANCE;
-    mPreviousBlockOutStreams = new LinkedList<BlockOutStream>();
+    mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.shouldPersist()) {
       mWorkerClient = BSContext.INSTANCE.acquireWorkerClient();
       String userUnderStorageFolder = mWorkerClient.getUserUfsTempFolder();
@@ -131,11 +128,11 @@ public final class FileOutStream extends OutStream {
     if (mCacheType.shouldCache()) {
       try {
         if (mCanceled) {
-          for (BlockOutStream bos : mPreviousBlockOutStreams) {
+          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
             bos.cancel();
           }
         } else {
-          for (BlockOutStream bos : mPreviousBlockOutStreams) {
+          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
             bos.close();
           }
           canComplete = true;
@@ -172,7 +169,6 @@ public final class FileOutStream extends OutStream {
           getNextBlock();
         }
         mCurrentBlockOutStream.write(b);
-        mCachedBytes ++;
       } catch (IOException ioe) {
         handleCacheWriteException(ioe);
       }
@@ -205,13 +201,11 @@ public final class FileOutStream extends OutStream {
           long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
           if (currentBlockLeftBytes >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
-            mCachedBytes += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) currentBlockLeftBytes);
             tOff += currentBlockLeftBytes;
             tLen -= currentBlockLeftBytes;
-            mCachedBytes += currentBlockLeftBytes;
           }
         }
       } catch (IOException ioe) {
