@@ -16,16 +16,19 @@
 package tachyon.client;
 
 /**
- * Specifies the type of data interaction with Tachyon. For a write operation, this determines
- * whether the data will be written into Tachyon storage. Metadata will always be updated in Tachyon
- * space. For a read operation, this determines whether fully read blocks will be stored in Tachyon
- * storage.
+ * Specifies the type of data interaction with Tachyon.
+ * <ul>
+ * <li>For a write operation, this determines whether the data will be written into Tachyon storage.
+ * Metadata will always be updated in Tachyon space.</li>
+ * <li>For a read operation, this determines whether fully read blocks will be stored in Tachyon
+ * storage.</li>
+ * </ul>
  */
 public enum TachyonStorageType {
-  /** Write to Tachyon */
+  /** Put the data reading or writing in Tachyon storage */
   STORE(1),
 
-  /** Do not write to Tachyon */
+  /** Do not put data to Tachyon */
   NO_STORE(2);
 
   private final int mValue;
