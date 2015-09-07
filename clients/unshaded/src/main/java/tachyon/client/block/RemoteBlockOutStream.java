@@ -23,7 +23,8 @@ import tachyon.worker.WorkerClient;
 
 /**
  * Provides a streaming API to write to a Tachyon block. This output stream will send the write
- * through a Tachyon worker which will then write the block to a file in Tachyon storage.
+ * through a Tachyon worker which will then write the block to a file in Tachyon storage. The
+ * instances of this class should only be used by one thread and are not thread safe.
  */
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private final RemoteBlockWriter mRemoteWriter;

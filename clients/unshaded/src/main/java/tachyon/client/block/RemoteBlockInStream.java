@@ -28,7 +28,8 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
- * through a Tachyon worker's dataserver to the client.
+ * through a Tachyon worker's dataserver to the client. The instances of this class should only be
+ * used by one thread and are not thread safe.
  */
 public class RemoteBlockInStream extends BlockInStream {
   private final long mBlockId;

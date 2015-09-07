@@ -30,7 +30,8 @@ import tachyon.worker.WorkerClient;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be directly read
- * from the local machine's storage.
+ * from the local machine's storage. The instances of this class should only be used by one
+ * thread and are not thread safe.
  */
 public class LocalBlockInStream extends BlockInStream {
   private final long mBlockId;
@@ -86,7 +87,7 @@ public class LocalBlockInStream extends BlockInStream {
 
   @Override
   public int read() throws IOException {
-    failIfClosed();
+    checkIfClosed();
     if (mData.remaining() == 0) {
       close();
       return -1;
@@ -96,13 +97,13 @@ public class LocalBlockInStream extends BlockInStream {
 
   @Override
   public int read(byte[] b) throws IOException {
-    failIfClosed();
+    checkIfClosed();
     return read(b, 0, b.length);
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    failIfClosed();
+    checkIfClosed();
     Preconditions.checkArgument(b != null, "Buffer is null");
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
         .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
@@ -124,8 +125,9 @@ public class LocalBlockInStream extends BlockInStream {
     return mData.remaining();
   }
 
+  @Override
   public void seek(long pos) throws IOException {
-    failIfClosed();
+    checkIfClosed();
     Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
     Preconditions.checkArgument(pos <= mData.limit(), "Seek position is past buffer limit: " + pos
         + ", Buffer Size = " + mData.limit());
@@ -134,7 +136,7 @@ public class LocalBlockInStream extends BlockInStream {
 
   @Override
   public long skip(long n) throws IOException {
-    failIfClosed();
+    checkIfClosed();
     if (n <= 0) {
       return 0;
     }
@@ -147,9 +149,7 @@ public class LocalBlockInStream extends BlockInStream {
     return ret;
   }
 
-  private void failIfClosed() throws IOException {
-    if (mClosed) {
-      throw new IOException("Cannot do operations on a closed BlockInStream");
-    }
+  private void checkIfClosed() throws IOException {
+    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
   }
 }

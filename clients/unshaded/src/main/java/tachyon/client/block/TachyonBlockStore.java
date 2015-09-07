@@ -52,7 +52,7 @@ public class TachyonBlockStore implements Closeable {
   /**
    * Creates a Tachyon block store.
    */
-  public TachyonBlockStore() {
+  private TachyonBlockStore() {
     mContext = BSContext.INSTANCE;
   }
 

@@ -38,8 +38,8 @@ public final class TachyonFSTestUtils {
    */
   public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
       ClientOptions options, int len) throws IOException {
-    return createByteFile(tfs, fileName, options.getTachyonStorageType(), options.getUnderStorageType(),
-        len, options.getBlockSize());
+    return createByteFile(tfs, fileName, options.getTachyonStorageType(),
+        options.getUnderStorageType(), len, options.getBlockSize());
   }
 
   /**
