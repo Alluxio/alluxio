@@ -32,8 +32,9 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerClient;
 
 /**
- * Provides a streaming API to write to a Tachyon block. This output stream will directly write
- * the input to a file in local Tachyon storage.
+ * Provides a streaming API to write to a Tachyon block. This output stream will directly write the
+ * input to a file in local Tachyon storage. The instances of this class should only be used by one
+ * thread and are not thread safe.
  */
 public class LocalBlockOutStream extends BufferedBlockOutStream {
   private final Closer mCloser;

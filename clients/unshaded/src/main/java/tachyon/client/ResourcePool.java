@@ -20,15 +20,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Class representing a pool of resources to be temporarily used and returned. Inheriting classes
- * should implement the close method as well as initialize the resources in the constructor.
+ * should implement the close method as well as initialize the resources in the constructor. The
+ * implemented methods are thread-safe and inheriting classes should also written in a
+ * thread-safe manner. See {@link tachyon.client.file.FSMasterClientPool} as an example.
  *
  * @param <T> The type of resource this pool manages.
  */
+// TODO: This may fit better in the common module
 public abstract class ResourcePool<T> {
   protected final Object mCapacityLock;
-  protected int mCurrentCapacity;
   protected final int mMaxCapacity;
-  protected BlockingQueue<T> mResources;
+  protected final BlockingQueue<T> mResources;
+  protected int mCurrentCapacity;
 
   public ResourcePool(int maxCapacity) {
     mCapacityLock = new Object();
