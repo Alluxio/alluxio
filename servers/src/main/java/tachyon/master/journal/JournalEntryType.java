@@ -17,7 +17,7 @@ package tachyon.master.journal;
 
 public enum JournalEntryType {
   // Block master entries
-  BLOCK_ID_GENERATOR,
+  BLOCK_CONTAINER_ID_GENERATOR,
   BLOCK_INFO,
   WORKER_ID_GENERATOR,
 

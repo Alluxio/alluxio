@@ -720,16 +720,16 @@ public final class FileSystemMaster extends MasterBase {
       nodesQueue.add(new Pair<InodeDirectory, TachyonURI>(mInodeTree.getRoot(),
           new TachyonURI(TachyonURI.SEPARATOR)));
       while (!nodesQueue.isEmpty()) {
-        Pair<InodeDirectory, TachyonURI> tPair = nodesQueue.poll();
-        InodeDirectory tDir = tPair.getFirst();
-        TachyonURI curUri = tPair.getSecond();
+        Pair<InodeDirectory, TachyonURI> pair = nodesQueue.poll();
+        InodeDirectory directory = pair.getFirst();
+        TachyonURI curUri = pair.getSecond();
 
-        Set<Inode> children = tDir.getChildren();
-        for (Inode tInode : children) {
-          TachyonURI newUri = curUri.join(tInode.getName());
-          if (tInode.isDirectory()) {
-            nodesQueue.add(new Pair<InodeDirectory, TachyonURI>((InodeDirectory) tInode, newUri));
-          } else if (isFullyInMemory((InodeFile) tInode)) {
+        Set<Inode> children = directory.getChildren();
+        for (Inode inode : children) {
+          TachyonURI newUri = curUri.join(inode.getName());
+          if (inode.isDirectory()) {
+            nodesQueue.add(new Pair<InodeDirectory, TachyonURI>((InodeDirectory) inode, newUri));
+          } else if (isFullyInMemory((InodeFile) inode)) {
             ret.add(newUri);
           }
         }
