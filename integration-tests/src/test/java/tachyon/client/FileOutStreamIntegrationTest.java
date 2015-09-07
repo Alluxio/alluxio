@@ -32,8 +32,6 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
-import tachyon.client.OutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -97,14 +95,14 @@ public class FileOutStreamIntegrationTest {
     mTfs = sLocalTachyonCluster.getClient();
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
     sWriteTachyon =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
             .build();
     sWriteUnderStore =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.NO_CACHE)
+        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
   }
 

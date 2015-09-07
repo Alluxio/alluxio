@@ -37,7 +37,7 @@ import tachyon.util.io.BufferUtils;
  * returned which will write the data through a Tachyon worker.
  */
 public abstract class BufferedBlockOutStream extends OutStream {
-  /** The block id of the block being read/written */
+  /** The block id of the block being written */
   protected final long mBlockId;
   /** Size of the block */
   protected final long mBlockSize;

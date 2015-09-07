@@ -72,7 +72,7 @@ public final class FileInStream extends InStream {
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
     mContext = FSContext.INSTANCE;
-    mShouldCache = options.getCacheType().shouldCache();
+    mShouldCache = options.getCacheType().shouldStore();
     mShouldCacheCurrentBlock = mShouldCache;
     mClosed = false;
   }
@@ -253,7 +253,6 @@ public final class FileInStream extends InStream {
 
   /**
    * @return the current block id based on mPos
-   *
    */
   private long getBlockCurrentBlockId() {
     int index = (int) (mPos / mBlockSize);

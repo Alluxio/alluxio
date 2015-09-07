@@ -16,22 +16,25 @@
 package tachyon.client;
 
 /**
- * Specifies the type of data interaction with Tachyon. Reads may use either cache type.
+ * Specifies the type of data interaction with Tachyon. For a write operation, this determines
+ * whether the data will be written into Tachyon storage. Metadata will always be updated in Tachyon
+ * space. For a read operation, this determines whether fully read blocks will be stored in Tachyon
+ * storage.
  */
-public enum CacheType {
+public enum TachyonStorageType {
   /** Write to Tachyon */
-  CACHE(1),
+  STORE(1),
 
   /** Do not write to Tachyon */
-  NO_CACHE(2);
+  NO_STORE(2);
 
   private final int mValue;
 
-  CacheType(int value) {
+  TachyonStorageType(int value) {
     mValue = value;
   }
 
-  public boolean shouldCache() {
-    return mValue == CACHE.mValue;
+  public boolean shouldStore() {
+    return mValue == STORE.mValue;
   }
 }

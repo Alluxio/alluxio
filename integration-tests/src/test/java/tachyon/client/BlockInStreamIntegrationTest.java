@@ -25,7 +25,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -63,13 +62,13 @@ public class BlockInStreamIntegrationTest {
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(sTachyonConf).setCacheType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
     sWriteTachyon =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(sTachyonConf).setCacheType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sWriteUnderStore =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.NO_CACHE)
+        new ClientOptions.Builder(sTachyonConf).setCacheType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
   }
 

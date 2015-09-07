@@ -32,9 +32,6 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
-import tachyon.client.InStream;
-import tachyon.client.OutStream;
-import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.block.RemoteBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
@@ -58,7 +55,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private TachyonFileSystem mTfs = null;
   private String mDataServerClass;
   private String mRemoteReaderClass;
-  private TachyonConf mMasterTachyonConf;
+  private TachyonConf mTachyonConf;
   private ClientOptions mWriteTachyon;
   private ClientOptions mWriteUnderStore;
   private ClientOptions mReadNoCache;
@@ -102,18 +99,18 @@ public class RemoteBlockInStreamIntegrationTest {
     mLocalTachyonCluster.start();
     mLocalTachyonCluster.getWorkerTachyonConf().set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE,
         "100");
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mTfs = mLocalTachyonCluster.getClient();
     mWriteTachyon =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(mTachyonConf).setCacheType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     mWriteUnderStore =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.NO_CACHE)
+        new ClientOptions.Builder(mTachyonConf).setCacheType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
     mReadCache =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.CACHE).build();
+        new ClientOptions.Builder(mTachyonConf).setCacheType(TachyonStorageType.STORE).build();
     mReadNoCache =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.NO_CACHE).build();
+        new ClientOptions.Builder(mTachyonConf).setCacheType(TachyonStorageType.NO_STORE).build();
   }
 
   /**
@@ -459,7 +456,7 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   /**
-   * Tests that reading a file the whole way through with the CACHE ReadType will recache it
+   * Tests that reading a file the whole way through with the STORE ReadType will recache it
    */
   @Test
   public void completeFileReadTriggersRecache() throws IOException {
