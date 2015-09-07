@@ -173,13 +173,13 @@ public class TFsShell implements Closeable {
   public int copyFromLocalWildcard(List<File> srcFiles, TachyonURI dstPath) throws IOException {
     TachyonFS tachyonClient = createFS(dstPath);
     TachyonFile dstFile = tachyonClient.getFile(dstPath);
-    if (dstFile != null && dstFile.isDirectory() == false) {
+    if (dstFile != null && !dstFile.isDirectory()) {
       System.out.println("The destination cannot be an existent file when the src contains " 
           + "wildcards.");
       return -1;
     }
     if (dstFile == null) {
-      if (tachyonClient.mkdirs(dstPath, true) == false) {
+      if (!tachyonClient.mkdirs(dstPath, true)) {
         System.out.print("Fail to create directory: " + dstPath);
         return -1;
       } else {
@@ -189,8 +189,9 @@ public class TFsShell implements Closeable {
     int exitCode = 0;
     for (File srcFile : srcFiles) {
       try {
-        exitCode |= copyFromLocal(srcFile, 
-            new TachyonURI(dstPath.getPath() + TachyonURI.SEPARATOR + srcFile.getName()));
+        exitCode |= copyFromLocal(srcFile,
+            new TachyonURI(tachyon.util.io.PathUtils.concatPath(dstPath.getPath(),
+                srcFile.getName())));
       } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
         exitCode |= -1;
@@ -204,7 +205,7 @@ public class TFsShell implements Closeable {
    * the Tachyon filesystem space. Will
    * fail if the path given already exists in the filesystem.
    *
-   * @param srcPath The path of the source file in the local filesystem
+   * @param srcFile The source file in the local filesystem
    * @param dstPath The TachyonURI of the destination
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -257,7 +258,7 @@ public class TFsShell implements Closeable {
     }
     return 0;
   }
-  
+
   /**
    * Copies a list of files or directories specified by srcPaths from the Tachyon filesystem to 
    * dstPath in the local filesystem. 
@@ -269,13 +270,13 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   public int copyWildcardToLocal(List<TachyonURI> srcPaths, File dstFile) throws IOException {
-    if (dstFile.exists() && dstFile.isDirectory() == false) {
+    if (dstFile.exists() && !dstFile.isDirectory()) {
       System.out.println("The destination cannot be an existent file when the src contains " 
           + "wildcards.");
       return -1;
     }
-    if (dstFile.exists() == false) {
-      if (dstFile.mkdirs() == false) {
+    if (!dstFile.exists()) {
+      if (!dstFile.mkdirs()) {
         System.out.print("Fail to create directory: " + dstFile.getPath());
         return -1;
       } else {
@@ -329,7 +330,7 @@ public class TFsShell implements Closeable {
     if (tFile.isDirectory()) {
       //make a local directory
       if (!dstFile.exists()) {
-        if (dstFile.mkdirs() == false) {
+        if (!dstFile.mkdirs()) {
           System.out.println("mkdirs failure for directory: " + dstFile.getAbsolutePath());
           return -1;
         } else {
