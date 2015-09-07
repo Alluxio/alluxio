@@ -263,7 +263,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("blockSizeBytes"),
                 entry.getLong("length"),
                 entry.getBoolean("isComplete"),
-                entry.getBoolean("isCache"),
+                entry.getBoolean("isCacheable"),
                 entry.getString("ufsPath"),
                 entry.get("blocks", new TypeReference<List<Long>>() {}));
           }

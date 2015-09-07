@@ -99,7 +99,7 @@ public enum BSContext {
         return workers.get(0).getAddress();
       }
       for (WorkerInfo worker : workers) {
-        if (worker.getAddress().getMHost().equals(hostname)) {
+        if (worker.getAddress().getHost().equals(hostname)) {
           return worker.getAddress();
         }
       }

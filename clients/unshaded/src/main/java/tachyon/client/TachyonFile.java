@@ -104,7 +104,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public long getBlockSizeByte() throws IOException {
-    return getCachedFileStatus().getBlockSizeByte();
+    return getCachedFileStatus().getBlockSizeBytes();
   }
 
   /**
@@ -161,7 +161,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     FileInfo info = getUnCachedFileStatus();
     TachyonURI uri = new TachyonURI(info.getPath());
     ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeByte());
+    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
     if (readType.isCache()) {
       optionsBuilder.setCacheType(TachyonStorageType.STORE);
     } else {
@@ -203,7 +203,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       List<NetAddress> locations = getClientBlockInfo(0).getLocations();
       if (locations != null) {
         for (NetAddress location : locations) {
-          ret.add(location.mHost);
+          ret.add(location.host);
         }
       }
     }
@@ -240,7 +240,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     FileInfo info = getUnCachedFileStatus();
     ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeByte());
+    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
 
     if (writeType.isCache()) {
       optionsBuilder.setCacheType(TachyonStorageType.STORE);

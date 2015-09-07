@@ -372,7 +372,7 @@ public class TFsShell implements Closeable {
     System.out.println(path + " with file id " + fd.getFileId() + " is on nodes: ");
     for (long blockId : fInfo.getBlockIds()) {
       for (BlockLocation location : TachyonBlockStore.get().getInfo(blockId).getLocations()) {
-        System.out.println(location.getWorkerAddress().getMHost());
+        System.out.println(location.getWorkerAddress().getHost());
       }
     }
     return 0;

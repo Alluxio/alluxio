@@ -156,9 +156,9 @@ public class JournalEntryTest {
   @Test
   public void createFileTest() throws IOException {
     // Write CREATE_FILE
-    long blockSizeByte = 128L;
+    long blockSizeBytes = 128L;
     TachyonURI createFilePath = new TachyonURI("/test/createFilePath");
-    mEditLog.createFile(true, createFilePath, false, blockSizeByte, TEST_OP_TIME_MS);
+    mEditLog.createFile(true, createFilePath, false, blockSizeBytes, TEST_OP_TIME_MS);
     mEditLog.flush();
     mEditLog.close();
 
@@ -169,7 +169,7 @@ public class JournalEntryTest {
     Assert.assertTrue(op.getBoolean("recursive"));
     Assert.assertEquals(createFilePath.toString(), op.getString("path"));
     Assert.assertFalse(op.getBoolean("directory"));
-    Assert.assertEquals(blockSizeByte, op.getLong("blockSizeByte").longValue());
+    Assert.assertEquals(blockSizeBytes, op.getLong("blockSizeBytes").longValue());
     Assert.assertEquals(TEST_OP_TIME_MS, op.getLong("creationTimeMs").longValue());
   }
 
