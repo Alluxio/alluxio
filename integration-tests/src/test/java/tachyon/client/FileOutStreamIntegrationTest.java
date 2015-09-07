@@ -98,13 +98,14 @@ public class FileOutStreamIntegrationTest {
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
         new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.CACHE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
     sWriteTachyon =
         new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.CACHE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
+            .build();
     sWriteUnderStore =
         new ClientOptions.Builder(mMasterTachyonConf).setCacheType(CacheType.NO_CACHE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
   }
 
   @BeforeClass
