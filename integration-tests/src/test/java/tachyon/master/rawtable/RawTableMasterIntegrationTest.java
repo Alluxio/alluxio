@@ -19,7 +19,9 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -37,6 +39,9 @@ public class RawTableMasterIntegrationTest {
   private TachyonConf mMasterConf;
   private RawTableMaster mRawTableMaster;
   private FileSystemMaster mFsMaster;
+
+  @Rule
+  public final ExpectedException mException = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
@@ -61,16 +66,17 @@ public class RawTableMasterIntegrationTest {
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testTable"))).isFolder);
   }
 
-  @Test(expected = TableColumnException.class)
+  @Test
   public void negativeColumnTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
+    mException.expect(TableColumnException.class);
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"), -1, null);
   }
 
-
-  @Test(expected = TableColumnException.class)
+  @Test
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
+    mException.expect(TableColumnException.class);
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"),
         mMasterConf.getInt(Constants.MAX_COLUMNS) + 1, null);
   }
