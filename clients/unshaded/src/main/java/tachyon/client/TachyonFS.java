@@ -35,6 +35,7 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.client.block.BSContext;
 import tachyon.client.file.FSContext;
 import tachyon.client.table.RawTable;
@@ -57,6 +58,7 @@ import tachyon.worker.WorkerClient;
  * Under the hood, this class maintains a MasterClientBase to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
  */
+@PublicApi
 @Deprecated
 public class TachyonFS extends AbstractTachyonFS {
 

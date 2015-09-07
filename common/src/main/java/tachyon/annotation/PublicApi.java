@@ -13,27 +13,20 @@
  * the License.
  */
 
-package tachyon.hadoop;
+package tachyon.annotation;
 
-import tachyon.Constants;
-import tachyon.annotation.PublicApi;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working with
- * Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFS API
- * may not be as efficient as the performance of using the Tachyon native API defined in
- * {@link tachyon.client.TachyonFS}, which TFS is built on top of.
+ * A public API annotation for annotating classes and interfaces that are externally facing.
  */
-@PublicApi
-public final class TFS extends AbstractTFS {
-
-  @Override
-  public String getScheme() {
-    return Constants.SCHEME;
-  }
-
-  @Override
-  protected boolean isZookeeperMode() {
-    return false;
-  }
+@Documented
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.SOURCE)
+public @interface PublicApi {
+  // annotation
 }
