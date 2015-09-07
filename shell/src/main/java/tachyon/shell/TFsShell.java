@@ -44,6 +44,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.util.FormatUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * Class for handling command line inputs.
@@ -190,7 +191,7 @@ public class TFsShell implements Closeable {
     for (File srcFile : srcFiles) {
       try {
         exitCode |= copyFromLocal(srcFile,
-            new TachyonURI(tachyon.util.io.PathUtils.concatPath(dstPath.getPath(),
+            new TachyonURI(PathUtils.concatPath(dstPath.getPath(),
                 srcFile.getName())));
       } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
