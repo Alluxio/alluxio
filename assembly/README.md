@@ -24,4 +24,4 @@ should be included.
 ## Usage
 
 For more details on how to use the generated tar, go
-[to the docs](http://tachyon-project.org/Running-Tachyon-Locally.html).
+[to the docs](http://tachyon-project.org/documentation/Running-Tachyon-Locally.html).

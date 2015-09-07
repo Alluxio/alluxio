@@ -16,30 +16,25 @@
 package tachyon.exception;
 
 /**
- * Exception used when the system is not in a state required for the operation.
+ * Abstract class for Tachyon exceptions.
  *
- * For example:
- * <ul>
- * <li>userId or blockId does not correspond to that in the record of lockId</li>
- * <li>user A wants to commit a temp block owned by user B</li>
- * </ul>
  */
-public final class InvalidStateException extends AbstractTachyonException {
-  private static final long serialVersionUID = -7966393090688326795L;
+@SuppressWarnings("serial")
+public abstract class AbstractTachyonException extends Exception {
 
-  public InvalidStateException(String message) {
+  public AbstractTachyonException(String message) {
     super(message);
   }
 
-  public InvalidStateException(String message, Throwable cause) {
+  public AbstractTachyonException(String message, Throwable cause) {
     super(message, cause);
   }
 
-  public InvalidStateException(ExceptionMessage message, Object... params) {
-    super(message, params);
+  public AbstractTachyonException(ExceptionMessage message, Object... params) {
+    this(message.getMessage(params));
   }
 
-  public InvalidStateException(ExceptionMessage message, Throwable cause, Object... params) {
-    super(message, cause, params);
+  public AbstractTachyonException(ExceptionMessage message, Throwable cause, Object... params) {
+    this(message.getMessage(params), cause);
   }
 }
