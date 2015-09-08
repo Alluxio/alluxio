@@ -22,6 +22,9 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * The {@link JournalEntry} representing the state of a block in the block master.
+ */
 public class BlockInfoEntry implements JournalEntry {
   private final long mBlockId;
   private final long mLength;

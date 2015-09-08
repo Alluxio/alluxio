@@ -17,7 +17,7 @@ package tachyon.master.block;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import tachyon.master.block.journal.BlockIdGeneratorEntry;
+import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryRepresentable;
 
@@ -44,6 +44,6 @@ public final class BlockContainerIdGenerator
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    return new BlockIdGeneratorEntry(mNextContainerId.get());
+    return new BlockContainerIdGeneratorEntry(mNextContainerId.get());
   }
 }
