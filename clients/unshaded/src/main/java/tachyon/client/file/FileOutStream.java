@@ -23,11 +23,11 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.Cancelable;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
-import tachyon.client.OutStream;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BSContext;
 import tachyon.client.block.BufferedBlockOutStream;
@@ -43,7 +43,7 @@ import tachyon.worker.WorkerClient;
  * the under storage system.
  */
 @PublicApi
-public final class FileOutStream extends OutStream {
+public final class FileOutStream extends OutputStream implements Cancelable {
   private final long mFileId;
   private final long mBlockSize;
   private final TachyonStorageType mTachyonStorageType;

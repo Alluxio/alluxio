@@ -16,13 +16,14 @@
 package tachyon.client.block;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
-import tachyon.client.OutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
 
@@ -36,7 +37,7 @@ import tachyon.util.io.BufferUtils;
  * the user has enabled this optimization. Otherwise, a {@link RemoteBlockOutStream} will be
  * returned which will write the data through a Tachyon worker.
  */
-public abstract class BufferedBlockOutStream extends OutStream {
+public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
   /** The block id of the block being written */
   protected final long mBlockId;
   /** Size of the block */
