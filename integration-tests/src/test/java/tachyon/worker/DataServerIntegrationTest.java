@@ -362,11 +362,11 @@ public class DataServerIntegrationTest {
   }
 
   /**
-   * returns the MasterBlockInfo of the first block of the file
+   * Returns the MasterBlockInfo of the first block of the file
    *
-   * @param tachyonFile the file to get the first MasterBlockInfo for
+   * @param tachyonFile the file to get the first MasterBlockInfro for
    * @return the MasterBlockInfo of the first block in the file
-   * @throws IOException
+   * @throws IOException if the block does not exist
    */
   private BlockInfo getFirstBlockInfo(TachyonFile tachyonFile) throws IOException {
     FileInfo fileInfo = mTFS.getInfo(tachyonFile);

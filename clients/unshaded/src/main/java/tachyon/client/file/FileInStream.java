@@ -16,13 +16,15 @@
 package tachyon.client.file;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
+import tachyon.client.BoundedStream;
 import tachyon.client.ClientOptions;
-import tachyon.client.InStream;
+import tachyon.client.Seekable;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
@@ -35,7 +37,7 @@ import tachyon.thrift.FileInfo;
  * Tachyon space in the local machine, remote machines, or the under storage system.
  */
 @PublicApi
-public final class FileInStream extends InStream {
+public final class FileInStream extends InputStream implements BoundedStream, Seekable {
   /** Whether the data should be written into Tachyon space */
   private final boolean mShouldCache;
   /** Standard block size in bytes of the file, guaranteed for all but the last block */
@@ -72,7 +74,7 @@ public final class FileInStream extends InStream {
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
     mContext = FSContext.INSTANCE;
-    mShouldCache = options.getTachyonStorageType().shouldStore();
+    mShouldCache = options.getTachyonStorageType().isStore();
     mShouldCacheCurrentBlock = mShouldCache;
     mClosed = false;
   }

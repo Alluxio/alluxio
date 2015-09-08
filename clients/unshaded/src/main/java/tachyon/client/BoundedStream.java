@@ -16,24 +16,12 @@
 package tachyon.client;
 
 /**
- * Specifies the type of data interaction with Tachyon's Under Storage. This is not applicable for
- * reads. Only writing temporary data is suggested to use type {@link #NO_PERSIST} where writing to
- * Under Storage will be skipped and data may be lost when evicted from Tachyon storage.
+ * This interface should be implemented by all Tachyon streams which are bounded at a certain
+ * byte size.
  */
-public enum UnderStorageType {
-  /** Persist data to Under Storage synchronously */
-  PERSIST(1),
-
-  /** Do not persist data to Under Storage */
-  NO_PERSIST(2);
-
-  private final int mValue;
-
-  UnderStorageType(int value) {
-    mValue = value;
-  }
-
-  public boolean isPersist() {
-    return mValue == PERSIST.mValue;
-  }
+public interface BoundedStream {
+  /**
+   * Gets the remaining number of bytes left in the stream, starting at the current position.
+   */
+  public abstract long remaining();
 }

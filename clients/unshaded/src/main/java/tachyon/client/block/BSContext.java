@@ -49,7 +49,7 @@ public enum BSContext {
   private final ExecutorService mRemoteBlockWorkerExecutor;
 
   /**
-   * Creates a new block stream context.
+   * Creates a new block store context.
    */
   BSContext() {
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
@@ -149,6 +149,7 @@ public enum BSContext {
     if (mLocalBlockWorkerClientPool != null) {
       return mLocalBlockWorkerClientPool.acquire();
     } else {
+      // Get a worker client for any worker in the system
       return acquireRemoteWorkerClient("");
     }
   }
@@ -171,6 +172,14 @@ public enum BSContext {
     return acquireRemoteWorkerClient(hostname);
   }
 
+  /**
+   * Obtains a non local worker client based on the hostname. Illegal argument exception is
+   * thrown if the hostname is the local hostname. Runtime exception is thrown if the client
+   * cannot be created with a connection to the hostname.
+   *
+   * @param hostname the worker hostname to connect to, empty string for any worker
+   * @return a worker client with a connection to the specified hostname
+   */
   private WorkerClient acquireRemoteWorkerClient(String hostname) {
     Preconditions.checkArgument(
         !hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
