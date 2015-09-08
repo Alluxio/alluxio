@@ -7,5 +7,5 @@ cd /mesos
 mkdir -p build
 cd build
 ../configure
-make
+make -j4
 sudo make install
