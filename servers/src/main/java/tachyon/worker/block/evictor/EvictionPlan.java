@@ -27,26 +27,28 @@ import tachyon.worker.block.BlockStoreLocation;
  */
 public final class EvictionPlan {
   /** A list of pairs of blockId and its location to move to */
-  private final List<Pair<Long, BlockStoreLocation>> mToMove;
+  private final List<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>> mToMove;
   /** A list of blockId to remove */
-  private final List<Long> mToEvict;
+  private final List<Pair<Long, BlockStoreLocation>> mToEvict;
 
-  public EvictionPlan(List<Pair<Long, BlockStoreLocation>> toTransfer, List<Long> toEvict) {
+  public EvictionPlan(List<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>> toTransfer,
+      List<Pair<Long, BlockStoreLocation>> toEvict) {
     mToMove = Preconditions.checkNotNull(toTransfer);
     mToEvict = Preconditions.checkNotNull(toEvict);
   }
 
   /**
-   * @return a list of pairs of a block id and the location to move it to
+   * @return a list of pairs of a block id and the locations of where it comes from and will be
+   * moved to
    */
-  public List<Pair<Long, BlockStoreLocation>> toMove() {
+  public List<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>> toMove() {
     return mToMove;
   }
 
   /**
-   * @return a list of block ids to remove
+   * @return a list of blocks to remove, with id and location information
    */
-  public List<Long> toEvict() {
+  public List<Pair<Long, BlockStoreLocation>> toEvict() {
     return mToEvict;
   }
 
