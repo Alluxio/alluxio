@@ -32,6 +32,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.rawtable.journal.RawTableEntry;
+import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 import tachyon.master.rawtable.meta.RawTables;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -85,6 +86,14 @@ public class RawTableMaster extends MasterBase {
     if (entry instanceof RawTableEntry) {
       RawTableEntry tableEntry = (RawTableEntry) entry;
       mRawTables.add(tableEntry.mId, tableEntry.mColumns, tableEntry.mMetadata);
+    } else if (entry instanceof UpdateMetadataEntry) {
+      UpdateMetadataEntry updateEntry = (UpdateMetadataEntry) entry;
+      try {
+        mRawTables.updateMetadata(updateEntry.mId, updateEntry.mMetadata);
+      } catch (TableDoesNotExistException tdnee) {
+        // should not reach here since before writing the journal, the same operation succeeded
+        throw new IOException(tdnee);
+      }
     } else {
       throw new IOException("Unknown entry type " + entry.getType());
     }
@@ -136,12 +145,14 @@ public class RawTableMaster extends MasterBase {
       // it to internal collection.
       throw new TachyonException("Failed to create raw table.");
     }
-    // TODO journal
 
     // Create directories in the table directory as columns
     for (int k = 0; k < columns; k ++) {
       mFileSystemMaster.mkdirs(columnPath(path, k), true);
     }
+
+    writeJournalEntry(new RawTableEntry(id, columns, metadata));
+    flushJournal();
 
     return id;
   }
@@ -160,7 +171,9 @@ public class RawTableMaster extends MasterBase {
       throw new TableDoesNotExistException("Table with id " + tableId + " does not exist.");
     }
     mRawTables.updateMetadata(tableId, metadata);
-    // TODO journal
+
+    writeJournalEntry(new UpdateMetadataEntry(tableId, metadata));
+    flushJournal();
   }
 
   /**

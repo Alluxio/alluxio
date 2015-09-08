@@ -54,6 +54,7 @@ import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
 import tachyon.master.rawtable.journal.RawTableEntry;
+import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 
 public final class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -345,6 +346,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
             return new RawTableEntry(
                 entry.getLong("id"),
                 entry.getInt("columns"),
+                entry.getByteBuffer("metadata"));
+          }
+          case UPDATE_METADATA: {
+            return new UpdateMetadataEntry(
+                entry.getLong("id"),
                 entry.getByteBuffer("metadata"));
           }
           default:
