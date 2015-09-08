@@ -90,7 +90,7 @@ public final class UiFileInfo {
     mName = fileInfo.getName();
     mAbsolutePath = fileInfo.getPath();
     mCheckpointPath = fileInfo.getUfsPath();
-    mBlockSizeBytes = fileInfo.getBlockSizeByte();
+    mBlockSizeBytes = fileInfo.getBlockSizeBytes();
     mSize = fileInfo.getLength();
     mCreationTimeMs = fileInfo.getCreationTimeMs();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
@@ -216,7 +216,7 @@ public final class UiFileInfo {
 
   public void setFileLocations(List<NetAddress> fileLocations) {
     for (NetAddress addr : fileLocations) {
-      mFileLocations.add(addr.getMHost() + ":" + addr.getMPort());
+      mFileLocations.add(addr.getHost() + ":" + addr.getRpcPort());
     }
   }
 }

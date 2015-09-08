@@ -51,7 +51,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     private final String mUptimeClockTime;
 
     private NodeInfo(WorkerInfo workerInfo) {
-      mHost = workerInfo.getAddress().getMHost();
+      mHost = workerInfo.getAddress().getHost();
       mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
       mWorkerState = workerInfo.getState();
       mCapacityBytes = workerInfo.getCapacityBytes();
@@ -59,7 +59,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
       mUsedPercent = (int) (100L * mUsedBytes / mCapacityBytes);
       mFreePercent = 100 - mUsedPercent;
       mUptimeClockTime =
-          Utils.convertMsToShortClockTime(System.currentTimeMillis() - workerInfo.getStarttimeMs());
+          Utils.convertMsToShortClockTime(System.currentTimeMillis() - workerInfo.getStartTimeMs());
     }
 
     public String getCapacity() {
@@ -131,7 +131,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     Collections.sort(workerInfos, new Ordering<WorkerInfo>() {
       @Override
       public int compare(WorkerInfo info0, WorkerInfo info1) {
-        return info0.getAddress().getMHost().compareTo(info1.getAddress().getMHost());
+        return info0.getAddress().getHost().compareTo(info1.getAddress().getHost());
       }
     });
     int index = 0;

@@ -25,8 +25,8 @@ import tachyon.client.ResourcePool;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
- * Class for managing block master clients. After obtaining a client with {@link
- * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
+ * Class for managing block master clients. After obtaining a client with
+ * {@link ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
  * using the client.
  */
 public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
@@ -42,8 +42,9 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
     // TODO: Get the capacity from configuration
     super(CAPACITY);
-    mExecutorService = Executors.newFixedThreadPool(CAPACITY, ThreadFactoryUtils.build(
-        "block-master-heartbeat-%d", true));
+    mExecutorService =
+        Executors.newFixedThreadPool(CAPACITY,
+            ThreadFactoryUtils.build("block-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
   }
 

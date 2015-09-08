@@ -16,18 +16,19 @@
 package tachyon.client;
 
 /**
- * Specifies the type of data interaction with Tachyon's Under Storage. This is not applicable
- * for reads. Using the NO_PERSIST type will mean data is only written to Tachyon storage and may
- * be permanently lost when evicted. Only temporary data is suggested to be stored this way.
+ * Specifies the type of data interaction with Tachyon's Under Storage. This is not applicable for
+ * reads. Only writing temporary data is suggested to use type {@link #NO_PERSIST} where writing to
+ * Under Storage will be skipped and data may be lost when evicted from Tachyon storage.
  */
 public enum UnderStorageType {
-  /** Write to Under Storage synchronously */
+  /** Persist data to Under Storage synchronously */
   PERSIST(1),
 
-  /** Do not write to Under Storage */
+  /** Do not persist data to Under Storage */
   NO_PERSIST(2);
 
   private final int mValue;
+
   UnderStorageType(int value) {
     mValue = value;
   }

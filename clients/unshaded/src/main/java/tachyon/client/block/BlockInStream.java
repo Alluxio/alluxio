@@ -45,7 +45,7 @@ public abstract class BlockInStream extends InputStream implements BoundedStream
   public static BlockInStream get(long blockId, long blockSize, NetAddress location)
       throws IOException {
     String localHostname = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
-    if (location.getMHost().equals(localHostname)) {
+    if (location.getHost().equals(localHostname)) {
       return new LocalBlockInStream(blockId);
     } else {
       return new RemoteBlockInStream(blockId, blockSize, location);

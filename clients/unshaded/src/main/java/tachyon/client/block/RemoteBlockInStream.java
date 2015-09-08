@@ -52,7 +52,7 @@ public class RemoteBlockInStream extends BlockInStream {
     mContext = BSContext.INSTANCE;
     mBlockSize = blockSize;
     // TODO: Validate these fields
-    mLocation = new InetSocketAddress(location.getMHost(), location.getMSecondaryPort());
+    mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
   }
 
   @Override

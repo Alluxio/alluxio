@@ -18,11 +18,13 @@ package tachyon.client;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Class representing a pool of resources to be temporarily used and returned. Inheriting classes
- * should implement the close method as well as initialize the resources in the constructor. The
- * implemented methods are thread-safe and inheriting classes should also written in a
- * thread-safe manner. See {@link tachyon.client.file.FSMasterClientPool} as an example.
+ * must implement the close method as well as initialize the resources in the constructor. The
+ * implemented methods are thread-safe and inheriting classes should also written in a thread-safe
+ * manner. See {@link tachyon.client.file.FSMasterClientPool} as an example.
  *
  * @param <T> The type of resource this pool manages.
  */
@@ -33,16 +35,25 @@ public abstract class ResourcePool<T> {
   protected final BlockingQueue<T> mResources;
   protected int mCurrentCapacity;
 
+  /**
+   * Creates a {@link ResourcePool} instance with the specified capacity.
+   *
+   * @param maxCapacity the maximum of resources in this pool
+   */
   public ResourcePool(int maxCapacity) {
+    Preconditions.checkArgument(maxCapacity > 0, "Capacity must be non-negative");
     mCapacityLock = new Object();
     mMaxCapacity = maxCapacity;
+    mCurrentCapacity = 0;
     mResources = new LinkedBlockingQueue<T>(maxCapacity);
   }
 
   /**
-   * Acquires an object of type T, this operation is blocking if no clients are available.
+   * Acquires an object of type {@code T} from the pool. This operation is blocking if no resource
+   * is available. Each call of {@link #acquire} should be paired with another call of
+   * {@link #release} after the use of this resource completes to return this resource to the pool.
    *
-   * @return a MasterClientBase, guaranteed to be only available to the caller
+   * @return a resource taken from the pool
    */
   public T acquire() {
     // If the resource pool is empty but capacity is not yet full, create a new resource.
@@ -64,8 +75,8 @@ public abstract class ResourcePool<T> {
   }
 
   /**
-   * Closes the resource pool. After this call, the object should be discarded. Inheriting
-   * classes should clean up all their resources here.
+   * Closes the resource pool. After this call, the object should be discarded. Inheriting classes
+   * should clean up all their resources here.
    */
   public abstract void close();
 
