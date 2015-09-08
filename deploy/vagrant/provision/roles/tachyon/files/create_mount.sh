@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-sudo mkdir /mnt/ramdisk
-sudo chown $(whoami) /mnt/ramdisk
+cd /tachyon
+./bin/tachyon-mount.sh Mount
