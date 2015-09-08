@@ -758,6 +758,7 @@ public final class TieredBlockStore implements BlockStore {
       }
 
       if (!oldLocation.equals(srcLocation) && !oldLocation.equals(BlockStoreLocation.anyTier())) {
+        LOG.info("Failed to move block, because the location is changed!");
         return new MoveBlockResult(false, blockSize, oldLocation, newLocation);
       }
       TempBlockMeta dstTempBlock =
@@ -823,6 +824,7 @@ public final class TieredBlockStore implements BlockStore {
 
       if (!location.equals(blockMeta.getBlockLocation())
           && !location.equals(BlockStoreLocation.anyTier())) {
+        LOG.info("Failed to remove block, because the location is changed!");
         return;
       }
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
