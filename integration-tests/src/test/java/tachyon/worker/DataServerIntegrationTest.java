@@ -105,9 +105,6 @@ public class DataServerIntegrationTest {
     mTFS.close();
     mBlockMasterClient.close();
     mLocalTachyonCluster.stop();
-    System.clearProperty(Constants.WORKER_DATA_SERVER);
-    System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
-    System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   /**

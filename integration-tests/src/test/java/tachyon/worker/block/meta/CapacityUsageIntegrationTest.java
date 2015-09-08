@@ -87,7 +87,7 @@ public class CapacityUsageIntegrationTest {
             .setUnderStorageType(underStorageType).build();
     FileOutStream os = mTFS.getOutStream(filePath, options);
     os.write(buf.array());
-    os.close( );
+    os.close();
     return mTFS.open(filePath);
   }
 
