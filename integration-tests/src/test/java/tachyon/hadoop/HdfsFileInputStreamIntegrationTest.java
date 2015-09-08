@@ -29,11 +29,10 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
-import tachyon.client.WriteType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
@@ -66,9 +65,9 @@ public class HdfsFileInputStreamIntegrationTest {
     sLocalTachyonCluster.start();
     sTFS = sLocalTachyonCluster.getOldClient();
     sTachyonFileSystem = sLocalTachyonCluster.getClient();
-    TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile1", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile1", TachyonStorageType.STORE,
         UnderStorageType.PERSIST, FILE_LEN);
-    TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile2", CacheType.NO_CACHE,
+    TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile2", TachyonStorageType.NO_STORE,
         UnderStorageType.PERSIST, FILE_LEN);
   }
 

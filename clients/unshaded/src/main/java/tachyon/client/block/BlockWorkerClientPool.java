@@ -31,7 +31,11 @@ import tachyon.worker.WorkerClient;
  * using the client.
  */
 public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
-  private static final int CAPACITY = 10;
+  /**
+   * The capacity for this pool must be large, since each block written will hold a client until
+   * the block is committed at the end of the file completion.
+   */
+  private static final int CAPACITY = 10000;
   private final ExecutorService mExecutorService;
   private final NetAddress mWorkerNetAddress;
 
@@ -41,7 +45,7 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
    * @param workerAddress the worker address
    */
   public BlockWorkerClientPool(NetAddress workerAddress) {
-    // TODO: Get the capacity from configuration
+    // TODO(calvin): Get the capacity from configuration.
     super(CAPACITY);
     mExecutorService = Executors.newFixedThreadPool(CAPACITY, ThreadFactoryUtils.build(
         "block-worker-heartbeat-%d", true));
@@ -50,20 +54,20 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
 
   @Override
   public void close() {
-    // TODO: Consider collecting all the clients and shutting them down
+    // TODO(calvin): Consider collecting all the clients and shutting them down.
     mExecutorService.shutdown();
-  }
-
-  @Override
-  public WorkerClient createNewResource() {
-    long clientId = ClientContext.getRandomNonNegativeLong();
-    return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
-        clientId, true, new ClientMetrics());
   }
 
   @Override
   public void release(WorkerClient workerClient) {
     workerClient.createNewSession(ClientContext.getRandomNonNegativeLong());
     super.release(workerClient);
+  }
+
+  @Override
+  protected WorkerClient createNewResource() {
+    long clientId = ClientContext.getRandomNonNegativeLong();
+    return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
+        clientId, true, new ClientMetrics());
   }
 }

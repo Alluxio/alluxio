@@ -13,21 +13,35 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.master.rawtable.journal;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.Map;
 
-/**
- * Provides a stream API to write to Tachyon. Only one OutStream should be opened for a Tachyon
- * object. This class is not thread safe and should only be used by one thread.
- */
-public abstract class OutStream extends OutputStream {
-  /**
-   * Cancels the write to Tachyon storage. This will delete all the temporary data and metadata
-   * that has been written to the worker(s). This method should be called when a write is aborted.
-   *
-   * @throws IOException if there is a failure when the worker invalidates the cache attempt
-   */
-  public abstract void cancel() throws IOException;
+import com.google.common.collect.Maps;
+
+import tachyon.master.journal.JournalEntry;
+import tachyon.master.journal.JournalEntryType;
+
+public class UpdateMetadataEntry implements JournalEntry {
+  public final long mId;
+  public final ByteBuffer mMetadata;
+
+  public UpdateMetadataEntry(long id, ByteBuffer metadata) {
+    mId = id;
+    mMetadata = metadata;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.UPDATE_METADATA;
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
+    parameters.put("id", mId);
+    parameters.put("metadata", mMetadata);
+    return parameters;
+  }
 }

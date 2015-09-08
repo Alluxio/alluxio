@@ -161,6 +161,9 @@
                 value="STANDARD_JAVA_PACKAGE###THIRD_PARTY_PACKAGE###SPECIAL_IMPORTS"/>
     </module>
     <module name="MethodParamPad"/>
+    <module name="ParenPad">
+        <property name="option" value="nospace"/>
+    </module>
     <module name="OperatorWrap">
       <property name="option" value="NL"/>
       <property name="tokens" value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE,

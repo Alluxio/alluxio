@@ -28,11 +28,12 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
- * through a Tachyon worker's dataserver to the client.
+ * through a Tachyon worker's dataserver to the client. The instances of this class should only be
+ * used by one thread and are not thread safe.
  */
 public class RemoteBlockInStream extends BlockInStream {
   private final long mBlockId;
-  private final BSContext mContext;
+  private final BlockStoreContext mContext;
   private final long mBlockSize;
   private final InetSocketAddress mLocation;
 
@@ -45,13 +46,13 @@ public class RemoteBlockInStream extends BlockInStream {
    * @param blockSize the block size
    * @param location the location
    */
-  // TODO: Modify the locking so the stream owns the lock instead of the data server
+  // TODO(calvin): Modify the locking so the stream owns the lock instead of the data server.
   public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
     mBlockId = blockId;
-    mContext = BSContext.INSTANCE;
+    mContext = BlockStoreContext.INSTANCE;
     mBlockSize = blockSize;
-    // TODO: Validate these fields
-    mLocation = new InetSocketAddress(location.getMHost(), location.getMSecondaryPort());
+    // TODO(calvin): Validate these fields.
+    mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
   }
 
   @Override
@@ -80,12 +81,12 @@ public class RemoteBlockInStream extends BlockInStream {
     }
 
     // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
-    // read up to the end of the block
+    // read up to the end of the block.
     int lengthToRead = (int) Math.min(len, mBlockSize - mPos);
     int bytesLeft = lengthToRead;
 
     while (bytesLeft > 0) {
-      // TODO: Fix needing to recreate reader each time
+      // TODO(calvin): Fix needing to recreate reader each time.
       RemoteBlockReader reader =
           RemoteBlockReader.Factory.createRemoteBlockReader(ClientContext.getConf());
       ByteBuffer data = reader.readRemoteBlock(mLocation, mBlockId, mPos, bytesLeft);

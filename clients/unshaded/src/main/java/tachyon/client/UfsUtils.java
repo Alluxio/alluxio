@@ -139,7 +139,7 @@ public class UfsUtils {
         LOG.debug("Loading ufs. Make dir if needed for '" + directoryName + "'.");
         tfs.mkdir(directoryName);
       }
-      // TODO(hy): Add the following.
+      // TODO(haoyuan): Add the following.
       // if (tfs.mkdir(tfsRootPath)) {
       // LOG.info("directory " + tfsRootPath + " does not exist in Tachyon: created");
       // } else {
@@ -155,7 +155,7 @@ public class UfsUtils {
     while (!ufsPathQueue.isEmpty()) {
       TachyonURI ufsPath = ufsPathQueue.poll(); // this is the absolute path
       LOG.info("Loading: " + ufsPath);
-      if (ufs.isFile(ufsPath.toString())) { // TODO(hy): Fix path matching issue.
+      if (ufs.isFile(ufsPath.toString())) { // TODO(haoyuan): Fix path matching issue.
         TachyonURI tfsPath = buildTFSPath(directoryName, ufsAddrRootPath, ufsPath);
         LOG.debug("Loading ufs. tfs path = " + tfsPath + ".");
         if (tfs.exist(tfsPath)) {
@@ -198,7 +198,7 @@ public class UfsUtils {
           LOG.debug("Loading ufs. ufs path is a directory. make dir = "
                   + tfsPath + ".");
           tfs.mkdir(tfsPath);
-          // TODO(hy): Add the following.
+          // TODO(haoyuan): Add the following.
           // if (tfs.mkdir(tfsPath)) {
           // LOG.info("Created mTachyonFS folder " + tfsPath + " with checkpoint location " +
           // ufsPath);

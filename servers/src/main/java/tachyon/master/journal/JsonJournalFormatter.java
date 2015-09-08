@@ -54,6 +54,7 @@ import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
 import tachyon.master.rawtable.journal.RawTableEntry;
+import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 
 public final class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -237,7 +238,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
         mLatestSequenceNumber = entry.mSequenceNumber;
         switch (entry.mType) {
           // Block
-          case BLOCK_ID_GENERATOR: {
+          case BLOCK_CONTAINER_ID_GENERATOR: {
             return new BlockIdGeneratorEntry(
                 entry.getLong("nextContainerId"));
           }
@@ -263,7 +264,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("blockSizeBytes"),
                 entry.getLong("length"),
                 entry.getBoolean("isComplete"),
-                entry.getBoolean("isCache"),
+                entry.getBoolean("isCacheable"),
                 entry.getString("ufsPath"),
                 entry.get("blocks", new TypeReference<List<Long>>() {}));
           }
@@ -345,6 +346,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
             return new RawTableEntry(
                 entry.getLong("id"),
                 entry.getInt("columns"),
+                entry.getByteBuffer("metadata"));
+          }
+          case UPDATE_METADATA: {
+            return new UpdateMetadataEntry(
+                entry.getLong("id"),
                 entry.getByteBuffer("metadata"));
           }
           default:

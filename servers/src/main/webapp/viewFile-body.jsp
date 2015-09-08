@@ -54,7 +54,7 @@
     <hr>
     <% if (request.getAttribute("fileBlocks") != null) { %>
       <div>
-        <h5>Detailed blocks information (block capacity is <%= request.getAttribute("blockSizeByte") %> Bytes):</h5>
+        <h5>Detailed blocks information (block capacity is <%= request.getAttribute("blockSizeBytes") %> Bytes):</h5>
         <table class="table table-bordered table-striped">
           <tr>
             <th>ID</th>
@@ -74,7 +74,7 @@
                 <% } %>
               </td>
               <td>
-                <% Iterator<String> iterator = blockInfo.getLocations().iterator(); %>
+                <% Iterator<String> iterator = masterBlockInfo.getLocations().iterator(); %>
                 <% while (iterator.hasNext()) { %>
                     <% String location = iterator.next(); %>
                     <a href="http://<%= location %>:<%= request.getAttribute("workerWebPort") %>"><%= location %></a>
