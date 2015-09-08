@@ -122,16 +122,16 @@ public class TachyonBlockStore implements Closeable {
         mContext.releaseMasterClient(blockMasterClient);
       }
     }
-    // No specified location to write to
+    // No specified location to write to.
     if (null == location) {
-      // Local client, attempt to do direct write to local storage
+      // Local client, attempt to do direct write to local storage.
       if (mContext.hasLocalWorker()) {
         return new LocalBlockOutStream(blockId, blockSize);
       }
-      // Client is not local or the data is not available on the local worker, use remote stream
+      // Client is not local or the data is not available on the local worker, use remote stream.
       return new RemoteBlockOutStream(blockId, blockSize);
     }
-    // Location is local
+    // Location is local.
     if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location.getHost())) {
       Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
       return new LocalBlockOutStream(blockId, blockSize);

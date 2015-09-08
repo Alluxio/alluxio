@@ -41,7 +41,7 @@ public enum FSContext {
   /**
    * Re-initializes the File System Context. This method should only be used in ClientContext.
    *
-   * TODO: Prevent classes other than ClientContext from accessing this method.
+   * TODO(jsimsa): Prevent classes other than ClientContext from accessing this method.
    */
   public void resetContext() {
     mFileSystemMasterClientPool.close();

@@ -35,7 +35,7 @@ class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
    * @param masterAddress the master address
    */
   public FSMasterClientPool(InetSocketAddress masterAddress) {
-    // TODO: Get capacity from conf
+    // TODO(calvin): Get capacity from configuration.
     super(CAPACITY);
     mExecutorService =
         Executors.newFixedThreadPool(CAPACITY,
@@ -45,7 +45,7 @@ class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
 
   @Override
   public void close() {
-    // TODO: Consider collecting all the clients and shutting them down
+    // TODO(calvin): Consider collecting all the clients and shutting them down
     mExecutorService.shutdown();
   }
 

@@ -104,7 +104,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       try {
         mCurrentCacheStream.write(data);
       } catch (IOException ioe) {
-        // TODO: Log debug maybe?
+        // TODO(yupeng): Log debug maybe?
         mShouldCacheCurrentBlock = false;
       }
     }
@@ -140,7 +140,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
-          // TODO: Log debug maybe?
+          // TODO(yupeng): Log debug maybe?
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -216,7 +216,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         if (null == mUfsPath || mUfsPath.isEmpty()) {
           throw ioe;
         }
-        // TODO: Maybe debug log here
+        // TODO(yupeng): Maybe debug log here.
         long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
         mShouldCacheCurrentBlock = mShouldCache;
@@ -224,11 +224,11 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       closeCacheStream();
       if (mShouldCacheCurrentBlock) {
         try {
-          // TODO: Specify the location to be local
+          // TODO(calvin): Specify the location to be local.
           mCurrentCacheStream =
               mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          // TODO: Maybe debug log here
+          // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -269,7 +269,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @param newPos the new position to set the stream to
    * @throws IOException if the stream at the specified position cannot be opened
    */
-  // TODO: This can be combined with check and advance
+  // TODO(yupeng): This can be combined with check and advance.
   private void moveBlockInStream(long newPos) throws IOException {
     long oldBlockId = getBlockCurrentBlockId();
     mPos = newPos;
@@ -285,19 +285,19 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         mShouldCacheCurrentBlock =
             !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
-        // TODO: Maybe debug log here
+        // TODO(yupeng): Maybe debug log here.
         long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
         mShouldCacheCurrentBlock = mShouldCache;
       }
 
-      // Reading next block entirely
+      // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream =
               mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          // TODO: Maybe debug log here
+          // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
         }
       } else {
