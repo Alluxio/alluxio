@@ -35,16 +35,16 @@ import tachyon.util.network.NetworkAddressUtils;
  */
 public class TachyonBlockStore implements Closeable {
 
-  private static TachyonBlockStore sCachedClient = null;
+  private static TachyonBlockStore sClient = null;
 
   /**
    * @return a new instance of Tachyon block store
    */
   public static synchronized TachyonBlockStore get() {
-    if (null == sCachedClient) {
-      sCachedClient = new TachyonBlockStore();
+    if (null == sClient) {
+      sClient = new TachyonBlockStore();
     }
-    return sCachedClient;
+    return sClient;
   }
 
   private final BSContext mContext;
@@ -59,7 +59,7 @@ public class TachyonBlockStore implements Closeable {
   @Override
   // TODO: Evaluate the necessity of this method
   public synchronized void close() {
-    sCachedClient = null;
+    sClient = null;
   }
 
   /**
@@ -106,6 +106,9 @@ public class TachyonBlockStore implements Closeable {
    * Gets a stream to write data to a block. The stream can only be backed by Tachyon storage.
    *
    * @param blockId the block to write
+   * @param blockSize the standard block size to write, or -1 if the block already exists (and
+   *                  this stream is just storing the block in Tachyon again)
+   * @param location the worker to write the block to, fails if the worker cannot serve the request
    * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
    * @throws IOException if the block cannot be written
    */

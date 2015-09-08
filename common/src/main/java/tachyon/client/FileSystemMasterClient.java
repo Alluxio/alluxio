@@ -290,13 +290,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the file id
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileFromUfs(String path, String ufsPath, long blockSizeByte,
+  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.loadFileFromUfs(path, ufsPath, blockSizeByte, recursive);
+        return mClient.loadFileInfoFromUfs(path, ufsPath, blockSizeByte, recursive);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {

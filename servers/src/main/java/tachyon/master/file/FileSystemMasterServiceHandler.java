@@ -114,7 +114,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long loadFileFromUfs(String path, String ufsPath, long blockSizeByte, boolean recursive)
+  public long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte, boolean recursive)
       throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
       TachyonException, TException {
     if (ufsPath == null || ufsPath.isEmpty()) {

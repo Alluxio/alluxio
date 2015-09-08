@@ -73,7 +73,7 @@ public final class FileOutStream extends OutStream {
     mUnderStorageType = options.getUnderStorageType();
     mContext = FSContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
-    if (mUnderStorageType.shouldPersist()) {
+    if (mUnderStorageType.isPersist()) {
       mWorkerClient = BSContext.INSTANCE.acquireWorkerClient();
       String userUnderStorageFolder = mWorkerClient.getUserUfsTempFolder();
       mUnderStorageFile = PathUtils.concatPath(userUnderStorageFolder, mFileId);
@@ -88,7 +88,7 @@ public final class FileOutStream extends OutStream {
     }
     mClosed = false;
     mCanceled = false;
-    mShouldCacheCurrentBlock = mTachyonStorageType.shouldStore();
+    mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
   }
 
   @Override
@@ -107,7 +107,7 @@ public final class FileOutStream extends OutStream {
     }
 
     Boolean canComplete = false;
-    if (mUnderStorageType.shouldPersist()) {
+    if (mUnderStorageType.isPersist()) {
       if (mCanceled) {
         // TODO: Handle this special case in under storage integrations
         mUnderStorageOutputStream.close();
@@ -127,7 +127,7 @@ public final class FileOutStream extends OutStream {
       }
     }
 
-    if (mTachyonStorageType.shouldStore()) {
+    if (mTachyonStorageType.isStore()) {
       try {
         if (mCanceled) {
           for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
@@ -158,7 +158,7 @@ public final class FileOutStream extends OutStream {
   @Override
   public void flush() throws IOException {
     // TODO: Handle flush for Tachyon storage stream as well
-    if (mUnderStorageType.shouldPersist()) {
+    if (mUnderStorageType.isPersist()) {
       mUnderStorageOutputStream.flush();
     }
   }
@@ -176,7 +176,7 @@ public final class FileOutStream extends OutStream {
       }
     }
 
-    if (mUnderStorageType.shouldPersist()) {
+    if (mUnderStorageType.isPersist()) {
       mUnderStorageOutputStream.write(b);
     }
   }
@@ -215,7 +215,7 @@ public final class FileOutStream extends OutStream {
       }
     }
 
-    if (mUnderStorageType.shouldPersist()) {
+    if (mUnderStorageType.isPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
     }
   }
@@ -227,7 +227,7 @@ public final class FileOutStream extends OutStream {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    if (mTachyonStorageType.shouldStore()) {
+    if (mTachyonStorageType.isStore()) {
       mCurrentBlockOutStream =
           mContext.getTachyonBS().getOutStream(getNextBlockId(), mBlockSize, null);
       mShouldCacheCurrentBlock = true;
@@ -244,7 +244,7 @@ public final class FileOutStream extends OutStream {
   }
 
   private void handleCacheWriteException(IOException ioe) throws IOException {
-    if (!mUnderStorageType.shouldPersist()) {
+    if (!mUnderStorageType.isPersist()) {
       // TODO: Handle this exception better
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
     } else {

@@ -29,9 +29,13 @@ public class ClientOptions {
    * Builder for the <code>ClientOptions<</code>.
    */
   public static class Builder {
+    /** Standard block size for the operation */
     private long mBlockSize;
+    /** How this operation should interact with Tachyon storage */
     private TachyonStorageType mTachyonStorageType;
+    /** How this operation should interact with the under storage */
     private UnderStorageType mUnderStorageType;
+    /** Worker location to execute this operation, if not possible, the operation will fail */
     private NetAddress mLocation;
 
     /**
@@ -47,20 +51,32 @@ public class ClientOptions {
     }
 
     /**
-     * @param tachyonStorageType the Tachyon storage type to use
-     * @return the builder
-     */
-    public Builder setCacheType(TachyonStorageType tachyonStorageType) {
-      mTachyonStorageType = tachyonStorageType;
-      return this;
-    }
-
-    /**
      * @param location the location to use
      * @return the builder
      */
     public Builder setLocation(NetAddress location) {
       throw new UnsupportedOperationException("Set location is currently unsupported.");
+    }
+
+    /**
+     * @param tachyonStorageType the Tachyon storage type to use
+     * @param underStorageType the under storage type to use
+     * @return the builder
+     */
+    public Builder setStorageTypes(TachyonStorageType tachyonStorageType, UnderStorageType
+        underStorageType) {
+      mTachyonStorageType = tachyonStorageType;
+      mUnderStorageType = underStorageType;
+      return this;
+    }
+
+    /**
+     * @param tachyonStorageType the Tachyon storage type to use
+     * @return the builder
+     */
+    public Builder setTachyonStoreType(TachyonStorageType tachyonStorageType) {
+      mTachyonStorageType = tachyonStorageType;
+      return this;
     }
 
     /**

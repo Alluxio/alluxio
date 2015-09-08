@@ -50,7 +50,7 @@ class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   }
 
   @Override
-  public FileSystemMasterClient createNewResource() {
+  protected FileSystemMasterClient createNewResource() {
     return new FileSystemMasterClient(mMasterAddress, mExecutorService, ClientContext.getConf());
   }
 }

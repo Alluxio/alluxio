@@ -74,7 +74,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
     mContext = FSContext.INSTANCE;
-    mShouldCache = options.getTachyonStorageType().shouldStore();
+    mShouldCache = options.getTachyonStorageType().isStore();
     mShouldCacheCurrentBlock = mShouldCache;
     mClosed = false;
   }
