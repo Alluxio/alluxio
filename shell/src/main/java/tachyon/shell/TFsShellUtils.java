@@ -52,8 +52,7 @@ public class TFsShellUtils {
     } else if (path.startsWith(Constants.HEADER_FT)) {
       path = path.substring(Constants.HEADER_FT.length());
     }
-    String ret = path.substring(path.indexOf(TachyonURI.SEPARATOR));
-    return ret;
+    return path.substring(path.indexOf(TachyonURI.SEPARATOR));
   }
 
   /**
