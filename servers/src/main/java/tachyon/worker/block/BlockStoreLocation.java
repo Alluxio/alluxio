@@ -67,7 +67,7 @@ public final class BlockStoreLocation {
    *
    * @return the storage directory id of the location
    */
-  // TODO: remove this method when master also understands BlockLocation
+  // TODO: remove this method when master also understands MasterBlockLocation
   public long getStorageDirId() {
     // Calculation copied from {@link StorageDirId.getStorageDirId}
     return (mTierLevel << 24) + (mTierAlias << 16) + mDirIndex;

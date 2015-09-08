@@ -33,7 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterInfo;
+import tachyon.master.file.FileSystemMaster;
 
 /**
  * Servlet that provides data for displaying the system's configuration.
@@ -44,11 +44,11 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final Set<String> TACHYON_CONF_EXCLUDES = new HashSet<String>(
       Arrays.asList(Constants.MASTER_WHITELIST));
 
-  private final transient MasterInfo mMasterInfo;
+  private final transient FileSystemMaster mFsMaster;
   private final transient TachyonConf mTachyonConf;
 
-  public WebInterfaceConfigurationServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+  public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster) {
+    mFsMaster = fsMaster;
     mTachyonConf = new TachyonConf();
   }
 
@@ -63,7 +63,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.setAttribute("whitelist", mMasterInfo.getWhiteList());
+    request.setAttribute("whitelist", mFsMaster.getWhiteList());
     request.setAttribute("configuration", getSortedProperties());
 
     getServletContext().getRequestDispatcher("/configuration.jsp").forward(request, response);

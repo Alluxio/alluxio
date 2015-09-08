@@ -137,7 +137,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
     // TODO Fix this
-    // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
+    // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
     return create(path);
   }
 
@@ -145,14 +145,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   public FSDataOutputStream create(String path, short replication, int blockSizeByte)
       throws IOException {
     // TODO Fix this
-    // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
+    // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
     return create(path);
-    // LOG.info(path + " " + replication + " " + blockSizeByte);
+    // LOG.info(path + " " + replication + " " + blockSizeBytes);
     // IOException te = null;
     // int cnt = 0;
     // while (cnt < MAX_TRY) {
     // try {
-    // return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
+    // return mFs.create(new Path(path), true, 4096, replication, blockSizeBytes);
     // } catch (IOException e) {
     // cnt ++;
     // LOG.error(cnt + " : " + e.getMessage(), e);

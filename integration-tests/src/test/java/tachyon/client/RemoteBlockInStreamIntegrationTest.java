@@ -32,8 +32,15 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
+import tachyon.client.block.RemoteBlockInStream;
+import tachyon.client.block.TachyonBlockStore;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.BlockInfo;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -47,29 +54,41 @@ public class RemoteBlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private String mDataServerClass;
+  private String mNettyTransferType;
   private String mRemoteReaderClass;
-  private TachyonConf mMasterTachyonConf;
+  private TachyonConf mTachyonConf;
+  private ClientOptions mWriteTachyon;
+  private ClientOptions mWriteUnderStore;
+  private ClientOptions mReadNoCache;
+  private ClientOptions mReadCache;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     // creates a new instance of RemoteBlockInStreamTest for each network type
     List<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] { new String[] { IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.TCP_BLOCK_READER } });
-    list.add(new Object[] { new String[] { IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.NETTY_BLOCK_READER } });
-    list.add(new Object[] { new String[] { IntegrationTestConstants.NIO_DATA_SERVER,
-        IntegrationTestConstants.TCP_BLOCK_READER } });
-    list.add(new Object[] { new String[] { IntegrationTestConstants.NIO_DATA_SERVER,
-        IntegrationTestConstants.NETTY_BLOCK_READER } });
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
+        IntegrationTestConstants.NETTY_BLOCK_READER});
+    // The transfer type is not applicable to the NIODataServer.
+    list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
+    list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
     return list;
   }
 
-  public RemoteBlockInStreamIntegrationTest(String[] classes) {
-    mDataServerClass = classes[0];
-    mRemoteReaderClass = classes[1];
+  public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType, String reader) {
+    mDataServerClass = dataServer;
+    mNettyTransferType = transferType;
+    mRemoteReaderClass = reader;
   }
 
   @Rule
@@ -79,19 +98,33 @@ public class RemoteBlockInStreamIntegrationTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty(Constants.WORKER_DATA_SERVER);
+    System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
     System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   @Before
   public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
+    mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
     mLocalTachyonCluster.start();
     mLocalTachyonCluster.getWorkerTachyonConf().set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE,
         "100");
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+    mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mTfs = mLocalTachyonCluster.getClient();
+    mWriteTachyon =
+        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
+    mWriteUnderStore =
+        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
+    mReadCache =
+        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+            .build();
+    mReadNoCache =
+        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+            .build();
   }
 
   /**
@@ -101,17 +134,10 @@ public class RemoteBlockInStreamIntegrationTest {
   public void readTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.THROUGH;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = file.getInStream(ReadType.NO_CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
+      FileInStream is = mTfs.getInStream(f, mReadNoCache);
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -125,17 +151,12 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
-        Assert.assertTrue(file.isInMemory());
+        Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
       } else {
-        Assert.assertFalse(file.isInMemory());
+        Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
       }
 
-      is = file.getInStream(ReadType.CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
+      is = mTfs.getInStream(f, mReadCache);
       ret = new byte[k];
       value = is.read();
       cnt = 0;
@@ -148,14 +169,9 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
 
-      is = file.getInStream(ReadType.CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof LocalBlockInStream);
-      }
+      is = mTfs.getInStream(f, mReadCache);
       ret = new byte[k];
       value = is.read();
       cnt = 0;
@@ -168,7 +184,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     }
   }
 
@@ -179,50 +195,33 @@ public class RemoteBlockInStreamIntegrationTest {
   public void readTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.THROUGH;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = file.getInStream(ReadType.NO_CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
+      FileInStream is = mTfs.getInStream(f, mReadNoCache);
       byte[] ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
-        Assert.assertTrue(file.isInMemory());
+        Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
       } else {
-        Assert.assertFalse(file.isInMemory());
+        Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
       }
 
-      is = file.getInStream(ReadType.CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
+      is = mTfs.getInStream(f, mReadCache);
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
 
-      is = file.getInStream(ReadType.CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof LocalBlockInStream);
-      }
+      is = mTfs.getInStream(f, mReadCache);
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     }
   }
 
@@ -233,50 +232,33 @@ public class RemoteBlockInStreamIntegrationTest {
   public void readTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.THROUGH;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = file.getInStream(ReadType.NO_CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
+      FileInStream is = mTfs.getInStream(f, mReadNoCache);
       byte[] ret = new byte[k / 2];
       Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
       is.close();
       if (k == 0) {
-        Assert.assertTrue(file.isInMemory());
+        Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
       } else {
-        Assert.assertFalse(file.isInMemory());
+        Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
       }
 
-      is = file.getInStream(ReadType.CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
+      is = mTfs.getInStream(f, mReadCache);
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret, 0, k));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
 
-      is = file.getInStream(ReadType.CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof LocalBlockInStream);
-      }
+      is = mTfs.getInStream(f, mReadCache);
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     }
   }
 
@@ -287,14 +269,14 @@ public class RemoteBlockInStreamIntegrationTest {
   public void readTest4() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.MUST_CACHE;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteTachyon, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
+      long blockId = mTfs.getInfo(f).getBlockIds().get(0);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
       RemoteBlockInStream is =
-          new RemoteBlockInStream(file, ReadType.NO_CACHE, 0, mMasterTachyonConf);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
+              .getWorkerAddress());
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -307,7 +289,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     }
   }
 
@@ -318,13 +300,14 @@ public class RemoteBlockInStreamIntegrationTest {
   public void readTest5() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.MUST_CACHE;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteTachyon, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0, mMasterTachyonConf);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      long blockId = mTfs.getInfo(f).getBlockIds().get(0);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      RemoteBlockInStream is =
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
+              .getWorkerAddress());
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -333,7 +316,7 @@ public class RemoteBlockInStreamIntegrationTest {
         start += read;
       }
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     }
   }
 
@@ -344,13 +327,14 @@ public class RemoteBlockInStreamIntegrationTest {
   public void readTest6() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.MUST_CACHE;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteTachyon, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0, mMasterTachyonConf);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      long blockId = mTfs.getInfo(f).getBlockIds().get(0);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      RemoteBlockInStream is =
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
+              .getWorkerAddress());
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -359,7 +343,7 @@ public class RemoteBlockInStreamIntegrationTest {
         start += read;
       }
       is.close();
-      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     }
   }
 
@@ -370,23 +354,16 @@ public class RemoteBlockInStreamIntegrationTest {
   public void readTest7() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.THROUGH;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = file.getInStream(ReadType.NO_CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
+      FileInStream is = mTfs.getInStream(f, mReadNoCache);
       byte[] ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       Assert.assertEquals(-1, is.read(ret));
       is.close();
-      Assert.assertFalse(file.isInMemory());
+      Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
     }
   }
 
@@ -398,28 +375,19 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest1() throws IOException {
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Seek position is negative: -1");
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.THROUGH;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = file.getInStream(ReadType.NO_CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
-
+      FileInStream is = mTfs.getInStream(f, mReadNoCache);
       try {
         is.seek(-1);
-      } catch (IOException e) {
-        // This is expected
-        continue;
+      } finally {
+        is.close();
       }
-      is.close();
-      throw new IOException("Except seek IOException");
     }
   }
 
@@ -431,24 +399,19 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void seekExceptionTest2() throws IOException {
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("Seek position is past block size");
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.THROUGH;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = file.getInStream(ReadType.NO_CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      FileInStream is = mTfs.getInStream(f, mReadNoCache);
+      try {
+        is.seek(k + 1);
+      } finally {
+        is.close();
       }
-
-      is.seek(k + 1);
-      is.close();
     }
   }
 
@@ -461,17 +424,10 @@ public class RemoteBlockInStreamIntegrationTest {
   public void seekTest() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.THROUGH;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = file.getInStream(ReadType.NO_CACHE);
-      if (k == 0) {
-        Assert.assertTrue(is instanceof EmptyBlockInStream);
-      } else {
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
-      }
+      FileInStream is = mTfs.getInStream(f, mReadNoCache);
 
       Assert.assertEquals(0, is.read());
       is.seek(k / 3);
@@ -491,50 +447,44 @@ public class RemoteBlockInStreamIntegrationTest {
   public void skipTest() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      WriteType op = WriteType.THROUGH;
-      int fileId =
-          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteUnderStore, k);
 
-      TachyonFile file = mTfs.getFile(fileId);
-      InStream is = file.getInStream(ReadType.CACHE);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      FileInStream is = mTfs.getInStream(f, mReadCache);
       Assert.assertEquals(k / 2, is.skip(k / 2));
       Assert.assertEquals(k / 2, is.read());
       is.close();
-      Assert.assertFalse(file.isInMemory());
+      Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
 
       if (k >= 3) {
-        is = file.getInStream(ReadType.CACHE);
-        Assert.assertTrue(is instanceof RemoteBlockInStream);
+        is = mTfs.getInStream(f, mReadCache);
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(2 * t + 1, is.read());
         is.close();
-        Assert.assertFalse(file.isInMemory());
+        Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
       }
     }
   }
 
   /**
-   * Tests that reading a file the whole way through with the CACHE ReadType will recache it
+   * Tests that reading a file the whole way through with the STORE ReadType will recache it
    */
   @Test
   public void completeFileReadTriggersRecache() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     int len = 2;
-    int fileId = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, WriteType.THROUGH, len);
-    TachyonFile file = mTfs.getFile(fileId);
-    InStream is = file.getInStream(ReadType.CACHE);
-    Assert.assertTrue(is instanceof RemoteBlockInStream);
+    TachyonFile f =
+        TachyonFSTestUtils.createByteFile(mTfs, uniqPath, mWriteUnderStore, len);
+
+    FileInStream is = mTfs.getInStream(f, mReadCache);
     for (int i = 0; i < len; ++ i) {
       Assert.assertEquals(i, is.read());
     }
     is.close();
-    Assert.assertTrue(file.isInMemory());
-    is = file.getInStream(ReadType.NO_CACHE);
-    Assert.assertTrue(is instanceof LocalBlockInStream);
+    Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
   }
 
   /**
@@ -544,63 +494,15 @@ public class RemoteBlockInStreamIntegrationTest {
   @Test
   public void incompleteFileReadCancelsRecache() throws IOException {
     String uniqPath = PathUtils.uniqPath();
-    int fileId = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, WriteType.THROUGH, 2);
-    TachyonFile file = mTfs.getFile(fileId);
-    InStream is = new RemoteBlockInStream(file, ReadType.CACHE, 0, mMasterTachyonConf);
+    TachyonFile f =
+        TachyonFSTestUtils.createByteFile(mTfs, uniqPath, mWriteUnderStore, 2);
+
+    FileInStream is = mTfs.getInStream(f, mReadNoCache);
     Assert.assertEquals(0, is.read());
     is.close();
-    Assert.assertFalse(file.isInMemory());
-    is = file.getInStream(ReadType.NO_CACHE);
-    Assert.assertTrue(is instanceof RemoteBlockInStream);
+    Assert.assertFalse(mTfs.getInfo(f).getInMemoryPercentage() == 100);
+    is = mTfs.getInStream(f, mReadNoCache);
     is.close();
-  }
-
-  /*
-   * Tests that reading a remote block with CACHE ReadType will only cache if it is writing with a
-   * local stream.
-   */
-  @Test
-  public void remoteStreamCancelsRecache() throws IOException {
-    String uniqPath = PathUtils.uniqPath();
-    int len = 2;
-    int fileId = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, WriteType.THROUGH, len);
-    TachyonConf conf = mLocalTachyonCluster.getWorkerTachyonConf();
-    // Turn on localwrite so that local worker can be found
-    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(true));
-    TachyonFS fs = TachyonFS.get(conf);
-    TachyonFile file = fs.getFile(fileId);
-    InStream is = file.getInStream(ReadType.CACHE);
-    Assert.assertFalse(file.isInMemory());
-    Assert.assertTrue(is instanceof RemoteBlockInStream);
-    for (int i = 0; i < len; i ++) {
-      Assert.assertEquals(i, is.read());
-    }
-    is.close();
-    // reading the whole file cause it to recache
-    Assert.assertTrue(file.isInMemory());
-    is = file.getInStream(ReadType.NO_CACHE);
-    Assert.assertTrue(is instanceof LocalBlockInStream);
-    is.close();
-
-    String uniqPath2 = PathUtils.uniqPath();
-    int fileId2 = TachyonFSTestUtils.createByteFile(mTfs, uniqPath2, WriteType.THROUGH, len);
-    // Turn off localwrite so that only remote worker can be found
-    conf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(false));
-    TachyonFS fs2 = TachyonFS.get(conf);
-    TachyonFile file2 = fs2.getFile(fileId2);
-    InStream is2 = new RemoteBlockInStream(file2, ReadType.CACHE, 0, conf);
-    Assert.assertFalse(file2.isInMemory());
-    Assert.assertTrue(is2 instanceof RemoteBlockInStream);
-    for (int i = 0; i < len; i ++) {
-      Assert.assertEquals(i, is2.read());
-    }
-    is2.close();
-    // even though the whole file was read, recache was cancelled because no local worker is
-    // available
-    Assert.assertFalse(file2.isInMemory());
-    is2 = file2.getInStream(ReadType.NO_CACHE);
-    Assert.assertTrue(is2 instanceof RemoteBlockInStream);
-    is2.close();
   }
 
   /**
@@ -611,9 +513,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     int blockSizeByte = 10;
     int numBlocks = 10;
-    int fileId = mTfs.createFile(new TachyonURI(uniqPath), blockSizeByte);
-    TachyonFile file = mTfs.getFile(fileId);
-    OutStream os = file.getOutStream(WriteType.THROUGH);
+    FileOutStream os = mTfs.getOutStream(new TachyonURI(uniqPath), mWriteUnderStore);
     for (int i = 0; i < numBlocks; i ++) {
       for (int j = 0; j < blockSizeByte; j ++) {
         os.write((byte) (i * blockSizeByte + j));
@@ -621,14 +521,13 @@ public class RemoteBlockInStreamIntegrationTest {
     }
     os.close();
 
-    for (int i = 0; i < numBlocks; i ++) {
-      InStream is = new RemoteBlockInStream(file, ReadType.CACHE, i, mMasterTachyonConf);
-      for (int j = 0; j < blockSizeByte; j ++) {
-        Assert.assertEquals((byte) (i * blockSizeByte + j), is.read());
-      }
-      is.close();
+    TachyonFile f = mTfs.open(new TachyonURI(uniqPath));
+    FileInStream is = mTfs.getInStream(f, mReadCache);
+    for (int i = 0; i < blockSizeByte * numBlocks; i ++) {
+      Assert.assertEquals((byte) i, is.read());
     }
-    Assert.assertTrue(file.isInMemory());
+    is.close();
+    Assert.assertTrue(mTfs.getInfo(f).getInMemoryPercentage() == 100);
   }
 
   /**
@@ -638,9 +537,8 @@ public class RemoteBlockInStreamIntegrationTest {
   public void seekAroundLocalBlock() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     // The number of bytes per remote block read should be set to 100 in the before function
-    int fileId = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, WriteType.MUST_CACHE, 200);
-    TachyonFile file = mTfs.getFile(fileId);
-    InStream is = new RemoteBlockInStream(file, ReadType.NO_CACHE, 0, mMasterTachyonConf);
+    TachyonFile f = TachyonFSTestUtils.createByteFile(mTfs, uniqPath, mWriteTachyon, 200);
+    FileInStream is = mTfs.getInStream(f, mReadNoCache);
     Assert.assertEquals(0, is.read());
     is.seek(199);
     Assert.assertEquals(199, is.read());

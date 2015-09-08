@@ -28,11 +28,9 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Sets;
 
-import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
-import tachyon.exception.OutOfSpaceException;
-import tachyon.master.BlockInfo;
+import tachyon.master.block.BlockId;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
@@ -59,7 +57,7 @@ public final class BlockMetadataManagerViewTest {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
-        Sets.<Integer>newHashSet(), Sets.<Long>newHashSet()));
+        Sets.<Long>newHashSet(), Sets.<Long>newHashSet()));
   }
 
   @Test
@@ -155,7 +153,8 @@ public final class BlockMetadataManagerViewTest {
 
   @Test
   public void isBlockPinnedOrLockedTest() {
-    int inode = BlockInfo.computeInodeId(TEST_BLOCK_ID);
+    long inode = BlockId.createBlockId(BlockId.getContainerId(TEST_BLOCK_ID),
+        BlockId.getMaxSequenceNumber());
 
     // With no pinned and locked blocks
     Assert.assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
@@ -168,7 +167,7 @@ public final class BlockMetadataManagerViewTest {
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // lock block
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.<Integer>newHashSet(),
+    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.<Long>newHashSet(),
         Sets.<Long>newHashSet(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
