@@ -23,6 +23,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 
@@ -55,18 +56,18 @@ public class BlockLockManagerTest {
 
   @Test
   public void unlockNonExistingLockTest() throws Exception {
-    long badBockId = 1;
+    long badLockId = 1;
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to unlockBlock: lockId " + badBockId + " has no lock record");
+    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Unlock a non-existing lockId, expect to see IOException
-    mLockManager.unlockBlock(badBockId);
+    mLockManager.unlockBlock(badLockId);
   }
 
   @Test
   public void validateLockIdWithNoRecordTest() throws Exception {
     long badLockId = 1;
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to validateLock: lockId " + badLockId + " has no lock record");
+    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Validate a non-existing lockId, expect to see IOException
     mLockManager.validateLock(TEST_USER_ID, TEST_BLOCK_ID, badLockId);
   }
@@ -76,8 +77,8 @@ public class BlockLockManagerTest {
     long lockId = mLockManager.lockBlock(TEST_USER_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongUserId = TEST_USER_ID + 1;
     mThrown.expect(InvalidStateException.class);
-    mThrown.expectMessage("Failed to validateLock: lockId " + lockId + " is owned by userId "
-        + TEST_USER_ID + ", not " + wrongUserId);
+    mThrown.expectMessage(
+        ExceptionMessage.LOCK_ID_FOR_DIFFERENT_USER.getMessage(lockId, TEST_USER_ID, wrongUserId));
     // Validate an existing lockId with wrong userId, expect to see IOException
     mLockManager.validateLock(wrongUserId, TEST_BLOCK_ID, lockId);
   }
@@ -87,8 +88,8 @@ public class BlockLockManagerTest {
     long lockId = mLockManager.lockBlock(TEST_USER_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongBlockId = TEST_BLOCK_ID + 1;
     mThrown.expect(InvalidStateException.class);
-    mThrown.expectMessage("Failed to validateLock: lockId " + lockId + " is for blockId "
-        + TEST_BLOCK_ID + ", not " + wrongBlockId);
+    mThrown.expectMessage(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK.getMessage(lockId,
+        TEST_BLOCK_ID, wrongBlockId));
     // Validate an existing lockId with wrong blockId, expect to see IOException
     mLockManager.validateLock(TEST_USER_ID, wrongBlockId, lockId);
   }
@@ -100,7 +101,7 @@ public class BlockLockManagerTest {
     long lockId1 = mLockManager.lockBlock(userId1, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(userId2, TEST_BLOCK_ID, BlockLockType.READ);
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to validateLock: lockId " + lockId2 + " has no lock record");
+    mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId2));
     mLockManager.cleanupUser(userId2);
     // Expect validating userId1 to get through
     mLockManager.validateLock(userId1, TEST_BLOCK_ID, lockId1);
