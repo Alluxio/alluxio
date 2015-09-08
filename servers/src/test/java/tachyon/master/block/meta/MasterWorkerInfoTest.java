@@ -106,7 +106,7 @@ public final class MasterWorkerInfoTest {
     Assert.assertEquals("In Service", workerInfo.state);
     Assert.assertEquals(mInfo.getCapacityBytes(), workerInfo.capacityBytes);
     Assert.assertEquals(mInfo.getUsedBytes(), workerInfo.usedBytes);
-    Assert.assertEquals(mInfo.getStartTime(), workerInfo.starttimeMs);
+    Assert.assertEquals(mInfo.getStartTime(), workerInfo.startTimeMs);
   }
 
   @Test

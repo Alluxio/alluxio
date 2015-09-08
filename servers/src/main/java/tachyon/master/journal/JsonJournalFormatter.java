@@ -237,7 +237,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
         mLatestSequenceNumber = entry.mSequenceNumber;
         switch (entry.mType) {
           // Block
-          case BLOCK_ID_GENERATOR: {
+          case BLOCK_CONTAINER_ID_GENERATOR: {
             return new BlockIdGeneratorEntry(
                 entry.getLong("nextContainerId"));
           }
@@ -263,7 +263,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("blockSizeBytes"),
                 entry.getLong("length"),
                 entry.getBoolean("isComplete"),
-                entry.getBoolean("isCache"),
+                entry.getBoolean("isCacheable"),
                 entry.getString("ufsPath"),
                 entry.get("blocks", new TypeReference<List<Long>>() {}));
           }

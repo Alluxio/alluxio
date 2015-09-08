@@ -292,7 +292,7 @@ public class MasterInfoIntegrationTest {
     Assert.assertEquals("", fileInfo.getUfsPath());
     Assert.assertTrue(fileInfo.isFolder);
     Assert.assertFalse(fileInfo.isPinned);
-    Assert.assertFalse(fileInfo.isCache);
+    Assert.assertFalse(fileInfo.isCacheable);
     Assert.assertTrue(fileInfo.isComplete);
   }
 
@@ -308,7 +308,7 @@ public class MasterInfoIntegrationTest {
     Assert.assertEquals("", fileInfo.getUfsPath());
     Assert.assertFalse(fileInfo.isFolder);
     Assert.assertFalse(fileInfo.isPinned);
-    Assert.assertTrue(fileInfo.isCache);
+    Assert.assertTrue(fileInfo.isCacheable);
     Assert.assertFalse(fileInfo.isComplete);
   }
 

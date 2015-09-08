@@ -35,8 +35,9 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.block.BSContext;
-import tachyon.client.file.FSContext;
+import tachyon.annotation.PublicApi;
+import tachyon.client.block.BlockStoreContext;
+import tachyon.client.file.FileSystemContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.DependencyInfo;
@@ -57,6 +58,7 @@ import tachyon.worker.WorkerClient;
  * Under the hood, this class maintains a MasterClientBase to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
  */
+@PublicApi
 @Deprecated
 public class TachyonFS extends AbstractTachyonFS {
 
@@ -180,9 +182,9 @@ public class TachyonFS extends AbstractTachyonFS {
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
-    mFSMasterClient = mCloser.register(FSContext.INSTANCE.acquireMasterClient());
-    mBlockMasterClient = mCloser.register(BSContext.INSTANCE.acquireMasterClient());
-    mWorkerClient = mCloser.register(BSContext.INSTANCE.acquireWorkerClient());
+    mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
+    mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
+    mWorkerClient = mCloser.register(BlockStoreContext.INSTANCE.acquireWorkerClient());
     mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
@@ -325,11 +327,11 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
     validateUri(path);
-    // TODO: This is not safe
+    // TODO(calvin): This is not safe.
     if (blockSizeByte > 0) {
       return (int) mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
     } else {
-      return (int) mFSMasterClient.loadFileFromUfs(path.getPath(), ufsPath.getPath(),
+      return (int) mFSMasterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(),
           blockSizeByte, recursive);
     }
   }
@@ -360,7 +362,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
     throw new UnsupportedOperationException("Raw table is currently unsupported");
-    // TODO: re-enable this logic when support for raw tables is re-introduced
+    // TODO(calvin): re-enable this logic when support for raw tables is re-introduced
     // validateUri(path);
     // int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     // if (columns < 1 || columns > maxColumns) {
@@ -398,7 +400,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if it exists, false otherwise
    * @throws IOException when the underlying master RPC fails
    */
-  // TODO: Consider making an exists function
+  // TODO(calvin): Consider making an exists function
   public synchronized boolean exist(TachyonURI path) throws IOException {
     try {
       FileInfo info = getFileStatus(-1, path, false);
@@ -540,7 +542,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException when the underlying master RPC fails
    */
   public synchronized List<FileBlockInfo> getFileBlocks(long fid) throws IOException {
-    // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
+    // TODO(haoyuan) Should read from mClientFileInfos if possible.
+    // TODO(haoyuan) Should add timeout to improve this.
     return mFSMasterClient.getFileBlockInfoList(fid);
   }
 
@@ -590,7 +593,7 @@ public class TachyonFS extends AbstractTachyonFS {
     info = mFSMasterClient.getFileInfo(fileId);
     path = info.getPath();
 
-    // TODO(hy): LRU
+    // TODO(haoyuan): LRU
     mIdToClientFileInfo.put(fileId, info);
     mPathToClientFileInfo.put(path, info);
 
@@ -646,7 +649,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
       throws IOException {
     String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
-    // TODO(hy): Handle this in the worker?
+    // TODO(haoyuan): Handle this in the worker?
     FileUtils.createBlockPath(blockPath);
     return blockPath;
   }
@@ -662,7 +665,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized RawTable getRawTable(long id) throws IOException {
     throw new UnsupportedOperationException("Raw table is currently unsupported");
-    // TODO: re-enable this logic when support for raw tables is re-introduced
+    // TODO(calvin): re-enable this logic when support for raw tables is re-introduced
     // RawTableInfo rawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
     // return new RawTable(this, rawTableInfo);
   }
@@ -678,7 +681,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
     throw new UnsupportedOperationException("Raw table is currently unsupported");
-    // TODO: re-enable this logic when support for raw tables is re-introduced
+    // TODO(calvin): re-enable this logic when support for raw tables is re-introduced
     // validateUri(path);
     // RawTableInfo rawTableInfo =
     // mMasterClient.user_getClientRawTableInfo(-1, path.getPath());
@@ -1021,7 +1024,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized void updateRawTableMetadata(long id, ByteBuffer metadata) throws IOException {
     throw new UnsupportedOperationException("Raw table is currently unsupported");
-    // TODO: re-enable this logic when support for raw tables is re-introduced
+    // TODO(calvin): re-enable this logic when support for raw tables is re-introduced
     // mMasterClient.user_updateRawTableMetadata(id, metadata);
   }
 

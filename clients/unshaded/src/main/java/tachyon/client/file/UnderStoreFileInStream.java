@@ -28,6 +28,7 @@ import tachyon.underfs.UnderFileSystem;
  * system read does not guarantee any locality and is dependent on the implementation of the under
  * storage client.
  */
+// TODO(calvin): This should be treated like a block in stream.
 public class UnderStoreFileInStream extends BlockInStream {
   private final long mInitPos;
   private final long mLength;

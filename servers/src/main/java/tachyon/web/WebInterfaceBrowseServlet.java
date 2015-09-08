@@ -155,7 +155,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         throw new FileDoesNotExistException(currentPath.toString());
       }
       request.setAttribute("currentDirectory", currentFileInfo);
-      request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
+      request.setAttribute("blockSizeBytes", currentFileInfo.getBlockSizeBytes());
       request.setAttribute("workerWebPort", mTachyonConf.getInt(Constants.WORKER_WEB_PORT));
       if (!currentFileInfo.getIsDirectory()) {
         String offsetParam = request.getParameter("offset");

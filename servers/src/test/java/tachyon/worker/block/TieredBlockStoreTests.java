@@ -341,7 +341,7 @@ public final class TieredBlockStoreTests {
   @Test
   public void moveNonExistingBlockTest() throws Exception {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to get BlockMeta: blockId " + BLOCK_ID1 + " not found");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
   }
@@ -349,7 +349,7 @@ public final class TieredBlockStoreTests {
   @Test
   public void moveTempBlockTest() throws Exception {
     mThrown.expect(InvalidStateException.class);
-    mThrown.expectMessage("Failed to move block " + TEMP_BLOCK_ID + ": block is uncommited");
+    mThrown.expectMessage(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(USER_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
     mBlockStore.moveBlock(USER_ID1, TEMP_BLOCK_ID, mTestDir2.toBlockStoreLocation());

@@ -69,9 +69,10 @@ import tachyon.util.io.PathUtils;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-public final class BlockMaster extends MasterBase implements ContainerIdGenerator {
+public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // TODO: use a master context in the future.
   private final TachyonConf mTachyonConf;
 
   /** Block metadata management. */
@@ -87,7 +88,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
    */
   private final Set<Long> mLostBlocks = new HashSet<Long>();
   /** This state must be journaled. */
-  private final BlockIdGenerator mBlockIdGenerator = new BlockIdGenerator();
+  private final BlockContainerIdGenerator mBlockContainerIdGenerator =
+      new BlockContainerIdGenerator();
 
   /** Worker metadata management. */
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
@@ -156,8 +158,10 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
+    // TODO: a better way to process entries besides a huge switch?
     if (entry instanceof BlockIdGeneratorEntry) {
-      mBlockIdGenerator.setNextContainerId(((BlockIdGeneratorEntry) entry).getNextContainerId());
+      mBlockContainerIdGenerator
+          .setNextContainerId(((BlockIdGeneratorEntry) entry).getNextContainerId());
     } else if (entry instanceof WorkerIdGeneratorEntry) {
       mNextWorkerId.set(((WorkerIdGeneratorEntry) entry).getNextWorkerId());
     } else if (entry instanceof BlockInfoEntry) {
@@ -171,7 +175,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(mBlockIdGenerator.toJournalEntry());
+    outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
     outputStream.writeEntry(new WorkerIdGeneratorEntry(mNextWorkerId.get()));
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       outputStream.writeEntry(new BlockInfoEntry(blockInfo.getBlockId(), blockInfo.getLength()));
@@ -181,7 +185,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
   @Override
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
-    if (isLeaderMode()) {
+    if (isLeader) {
       mLostWorkerDetectionService =
           getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
               new LostWorkerDetectionHeartbeatExecutor(),
@@ -283,7 +287,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
               worker.updateToRemovedBlock(true, blockId);
             }
           }
-          // remove from lost blocks
           mLostBlocks.remove(blockId);
         }
       }
@@ -295,9 +298,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
    */
   @Override
   public long getNewContainerId() {
-    synchronized (mBlockIdGenerator) {
-      long containerId = mBlockIdGenerator.getNewBlockContainerId();
-      // Write id generator state to the journal.
+    synchronized (mBlockContainerIdGenerator) {
+      long containerId = mBlockContainerIdGenerator.getNewContainerId();
       writeJournalEntry(new BlockIdGeneratorEntry(containerId));
       flushJournal();
       return containerId;
@@ -328,7 +330,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
         if (masterBlockInfo == null) {
           masterBlockInfo = new MasterBlockInfo(blockId, length);
           mBlocks.put(blockId, masterBlockInfo);
-          // write new block info to journal.
           writeJournalEntry(
               new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
           flushJournal();
@@ -351,9 +352,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     synchronized (mBlocks) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
       if (masterBlockInfo == null) {
+        // The block has not been committed previously, so add the metadata to commit the block.
         masterBlockInfo = new MasterBlockInfo(blockId, length);
         mBlocks.put(blockId, masterBlockInfo);
-        // write new block info to journal.
         writeJournalEntry(
             new BlockInfoEntry(masterBlockInfo.getBlockId(), masterBlockInfo.getLength()));
         flushJournal();
@@ -549,6 +550,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerato
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
       if (masterBlockInfo == null) {
+        LOG.warn("Worker " + workerInfo.getId() + " removed block " + removedBlockId
+            + " but block does not exist.");
+        // Continue to remove the remaining blocks.
         continue;
       }
       workerInfo.removeBlock(masterBlockInfo.getBlockId());

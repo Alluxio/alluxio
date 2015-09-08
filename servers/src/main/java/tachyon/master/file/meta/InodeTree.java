@@ -32,7 +32,7 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.master.IndexedSet;
-import tachyon.master.block.ContainerIdGenerator;
+import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeFileEntry;
@@ -73,7 +73,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * inode directories: Each directory id will be a unique block id, in order to avoid any collision
    * with file ids.
    */
-  private final ContainerIdGenerator mContainerIdGenerator;
+  private final ContainerIdGenerable mContainerIdGenerator;
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
   /**
@@ -86,7 +86,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param containerIdGenerator the container id generator to use to get new container ids.
    * @param directoryIdGenerator the directory id generator to use to get new directory ids.
    */
-  public InodeTree(ContainerIdGenerator containerIdGenerator,
+  public InodeTree(ContainerIdGenerable containerIdGenerator,
       InodeDirectoryIdGenerator directoryIdGenerator) {
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;

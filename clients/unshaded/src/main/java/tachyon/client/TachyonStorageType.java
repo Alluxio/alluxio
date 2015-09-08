@@ -15,21 +15,32 @@
 
 package tachyon.client;
 
-import java.io.IOException;
-import java.io.InputStream;
+/**
+ * Specifies the type of data interaction with Tachyon.
+ * <ul>
+ * <li>For a write operation, this determines whether the data will be written into Tachyon storage.
+ * Metadata will always be updated in Tachyon space.</li>
+ * <li>For a read operation, this determines whether fully read blocks will be stored in Tachyon
+ * storage.</li>
+ * </ul>
+ */
+public enum TachyonStorageType {
+  /** Put the data reading or writing in Tachyon storage. */
+  STORE(1),
 
-public abstract class InStream extends InputStream {
-  /**
-   * Gets the remaining number of bytes left in the stream, starting at the current position.
-   */
-  public abstract long remaining();
+  /** Do not put data to Tachyon. */
+  NO_STORE(2);
+
+  private final int mValue;
+
+  TachyonStorageType(int value) {
+    mValue = value;
+  }
 
   /**
-   * Moves the starting read position of the stream to the specified position which is relative to
-   * the start of the stream. Seeking to a position before the current read position is supported.
-   *
-   * @param pos The position to seek to, it must be between 0 and the size of the block.
-   * @throws IOException if the seek fails due to an error accessing the stream at the position
+   * @return whether the data should be put in Tachyon storage
    */
-  public abstract void seek(long pos) throws IOException;
+  public boolean isStore() {
+    return mValue == STORE.mValue;
+  }
 }

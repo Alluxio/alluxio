@@ -21,8 +21,8 @@ import java.util.Random;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.block.BSContext;
-import tachyon.client.file.FSContext;
+import tachyon.client.block.BlockStoreContext;
+import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -67,7 +67,7 @@ public class ClientContext {
   }
 
   /**
-   * @return a random long, that is not negative
+   * @return a random non-negative long
    */
   public static long getRandomNonNegativeLong() {
     return Math.abs(sRandom.nextLong());
@@ -78,7 +78,7 @@ public class ClientContext {
    *
    * @param conf new configuration to use
    */
-  // TODO: Find a better way to handle testing confs
+  // TODO(calvin): Find a better way to handle testing configurations
   public static synchronized void reinitializeWithConf(TachyonConf conf) {
     sTachyonConf = conf;
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
@@ -88,7 +88,7 @@ public class ClientContext {
 
     sRandom = new Random();
 
-    BSContext.INSTANCE.resetContext();
-    FSContext.INSTANCE.resetContext();
+    BlockStoreContext.INSTANCE.resetContext();
+    FileSystemContext.INSTANCE.resetContext();
   }
 }

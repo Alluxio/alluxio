@@ -75,7 +75,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       try {
         UiFileInfo uiFileInfo = getUiFileInfo(tachyonClient, new TachyonURI(filePath));
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
-        request.setAttribute("blockSizeByte", uiFileInfo.getBlockSizeBytes());
+        request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
         getServletContext().getRequestDispatcher("/worker/viewFileBlocks.jsp").forward(request,
             response);
