@@ -28,14 +28,15 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.Version;
-import tachyon.master.DependencyVariables;
-import tachyon.master.MasterInfo;
+import tachyon.master.TachyonMaster;
+import tachyon.master.file.meta.DependencyVariables;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 
 /**
  * Servlet that provides data for viewing the general status of the filesystem.
  */
-public class WebInterfaceGeneralServlet extends HttpServlet {
+public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Class to make referencing tiered storage information more intuitive.
    */
@@ -83,10 +84,10 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   private static final long serialVersionUID = 2335205655766736309L;
 
-  private final transient MasterInfo mMasterInfo;
+  private final transient TachyonMaster mMaster;
 
-  public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+  public WebInterfaceGeneralServlet(TachyonMaster master) {
+    mMaster = master;
   }
 
   /**
@@ -128,8 +129,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
     List<StorageTierInfo> infos = new ArrayList<StorageTierInfo>();
-    List<Long> totalBytesOnTiers = mMasterInfo.getTotalBytesOnTiers();
-    List<Long> usedBytesOnTiers = mMasterInfo.getUsedBytesOnTiers();
+    List<Long> totalBytesOnTiers = mMaster.getBlockMaster().getTotalBytesOnTiers();
+    List<Long> usedBytesOnTiers = mMaster.getBlockMaster().getUsedBytesOnTiers();
 
     for (int i = 0; i < totalBytesOnTiers.size(); i ++) {
       if (totalBytesOnTiers.get(i) > 0) {
@@ -152,41 +153,48 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
-    request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
+    request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
 
     request.setAttribute("uptime",
-        Utils.convertMsToClockTime(System.currentTimeMillis() - mMasterInfo.getStarttimeMs()));
+        Utils.convertMsToClockTime(System.currentTimeMillis() - mMaster.getStarttimeMs()));
 
-    request.setAttribute("startTime", Utils.convertMsToDate(mMasterInfo.getStarttimeMs()));
+    request.setAttribute("startTime", Utils.convertMsToDate(mMaster.getStarttimeMs()));
 
     request.setAttribute("version", Version.VERSION);
 
-    request.setAttribute("liveWorkerNodes", Integer.toString(mMasterInfo.getWorkerCount()));
+    request.setAttribute("liveWorkerNodes",
+        Integer.toString(mMaster.getBlockMaster().getWorkerCount()));
 
-    request.setAttribute("capacity", FormatUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
+    request.setAttribute("capacity",
+        FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()));
 
-    request.setAttribute("usedCapacity", FormatUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
+    request.setAttribute("usedCapacity",
+        FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getUsedBytes()));
 
     request
         .setAttribute("freeCapacity",
-            FormatUtils.getSizeFromBytes((mMasterInfo.getCapacityBytes() - mMasterInfo
-                .getUsedBytes())));
+            FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
+                - mMaster.getBlockMaster().getUsedBytes()));
 
-    long sizeBytes = mMasterInfo.getUnderFsCapacityBytes();
+    String ufsDataFolder = mMaster.getTachyonConf().get(Constants.UNDERFS_DATA_FOLDER,
+        Constants.DEFAULT_DATA_FOLDER);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, mMaster.getTachyonConf());
+
+    long sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
     if (sizeBytes >= 0) {
       request.setAttribute("diskCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskCapacity", "UNKNOWN");
     }
 
-    sizeBytes = mMasterInfo.getUnderFsUsedBytes();
+    sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
     if (sizeBytes >= 0) {
       request.setAttribute("diskUsedCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskUsedCapacity", "UNKNOWN");
     }
 
-    sizeBytes = mMasterInfo.getUnderFsFreeBytes();
+    sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
     if (sizeBytes >= 0) {
       request.setAttribute("diskFreeCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
