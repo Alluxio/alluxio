@@ -16,18 +16,16 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.master.MasterClient;
 import tachyon.util.CommonUtils;
-import tachyon.util.ThreadFactoryUtils;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,
@@ -49,7 +47,7 @@ public final class PinListSync implements Runnable {
   private final int mSyncTimeoutMs;
 
   /** Client for all master communication */
-  private MasterClient mMasterClient;
+  private FileSystemMasterClient mMasterClient;
   /** Flag to indicate if the syncing should continue */
   private volatile boolean mRunning;
 
@@ -60,7 +58,7 @@ public final class PinListSync implements Runnable {
    * @param tachyonConf the configuration values to be used
    */
   public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      MasterClient masterClient) {
+      FileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mMasterClient = masterClient;
@@ -89,13 +87,15 @@ public final class PinListSync implements Runnable {
 
       // Send the sync
       try {
-        Set<Integer> pinList = mMasterClient.worker_getPinIdList();
+        Set<Long> pinList = mMasterClient.getPinList();
         mBlockDataManager.updatePinList(pinList);
         lastSyncMs = System.currentTimeMillis();
-      } catch (IOException ioe) {
+      // TODO: Change this back to IOException when we have the correct pinlist RPC
+      } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if sync timeout is reached
         LOG.error("Failed to receive pinlist.", ioe);
-        mMasterClient.resetConnection();
+        // TODO: Add this method to MasterClientBase
+        // mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastSyncMs >= mSyncTimeoutMs) {
           throw new RuntimeException("Master sync timeout exceeded: " + mSyncTimeoutMs);

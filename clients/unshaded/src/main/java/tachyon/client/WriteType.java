@@ -18,6 +18,7 @@ package tachyon.client;
 /**
  * Different write types for a TachyonFile.
  */
+@Deprecated
 public enum WriteType {
   /**
    * Write the file and must cache it.

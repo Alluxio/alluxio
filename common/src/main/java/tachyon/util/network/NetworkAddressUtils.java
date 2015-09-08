@@ -458,7 +458,7 @@ public final class NetworkAddressUtils {
    * @throws UnknownHostException if the host is not known
    */
   public static String getFqdnHost(NetAddress addr) throws UnknownHostException {
-    return resolveHostName(addr.getMHost());
+    return resolveHostName(addr.getHost());
   }
 
   /**

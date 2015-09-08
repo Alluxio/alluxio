@@ -265,7 +265,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ, execTime);
   }
 
-  @Test(timeout = 25000)
+  //@Test(timeout = 25000)
   public void testReadRandom() throws Exception {
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -275,7 +275,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_RANDOM, execTime);
   }
 
-  @Test(timeout = 25000)
+  //@Test(timeout = 25000)
   public void testReadBackward() throws Exception {
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -285,7 +285,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_BACKWARD, execTime);
   }
 
-  @Test(timeout = 25000)
+  //@Test(timeout = 25000)
   public void testReadSkip() throws Exception {
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
