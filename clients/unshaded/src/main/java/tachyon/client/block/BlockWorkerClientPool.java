@@ -59,15 +59,15 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   }
 
   @Override
-  public WorkerClient createNewResource() {
-    long clientId = ClientContext.getRandomNonNegativeLong();
-    return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
-        clientId, true, new ClientMetrics());
-  }
-
-  @Override
   public void release(WorkerClient workerClient) {
     workerClient.createNewSession(ClientContext.getRandomNonNegativeLong());
     super.release(workerClient);
+  }
+
+  @Override
+  protected WorkerClient createNewResource() {
+    long clientId = ClientContext.getRandomNonNegativeLong();
+    return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
+        clientId, true, new ClientMetrics());
   }
 }

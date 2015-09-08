@@ -83,7 +83,7 @@ public class CapacityUsageIntegrationTest {
     }
 
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setCacheType(tachyonStorageType)
+        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(tachyonStorageType)
             .setUnderStorageType(underStorageType).build();
     OutStream os = mTFS.getOutStream(filePath, options);
     os.write(buf.array());

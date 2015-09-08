@@ -70,16 +70,6 @@ public abstract class ResourcePool<T> {
   public abstract void close();
 
   /**
-   * Creates a new resource which will be added to the resource pool after the user is done using
-   * it. This method should only be called when the capacity of the pool has not been reached. If
-   * creating the resource will take a significant amount of time, the inheriting class should
-   * avoid calling this method and instead initialize all the resources in the constructor.
-   *
-   * @return a resource which will be added to the pool of resources.
-   */
-  public abstract T createNewResource();
-
-  /**
    * Releases an object of type T, this must be called after the thread is done using a resource
    * obtained by acquire.
    *
@@ -88,4 +78,14 @@ public abstract class ResourcePool<T> {
   public void release(T resource) {
     mResources.add(resource);
   }
+
+  /**
+   * Creates a new resource which will be added to the resource pool after the user is done using
+   * it. This method should only be called when the capacity of the pool has not been reached. If
+   * creating the resource will take a significant amount of time, the inheriting class should
+   * avoid calling this method and instead initialize all the resources in the constructor.
+   *
+   * @return a resource which will be added to the pool of resources.
+   */
+  protected abstract T createNewResource();
 }
