@@ -93,7 +93,7 @@ public final class TieredBlockStore implements BlockStore {
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
       new ArrayList<BlockStoreEventListener>();
   /** A set of pinned inodes fetched from the master */
-  private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
+  private final Set<Long> mPinnedInodes = new HashSet<Long>();
   /** Lock to guard metadata operations */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
   /** ReadLock provided by {@link #mMetadataReadLock} to guard metadata read operations */
@@ -107,13 +107,13 @@ public final class TieredBlockStore implements BlockStore {
     mLockManager = new BlockLockManager();
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
-        Collections.<Integer>emptySet(), Collections.<Long>emptySet());
+        Collections.<Long>emptySet(), Collections.<Long>emptySet());
     mAllocator = Allocator.Factory.createAllocator(mTachyonConf, initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
-    initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+    initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
     mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
@@ -818,7 +818,7 @@ public final class TieredBlockStore implements BlockStore {
    * @param inodes a set of IDs inodes that are pinned
    */
   @Override
-  public void updatePinnedInodes(Set<Integer> inodes) {
+  public void updatePinnedInodes(Set<Long> inodes) {
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));

@@ -80,7 +80,7 @@
 
       <% if (request.getAttribute("fileBlocksOnTier") != null) { %>
         <div>
-          <h5>Blocks on this worker (block capacity is <%= request.getAttribute("blockSizeByte") %> Bytes):</h5>
+          <h5>Blocks on this worker (block capacity is <%= request.getAttribute("blockSizeBytes") %> Bytes):</h5>
           <table class="table table-bordered table-striped">
             <tr>
               <th>ID</th>
@@ -89,11 +89,11 @@
             </tr>
             <% for (int i = 0; i < StorageLevelAlias.SIZE; i ++) { %>
               <% List<UiBlockInfo> blocks = ((List<List<UiBlockInfo>>) request.getAttribute("fileBlocksOnTier")).get(i); %>
-              <% for (UiBlockInfo blockInfo : blocks) { %>
+              <% for (UiBlockInfo masterBlockInfo : blocks) { %>
                 <tr>
-                  <td><%= blockInfo.getID() %></td>
+                  <td><%= masterBlockInfo.getID() %></td>
                   <td><%= StorageLevelAlias.values()[i].name() %></td>
-                  <td><%= blockInfo.getBlockLength() %></td>
+                  <td><%= masterBlockInfo.getBlockLength() %></td>
                 </tr>
               <% } %>
             <% } %>
