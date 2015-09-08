@@ -89,8 +89,6 @@ public class RemoteBlockInStreamIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty(Constants.WORKER_DATA_SERVER);
-    System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   @Before
