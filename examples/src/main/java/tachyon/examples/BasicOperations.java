@@ -26,12 +26,12 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.InStream;
 import tachyon.client.ReadType;
-import tachyon.client.OutStream;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
@@ -61,7 +61,7 @@ public class BasicOperations implements Callable<Boolean> {
   private void createFile(TachyonFS tachyonClient) throws IOException {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    int fileId = tachyonClient.createFile(mFilePath);
+    long fileId = tachyonClient.createFile(mFilePath);
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
   }
 
@@ -78,7 +78,7 @@ public class BasicOperations implements Callable<Boolean> {
 
     long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = tachyonClient.getFile(mFilePath);
-    OutStream os = file.getOutStream(mWriteType);
+    FileOutStream os = file.getOutStream(mWriteType);
     os.write(buf.array());
     os.close();
 
@@ -91,7 +91,7 @@ public class BasicOperations implements Callable<Boolean> {
 
     final long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = tachyonClient.getFile(mFilePath);
-    InStream is = file.getInStream(ReadType.CACHE);
+    FileInStream is = file.getInStream(ReadType.CACHE);
     ByteBuffer buf = ByteBuffer.allocate((int) file.getBlockSizeByte());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());
