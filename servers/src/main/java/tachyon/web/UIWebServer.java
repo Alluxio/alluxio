@@ -45,10 +45,10 @@ public abstract class UIWebServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected final WebAppContext mWebAppContext;
-  private Server mServer;
-  private ServiceType mService;
-  private InetSocketAddress mAddress;
+  private final Server mServer;
+  private final ServiceType mService;
   private final TachyonConf mTachyonConf;
+  private InetSocketAddress mAddress;
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
@@ -152,7 +152,7 @@ public abstract class UIWebServer {
       mServer.getConnectors()[0].open();
       mServer.start();
       if (mAddress.getPort() == 0) {
-        int webPort =  mServer.getConnectors()[0].getLocalPort();
+        int webPort = mServer.getConnectors()[0].getLocalPort();
         mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
         // reset web service port
         mTachyonConf.set(mService.getPortKey(), Integer.toString(webPort));
