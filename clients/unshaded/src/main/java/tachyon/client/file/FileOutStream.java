@@ -109,7 +109,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     Boolean canComplete = false;
     if (mUnderStorageType.isPersist()) {
       if (mCanceled) {
-        // TODO: Handle this special case in under storage integrations
+        // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
         UnderFileSystem underFsClient =
             UnderFileSystem.get(mUnderStorageFile, ClientContext.getConf());
@@ -118,7 +118,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
         mUnderStorageOutputStream.flush();
         mUnderStorageOutputStream.close();
         try {
-          // TODO: Investigate if this RPC can be moved to master
+          // TODO(yupeng): Investigate if this RPC can be moved to master.
           mWorkerClient.addCheckpoint(mFileId);
         } finally {
           BSContext.INSTANCE.releaseWorkerClient(mWorkerClient);
@@ -157,7 +157,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
   @Override
   public void flush() throws IOException {
-    // TODO: Handle flush for Tachyon storage stream as well
+    // TODO(yupeng): Handle flush for Tachyon storage stream as well.
     if (mUnderStorageType.isPersist()) {
       mUnderStorageOutputStream.flush();
     }
@@ -245,10 +245,10 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
   private void handleCacheWriteException(IOException ioe) throws IOException {
     if (!mUnderStorageType.isPersist()) {
-      // TODO: Handle this exception better
+      // TODO(yupeng): Handle this exception better.
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
     } else {
-      // TODO: Handle this error
+      // TODO(yupeng): Handle this error.
       if (mCurrentBlockOutStream != null) {
         mShouldCacheCurrentBlock = false;
         mCurrentBlockOutStream.cancel();

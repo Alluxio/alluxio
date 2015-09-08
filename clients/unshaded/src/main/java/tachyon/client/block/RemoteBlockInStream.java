@@ -81,7 +81,7 @@ public class RemoteBlockInStream extends BlockInStream {
     }
 
     // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
-    // read up to the end of the block
+    // read up to the end of the block.
     int lengthToRead = (int) Math.min(len, mBlockSize - mPos);
     int bytesLeft = lengthToRead;
 

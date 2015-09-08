@@ -58,7 +58,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * Closes this TachyonFS instance. The next call to get will create a new TachyonFS instance.
    * Other references to the old client may still be used.
    */
-  // TODO: Evaluate the necessity of this method
+  // TODO(calvin): Evaluate the necessity of this method.
   public synchronized void close() {
     sClient = null;
   }
@@ -109,7 +109,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @return the FileInfo of the file, null if the file does not exist.
    * @throws IOException if the master is unable to obtain the file's metadata
    */
-  // TODO: Consider FileInfo caching
+  // TODO(calvin): Consider FileInfo caching.
   @Override
   public FileInfo getInfo(TachyonFile file) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -135,7 +135,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   public FileInStream getInStream(TachyonFile file, ClientOptions options) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Make sure the file is not a folder
+      // TODO(calvin): Make sure the file is not a folder.
       FileInfo info = masterClient.getFileInfo(file.getFileId());
       if (info.isFolder) {
         throw new IOException("Cannot get an instream to a folder.");
@@ -166,7 +166,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     }
   }
 
-  // TODO: We should remove this when the TachyonFS code is fully deprecated
+  // TODO(calvin): We should remove this when the TachyonFS code is fully deprecated.
   @Deprecated
   public FileOutStream getOutStream(long fileId, ClientOptions options) throws IOException {
     return new FileOutStream(fileId, options);

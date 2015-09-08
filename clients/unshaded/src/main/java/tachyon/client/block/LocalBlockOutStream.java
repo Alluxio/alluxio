@@ -63,7 +63,7 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
       FileUtils.createBlockPath(blockPath);
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
       mLocalFileChannel = mCloser.register(localFile.getChannel());
-      // change the permission of the temporary file in order that the worker can move it.
+      // Change the permission of the temporary file in order that the worker can move it.
       FileUtils.changeLocalFileToFullPermission(blockPath);
       // TODO(calvin): Add a log message to indicate the file creation.
     } catch (IOException ioe) {
