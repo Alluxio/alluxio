@@ -17,7 +17,7 @@ package tachyon.worker.block;
 
 public interface BlockWorkerTester {
   /**
-   * Grants access to private members of <code>MetricsSystem</code>.
+   * Grants access to private members of <code>BlockWorker</code>.
    *
    * @param access object that can be used access private members
    */

@@ -84,7 +84,7 @@ public class MetricsSystem {
     private PrivateAccess() {} // prevent instantiation
   }
 
-  public void access(MetricsSystemTester tester) {
+  public void grantAccess(MetricsSystemTester tester) {
     tester.receiveAccess(new PrivateAccess());
   }
 

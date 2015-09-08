@@ -73,7 +73,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @throws TException if the underlying worker RPC fails
    */
   @Override
-  public void addCheckpoint(long userId, int fileId) throws TException {
+  public void addCheckpoint(long userId, long fileId) throws TException {
     try {
       mWorker.addCheckpoint(userId, fileId);
     } catch (IOException ioe) {
@@ -83,7 +83,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
 
   // TODO: Make this supported again
   @Override
-  public boolean asyncCheckpoint(int fileId) throws TException {
+  public boolean asyncCheckpoint(long fileId) throws TException {
     return false;
   }
 
