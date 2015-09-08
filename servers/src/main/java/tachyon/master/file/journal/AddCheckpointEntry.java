@@ -35,7 +35,7 @@ public class AddCheckpointEntry implements JournalEntry {
     mWorkerId = workerId;
     mFileId = fileId;
     mLength = length;
-    mCheckpointPath = checkpointPath.getPath();
+    mCheckpointPath = checkpointPath.toString();
     mOpTimeMs = opTimeMs;
   }
 
