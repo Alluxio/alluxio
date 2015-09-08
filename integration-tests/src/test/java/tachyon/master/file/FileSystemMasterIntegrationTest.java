@@ -51,7 +51,9 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 
 /**
- * Unit tests for tachyon.MasterInfo
+ * Test behavior of {@link FileSystemMaster}.
+ *
+ * For example, (concurrently) creating/deleting/renaming files.
  */
 public class FileSystemMasterIntegrationTest {
   class ConcurrentCreator implements Callable<Void> {
