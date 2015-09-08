@@ -78,7 +78,7 @@ public class ClientContext {
    *
    * @param conf new configuration to use
    */
-  // TODO(calvinjia): Find a better way to handle testing configurations
+  // TODO(calvin): Find a better way to handle testing configurations
   public static synchronized void reinitializeWithConf(TachyonConf conf) {
     sTachyonConf = conf;
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));

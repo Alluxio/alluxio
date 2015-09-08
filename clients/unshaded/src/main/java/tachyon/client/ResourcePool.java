@@ -28,7 +28,7 @@ import com.google.common.base.Preconditions;
  *
  * @param <T> The type of resource this pool manages.
  */
-// TODO: This may fit better in the common module
+// TODO(calvin): This may fit better in the common module.
 public abstract class ResourcePool<T> {
   protected final Object mCapacityLock;
   protected final int mMaxCapacity;
@@ -69,7 +69,7 @@ public abstract class ResourcePool<T> {
     try {
       return mResources.take();
     } catch (InterruptedException ie) {
-      // TODO: Investigate the best way to handle this
+      // TODO(calvin): Investigate the best way to handle this.
       throw new RuntimeException(ie);
     }
   }

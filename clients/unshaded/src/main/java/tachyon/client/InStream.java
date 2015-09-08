@@ -20,7 +20,7 @@ import java.io.InputStream;
 
 public abstract class InStream extends InputStream {
   /**
-   * Gets the remaining number of bytes left in the stream, starting at the current position.
+   * @return the remaining number of bytes left in the stream, starting at the current position
    */
   public abstract long remaining();
 
