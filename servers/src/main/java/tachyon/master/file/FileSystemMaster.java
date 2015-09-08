@@ -210,9 +210,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @return true if the operation should be written to the journal
    */
-  // TODO(cc) Make it protected instead of public for use in tests,
-  // after splitting up MasterInfoIntegrationTest
-  public boolean completeFileCheckpointInternal(long workerId, long fileId,
+  boolean completeFileCheckpointInternal(long workerId, long fileId,
       long length, TachyonURI checkpointPath, long opTimeMs)
           throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
 
@@ -429,10 +427,8 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // TODO(cc) Make it protected instead of public for use in tests, after splitting up
-  // MasterInfoIntegrationTest
-  public void completeFileInternal(List<Long> blockIds, long fileId, long fileLength, long opTimeMs)
-      throws FileDoesNotExistException {
+  void completeFileInternal(List<Long> blockIds, long fileId, long fileLength,
+      long opTimeMs) throws FileDoesNotExistException {
     mDependencyMap.addFileCheckpoint(fileId);
     InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
     inodeFile.setBlockIds(blockIds);
@@ -478,9 +474,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // TODO(cc) Make it protected instead of public for use in tests,
-  // after splitting up MasterInfoIntegrationTest
-  public List<Inode> createFileInternal(TachyonURI path, long blockSizeBytes, boolean recursive,
+  List<Inode> createFileInternal(TachyonURI path, long blockSizeBytes, boolean recursive,
       long opTimeMs) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
     // If the create succeeded, the list of created inodes will not be empty.
@@ -539,9 +533,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // TODO(cc) Make it protected instead of public for use in tests,
-  // after splitting up MasterInfoIntegrationTest
-  public boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
+  boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
       throws TachyonException, FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
     return deleteInodeInternal(inode, recursive, opTimeMs);
@@ -876,9 +868,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // TODO(cc) Make it protected instead of public for use in tests,
-  // after splitting up MasterInfoIntegrationTest
-  public void renameInternal(long fileId, TachyonURI dstPath, long opTimeMs)
+  void renameInternal(long fileId, TachyonURI dstPath, long opTimeMs)
       throws InvalidPathException, FileDoesNotExistException {
     Inode srcInode = mInodeTree.getInodeById(fileId);
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
