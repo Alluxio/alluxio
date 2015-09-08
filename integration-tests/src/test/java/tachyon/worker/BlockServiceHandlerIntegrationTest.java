@@ -33,9 +33,9 @@ import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
-import tachyon.client.OutStream;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
+import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -175,7 +175,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     ClientOptions options = new ClientOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
         .setTachyonStoreType(TachyonStorageType.STORE).build();
-    OutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
+    FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
 
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
