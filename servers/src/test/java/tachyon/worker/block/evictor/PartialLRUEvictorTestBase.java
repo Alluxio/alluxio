@@ -53,7 +53,7 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     Assert.assertNotNull(plan);
     Assert.assertTrue(plan.toMove().isEmpty());
     Assert.assertEquals(1, plan.toEvict().size());
-    long toEvictBlockId = plan.toEvict().get(0);
+    long toEvictBlockId = plan.toEvict().get(0).getFirst();
     Assert.assertEquals(BLOCK_ID + nDir - 1, toEvictBlockId);
   }
 
@@ -113,7 +113,7 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     // block in StorageDir with max free space in the second tier will be evicted to hold blocks
     // moved from first tier
     Assert.assertEquals(1, plan.toEvict().size());
-    long blockIdEvictedInSecondTier = plan.toEvict().get(0);
+    long blockIdEvictedInSecondTier = plan.toEvict().get(0).getFirst();
     Assert.assertEquals(BLOCK_ID + nDirInFirstTier + nDirInSecondTier - 1,
         blockIdEvictedInSecondTier);
   }

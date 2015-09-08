@@ -724,6 +724,7 @@ public final class TieredBlockStore implements BlockStore {
    *
    * @param sessionId session Id
    * @param blockId block Id
+   * @param oldLocation the source location of the block
    * @param newLocation new location to move this block
    * @return the resulting information about the move operation
    * @throws NotFoundException if block is not found
@@ -798,6 +799,7 @@ public final class TieredBlockStore implements BlockStore {
    *
    * @param sessionId session Id
    * @param blockId block Id
+   * @param location the source location of the block
    * @throws InvalidStateException if the block to remove is a temp block
    * @throws NotFoundException if this block can not be found
    * @throws IOException if I/O errors occur when removing this block file
