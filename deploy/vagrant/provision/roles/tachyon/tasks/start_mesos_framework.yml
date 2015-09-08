@@ -1,4 +1,6 @@
-- name: Start Tachyon Mesos framework
-  script: start_mesos_framework.sh
+- name: start tachyon mesos framework
+  command: /tachyon/mesos/bin/tachyon-framework.sh TachyonMaster:1234
+  async: 10
+  poll: 0
 
 # vim :set filetype=ansible.yaml:
