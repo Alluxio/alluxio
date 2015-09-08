@@ -262,8 +262,15 @@ public final class TieredBlockStore implements BlockStore {
   public void moveBlock(long sessionId, long blockId, BlockStoreLocation newLocation)
       throws NotFoundException, AlreadyExistsException, InvalidStateException, OutOfSpaceException,
       IOException {
+    moveBlock(sessionId, blockId, BlockStoreLocation.anyTier(), newLocation);
+  }
+
+  @Override
+  public void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) throws NotFoundException, AlreadyExistsException,
+      InvalidStateException, OutOfSpaceException, IOException {
     for (int i = 0; i < MAX_RETRIES + 1; i ++) {
-      MoveBlockResult moveResult = moveBlockInternal(sessionId, blockId, newLocation);
+      MoveBlockResult moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
       if (moveResult.success()) {
         synchronized (mBlockStoreEventListeners) {
           for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -284,7 +291,13 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public void removeBlock(long sessionId, long blockId) throws InvalidStateException,
       NotFoundException, IOException {
-    removeBlockInternal(sessionId, blockId);
+    removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier());
+  }
+
+  @Override
+  public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
+      throws InvalidStateException, NotFoundException, IOException {
+    removeBlockInternal(sessionId, blockId, location);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
         listener.onRemoveBlockByClient(sessionId, blockId);
@@ -624,31 +637,34 @@ public final class TieredBlockStore implements BlockStore {
     }
 
     // 1. remove blocks to make room.
-    for (long blockId : plan.toEvict()) {
+    for (Pair<Long, BlockStoreLocation> blockInfo : plan.toEvict()) {
       try {
-        removeBlockInternal(sessionId, blockId);
+        removeBlockInternal(sessionId, blockInfo.getFirst(), blockInfo.getSecond());
       } catch (InvalidStateException ise) {
         // Evictor is not working properly
-        LOG.error("Failed to evict blockId " + blockId + ", this is temp block");
+        LOG.error("Failed to evict blockId " + blockInfo.getFirst() + ", this is temp block");
         continue;
       } catch (NotFoundException nfe) {
-        LOG.info("Failed to evict blockId " + blockId + ", it could be already deleted");
+        LOG.info("Failed to evict blockId " + blockInfo.getFirst() + ","
+            + " it could be already deleted");
         continue;
       }
       synchronized (mBlockStoreEventListeners) {
         for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-          listener.onRemoveBlockByWorker(sessionId, blockId);
+          listener.onRemoveBlockByWorker(sessionId, blockInfo.getFirst());
         }
       }
     }
     // 2. transfer blocks among tiers.
     // 2.1. group blocks move plan by the destination tier.
-    Map<Integer, Set<Pair<Long, BlockStoreLocation>>> blocksGroupedByDestTier =
-        new HashMap<Integer, Set<Pair<Long, BlockStoreLocation>>>();
-    for (Pair<Long, BlockStoreLocation> entry : plan.toMove()) {
-      int alias = entry.getSecond().tierAlias();
+    Map<Integer, Set<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>> 
+        blocksGroupedByDestTier =
+            new HashMap<Integer, Set<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>>();
+    for (Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>> entry : plan.toMove()) {
+      int alias = entry.getSecond().getSecond().tierAlias();
       if (!blocksGroupedByDestTier.containsKey(alias)) {
-        blocksGroupedByDestTier.put(alias, new HashSet<Pair<Long, BlockStoreLocation>>());
+        blocksGroupedByDestTier.put(alias,
+            new HashSet<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>());
       }
       blocksGroupedByDestTier.get(alias).add(entry);
     }
@@ -657,14 +673,15 @@ public final class TieredBlockStore implements BlockStore {
     Collections.sort(dstTierAlias, Collections.reverseOrder());
     // 2.3. move blocks in the order of their dst tiers.
     for (int alias : dstTierAlias) {
-      Set<Pair<Long, BlockStoreLocation>> toMove = blocksGroupedByDestTier.get(alias);
-      for (Pair<Long, BlockStoreLocation> entry : toMove) {
+      Set<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>> toMove =
+          blocksGroupedByDestTier.get(alias);
+      for (Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>> entry : toMove) {
         long blockId = entry.getFirst();
-        BlockStoreLocation newLocation = entry.getSecond();
+        BlockStoreLocation oldLocation = entry.getSecond().getFirst();
+        BlockStoreLocation newLocation = entry.getSecond().getSecond();
         MoveBlockResult moveResult;
         try {
-          // TODO: this should also specify the src location
-          moveResult = moveBlockInternal(sessionId, blockId, newLocation);
+          moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
         } catch (InvalidStateException ise) {
           // Evictor is not working properly
           LOG.error("Failed to evict blockId " + blockId + ", this is temp block");
@@ -715,8 +732,8 @@ public final class TieredBlockStore implements BlockStore {
    * @throws IOException if I/O errors occur when moving block file
    */
   private MoveBlockResult moveBlockInternal(long sessionId, long blockId,
-      BlockStoreLocation newLocation) throws NotFoundException, AlreadyExistsException,
-      InvalidStateException, IOException {
+      BlockStoreLocation oldLocation, BlockStoreLocation newLocation) throws NotFoundException,
+      AlreadyExistsException, InvalidStateException, IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       long blockSize;
@@ -739,6 +756,9 @@ public final class TieredBlockStore implements BlockStore {
         mMetadataReadLock.unlock();
       }
 
+      if (!oldLocation.equals(srcLocation) && !oldLocation.equals(BlockStoreLocation.anyTier())) {
+        return new MoveBlockResult(false, blockSize, oldLocation, newLocation);
+      }
       TempBlockMeta dstTempBlock =
           createBlockMetaInternal(sessionId, blockId, newLocation, blockSize, false);
       if (dstTempBlock == null) {
@@ -782,8 +802,8 @@ public final class TieredBlockStore implements BlockStore {
    * @throws NotFoundException if this block can not be found
    * @throws IOException if I/O errors occur when removing this block file
    */
-  private void removeBlockInternal(long sessionId, long blockId) throws InvalidStateException,
-      NotFoundException, IOException {
+  private void removeBlockInternal(long sessionId, long blockId, BlockStoreLocation location)
+      throws InvalidStateException, NotFoundException, IOException {
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.WRITE);
     try {
       String filePath;
@@ -799,6 +819,10 @@ public final class TieredBlockStore implements BlockStore {
         mMetadataReadLock.unlock();
       }
 
+      if (!location.equals(blockMeta.getBlockLocation())
+          && !location.equals(BlockStoreLocation.anyTier())) {
+        return;
+      }
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
       FileUtils.delete(filePath);
 
