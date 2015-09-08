@@ -36,7 +36,7 @@ public class BlockIdGeneratorEntry implements JournalEntry {
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.BLOCK_ID_GENERATOR;
+    return JournalEntryType.BLOCK_CONTAINER_ID_GENERATOR;
   }
 
   @Override

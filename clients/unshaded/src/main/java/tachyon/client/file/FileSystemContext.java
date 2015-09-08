@@ -23,30 +23,30 @@ import tachyon.client.block.TachyonBlockStore;
  * A shared context in each client JVM for common File System client functionality such as a pool
  * of master clients.
  */
-public enum FSContext {
+public enum FileSystemContext {
   INSTANCE;
 
-  private FSMasterClientPool mFileSystemMasterClientPool;
+  private FileSystemMasterClientPool mFileSystemMasterClientPool;
   private final TachyonBlockStore mTachyonBlockStore;
 
   /**
    * Creates a new file stream context.
    */
-  FSContext() {
+  FileSystemContext() {
     mFileSystemMasterClientPool =
-        new FSMasterClientPool(ClientContext.getMasterAddress());
+        new FileSystemMasterClientPool(ClientContext.getMasterAddress());
     mTachyonBlockStore = TachyonBlockStore.get();
   }
 
   /**
    * Re-initializes the File System Context. This method should only be used in ClientContext.
    *
-   * TODO: Prevent classes other than ClientContext from accessing this method.
+   * TODO(jsimsa): Prevent classes other than ClientContext from accessing this method.
    */
   public void resetContext() {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool =
-        new FSMasterClientPool(ClientContext.getMasterAddress());
+        new FileSystemMasterClientPool(ClientContext.getMasterAddress());
   }
 
   /**

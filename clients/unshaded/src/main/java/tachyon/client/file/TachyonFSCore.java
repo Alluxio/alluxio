@@ -91,4 +91,15 @@ interface TachyonFSCore {
    * @throws IOException if the destination already exists or is invalid
    */
   boolean rename(TachyonFile src, TachyonURI dst) throws IOException;
+
+
+  /**
+   * Sets the pin status of a file. A pinned file will never be evicted for any reason. The pin
+   * status is propagated asynchronously from this method call on the worker heartbeats.
+   *
+   * @param file the file handler for the file to pin
+   * @param pinned true to pin the file, false to unpin it
+   * @throws IOException if an error occurs during the pin operation
+   */
+  void setPin(TachyonFile file, boolean pinned) throws IOException;
 }

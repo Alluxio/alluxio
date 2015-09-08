@@ -34,7 +34,6 @@ import tachyon.conf.TachyonConf;
  * {@link tachyon.client.FileSystemMasterClient}.
  *
  * <p>
- * TODO: Rename this class.
  */
 public class FileSystemMasterClientIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;

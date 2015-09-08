@@ -26,8 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.InStream;
-import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -59,7 +58,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public final void before() throws Exception {
     System.setProperty(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
     mLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+        new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 100 * Constants.MB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -67,11 +66,12 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mWriteBoth = new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(CacheType.CACHE)
-        .setUnderStorageType(UnderStorageType.PERSIST).build();
+    mWriteBoth =
+        new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.STORE,
+            UnderStorageType.PERSIST).build();
     mWriteUnderStorage =
-        new ClientOptions.Builder(mWorkerTachyonConf).setCacheType(CacheType.NO_CACHE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+        new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.NO_STORE,
+            UnderStorageType.PERSIST).build();
   }
 
   @Test
@@ -101,7 +101,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void lockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    tachyon.client.InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -113,7 +113,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.close();
     }
@@ -132,7 +132,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void lockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    tachyon.client.InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -144,7 +144,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       int r = is.read(buf.array());
       if (k < numOfFiles - 1) {
         Assert.assertTrue(r != -1);
@@ -168,7 +168,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void unlockBlockTest1() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -179,7 +179,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.close();
@@ -199,7 +199,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void unlockBlockTest2() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -211,7 +211,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.seek(0);
       buf.clear();
@@ -233,7 +233,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   public void unlockBlockTest3() throws IOException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
-    InStream is = null;
+    FileInStream is = null;
     ByteBuffer buf1 = null;
     ByteBuffer buf2 = null;
     int numOfFiles = 5;
@@ -247,9 +247,9 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf1 = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf1 = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf1.array()) != -1);
-      buf2 = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf2 = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       is.seek(0);
       Assert.assertTrue(is.read(buf2.array()) != -1);
       is.close();

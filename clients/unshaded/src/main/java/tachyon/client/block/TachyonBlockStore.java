@@ -18,10 +18,14 @@ package tachyon.client.block;
 import java.io.Closeable;
 import java.io.IOException;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.client.BlockMasterClient;
+import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
@@ -31,31 +35,31 @@ import tachyon.thrift.NetAddress;
  */
 public class TachyonBlockStore implements Closeable {
 
-  private static TachyonBlockStore sCachedClient = null;
+  private static TachyonBlockStore sClient = null;
 
   /**
    * @return a new instance of Tachyon block store
    */
   public static synchronized TachyonBlockStore get() {
-    if (null == sCachedClient) {
-      sCachedClient = new TachyonBlockStore();
+    if (null == sClient) {
+      sClient = new TachyonBlockStore();
     }
-    return sCachedClient;
+    return sClient;
   }
 
-  private final BSContext mContext;
+  private final BlockStoreContext mContext;
 
   /**
    * Creates a Tachyon block store.
    */
-  public TachyonBlockStore() {
-    mContext = BSContext.INSTANCE;
+  private TachyonBlockStore() {
+    mContext = BlockStoreContext.INSTANCE;
   }
 
   @Override
-  // TODO: Evaluate the necessity of this method
+  // TODO(calvin): Evaluate the necessity of this method.
   public synchronized void close() {
-    sCachedClient = null;
+    sClient = null;
   }
 
   /**
@@ -84,11 +88,11 @@ public class TachyonBlockStore implements Closeable {
   public BlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Fix this RPC
+      // TODO(calvin): Fix this RPC.
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
-      // TODO: Get location via a policy
+      // TODO(calvin): Get location via a policy.
       if (blockInfo.locations.isEmpty()) {
-        // TODO: Maybe this shouldn't be an exception
+        // TODO(calvin): Maybe this shouldn't be an exception.
         throw new IOException("No block " + blockId + " is not available in Tachyon");
       }
       return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
@@ -102,10 +106,13 @@ public class TachyonBlockStore implements Closeable {
    * Gets a stream to write data to a block. The stream can only be backed by Tachyon storage.
    *
    * @param blockId the block to write
+   * @param blockSize the standard block size to write, or -1 if the block already exists (and
+   *                  this stream is just storing the block in Tachyon again)
+   * @param location the worker to write the block to, fails if the worker cannot serve the request
    * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public BlockOutStream getOutStream(long blockId, long blockSize, NetAddress location)
+  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, NetAddress location)
       throws IOException {
     if (blockSize == -1) {
       BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
@@ -115,16 +122,21 @@ public class TachyonBlockStore implements Closeable {
         mContext.releaseMasterClient(blockMasterClient);
       }
     }
-    // No specified location to read from
+    // No specified location to write to.
     if (null == location) {
-      // Local client, attempt to do direct write to local storage
+      // Local client, attempt to do direct write to local storage.
       if (mContext.hasLocalWorker()) {
         return new LocalBlockOutStream(blockId, blockSize);
       }
-      // Client is not local or the data is not available on the local worker, use remote stream
+      // Client is not local or the data is not available on the local worker, use remote stream.
       return new RemoteBlockOutStream(blockId, blockSize);
     }
-    // TODO: Handle the case when a location is specified
+    // Location is local.
+    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location.getHost())) {
+      Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
+      return new LocalBlockOutStream(blockId, blockSize);
+    }
+    // TODO(calvin): Handle the case when a location is specified.
     return null;
   }
 

@@ -13,27 +13,11 @@
  * the License.
  */
 
-package tachyon.hadoop;
+package tachyon.master.journal;
 
-import tachyon.Constants;
-import tachyon.annotation.PublicApi;
-
-/**
- * A Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working with
- * Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFS API
- * may not be as efficient as the performance of using the Tachyon native API defined in
- * {@link tachyon.client.TachyonFS}, which TFS is built on top of.
- */
-@PublicApi
-public final class TFS extends AbstractTFS {
-
+public class JsonJournalFormatterTest extends JournalFormatterTestBase {
   @Override
-  public String getScheme() {
-    return Constants.SCHEME;
-  }
-
-  @Override
-  protected boolean isZookeeperMode() {
-    return false;
+  protected JournalFormatter getFormatter() {
+    return new JsonJournalFormatter();
   }
 }

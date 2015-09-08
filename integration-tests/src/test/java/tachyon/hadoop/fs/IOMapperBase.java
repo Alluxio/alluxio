@@ -31,7 +31,7 @@ import org.apache.hadoop.mapred.Reporter;
 /**
  * Base mapper class for IO operations.
  * <p>
- * Two abstract method {@link #doIO(Reporter, String, long)} and
+ * Two abstract methods {@link #doIO(Reporter, String, long)} and
  * {@link #collectStats(OutputCollector, String,long, Object)} should be
  * overloaded in derived classes to define the IO operation and the statistics data to be collected
  * by subsequent reducers.

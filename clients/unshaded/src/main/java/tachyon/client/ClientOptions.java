@@ -29,9 +29,13 @@ public class ClientOptions {
    * Builder for the <code>ClientOptions<</code>.
    */
   public static class Builder {
+    /** Standard block size for the operation */
     private long mBlockSize;
-    private CacheType mCacheType;
+    /** How this operation should interact with Tachyon storage */
+    private TachyonStorageType mTachyonStorageType;
+    /** How this operation should interact with the under storage */
     private UnderStorageType mUnderStorageType;
+    /** Worker location to execute this operation, if not possible, the operation will fail */
     private NetAddress mLocation;
 
     /**
@@ -39,19 +43,11 @@ public class ClientOptions {
      */
     public Builder(TachyonConf conf) {
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
-      mCacheType = conf.getEnum(Constants.USER_DEFAULT_CACHE_TYPE, CacheType.CACHE);
+      mTachyonStorageType =
+          conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.STORE);
       mUnderStorageType =
           conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.NO_PERSIST);
       mLocation = null;
-    }
-
-    /**
-     * @param cacheType the cache type to use
-     * @return the builder
-     */
-    public Builder setCacheType(CacheType cacheType) {
-      mCacheType = cacheType;
-      return this;
     }
 
     /**
@@ -60,6 +56,27 @@ public class ClientOptions {
      */
     public Builder setLocation(NetAddress location) {
       throw new UnsupportedOperationException("Set location is currently unsupported.");
+    }
+
+    /**
+     * @param tachyonStorageType the Tachyon storage type to use
+     * @param underStorageType the under storage type to use
+     * @return the builder
+     */
+    public Builder setStorageTypes(TachyonStorageType tachyonStorageType, UnderStorageType
+        underStorageType) {
+      mTachyonStorageType = tachyonStorageType;
+      mUnderStorageType = underStorageType;
+      return this;
+    }
+
+    /**
+     * @param tachyonStorageType the Tachyon storage type to use
+     * @return the builder
+     */
+    public Builder setTachyonStoreType(TachyonStorageType tachyonStorageType) {
+      mTachyonStorageType = tachyonStorageType;
+      return this;
     }
 
     /**
@@ -91,7 +108,7 @@ public class ClientOptions {
   }
 
   private final long mBlockSize;
-  private final CacheType mCacheType;
+  private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final NetAddress mLocation;
 
@@ -104,7 +121,7 @@ public class ClientOptions {
 
   private ClientOptions(ClientOptions.Builder builder) {
     mBlockSize = builder.mBlockSize;
-    mCacheType = builder.mCacheType;
+    mTachyonStorageType = builder.mTachyonStorageType;
     mUnderStorageType = builder.mUnderStorageType;
     mLocation = builder.mLocation;
   }
@@ -119,8 +136,8 @@ public class ClientOptions {
   /**
    * @return the cache type
    */
-  public CacheType getCacheType() {
-    return mCacheType;
+  public TachyonStorageType getTachyonStorageType() {
+    return mTachyonStorageType;
   }
 
   /**

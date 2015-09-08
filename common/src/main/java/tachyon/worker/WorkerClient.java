@@ -78,13 +78,13 @@ public final class WorkerClient implements Closeable {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Creates a WorkerClient, with a given MasterClientBase.
+   * Creates a WorkerClient.
    *
-   * @param workerNetAddress
-   * @param executorService
-   * @param conf
-   * @param userId
-   * @param clientMetrics
+   * @param workerNetAddress to worker's location
+   * @param executorService the executor service
+   * @param conf Tachyon configuration
+   * @param sessionId the id of the session
+   * @param clientMetrics metrics of the lcient.
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long userId, boolean isLocal, ClientMetrics clientMetrics) {
@@ -227,9 +227,9 @@ public final class WorkerClient implements Closeable {
   private synchronized boolean connect() throws IOException {
     if (!mConnected) {
       String host = NetworkAddressUtils.getFqdnHost(mWorkerNetAddress);
-      int port = mWorkerNetAddress.mPort;
+      int port = mWorkerNetAddress.rpcPort;
       mWorkerAddress = new InetSocketAddress(host, port);
-      mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.mSecondaryPort);
+      mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
       mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));

@@ -13,27 +13,20 @@
  * the License.
  */
 
-package tachyon.hadoop;
+package tachyon.client;
 
-import tachyon.Constants;
-import tachyon.annotation.PublicApi;
+import java.io.IOException;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working with
- * Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFS API
- * may not be as efficient as the performance of using the Tachyon native API defined in
- * {@link tachyon.client.TachyonFS}, which TFS is built on top of.
+ * This interface should be implemented by all Tachyon output streams which support aborting the
+ * temporary data that has been written.
  */
-@PublicApi
-public final class TFS extends AbstractTFS {
-
-  @Override
-  public String getScheme() {
-    return Constants.SCHEME;
-  }
-
-  @Override
-  protected boolean isZookeeperMode() {
-    return false;
-  }
+public interface Cancelable {
+  /**
+   * Cancels the write to Tachyon storage. This will delete all the temporary data and metadata
+   * that has been written to the worker(s). This method should be called when a write is aborted.
+   *
+   * @throws IOException if there is a failure when the worker invalidates the cache attempt
+   */
+  void cancel() throws IOException;
 }

@@ -74,7 +74,7 @@ public class InodeFileEntry extends InodeEntry {
     parameters.put("blockSizeBytes", mBlockSizeBytes);
     parameters.put("length", mLength);
     parameters.put("isComplete", mIsComplete);
-    parameters.put("isCache", mIsCache);
+    parameters.put("isCacheable", mIsCache);
     parameters.put("ufsPath", mUfsPath);
     parameters.put("blocks", mBlocks);
     return parameters;

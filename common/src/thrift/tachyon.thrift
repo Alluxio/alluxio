@@ -7,9 +7,9 @@ namespace java tachyon.thrift
 
 // Information about workers.
 struct NetAddress {
-  1: string mHost
-  2: i32 mPort
-  3: i32 mSecondaryPort
+  1: string host
+  2: i32 rpcPort
+  3: i32 dataPort
 }
 
 struct WorkerInfo {
@@ -19,7 +19,7 @@ struct WorkerInfo {
   4: string state
   5: i64 capacityBytes
   6: i64 usedBytes
-  7: i64 starttimeMs
+  7: i64 startTimeMs
 }
 
 // Information about blocks.
@@ -50,12 +50,12 @@ struct FileInfo {
   3: string path
   4: string ufsPath
   5: i64 length
-  6: i64 blockSizeByte
+  6: i64 blockSizeBytes
   7: i64 creationTimeMs
   8: bool isComplete
   9: bool isFolder
   10: bool isPinned
-  11: bool isCache
+  11: bool isCacheable
   12: list<i64> blockIds
   13: i32 dependencyId
   14: i32 inMemoryPercentage
@@ -199,7 +199,7 @@ service FileSystemMasterService {
     throws (1: FileDoesNotExistException fdnee, 2: SuspectedFileSizeException sfse,
       3: BlockInfoException bie)
 
-  i64 loadFileFromUfs(1: string path, 2: string ufsPath, 3: i64 blockSizeBytes,
+  i64 loadFileInfoFromUfs(1: string path, 2: string ufsPath, 3: i64 blockSizeBytes,
       4: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)

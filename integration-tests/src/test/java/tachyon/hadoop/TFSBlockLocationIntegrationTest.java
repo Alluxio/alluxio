@@ -27,7 +27,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
@@ -53,7 +53,7 @@ public class TFSBlockLocationIntegrationTest {
     sLocalTachyonCluster.start();
 
     TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", TachyonStorageType.STORE,
         UnderStorageType.PERSIST, FILE_LEN);
     tachyonFS.close();
 

@@ -64,7 +64,7 @@ public class MasterFaultToleranceIntegrationTest {
    *
    * @param folderName the folder name to create
    * @param answer the results, the mapping from file id to file path
-   * @throws java.io.IOException
+   * @throws IOException if an error occurs creating the file
    */
   private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
       throws IOException {
@@ -83,7 +83,7 @@ public class MasterFaultToleranceIntegrationTest {
    * Tells if the results can match the answer.
    *
    * @param answer the correct results
-   * @throws java.io.IOException
+   * @throws IOException if an error occurs opening the file
    */
   private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException {
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);

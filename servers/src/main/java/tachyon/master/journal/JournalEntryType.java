@@ -17,7 +17,7 @@ package tachyon.master.journal;
 
 public enum JournalEntryType {
   // Block master entries
-  BLOCK_ID_GENERATOR,
+  BLOCK_CONTAINER_ID_GENERATOR,
   BLOCK_INFO,
   WORKER_ID_GENERATOR,
 
@@ -35,4 +35,5 @@ public enum JournalEntryType {
 
   // Raw table master entries
   RAW_TABLE,
+  UPDATE_METADATA,
 }

@@ -13,11 +13,20 @@
  * the License.
  */
 
-package tachyon.master.block;
+package tachyon.annotation;
 
-public interface ContainerIdGenerator {
-  /**
-   * @return a unique block container id
-   */
-  long getNewContainerId();
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * A public API annotation for annotating classes and interfaces that are externally facing.
+ */
+@Documented
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.SOURCE)
+public @interface PublicApi {
+  // annotation
 }

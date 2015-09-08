@@ -33,7 +33,7 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
@@ -103,7 +103,8 @@ public class TFsShell implements Closeable {
 
     if (!tFile.isFolder) {
       ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setCacheType(CacheType.NO_CACHE).build();
+          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+              .build();
       FileInStream is = mTfs.getInStream(fd, op);
       byte[] buf = new byte[512];
       try {
@@ -162,7 +163,8 @@ public class TFsShell implements Closeable {
     } else {
       Closer closer = Closer.create();
       ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setCacheType(CacheType.CACHE).build();
+          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+              .build();
       FileInStream in = closer.register(mTfs.getInStream(fd, op));
       byte[] buf = new byte[8 * Constants.MB];
       try {
@@ -258,7 +260,8 @@ public class TFsShell implements Closeable {
     Closer closer = Closer.create();
     try {
       ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setCacheType(CacheType.NO_CACHE).build();
+          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+              .build();
       FileInStream is = closer.register(mTfs.getInStream(srcFd, op));
       FileOutputStream out = closer.register(new FileOutputStream(dst));
       byte[] buf = new byte[64 * Constants.MB];
@@ -372,7 +375,7 @@ public class TFsShell implements Closeable {
     System.out.println(path + " with file id " + fd.getFileId() + " is on nodes: ");
     for (long blockId : fInfo.getBlockIds()) {
       for (BlockLocation location : TachyonBlockStore.get().getInfo(blockId).getLocations()) {
-        System.out.println(location.getWorkerAddress().getMHost());
+        System.out.println(location.getWorkerAddress().getHost());
       }
     }
     return 0;
@@ -823,7 +826,8 @@ public class TFsShell implements Closeable {
 
     if (!fInfo.isFolder) {
       ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setCacheType(CacheType.NO_CACHE).build();
+          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+              .build();
       FileInStream is = mTfs.getInStream(fd, op);
       try {
         byte[] buf = new byte[Constants.KB];
