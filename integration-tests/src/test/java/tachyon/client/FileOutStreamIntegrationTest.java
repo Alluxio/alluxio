@@ -32,6 +32,7 @@ import org.junit.runners.Parameterized;
 import tachyon.Constants;
 import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
+import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -95,15 +96,14 @@ public class FileOutStreamIntegrationTest {
     mTfs = sLocalTachyonCluster.getClient();
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+        new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType.STORE,
+            UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
     sWriteTachyon =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
-            .build();
+        new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType.STORE,
+            UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
     sWriteUnderStore =
-        new ClientOptions.Builder(mMasterTachyonConf).setCacheType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+        new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType
+            .NO_STORE, UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
   }
 
   @BeforeClass
@@ -115,8 +115,10 @@ public class FileOutStreamIntegrationTest {
   /**
    * Checks that we wrote the file correctly by reading it every possible way
    *
-   * @param filePath
-   * @param fileLen
+   * @param filePath path of the tmp file
+   * @param underStorageType type of understorage write
+   * @param fileLen length of the file
+   * @param increasingByteArrayLen expected length of increasing bytes written in the file
    * @throws IOException
    */
   private void checkWrite(TachyonURI filePath, UnderStorageType underStorageType, int fileLen, int
@@ -126,14 +128,14 @@ public class FileOutStreamIntegrationTest {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
       Assert.assertEquals(fileLen, info.getLength());
-      InStream is = mTfs.getInStream(file, op);
+      FileInStream is = mTfs.getInStream(file, op);
       byte[] res = new byte[(int) info.getLength()];
       Assert.assertEquals((int) info.getLength(), is.read(res));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(increasingByteArrayLen, res));
       is.close();
     }
 
-    if (underStorageType.shouldPersist()) {
+    if (underStorageType.isPersist()) {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
       String checkpointPath = info.getUfsPath();

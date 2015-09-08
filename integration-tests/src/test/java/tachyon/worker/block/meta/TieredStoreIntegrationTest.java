@@ -30,9 +30,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
-import tachyon.client.InStream;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
+import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
@@ -86,8 +86,9 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(file).getInMemoryPercentage() == 100);
     // Open the file
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setCacheType(TachyonStorageType.STORE).build();
-    InStream in = mTFS.getInStream(file, options);
+        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.STORE)
+            .build();
+    FileInStream in = mTFS.getInStream(file, options);
     Assert.assertEquals(0, in.read());
 
     // Delete the file

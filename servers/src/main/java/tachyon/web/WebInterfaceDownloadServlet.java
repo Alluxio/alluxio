@@ -114,7 +114,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      ClientOptions op = new ClientOptions.Builder(mFsMaster.getTachyonConf()).setCacheType(
+      ClientOptions op = new ClientOptions.Builder(mFsMaster.getTachyonConf()).setTachyonStoreType(
           TachyonStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();

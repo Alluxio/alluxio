@@ -37,7 +37,7 @@ public enum TachyonStorageType {
     mValue = value;
   }
 
-  public boolean shouldStore() {
+  public boolean isStore() {
     return mValue == STORE.mValue;
   }
 }
