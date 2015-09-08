@@ -32,9 +32,14 @@ import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 
 /**
- * Provides a streaming API to read a file. This class wraps the BlockInStreams for each of the
- * blocks in the file and abstracts the switching between streams. The backing streams can read from
- * Tachyon space in the local machine, remote machines, or the under storage system.
+ * A streaming API to read a file. This API represents a file as a stream of bytes and provides
+ * a collection of {@link #read} methods to access this stream of bytes. In addition, one can
+ * seek into a given offset of the stream to read.
+ *
+ * <p>
+ * This class wraps the {@link BlockInStream} for each of the blocks in the file and abstracts the
+ * switching between streams. The backing streams can read from Tachyon space in the local machine,
+ * remote machines, or the under storage system.
  */
 @PublicApi
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {
@@ -119,8 +124,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
-        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
     if (len == 0) {
       return 0;
     } else if (mPos >= mFileLength) {
@@ -168,8 +173,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return;
     }
     Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos <= mFileLength, "Seek position is past EOF: " + pos
-        + ", fileSize = " + mFileLength);
+    Preconditions.checkArgument(pos <= mFileLength,
+        "Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
 
     moveBlockInStream(pos);
     checkAndAdvanceBlockInStream();
@@ -184,8 +189,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
 
     long toSkip = Math.min(n, mFileLength - mPos);
     long newPos = mPos + toSkip;
-    long toSkipInBlock = ((newPos / mBlockSize) > mPos / mBlockSize) ? newPos % mBlockSize :
-        toSkip;
+    long toSkipInBlock = ((newPos / mBlockSize) > mPos / mBlockSize) ? newPos % mBlockSize : toSkip;
     moveBlockInStream(newPos);
     checkAndAdvanceBlockInStream();
     if (toSkipInBlock != mCurrentBlockInStream.skip(toSkipInBlock)) {
@@ -225,8 +229,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mShouldCacheCurrentBlock) {
         try {
           // TODO(calvin): Specify the location to be local.
-          mCurrentCacheStream =
-              mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
+          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
@@ -294,8 +297,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream =
-              mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
+          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;

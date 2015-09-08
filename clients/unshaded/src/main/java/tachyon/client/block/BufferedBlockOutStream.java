@@ -32,10 +32,11 @@ import tachyon.util.io.BufferUtils;
  * calling {@link TachyonBlockStore#getOutStream}. Only one BlockOutStream should be opened for a
  * block. This class is not thread safe and should only be used by one thread.
  *
+ * <p>
  * The type of BlockOutStream returned will depend on the user configuration and cluster setup. A
- * {@link LocalBlockOutStream} is returned if the client is co-located with a Tachyon worker and
- * the user has enabled this optimization. Otherwise, a {@link RemoteBlockOutStream} will be
- * returned which will write the data through a Tachyon worker.
+ * {@link LocalBlockOutStream} is returned if the client is co-located with a Tachyon worker and the
+ * user has enabled this optimization. Otherwise, a {@link RemoteBlockOutStream} will be returned
+ * which will write the data through a Tachyon worker.
  */
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
   /** The block id of the block being written */
@@ -91,8 +92,8 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   public void write(byte[] b, int off, int len) throws IOException {
     checkIfClosed();
     Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
-        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
     Preconditions.checkState(mWrittenBytes + len <= mBlockSize, "Out of capacity.");
     if (len == 0) {
       return;
@@ -127,8 +128,8 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   }
 
   /**
-   * Writes the data in the byte array directly to the backing store. This should only be used
-   * for writes which would not be able to be buffered.
+   * Writes the data in the byte array directly to the backing store. This should only be used for
+   * writes which would not be able to be buffered.
    *
    * @param b the data that should be written
    * @param off the offset into the data to start writing from
