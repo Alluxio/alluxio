@@ -18,8 +18,9 @@ package tachyon.client.block;
 import java.io.IOException;
 import java.io.InputStream;
 
+import tachyon.client.BoundedStream;
 import tachyon.client.ClientContext;
-import tachyon.client.InStream;
+import tachyon.client.Seekable;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -31,7 +32,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * This class provides the same methods as a Java {@link InputStream} with an additional seek
  * method.
  */
-public abstract class BlockInStream extends InStream {
+public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
   /**
    * Creates a block input stream.
    *
@@ -44,7 +45,7 @@ public abstract class BlockInStream extends InStream {
   public static BlockInStream get(long blockId, long blockSize, NetAddress location)
       throws IOException {
     String localHostname = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
-    if (location.getMHost().equals(localHostname)) {
+    if (location.getHost().equals(localHostname)) {
       return new LocalBlockInStream(blockId);
     } else {
       return new RemoteBlockInStream(blockId, blockSize, location);

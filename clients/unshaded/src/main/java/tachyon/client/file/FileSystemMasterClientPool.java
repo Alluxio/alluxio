@@ -24,7 +24,7 @@ import tachyon.client.FileSystemMasterClient;
 import tachyon.client.ResourcePool;
 import tachyon.util.ThreadFactoryUtils;
 
-class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
+class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   private static final int CAPACITY = 10;
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
@@ -34,8 +34,8 @@ class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
    *
    * @param masterAddress the master address
    */
-  public FSMasterClientPool(InetSocketAddress masterAddress) {
-    // TODO: Get capacity from conf
+  public FileSystemMasterClientPool(InetSocketAddress masterAddress) {
+    // TODO(calvin): Get capacity from configuration.
     super(CAPACITY);
     mExecutorService =
         Executors.newFixedThreadPool(CAPACITY,
@@ -45,12 +45,12 @@ class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
 
   @Override
   public void close() {
-    // TODO: Consider collecting all the clients and shutting them down
+    // TODO(calvin): Consider collecting all the clients and shutting them down
     mExecutorService.shutdown();
   }
 
   @Override
-  public FileSystemMasterClient createNewResource() {
+  protected FileSystemMasterClient createNewResource() {
     return new FileSystemMasterClient(mMasterAddress, mExecutorService, ClientContext.getConf());
   }
 }

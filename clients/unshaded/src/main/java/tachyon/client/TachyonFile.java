@@ -104,7 +104,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public long getBlockSizeByte() throws IOException {
-    return getCachedFileStatus().getBlockSizeByte();
+    return getCachedFileStatus().getBlockSizeBytes();
   }
 
   /**
@@ -132,7 +132,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the replication factor.
    */
   public int getDiskReplication() {
-    // TODO(hy): Implement it.
+    // TODO(haoyuan): Implement it.
     return 3;
   }
 
@@ -161,11 +161,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
     FileInfo info = getUnCachedFileStatus();
     TachyonURI uri = new TachyonURI(info.getPath());
     ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeByte());
+    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
     if (readType.isCache()) {
-      optionsBuilder.setCacheType(CacheType.CACHE);
+      optionsBuilder.setTachyonStoreType(TachyonStorageType.STORE);
     } else {
-      optionsBuilder.setCacheType(CacheType.NO_CACHE);
+      optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
     }
     return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
   }
@@ -203,7 +203,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       List<NetAddress> locations = getClientBlockInfo(0).getLocations();
       if (locations != null) {
         for (NetAddress location : locations) {
-          ret.add(location.mHost);
+          ret.add(location.host);
         }
       }
     }
@@ -240,12 +240,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     FileInfo info = getUnCachedFileStatus();
     ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeByte());
+    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
 
     if (writeType.isCache()) {
-      optionsBuilder.setCacheType(CacheType.CACHE);
+      optionsBuilder.setTachyonStoreType(TachyonStorageType.STORE);
     } else {
-      optionsBuilder.setCacheType(CacheType.NO_CACHE);
+      optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
     }
     if (writeType.isThrough()) {
       optionsBuilder.setUnderStorageType(UnderStorageType.PERSIST);
@@ -424,7 +424,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * TODO(hy): remove this method. do streaming cache. This is not a right API.
+   * TODO(haoyuan): Remove this method. Do streaming cache. This is not a right API.
    *
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted

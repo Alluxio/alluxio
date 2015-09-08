@@ -13,27 +13,15 @@
  * the License.
  */
 
-package tachyon.hadoop;
-
-import tachyon.Constants;
-import tachyon.annotation.PublicApi;
+package tachyon.client;
 
 /**
- * A Tachyon client API compatible with Apache Hadoop FileSystem interface. Any program working with
- * Hadoop HDFS can work with Tachyon transparently. Note that the performance of using this TFS API
- * may not be as efficient as the performance of using the Tachyon native API defined in
- * {@link tachyon.client.TachyonFS}, which TFS is built on top of.
+ * This interface should be implemented by all Tachyon streams which are bounded at a certain
+ * byte size.
  */
-@PublicApi
-public final class TFS extends AbstractTFS {
-
-  @Override
-  public String getScheme() {
-    return Constants.SCHEME;
-  }
-
-  @Override
-  protected boolean isZookeeperMode() {
-    return false;
-  }
+public interface BoundedStream {
+  /**
+   * Gets the remaining number of bytes left in the stream, starting at the current position.
+   */
+  long remaining();
 }

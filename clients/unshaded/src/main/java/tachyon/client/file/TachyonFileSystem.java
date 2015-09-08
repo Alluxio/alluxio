@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -32,35 +32,35 @@ import tachyon.thrift.FileInfo;
  */
 public class TachyonFileSystem implements Closeable, TachyonFSCore {
   /** A cached instance of the TachyonFileSystem */
-  private static TachyonFileSystem sCachedClient;
+  private static TachyonFileSystem sClient;
 
   /**
    * @return a TachyonFileSystem instance, there is only one instance available at any time
    */
   public static synchronized TachyonFileSystem get() {
-    if (null == sCachedClient) {
-      sCachedClient = new TachyonFileSystem();
+    if (null == sClient) {
+      sClient = new TachyonFileSystem();
     }
-    return sCachedClient;
+    return sClient;
   }
 
   /** The file system context which contains shared resources, such as the fs master client */
-  private FSContext mContext;
+  private FileSystemContext mContext;
 
   /**
    * Constructor, currently TachyonFileSystem does not retain any state
    */
   private TachyonFileSystem() {
-    mContext = FSContext.INSTANCE;
+    mContext = FileSystemContext.INSTANCE;
   }
 
   /**
    * Closes this TachyonFS instance. The next call to get will create a new TachyonFS instance.
    * Other references to the old client may still be used.
    */
-  // TODO: Evaluate the necessity of this method
+  // TODO(calvin): Evaluate the necessity of this method.
   public synchronized void close() {
-    sCachedClient = null;
+    sClient = null;
   }
 
   /**
@@ -109,7 +109,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @return the FileInfo of the file, null if the file does not exist.
    * @throws IOException if the master is unable to obtain the file's metadata
    */
-  // TODO: Consider FileInfo caching
+  // TODO(calvin): Consider FileInfo caching.
   @Override
   public FileInfo getInfo(TachyonFile file) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -135,7 +135,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   public FileInStream getInStream(TachyonFile file, ClientOptions options) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Make sure the file is not a folder
+      // TODO(calvin): Make sure the file is not a folder.
       FileInfo info = masterClient.getFileInfo(file.getFileId());
       if (info.isFolder) {
         throw new IOException("Cannot get an instream to a folder.");
@@ -166,7 +166,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     }
   }
 
-  // TODO: We should remove this when the TachyonFS code is fully deprecated
+  // TODO(calvin): We should remove this when the TachyonFS code is fully deprecated.
   @Deprecated
   public FileOutStream getOutStream(long fileId, ClientOptions options) throws IOException {
     return new FileOutStream(fileId, options);
@@ -202,11 +202,11 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @return the file id of the resulting file in Tachyon
    * @throws IOException if the Tachyon path is invalid or the ufsPath does not exist
    */
-  public long loadFileFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive)
+  public long loadFileInfoFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive)
       throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.loadFileFromUfs(path.getPath(), ufsPath.getPath(), -1L, recursive);
+      return masterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(), -1L, recursive);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -256,6 +256,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @param pinned true to pin the file, false to unpin it
    * @throws IOException if an error occurs during the pin operation
    */
+  @Override
   public void setPin(TachyonFile file, boolean pinned) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {

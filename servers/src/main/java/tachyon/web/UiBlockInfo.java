@@ -50,7 +50,7 @@ public final class UiBlockInfo {
 
   private void addLocations(List<BlockLocation> locations) {
     for (BlockLocation location : locations) {
-      mLocations.add(location.getWorkerAddress().getMHost());
+      mLocations.add(location.getWorkerAddress().getHost());
     }
   }
 

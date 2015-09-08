@@ -168,7 +168,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      FileInStream is = file.getInStream(ReadType.CACHE);
+      FileInStream is = file.getInStream(ReadType.STORE);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
@@ -178,7 +178,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      FileInStream is = file.getInStream(ReadType.CACHE);
+      FileInStream is = file.getInStream(ReadType.STORE);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);

@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
-import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -68,18 +67,18 @@ public class FileInStreamIntegrationTest {
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
     sWriteTachyon =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sWriteUnderStore =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.NO_CACHE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
   }
 
   /**
-   * Test <code>void read() across block boundary</code>.
+   * Test <code>void read()</code> across block boundary.
    */
   @Test
   public void readTest1() throws IOException {
@@ -228,7 +227,7 @@ public class FileInStreamIntegrationTest {
    * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
    * that is past EOF.
    *
-   * @throws IllegalArgumentException
+   * @throws IOException
    */
   @Test
   public void seekExceptionTest2() throws IOException {

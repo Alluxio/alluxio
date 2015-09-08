@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
-import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -67,15 +66,17 @@ public class LocalBlockInStreamIntegrationTest {
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
     sWriteTachyon =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sReadCache =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.CACHE).build();
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+            .build();
     sReadNoCache =
-        new ClientOptions.Builder(sTachyonConf).setCacheType(CacheType.NO_CACHE).build();
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+            .build();
   }
 
   /**

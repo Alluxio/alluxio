@@ -25,10 +25,10 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
-import tachyon.client.OutStream;
 import tachyon.client.UnderStorageType;
+import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
@@ -74,7 +74,7 @@ public class CapacityUsageIntegrationTest {
     mTFS = mLocalTachyonCluster.getClient();
   }
 
-  private TachyonFile createAndWriteFile(TachyonURI filePath, CacheType cacheType,
+  private TachyonFile createAndWriteFile(TachyonURI filePath, TachyonStorageType tachyonStorageType,
       UnderStorageType underStorageType, int len) throws IOException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
@@ -82,9 +82,10 @@ public class CapacityUsageIntegrationTest {
       buf.put((byte) k);
     }
 
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).setCacheType(cacheType)
-        .setUnderStorageType(underStorageType).build();
-    OutStream os = mTFS.getOutStream(filePath, options);
+    ClientOptions options =
+        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(tachyonStorageType)
+            .setUnderStorageType(underStorageType).build();
+    FileOutStream os = mTFS.getOutStream(filePath, options);
     os.write(buf.array());
     os.close();
     return mTFS.open(filePath);
@@ -93,14 +94,14 @@ public class CapacityUsageIntegrationTest {
   private void deleteDuringEviction(int i) throws IOException {
     final String fileName1 = "/file" + i + "_1";
     final String fileName2 = "/file" + i + "_2";
-    TachyonFile file1 = createAndWriteFile(new TachyonURI(fileName1), CacheType.CACHE,
+    TachyonFile file1 = createAndWriteFile(new TachyonURI(fileName1), TachyonStorageType.STORE,
         UnderStorageType.PERSIST, MEM_CAPACITY_BYTES);
     FileInfo fileInfo1 = mTFS.getInfo(file1);
     Assert.assertTrue(fileInfo1.getInMemoryPercentage() == 100);
     // Deleting file1, command will be sent by master to worker asynchronously
     mTFS.delete(file1);
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
-    TachyonFile file2 = createAndWriteFile(new TachyonURI(fileName2), CacheType.CACHE,
+    TachyonFile file2 = createAndWriteFile(new TachyonURI(fileName2), TachyonStorageType.STORE,
         UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 4);
     FileInfo fileInfo2 = mTFS.getInfo(file2);
     Assert.assertTrue(fileInfo2.getInMemoryPercentage() == 100);

@@ -30,7 +30,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.CacheType;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
@@ -94,7 +94,7 @@ public class TFsShellTest {
 
   @Test
   public void catTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
     mFsShell.run(new String[] {"cat", "/testFile"});
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
@@ -119,7 +119,8 @@ public class TFsShellTest {
     Assert.assertEquals(SIZE_BYTES, fileInfo.length);
 
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setCacheType(CacheType.NO_CACHE).build();
+        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(
+            TachyonStorageType.NO_STORE).build();
     FileInStream tfis = mTfs.getInStream(tFile, options);
     byte[] read = new byte[SIZE_BYTES];
     tfis.read(read);
@@ -128,8 +129,9 @@ public class TFsShellTest {
 
   @Test
   public void loadFileTest() throws IOException {
-    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.NO_CACHE,
-        UnderStorageType.PERSIST, 10);
+    TachyonFile file =
+        TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.NO_STORE,
+            UnderStorageType.PERSIST, 10);
     FileInfo fileInfo = mTfs.getInfo(file);
     Assert.assertFalse(fileInfo.getInMemoryPercentage() == 100);
     // Testing loading of a single file
@@ -141,9 +143,9 @@ public class TFsShellTest {
   @Test
   public void loadDirTest() throws IOException {
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
-        CacheType.NO_CACHE, UnderStorageType.PERSIST, 10);
+        TachyonStorageType.NO_STORE, UnderStorageType.PERSIST, 10);
     TachyonFile fileB = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB",
-        CacheType.CACHE, UnderStorageType.NO_PERSIST, 10);
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
     FileInfo fileInfoA = mTfs.getInfo(fileA);
     FileInfo fileInfoB = mTfs.getInfo(fileB);
     Assert.assertFalse(fileInfoA.getInMemoryPercentage() == 100);
@@ -231,7 +233,7 @@ public class TFsShellTest {
   }
 
   private void copyToLocalWithBytes(int bytes) throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, bytes);
     mFsShell.copyToLocal(new String[] {"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
@@ -254,11 +256,11 @@ public class TFsShellTest {
 
   @Test
   public void countTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 20);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 30);
     mFsShell.run(new String[] {"count", "/testRoot"});
     String expected = "";
@@ -277,7 +279,7 @@ public class TFsShellTest {
 
   /*
    * @Test public void fileInfoTest() throws IOException { TachyonFile file =
-   * TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
+   * TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.STORE,
    * UnderStorageType.NO_PERSIST, 10); mFsShell.run(new String[] {"fileinfo", "/testFile"});
    * FileInfo fileInfo = mTfs.getInfo(file); Assert.assertNotNull(fileInfo); List<FileBlockInfo>
    * blocks = mTfs.getFileBlocks(fileId); String[] commandParameters = new String[3 +
@@ -347,7 +349,7 @@ public class TFsShellTest {
 
   /*
    * @Test public void locationTest() throws IOException { TachyonFile file =
-   * TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
+   * TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.STORE,
    * UnderStorageType.NO_PERSIST, 10); mFsShell.run(new String[] {"location", "/testFile"});
    *
    * FileInfo fileInfo = mTfs.getInfo(file); Assert.assertNotNull(fileInfo); List<String>
@@ -362,14 +364,14 @@ public class TFsShellTest {
     FileInfo[] files = new FileInfo[4];
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
-        CacheType.CACHE, UnderStorageType.NO_PERSIST, 10);
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
     files[0] = mTfs.getInfo(fileA);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 20);
     files[1] = mTfs.getInfo(mTfs.open(new TachyonURI("/testRoot/testDir")));
     files[2] = mTfs.getInfo(mTfs.open(new TachyonURI("/testRoot/testDir/testFileB")));
     TachyonFile fileC = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC",
-        CacheType.NO_CACHE, UnderStorageType.PERSIST, 30);
+        TachyonStorageType.NO_STORE, UnderStorageType.PERSIST, 30);
     files[3] = mTfs.getInfo(fileC);
     mFsShell.run(new String[] {"lsr", "/testRoot"});
     String expected = "";
@@ -397,13 +399,13 @@ public class TFsShellTest {
     FileInfo[] files = new FileInfo[4];
 
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
-        CacheType.CACHE, UnderStorageType.NO_PERSIST, 10);
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
     files[0] = mTfs.getInfo(fileA);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 20);
     files[1] = mTfs.getInfo(mTfs.open(new TachyonURI("/testRoot/testDir")));
     TachyonFile fileC = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC",
-        CacheType.NO_CACHE, UnderStorageType.PERSIST, 30);
+        TachyonStorageType.NO_STORE, UnderStorageType.PERSIST, 30);
     files[2] = mTfs.getInfo(fileC);
     mFsShell.run(new String[] {"ls", "/testRoot"});
     String expected = "";
@@ -467,7 +469,8 @@ public class TFsShellTest {
 
   private byte[] readContent(TachyonFile tFile, int length) throws IOException {
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setCacheType(CacheType.NO_CACHE).build();
+        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(
+            TachyonStorageType.NO_STORE).build();
     FileInStream tfis = mTfs.getInStream(tFile, options);
     byte[] read = new byte[length];
     tfis.read(read);
@@ -580,7 +583,7 @@ public class TFsShellTest {
 
   @Test
   public void tailEmptyFileTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/emptyFile", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/emptyFile", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 0);
     int ret = mFsShell.run(new String[] {"tail", "/emptyFile"});
     Assert.assertEquals(0, ret);
@@ -588,7 +591,7 @@ public class TFsShellTest {
 
   @Test
   public void tailLargeFileTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 2048);
     mFsShell.run(new String[] {"tail", "/testFile"});
     byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
@@ -603,7 +606,7 @@ public class TFsShellTest {
 
   @Test
   public void tailSmallFileTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
     mFsShell.run(new String[] {"tail", "/testFile"});
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
@@ -638,8 +641,9 @@ public class TFsShellTest {
 
   @Test
   public void freeTest() throws IOException {
-    TachyonFile file = TachyonFSTestUtils.createByteFile(mTfs, "/testFile", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, 10);
+    TachyonFile file =
+        TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.STORE,
+            UnderStorageType.NO_PERSIST, 10);
     mFsShell.run(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS));
@@ -648,12 +652,12 @@ public class TFsShellTest {
 
   @Test
   public void duTest() throws IOException {
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", CacheType.CACHE,
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, 20);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testDir/testFileC", CacheType.CACHE,
-        UnderStorageType.NO_PERSIST, 30);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB",
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 20);
+    TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testDir/testDir/testFileC",
+        TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 30);
 
     String expected = "";
     // du a non-existing file
