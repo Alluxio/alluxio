@@ -3,8 +3,17 @@
 
 - name: download tachyon release
   script: down_release.sh
+  register: download_release
   environment:
     TACHYON_DIST: "{{ tachyon_dist }}"
+    UFS:  "{{ ufs }}"
+    HADOOP_TYPE:  "{{ hadoop_type }}"
+    HADOOP_VERSION: "{{ hadoop_version }}"
   ignore_errors: yes # tachyon dist is tared by bsdtar, when untar using gnutar, return code will be 1
-
+- name: display download script output
+  debug: var=download_release.stdout_lines
+  when: download_release.stdout.find('ERROR') != -1
+- name: fail the play if download failed
+  fail: msg="Can't find a proper targeted Tachyon release download. Please choose Tachyon Github Type with desired branch."
+  when: download_release.stdout.find('ERROR') != -1
 # vim :set filetype=ansible.yaml:

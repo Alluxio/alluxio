@@ -59,6 +59,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               ufs: UfsV.type,
 
               hadoop_version:     UfsV.hadoop.version,
+              hadoop_type:        UfsV.hadoop.type,
               hadoop_tarball_url: UfsV.hadoop.tarball_url,
 
               s3_id:     UfsV.s3.id,
