@@ -52,14 +52,18 @@ check the log in the folder tachyon/logs. You can also run a simple program:
 
 You should be able to see results similar to the following:
 
-    /Basic_File_CACHE_THROUGH has been removed
-    2014-02-02 09:32:02,760 INFO   (TachyonFS.java:connect) - Trying to connect master @ localhost/127.0.0.1:19998
-    2014-02-02 09:32:02,791 INFO   (MasterClient.java:getUserId) - User registered at the master localhost/127.0.0.1:19998 got UserId 10
-    2014-02-02 09:32:02,792 INFO   (TachyonFS.java:connect) - Trying to get local worker host : hy-ubuntu
-    2014-02-02 09:32:02,800 INFO   (TachyonFS.java:connect) - Connecting local worker @ hy-ubuntu/127.0.1.1:29998
-    2014-02-02 09:32:02,819 INFO   (CommonUtils.java:printTimeTakenMs) - createFile with fileId 18 took 60 ms.
-    2014-02-02 09:32:03,194 INFO   (TachyonFS.java:createAndGetUserTempFolder) - Folder /mnt/ramdisk/tachyonworker/users/10 was created!
-    2014-02-02 09:32:03,198 INFO   (BlockOutStream.java:<init>) - /mnt/ramdisk/tachyonworker/users/10/19327352832 was created!
+    /default_tests_files/BasicFile_CACHE_THROUGH has been removed
+    2015-09-06 13:27:17,358 INFO   (MasterClient.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with master @ localhost/127.0.0.1:19998
+    2015-09-06 13:27:17,375 INFO   (MasterClient.java:connect) - User registered with the master @ localhost/127.0.0.1:19998; got UserId 9
+    2015-09-06 13:27:17,380 INFO   (BasicOperations.java:createFile) - createFile with fileId 5 took 25 ms.
+    2015-09-06 13:27:17,397 INFO   (WorkerClient.java:connect) - Trying to get local worker host : 10.239.44.23
+    2015-09-06 13:27:17,405 INFO   (WorkerClient.java:connect) - Connecting local worker @ /10.239.44.23:29998
+    2015-09-06 13:27:17,438 INFO   (BlockOutStream.java:get) - Writing with local stream. tachyonFile: /default_tests_files/BasicFile_CACHE_THROUGH, blockIndex: 0, opType: CACHE_THROUGH
+    2015-09-06 13:27:17,451 INFO   (FileUtils.java:createStorageDirPath) - Folder /mnt/ramdisk/tachyonworker/9 was created!
+    2015-09-06 13:27:17,454 INFO   (LocalBlockOutStream.java:<init>) - /mnt/ramdisk/tachyonworker/9/5368709120 was created! tachyonFile: /default_tests_files/BasicFile_CACHE_THROUGH, blockIndex: 0, blockId: 5368709120, blockCapacityByte: 536870912
+    2015-09-06 13:27:17,468 INFO   (BasicOperations.java:writeFile) - writeFile to file /default_tests_files/BasicFile_CACHE_THROUGH took 87 ms.
+    2015-09-06 13:27:17,470 INFO   (BlockInStream.java:get) - Reading with local stream.
+    2015-09-06 13:27:17,564 INFO   (BasicOperations.java:readFile) - readFile file /default_tests_files/BasicFile_CACHE_THROUGH took 96 ms.
     Passed the test!
 
 You can also stop the system by using:

@@ -18,9 +18,11 @@ package tachyon.web;
 import java.util.ArrayList;
 import java.util.List;
 
-import tachyon.conf.TachyonConf;
-import tachyon.master.BlockInfo;
-import tachyon.thrift.NetAddress;
+import com.google.common.base.Preconditions;
+
+import tachyon.StorageLevelAlias;
+import tachyon.thrift.BlockInfo;
+import tachyon.thrift.BlockLocation;
 
 public final class UiBlockInfo {
   private final List<String> mLocations = new ArrayList<String>();
@@ -30,31 +32,38 @@ public final class UiBlockInfo {
   private final long mLastAccessTimeMs;
 
   public UiBlockInfo(BlockInfo blockInfo) {
-    mId = blockInfo.mBlockId;
-    mBlockLength = blockInfo.mLength;
-    mInMemory = blockInfo.isInMemory();
+    Preconditions.checkNotNull(blockInfo);
+    mId = blockInfo.getBlockId();
+    mBlockLength = blockInfo.getLength();
+    // FIXME: compute this from FileBlockInfo when FileBlockInfo includes MasterBlockInfo
+    mInMemory = isInMemory(blockInfo);
     mLastAccessTimeMs = -1;
-    List<NetAddress> workers = blockInfo.getLocations(new TachyonConf());
-    if (workers != null) {
-      addLocations(workers);
-    }
+    addLocations(blockInfo.getLocations());
   }
 
-  public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs,
-      boolean inMemory, List<NetAddress> locations) {
+  public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs, boolean inMemory) {
     mId = blockId;
     mBlockLength = blockLength;
     mInMemory = inMemory;
     mLastAccessTimeMs = blockLastAccessTimeMs;
-    if (locations != null) {
-      addLocations(locations);
+  }
+
+  private void addLocations(List<BlockLocation> locations) {
+    for (BlockLocation location : locations) {
+      mLocations.add(location.getWorkerAddress().getHost());
     }
   }
 
-  public void addLocations(List<NetAddress> locations) {
-    for (NetAddress location : locations) {
-      mLocations.add(location.getMHost());
+  /**
+   * @return true if the block is in some worker's memory, false otherwise
+   */
+  private boolean isInMemory(BlockInfo blockInfo) {
+    for (BlockLocation location : blockInfo.getLocations()) {
+      if (location.getTier() == StorageLevelAlias.MEM.getValue()) {
+        return true;
+      }
     }
+    return false;
   }
 
   public long getBlockLength() {
