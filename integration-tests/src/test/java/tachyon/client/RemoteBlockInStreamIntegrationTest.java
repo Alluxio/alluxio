@@ -56,6 +56,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
   private String mDataServerClass;
+  private String mNettyTransferType;
   private String mRemoteReaderClass;
   private TachyonConf mTachyonConf;
   private ClientOptions mWriteTachyon;
@@ -67,20 +68,27 @@ public class RemoteBlockInStreamIntegrationTest {
   public static Collection<Object[]> data() {
     // creates a new instance of RemoteBlockInStreamTest for each network type
     List<Object[]> list = new ArrayList<Object[]>();
-    list.add(new Object[] { new String[] { IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.TCP_BLOCK_READER } });
-    list.add(new Object[] { new String[] { IntegrationTestConstants.NETTY_DATA_SERVER,
-        IntegrationTestConstants.NETTY_BLOCK_READER } });
-    list.add(new Object[] { new String[] { IntegrationTestConstants.NIO_DATA_SERVER,
-        IntegrationTestConstants.TCP_BLOCK_READER } });
-    list.add(new Object[] { new String[] { IntegrationTestConstants.NIO_DATA_SERVER,
-        IntegrationTestConstants.NETTY_BLOCK_READER } });
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
+    list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
+        IntegrationTestConstants.FILE_CHANNEL_TRANSFER,
+        IntegrationTestConstants.NETTY_BLOCK_READER});
+    // The transfer type is not applicable to the NIODataServer.
+    list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.TCP_BLOCK_READER});
+    list.add(new Object[] {IntegrationTestConstants.NIO_DATA_SERVER,
+        IntegrationTestConstants.UNUSED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
     return list;
   }
 
-  public RemoteBlockInStreamIntegrationTest(String[] classes) {
-    mDataServerClass = classes[0];
-    mRemoteReaderClass = classes[1];
+  public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType, String reader) {
+    mDataServerClass = dataServer;
+    mNettyTransferType = transferType;
+    mRemoteReaderClass = reader;
   }
 
   @Rule
@@ -89,12 +97,16 @@ public class RemoteBlockInStreamIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    System.clearProperty(Constants.WORKER_DATA_SERVER);
+    System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
+    System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
     mLocalTachyonCluster.start();
     mLocalTachyonCluster.getWorkerTachyonConf().set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE,
