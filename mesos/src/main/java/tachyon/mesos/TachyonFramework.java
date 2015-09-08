@@ -74,29 +74,29 @@ public class TachyonFramework {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-      final double MASTER_CPUS = 1;
-      final double MASTER_MEM = 128;
+      TachyonConf conf = new TachyonConf();
+      double masterCpus = conf.get(Constants.MASTER_CPU, Constants.DEFAULT_MASTER_CPU);
+      double masterMemMB = conf.get(Constants.MASTER_MEM_MB, Constants.DEFAULT_MASTER_MEM_MB);
+      String tachyonHome = conf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
       int launchedTasks = 0;
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
         double offerCpus = 0;
-        double offerMem = 0;
+        double offerMemMb = 0;
         for (Protos.Resource resource : offer.getResourcesList()) {
           if (resource.getName().equals("cpus")) {
             offerCpus += resource.getScalar().getValue();
           } else if (resource.getName().equals("mem")) {
-            offerMem += resource.getScalar().getValue();
+            offerMemMb += resource.getScalar().getValue();
           }
         }
 
         System.out.println("Received offer " + offer.getId().getValue() + " with cpus: "
-            + offerCpus + " and mem: " + offerMem);
+            + offerCpus + " and mem: " + offerMemMb);
 
         double remainingCpus = offerCpus;
-        double remainingMem = offerMem;
-        TachyonConf conf = new TachyonConf();
-        String tachyonHome = conf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+        double remainingMem = offerMemMb;
         while (remainingCpus > 0 && remainingMem > 0) {
           Protos.TaskID taskId =
               Protos.TaskID.newBuilder().setValue(Integer.toString(launchedTasks ++)).build();
@@ -107,7 +107,7 @@ public class TachyonFramework {
           Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
           double targetCpus = 0;
           double targetMem = 0;
-          if (!mMasterLaunched && remainingCpus >= MASTER_CPUS && remainingMem >= MASTER_MEM) {
+          if (!mMasterLaunched && remainingCpus >= masterCpus && remainingMem >= masterMemMB) {
             executorBuilder
                 .setName("Tachyon Master Executor")
                 .setSource("master")
@@ -115,8 +115,8 @@ public class TachyonFramework {
                 .setCommand(
                     Protos.CommandInfo.newBuilder().setValue(
                         PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-master.sh")));
-            targetCpus = MASTER_CPUS;
-            targetMem = MASTER_MEM;
+            targetCpus = masterCpus;
+            targetMem = masterMemMB;
             mMasterLaunched = true;
           } else {
             executorBuilder

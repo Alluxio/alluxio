@@ -57,6 +57,9 @@ public class Constants {
   public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
   public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
 
+  public static final int DEFAULT_MASTER_CPU = 2;
+  public static final int DEFAULT_MASTER_MEM_MB = 1024;
+
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
   public static final boolean DEFAULT_USER_ENABLE_LOCAL_READ = true;
@@ -140,6 +143,8 @@ public class Constants {
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
+  public static final String MASTER_CPU = "tachyon.master.cpu";
+  public static final String MASTER_MEM_MB = "tachyon.master.mem";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
