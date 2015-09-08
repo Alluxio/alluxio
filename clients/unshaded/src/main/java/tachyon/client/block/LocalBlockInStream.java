@@ -56,7 +56,7 @@ public class LocalBlockInStream extends BlockInStream {
     String blockPath = mWorkerClient.lockBlock(blockId);
 
     if (null == blockPath) {
-      // TODO: Handle this error case better
+      // TODO(calvin): Handle this error case better.
       mContext.releaseWorkerClient(mWorkerClient);
       throw new IOException("Block is not available on local machine");
     }
@@ -80,7 +80,7 @@ public class LocalBlockInStream extends BlockInStream {
     }
     mWorkerClient.unlockBlock(mBlockId);
     mContext.releaseWorkerClient(mWorkerClient);
-    // TODO: Evaluate if this is necessary
+    // TODO(calvin): Evaluate if this is necessary.
     BufferUtils.cleanDirectBuffer(mData);
     mClosed = true;
   }

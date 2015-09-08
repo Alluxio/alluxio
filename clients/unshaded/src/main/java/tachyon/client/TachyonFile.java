@@ -132,7 +132,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the replication factor.
    */
   public int getDiskReplication() {
-    // TODO(hy): Implement it.
+    // TODO(haoyuan): Implement it.
     return 3;
   }
 

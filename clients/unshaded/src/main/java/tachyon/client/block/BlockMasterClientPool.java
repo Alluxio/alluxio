@@ -40,7 +40,7 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
    * @param masterAddress the master address
    */
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
-    // TODO: Get the capacity from configuration
+    // TODO(calvin): Get the capacity from configuration.
     super(CAPACITY);
     mExecutorService =
         Executors.newFixedThreadPool(CAPACITY,
@@ -50,7 +50,7 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
 
   @Override
   public void close() {
-    // TODO: Consider collecting all the clients and shutting them down
+    // TODO(calvin): Consider collecting all the clients and shutting them down.
     mExecutorService.shutdown();
   }
 
