@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master;
+package tachyon.security;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.security.sasl.AuthenticationException;
-import javax.security.sasl.SaslException;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -31,7 +30,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
-import tachyon.security.LoginUser;
+import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterClient;
+import tachyon.master.MasterInfo;
 import tachyon.security.authentication.AuthenticationFactory.AuthType;
 import tachyon.security.authentication.AuthenticationProvider;
 
