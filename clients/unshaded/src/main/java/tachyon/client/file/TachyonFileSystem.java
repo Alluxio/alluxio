@@ -45,13 +45,13 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   }
 
   /** The file system context which contains shared resources, such as the fs master client */
-  private FSContext mContext;
+  private FileSystemContext mContext;
 
   /**
    * Constructor, currently TachyonFileSystem does not retain any state
    */
   private TachyonFileSystem() {
-    mContext = FSContext.INSTANCE;
+    mContext = FileSystemContext.INSTANCE;
   }
 
   /**

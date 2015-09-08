@@ -29,7 +29,7 @@ import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.block.BSContext;
+import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
@@ -48,7 +48,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
   private final long mBlockSize;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
-  private final FSContext mContext;
+  private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
   private final String mUnderStorageFile;
   private final WorkerClient mWorkerClient;
@@ -71,10 +71,10 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     mBlockSize = options.getBlockSize();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
-    mContext = FSContext.INSTANCE;
+    mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isPersist()) {
-      mWorkerClient = BSContext.INSTANCE.acquireWorkerClient();
+      mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
       String userUnderStorageFolder = mWorkerClient.getUserUfsTempFolder();
       mUnderStorageFile = PathUtils.concatPath(userUnderStorageFolder, mFileId);
       UnderFileSystem underStorageClient =
@@ -121,7 +121,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
           // TODO(yupeng): Investigate if this RPC can be moved to master.
           mWorkerClient.addCheckpoint(mFileId);
         } finally {
-          BSContext.INSTANCE.releaseWorkerClient(mWorkerClient);
+          BlockStoreContext.INSTANCE.releaseWorkerClient(mWorkerClient);
         }
         canComplete = true;
       }

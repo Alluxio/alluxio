@@ -35,7 +35,7 @@ import tachyon.worker.WorkerClient;
  */
 public class LocalBlockInStream extends BlockInStream {
   private final long mBlockId;
-  private final BSContext mContext;
+  private final BlockStoreContext mContext;
   private final WorkerClient mWorkerClient;
   private final ByteBuffer mData;
 
@@ -50,7 +50,7 @@ public class LocalBlockInStream extends BlockInStream {
   public LocalBlockInStream(long blockId) throws IOException {
     mBlockId = blockId;
     mClosed = false;
-    mContext = BSContext.INSTANCE;
+    mContext = BlockStoreContext.INSTANCE;
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
     String blockPath = mWorkerClient.lockBlock(blockId);

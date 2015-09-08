@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
-import tachyon.client.block.BSContext;
+import tachyon.client.block.BlockStoreContext;
 import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -78,7 +78,7 @@ public class ServiceSocketBindIntegrationTest {
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
-    mWorkerClient = BSContext.INSTANCE.acquireWorkerClient();
+    mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
     mWorkerClient.mustConnect();
 
     // connect Worker data service
@@ -217,7 +217,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // Connect to Worker RPC service on loopback, while Worker is listening on local hostname.
     try {
-      mWorkerClient = BSContext.INSTANCE.acquireWorkerClient("127.0.0.1");
+      mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient("127.0.0.1");
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (RuntimeException rte) {
       // This is expected, since Work RPC service is NOT listening on loopback.

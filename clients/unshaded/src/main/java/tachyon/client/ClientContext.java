@@ -21,8 +21,8 @@ import java.util.Random;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.client.block.BSContext;
-import tachyon.client.file.FSContext;
+import tachyon.client.block.BlockStoreContext;
+import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -88,7 +88,7 @@ public class ClientContext {
 
     sRandom = new Random();
 
-    BSContext.INSTANCE.resetContext();
-    FSContext.INSTANCE.resetContext();
+    BlockStoreContext.INSTANCE.resetContext();
+    FileSystemContext.INSTANCE.resetContext();
   }
 }

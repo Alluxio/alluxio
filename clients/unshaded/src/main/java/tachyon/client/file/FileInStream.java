@@ -50,7 +50,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   /** Total length of the file in bytes */
   private final long mFileLength;
   /** File System context containing the FileSystemMasterClient pool */
-  private final FSContext mContext;
+  private final FileSystemContext mContext;
   /** Block ids associated with this file */
   private final List<Long> mBlockIds;
   /** Path to the under storage system file that backs this Tachyon file */
@@ -78,7 +78,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     mFileLength = info.getLength();
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
-    mContext = FSContext.INSTANCE;
+    mContext = FileSystemContext.INSTANCE;
     mShouldCache = options.getTachyonStorageType().isStore();
     mShouldCacheCurrentBlock = mShouldCache;
     mClosed = false;

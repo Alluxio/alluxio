@@ -44,7 +44,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   /** Size of the block */
   protected final long mBlockSize;
   /** Block store context */
-  protected final BSContext mContext;
+  protected final BlockStoreContext mContext;
   /** Java heap buffer to store writes before flushing them to the backing store. */
   protected final ByteBuffer mBuffer;
 
@@ -60,7 +60,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
     mBlockSize = blockSize;
     mBuffer = allocateBuffer();
     mClosed = false;
-    mContext = BSContext.INSTANCE;
+    mContext = BlockStoreContext.INSTANCE;
   }
 
   public ByteBuffer allocateBuffer() {
