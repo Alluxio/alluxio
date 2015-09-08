@@ -424,7 +424,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * TODO(hy): remove this method. do streaming cache. This is not a right API.
+   * TODO(haoyuan): Remove this method. Do streaming cache. This is not a right API.
    *
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
