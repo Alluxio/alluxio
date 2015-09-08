@@ -1,13 +1,7 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
-
-DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}/../../libexec"
-TACHYON_LIBEXEC_DIR="${TACHYON_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}"
-. "${TACHYON_LIBEXEC_DIR}/tachyon-config.sh"
-
-MASTER_ADDRESS="${TACHYON_MASTER_ADDRESS:-localhost}"
-TACHYON_HOME="${TACHYON_HOME:-/Users/jsimsa/Projects/tachyon}"
+source "${SCRIPT_DIR}/common.sh"
 TACHYON_MASTER_JAVA_OPTS="${TACHYON_MASTER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 
 mkdir -p "${TACHYON_LOGS_DIR}"
