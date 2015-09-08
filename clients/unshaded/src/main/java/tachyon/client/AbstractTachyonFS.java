@@ -24,6 +24,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Abstract implementation of {@link tachyon.client.TachyonFSCore} APIs.
  */
+@Deprecated
 abstract class AbstractTachyonFS implements TachyonFSCore {
   protected final TachyonConf mTachyonConf;
 
@@ -33,7 +34,9 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
 
   /**
    * Creates a file with the default block size (1GB) in the system. It also creates necessary
-   * folders along the path. // TODO It should not create necessary path.
+   * folders along the path.
+   *
+   * TODO(haoyuan): It should not create necessary path.
    *
    * @param path the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
@@ -45,8 +48,9 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   }
 
   /**
-   * Creates a file in the system. It also creates necessary folders along the path. // TODO It
-   * should not create necessary path.
+   * Creates a file in the system. It also creates necessary folders along the path.
+   *
+   * TODO(haoyuan): It should not create necessary path.
    *
    * @param path the path of the file
    * @param blockSizeByte the block size of the file
@@ -63,7 +67,9 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
 
   /**
    * Creates a file in the system with a pre-defined underfsPath. It also creates necessary folders
-   * along the path. // TODO It should not create necessary path.
+   * along the path.
+   *
+   * TODO(haoyuan): It should not create necessary path.
    *
    * @param path the path of the file in Tachyon
    * @param ufsPath the path of the file in the underfs
@@ -83,7 +89,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    *         place), false otherwise.
    * @throws IOException
    */
-  public synchronized boolean delete(int fid, boolean recursive) throws IOException {
+  public synchronized boolean delete(long fid, boolean recursive) throws IOException {
     return delete(fid, TachyonURI.EMPTY_URI, recursive);
   }
 
@@ -120,7 +126,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @return true if succeed, false otherwise
    * @throws IOException
    */
-  public synchronized boolean rename(int fileId, TachyonURI dstPath) throws IOException {
+  public synchronized boolean rename(long fileId, TachyonURI dstPath) throws IOException {
     return rename(fileId, TachyonURI.EMPTY_URI, dstPath);
   }
 

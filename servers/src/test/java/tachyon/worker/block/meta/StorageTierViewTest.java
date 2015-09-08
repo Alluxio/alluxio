@@ -47,7 +47,7 @@ public class StorageTierViewTest {
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     BlockMetadataManagerView metaManagerView =
-        new BlockMetadataManagerView(metaManager, Sets.<Integer>newHashSet(),
+        new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(),
             Sets.<Long>newHashSet());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestTierView = new StorageTierView(mTestTier, metaManagerView);

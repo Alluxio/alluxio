@@ -1,8 +1,9 @@
 #!/bin/bash
 
-cd `dirname $0`
-IS_SPOT=`python bin/is_aws_spot.py`
-if [[ "$IS_SPOT" == 0 ]]; then
+set -e
+
+cd $(dirname $0)
+if [[ -f conf/ec2.yml && "$(python bin/is_aws_spot.py)" == "0" ]]; then
   python bin/spot_request.py --cancel
 else
   vagrant destroy -f
