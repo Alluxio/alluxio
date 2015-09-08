@@ -117,12 +117,13 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
     StorageTierView nextTierView = mManagerView.getNextTier(candidateDirView.getParentTierView());
     if (nextTierView == null) {
       // This is the last tier, evict all the blocks.
-      plan.toEvict().addAll(candidateBlocks);
       for (Long blockId : candidateBlocks) {
         try {
           BlockMeta block = mManagerView.getBlockMeta(blockId);
           if (null != block) {
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
+            plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
+                candidateDirView.toBlockStoreLocation()));
           }
         } catch (NotFoundException nfe) {
           continue;
@@ -145,12 +146,15 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
           if (nextDirView == null) {
             // If we failed to find a dir in the next tier to move this block, evict it and
             // continue. Normally this should not happen.
-            plan.toEvict().add(blockId);
+            plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
+                block.getBlockLocation()));
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             continue;
           }
           plan.toMove().add(
-              new Pair<Long, BlockStoreLocation>(blockId, nextDirView.toBlockStoreLocation()));
+              new Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>(blockId, 
+                  new Pair<BlockStoreLocation, BlockStoreLocation>(block.getBlockLocation(), 
+                      nextDirView.toBlockStoreLocation())));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
         } catch (NotFoundException nfe) {
@@ -167,8 +171,9 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       BlockMetadataManagerView view) {
     mManagerView = view;
 
-    List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
-    List<Long> toEvict = new ArrayList<Long>();
+    List<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>> toMove =
+        new ArrayList<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>();
+    List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<Pair<Long, BlockStoreLocation>>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
     StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
