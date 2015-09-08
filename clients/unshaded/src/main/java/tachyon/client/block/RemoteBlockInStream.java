@@ -46,12 +46,12 @@ public class RemoteBlockInStream extends BlockInStream {
    * @param blockSize the block size
    * @param location the location
    */
-  // TODO: Modify the locking so the stream owns the lock instead of the data server
+  // TODO(calvin): Modify the locking so the stream owns the lock instead of the data server.
   public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
     mBlockId = blockId;
     mContext = BSContext.INSTANCE;
     mBlockSize = blockSize;
-    // TODO: Validate these fields
+    // TODO(calvin): Validate these fields.
     mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
   }
 
@@ -86,7 +86,7 @@ public class RemoteBlockInStream extends BlockInStream {
     int bytesLeft = lengthToRead;
 
     while (bytesLeft > 0) {
-      // TODO: Fix needing to recreate reader each time
+      // TODO(calvin): Fix needing to recreate reader each time.
       RemoteBlockReader reader =
           RemoteBlockReader.Factory.createRemoteBlockReader(ClientContext.getConf());
       ByteBuffer data = reader.readRemoteBlock(mLocation, mBlockId, mPos, bytesLeft);

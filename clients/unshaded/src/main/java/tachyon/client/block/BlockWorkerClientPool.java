@@ -45,7 +45,7 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
    * @param workerAddress the worker address
    */
   public BlockWorkerClientPool(NetAddress workerAddress) {
-    // TODO: Get the capacity from configuration
+    // TODO(calvin): Get the capacity from configuration.
     super(CAPACITY);
     mExecutorService = Executors.newFixedThreadPool(CAPACITY, ThreadFactoryUtils.build(
         "block-worker-heartbeat-%d", true));
@@ -54,7 +54,7 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
 
   @Override
   public void close() {
-    // TODO: Consider collecting all the clients and shutting them down
+    // TODO(calvin): Consider collecting all the clients and shutting them down.
     mExecutorService.shutdown();
   }
 

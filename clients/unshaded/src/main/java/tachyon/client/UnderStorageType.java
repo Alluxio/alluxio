@@ -21,10 +21,10 @@ package tachyon.client;
  * Under Storage will be skipped and data may be lost when evicted from Tachyon storage.
  */
 public enum UnderStorageType {
-  /** Persist data to Under Storage synchronously */
+  /** Persist data to Under Storage synchronously. */
   PERSIST(1),
 
-  /** Do not persist data to Under Storage */
+  /** Do not persist data to Under Storage. */
   NO_PERSIST(2);
 
   private final int mValue;
@@ -33,6 +33,9 @@ public enum UnderStorageType {
     mValue = value;
   }
 
+  /**
+   * @return whether the data should be persisted to Under Storage
+   */
   public boolean isPersist() {
     return mValue == PERSIST.mValue;
   }

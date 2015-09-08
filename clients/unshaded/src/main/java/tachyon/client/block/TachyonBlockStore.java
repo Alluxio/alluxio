@@ -57,7 +57,7 @@ public class TachyonBlockStore implements Closeable {
   }
 
   @Override
-  // TODO: Evaluate the necessity of this method
+  // TODO(calvin): Evaluate the necessity of this method.
   public synchronized void close() {
     sClient = null;
   }
@@ -88,11 +88,11 @@ public class TachyonBlockStore implements Closeable {
   public BlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Fix this RPC
+      // TODO(calvin): Fix this RPC.
       BlockInfo blockInfo = masterClient.getBlockInfo(blockId);
-      // TODO: Get location via a policy
+      // TODO(calvin): Get location via a policy.
       if (blockInfo.locations.isEmpty()) {
-        // TODO: Maybe this shouldn't be an exception
+        // TODO(calvin): Maybe this shouldn't be an exception.
         throw new IOException("No block " + blockId + " is not available in Tachyon");
       }
       return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
@@ -136,7 +136,7 @@ public class TachyonBlockStore implements Closeable {
       Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
       return new LocalBlockOutStream(blockId, blockSize);
     }
-    // TODO: Handle the case when a location is specified
+    // TODO(calvin): Handle the case when a location is specified.
     return null;
   }
 

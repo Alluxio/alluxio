@@ -25,10 +25,10 @@ package tachyon.client;
  * </ul>
  */
 public enum TachyonStorageType {
-  /** Put the data reading or writing in Tachyon storage */
+  /** Put the data reading or writing in Tachyon storage. */
   STORE(1),
 
-  /** Do not put data to Tachyon */
+  /** Do not put data to Tachyon. */
   NO_STORE(2);
 
   private final int mValue;
@@ -37,6 +37,9 @@ public enum TachyonStorageType {
     mValue = value;
   }
 
+  /**
+   * @return whether the data should be put in Tachyon storage
+   */
   public boolean isStore() {
     return mValue == STORE.mValue;
   }
