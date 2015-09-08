@@ -24,10 +24,10 @@ import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BSContext;
 import tachyon.client.block.BufferedBlockOutStream;
@@ -39,8 +39,8 @@ import tachyon.worker.WorkerClient;
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
  * blocks in the file and abstracts the switching between streams. The backing streams can write to
  * Tachyon space in the local machine or remote machines. If the
- * {@link tachyon.client.UnderStorageType} is PERSIST, another stream will write the data to
- * the under storage system.
+ * {@link tachyon.client.UnderStorageType} is PERSIST, another stream will write the data to the
+ * under storage system.
  */
 @PublicApi
 public final class FileOutStream extends OutputStream implements Cancelable {
@@ -189,8 +189,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
-        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
 
     if (mShouldCacheCurrentBlock) {
       try {
@@ -222,8 +222,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
   private void getNextBlock() throws IOException {
     if (mCurrentBlockOutStream != null) {
-      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0, "The current block still "
-          + "has space left, no need to get new block");
+      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
+          "The current block still has space left, no need to get new block");
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
@@ -247,12 +247,11 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     if (!mUnderStorageType.isPersist()) {
       // TODO(yupeng): Handle this exception better.
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
-    } else {
-      // TODO(yupeng): Handle this error.
-      if (mCurrentBlockOutStream != null) {
-        mShouldCacheCurrentBlock = false;
-        mCurrentBlockOutStream.cancel();
-      }
+    }
+    // TODO(yupeng): Handle this error.
+    if (mCurrentBlockOutStream != null) {
+      mShouldCacheCurrentBlock = false;
+      mCurrentBlockOutStream.cancel();
     }
   }
 }
