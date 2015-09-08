@@ -28,5 +28,5 @@ public interface Cancelable {
    *
    * @throws IOException if there is a failure when the worker invalidates the cache attempt
    */
-  public abstract void cancel() throws IOException;
+  void cancel() throws IOException;
 }

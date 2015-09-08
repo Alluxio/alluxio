@@ -23,5 +23,5 @@ public interface BoundedStream {
   /**
    * Gets the remaining number of bytes left in the stream, starting at the current position.
    */
-  public abstract long remaining();
+  long remaining();
 }

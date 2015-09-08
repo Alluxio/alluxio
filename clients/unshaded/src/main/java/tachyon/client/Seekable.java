@@ -30,5 +30,5 @@ public interface Seekable {
    * @param pos The position to seek to, it must be between 0 and the end of the stream - 1.
    * @throws IOException if the seek fails due to an error accessing the stream at the position
    */
-  public abstract void seek(long pos) throws IOException;
+  void seek(long pos) throws IOException;
 }
