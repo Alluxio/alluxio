@@ -36,8 +36,8 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.block.BSContext;
-import tachyon.client.file.FSContext;
+import tachyon.client.block.BlockStoreContext;
+import tachyon.client.file.FileSystemContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.DependencyInfo;
@@ -182,9 +182,9 @@ public class TachyonFS extends AbstractTachyonFS {
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
-    mFSMasterClient = mCloser.register(FSContext.INSTANCE.acquireMasterClient());
-    mBlockMasterClient = mCloser.register(BSContext.INSTANCE.acquireMasterClient());
-    mWorkerClient = mCloser.register(BSContext.INSTANCE.acquireWorkerClient());
+    mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
+    mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
+    mWorkerClient = mCloser.register(BlockStoreContext.INSTANCE.acquireWorkerClient());
     mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
     String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();

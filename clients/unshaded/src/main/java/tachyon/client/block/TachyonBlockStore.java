@@ -47,13 +47,13 @@ public class TachyonBlockStore implements Closeable {
     return sClient;
   }
 
-  private final BSContext mContext;
+  private final BlockStoreContext mContext;
 
   /**
    * Creates a Tachyon block store.
    */
   private TachyonBlockStore() {
-    mContext = BSContext.INSTANCE;
+    mContext = BlockStoreContext.INSTANCE;
   }
 
   @Override

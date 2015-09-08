@@ -24,7 +24,7 @@ import tachyon.client.FileSystemMasterClient;
 import tachyon.client.ResourcePool;
 import tachyon.util.ThreadFactoryUtils;
 
-class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
+class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   private static final int CAPACITY = 10;
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
@@ -34,7 +34,7 @@ class FSMasterClientPool extends ResourcePool<FileSystemMasterClient> {
    *
    * @param masterAddress the master address
    */
-  public FSMasterClientPool(InetSocketAddress masterAddress) {
+  public FileSystemMasterClientPool(InetSocketAddress masterAddress) {
     // TODO(calvin): Get capacity from configuration.
     super(CAPACITY);
     mExecutorService =

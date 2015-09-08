@@ -39,7 +39,7 @@ import tachyon.worker.WorkerClient;
  * master clients and a pool of local worker clients. Any remote clients will be created and
  * destroyed on a per use basis.
  */
-public enum BSContext {
+public enum BlockStoreContext {
   INSTANCE;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -51,7 +51,7 @@ public enum BSContext {
   /**
    * Creates a new block store context.
    */
-  BSContext() {
+  BlockStoreContext() {
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
     // TODO(calvin): Get the capacity from configuration.
     final int CAPACITY = 10;

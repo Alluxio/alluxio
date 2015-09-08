@@ -33,7 +33,7 @@ import tachyon.util.io.BufferUtils;
  */
 public class RemoteBlockInStream extends BlockInStream {
   private final long mBlockId;
-  private final BSContext mContext;
+  private final BlockStoreContext mContext;
   private final long mBlockSize;
   private final InetSocketAddress mLocation;
 
@@ -49,7 +49,7 @@ public class RemoteBlockInStream extends BlockInStream {
   // TODO(calvin): Modify the locking so the stream owns the lock instead of the data server.
   public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
     mBlockId = blockId;
-    mContext = BSContext.INSTANCE;
+    mContext = BlockStoreContext.INSTANCE;
     mBlockSize = blockSize;
     // TODO(calvin): Validate these fields.
     mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
