@@ -67,7 +67,7 @@ public class ClientContext {
   }
 
   /**
-   * @return a random long, that is not negative
+   * @return a random non-negative long
    */
   public static long getRandomNonNegativeLong() {
     return Math.abs(sRandom.nextLong());
@@ -78,7 +78,7 @@ public class ClientContext {
    *
    * @param conf new configuration to use
    */
-  // TODO: Find a better way to handle testing confs
+  // TODO(calvinjia): Find a better way to handle testing configurations
   public static synchronized void reinitializeWithConf(TachyonConf conf) {
     sTachyonConf = conf;
     String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
