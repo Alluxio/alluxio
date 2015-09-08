@@ -72,9 +72,11 @@ public class LocalBlockInStreamIntegrationTest {
         new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sReadCache =
-        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE).build();
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+            .build();
     sReadNoCache =
-        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE).build();
+        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+            .build();
   }
 
   /**

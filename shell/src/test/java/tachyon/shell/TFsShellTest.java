@@ -119,8 +119,8 @@ public class TFsShellTest {
     Assert.assertEquals(SIZE_BYTES, fileInfo.length);
 
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.NO_STORE)
-            .build();
+        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(
+            TachyonStorageType.NO_STORE).build();
     FileInStream tfis = mTfs.getInStream(tFile, options);
     byte[] read = new byte[SIZE_BYTES];
     tfis.read(read);
@@ -469,8 +469,8 @@ public class TFsShellTest {
 
   private byte[] readContent(TachyonFile tFile, int length) throws IOException {
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.NO_STORE)
-            .build();
+        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(
+            TachyonStorageType.NO_STORE).build();
     FileInStream tfis = mTfs.getInStream(tFile, options);
     byte[] read = new byte[length];
     tfis.read(read);

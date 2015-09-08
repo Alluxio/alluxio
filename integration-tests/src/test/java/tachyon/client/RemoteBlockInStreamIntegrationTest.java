@@ -109,9 +109,11 @@ public class RemoteBlockInStreamIntegrationTest {
         new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
     mReadCache =
-        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE).build();
+        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+            .build();
     mReadNoCache =
-        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE).build();
+        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+            .build();
   }
 
   /**
