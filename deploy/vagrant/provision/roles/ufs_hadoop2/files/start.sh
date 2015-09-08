@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# TODO comment
-# rm -rf /tmp/hadoop-ec2-user/dfs/name
-
 # start hadoop
 /hadoop/bin/hdfs namenode -format
 /hadoop/sbin/start-all.sh
