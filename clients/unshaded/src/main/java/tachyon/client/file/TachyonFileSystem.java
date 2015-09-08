@@ -206,7 +206,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
       throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.getPath(), -1L, recursive);
+      return masterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(), -1L, recursive);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
