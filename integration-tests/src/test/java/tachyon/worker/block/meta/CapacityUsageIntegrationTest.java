@@ -27,8 +27,8 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
-import tachyon.client.OutStream;
 import tachyon.client.UnderStorageType;
+import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
@@ -85,9 +85,9 @@ public class CapacityUsageIntegrationTest {
     ClientOptions options =
         new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(tachyonStorageType)
             .setUnderStorageType(underStorageType).build();
-    OutStream os = mTFS.getOutStream(filePath, options);
+    FileOutStream os = mTFS.getOutStream(filePath, options);
     os.write(buf.array());
-    os.close();
+    os.close( );
     return mTFS.open(filePath);
   }
 

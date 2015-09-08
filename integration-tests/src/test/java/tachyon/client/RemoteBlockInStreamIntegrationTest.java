@@ -35,6 +35,7 @@ import tachyon.TachyonURI;
 import tachyon.client.block.RemoteBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -502,7 +503,7 @@ public class RemoteBlockInStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     int blockSizeByte = 10;
     int numBlocks = 10;
-    OutStream os = mTfs.getOutStream(new TachyonURI(uniqPath), mWriteUnderStore);
+    FileOutStream os = mTfs.getOutStream(new TachyonURI(uniqPath), mWriteUnderStore);
     for (int i = 0; i < numBlocks; i ++) {
       for (int j = 0; j < blockSizeByte; j ++) {
         os.write((byte) (i * blockSizeByte + j));
