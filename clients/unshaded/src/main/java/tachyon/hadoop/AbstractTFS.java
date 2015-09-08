@@ -559,6 +559,6 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   private WriteType getWriteType() {
-    return mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.CACHE_THROUGH);
+    return mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.class);
   }
 }

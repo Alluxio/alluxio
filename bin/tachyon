@@ -35,6 +35,39 @@ shift
 
 bin=`cd "$( dirname "$0" )"; pwd`
 
+function bootstrapConf {
+  if [ $# -ne 1 ]; then
+    echo "Usage: $0 bootstrap-conf TACHYON_MASTER_HOSTNAME"
+    exit 1
+  fi
+
+  TACHYON_CONF_DIR=$bin/../conf
+  if [ ! -e "$TACHYON_CONF_DIR/tachyon-env.sh" ]; then
+    if [[ `uname -a` == Darwin* ]]; then
+      # osx sed wants an argument to -i, use .bootstrap.bk
+      TACHYON_SED="sed -i .bootstrap.bk"
+      TOTAL_MEM=`sysctl hw.memsize | cut -d ' ' -f2`
+      TOTAL_MEM=$[TOTAL_MEM / 1024]
+      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    else
+      TACHYON_SED="sed -i"
+      TOTAL_MEM=`awk '/MemTotal/{print $2}' /proc/meminfo`
+      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    fi
+
+    # Create a default config that can be overridden later
+    cp "$TACHYON_CONF_DIR/tachyon-env.sh.template" "$TACHYON_CONF_DIR/tachyon-env.sh"
+    $TACHYON_SED "s/TACHYON_MASTER_ADDRESS=localhost/TACHYON_MASTER_ADDRESS=$1/" "$TACHYON_CONF_DIR/tachyon-env.sh"
+    $TACHYON_SED "s/TACHYON_WORKER_MEMORY_SIZE=1GB/TACHYON_WORKER_MEMORY_SIZE=${TOTAL_MEM}KB/" "$TACHYON_CONF_DIR/tachyon-env.sh"
+  fi
+}
+
+# bootstrap creates tachyon-env.sh
+if [ "$COMMAND" == "bootstrap-conf" ]; then
+  bootstrapConf "$@"
+  exit 0
+fi
+
 DEFAULT_LIBEXEC_DIR="$bin"/../libexec
 TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
@@ -134,32 +167,6 @@ function copyDir {
   wait
 }
 
-function bootstrapConf {
-  if [ $# -ne 1 ]; then
-    echo "Usage $0 bootstrap-conf TACHYON_MASTER_HOSTNAME"
-    exit 1
-  fi
-
-  if [ ! -e "$TACHYON_CONF_DIR/tachyon-env.sh" ]; then
-    if [[ `uname -a` == Darwin* ]]; then
-      # osx sed wants an argument to -i, use .bootstrap.bk
-      TACHYON_SED="sed -i .bootstrap.bk"
-      TOTAL_MEM=`sysctl hw.memsize | cut -d ' ' -f2`
-      TOTAL_MEM=$[TOTAL_MEM / 1024]
-      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
-    else
-      TACHYON_SED="sed -i"
-      TOTAL_MEM=`awk '/MemTotal/{print $2}' /proc/meminfo`
-      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
-    fi
-
-    # Create a default config that can be overridden later
-    cp "$TACHYON_CONF_DIR/tachyon-env.sh.template" "$TACHYON_CONF_DIR/tachyon-env.sh"
-    $TACHYON_SED "s/TACHYON_MASTER_ADDRESS=localhost/TACHYON_MASTER_ADDRESS=$1/" "$TACHYON_CONF_DIR/tachyon-env.sh"
-    $TACHYON_SED "s/TACHYON_WORKER_MEMORY_SIZE=1GB/TACHYON_WORKER_MEMORY_SIZE=${TOTAL_MEM}KB/" "$TACHYON_CONF_DIR/tachyon-env.sh"
-  fi
-}
-
 PARAMETER=""
 
 if [ "$COMMAND" == "format" ]; then
@@ -189,9 +196,6 @@ if [ "$COMMAND" == "format" ]; then
   echo "Formatting Tachyon Master @ $TACHYON_MASTER_ADDRESS"
   CLASS=tachyon.Format
   PARAMETER=master
-elif [ "$COMMAND" == "bootstrap-conf" ]; then
-  bootstrapConf "$@"
-  exit 0
 elif [ "$COMMAND" == "formatWorker" ]; then
   echo "Formatting Tachyon Worker @ `hostname -f`"
   CLASS=tachyon.Format
