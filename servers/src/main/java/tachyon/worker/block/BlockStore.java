@@ -302,5 +302,5 @@ interface BlockStore {
    *
    * @param inodes a set of inodes that are currently pinned.
    */
-  void updatePinnedInodes(Set<Integer> inodes);
+  void updatePinnedInodes(Set<Long> inodes);
 }

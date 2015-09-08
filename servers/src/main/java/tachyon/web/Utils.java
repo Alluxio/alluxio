@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 
-public final class Utils {
+final class Utils {
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data, int offset, int length) {
     StringBuilder sb = new StringBuilder(length);
@@ -59,5 +59,9 @@ public final class Utils {
     long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
     return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
+  }
+
+  private Utils() {
+    // util class
   }
 }

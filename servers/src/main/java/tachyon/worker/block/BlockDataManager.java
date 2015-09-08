@@ -16,7 +16,6 @@
 package tachyon.worker.block;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
 
@@ -24,19 +23,19 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.Users;
+import tachyon.client.BlockMasterClient;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
-import tachyon.master.MasterClient;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
@@ -60,8 +59,10 @@ public final class BlockDataManager {
   /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
 
-  /** MasterClient, only used to inform the master of a new block in commitBlock */
-  private MasterClient mMasterClient;
+  /** BlockMasterClient, only used to inform the master of a new block in commitBlock */
+  private BlockMasterClient mBlockMasterClient;
+  /** FileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
+  private FileSystemMasterClient mFileSystemMasterClient;
   /** UnderFileSystem Client */
   private UnderFileSystem mUfs;
   /** User metadata, used to keep track of user heartbeats */
@@ -76,7 +77,8 @@ public final class BlockDataManager {
    * @param masterClient the Tachyon master client
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(WorkerSource workerSource, MasterClient masterClient)
+  public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
+                          FileSystemMasterClient fileSystemMasterClient)
       throws IOException {
     // TODO: We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
@@ -85,7 +87,8 @@ public final class BlockDataManager {
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
-    mMasterClient = masterClient;
+    mBlockMasterClient = blockMasterClient;
+    mFileSystemMasterClient = fileSystemMasterClient;
 
     // Create Under FileSystem Client
     String ufsAddress =
@@ -141,7 +144,7 @@ public final class BlockDataManager {
    * @throws TException if the file does not exist or cannot be renamed
    * @throws IOException if the update to the master fails
    */
-  public void addCheckpoint(long userId, int fileId) throws TException, IOException {
+  public void addCheckpoint(long userId, long fileId) throws TException, IOException {
     // TODO This part needs to be changed.
     String srcPath = PathUtils.concatPath(getUserUfsTmpFolder(userId), fileId);
     String ufsDataFolder =
@@ -160,7 +163,7 @@ public final class BlockDataManager {
     } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
-    mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
+    mFileSystemMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
   }
 
   /**
@@ -177,8 +180,7 @@ public final class BlockDataManager {
   /**
    * Commits a block to Tachyon managed space. The block must be temporary. The block is
    * persisted after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible
-   * until {@link MasterClient#worker_cacheBlock(long, long, long, long, long)}
-   * succeeds
+   * until {@link BlockMasterClient#workerCommitBlock} succeeds
    *
    * @param userId The id of the client
    * @param blockId The id of the block to commit
@@ -198,12 +200,11 @@ public final class BlockDataManager {
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(userId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
-      Long storageDirId = loc.getStorageDirId();
+      int tier = loc.tierAlias();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mMasterClient
-          .worker_cacheBlock(mWorkerId, bytesUsedOnTier, storageDirId, blockId, length);
+      mBlockMasterClient.workerCommitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {
@@ -504,7 +505,7 @@ public final class BlockDataManager {
    *
    * @param pinnedInodes a set of pinned inodes
    */
-  public void updatePinList(Set<Integer> pinnedInodes) {
+  public void updatePinList(Set<Long> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
   }
 }

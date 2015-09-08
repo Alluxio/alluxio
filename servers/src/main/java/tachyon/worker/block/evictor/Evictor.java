@@ -18,6 +18,7 @@ package tachyon.worker.block.evictor;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -27,6 +28,7 @@ import tachyon.worker.block.allocator.Allocator;
 /**
  * Interface for the eviction policy in Tachyon
  */
+@PublicApi
 public interface Evictor {
 
   class Factory {
