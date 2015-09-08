@@ -156,7 +156,6 @@ abstract class AbstractTFS extends FileSystem {
       depPath = depPath.substring(depPath.indexOf("part-") + 5);
       int index = Integer.parseInt(depPath);
       DependencyInfo info = mTFS.getClientDependencyInfo(depId);
-      // TODO: file id should be long
       long fileId = info.getChildren().get(index).intValue();
       LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
@@ -177,7 +176,6 @@ abstract class AbstractTFS extends FileSystem {
       depPath = depPath.substring(depPath.indexOf("part-") + 5);
       int index = Integer.parseInt(depPath);
       DependencyInfo info = mTFS.getClientDependencyInfo(depId);
-      // TODO: file id should be long
       long fileId = info.getChildren().get(index).intValue();
       LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
@@ -205,7 +203,8 @@ abstract class AbstractTFS extends FileSystem {
    * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
    * create(), except fails if parent directory doesn't already exist.
    *
-   * TODO(hy): We need to refactor this method after having a new internal API support (TACHYON-46).
+   * TODO(haoyuan): We need to refactor this method after having a new internal API support
+   * TODO (TACHYON-46).
    *
    * @param cPath the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
@@ -374,7 +373,7 @@ abstract class AbstractTFS extends FileSystem {
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
-  // TODO The @Override needs to be removed to pass compilation, why?
+  // TODO(cc): @Override needs to be removed to pass compilation, why?
   public abstract String getScheme();
 
   /**
@@ -456,7 +455,7 @@ abstract class AbstractTFS extends FileSystem {
     FileStatus[] ret = new FileStatus[files.size()];
     for (int k = 0; k < files.size(); k ++) {
       FileInfo info = files.get(k);
-      // TODO replicate 3 with the number of disk replications.
+      // TODO(haoyuan): Replicate 3 with the number of disk replications.
       ret[k] =
           new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeBytes(),
               info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null, new Path(
