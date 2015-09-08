@@ -449,7 +449,10 @@ public class InodeFile extends Inode {
     if (length < 0) {
       throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
     }
+
     mLength = 0;
+    mBlocks.clear();
+
     while (length >= mBlockSizeByte) {
       addBlock(new BlockInfo(this, mBlocks.size(), mBlockSizeByte));
       length -= mBlockSizeByte;
