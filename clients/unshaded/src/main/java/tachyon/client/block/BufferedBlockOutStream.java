@@ -53,7 +53,7 @@ public abstract class BufferedBlockOutStream extends OutStream {
   /** Number of bytes written, including unflushed bytes */
   protected long mWrittenBytes;
 
-  public BufferedBlockOutStream(long blockId, long blockSize) throws IOException {
+  public BufferedBlockOutStream(long blockId, long blockSize) {
     mBlockId = blockId;
     mBlockSize = blockSize;
     mBuffer = allocateBuffer();

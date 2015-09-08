@@ -73,12 +73,12 @@ public final class InodeFile extends Inode {
     ret.path = path;
     ret.ufsPath = mUfsPath;
     ret.length = mLength;
-    ret.blockSizeByte = mBlockSizeBytes;
+    ret.blockSizeBytes = mBlockSizeBytes;
     ret.creationTimeMs = getCreationTimeMs();
     ret.isComplete = isComplete();
     ret.isFolder = false;
     ret.isPinned = isPinned();
-    ret.isCache = mCache;
+    ret.isCacheable = mCache;
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     return ret;

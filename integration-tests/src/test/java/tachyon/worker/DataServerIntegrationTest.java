@@ -267,8 +267,8 @@ public class DataServerIntegrationTest {
     RemoteBlockReader client =
         RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
     ByteBuffer result = client.readRemoteBlock(
-        new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getMHost(),
-            block.getLocations().get(0).getWorkerAddress().getMSecondaryPort()),
+        new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getHost(),
+            block.getLocations().get(0).getWorkerAddress().getDataPort()),
         block.getBlockId(), 0, length);
 
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
@@ -296,8 +296,8 @@ public class DataServerIntegrationTest {
     RemoteBlockReader client =
         RemoteBlockReader.Factory.createRemoteBlockReader(mWorkerTachyonConf);
     ByteBuffer result = client.readRemoteBlock(
-        new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getMHost(),
-            block.getLocations().get(0).getWorkerAddress().getMSecondaryPort()),
+        new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getHost(),
+            block.getLocations().get(0).getWorkerAddress().getDataPort()),
         maxBlockId + 1, 0, length);
 
     Assert.assertNull(result);
@@ -341,8 +341,8 @@ public class DataServerIntegrationTest {
     DataServerMessage sendMsg =
         DataServerMessage.createBlockRequestMessage(block.blockId, offset, length);
     SocketChannel socketChannel = SocketChannel
-        .open(new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getMHost(),
-            block.getLocations().get(0).getWorkerAddress().getMSecondaryPort()));
+        .open(new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getHost(),
+            block.getLocations().get(0).getWorkerAddress().getDataPort()));
     try {
       while (!sendMsg.finishSending()) {
         sendMsg.send(socketChannel);

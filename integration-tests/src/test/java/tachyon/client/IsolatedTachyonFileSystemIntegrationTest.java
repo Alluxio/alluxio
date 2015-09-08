@@ -113,7 +113,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.close();
     }
@@ -144,7 +144,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       int r = is.read(buf.array());
       if (k < numOfFiles - 1) {
         Assert.assertTrue(r != -1);
@@ -179,7 +179,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.close();
@@ -211,7 +211,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.seek(0);
       buf.clear();
@@ -247,9 +247,9 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       is = mTfs.getInStream(files.get(k), mWriteBoth);
-      buf1 = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf1 = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf1.array()) != -1);
-      buf2 = ByteBuffer.allocate((int) info.getBlockSizeByte());
+      buf2 = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       is.seek(0);
       Assert.assertTrue(is.read(buf2.array()) != -1);
       is.close();

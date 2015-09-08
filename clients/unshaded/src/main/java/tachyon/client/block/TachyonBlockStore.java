@@ -132,7 +132,7 @@ public class TachyonBlockStore implements Closeable {
       return new RemoteBlockOutStream(blockId, blockSize);
     }
     // Location is local
-    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location.getMHost())) {
+    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location.getHost())) {
       Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
       return new LocalBlockOutStream(blockId, blockSize);
     }

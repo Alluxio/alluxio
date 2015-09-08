@@ -152,7 +152,7 @@ public final class MasterWorkerInfo {
     ret.state = "In Service";
     ret.capacityBytes = mCapacityBytes;
     ret.usedBytes = mUsedBytes;
-    ret.starttimeMs = mStartTimeMs;
+    ret.startTimeMs = mStartTimeMs;
     return ret;
   }
 
