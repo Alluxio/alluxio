@@ -49,8 +49,7 @@ public enum BlockStoreContext {
    */
   BlockStoreContext() {
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    // TODO(calvin): Get the capacity from configuration.
-    final int CAPACITY = 10;
+    final int CAPACITY = ClientContext.getConf().getInt(Constants.USER_REMOTE_WORKER_THREADS);
     mRemoteBlockWorkerExecutor =
         Executors.newFixedThreadPool(CAPACITY,
             ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
