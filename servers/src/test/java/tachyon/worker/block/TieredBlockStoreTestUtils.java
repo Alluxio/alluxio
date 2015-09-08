@@ -15,9 +15,6 @@
 
 package tachyon.worker.block;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 
@@ -50,14 +47,13 @@ public class TieredBlockStoreTestUtils {
   public static final String[][] TIER_PATH =
       { {"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
   public static final long[][] TIER_CAPACITY = { {2000, 3000}, {10000, 20000, 30000}};
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Create a {@link TachyonConf} for a {@link TieredBlockStore} configured by the parameters. For
    * simplicity, you can use {@link #defaultTachyonConf(String)} which calls this method with
    * default values.
    *
-   * @param tierLevel like {@link #TIER_LEVEL}, length must be > 0.
+   * @param tierLevel like {@link #TIER_LEVEL}, length must be &gt; 0.
    * @param tierAlias like {@link #TIER_ALIAS}, each corresponds to an element in tierLevel
    * @param tierPath like {@link #TIER_PATH}, each list represents directories of the tier with the
    *        same list index in tierAlias
@@ -213,10 +209,10 @@ public class TieredBlockStoreTestUtils {
     writer.close();
     return tempBlockMeta;
   }
-  
+
   /**
    * Get the total capacity of all tiers in bytes.
-   * 
+   *
    * @return total capacity of all tiers in bytes
    */
   public static long getDefaultTotalCapacityBytes() {
@@ -228,10 +224,10 @@ public class TieredBlockStoreTestUtils {
     }
     return totalCapacity;
   }
-  
+
   /**
    * Get the number of testing directories of all tiers.
-   * 
+   *
    * @return number of testing directories of all tiers.
    */
   public static long getDefaultDirNum() {

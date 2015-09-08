@@ -30,9 +30,11 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.WriteType;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
@@ -45,7 +47,7 @@ import tachyon.master.LocalTachyonCluster;
 public class TFsShellUtilsTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
+  private TachyonFileSystem mTfs = null;
 
   @After
   public final void after() throws Exception {
@@ -58,12 +60,11 @@ public class TFsShellUtilsTest {
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }
-  
+
   @Test
   public void getFilePathTest() throws IOException {
-    String[] paths =
-        new String[] {Constants.HEADER + "localhost:19998/dir",
-            Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
+    String[] paths = new String[] {Constants.HEADER + "localhost:19998/dir",
+        Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
       String result = TFsShellUtils.getFilePath(path, new TachyonConf());
@@ -72,76 +73,93 @@ public class TFsShellUtilsTest {
   }
 
   public enum FsType {
-    TFS, 
-    LOCAL
+    TFS, LOCAL
   }
 
-  public static Comparator<File> createFilePathComparator() { 
-    return  new Comparator<File>() {
+  public static Comparator<File> createFilePathComparator() {
+    return new Comparator<File>() {
       public int compare(File file1, File file2) {
         // ascending order
         return file1.getAbsoluteFile().compareTo(file2.getAbsoluteFile());
       }
     };
   }
-  
+
   public static Comparator<TachyonURI> createTachyonURIComparator() {
-    return  new Comparator<TachyonURI>() {
+    return new Comparator<TachyonURI>() {
       public int compare(TachyonURI tUri1, TachyonURI tUri2) {
         // ascending order
         return tUri1.getPath().compareTo(tUri2.getPath());
       }
     };
   }
-  
+
   public String resetTachyonFileHierarchy() throws IOException {
+    return resetTachyonFileHierarchy(mTfs);
+  }
+
+  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) throws IOException {
     /**
-     * Generate such local structure
-     *  /testWildCards
-     *  ├── foo
-     *  |    ├── foobar1
-     *  |    └── foobar2
-     *  ├── bar
-     *  |    └── foobar3
-     *  └── foobar4
+     * Generate such local structure /testWildCards
+     *                                ├── foo |
+     *                                        ├── foobar1
+     *                                        └── foobar2
+     *                                ├── bar |
+     *                                        └── foobar3
+     *                                └── foobar4
      */
-    mTfs.delete(new TachyonURI("/testWildCards"), true);
-    mTfs.mkdir(new TachyonURI("/testWildCards"));
-    mTfs.mkdir(new TachyonURI("/testWildCards/foo"));
-    mTfs.mkdir(new TachyonURI("/testWildCards/bar"));
-    
-    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
-    TachyonFSTestUtils.createByteFile(mTfs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
-    
+    TachyonFile fd;
+    try {
+      fd = tfs.open(new TachyonURI("/testWildCars"));
+    } catch (IOException ioe) {
+      fd = null;
+    }
+    if (fd != null) {
+      tfs.delete(fd);
+    }
+    tfs.mkdirs(new TachyonURI("/testWildCards"));
+    tfs.mkdirs(new TachyonURI("/testWildCards/foo"));
+    tfs.mkdirs(new TachyonURI("/testWildCards/bar"));
+
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 10);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar2", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 20);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/bar/foobar3", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 30);
+    TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foobar4", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, 40);
     return "/testWildCards";
   }
-  
+
   public String resetLocalFileHierarchy() throws IOException {
-    /**
-     * Generate such local structure
-     *  /testWildCards
-     *  ├── foo
-     *  |    ├── foobar1
-     *  |    └── foobar2
-     *  ├── bar
-     *  |    └── foobar3
-     *  └── foobar4
-     */
-    FileUtils.deleteDirectory(new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards"));
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo").mkdir();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/bar").mkdir();
-    
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar1").createNewFile();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar2").createNewFile();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/bar/foobar3").createNewFile();
-    new File(mLocalTachyonCluster.getTachyonHome() + "/testWildCards/foobar4").createNewFile();
-    
-    return mLocalTachyonCluster.getTachyonHome() + "/testWildCards";
+    return resetLocalFileHierarchy(mLocalTachyonCluster);
   }
-  
+
+  public static String resetLocalFileHierarchy(LocalTachyonCluster localTachyonCluster)
+      throws IOException {
+    /**
+     * Generate such local structure /testWildCards
+     *                                ├── foo |
+     *                                        ├── foobar1
+     *                                        └── foobar2
+     *                                ├── bar |
+     *                                        └── foobar3
+     *                                └── foobar4
+     */
+    FileUtils.deleteDirectory(new File(localTachyonCluster.getTachyonHome() + "/testWildCards"));
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo").mkdir();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/bar").mkdir();
+
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar1").createNewFile();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foo/foobar2").createNewFile();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/bar/foobar3").createNewFile();
+    new File(localTachyonCluster.getTachyonHome() + "/testWildCards/foobar4").createNewFile();
+
+    return localTachyonCluster.getTachyonHome() + "/testWildCards";
+  }
+
   public List<String> getPaths(String path, FsType fsType) throws IOException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
@@ -160,7 +178,7 @@ public class TFsShellUtilsTest {
     Collections.sort(ret);
     return ret;
   }
-  
+
   public String resetFsHierarchy(FsType fsType) throws IOException {
     if (fsType == FsType.TFS) {
       return resetTachyonFileHierarchy();
@@ -170,12 +188,12 @@ public class TFsShellUtilsTest {
       return null;
     }
   }
-  
+
   @Test
   public void getPathTest() throws IOException {
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
-       
+
       List<String> tl1 = getPaths(rootDir + "/foo", fsType);
       Assert.assertEquals(tl1.size(), 1);
       Assert.assertEquals(tl1.get(0), rootDir + "/foo");
@@ -184,7 +202,7 @@ public class TFsShellUtilsTest {
       List<String> tl2 = getPaths(rootDir + "/foo/", fsType);
       Assert.assertEquals(tl2.size(), 1);
       Assert.assertEquals(tl2.get(0), rootDir + "/foo");
-      
+
       // Wildcard
       List<String> tl3 = getPaths(rootDir + "/foo/*", fsType);
       Assert.assertEquals(tl3.size(), 2);
@@ -205,23 +223,23 @@ public class TFsShellUtilsTest {
       Assert.assertEquals(tl5.get(2), rootDir + "/foo/foobar2");
     }
   }
-  
+
   @Test
   public void matchTest() {
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c",  "/a/*"),    true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c",  "/a/*/"),   true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c",  "/a/*/c"),  true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c",  "/a/*/*"),  true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c",  "/a/*/*/"), true);
+    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*"), true);
+    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*/"), true);
+    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*/c"), true);
+    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*/*"), true);
+    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*/*/"), true);
     Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/a/*/*/"), true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/a/*/*"),  true);
-    
+    Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/a/*/*"), true);
+
     Assert.assertEquals(TFsShellUtils.match("/foo/bar/foobar/", "/foo*/*"), true);
     Assert.assertEquals(TFsShellUtils.match("/foo/bar/foobar/", "/*/*/foobar"), true);
-    
+
     Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/b/*"), false);
     Assert.assertEquals(TFsShellUtils.match("/", "/*/*"), false);
-    
+
     Assert.assertEquals(TFsShellUtils.match("/a/b/c", "*"), true);
     Assert.assertEquals(TFsShellUtils.match("/", "/*"), true);
   }

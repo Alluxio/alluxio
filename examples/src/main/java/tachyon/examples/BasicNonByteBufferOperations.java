@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -23,21 +23,23 @@ import java.util.concurrent.Callable;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 
 /**
  * Basic example of using the TachyonFS and TachyonFile for writing to and reading from files.
- * <p />
+ * <p>
  * This class is different from {@link tachyon.examples.BasicOperations} in the way writes happen.
  * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done via
  * input/output streams.
- * <p />
+ * </p>
+ * <p>
  * This example also let users play around with how to work with files a bit more. The
  * {@link tachyon.client.ReadType} is something that can be set, as well as ability to delete file
  * if exists.
+ * </p>
  */
 public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private final TachyonURI mMasterLocation;
@@ -82,16 +84,21 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private TachyonFile getOrCreate(TachyonFS client, TachyonURI filePath, boolean deleteIfExists)
       throws IOException {
-    TachyonFile file = client.getFile(filePath);
+    TachyonFile file;
+    try {
+      file = client.getFile(filePath);
+    } catch (IOException ioe) {
+      file = null;
+    }
     if (file == null) {
       // file doesn't exist yet, so create it
-      int fileId = client.createFile(filePath);
+      long fileId = client.createFile(filePath);
       file = client.getFile(fileId);
     } else if (deleteIfExists) {
       // file exists, so delete it and recreate
       client.delete(new TachyonURI(file.getPath()), false);
 
-      int fileId = client.createFile(filePath);
+      long fileId = client.createFile(filePath);
       file = client.getFile(fileId);
     }
     return file;

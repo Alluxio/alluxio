@@ -265,7 +265,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ, execTime);
   }
 
-  @Test(timeout = 25000)
+  //@Test(timeout = 25000)
   public void testReadRandom() throws Exception {
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -275,7 +275,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_RANDOM, execTime);
   }
 
-  @Test(timeout = 25000)
+  //@Test(timeout = 25000)
   public void testReadBackward() throws Exception {
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -285,7 +285,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_BACKWARD, execTime);
   }
 
-  @Test(timeout = 25000)
+  //@Test(timeout = 25000)
   public void testReadSkip() throws Exception {
     FileSystem fs = FileSystem.get(sLocalTachyonClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -573,8 +573,8 @@ public class DFSIOIntegrationTest implements Tool {
    * by size.
    *
    * There are three type of reads. 1) Random read always chooses a random position to read from:
-   * skipSize = 0 2) Backward read reads file in reverse order : skipSize < 0 3) Skip-read skips
-   * skipSize bytes after every read : skipSize > 0
+   * skipSize = 0 2) Backward read reads file in reverse order : skipSize &lt; 0 3) Skip-read skips
+   * skipSize bytes after every read : skipSize &gt; 0
    */
   public static class RandomReadMapper extends IOStatMapper {
     private Random mRnd;

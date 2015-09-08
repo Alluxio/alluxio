@@ -18,6 +18,7 @@ package tachyon.worker.block.evictor;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -27,6 +28,7 @@ import tachyon.worker.block.allocator.Allocator;
 /**
  * Interface for the eviction policy in Tachyon
  */
+@PublicApi
 public interface Evictor {
 
   class Factory {
@@ -54,7 +56,7 @@ public interface Evictor {
    * After eviction, at least one StorageDir in the location
    * has the specific amount of free space after eviction. The location can be a specific
    * StorageDir, or {@link BlockStoreLocation#anyTier} or {@link BlockStoreLocation#anyDirInTier}.
-   * The view is generated and passed by the calling {@link tachyon.worker.block.BlockStore}.
+   * The view is generated and passed by the calling tachyon.worker.block.BlockStore.
    *
    * <P>
    * This method returns null if Evictor fails to propose a feasible plan to meet the requirement,

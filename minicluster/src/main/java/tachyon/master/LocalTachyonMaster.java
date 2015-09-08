@@ -17,18 +17,20 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
+import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.util.UnderFileSystemUtils;
 
 /**
  * Constructs an isolated master. Primary users of this class are the
@@ -60,6 +62,8 @@ public final class LocalTachyonMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
+  private final OldClientPool mOldClientPool = new OldClientPool(mClientSupplier);
+
   private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
     mTachyonHome = tachyonHome;
@@ -84,6 +88,15 @@ public final class LocalTachyonMaster {
     mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
+    String[] masterServiceNames = new String[] {
+        Constants.BLOCK_MASTER_SERVICE_NAME,
+        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
+        Constants.RAW_TABLE_MASTER_SERVICE_NAME,
+    };
+    for (String masterServiceName : masterServiceNames) {
+      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
+          tachyonConf);
+    }
     UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),
         tachyonConf);
 
@@ -127,7 +140,9 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated home and port.
    *
-   * @throws IOException unable to do file operation or listen on port
+   * @param tachyonConf Tachyon configuration
+   * @throws IOException when unable to do file operation or listen on port
+   * @return an instance of Tachyon master
    */
   public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
     final String tachyonHome = uniquePath();
@@ -143,7 +158,10 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated port.
    *
-   * @throws IOException unable to do file operation or listen on port
+   * @param tachyonHome Tachyon home directory
+   * @param tachyonConf Tachyon configuration
+   * @return an instance of Tachyon master
+   * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
@@ -157,11 +175,17 @@ public final class LocalTachyonMaster {
     mMasterThread.start();
   }
 
+  public boolean isServing() {
+    return mTachyonMaster.isServing();
+  }
+
   /**
    * Stops the master and cleans up client connections.
    *
    * This method will not clean up {@link tachyon.util.UnderFileSystemUtils} data. To do that you
    * must call {@link #cleanupUnderfs()}.
+   *
+   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     clearClients();
@@ -175,6 +199,7 @@ public final class LocalTachyonMaster {
 
   public void clearClients() throws IOException {
     mClientPool.close();
+    mOldClientPool.close();
   }
 
   public void cleanupUnderfs() throws IOException {
@@ -185,7 +210,23 @@ public final class LocalTachyonMaster {
   }
 
   /**
+   * Get the externally resolvable address of the master (used by unit test only).
+   */
+  public InetSocketAddress getAddress() {
+    return mTachyonMaster.getMasterAddress();
+  }
+
+  /**
+   * Gets the actual internal master.
+   */
+  public TachyonMaster getInternalMaster() {
+    return mTachyonMaster;
+  }
+
+  /**
    * Get the actual bind hostname on RPC service (used by unit test only).
+   *
+   * @return the RPC bind hostname
    */
   public String getRPCBindHost() {
     return mTachyonMaster.getRPCBindHost();
@@ -193,6 +234,8 @@ public final class LocalTachyonMaster {
 
   /**
    * Get the actual port that the RPC service is listening on (used by unit test only)
+   *
+   * @return the RPC local port
    */
   public int getRPCLocalPort() {
     return mTachyonMaster.getRPCLocalPort();
@@ -200,6 +243,8 @@ public final class LocalTachyonMaster {
 
   /**
    * Get the actual bind hostname on web service (used by unit test only).
+   *
+   * @return the Web bind hostname
    */
   public String getWebBindHost() {
     return mTachyonMaster.getWebBindHost();
@@ -207,6 +252,8 @@ public final class LocalTachyonMaster {
 
   /**
    * Get the actual port that the web service is listening on (used by unit test only)
+   *
+   * @return the Web local port
    */
   public int getWebLocalPort() {
     return mTachyonMaster.getWebLocalPort();
@@ -216,20 +263,12 @@ public final class LocalTachyonMaster {
     return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
-  public TachyonFS getClient() throws IOException {
+  public TachyonFS getOldClient() throws IOException {
+    return mOldClientPool.getClient(mTachyonMaster.getTachyonConf());
+  }
+
+  public TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(mTachyonMaster.getTachyonConf());
-  }
-
-  public String getEditLogPath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
-  }
-
-  public String getImagePath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
-  }
-
-  public MasterInfo getMasterInfo() {
-    return mTachyonMaster.getMasterInfo();
   }
 
   private static String uniquePath() throws IOException {
@@ -240,11 +279,11 @@ public final class LocalTachyonMaster {
     return parent + "/" + child;
   }
 
-  public boolean isStarted() {
-    return mTachyonMaster.isStarted();
-  }
-
   public TachyonConf getTachyonConf() {
     return mTachyonMaster.getTachyonConf();
+  }
+
+  public String getJournalFolder() {
+    return mJournalFolder;
   }
 }

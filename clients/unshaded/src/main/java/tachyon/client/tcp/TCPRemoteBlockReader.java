@@ -36,9 +36,8 @@ public final class TCPRemoteBlockReader implements RemoteBlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override
-  public ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset, long length)
-      throws IOException {
-    InetSocketAddress address = new InetSocketAddress(host, port);
+  public ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
+      long length) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     try {
       socketChannel.connect(address);

@@ -21,6 +21,8 @@ import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
 
+import tachyon.util.OSUtils;
+
 /**
  * It uses a hierarchical URI internally. URI requires that String is escaped, TachyonURI does not.
  *
@@ -33,14 +35,16 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   public static final TachyonURI EMPTY_URI = new TachyonURI("");
 
-  private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
+  private static final boolean WINDOWS = OSUtils.isWindows();
 
   // a hierarchical uri
   private final URI mUri;
 
   /**
-   * Construct a path from a String. Path strings are URIs, but with unescaped elements and some
-   * additional normalization.
+   * Construct a TachyonURI from a String. Path strings are URIs, but with unescaped elements and
+   * some additional normalization.
+   *
+   * @param pathStr path to construct the TachyonURI from
    */
   public TachyonURI(String pathStr) {
     if (pathStr == null) {
@@ -81,7 +85,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Construct a Tachyon URI from components.
+   * Construct a TachyonURI from components.
    *
    * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
@@ -127,7 +131,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @param scheme the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException when an illegal argument is encountered
    */
   private URI createURI(String scheme, String authority, String path)
       throws IllegalArgumentException {
@@ -147,7 +151,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Gets the authority of this TachyonURI
+   * Gets the authority of the TachyonURI.
    *
    * @return the authority, null if it does not have one.
    */
@@ -159,17 +163,17 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * Return the number of elements of the path component of the TachyonURI.
    *
    * <pre>
-   * /                                  -> 0
-   * /a                                 -> 1
-   * /a/b/c.txt                         -> 3
-   * /a/b/                              -> 3
-   * a/b                                -> 2
-   * a\b                                -> 2
-   * tachyon://localhost:1998/          -> 0
-   * tachyon://localhost:1998/a         -> 1
-   * tachyon://localhost:1998/a/b.txt   -> 2
-   * C:\a                               -> 1
-   * C:                                 -> 0
+   * /                                  = 0
+   * /a                                 = 1
+   * /a/b/c.txt                         = 3
+   * /a/b/                              = 3
+   * a/b                                = 2
+   * a\b                                = 2
+   * tachyon://localhost:1998/          = 0
+   * tachyon://localhost:1998/a         = 1
+   * tachyon://localhost:1998/a/b.txt   = 2
+   * C:\a                               = 1
+   * C:                                 = 0
    * </pre>
    *
    * @return the depth
@@ -188,24 +192,25 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return depth;
   }
 
-  
+
   /**
-   * Get the first n component of the TachyonURI path.
-   * There is no trailing separator as the path will be normalized by normalizePath() 
-   * 
+   * Get the first n components of the TachyonURI path. There is no trailing separator as the path
+   * will be normalized by normalizePath().
+   *
    * <pre>
-   * /a/b/c, 0              -> /
-   * /a/b/c, 1              -> /a
-   * /a/b/c, 2              -> /a/b
-   * /a/b/c, 3              -> /a/b/c
-   * /a/b/c, 4              -> null
+   * /a/b/c, 0              = /
+   * /a/b/c, 1              = /a
+   * /a/b/c, 2              = /a/b
+   * /a/b/c, 3              = /a/b/c
+   * /a/b/c, 4              = null
    * </pre>
-   * 
-   * @return the first n path component, null if the path has less than n components
+   *
+   * @param n identifies the number of path components to get
+   * @return the first n path components, null if the path has less than n components
    */
   public String getLeadingPath(int n) {
     String path = mUri.getPath();
-    if (n == 0 && path.indexOf(TachyonURI.SEPARATOR) == 0) { //the special case
+    if (n == 0 && path.indexOf(TachyonURI.SEPARATOR) == 0) { // the special case
       return TachyonURI.SEPARATOR;
     }
     int depth = getDepth();
@@ -218,16 +223,18 @@ public final class TachyonURI implements Comparable<TachyonURI> {
       return StringUtils.join(Arrays.asList(comp).subList(0, n + 1), SEPARATOR);
     }
   }
-  
+
   /**
-   * Whether or not the URI contains wildcard(s)
+   * Whether or not the TachyonURI contains wildcard(s).
+   *
+   * @return <code>boolean</code> that indicates whether the TachyonURI contains wildcard(s)
    */
   public boolean containsWildcard() {
     return mUri.getPath().contains(WILDCARD);
   }
-  
+
   /**
-   * Gets the host of this TachyonURI.
+   * Gets the host of the TachyonURI.
    *
    * @return the host, null if it does not have one.
    */
@@ -270,7 +277,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Gets the part component of this TachyonURI.
+   * Gets the path component of the TachyonURI.
    *
    * @return the path.
    */
@@ -279,7 +286,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Gets the port of this TachyonURI.
+   * Gets the port of the TachyonURI.
    *
    * @return the port, -1 if it does not have one.
    */
@@ -288,7 +295,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Get the scheme of the Tachyon URI.
+   * Get the scheme of the TachyonURI.
    *
    * @return the scheme, null if there is no scheme.
    */
@@ -297,7 +304,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Tells if this TachyonURI has authority or not.
+   * Tells if the TachyonURI has authority or not.
    *
    * @return true if it has, false otherwise.
    */
@@ -337,26 +344,26 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Tells whether or not this URI is absolute.
+   * Tells whether or not the TachyonURI is absolute.
    *
    * <p>
-   * A URI is absolute if, and only if, it has a scheme component.
+   * A TachyonURI is absolute if, and only if, it has a scheme component.
    * </p>
    *
-   * @return <tt>true</tt> if, and only if, this URI is absolute
+   * @return <tt>true</tt> if, and only if, this TachyonURI is absolute
    */
   public boolean isAbsolute() {
     return mUri.isAbsolute();
   }
 
   /**
-   * Tells whether or not the path component of this TachyonURI is absolute.
+   * Tells whether or not the path component of the TachyonURI is absolute.
    *
    * <p>
    * A path is absolute if, and only if, it starts with root.
    * </p>
    *
-   * @return <tt>true</tt> if, and only if, this TachyonURI's path component is absolute
+   * @return <tt>true</tt> if, and only if, the TachyonURI's path component is absolute
    */
   public boolean isPathAbsolute() {
     int start = hasWindowsDrive(mUri.getPath(), true) ? 3 : 0;
@@ -364,7 +371,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Tells whether or not this URI is root.
+   * Tells whether or not the TachyonURI is root.
    *
    * <p>
    * A URI is root if its path equals to "/"
@@ -401,7 +408,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * Normalize the path component of the TachyonURI, by replacing all "//" and "\\" with "/", and
    * trimming trailing slash from non-root path (ignoring windows drive).
    *
-   * @param path
+   * @param path the path to normalize
    * @return the normalized path.
    */
   private String normalizePath(String path) {

@@ -42,9 +42,9 @@ public final class UtilsTest {
   /**
    * This test doesn't work the way you might expect.
    *
-   * If you take the URI.create("hdfs://localhost:1234/foo/bar/baz?please=dont&show=up").getPath it
-   * will return /foo/bar/baz. If you go through Hadoop's Path using {@link Path#Path(String)} then
-   * Hadoop injects the query params into the path, so when you call toURI it gives a different
+   * If you take the URI.create("hdfs://localhost:1234/foo/bar/baz?please=dont&amp;show=up").getPath
+   * it will return /foo/bar/baz. If you go through Hadoop's Path using {@link Path#Path(String)}
+   * then Hadoop injects the query params into the path, so when you call toURI it gives a different
    * response.
    */
   @Test

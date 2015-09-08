@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -45,10 +45,10 @@ public abstract class UIWebServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected final WebAppContext mWebAppContext;
-  private Server mServer;
-  private ServiceType mService;
-  private InetSocketAddress mAddress;
+  private final Server mServer;
+  private final ServiceType mService;
   private final TachyonConf mTachyonConf;
+  private InetSocketAddress mAddress;
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
@@ -139,7 +139,7 @@ public abstract class UIWebServer {
       mServer.getConnectors()[0].open();
       mServer.start();
       if (mAddress.getPort() == 0) {
-        int webPort =  mServer.getConnectors()[0].getLocalPort();
+        int webPort = mServer.getConnectors()[0].getLocalPort();
         mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
         // reset web service port
         mTachyonConf.set(mService.getPortKey(), Integer.toString(webPort));

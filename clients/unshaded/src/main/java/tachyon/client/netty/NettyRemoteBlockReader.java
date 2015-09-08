@@ -43,19 +43,22 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
 
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
-  /** A reference to read response so we can explicitly release the resource after reading.*/
+  /** A reference to read response so we can explicitly release the resource after reading. */
   private RPCBlockReadResponse mReadResponse = null;
 
-  // TODO: Creating a new remote block reader may be expensive, so consider a connection pool.
+  /**
+   * Creates a new <code>NettyRemoteBlockReader</code>.
+   *
+   * TODO(gene): Creating a new remote block reader may be expensive, so consider a connection pool.
+   */
   public NettyRemoteBlockReader() {
     mHandler = new ClientHandler();
     mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
   }
 
   @Override
-  public ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset, long length)
-      throws IOException {
-    InetSocketAddress address = new InetSocketAddress(host, port);
+  public ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
+      long length) throws IOException {
 
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
@@ -95,6 +98,8 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   }
 
   /**
+   * {@inheritDoc}
+   *
    * Release the underlying buffer of previous/current read response.
    */
   @Override

@@ -7,7 +7,7 @@ group: FAQ
 
 **What is Tachyon?**
 
-> [Tachyon](http://tachyon-project.org/index.html) is a memory centric, distributed, reliable
+> [Tachyon](/) is a memory centric, distributed, reliable
    storage system enabling data sharing across clusters at memory speed.
 
 **What platforms and Java versions does Tachyon run on?**
@@ -25,7 +25,7 @@ newly added nodes in order to balance disk space utilization between the nodes?*
 
 **Is Tachyon master fault tolerant?**
 
->   Yes. Please see this [page](http://tachyon-project.org/Fault-Tolerant-Tachyon-Cluster.html).
+>   Yes. Please see this [page](/documentation/Fault-Tolerant-Tachyon-Cluster.html).
 
 **What is UnderFS and how many UnderFS are supported?**
 
@@ -35,7 +35,7 @@ newly added nodes in order to balance disk space utilization between the nodes?*
 **Can I easily add support to other UnderFS?**
 
 >   Yes, in fact support for other UnderFS is in progress by many contributors. Here is the
-   [introduction](http://tachyon-project.org/Setup-UFS.html) to adding other UnderFS.
+   [introduction](/documentation/Setup-UFS.html) to adding other UnderFS.
 
 **In which language is Tachyon developed?**
 
@@ -50,17 +50,17 @@ newly added nodes in order to balance disk space utilization between the nodes?*
 **Can I run Tachyon in stand-alone mode for experimenting and validation?**
 
 >    Yes, Tachyon can run in stand-alone mode. Instructions are available
-    [here](http://tachyon-project.org/Running-Tachyon-Locally.html).
+    [here](/documentation/Running-Tachyon-Locally.html).
 
 **Can I run Tachyon in a cluster mode?**
 
 >    Yes, Tachyon can be run in a cluster mode. Instructions are available
-    [here](http://tachyon-project.org/Running-Tachyon-on-a-Cluster.html).
+    [here](/documentation/Running-Tachyon-on-a-Cluster.html).
 
 **Does Tachyon always needs HDFS?**
 
 >    No, Tachyon runs on different UnderFS like HDFS, Amazon S3, GlusterFS.
-    Instructions on configuration are available [here](http://tachyon-project.org/Setup-UFS.html).
+    Instructions on configuration are available [here](/documentation/Setup-UFS.html).
 
 **Does Tachyon work along side with other frameworks?**
 
@@ -88,7 +88,7 @@ newly added nodes in order to balance disk space utilization between the nodes?*
 **How can I contribute to Tachyon?**
 
 >    Thank you for the interest to contribute. Please look into
-    [Contributing to Tachyon](http://tachyon-project.org/master/Contributing-to-Tachyon.html).
+    [Contributing to Tachyon](/documentation/master/Contributing-to-Tachyon.html).
     Also, please look into some of the JIRA issues (marked for Beginners)
     [here](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN).
 

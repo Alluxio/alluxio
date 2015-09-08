@@ -24,6 +24,8 @@ import com.google.common.base.Joiner;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
+import tachyon.client.ClientContext;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -76,16 +78,12 @@ public final class LocalTachyonCluster {
     mUserBlockSize = userBlockSize;
   }
 
-  public TachyonFS getClient() throws IOException {
+  public TachyonFS getOldClient() throws IOException {
+    return mMaster.getOldClient();
+  }
+
+  public TachyonFileSystem getClient() throws IOException {
     return mMaster.getClient();
-  }
-
-  public String getEditLogPath() {
-    return mMaster.getEditLogPath();
-  }
-
-  public String getImagePath() {
-    return mMaster.getImagePath();
   }
 
   public LocalTachyonMaster getMaster() {
@@ -98,10 +96,6 @@ public final class LocalTachyonCluster {
 
   public String getMasterHostname() {
     return mLocalhostName;
-  }
-
-  public MasterInfo getMasterInfo() {
-    return mMaster.getMasterInfo();
   }
 
   public String getMasterUri() {
@@ -137,9 +131,10 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Configure and start master
+   * Configure and start master.
    *
-   * @throws IOException
+   * @param conf Tachyon configuration
+   * @throws IOException when the operation fails
    */
   public void startMaster(TachyonConf conf) throws IOException {
     // TODO: Would be good to have a masterContext as well
@@ -159,9 +154,9 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Configure and start worker
+   * Configure and start worker.
    *
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   public void startWorker() throws IOException {
     mWorkerConf = WorkerContext.getConf();
@@ -173,7 +168,7 @@ public final class LocalTachyonCluster {
     mWorkerConf.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
     mWorkerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
     mWorkerConf.set(Constants.WORKER_MIN_WORKER_THREADS, Integer.toString(1));
-    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, Integer.toString(100));
+    mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, Integer.toString(2048));
     mWorkerConf.set(Constants.WORKER_NETTY_WORKER_THREADS, Integer.toString(2));
 
     // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
@@ -207,6 +202,8 @@ public final class LocalTachyonCluster {
           Joiner.on(',').join(newPaths));
     }
 
+    // We need to update the client with the most recent configuration so it knows the correct ports
+
     mWorker = new BlockWorker();
     Runnable runWorker = new Runnable() {
       @Override
@@ -222,12 +219,24 @@ public final class LocalTachyonCluster {
     mWorkerThread.start();
     // waiting for worker web server startup
     CommonUtils.sleepMs(null, 100);
+    ClientContext.reinitializeWithConf(mWorkerConf);
   }
 
+  /**
+   * Start both a master and a worker using the default configuration.
+   *
+   * @throws IOException when the operation fails
+   */
   public void start() throws IOException {
     start(new TachyonConf());
   }
-  
+
+  /**
+   * Start both a master and a worker using the given configuration.
+   *
+   * @param conf Tachyon configuration
+   * @throws IOException when the operation fails
+   */
   public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
@@ -251,7 +260,7 @@ public final class LocalTachyonCluster {
   /**
    * Stop both of the tachyon and underfs service threads.
    *
-   * @throws Exception
+   * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
     stopTFS();
@@ -262,9 +271,9 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Stop the tachyon filesystem's service thread only
+   * Stop the tachyon filesystem's service thread only.
    *
-   * @throws Exception
+   * @throws Exception when the operation fails
    */
   public void stopTFS() throws Exception {
     mMaster.stop();
@@ -283,14 +292,19 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Cleanup the underfs cluster test folder only
+   * Cleanup the underfs cluster test folder only.
    *
-   * @throws Exception
+   * @throws Exception when the operation fails
    */
   public void stopUFS() throws Exception {
     mMaster.cleanupUnderfs();
   }
 
+  /**
+   * Cleanup the worker state from the master and stop the worker.
+   *
+   * @throws Exception when the operation fails
+   */
   public void stopWorker() throws Exception {
     mMaster.clearClients();
     mWorker.stop();

@@ -17,6 +17,7 @@ package tachyon.client;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import com.google.common.base.Throwables;
@@ -31,6 +32,10 @@ import tachyon.util.CommonUtils;
 public interface RemoteBlockReader extends Closeable {
 
   class Factory {
+    /**
+     * @param conf Tachyon configuration
+     * @return a new instance of <code>RemoteBlockReader</code>
+     */
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
@@ -42,16 +47,15 @@ public interface RemoteBlockReader extends Closeable {
   }
 
   /**
-   * Read a remote block with a offset and length.
+   * Reads a remote block with a offset and length.
    *
-   * @param host the remote data server hostname.
-   * @param port the remote data server port number.
+   * @param address The {@link InetSocketAddress} of the data server.
    * @param blockId the id of the block trying to read.
    * @param offset the offset of the block.
    * @param length the length the client wants to read.
    * @return a byte buffer containing the remote data block.
    * @throws IOException if the remote server is not reachable or responds with failures.
    */
-  ByteBuffer readRemoteBlock(String host, int port, long blockId, long offset,
+  ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
       long length) throws IOException;
 }

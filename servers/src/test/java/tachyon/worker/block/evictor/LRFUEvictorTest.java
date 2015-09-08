@@ -65,7 +65,7 @@ public class LRFUEvictorTest {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+        new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRFUEvictor.class.getName());
@@ -91,10 +91,10 @@ public class LRFUEvictorTest {
   private double calculateAccessWeight(long timeInterval) {
     return Math.pow(1.0 / mAttenuationFactor, mStepFactor * timeInterval);
   }
-  
+
   /**
    * Sort all blocks in ascending order of CRF
-   * 
+   *
    * @return the sorted CRF of all blocks
    */
   private List<Map.Entry<Long, Double>> getSortedCRF(Map<Long, Double> crfMap) {
@@ -294,7 +294,7 @@ public class LRFUEvictorTest {
         access(blockIdMovedInFirstTier);
       }
       for (int j = 0; j < totalBlocks; j ++) {
-        access(blockIdEvictedInSecondTier); 
+        access(blockIdEvictedInSecondTier);
       }
     }
   }

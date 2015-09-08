@@ -26,6 +26,7 @@ import org.apache.hadoop.fs.Path;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.master.LocalTachyonCluster;
@@ -187,6 +188,7 @@ public class TFSRenameIntegrationTest {
     }
   }
 
+  @Ignore
   @Test
   public void errorRenameTest() throws Exception {
     // Rename /dirA to /dirA/dirB should fail

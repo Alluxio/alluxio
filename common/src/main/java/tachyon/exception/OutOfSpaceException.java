@@ -24,12 +24,22 @@ package tachyon.exception;
  * <li>evictor cannot satisfy the space to be available after eviction</li>
  * </ul>
  */
-public class OutOfSpaceException extends Exception {
+public final class OutOfSpaceException extends AbstractTachyonException {
+  private static final long serialVersionUID = -5000240143940942071L;
+
   public OutOfSpaceException(String message) {
     super(message);
   }
 
   public OutOfSpaceException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public OutOfSpaceException(ExceptionMessage message, Object... params) {
+    super(message, params);
+  }
+
+  public OutOfSpaceException(ExceptionMessage message, Throwable cause, Object... params) {
+    super(message, cause, params);
   }
 }

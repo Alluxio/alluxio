@@ -36,7 +36,7 @@ public final class BlockHeartbeatReport {
   /**
    * Gets the list of blocks added by the worker in the heartbeat this report represents
    *
-   * @return a map of storage dir id -> list of block ids added
+   * @return a map from storage dir ids to lists of block ids added
    */
   public Map<Long, List<Long>> getAddedBlocks() {
     return Collections.unmodifiableMap(mAddedBlocks);
