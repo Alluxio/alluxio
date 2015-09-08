@@ -105,7 +105,9 @@ public class TachyonBlockStore implements Closeable {
   /**
    * Gets a stream to write data to a block. The stream can only be backed by Tachyon storage.
    *
-   * @param blockId the block to write
+   * @param blockId the block Id to write
+   * @param blockSize the block size to write, or -1
+   * @param location a specified location to write to, or null if no preference
    * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
    * @throws IOException if the block cannot be written
    */
