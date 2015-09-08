@@ -37,7 +37,7 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Sets;
 
 import tachyon.TachyonURI;
-import tachyon.master.block.journal.BlockIdGeneratorEntry;
+import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -120,7 +120,7 @@ public abstract class JournalFormatterTestBase {
 
   @Test
   public void blockIdGeneratorEntryTest() throws IOException {
-    entryTest(new BlockIdGeneratorEntry(TEST_CONTAINER_ID));
+    entryTest(new BlockContainerIdGeneratorEntry(TEST_CONTAINER_ID));
   }
 
   @Test

@@ -43,7 +43,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.master.IndexedSet;
 import tachyon.master.MasterBase;
-import tachyon.master.block.journal.BlockIdGeneratorEntry;
+import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.block.meta.MasterBlockInfo;
@@ -159,9 +159,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
     // TODO: a better way to process entries besides a huge switch?
-    if (entry instanceof BlockIdGeneratorEntry) {
+    if (entry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator
-          .setNextContainerId(((BlockIdGeneratorEntry) entry).getNextContainerId());
+          .setNextContainerId(((BlockContainerIdGeneratorEntry) entry).getNextContainerId());
     } else if (entry instanceof WorkerIdGeneratorEntry) {
       mNextWorkerId.set(((WorkerIdGeneratorEntry) entry).getNextWorkerId());
     } else if (entry instanceof BlockInfoEntry) {
@@ -300,7 +300,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   public long getNewContainerId() {
     synchronized (mBlockContainerIdGenerator) {
       long containerId = mBlockContainerIdGenerator.getNewContainerId();
-      writeJournalEntry(new BlockIdGeneratorEntry(containerId));
+      writeJournalEntry(new BlockContainerIdGeneratorEntry(containerId));
       flushJournal();
       return containerId;
     }

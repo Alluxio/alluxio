@@ -22,11 +22,14 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-// TODO (Gene): Add javadoc
-public class BlockIdGeneratorEntry implements JournalEntry {
+/**
+ * The {@link JournalEntry} representing the state of the block container id generator for the block
+ * master.
+ */
+public class BlockContainerIdGeneratorEntry implements JournalEntry {
   private final long mNextContainerId;
 
-  public BlockIdGeneratorEntry(long nextContainerId) {
+  public BlockContainerIdGeneratorEntry(long nextContainerId) {
     mNextContainerId = nextContainerId;
   }
 

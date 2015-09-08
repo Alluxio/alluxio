@@ -40,7 +40,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
-import tachyon.master.block.journal.BlockIdGeneratorEntry;
+import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -239,7 +239,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
         switch (entry.mType) {
           // Block
           case BLOCK_CONTAINER_ID_GENERATOR: {
-            return new BlockIdGeneratorEntry(
+            return new BlockContainerIdGeneratorEntry(
                 entry.getLong("nextContainerId"));
           }
           case BLOCK_INFO: {
