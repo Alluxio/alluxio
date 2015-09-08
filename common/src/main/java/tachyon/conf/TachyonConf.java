@@ -1,3 +1,18 @@
+/*
+ * Licensed to the University of California, Berkeley under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package tachyon.conf;
 
 import java.io.IOException;
@@ -20,6 +35,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
+import tachyon.network.ChannelType;
 import tachyon.util.FormatUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -122,6 +138,10 @@ public class TachyonConf {
         String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.MASTER_MIN_WORKER_THREADS,
         String.valueOf(Runtime.getRuntime().availableProcessors()));
+    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+        String.valueOf(ChannelType.defaultType()));
+    defaultProps.setProperty(Constants.USER_NETTY_CHANNEL,
+        String.valueOf(ChannelType.defaultType()));
 
     InputStream defaultInputStream =
         TachyonConf.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
@@ -228,18 +248,6 @@ public class TachyonConf {
     return mProperties.containsKey(key);
   }
 
-  public int getInt(String key, final int defaultValue) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
-      try {
-        return Integer.parseInt(lookup(rawValue));
-      } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key " + key + " as integer.");
-      }
-    }
-    return defaultValue;
-  }
-
   public int getInt(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
@@ -312,12 +320,12 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
-  public <T extends Enum<T>> T getEnum(String key, T defaultValue) {
-    if (mProperties.containsKey(key)) {
-      final String val = get(key, defaultValue.toString());
-      return null == val ? defaultValue : Enum.valueOf(defaultValue.getDeclaringClass(), val);
+  public <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
+    if (!mProperties.containsKey(key)) {
+      throw new RuntimeException("Invalid configuration key " + key + ".");
     }
-    return defaultValue;
+    final String val = get(key);
+    return Enum.valueOf(enumType, val);
   }
 
   public long getBytes(String key) {

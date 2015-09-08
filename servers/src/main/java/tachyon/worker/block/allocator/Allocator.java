@@ -19,16 +19,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
-import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * Interface for the allocation policy of Tachyon managed data.
  */
+@PublicApi
 public interface Allocator {
 
   class Factory {

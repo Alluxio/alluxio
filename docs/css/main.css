@@ -17,6 +17,9 @@
     font-weight: bold;
     color: #777;
 }
+#topbar {
+    position: fixed;
+}
 .navbar-inner {
     /*padding-top: 2px;*/
     height: 50px;
@@ -36,6 +39,16 @@
 body #content {
     line-height: 1.6;
     /* Inspired by Github's wiki style */
+}
+@media screen and (max-width: 715px) {
+    body {
+        padding-top: 0px !important;
+    }
+    #topbar {
+        background-color: #2d2d2d;
+        display: inline-block;
+        position: static;
+    }
 }
 .title {
     font-size: 32px;
