@@ -245,20 +245,20 @@ service FileSystemMasterService {
 }
 
 service RawTableMasterService {
-  i64 userCreateRawTable(1: string path, 2: i32 columns, 3: binary metadata)
+  i64 createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
     throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe, 3: TableColumnException tce,
       4: TachyonException te)
 
-  i64 userGetRawTableId(1: string path)
+  i64 getRawTableId(1: string path)
     throws (1: InvalidPathException ipe, 2: TableDoesNotExistException tdnee)
 
-  RawTableInfo userGetClientRawTableInfoById(1: i64 id)
+  RawTableInfo getClientRawTableInfoById(1: i64 id)
     throws (1: TableDoesNotExistException tdnee)
 
-  RawTableInfo userGetClientRawTableInfoByPath(1: string path)
+  RawTableInfo getClientRawTableInfoByPath(1: string path)
     throws (1: TableDoesNotExistException tdnee, 2: InvalidPathException ipe)
 
-  void userUpdateRawTableMetadata(1: i64 tableId, 2: binary metadata)
+  void updateRawTableMetadata(1: i64 tableId, 2: binary metadata)
     throws (1: TableDoesNotExistException tdnee, 2: TachyonException te)
 }
 
