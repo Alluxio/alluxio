@@ -119,8 +119,7 @@ public class Sessions {
       if (mSessions.containsKey(sessionId)) {
         mSessions.get(sessionId).heartbeat();
       } else {
-        int sessionTimeoutMs =
-            mTachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
+        int sessionTimeoutMs = mTachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
         mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
       }
     }
