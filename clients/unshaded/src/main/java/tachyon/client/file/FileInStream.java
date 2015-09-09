@@ -257,9 +257,12 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   }
 
   /**
-   * @return the current block id based on mPos
+   * @return the current block id based on mPos, -1 if at the end of the file
    */
   private long getBlockCurrentBlockId() {
+    if (mPos == mFileLength) {
+      return -1;
+    }
     int index = (int) (mPos / mBlockSize);
     Preconditions.checkState(index < mBlockIds.size(), "Current block index exceeds max index.");
     return mBlockIds.get(index);
