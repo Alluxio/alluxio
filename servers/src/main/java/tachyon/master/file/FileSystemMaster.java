@@ -44,6 +44,7 @@ import tachyon.master.file.journal.DeleteFileEntry;
 import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
+import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
@@ -127,6 +128,14 @@ public final class FileSystemMaster extends MasterBase {
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry instanceof InodeEntry) {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else if (entry instanceof InodeLastModificationTimeEntry) {
+      InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) entry;
+      try {
+        Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
+        inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+      } catch (FileDoesNotExistException fdnee) {
+        throw new RuntimeException(fdnee);
+      }
     } else if (entry instanceof DependencyEntry) {
       DependencyEntry dependencyEntry = (DependencyEntry) entry;
       Dependency dependency = new Dependency(dependencyEntry.mId, dependencyEntry.mParentFiles,
@@ -463,13 +472,18 @@ public final class FileSystemMaster extends MasterBase {
       List<Inode> created =
           createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
 
-      // Journal all of the created inodes.
-      for (Inode inode : created) {
-        writeJournalEntry(inode.toJournalEntry());
-      }
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+      for (int i = 0; i < created.size(); i ++) {
+        Inode inode = created.get(i);
+        if (i == 0) {
+          // The first inode in the list was modified, not created.
+          writeJournalEntry(new InodeLastModificationTimeEntry(inode.getId(),
+              inode.getLastModificationTimeMs()));
+        } else {
+          writeJournalEntry(inode.toJournalEntry());
+        }
+      }
       flushJournal();
-
       return created.get(created.size() - 1).getId();
     }
   }
@@ -785,11 +799,18 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       try {
         List<Inode> created = mInodeTree.createPath(path, 0, recursive, true);
-        // Journal all of the created inodes.
-        for (Inode inode : created) {
-          writeJournalEntry(inode.toJournalEntry());
-        }
+
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+        for (int i = 0; i < created.size(); i ++) {
+          Inode inode = created.get(i);
+          if (i == 0) {
+            // The first inode in the list was modified, not created.
+            writeJournalEntry(new InodeLastModificationTimeEntry(inode.getId(),
+                inode.getLastModificationTimeMs()));
+          } else {
+            writeJournalEntry(inode.toJournalEntry());
+          }
+        }
         flushJournal();
       } catch (BlockInfoException bie) {
         // Since we are creating a directory, the block size is ignored, no such exception should
