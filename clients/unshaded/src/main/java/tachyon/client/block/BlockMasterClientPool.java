@@ -43,7 +43,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
     super(ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS));
     mExecutorService = Executors.newFixedThreadPool(mMaxCapacity,
-            ThreadFactoryUtils.build("block-master-heartbeat-%d", true));
+        ThreadFactoryUtils.build("block-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
   }
 
