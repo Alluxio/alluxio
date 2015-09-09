@@ -465,6 +465,21 @@ The user configuration specifies values regarding file system access.
   <td>3000</td>
   <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to wait for a response from the data server.</td>
 </tr>
+<tr>
+  <td>tachyon.user.remote.block.worker.threads</td>
+  <td>10</td>
+  <td>How many threads to use for remote block worker.</td>
+</tr>
+<tr>
+  <td>tachyon.user.local.block.worker.client.threads</td>
+  <td>10000</td>
+  <td>How many threads to use for block worker client pool.</td>
+</tr>
+<tr>
+  <td>tachyon.user.block.master.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for block master client pool.</td>
+</tr>
 </table>
 
 ## Working with Apache Hadoop MapReduce Configuration
