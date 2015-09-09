@@ -119,7 +119,7 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
     }
   }
 
-  private void startServing() {
+  private void startServing() throws IOException {
     startServingWebServer();
     LOG.info("Tachyon Master version " + Version.VERSION + " started (gained leadership) @ "
         + getMasterAddress());
