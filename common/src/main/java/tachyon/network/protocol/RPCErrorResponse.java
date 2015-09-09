@@ -15,7 +15,6 @@
 
 package tachyon.network.protocol;
 
-import com.google.common.base.Preconditions;
 import com.google.common.primitives.Shorts;
 
 import io.netty.buffer.ByteBuf;
@@ -37,7 +36,7 @@ public final class RPCErrorResponse extends RPCResponse {
    * @return The decoded RPCErrorResponse object.
    */
   public static RPCErrorResponse decode(ByteBuf in) {
-    return new RPCErrorResponse(Status.fromShort(Preconditions.checkNotNull(in).readShort()));
+    return new RPCErrorResponse(Status.fromShort(in.readShort()));
   }
 
   @Override
