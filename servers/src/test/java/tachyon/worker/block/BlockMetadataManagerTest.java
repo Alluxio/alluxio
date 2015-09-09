@@ -29,25 +29,27 @@ import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Sets;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
+import tachyon.StorageLevelAlias;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.TempBlockMeta;
 
-// TODO: improve code health of this unittest.
 public final class BlockMetadataManagerTest {
   private static final long TEST_USER_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_BLOCK_SIZE = 20;
+
+  private final int[] mTierLevel = {0, 1};
+  private final StorageLevelAlias[] mTierAlias = {StorageLevelAlias.MEM, StorageLevelAlias.HDD};
+  private final String[][] mTierPath = { {"/ramdisk"}, {"/disk1", "/disk2"}};
+  private final long[][] mTierCapacityBytes = { {1000}, {3000, 5000}};
+
   private BlockMetadataManager mMetaManager;
-  private String mTachyonHome;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -57,22 +59,10 @@ public final class BlockMetadataManagerTest {
 
   @Before
   public void before() throws Exception {
-    TachyonConf tachyonConf = WorkerContext.getConf();
-    // Setup a two-tier storage
-    mTachyonHome = mFolder.newFolder().getAbsolutePath();;
-    tachyonConf.set(Constants.TACHYON_HOME, mTachyonHome);
-    tachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
-    // TODO improve the code using String.format
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
-        mTachyonHome + "/ramdisk");
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        1000 + "");
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
-        mTachyonHome + "/disk1," + mTachyonHome + "/disk2");
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
-        3000 + "," + 5000);
+    String baseDir = mFolder.newFolder().getAbsolutePath();
+    TieredBlockStoreTestUtils
+        .setTachyonConf(baseDir, mTierLevel, mTierAlias, mTierPath, mTierCapacityBytes, null);
+
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
   }
 

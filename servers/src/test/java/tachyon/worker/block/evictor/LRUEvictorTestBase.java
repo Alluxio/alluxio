@@ -43,7 +43,7 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     int bottomTierLevel =
         TieredBlockStoreTestUtils.TIER_LEVEL[TieredBlockStoreTestUtils.TIER_LEVEL.length - 1];
     // capacity increases with index
-    long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[bottomTierLevel];
+    long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierLevel];
     int nDir = bottomTierDirCapacity.length;
     // fill in dirs from larger to smaller capacity with blockId equal to BLOCK_ID plus dir index
     for (int i = nDir - 1; i >= 0; i --) {
@@ -71,7 +71,7 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     // the first tier, leave the second tier empty. Request space from the first tier, blocks should
     // be moved from the first to the second tier without eviction.
     int firstTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[0];
-    long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0];
+    long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0];
     int nDir = firstTierDirCapacity.length;
     for (int i = 0; i < nDir; i ++) {
       cache(USER_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierLevel, i);
@@ -99,7 +99,7 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     // second tier should be evicted to hold blocks moved from the first tier.
     long blockId = BLOCK_ID;
     for (int tierLevel : TieredBlockStoreTestUtils.TIER_LEVEL) {
-      long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[tierLevel];
+      long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierLevel];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
         cache(USER_ID, blockId, tierCapacity[dirIdx], tierLevel, dirIdx);
         blockId ++;
@@ -108,8 +108,8 @@ public class LRUEvictorTestBase extends EvictorTestBase {
 
     BlockStoreLocation anyDirInFirstTier =
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_LEVEL[0] + 1);
-    int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY[0].length;
-    long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0][0];
+    int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length;
+    long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
     for (int i = 0; i < nDirInFirstTier; i ++) {
       EvictionPlan plan =
           mEvictor.freeSpaceWithView(smallestCapacity, anyDirInFirstTier, mManagerView);

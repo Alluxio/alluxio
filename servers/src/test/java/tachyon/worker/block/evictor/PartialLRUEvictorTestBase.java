@@ -37,7 +37,7 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     int bottomTierLevel =
         TieredBlockStoreTestUtils.TIER_LEVEL[TieredBlockStoreTestUtils.TIER_LEVEL.length - 1];
     // capacity increases with index
-    long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[bottomTierLevel];
+    long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierLevel];
     long smallestCapacity = bottomTierDirCapacity[0];
     long delta = smallestCapacity / 10;
     int nDir = bottomTierDirCapacity.length;
@@ -63,7 +63,7 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     // the first tier, leave the second tier empty. Request space from the first tier, blocks should
     // be moved from the first to the second tier without eviction.
     int firstTierLevel = TieredBlockStoreTestUtils.TIER_LEVEL[0];
-    long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0];
+    long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0];
     long smallestCapacity = firstTierDirCapacity[0];
     long delta = smallestCapacity / 10;
     int nDir = firstTierDirCapacity.length;
@@ -88,14 +88,14 @@ public class PartialLRUEvictorTestBase extends EvictorTestBase {
     // second tier should be evicted to hold blocks moved from the first tier.
     BlockStoreLocation anyDirInFirstTier =
         BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_LEVEL[0] + 1);
-    int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY[0].length;
-    int nDirInSecondTier = TieredBlockStoreTestUtils.TIER_CAPACITY[1].length;
-    long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0][0];
+    int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length;
+    int nDirInSecondTier = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[1].length;
+    long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0][0];
     long delta = smallestCapacity / 10;
     long blockId = BLOCK_ID;
 
     for (int tierLevel : TieredBlockStoreTestUtils.TIER_LEVEL) {
-      long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[tierLevel];
+      long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierLevel];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
         cache(USER_ID, blockId, tierCapacity[dirIdx] - dirIdx * delta, tierLevel, dirIdx);
         blockId ++;

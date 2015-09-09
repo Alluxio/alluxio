@@ -26,6 +26,7 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
@@ -36,7 +37,6 @@ import tachyon.worker.block.TieredBlockStoreTestUtils;
  */
 public class AllocatorFactoryTest {
   private TachyonConf mTachyonConf;
-  private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mManagerView;
 
   @Rule
@@ -44,11 +44,9 @@ public class AllocatorFactoryTest {
 
   @Before
   public void before() throws Exception {
-    File tempFolder = mTestFolder.newFolder();
-    mTachyonConf = new TachyonConf();
-    mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
-        Collections.<Long>emptySet());
+    String baseDir = mTestFolder.newFolder().getAbsolutePath();
+    mManagerView = TieredBlockStoreTestUtils.defaultMetadataManagerView(baseDir);
+    mTachyonConf = WorkerContext.getConf();
   }
 
   @Test
