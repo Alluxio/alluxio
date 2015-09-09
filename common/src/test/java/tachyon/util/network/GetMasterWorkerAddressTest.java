@@ -16,12 +16,8 @@
 package tachyon.util.network;
 
 import java.net.InetSocketAddress;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import tachyon.Constants;
@@ -29,85 +25,53 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 public class GetMasterWorkerAddressTest {
-  private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
-  private static Map<String, String> sNullMasterHostNameTestProperties =
-      new LinkedHashMap<String, String>();
-  private static Map<String, String> sNullMasterPortTestProperties =
-      new LinkedHashMap<String, String>();
-  private static Map<String, String> sNullTestProperties = new LinkedHashMap<String, String>();
-
-  private TachyonConf mCustomPropsTachyonConf;
-  private TachyonConf mNullMasterHostNameTachyonConf;
-  private TachyonConf mNullMasterPortTachyonConf;
-  private TachyonConf mNullTachyonConf;
-
-  @BeforeClass
-  public static void beforeClass() {
-    // initialize the test properties.
-    sTestProperties.put(Constants.MASTER_HOSTNAME, "RemoteMaster1");
-    sTestProperties.put(Constants.MASTER_PORT, "10000");
-    sTestProperties.put(Constants.WORKER_PORT, "10001");
-
-    // initialize the null master host name test properties.
-    sNullMasterHostNameTestProperties.put(Constants.MASTER_PORT, "20000");
-
-    // initialize the null master port test properties.
-    sNullMasterPortTestProperties.put(Constants.MASTER_HOSTNAME, "RemoteMaster3");
-  }
-
-  @Before
-  public void before() {
-    // init TachyonConf
-    mCustomPropsTachyonConf = new TachyonConf(sTestProperties);
-    mNullMasterHostNameTachyonConf = new TachyonConf(sNullMasterHostNameTestProperties);
-    mNullMasterPortTachyonConf = new TachyonConf(sNullMasterPortTestProperties);
-    mNullTachyonConf = new TachyonConf(sNullTestProperties);
-  }
-
   @Test
   public void getMasterAddressTest() {
-    String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster1");
+    conf.set(Constants.MASTER_PORT, "10000");
+    String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
     int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
     // connect host and port
     InetSocketAddress masterAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mCustomPropsTachyonConf);
-    Assert.assertNotNull(masterAddress);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
 
+    conf = new TachyonConf();
+    conf.set(Constants.MASTER_PORT, "20000");
     // port only
-    masterAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-            mNullMasterHostNameTachyonConf);
-    Assert.assertNotNull(masterAddress);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
 
+    conf = new TachyonConf();
+    conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster3");
     // connect host only
-    masterAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mNullMasterPortTachyonConf);
-    Assert.assertNotNull(masterAddress);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
 
+    conf = new TachyonConf();
     // all default
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mNullTachyonConf);
-    Assert.assertNotNull(masterAddress);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
 
   @Test
   public void getWorkerAddressTest() {
-    String defaultHostname = NetworkAddressUtils.getLocalHostName(mCustomPropsTachyonConf);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.WORKER_PORT, "10001");
+
+    String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
     // port only
     InetSocketAddress workerAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mCustomPropsTachyonConf);
-    Assert.assertNotNull(workerAddress);
+        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
 
+    conf = new TachyonConf();
     // all default
-    workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mNullTachyonConf);
-    Assert.assertNotNull(workerAddress);
+    workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, conf);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
   }
 }

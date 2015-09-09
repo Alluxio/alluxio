@@ -18,7 +18,8 @@ package tachyon.security.authentication;
 import javax.security.sasl.AuthenticationException;
 
 /**
- * This authentication provider allows any combination of username and password.
+ * An authentication provider implementation that allows arbitrary combination of username and
+ * password including empty strings.
  */
 public class SimpleAuthenticationProviderImpl implements AuthenticationProvider {
 

@@ -20,7 +20,7 @@ import java.io.File;
 /**
  * Represents the metadata of a block in Tachyon managed storage.
  */
-public class BlockMeta extends BlockMetaBase {
+public final class BlockMeta extends BlockMetaBase {
   private final long mBlockSize;
 
   public BlockMeta(long blockId, long blockSize, StorageDir dir) {

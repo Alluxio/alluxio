@@ -35,7 +35,7 @@ import tachyon.worker.block.meta.BlockMeta;
  * <p>
  * This class does not provide thread-safety. Corresponding lock must be acquired.
  */
-public class LocalFileBlockReader implements BlockReader {
+public final class LocalFileBlockReader implements BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
