@@ -30,7 +30,8 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 /**
  * Servlet that provides data for the header navigation bar.
  */
-public class WebInterfaceHeaderServlet extends HttpServlet {
+public final class WebInterfaceHeaderServlet extends HttpServlet {
+  private static final long serialVersionUID = -2466055439220042703L;
 
   private final transient TachyonConf mTachyonConf;
 
@@ -49,8 +50,7 @@ public class WebInterfaceHeaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    int masterWebPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT,
-        Constants.DEFAULT_MASTER_WEB_PORT);
+    int masterWebPort = mTachyonConf.getInt(Constants.MASTER_WEB_PORT);
     String masterHostName =
         NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf);
     request.setAttribute("masterHost", masterHostName);

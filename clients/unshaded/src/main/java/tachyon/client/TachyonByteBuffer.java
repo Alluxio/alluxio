@@ -48,9 +48,9 @@ public class TachyonByteBuffer implements Closeable {
   }
 
   /**
-   * Close the TachyonByteBuffer, here it is synchronized
+   * Closes the TachyonByteBuffer, here it is synchronized.
    *
-   * @throws IOException
+   * @throws IOException when the underlying block cannot be unlocked
    */
   @Override
   public synchronized void close() throws IOException {

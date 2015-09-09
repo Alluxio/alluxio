@@ -24,6 +24,7 @@ import javax.security.auth.login.LoginException;
 
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.login.TachyonJaasConfiguration;
 
 /**
  * A Singleton of LoginUser, which is an instance of {@link tachyon.security.User}. It represents
@@ -101,9 +102,11 @@ public class LoginUser {
    * @param authType the authentication type in configuration
    */
   private static void checkSecurityEnabled(AuthenticationFactory.AuthType authType) {
-    //TODO: add Kerberos and Custom condition check.
-    if (authType != AuthenticationFactory.AuthType.SIMPLE) {
-      throw new UnsupportedOperationException("User is only supported in SIMPLE mode");
+    //TODO: add Kerberos condition check.
+    if (authType != AuthenticationFactory.AuthType.SIMPLE
+        && authType != AuthenticationFactory.AuthType.CUSTOM) {
+      throw new UnsupportedOperationException("User is not supported in " + authType.getAuthName()
+          + " mode");
     }
   }
 }
