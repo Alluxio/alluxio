@@ -380,7 +380,6 @@ abstract class AbstractTFS extends FileSystem {
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
-  // TODO(cc): @Override needs to be removed to pass compilation, why?
   @Override
   public abstract String getScheme();
 
