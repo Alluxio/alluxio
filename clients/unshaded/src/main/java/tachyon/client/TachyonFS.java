@@ -312,7 +312,7 @@ public class TachyonFS extends AbstractTachyonFS {
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
     return mFSMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
-            framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+        framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
   }
 
   /**

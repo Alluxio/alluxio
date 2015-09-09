@@ -104,12 +104,12 @@ public class TFsShellUtilsTest {
       TException {
     /**
      * Generate such local structure /testWildCards
-                ├── foo |
-                        ├── foobar1
-                        └── foobar2
-                ├── bar |
-                        └── foobar3
-                └── foobar4
+     *                                ├── foo |
+     *                                        ├── foobar1
+     *                                        └── foobar2
+     *                                ├── bar |
+     *                                        └── foobar3
+     *                                └── foobar4
      */
     TachyonFile fd;
     try {
@@ -145,12 +145,12 @@ public class TFsShellUtilsTest {
       throws IOException {
     /**
      * Generate such local structure /testWildCards
-                ├── foo |
-                        ├── foobar1
-                        └── foobar2
-                ├── bar |
-                        └── foobar3
-                └── foobar4
+     *                                ├── foo |
+     *                                        ├── foobar1
+     *                                        └── foobar2
+     *                                ├── bar |
+     *                                        └── foobar3
+     *                                └── foobar4
      */
     FileUtils.deleteDirectory(new File(localTachyonCluster.getTachyonHome() + "/testWildCards"));
     new File(localTachyonCluster.getTachyonHome() + "/testWildCards").mkdir();
