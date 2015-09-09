@@ -41,8 +41,9 @@ public class UfsUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Build a new path relative to a given mTachyonFS root by retrieving the given path relative to
+   * Builds a new path relative to a given mTachyonFS root by retrieving the given path relative to
    * the ufsRootPath.
+   *
    * @param tfsRootPath the destination point in mTachyonFS to load the under FS path onto
    * @param ufsRootPath the source path in the under FS to be loaded
    * @param path the path in the under FS be loaded, path.startsWith(ufsRootPath) must be true
@@ -60,7 +61,7 @@ public class UfsUtils {
   }
 
   /**
-   * Load files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path) to
+   * Loads files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path) to
    * the given tfs under a given destination path.
    *
    * @param tfsAddrRootPath the mTachyonFS address and path to load the src files, like
@@ -68,7 +69,7 @@ public class UfsUtils {
    * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/src".
    * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS.
    * @param tachyonConf the instance of {@link tachyon.conf.TachyonConf} to be used.
-   * @throws IOException
+   * @throws IOException when an event that prevents the operation from completing is encountered
    */
   private static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
       String excludePaths, TachyonConf tachyonConf) throws IOException {
@@ -80,7 +81,7 @@ public class UfsUtils {
   }
 
   /**
-   * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix) to the given tfs
+   * Loads files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix) to the given tfs
    * under the given tfsRootPath directory.
    *
    * @param tfs the mTachyonFS handler created out of address like "tachyon://host:port"
@@ -89,7 +90,7 @@ public class UfsUtils {
    * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
    *        mTachyonFS.
    * @param tachyonConf instance of TachyonConf
-   * @throws IOException
+   * @throws IOException when an event that prevents the operation from completing is encountered
    */
   public static void loadUnderFs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
       PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException {
@@ -138,7 +139,7 @@ public class UfsUtils {
         LOG.debug("Loading ufs. Make dir if needed for '" + directoryName + "'.");
         tfs.mkdir(directoryName);
       }
-      // TODO Add the following.
+      // TODO(haoyuan): Add the following.
       // if (tfs.mkdir(tfsRootPath)) {
       // LOG.info("directory " + tfsRootPath + " does not exist in Tachyon: created");
       // } else {
@@ -154,14 +155,14 @@ public class UfsUtils {
     while (!ufsPathQueue.isEmpty()) {
       TachyonURI ufsPath = ufsPathQueue.poll(); // this is the absolute path
       LOG.info("Loading: " + ufsPath);
-      if (ufs.isFile(ufsPath.toString())) { // TODO: Fix path matching issue
+      if (ufs.isFile(ufsPath.toString())) { // TODO(haoyuan): Fix path matching issue.
         TachyonURI tfsPath = buildTFSPath(directoryName, ufsAddrRootPath, ufsPath);
         LOG.debug("Loading ufs. tfs path = " + tfsPath + ".");
         if (tfs.exist(tfsPath)) {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
         }
-        int fileId = tfs.createFile(tfsPath, ufsPath);
+        long fileId = tfs.createFile(tfsPath, ufsPath);
         if (fileId == -1) {
           LOG.warn("Failed to create tachyon file: " + tfsPath);
         } else {
@@ -197,7 +198,7 @@ public class UfsUtils {
           LOG.debug("Loading ufs. ufs path is a directory. make dir = "
                   + tfsPath + ".");
           tfs.mkdir(tfsPath);
-          // TODO Add the following.
+          // TODO(haoyuan): Add the following.
           // if (tfs.mkdir(tfsPath)) {
           // LOG.info("Created mTachyonFS folder " + tfsPath + " with checkpoint location " +
           // ufsPath);

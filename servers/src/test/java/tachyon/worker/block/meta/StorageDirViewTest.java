@@ -55,7 +55,7 @@ public class StorageDirViewTest {
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView =
-        Mockito.spy(new BlockMetadataManagerView(metaManager, Sets.<Integer>newHashSet(), Sets
+        Mockito.spy(new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(), Sets
             .<Long>newHashSet()));
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestDir = mTestTier.getDir(TEST_DIR);
