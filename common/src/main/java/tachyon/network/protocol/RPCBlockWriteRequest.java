@@ -17,7 +17,6 @@ package tachyon.network.protocol;
 
 import java.nio.ByteBuffer;
 
-import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 
 import io.netty.buffer.ByteBuf;
@@ -56,8 +55,6 @@ public final class RPCBlockWriteRequest extends RPCRequest {
    * @return The decoded RPCBlockWriteRequest object
    */
   public static RPCBlockWriteRequest decode(ByteBuf in) {
-    Preconditions.checkNotNull(in);
-
     long userId = in.readLong();
     long blockId = in.readLong();
     long offset = in.readLong();

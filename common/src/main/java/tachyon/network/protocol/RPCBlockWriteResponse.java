@@ -68,8 +68,6 @@ public final class RPCBlockWriteResponse extends RPCResponse {
    * @return The decoded RPCBlockWriteResponse object
    */
   public static RPCBlockWriteResponse decode(ByteBuf in) {
-    Preconditions.checkNotNull(in);
-
     long userId = in.readLong();
     long blockId = in.readLong();
     long offset = in.readLong();
