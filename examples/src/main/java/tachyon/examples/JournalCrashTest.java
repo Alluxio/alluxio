@@ -52,9 +52,18 @@ public class JournalCrashTest {
      */
     CREATE_FILE,
     /**
+     * Keep creating and deleting file.
+     */
+    CREATE_DELETE_FILE,
+    /**
+     * Keep creating and renaming file.
+     */
+    CREATE_RENAME_FILE,
+    /**
      * Keep creating empty raw table.
      */
-    CREATE_TABLE,
+    // TODO: add it back when supporting raw table
+    //CREATE_TABLE,
     // TODO: add more op types to test
   }
 
@@ -103,11 +112,28 @@ public class JournalCrashTest {
             if (mTfs.createFile(new TachyonURI(mWorkDir + mSuccessNum)) == -1) {
               break;
             }
-          } else if (ClientOpType.CREATE_TABLE == mOpType) {
-            if (mTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
+          } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
+            int fid = mTfs.createFile(new TachyonURI(mWorkDir + mSuccessNum));
+            if(fid == -1) {
+              break;
+            }
+            if (!mTfs.delete(fid, false)) {
+              break;
+            }
+          } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
+            int fid = mTfs.createFile(new TachyonURI(mWorkDir + mSuccessNum));
+            if(fid == -1) {
+              break;
+            }
+            if (!mTfs.rename(fid, new TachyonURI(mWorkDir + mSuccessNum + "-rename"))) {
               break;
             }
           }
+          //else if (ClientOpType.CREATE_TABLE == mOpType) {
+          //  if (mTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
+          //    break;
+          //  }
+          //}
           mSuccessNum++;
           CommonUtils.sleepMs(null, 100);
         }
@@ -222,12 +248,23 @@ public class JournalCrashTest {
             tfs.close();
             return false;
           }
-        } else if (ClientOpType.CREATE_TABLE == opType) {
-          if (tfs.getRawTable(new TachyonURI(workDir + s)).getId() == -1) {
+        } else if (ClientOpType.CREATE_DELETE_FILE == opType) {
+          if (tfs.getFileId(new TachyonURI(workDir + s)) != -1) {
+            tfs.close();
+            return false;
+          }
+        } else if (ClientOpType.CREATE_RENAME_FILE == opType) {
+          if (tfs.getFileId(new TachyonURI(workDir + s + "-rename")) == -1) {
             tfs.close();
             return false;
           }
         }
+        //else if (ClientOpType.CREATE_TABLE == opType) {
+        //  if (tfs.getRawTable(new TachyonURI(workDir + s)).getId() == -1) {
+        //    tfs.close();
+        //    return false;
+        //  }
+        //}
       }
     }
     tfs.close();
@@ -264,20 +301,20 @@ public class JournalCrashTest {
 
       // Currently, half of the threads to create file and others to create table.
       // TODO: this should be reconsidered when supporting more operations
-      int createFileClients = sClientNum / 2;
+      int createFileClients = sClientNum;
       for (int f = 0; f < createFileClients; f ++) {
         ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
             sTestDir + "/createFile" + f + "/", ClientOpType.CREATE_FILE);
         sClientThreads.add(thread);
         sClientThreadList.add(new Thread(thread));
       }
-      int createTableClients = sClientNum - createFileClients;
-      for (int t = 0; t < createTableClients; t ++) {
-        ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
-            sTestDir + "/createTable" + t + "/", ClientOpType.CREATE_TABLE);
-        sClientThreads.add(thread);
-        sClientThreadList.add(new Thread(thread));
-      }
+      //int createTableClients = sClientNum - createFileClients;
+      //for (int t = 0; t < createTableClients; t ++) {
+      //  ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
+      //      sTestDir + "/createTable" + t + "/", ClientOpType.CREATE_TABLE);
+      //  sClientThreads.add(thread);
+      //  sClientThreadList.add(new Thread(thread));
+      //}
 
       // Launch all the client threads and wait for them. If Master crashes, all the threads will
       // stop at a certain time.
