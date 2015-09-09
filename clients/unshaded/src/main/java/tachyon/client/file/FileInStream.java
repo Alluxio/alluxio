@@ -213,7 +213,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         mCurrentBlockInStream.close();
       }
       try {
-        mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+        mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(currentBlockId);
         mShouldCacheCurrentBlock =
             !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
@@ -229,7 +229,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mShouldCacheCurrentBlock) {
         try {
           // TODO(calvin): Specify the location to be local.
-          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
+          mCurrentCacheStream =
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
@@ -287,7 +288,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         mCurrentBlockInStream.close();
       }
       try {
-        mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+        mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(currentBlockId);
         mShouldCacheCurrentBlock =
             !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
@@ -300,7 +301,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
+          mCurrentCacheStream =
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
