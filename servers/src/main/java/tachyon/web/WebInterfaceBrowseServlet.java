@@ -38,7 +38,6 @@ import tachyon.client.TachyonFile;
 import tachyon.client.file.FileInStream;
 import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
-import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -119,8 +118,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       LOG.error(e.getMessage());
     }
     List<UiBlockInfo> uiBlockInfo = new ArrayList<UiBlockInfo>();
-    for (BlockInfo blockInfo : mMaster.getFileSystemMaster().getBlockInfoList(path)) {
-      uiBlockInfo.add(new UiBlockInfo(blockInfo));
+    for (FileBlockInfo fileBlockInfo : mMaster.getFileSystemMaster().getFileBlockInfoList(path)) {
+      uiBlockInfo.add(new UiBlockInfo(fileBlockInfo));
     }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
