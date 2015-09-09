@@ -61,7 +61,7 @@ public final class WorkerClient implements Closeable {
 
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
-  private long mUserId;
+  private long mSessionId;
   private InetSocketAddress mWorkerAddress;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
@@ -87,11 +87,11 @@ public final class WorkerClient implements Closeable {
    * @param clientMetrics metrics of the lcient.
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
-      TachyonConf conf, long userId, boolean isLocal, ClientMetrics clientMetrics) {
+      TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mTachyonConf = conf;
-    mUserId = userId;
+    mSessionId = sessionId;
     mIsLocal = isLocal;
     mClientMetrics = clientMetrics;
   }
@@ -124,7 +124,7 @@ public final class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      mClient.addCheckpoint(mUserId, fileId);
+      mClient.addCheckpoint(mSessionId, fileId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
@@ -169,7 +169,7 @@ public final class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      mClient.cacheBlock(mUserId, blockId);
+      mClient.cacheBlock(mSessionId, blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
@@ -190,7 +190,7 @@ public final class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      mClient.cancelBlock(mUserId, blockId);
+      mClient.cancelBlock(mSessionId, blockId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -254,14 +254,14 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Updates the user id of the client, starting a new session. The previous user's held
+   * Updates the session id of the client, starting a new session. The previous session's held
    * resources should have already been freed, and will be automatically freed after the timeout
    * is exceeded.
    *
-   * @param newUserId the new id that represents the new session
+   * @param newSessionId the new id that represents the new session
    */
-  public synchronized void createNewSession(long newUserId) {
-    mUserId = newUserId;
+  public synchronized void createNewSession(long newSessionId) {
+    mSessionId = newSessionId;
   }
 
   /**
@@ -278,21 +278,21 @@ public final class WorkerClient implements Closeable {
     return mWorkerDataServerAddress;
   }
 
-  public synchronized long getUserId() {
-    return mUserId;
+  public synchronized long getSessionId() {
+    return mSessionId;
   }
 
   /**
-   * Gets the user temporary folder in the under file system of the specified user.
+   * Gets the session temporary folder in the under file system of the specified session.
    *
-   * @return The user temporary folder in the under file system
+   * @return The session temporary folder in the under file system
    * @throws IOException
    */
-  public synchronized String getUserUfsTempFolder() throws IOException {
+  public synchronized String getSessionUfsTempFolder() throws IOException {
     mustConnect();
 
     try {
-      return mClient.getUserUfsTempFolder(mUserId);
+      return mClient.getSessionUfsTempFolder(mSessionId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -325,7 +325,7 @@ public final class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      return mClient.lockBlock(blockId, mUserId);
+      return mClient.lockBlock(blockId, mSessionId);
     } catch (FileDoesNotExistException e) {
       return null;
     } catch (TException e) {
@@ -380,7 +380,7 @@ public final class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      return mClient.requestBlockLocation(mUserId, blockId, initialBytes);
+      return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
     } catch (OutOfSpaceException e) {
       throw new IOException(e);
     } catch (FileAlreadyExistException e) {
@@ -403,7 +403,7 @@ public final class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      return mClient.requestSpace(mUserId, blockId, requestBytes);
+      return mClient.requestSpace(mSessionId, blockId, requestBytes);
     } catch (OutOfSpaceException e) {
       return false;
     } catch (FileDoesNotExistException e) {
@@ -425,7 +425,7 @@ public final class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      return mClient.unlockBlock(blockId, mUserId);
+      return mClient.unlockBlock(blockId, mSessionId);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -433,16 +433,16 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Sends a user heartbeat to the worker. This renews the client's lease on resources such as
+   * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
    * locks and temporary files and updates the worker's metrics.
    *
    * @throws IOException if an error occurs during the heartbeat
    */
-  public synchronized void userHeartbeat() throws IOException {
+  public synchronized void sessionHeartbeat() throws IOException {
     mustConnect();
 
     try {
-      mClient.userHeartbeat(mUserId, mClientMetrics.getHeartbeatData());
+      mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

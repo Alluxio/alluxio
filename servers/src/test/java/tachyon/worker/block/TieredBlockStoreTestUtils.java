@@ -49,7 +49,7 @@ public class TieredBlockStoreTestUtils {
   public static final long[][] TIER_CAPACITY = { {2000, 3000}, {10000, 20000, 30000}};
 
   /**
-   * Create a {@link TachyonConf} for a {@link TieredBlockStore} configured by the parameters. For
+   * Creates a {@link TachyonConf} for a {@link TieredBlockStore} configured by the parameters. For
    * simplicity, you can use {@link #defaultTachyonConf(String)} which calls this method with
    * default values.
    *
@@ -110,7 +110,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Create a BlockMetadataManager with {@link #defaultTachyonConf}.
+   * Creates a BlockMetadataManager with {@link #defaultTachyonConf}.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
@@ -124,7 +124,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Create a {@link TachyonConf} with default values of {@link #TIER_LEVEL}, {@link #TIER_ALIAS},
+   * Creates a {@link TachyonConf} with default values of {@link #TIER_LEVEL}, {@link #TIER_ALIAS},
    * {@link #TIER_PATH} with the baseDir as path prefix, {@link #TIER_CAPACITY}.
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
@@ -146,9 +146,9 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Cache bytes into StorageDir.
+   * Caches bytes into StorageDir.
    *
-   * @param userId user who caches the data
+   * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
    * @param dir the StorageDir the block resides in
@@ -156,9 +156,9 @@ public class TieredBlockStoreTestUtils {
    * @param evictor the evictor to be informed of the new block
    * @throws Exception when fail to cache
    */
-  public static void cache(long userId, long blockId, long bytes, StorageDir dir,
+  public static void cache(long sessionId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
-    TempBlockMeta tempBlockMeta = createTempBlock(userId, blockId, bytes, dir);
+    TempBlockMeta tempBlockMeta = createTempBlock(sessionId, blockId, bytes, dir);
 
     // commit block
     FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
@@ -167,12 +167,12 @@ public class TieredBlockStoreTestUtils {
     // update evictor
     if (evictor instanceof BlockStoreEventListener) {
       ((BlockStoreEventListener) evictor)
-          .onCommitBlock(userId, blockId, dir.toBlockStoreLocation());
+          .onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
     }
   }
 
   /**
-   * Cache bytes into StorageDir.
+   * Caches bytes into StorageDir.
    *
    * @param tierLevel tier level of the StorageDir the block resides in
    * @param dirIndex index of directory in the tierLevel the block resides in
@@ -180,26 +180,26 @@ public class TieredBlockStoreTestUtils {
    * @param evictor the evictor to be informed of the new block
    * @throws Exception when fail to cache
    */
-  public static void cache(long userId, long blockId, long bytes, int tierLevel, int dirIndex,
+  public static void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIndex,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
     StorageDir dir = meta.getTiers().get(tierLevel).getDir(dirIndex);
-    cache(userId, blockId, bytes, dir, meta, evictor);
+    cache(sessionId, blockId, bytes, dir, meta, evictor);
   }
 
   /**
-   * Make a temp block of a given size in StorageDir.
+   * Makes a temp block of a given size in StorageDir.
    *
-   * @param userId user who caches the data
+   * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
    * @param dir the StorageDir the block resides in
    * @return the temp block meta
    * @throws Exception when fail to create this block
    */
-  public static TempBlockMeta createTempBlock(long userId, long blockId, long bytes, StorageDir dir)
-      throws Exception {
+  public static TempBlockMeta createTempBlock(long sessionId, long blockId, long bytes,
+      StorageDir dir) throws Exception {
     // prepare temp block
-    TempBlockMeta tempBlockMeta = new TempBlockMeta(userId, blockId, bytes, dir);
+    TempBlockMeta tempBlockMeta = new TempBlockMeta(sessionId, blockId, bytes, dir);
     dir.addTempBlockMeta(tempBlockMeta);
 
     // write data
@@ -211,7 +211,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Get the total capacity of all tiers in bytes.
+   * Gets the total capacity of all tiers in bytes.
    *
    * @return total capacity of all tiers in bytes
    */
@@ -226,7 +226,7 @@ public class TieredBlockStoreTestUtils {
   }
 
   /**
-   * Get the number of testing directories of all tiers.
+   * Gets the number of testing directories of all tiers.
    *
    * @return number of testing directories of all tiers.
    */
