@@ -25,11 +25,13 @@ import org.apache.mesos.MesosSchedulerDriver;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
     private boolean mMasterLaunched = false;
+    private String mMasterHostname = "";
 
     @Override
     public void disconnected(SchedulerDriver driver) {
@@ -75,29 +77,29 @@ public class TachyonFramework {
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
       TachyonConf conf = new TachyonConf();
-      double masterCpus = conf.get(Constants.MASTER_CPU, Constants.DEFAULT_MASTER_CPU);
-      double masterMemMB = conf.get(Constants.MASTER_MEM_MB, Constants.DEFAULT_MASTER_MEM_MB);
-      String tachyonHome = conf.get(Constants.TACHYON_HOME, Constants.DEFAULT_HOME);
+      double masterCpu = conf.getInt(Constants.MASTER_MESOS_CPU);
+      double masterMem = conf.getBytes(Constants.MASTER_MESOS_MEM) / (1024 * 1024); // MBs
+      String tachyonHome = conf.get(Constants.TACHYON_HOME);
       int launchedTasks = 0;
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
-        double offerCpus = 0;
-        double offerMemMb = 0;
+        double offerCpu = 0;
+        double offerMem = 0;
         for (Protos.Resource resource : offer.getResourcesList()) {
           if (resource.getName().equals("cpus")) {
-            offerCpus += resource.getScalar().getValue();
+            offerCpu += resource.getScalar().getValue();
           } else if (resource.getName().equals("mem")) {
-            offerMemMb += resource.getScalar().getValue();
+            offerMem += resource.getScalar().getValue();
           }
         }
 
         System.out.println("Received offer " + offer.getId().getValue() + " with cpus: "
-            + offerCpus + " and mem: " + offerMemMb);
+            + offerCpu + " and mem: " + offerMem + "MB.");
 
-        double remainingCpus = offerCpus;
-        double remainingMem = offerMemMb;
-        while (remainingCpus > 0 && remainingMem > 0) {
+        double remainingCpu = offerCpu;
+        double remainingMem = offerMem;
+        while (remainingCpu > 0 && remainingMem > 0) {
           Protos.TaskID taskId =
               Protos.TaskID.newBuilder().setValue(Integer.toString(launchedTasks ++)).build();
 
@@ -105,9 +107,9 @@ public class TachyonFramework {
               + offer.getId().getValue());
 
           Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
-          double targetCpus = 0;
+          double targetCpu = 0;
           double targetMem = 0;
-          if (!mMasterLaunched && remainingCpus >= masterCpus && remainingMem >= masterMemMB) {
+          if (!mMasterLaunched && remainingCpu >= masterCpu && remainingMem >= masterMem) {
             executorBuilder
                 .setName("Tachyon Master Executor")
                 .setSource("master")
@@ -115,18 +117,21 @@ public class TachyonFramework {
                 .setCommand(
                     Protos.CommandInfo.newBuilder().setValue(
                         PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-master.sh")));
-            targetCpus = masterCpus;
-            targetMem = masterMemMB;
+            targetCpu = masterCpu;
+            targetMem = masterMem;
+            mMasterHostname = offer.getHostname();
             mMasterLaunched = true;
-          } else {
+          } else if (mMasterLaunched) {
             executorBuilder
                 .setName("Tachyon Worker Executor")
                 .setSource("worker")
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
                 .setCommand(
                     Protos.CommandInfo.newBuilder().setValue(
-                        PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh")));
-            targetCpus = remainingCpus;
+                        PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh"))
+                .setArguments(0, mMasterHostname)
+                .setArguments(1, FormatUtils.getSizeFromBytes((long) remainingMem * 1024 * 1024)));
+            targetCpu = remainingCpu;
             targetMem = remainingMem;
           }
           Protos.TaskInfo task =
@@ -138,7 +143,7 @@ public class TachyonFramework {
                   .addResources(
                       Protos.Resource.newBuilder().setName("cpus")
                           .setType(Protos.Value.Type.SCALAR)
-                          .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetCpus)))
+                          .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetCpu)))
                   .addResources(
                       Protos.Resource.newBuilder().setName("mem").setType(Protos.Value.Type.SCALAR)
                           .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetMem)))
@@ -146,7 +151,7 @@ public class TachyonFramework {
 
           launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
 
-          remainingCpus -= targetCpus;
+          remainingCpu -= targetCpu;
           remainingMem -= targetMem;
         }
 

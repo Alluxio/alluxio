@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Usage:
+#  tachyon-framework.sh <mesos-master-hostname>
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
@@ -8,4 +11,8 @@ MESOS_MASTER_ADDRESS="$1"
 
 mkdir -p "${TACHYON_LOGS_DIR}"
 
-"${JAVA}" -cp "${CLASSPATH}" -Dtachyon.home="${TACHYON_HOME}" -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" -Djava.library.path="${MESOS_LIBRARY_PATH}" ${TACHYON_FRAMEWORK_JAVA_OPTS} tachyon.mesos.TachyonFramework "${MESOS_MASTER_ADDRESS}" > "${TACHYON_LOGS_DIR}"/framework.out 2>&1 &
+"${JAVA}" -cp "${CLASSPATH}" \
+  -Djava.library.path="${MESOS_LIBRARY_PATH}" \
+  -Dtachyon.home="${TACHYON_HOME}" \
+  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
+  ${TACHYON_FRAMEWORK_JAVA_OPTS} tachyon.mesos.TachyonFramework "${MESOS_MASTER_ADDRESS}" > "${TACHYON_LOGS_DIR}"/framework.out 2>&1 &

@@ -238,25 +238,9 @@ public class TachyonConf {
     return defaultValue;
   }
 
-  public int get(String key, final int defaultValue) {
-    if (mProperties.containsKey(key)) {
-      String raw = mProperties.getProperty(key);
-      String updated = lookup(raw);
-      LOG.debug("Get Tachyon property {} as {} with default {}", key, updated, defaultValue);
-      try {
-        return Integer.parseInt(updated);
-      } catch (NumberFormatException e) {
-        throw new RuntimeException("Configuration cannot evaluate key " + key + " as integer.");
-      }
-    }
-    return defaultValue;
-  }
-
   public String get(String key) {
     return get(key, null);
   }
-
-  // TODO(jsimsa): Provide get() for all built-in types, replacing getInt(), getLong(), ...
 
   public boolean containsKey(String key) {
     return mProperties.containsKey(key);
