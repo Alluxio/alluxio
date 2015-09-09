@@ -134,4 +134,5 @@ public final class TachyonFSTestUtils {
     return res;
   }
 
+  private TachyonFSTestUtils() {} // prevent instantiation
 }

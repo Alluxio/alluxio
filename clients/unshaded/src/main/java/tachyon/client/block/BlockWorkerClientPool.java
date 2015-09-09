@@ -30,7 +30,7 @@ import tachyon.worker.WorkerClient;
  * ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
  * using the client.
  */
-public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
+public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   /**
    * The capacity for this pool must be large, since each block written will hold a client until
    * the block is committed at the end of the file completion.

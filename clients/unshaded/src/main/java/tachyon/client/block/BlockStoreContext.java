@@ -63,7 +63,7 @@ public enum BlockStoreContext {
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     // If the local worker is not available, do not initialize the local worker client pool.
-    if (null == localWorkerAddress) {
+    if (localWorkerAddress == null) {
       mLocalBlockWorkerClientPool = null;
     } else {
       mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
