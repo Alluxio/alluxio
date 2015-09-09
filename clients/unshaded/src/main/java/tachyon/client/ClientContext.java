@@ -88,7 +88,9 @@ public class ClientContext {
 
     sRandom = new Random();
 
-    BlockStoreContext.INSTANCE.resetContext();
+    BlockStoreContext.INSTANCE.resetContext(new ClientContext());
     FileSystemContext.INSTANCE.resetContext();
   }
+
+  private ClientContext() {}
 }
