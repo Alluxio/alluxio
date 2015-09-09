@@ -31,9 +31,9 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -103,7 +103,7 @@ public class BlockServiceHandlerIntegrationTest {
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
 
-    String tmpFolder = mWorkerServiceHandler.getUserUfsTempFolder(USER_ID);
+    String tmpFolder = mWorkerServiceHandler.getSessionUfsTempFolder(USER_ID);
     UnderFileSystem ufs = UnderFileSystem.get(tmpFolder, mMasterTachyonConf);
     ufs.mkdirs(tmpFolder, true);
     String filename = PathUtils.concatPath(tmpFolder, file.getFileId());

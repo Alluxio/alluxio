@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.Users;
+import tachyon.Sessions;
 import tachyon.client.BlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidStateException;
@@ -187,7 +187,7 @@ public final class BlockMasterSync implements Runnable {
       case Free:
         for (long block : cmd.mData) {
           mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
-                  Users.MASTER_COMMAND_USER_ID, block));
+                  Sessions.MASTER_COMMAND_SESSION_ID, block));
         }
         break;
       // No action required
@@ -211,19 +211,19 @@ public final class BlockMasterSync implements Runnable {
    */
   private class BlockRemover implements Runnable {
     private BlockDataManager mBlockDataManager;
-    private long mUserId;
+    private long mSessionId;
     private long mBlockId;
 
-    public BlockRemover(BlockDataManager blockDataManager, long userId, long blockId) {
+    public BlockRemover(BlockDataManager blockDataManager, long sessionId, long blockId) {
       mBlockDataManager = blockDataManager;
-      mUserId = userId;
+      mSessionId = sessionId;
       mBlockId = blockId;
     }
 
     @Override
     public void run() {
       try {
-        mBlockDataManager.removeBlock(mUserId, mBlockId);
+        mBlockDataManager.removeBlock(mSessionId, mBlockId);
       } catch (IOException ioe) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
       } catch (InvalidStateException e) {

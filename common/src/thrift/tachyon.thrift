@@ -265,7 +265,7 @@ service RawTableMasterService {
 service WorkerService {
   void accessBlock(1: i64 blockId)
 
-  void addCheckpoint(1: i64 userId, 2: i64 fileId)
+  void addCheckpoint(1: i64 sessionId, 2: i64 fileId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: FailedToCheckpointException eF, 4: BlockInfoException eB)
 
@@ -273,31 +273,31 @@ service WorkerService {
     throws (1: TachyonException e)
 
   /**
-   * Used to cache a block into Tachyon space, worker will move the temporary block file from user
+   * Used to cache a block into Tachyon space, worker will move the temporary block file from session
    * folder to data folder, and update the space usage information related. then update the block
    * information to master.
    */
-  void cacheBlock(1: i64 userId, 2: i64 blockId)
+  void cacheBlock(1: i64 sessionId, 2: i64 blockId)
     throws (1: FileDoesNotExistException eP, 2: BlockInfoException eB)
 
   /**
    * Used to cancel a block which is being written. worker will delete the temporary block file and
    * the location and space information related, then reclaim space allocated to the block.
    */
-  void cancelBlock(1: i64 userId, 2: i64 blockId)
+  void cancelBlock(1: i64 sessionId, 2: i64 blockId)
 
   /**
-   * Used to get user's temporary folder on under file system, and the path of the user's temporary
+   * Used to get session's temporary folder on under file system, and the path of the session's temporary
    * folder will be returned.
    */
-  string getUserUfsTempFolder(1: i64 userId)
+  string getSessionUfsTempFolder(1: i64 sessionId)
 
   /**
-   * Lock the file in Tachyon's space while the user is reading it, and the path of the block file
+   * Lock the file in Tachyon's space while the session is reading it, and the path of the block file
    * locked will be returned, if the block file is not found, FileDoesNotExistException will be
    * thrown.
    */
-  string lockBlock(1: i64 blockId, 2: i64 userId)
+  string lockBlock(1: i64 blockId, 2: i64 sessionId)
     throws (1: FileDoesNotExistException eP)
 
   /**
@@ -311,10 +311,10 @@ service WorkerService {
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy, and the
    * temporary file path of the block file will be returned. if there is no enough space on Tachyon
-   * storage OutOfSpaceException will be thrown, if the file is already being written by the user,
+   * storage OutOfSpaceException will be thrown, if the file is already being written by the session,
    * FileAlreadyExistException will be thrown.
    */
-  string requestBlockLocation(1: i64 userId, 2: i64 blockId, 3: i64 initialBytes)
+  string requestBlockLocation(1: i64 sessionId, 2: i64 blockId, 3: i64 initialBytes)
     throws (1: OutOfSpaceException eP, 2: FileAlreadyExistException eS)
 
   /**
@@ -322,7 +322,7 @@ service WorkerService {
    * space for the block on block’s location, false if there is no enough space, if there is no
    * information of the block on worker, FileDoesNotExistException will be thrown.
    */
-  bool requestSpace(1: i64 userId, 2: i64 blockId, 3: i64 requestBytes)
+  bool requestSpace(1: i64 sessionId, 2: i64 blockId, 3: i64 requestBytes)
     throws (1: FileDoesNotExistException eP)
 
   /**
@@ -330,11 +330,11 @@ service WorkerService {
    * block file. return true if successfully unlock the block, return false if the block is not
    * found or failed to delete the block.
    */
-  bool unlockBlock(1: i64 blockId, 2: i64 userId)
+  bool unlockBlock(1: i64 blockId, 2: i64 sessionId)
 
   /**
-   * Local user send heartbeat to local worker to keep its temporary folder. It also sends client
+   * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
    * metrics to the worker.
    */
-  void userHeartbeat(1: i64 userId, 2: list<i64> metrics)
+  void sessionHeartbeat(1: i64 sessionId, 2: list<i64> metrics)
 }

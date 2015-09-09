@@ -140,15 +140,15 @@ public final class StorageDirView {
   }
 
   /**
-   * Create a TempBlockMeta given userId, blockId, and initialBlockSize.
+   * Create a TempBlockMeta given sessionId, blockId, and initialBlockSize.
    *
-   * @param userId of the owning user
+   * @param sessionId of the owning session
    * @param blockId of the new block
    * @param initialBlockSize of the new block
    * @return a new TempBlockMeta under the underlying directory.
    */
-  public TempBlockMeta createTempBlockMeta(long userId, long blockId, long initialBlockSize) {
-    return new TempBlockMeta(userId, blockId, initialBlockSize, mDir);
+  public TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize) {
+    return new TempBlockMeta(sessionId, blockId, initialBlockSize, mDir);
   }
 
   /**
