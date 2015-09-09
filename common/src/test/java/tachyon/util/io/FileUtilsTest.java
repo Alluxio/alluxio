@@ -133,7 +133,8 @@ public class FileUtilsTest {
         BufferedReader stdInput = new BufferedReader(new
             InputStreamReader(process.getInputStream()));
         String line = stdInput.readLine();
-        Assert.assertTrue(line.startsWith("drwxr-xr-t"));
+        // we are just concerned about the first and the last permission bits
+        Assert.assertTrue(line.matches("^d[rwx-]{8}t.*$"));
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
