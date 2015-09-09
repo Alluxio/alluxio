@@ -72,8 +72,8 @@ public class BaseAllocatorTest {
   protected void resetManagerView() throws Exception {
     String tachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
-    TieredBlockStoreTestUtils
-     .setTachyonConf(tachyonHome, TIER_LEVEL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES, null);
+    TieredBlockStoreTestUtils.setTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS, TIER_PATH,
+        TIER_CAPACITY_BYTES, null);
     BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();
     mManagerView = new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
         new HashSet<Long>());

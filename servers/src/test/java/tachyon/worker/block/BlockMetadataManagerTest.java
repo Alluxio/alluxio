@@ -46,8 +46,8 @@ public final class BlockMetadataManagerTest {
 
   private final int[] mTierLevel = {0, 1};
   private final StorageLevelAlias[] mTierAlias = {StorageLevelAlias.MEM, StorageLevelAlias.HDD};
-  private final String[][] mTierPath = { {"/ramdisk"}, {"/disk1", "/disk2"}};
-  private final long[][] mTierCapacityBytes = { {1000}, {3000, 5000}};
+  private final String[][] mTierPath = {{"/ramdisk"}, {"/disk1", "/disk2"}};
+  private final long[][] mTierCapacityBytes = {{1000}, {3000, 5000}};
 
   private BlockMetadataManager mMetaManager;
 
@@ -60,8 +60,8 @@ public final class BlockMetadataManagerTest {
   @Before
   public void before() throws Exception {
     String baseDir = mFolder.newFolder().getAbsolutePath();
-    TieredBlockStoreTestUtils
-        .setTachyonConf(baseDir, mTierLevel, mTierAlias, mTierPath, mTierCapacityBytes, null);
+    TieredBlockStoreTestUtils.setTachyonConfWithMultiTier(baseDir, mTierLevel, mTierAlias,
+        mTierPath, mTierCapacityBytes, null);
 
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
   }

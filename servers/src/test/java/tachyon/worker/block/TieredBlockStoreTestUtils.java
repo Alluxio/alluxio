@@ -52,7 +52,7 @@ public class TieredBlockStoreTestUtils {
       StorageLevelAlias.SSD};
   public static final String[][] TIER_PATH =
       { {"/mem/0", "/mem/1"}, {"/ssd/0", "/ssd/1", "/ssd/2"}};
-  public static final long[][] TIER_CAPACITY_BYTES = { {2000, 3000}, {10000, 20000, 30000}};
+  public static final long[][] TIER_CAPACITY_BYTES = {{2000, 3000}, {10000, 20000, 30000}};
   public static final String WORKER_DATA_FOLDER = "/tachyonworker/";
 
   public static TachyonConf sTachyonConf = WorkerContext.getConf();
@@ -71,12 +71,11 @@ public class TieredBlockStoreTestUtils {
    * @param tierCapacity like {@link #TIER_CAPACITY}, should be in the same dimension with tierPath,
    *        each element is the capacity of the corresponding dir in tierPath
    * @param workerDataFolder when specified it sets up the tachyon.worker.data.folder property.
-   * @return the created TachyonConf
    * @throws Exception when error happens during creating temporary folder.
    */
-  public static TachyonConf setTachyonConf(String baseDir, int[] tierLevel, 
-      StorageLevelAlias[] tierAlias, String[][] tierPath, long[][] tierCapacity,
-      String workerDataFolder) throws Exception {
+  public static void setTachyonConfWithMultiTier(String baseDir, int[] tierLevel, StorageLevelAlias[]
+      tierAlias, String[][] tierPath, long[][] tierCapacity, String workerDataFolder) throws Exception
+      {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierLevel);
     Preconditions.checkNotNull(tierAlias);
@@ -92,7 +91,7 @@ public class TieredBlockStoreTestUtils {
         "tierCapacity and tierLevel should have the same length");
     int nTier = tierLevel.length;
 
-    tierPath = concatAndCreateDir(baseDir, tierPath);
+    tierPath = concatAndCreateDir2D(baseDir, tierPath);
     if (workerDataFolder != null) {
       sTachyonConf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
@@ -102,7 +101,6 @@ public class TieredBlockStoreTestUtils {
     for (int i = 0; i < nTier; i ++) {
       setTachyonConfOneTier(tierLevel[i], tierAlias[i], tierPath[i], tierCapacity[i]);
     }
-    return sTachyonConf;
   }
 
   /**
@@ -121,16 +119,17 @@ public class TieredBlockStoreTestUtils {
    * @return the created TachyonConf.
    * @throws Exception when error happens during creating temporary folder.
    */
-  public static TachyonConf setTachyonConf(String baseDir, int tierLevel, StorageLevelAlias
-      tierAlias, String[] tierPath, long[] tierCapacity, String workerDataFolder) throws Exception {
+  public static void setTachyonConfWithSingleTier(String baseDir, int tierLevel,
+      StorageLevelAlias tierAlias, String[] tierPath, long[] tierCapacity, String
+      workerDataFolder) throws Exception {
     if (baseDir != null) {
-      tierPath = concatAndCreateDir(baseDir, tierPath);
+      tierPath = concatAndCreateDir1D(baseDir, tierPath);
     }
     if (workerDataFolder != null) {
       sTachyonConf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
     sTachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, String.valueOf(1));
-    return setTachyonConfOneTier(tierLevel, tierAlias, tierPath, tierCapacity);
+    setTachyonConfOneTier(tierLevel, tierAlias, tierPath, tierCapacity);
   }
 
   /**
@@ -140,9 +139,8 @@ public class TieredBlockStoreTestUtils {
    * @param tierAlias alias of the tier.
    * @param tierPath absolute path of the tier.
    * @param tierCapacity capacity of the tier
-   * @return {@link TachyonConf} with this tier set up.
    */
-  private static TachyonConf setTachyonConfOneTier(int level, StorageLevelAlias tierAlias,
+  private static void setTachyonConfOneTier(int level, StorageLevelAlias tierAlias,
       String[] tierPath, long[] tierCapacity) {
     Preconditions.checkNotNull(tierPath);
     Preconditions.checkNotNull(tierCapacity);
@@ -159,8 +157,6 @@ public class TieredBlockStoreTestUtils {
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
     sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level),
         tierCapacityString);
-
-    return sTachyonConf;
   }
 
   /**
@@ -171,14 +167,14 @@ public class TieredBlockStoreTestUtils {
    * @return new joined and created paths array.
    * @throws Exception when error happens during creating temporary folder
    */
-  private static String[][] concatAndCreateDir(String baseDir, final String[][] dirs)
+  private static String[][] concatAndCreateDir2D(String baseDir, final String[][] dirs)
       throws Exception {
     if (null == baseDir) {
       return dirs;
     }
     String[][] newDirs = new String[dirs.length][];
     for (int i = 0; i < dirs.length; i ++) {
-      newDirs[i] = concatAndCreateDir(baseDir, dirs[i]);
+      newDirs[i] = concatAndCreateDir1D(baseDir, dirs[i]);
     }
     return newDirs;
   }
@@ -191,7 +187,7 @@ public class TieredBlockStoreTestUtils {
    * @return new joined and created paths array.
    * @throws IOException when error happens during creating temporary folder
    */
-  private static String[] concatAndCreateDir(String baseDir, final String[] dirs) throws Exception {
+  private static String[] concatAndCreateDir1D(String baseDir, final String[] dirs) throws Exception {
     if (null == baseDir) {
       return dirs;
     }
@@ -237,11 +233,10 @@ public class TieredBlockStoreTestUtils {
    *
    * @param baseDir the directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
-   * @return the created tachyonConf.
    * @throws Exception when error happens during creating temporary folder
    */
-  public static TachyonConf setTachyonConfDefault(String baseDir) throws Exception {
-    return setTachyonConf(baseDir, TIER_LEVEL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES,
+  public static void setTachyonConfDefault(String baseDir) throws Exception {
+    setTachyonConfWithMultiTier(baseDir, TIER_LEVEL, TIER_ALIAS, TIER_PATH, TIER_CAPACITY_BYTES,
         WORKER_DATA_FOLDER);
   }
 
