@@ -67,7 +67,7 @@ public final class TieredBlockStoreTests {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     TachyonConf testConf =
-        TieredBlockStoreTestUtils.defaultTachyonConf(tempFolder.getAbsolutePath());
+        TieredBlockStoreTestUtils.setTachyonConfDefault(tempFolder.getAbsolutePath());
     WorkerContext.getConf().merge(testConf);
     mBlockStore = new TieredBlockStore();
 

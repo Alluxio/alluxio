@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
-import tachyon.master.BlockInfo;
+import tachyon.master.block.BlockId;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
@@ -46,7 +46,7 @@ public class BlockMetadataManagerView {
   /** A list of StorageTierView, derived from StorageTiers from the BlockMetadataManager */
   private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
   /** A list of pinned inodes */
-  private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
+  private final Set<Long> mPinnedInodes = new HashSet<Long>();
   /** Indices of locks that are being used */
   private final BitSet mInUseLocks = new BitSet();
   /** A map from tier alias to StorageTierView */
@@ -60,7 +60,7 @@ public class BlockMetadataManagerView {
    * @param pinnedInodes a set of pinned inodes
    * @param lockedBlocks a set of locked blocks
    */
-  public BlockMetadataManagerView(BlockMetadataManager manager, Set<Integer> pinnedInodes,
+  public BlockMetadataManagerView(BlockMetadataManager manager, Set<Long> pinnedInodes,
       Set<Long> lockedBlocks) {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
@@ -95,7 +95,8 @@ public class BlockMetadataManagerView {
    * @return boolean, true if block is pinned
    */
   public boolean isBlockPinned(long blockId) {
-    return mPinnedInodes.contains(BlockInfo.computeInodeId(blockId));
+    return mPinnedInodes.contains(
+        BlockId.createBlockId(BlockId.getContainerId(blockId), BlockId.getMaxSequenceNumber()));
   }
 
   /**

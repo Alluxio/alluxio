@@ -27,15 +27,17 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.NotFoundException;
-import tachyon.master.BlockInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.master.block.BlockId;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
 import tachyon.worker.block.meta.BlockMeta;
@@ -43,14 +45,14 @@ import tachyon.worker.block.meta.BlockMeta;
 /**
  * Servlet that provides data for displaying block info of a worker.
  */
-public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
+public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   private static final long serialVersionUID = 4148506607369321012L;
   private final transient BlockDataManager mBlockDataManager;
   private final transient TachyonConf mTachyonConf;
 
   public WebInterfaceWorkerBlockInfoServlet(BlockDataManager blockDataManager, TachyonConf conf) {
-    mBlockDataManager = blockDataManager;
-    mTachyonConf = conf;
+    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+    mTachyonConf = Preconditions.checkNotNull(conf);
   }
 
   /**
@@ -73,7 +75,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       try {
         UiFileInfo uiFileInfo = getUiFileInfo(tachyonClient, new TachyonURI(filePath));
         request.setAttribute("fileBlocksOnTier", uiFileInfo.getBlocksOnTier());
-        request.setAttribute("blockSizeByte", uiFileInfo.getBlockSizeBytes());
+        request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
         request.setAttribute("path", filePath);
         getServletContext().getRequestDispatcher("/worker/viewFileBlocks.jsp").forward(request,
             response);
@@ -99,7 +101,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       }
     }
 
-    List<Integer> fileIds = getSortedFileIds();
+    List<Long> fileIds = getSortedFileIds();
     request.setAttribute("nTotalFile", fileIds.size());
 
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
@@ -112,9 +114,9 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     try {
       int offset = Integer.parseInt(request.getParameter("offset"));
       int limit = Integer.parseInt(request.getParameter("limit"));
-      List<Integer> subFileIds = fileIds.subList(offset, offset + limit);
+      List<Long> subFileIds = fileIds.subList(offset, offset + limit);
       List<UiFileInfo> uiFileInfos = new ArrayList<UiFileInfo>(subFileIds.size());
-      for (int fileId : subFileIds) {
+      for (long fileId : subFileIds) {
         uiFileInfos.add(getUiFileInfo(tachyonClient, fileId));
       }
       request.setAttribute("fileInfos", uiFileInfos);
@@ -153,16 +155,17 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @return a sorted fileId list
    */
-  private List<Integer> getSortedFileIds() {
-    Set<Integer> fileIds = new HashSet<Integer>();
+  private List<Long> getSortedFileIds() {
+    Set<Long> fileIds = new HashSet<Long>();
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     for (List<Long> blockIds : storeMeta.getBlockList().values()) {
       for (long blockId : blockIds) {
-        int fileId = BlockInfo.computeInodeId(blockId);
+        long fileId =
+            BlockId.createBlockId(BlockId.getContainerId(blockId), BlockId.getMaxSequenceNumber());
         fileIds.add(fileId);
       }
     }
-    List<Integer> sortedFileIds = new ArrayList<Integer>(fileIds);
+    List<Long> sortedFileIds = new ArrayList<Long>(fileIds);
     Collections.sort(sortedFileIds);
     return sortedFileIds;
   }
@@ -176,7 +179,7 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
-  private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, int fileId)
+  private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, long fileId)
       throws FileDoesNotExistException, NotFoundException, IOException {
     return getUiFileInfo(tachyonClient, fileId, TachyonURI.EMPTY_URI);
   }
@@ -205,11 +208,11 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
-  private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, int fileId, TachyonURI filePath)
+  private UiFileInfo getUiFileInfo(TachyonFS tachyonClient, long fileId, TachyonURI filePath)
       throws FileDoesNotExistException, NotFoundException, IOException {
-    ClientFileInfo fileInfo = tachyonClient.getFileStatus(fileId, filePath, true);
+    FileInfo fileInfo = tachyonClient.getFileStatus(fileId, filePath, true);
     if (fileInfo == null) {
-      throw new FileDoesNotExistException(fileId != -1 ? Integer.toString(fileId)
+      throw new FileDoesNotExistException(fileId != -1 ? Long.toString(fileId)
           : filePath.toString());
     }
 
@@ -225,11 +228,11 @@ public class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         // The block last access time is not available. Use -1 for now.
         // It's not necessary to show location information here since
         // we are viewing at the context of this worker.
-        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1, null);
+        uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1);
       }
     }
     if (!blockExistOnWorker) {
-      throw new FileDoesNotExistException(fileId != -1 ? Integer.toString(fileId)
+      throw new FileDoesNotExistException(fileId != -1 ? Long.toString(fileId)
           : filePath.toString());
     }
     return uiFileInfo;
