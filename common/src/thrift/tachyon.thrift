@@ -36,12 +36,10 @@ struct BlockInfo {
 }
 
 // Information about files.
-// TODO: Just include a BlockInfo in this FileBlockInfo
 struct FileBlockInfo {
-  1: i64 blockId
+  1: BlockInfo blockInfo
   2: i64 offset
-  3: i64 length
-  4: list<NetAddress> locations
+  3: list<NetAddress> underFsLocations
 }
 
 struct FileInfo {
