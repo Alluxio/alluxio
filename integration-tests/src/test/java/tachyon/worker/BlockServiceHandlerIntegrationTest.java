@@ -51,8 +51,6 @@ import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockServiceHandler;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.block.BlockWorkerTester;
 
 /**
  * Integration tests for tachyon.BlockServiceHandler
@@ -72,14 +70,6 @@ public class BlockServiceHandlerIntegrationTest {
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
 
-  class Tester implements BlockWorkerTester {
-    BlockWorker.PrivateAccess mPrivateAccess;
-
-    public void receiveAccess(BlockWorker.PrivateAccess access) {
-      mPrivateAccess = access;
-    }
-  }
-
   @After
   public final void after() throws Exception {
     mTfs.close();
@@ -93,13 +83,11 @@ public class BlockServiceHandlerIntegrationTest {
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    Tester tester = new Tester();
     mLocalTachyonCluster.start(tachyonConf);
-    mLocalTachyonCluster.getWorker().grantAccess(tester);
-    mWorkerServiceHandler = tester.mPrivateAccess.getWorkerServiceHandler();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
+    mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
 
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),

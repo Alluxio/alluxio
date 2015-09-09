@@ -34,8 +34,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerClient;
-import tachyon.worker.block.BlockWorker;
-import tachyon.worker.block.BlockWorkerTester;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -54,14 +52,6 @@ public class ServiceSocketBindIntegrationTest {
   private WorkerClient mWorkerClient;
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
-
-  class Tester implements BlockWorkerTester {
-    BlockWorker.PrivateAccess mPrivateAccess;
-
-    public void receiveAccess(BlockWorker.PrivateAccess access) {
-      mPrivateAccess = access;
-    }
-  }
 
   @After
   public final void after() throws Exception {
@@ -156,18 +146,15 @@ public class ServiceSocketBindIntegrationTest {
     // test Master RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
-    Tester tester = new Tester();
-    mLocalTachyonCluster.getWorker().grantAccess(tester);
-
     // test Worker RPC socket bind (session layer)
-    bindHost = tester.mPrivateAccess.getRPCBindHost();
+    bindHost = mLocalTachyonCluster.getWorker().getRPCBindHost();
     assertThat("Worker RPC address " + bindHost + "is not wildcard address", bindHost,
         containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
     // test Worker data socket bind (session layer)
-    bindHost = tester.mPrivateAccess.getDataBindHost();
+    bindHost = mLocalTachyonCluster.getWorker().getDataBindHost();
     assertThat("Worker Data bind address " + bindHost + "is not wildcard address", bindHost,
         containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker data service connectivity (application layer)
@@ -181,7 +168,7 @@ public class ServiceSocketBindIntegrationTest {
     Assert.assertEquals(200, mMasterWebService.getResponseCode());
 
     // test Worker Web socket bind (session layer)
-    bindHost = tester.mPrivateAccess.getWebBindHost();
+    bindHost = mLocalTachyonCluster.getWorker().getWebBindHost();
     assertThat("Worker Web bind address " + bindHost + "is not wildcard address", bindHost,
         containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker Web service connectivity (application layer)
@@ -236,12 +223,9 @@ public class ServiceSocketBindIntegrationTest {
       // This is expected, since Work RPC service is NOT listening on loopback.
     }
 
-    Tester tester = new Tester();
-    mLocalTachyonCluster.getWorker().grantAccess(tester);
-
     // connect Worker data service on loopback, while Worker is listening on local hostname.
     InetSocketAddress workerDataAddr =
-        new InetSocketAddress("127.0.0.1", tester.mPrivateAccess.getDataLocalPort());
+        new InetSocketAddress("127.0.0.1", mLocalTachyonCluster.getWorker().getDataLocalPort());
     try {
       mWorkerDataService = SocketChannel.open(workerDataAddr);
       Assert.assertTrue(mWorkerDataService.isConnected());
@@ -267,7 +251,7 @@ public class ServiceSocketBindIntegrationTest {
     // connect Worker Web service on loopback, while Worker is listening on local hostname.
     try {
       mWorkerWebService = (HttpURLConnection) new URL(
-          "http://127.0.0.1:" + tester.mPrivateAccess.getWebLocalPort() + "/home")
+          "http://127.0.0.1:" + mLocalTachyonCluster.getWorker().getWebLocalPort() + "/home")
               .openConnection();
       Assert.assertEquals(200, mWorkerWebService.getResponseCode());
       Assert.fail("Client should not have successfully connected to Worker Web service.");

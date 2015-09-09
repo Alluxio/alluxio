@@ -36,7 +36,7 @@ interface TachyonFSCore extends Closeable {
    * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
-   * @throws IOException if the operation failed
+   * @throws IOException if the operation fails
    */
   int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
       throws IOException;
@@ -50,7 +50,7 @@ interface TachyonFSCore extends Closeable {
    * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
    *        or not
    * @return true if deletes successfully, false otherwise.
-   * @throws IOException if the operation failed
+   * @throws IOException if the operation fails
 
    */
   boolean delete(long fileId, TachyonURI path, boolean recursive) throws IOException;
@@ -84,7 +84,7 @@ interface TachyonFSCore extends Closeable {
    * @param path the path of the folder to be created
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return true if the folder is created successfully or already existing. false otherwise.
-   * @throws IOException if the operation failed
+   * @throws IOException if the operation fails
    */
   boolean mkdirs(TachyonURI path, boolean recursive) throws IOException;
 
@@ -96,7 +96,7 @@ interface TachyonFSCore extends Closeable {
    * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
    * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
-   * @throws IOException if the operation failed
+   * @throws IOException if the operation fails
    */
   boolean rename(long fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
 
@@ -109,7 +109,7 @@ interface TachyonFSCore extends Closeable {
   * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
   *        or not
   * @return true if in-memory free successfully, false otherwise.
-  * @throws IOException if the operation failed
+  * @throws IOException if the operation fails
   */
   boolean freepath(long fileId, TachyonURI path, boolean recursive) throws IOException;
 }

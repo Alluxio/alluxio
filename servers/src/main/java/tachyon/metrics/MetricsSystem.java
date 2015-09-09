@@ -58,34 +58,21 @@ public class MetricsSystem {
   private MetricsServlet mMetricsServlet;
 
   /**
-   * PrivateAccess can be used to access private members of the MetricsSystem. This access is
-   * limited only to classes that implement the MetricsSystemTester class and is expected to only be
-   * used by tests.
+   * Gets the sinks.
+   *
+   * @return a list of registered Sinks
    */
-  public class PrivateAccess {
-    /**
-     * Gets the sinks.
-     *
-     * @return a list of registered Sinks
-     */
-    public List<Sink> getSinks() {
-      return mSinks;
-    }
-
-    /**
-     * Gets the sources. Used by unit tests only.
-     *
-     * @return a list of registered Sources
-     */
-    public List<Source> getSources() {
-      return mSources;
-    }
-
-    private PrivateAccess() {} // prevent instantiation
+  public List<Sink> getSinks() {
+    return mSinks;
   }
 
-  public void grantAccess(MetricsSystemTester tester) {
-    tester.receiveAccess(new PrivateAccess());
+  /**
+   * Gets the sources. Used by unit tests only.
+   *
+   * @return a list of registered Sources
+   */
+  public List<Source> getSources() {
+    return mSources;
   }
 
   /**

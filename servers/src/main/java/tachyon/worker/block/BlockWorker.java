@@ -98,66 +98,53 @@ public final class BlockWorker {
   private MetricsSystem mWorkerMetricsSystem;
 
   /**
-   * PrivateAccess can be used to access private members of the BlockWorker. This access is
-   * limited only to classes that implement the BlockWorkerTester class and is expected to only be
-   * used by tests.
+   * @return the worker service handler
    */
-  public class PrivateAccess {
-    /**
-     * @return the worker service handler
-     */
-    public BlockServiceHandler getWorkerServiceHandler() {
-      return mServiceHandler;
-    }
-
-    /**
-     * @return the worker RPC service bind host
-     */
-    public String getRPCBindHost() {
-      return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
-          .toString();
-    }
-
-    /**
-     * @return the worker RPC service port
-     */
-    public int getRPCLocalPort() {
-      return mPort;
-    }
-
-    /**
-     * @return the worker data service bind host
-     */
-    public String getDataBindHost() {
-      return mDataServer.getBindHost();
-    }
-
-    /**
-     * @return the worker data service port
-     */
-    public int getDataLocalPort() {
-      return mDataServer.getPort();
-    }
-
-    /**
-     * @return the worker web service bind host
-     */
-    public String getWebBindHost() {
-      return mWebServer.getBindHost();
-    }
-
-    /**
-     * @return the worker web service port
-     */
-    public int getWebLocalPort() {
-      return mWebServer.getLocalPort();
-    }
-
-    private PrivateAccess() {} // prevent instantiation
+  public BlockServiceHandler getWorkerServiceHandler() {
+    return mServiceHandler;
   }
 
-  public void grantAccess(BlockWorkerTester tester) {
-    tester.receiveAccess(new PrivateAccess());
+  /**
+   * @return the worker RPC service bind host
+   */
+  public String getRPCBindHost() {
+    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
+        .toString();
+  }
+
+  /**
+   * @return the worker RPC service port
+   */
+  public int getRPCLocalPort() {
+    return mPort;
+  }
+
+  /**
+   * @return the worker data service bind host
+   */
+  public String getDataBindHost() {
+    return mDataServer.getBindHost();
+  }
+
+  /**
+   * @return the worker data service port
+   */
+  public int getDataLocalPort() {
+    return mDataServer.getPort();
+  }
+
+  /**
+   * @return the worker web service bind host
+   */
+  public String getWebBindHost() {
+    return mWebServer.getBindHost();
+  }
+
+  /**
+   * @return the worker web service port
+   */
+  public int getWebLocalPort() {
+    return mWebServer.getLocalPort();
   }
 
   /**
@@ -223,8 +210,8 @@ public final class BlockWorker {
     mSyncExecutorService =
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
-    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
-        mBlockMasterClient);
+    mBlockMasterSync =
+        new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress, mBlockMasterClient);
     // Get the worker id
     // TODO: Do this at TachyonWorker
     mBlockMasterSync.setWorkerId();
@@ -238,8 +225,7 @@ public final class BlockWorker {
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
     long workerId = mBlockMasterSync.getWorkerId();
-    String ufsWorkerFolder =
-        mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
+    String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
     Users users = new Users(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
     // Give BlockDataManager a pointer to the user metadata mapping
