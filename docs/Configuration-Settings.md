@@ -385,9 +385,9 @@ number.
   <td>Kerberos principal for Tachyon worker.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.user.timeout.ms</td>
+  <td>tachyon.worker.session.timeout.ms</td>
   <td>10000</td>
-  <td>Timeout between worker and user connection indicating a lost user connection.  Specified in milliseconds</td>
+  <td>Timeout between worker and clent connection indicating a lost session connection.  Specified in milliseconds</td>
 </tr>
 </table>
 

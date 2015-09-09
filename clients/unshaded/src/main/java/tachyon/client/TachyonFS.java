@@ -705,9 +705,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Returns the sessionId of the worker client. This is only used for testing.
-   *
-   * @return the sessionId of the worker client
+   * @return the sessionId of the worker client. This is only used for testing.
    * @throws IOException when the underlying master RPC fails
    */
   long getSessionId() throws IOException {
