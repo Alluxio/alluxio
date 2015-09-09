@@ -99,9 +99,11 @@ public final class InodeTreeTest {
   public void createPathTest() throws Exception {
     // create nested directory
     List<Inode> inodes = mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    Assert.assertEquals(2, inodes.size());
-    Assert.assertEquals("nested", inodes.get(0).getName());
-    Assert.assertEquals("test", inodes.get(1).getName());
+    // 2 created directories, and 1 modified root directory.
+    Assert.assertEquals(3, inodes.size());
+    Assert.assertEquals("", inodes.get(0).getName());
+    Assert.assertEquals("nested", inodes.get(1).getName());
+    Assert.assertEquals("test", inodes.get(2).getName());
 
     // creating the directory path again results in no new inodes.
     inodes = mTree.createPath(NESTED_URI, Constants.KB, true, true);
@@ -109,8 +111,10 @@ public final class InodeTreeTest {
 
     // create a file
     inodes = mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
-    Assert.assertEquals(1, inodes.size());
-    Assert.assertEquals("file", inodes.get(0).getName());
+    Assert.assertEquals(2, inodes.size());
+    // test directory was modified.
+    Assert.assertEquals("test", inodes.get(0).getName());
+    Assert.assertEquals("file", inodes.get(1).getName());
   }
 
   @Test
