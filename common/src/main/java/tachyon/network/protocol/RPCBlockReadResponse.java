@@ -71,8 +71,6 @@ public final class RPCBlockReadResponse extends RPCResponse {
    * @return The decoded RPCBlockReadResponse object
    */
   public static RPCBlockReadResponse decode(ByteBuf in) {
-    Preconditions.checkNotNull(in);
-
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();

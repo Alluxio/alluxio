@@ -46,7 +46,6 @@ public final class RPCBlockReadRequest extends RPCRequest {
    * @return The decoded RPCBlockReadRequest object
    */
   public static RPCBlockReadRequest decode(ByteBuf in) {
-    Preconditions.checkNotNull(in);
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();

@@ -15,7 +15,6 @@
 
 package tachyon.network.protocol;
 
-import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
@@ -77,8 +76,6 @@ public abstract class RPCMessage implements EncodedMessage {
      * @return The decoded message type
      */
     public static Type decode(ByteBuf in) {
-      Preconditions.checkNotNull(in);
-
       int id = in.readInt();
       switch (id) {
         case 0:
