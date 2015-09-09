@@ -287,7 +287,7 @@ public class TachyonMaster {
     }
   }
 
-  private void startServing() {
+  private void startServing() throws IOException {
     startServingWebServer();
     LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
     startServingRPCServer();
@@ -301,7 +301,7 @@ public class TachyonMaster {
     mWebServer.startWebServer();
   }
 
-  protected void startServingRPCServer() {
+  protected void startServingRPCServer() throws IOException {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     processor.registerProcessor(mBlockMaster.getServiceName(), mBlockMaster.getProcessor());
