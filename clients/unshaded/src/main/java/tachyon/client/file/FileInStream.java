@@ -25,6 +25,7 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
 import tachyon.client.ClientOptions;
 import tachyon.client.Seekable;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
@@ -44,7 +45,7 @@ import tachyon.thrift.FileInfo;
 @PublicApi
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {
   /** Whether the data should be written into Tachyon space */
-  private final boolean mShouldCache;
+  private final TachyonStorageType mTachyonStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block */
   private final long mBlockSize;
   /** Total length of the file in bytes */
@@ -79,8 +80,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     mBlockIds = info.getBlockIds();
     mUfsPath = info.getUfsPath();
     mContext = FileSystemContext.INSTANCE;
-    mShouldCache = options.getTachyonStorageType().isStore();
-    mShouldCacheCurrentBlock = mShouldCache;
+    mTachyonStorageType = options.getTachyonStorageType();
+    mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     mClosed = false;
   }
 
@@ -201,8 +202,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   /**
    * Convenience method for updating mCurrentBlockInStream, mShouldCacheCurrentBlock, and
    * mCurrentCacheStream. If the block boundary has been reached, the current BlockInStream is
-   * closed and a the next one is opened. mShouldCacheCurrent block is reset to the original
-   * mShouldCache. mCurrentCacheStream is also closed and a new one is created for the next block.
+   * closed and a the next one is opened. mShouldCacheCurrent block is set to
+   * mTachyonStorageType.isCache(). mCurrentCacheStream is also closed and a new one is created for
+   * the next block.
    *
    * @throws IOException if the next BlockInStream cannot be obtained
    */
@@ -213,9 +215,12 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         mCurrentBlockInStream.close();
       }
       try {
+        if (mTachyonStorageType.isPromote()) {
+          mContext.getTachyonBlockStore().promote(currentBlockId);
+        }
         mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(currentBlockId);
         mShouldCacheCurrentBlock =
-            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
+            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
       } catch (IOException ioe) {
         if (null == mUfsPath || mUfsPath.isEmpty()) {
           throw ioe;
@@ -223,7 +228,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         // TODO(yupeng): Maybe debug log here.
         long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
-        mShouldCacheCurrentBlock = mShouldCache;
+        mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
       }
       closeCacheStream();
       if (mShouldCacheCurrentBlock) {
@@ -290,12 +295,12 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       try {
         mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(currentBlockId);
         mShouldCacheCurrentBlock =
-            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
+            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
       } catch (IOException ioe) {
         // TODO(yupeng): Maybe debug log here.
         long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
         mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
-        mShouldCacheCurrentBlock = mShouldCache;
+        mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
       }
 
       // Reading next block entirely.

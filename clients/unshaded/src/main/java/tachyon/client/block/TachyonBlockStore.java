@@ -26,6 +26,7 @@ import tachyon.client.ClientOptions;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerClient;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
@@ -164,6 +165,25 @@ public class TachyonBlockStore implements Closeable {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getUsedBytes();
+    } finally {
+      mContext.releaseMasterClient(blockMasterClient);
+    }
+  }
+
+  public void promote(long blockId) throws IOException {
+    BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
+    try {
+      BlockInfo info = blockMasterClient.getBlockInfo(blockId);
+      if (info.getLocations().isEmpty()) {
+        throw new IOException("Block " + blockId + " is not available in Tachyon.");
+      }
+      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+      WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
+      try {
+        workerClient.promoteBlock(blockId);
+      } finally {
+        mContext.releaseWorkerClient(workerClient);
+      }
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }
