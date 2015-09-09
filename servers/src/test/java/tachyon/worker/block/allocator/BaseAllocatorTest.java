@@ -55,9 +55,9 @@ public class BaseAllocatorTest {
   protected Allocator mAllocator = null;
 
   protected BlockStoreLocation mAnyTierLoc = BlockStoreLocation.anyTier();
+  protected BlockStoreLocation mAnyDirInTierLoc0 = BlockStoreLocation.anyDirInTier(0);
   protected BlockStoreLocation mAnyDirInTierLoc1 = BlockStoreLocation.anyDirInTier(1);
   protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier(2);
-  protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier(3);
 
   @Before
   public void before() throws Exception {
@@ -186,7 +186,7 @@ public class BaseAllocatorTest {
       StorageTier pTier = pDir.getParentTier();
 
       Assert.assertTrue(pDir.getDirIndex() == dirIndex);
-      Assert.assertTrue(pTier.getTierAlias() == tierAlias);
+      Assert.assertTrue(pTier.getTierAlias().getValue() == tierAlias - 1);
 
       //update the dir meta info
       pDir.addBlockMeta(new BlockMeta(mTestBlockId, blockSize, pDir));

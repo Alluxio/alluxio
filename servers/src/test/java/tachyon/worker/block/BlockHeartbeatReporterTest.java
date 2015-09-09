@@ -24,9 +24,9 @@ import org.junit.Test;
 
 public class BlockHeartbeatReporterTest {
   private static final int USER_ID = 1;
-  private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation(1, 0, 0);
-  private static final BlockStoreLocation SSD_LOC = new BlockStoreLocation(2, 1, 0);
-  private static final BlockStoreLocation HDD_LOC = new BlockStoreLocation(3, 2, 0);
+  private static final BlockStoreLocation MEM_LOC = new BlockStoreLocation(0, 0, 0);
+  private static final BlockStoreLocation SSD_LOC = new BlockStoreLocation(1, 1, 0);
+  private static final BlockStoreLocation HDD_LOC = new BlockStoreLocation(2, 2, 0);
   BlockHeartbeatReporter mReporter;
 
   @Before
@@ -35,7 +35,7 @@ public class BlockHeartbeatReporterTest {
   }
 
   private void moveBlock(long blockId, BlockStoreLocation newLocation) {
-    BlockStoreLocation unusedOldLocation = new BlockStoreLocation(1, 0, 0);
+    BlockStoreLocation unusedOldLocation = new BlockStoreLocation(0, 0, 0);
     mReporter.onMoveBlockByWorker(USER_ID, blockId, unusedOldLocation, newLocation);
   }
 

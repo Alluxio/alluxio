@@ -49,9 +49,9 @@ public final class EvictorUtils {
         }
       }
     } else {
-      int tierAlias = location.tierAlias();
-      StorageTierView tierView = mManagerView.getTierView(tierAlias);
-      if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+      int tierLevel = location.tierLevel();
+      StorageTierView tierView = mManagerView.getTierView(tierLevel);
+      if (location.equals(BlockStoreLocation.anyDirInTier(tierLevel))) {
         for (StorageDirView dirView : tierView.getDirViews()) {
           if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
               && dirView.getAvailableBytes() > maxFreeSize) {
@@ -89,9 +89,9 @@ public final class EvictorUtils {
       return null;
     }
 
-    int tierAlias = location.tierAlias();
-    StorageTierView tierView = mManagerView.getTierView(tierAlias);
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+    int tierLevel = location.tierLevel();
+    StorageTierView tierView = mManagerView.getTierView(tierLevel);
+    if (location.equals(BlockStoreLocation.anyDirInTier(tierLevel))) {
       for (StorageDirView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= bytesToBeAvailable) {
           return dirView;

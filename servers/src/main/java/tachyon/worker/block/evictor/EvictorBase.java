@@ -87,9 +87,9 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
         BlockMeta block = mManagerView.getBlockMeta(blockId);
         if (null != block) { // might not present in this view
           if (block.getBlockLocation().belongTo(location)) {
-            int tierAlias = block.getParentDir().getParentTier().getTierAlias();
+            int tierLevel = block.getParentDir().getParentTier().getTierLevel();
             int dirIndex = block.getParentDir().getDirIndex();
-            dirCandidates.add(mManagerView.getTierView(tierAlias).getDirView(dirIndex), blockId,
+            dirCandidates.add(mManagerView.getTierView(tierLevel).getDirView(dirIndex), blockId,
                 block.getBlockSize());
           }
         }
@@ -133,11 +133,13 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
           }
           StorageDirView nextDirView =
               mAllocator.allocateBlockWithView(Users.MIGRATE_DATA_USER_ID, block.getBlockSize(),
-                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
+                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias().getValue()),
+                  mManagerView);
           if (nextDirView == null) {
             nextDirView =
                 cascadingEvict(block.getBlockSize(),
-                    BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
+                    BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias().getValue()),
+                    plan);
           }
           if (nextDirView == null) {
             // If we failed to find a dir in the next tier to move this block, evict it and

@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.StorageLevelAlias;
 import tachyon.worker.block.BlockMetadataManagerView;
 
 /**
@@ -71,7 +72,7 @@ public final class StorageTierView {
   /**
    * Gets the alias for this tier
    */
-  public int getTierViewAlias() {
+  public StorageLevelAlias getTierViewAlias() {
     return mTier.getTierAlias();
   }
 

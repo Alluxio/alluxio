@@ -52,7 +52,7 @@ public class BlockStoreMetaTest {
     mMetadataManager = TieredBlockStoreTestUtils.defaultMetadataManager(tachyonHome);
 
     // Add and commit COMMITTED_BLOCKS_NUM temp blocks repeatedly
-    StorageDir dir = mMetadataManager.getTier(1).getDir(0);
+    StorageDir dir = mMetadataManager.getTier(0).getDir(0);
     for (long blockId = 0L; blockId < COMMITTED_BLOCKS_NUM; blockId ++) {
       TieredBlockStoreTestUtils.cache(TEST_USER_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
@@ -98,7 +98,6 @@ public class BlockStoreMetaTest {
 
     expectedCapacityBytesOnTiers.add(5000L);  // MEM
     expectedCapacityBytesOnTiers.add(60000L); // SSD
-    expectedCapacityBytesOnTiers.add(0L);     // HDD
     Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
   }
 
@@ -139,7 +138,7 @@ public class BlockStoreMetaTest {
   @Test
   public void getUsedBytesOnTiersTest() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
-    List<Long> usedBytesOnTiers = new ArrayList<Long>(Arrays.asList(usedBytes, 0L, 0L));
+    List<Long> usedBytesOnTiers = new ArrayList<Long>(Arrays.asList(usedBytes, 0L));
     Assert.assertEquals(usedBytesOnTiers, mBlockStoreMeta.getUsedBytesOnTiers());
   }
 }

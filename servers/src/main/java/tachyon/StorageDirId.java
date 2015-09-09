@@ -73,7 +73,7 @@ public class StorageDirId {
    * @return the StorageLevelAlias
    */
   public static StorageLevelAlias getStorageLevelAlias(long storageDirId) {
-    return StorageLevelAlias.values()[getStorageLevelAliasValue(storageDirId) - 1];
+    return StorageLevelAlias.getAlias(getStorageLevelAliasValue(storageDirId));
   }
 
   /**

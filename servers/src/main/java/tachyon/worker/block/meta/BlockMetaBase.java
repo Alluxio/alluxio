@@ -67,7 +67,8 @@ public abstract class BlockMetaBase {
    */
   public BlockStoreLocation getBlockLocation() {
     StorageTier tier = mDir.getParentTier();
-    return new BlockStoreLocation(tier.getTierAlias(), tier.getTierLevel(), mDir.getDirIndex());
+    return new BlockStoreLocation(tier.getTierAlias().getValue(), tier.getTierLevel(),
+        mDir.getDirIndex());
   }
 
   public StorageDir getParentDir() {

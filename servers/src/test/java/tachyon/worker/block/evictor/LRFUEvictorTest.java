@@ -147,7 +147,7 @@ public class LRFUEvictorTest {
     }
     // sort blocks in ascending order of CRF
     List<Map.Entry<Long, Double>> blockCRF = getSortedCRF(blockIdToCRF);
-    BlockStoreLocation anyDirInBottomTier = BlockStoreLocation.anyDirInTier(bottomTierLevel + 1);
+    BlockStoreLocation anyDirInBottomTier = BlockStoreLocation.anyDirInTier(bottomTierLevel);
     // request smallest capacity and update access time on the evicted block for nDir times, the dir
     // to evict blocks from should be in the same order as sorted blockCRF
     for (int i = 0; i < nDir; i ++) {
@@ -197,7 +197,7 @@ public class LRFUEvictorTest {
       }
     }
     List<Map.Entry<Long, Double>> blockCRF = getSortedCRF(blockIdToCRF);
-    BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier(firstTierLevel + 1);
+    BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier(firstTierLevel);
     long smallestCapacity = firstTierDirCapacity[0];
     // request smallest capacity and update access time on the moved block for nDir times, the dir
     // to move blocks from should be in the same order as sorted blockCRF
@@ -271,7 +271,7 @@ public class LRFUEvictorTest {
       }
     }
     BlockStoreLocation anyDirInFirstTier =
-        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_LEVEL[0] + 1);
+        BlockStoreLocation.anyDirInTier(TieredBlockStoreTestUtils.TIER_LEVEL[0]);
     int nDirInFirstTier = TieredBlockStoreTestUtils.TIER_CAPACITY[0].length;
     long smallestCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0][0];
     for (int i = 0; i < nDirInFirstTier; i ++) {

@@ -144,13 +144,13 @@ public class EvictorTestUtils {
     }
 
     // the top tier among all tiers where blocks in the plan reside in
-    int topTierAlias = Integer.MAX_VALUE;
+    int topTierLevel = Integer.MAX_VALUE;
     for (StorageDir dir : spaceInfoInDir.keySet()) {
-      topTierAlias = Math.min(topTierAlias, dir.getParentTier().getTierAlias());
+      topTierLevel = Math.min(topTierLevel, dir.getParentTier().getTierLevel());
     }
     long maxSpace = Long.MIN_VALUE; // maximum bytes to be available in a dir in the top tier
     for (StorageDir dir : spaceInfoInDir.keySet()) {
-      if (dir.getParentTier().getTierAlias() == topTierAlias) {
+      if (dir.getParentTier().getTierLevel() == topTierLevel) {
         Pair<Long, Long> space = spaceInfoInDir.get(dir);
         maxSpace = Math.max(maxSpace, space.getFirst() - space.getSecond());
       }

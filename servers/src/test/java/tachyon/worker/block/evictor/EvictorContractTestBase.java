@@ -133,8 +133,8 @@ public class EvictorContractTestBase extends EvictorTestBase {
     }
 
     Assert.assertTrue(mEvictor.freeSpaceWithView(dirLeft.getCapacityBytes(),
-        BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias()), mManagerView)
-        .isEmpty());
+        BlockStoreLocation.anyDirInTier(dirLeft.getParentTier().getTierAlias().getValue()),
+        mManagerView).isEmpty());
   }
 
   @Test
@@ -167,7 +167,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
     long requestBytes = dirs.get(dirs.size() - 1).getCapacityBytes();
     EvictionPlan plan =
         mEvictor.freeSpaceWithView(requestBytes,
-            BlockStoreLocation.anyDirInTier(tier.getTierAlias()), mManagerView);
+            BlockStoreLocation.anyDirInTier(tier.getTierAlias().getValue()), mManagerView);
     EvictorTestUtils.assertEvictionPlanValid(requestBytes, plan, mMetaManager);
   }
 

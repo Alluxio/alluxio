@@ -24,7 +24,7 @@ public class BlockStoreLocationTest {
 
   @Test
   public void newLocationTest() throws Exception {
-    int tierAlias = 1;
+    StorageLevelAlias tierAlias = StorageLevelAlias.MEM;
     int tierLevel = 2;
     int dirIndex = 3;
     BlockStoreLocation loc = new BlockStoreLocation(tierAlias, tierLevel, dirIndex);
@@ -38,11 +38,11 @@ public class BlockStoreLocationTest {
   public void testBelongTo() throws Exception {
     BlockStoreLocation anyTier = BlockStoreLocation.anyTier();
     BlockStoreLocation anyDirInTierMEM =
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue());
+        BlockStoreLocation.anyDirInTier(0);
     BlockStoreLocation anyDirInTierHDD =
-        BlockStoreLocation.anyDirInTier(StorageLevelAlias.HDD.getValue());
+        BlockStoreLocation.anyDirInTier(1);
     BlockStoreLocation dirInMEM = new BlockStoreLocation(StorageLevelAlias.MEM.getValue(), 0, 1);
-    BlockStoreLocation dirInHDD = new BlockStoreLocation(StorageLevelAlias.HDD.getValue(), 0, 2);
+    BlockStoreLocation dirInHDD = new BlockStoreLocation(StorageLevelAlias.HDD.getValue(), 1, 2);
 
     Assert.assertTrue(anyTier.belongTo(anyTier));
     Assert.assertFalse(anyTier.belongTo(anyDirInTierMEM));

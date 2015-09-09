@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
@@ -52,8 +53,10 @@ public class BlockMetadataManager {
 
   /** A list of managed StorageTier */
   private List<StorageTier> mTiers;
-  /** A map from tier alias to StorageTier */
-  private Map<Integer, StorageTier> mAliasToTiers;
+  /** A map from tier level to StorageTier */
+  private Map<Integer, StorageTier> mLevelToTiers;
+  /** A map from tier alias to tier level */
+  private Map<StorageLevelAlias, Integer> mTierAliasToLevel;
 
 
   private BlockMetadataManager() {}
@@ -78,12 +81,12 @@ public class BlockMetadataManager {
       OutOfSpaceException {
     // Initialize storage tiers
     int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
-    mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
+    mLevelToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
     for (int level = 0; level < totalTiers; level ++) {
       StorageTier tier = StorageTier.newStorageTier(level);
       mTiers.add(tier);
-      mAliasToTiers.put(tier.getTierAlias(), tier);
+      mLevelToTiers.put(tier.getTierLevel(), tier);
     }
   }
 
@@ -162,10 +165,10 @@ public class BlockMetadataManager {
       return spaceAvailable;
     }
 
-    int tierAlias = location.tierAlias();
-    StorageTier tier = getTier(tierAlias);
+    int tierLevel = location.tierLevel();
+    StorageTier tier = getTier(tierLevel);
     // TODO: This should probably be max of the capacity bytes in the dirs?
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+    if (location.equals(BlockStoreLocation.anyDirInTier(tierLevel))) {
       return tier.getAvailableBytes();
     }
 
@@ -224,11 +227,11 @@ public class BlockMetadataManager {
    */
   public StorageDir getDir(BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())
-        || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
+        || location.equals(BlockStoreLocation.anyDirInTier(location.tierLevel()))) {
       throw new IllegalArgumentException(
           ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
     }
-    return getTier(location.tierAlias()).getDir(location.dir());
+    return getTier(location.tierLevel()).getDir(location.dir());
   }
 
   /**
@@ -250,17 +253,17 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the StorageTier given its tierAlias.
+   * Gets the StorageTier given its tierLevel.
    *
-   * @param tierAlias the alias of this tier
-   * @return the StorageTier object associated with the alias
-   * @throws IllegalArgumentException if tierAlias is not found
+   * @param tierLevel the alias of this tier
+   * @return the StorageTier object associated with the level
+   * @throws IllegalArgumentException if tierLevel is not found
    */
-  public StorageTier getTier(int tierAlias) {
-    StorageTier tier = mAliasToTiers.get(tierAlias);
+  public StorageTier getTier(int tierLevel) {
+    StorageTier tier = mLevelToTiers.get(tierLevel);
     if (tier == null) {
       throw new IllegalArgumentException(
-          ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(tierAlias));
+          ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(tierLevel));
     }
     return tier;
   }
@@ -275,14 +278,14 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets the list of StorageTier below the tier with the given tierAlias.
+   * Gets the list of StorageTier below the tier with the given tierLevel.
    *
-   * @param tierAlias the alias of a tier
+   * @param tierLevel the alias of a tier
    * @return the list of StorageTier
-   * @throws IllegalArgumentException if tierAlias is not found
+   * @throws IllegalArgumentException if tierLevel is not found
    */
-  public List<StorageTier> getTiersBelow(int tierAlias) {
-    int level = getTier(tierAlias).getTierLevel();
+  public List<StorageTier> getTiersBelow(int tierLevel) {
+    int level = getTier(tierLevel).getTierLevel();
     return mTiers.subList(level + 1, mTiers.size());
   }
 
@@ -381,10 +384,10 @@ public class BlockMetadataManager {
     }
 
     long blockSize = blockMeta.getBlockSize();
-    int newTierAlias = newLocation.tierAlias();
-    StorageTier newTier = getTier(newTierAlias);
+    int newTierLevel = newLocation.tierLevel();
+    StorageTier newTier = getTier(newTierLevel);
     StorageDir newDir = null;
-    if (newLocation.equals(BlockStoreLocation.anyDirInTier(newTierAlias))) {
+    if (newLocation.equals(BlockStoreLocation.anyDirInTier(newTierLevel))) {
       for (StorageDir dir : newTier.getStorageDirs()) {
         if (dir.getAvailableBytes() >= blockSize) {
           newDir = dir;

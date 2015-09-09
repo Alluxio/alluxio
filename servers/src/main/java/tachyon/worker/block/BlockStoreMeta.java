@@ -37,31 +37,31 @@ public final class BlockStoreMeta {
   // TODO: the following two fields don't need to be computed on the creation of each
   // {@link BlockStoreMeta} instance.
   /**
-   * Capacity bytes on each tier alias (MEM, SSD and HDD). E.g., for two tiers [MEM: 1GB][HDD:
-   * 10GB], this list will be [0:1GB][1:0][2:10GB].
+   * Capacity bytes on each tier level (MEM, SSD and HDD). E.g., for two tiers [MEM: 1GB][HDD:
+   * 10GB], this list will be [0:1GB][1:10GB].
    */
-  private final List<Long> mCapacityBytesOnTiers =
-      new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+  private final List<Long> mCapacityBytesOnTiers;
   private final Map<Long, Long> mCapacityBytesOnDirs = new HashMap<Long, Long>();
 
   /**
-   * Used bytes on each tier alias (MEM, SSD and HDD). This list has the same format with
+   * Used bytes on each tier level (MEM, SSD and HDD). This list has the same format with
    * <code>mCapacityBytesOnTiers</code>.
    */
-  private final List<Long> mUsedBytesOnTiers =
-      new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
+  private final List<Long> mUsedBytesOnTiers;
   private final Map<Long, List<Long>> mBlockIdsOnDirs = new HashMap<Long, List<Long>>();
   private final Map<Long, Long> mUsedBytesOnDirs = new HashMap<Long, Long>();
   private final Map<Long, String> mDirPaths = new LinkedHashMap<Long, String>();
 
   public BlockStoreMeta(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager);
+    mCapacityBytesOnTiers = new ArrayList<Long>(Collections.nCopies(manager.getTiers().size(), 0L));
+    mUsedBytesOnTiers = new ArrayList<Long>(Collections.nCopies(manager.getTiers().size(), 0L));
     for (StorageTier tier : manager.getTiers()) {
-      int aliasIndex = tier.getTierAlias() - 1;
-      mCapacityBytesOnTiers.set(aliasIndex,
-          mCapacityBytesOnTiers.get(aliasIndex) + tier.getCapacityBytes());
-      mUsedBytesOnTiers.set(aliasIndex,
-          mUsedBytesOnTiers.get(aliasIndex) + (tier.getCapacityBytes() - tier.getAvailableBytes()));
+      int tierIndex = tier.getTierLevel();
+      mCapacityBytesOnTiers.set(tierIndex,
+          mCapacityBytesOnTiers.get(tierIndex) + tier.getCapacityBytes());
+      mUsedBytesOnTiers.set(tierIndex,
+          mUsedBytesOnTiers.get(tierIndex) + (tier.getCapacityBytes() - tier.getAvailableBytes()));
       for (StorageDir dir : tier.getStorageDirs()) {
         mBlockIdsOnDirs.put(dir.getStorageDirId(), dir.getBlockIds());
         mCapacityBytesOnDirs.put(dir.getStorageDirId(), dir.getCapacityBytes());

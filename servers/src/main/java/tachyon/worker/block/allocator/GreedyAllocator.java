@@ -64,9 +64,9 @@ public class GreedyAllocator implements Allocator {
       return null;
     }
 
-    int tierAlias = location.tierAlias();
-    StorageTierView tierView = mManagerView.getTierView(tierAlias);
-    if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+    int tierLevel = location.tierLevel();
+    StorageTierView tierView = mManagerView.getTierView(tierLevel);
+    if (location.equals(BlockStoreLocation.anyDirInTier(tierLevel))) {
       // Loop over all dir views in the given tier
       for (StorageDirView dirView : tierView.getDirViews()) {
         if (dirView.getAvailableBytes() >= blockSize) {

@@ -38,9 +38,9 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   @Override
   public void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    int oldTier = oldLocation.tierAlias();
-    int newTier = newLocation.tierAlias();
-    if (newTier == 1 && oldTier != newTier) {
+    int oldTier = oldLocation.tierLevel();
+    int newTier = newLocation.tierLevel();
+    if (newTier == 0 && oldTier != newTier) {
       mWorkerSource.incBlocksPromoted();
     }
   }
@@ -53,9 +53,9 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   @Override
   public void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    int oldTier = oldLocation.tierAlias();
-    int newTier = newLocation.tierAlias();
-    if (newTier == 1 && oldTier != newTier) {
+    int oldTier = oldLocation.tierLevel();
+    int newTier = newLocation.tierLevel();
+    if (newTier == 0 && oldTier != newTier) {
       mWorkerSource.incBlocksPromoted();
     }
   }

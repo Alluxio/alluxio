@@ -645,18 +645,18 @@ public final class TieredBlockStore implements BlockStore {
     Map<Integer, Set<Pair<Long, BlockStoreLocation>>> blocksGroupedByDestTier =
         new HashMap<Integer, Set<Pair<Long, BlockStoreLocation>>>();
     for (Pair<Long, BlockStoreLocation> entry : plan.toMove()) {
-      int alias = entry.getSecond().tierAlias();
-      if (!blocksGroupedByDestTier.containsKey(alias)) {
-        blocksGroupedByDestTier.put(alias, new HashSet<Pair<Long, BlockStoreLocation>>());
+      int level = entry.getSecond().tierLevel();
+      if (!blocksGroupedByDestTier.containsKey(level)) {
+        blocksGroupedByDestTier.put(level, new HashSet<Pair<Long, BlockStoreLocation>>());
       }
-      blocksGroupedByDestTier.get(alias).add(entry);
+      blocksGroupedByDestTier.get(level).add(entry);
     }
     // 2.2. sort tiers according in reversed order: bottom tier first and top tier last.
-    List<Integer> dstTierAlias = new ArrayList<Integer>(blocksGroupedByDestTier.keySet());
-    Collections.sort(dstTierAlias, Collections.reverseOrder());
+    List<Integer> dstTierLevel = new ArrayList<Integer>(blocksGroupedByDestTier.keySet());
+    Collections.sort(dstTierLevel, Collections.reverseOrder());
     // 2.3. move blocks in the order of their dst tiers.
-    for (int alias : dstTierAlias) {
-      Set<Pair<Long, BlockStoreLocation>> toMove = blocksGroupedByDestTier.get(alias);
+    for (int level : dstTierLevel) {
+      Set<Pair<Long, BlockStoreLocation>> toMove = blocksGroupedByDestTier.get(level);
       for (Pair<Long, BlockStoreLocation> entry : toMove) {
         long blockId = entry.getFirst();
         BlockStoreLocation newLocation = entry.getSecond();

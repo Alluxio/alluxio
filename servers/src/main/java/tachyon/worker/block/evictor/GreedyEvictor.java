@@ -57,9 +57,9 @@ public final class GreedyEvictor implements Evictor {
     if (location.equals(BlockStoreLocation.anyTier())) {
       selectedDirView = selectEvictableDirFromAnyTier(view, availableBytes);
     } else {
-      int tierAlias = location.tierAlias();
-      StorageTierView tierView = view.getTierView(tierAlias);
-      if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
+      int tierLevel = location.tierLevel();
+      StorageTierView tierView = view.getTierView(tierLevel);
+      if (location.equals(BlockStoreLocation.anyDirInTier(tierLevel))) {
         selectedDirView = selectEvictableDirFromTier(tierView, availableBytes);
       } else {
         int dirIndex = location.dir();
@@ -100,8 +100,8 @@ public final class GreedyEvictor implements Evictor {
     Map<StorageDirView, Long> pendingBytesInDir = new HashMap<StorageDirView, Long>();
     for (BlockMeta block : victimBlocks) {
       // TODO: should avoid calling getParentDir
-      int fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
-      List<StorageTierView> candidateTiers = view.getTierViewsBelow(fromTierAlias);
+      int fromTierLevel = block.getParentDir().getParentTier().getTierLevel();
+      List<StorageTierView> candidateTiers = view.getTierViewsBelow(fromTierLevel);
       StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);
       if (dstDir == null) {
         // Not possible to transfer
@@ -110,7 +110,8 @@ public final class GreedyEvictor implements Evictor {
         StorageTierView dstTier = dstDir.getParentTierView();
         toTransfer
             .add(new Pair<Long, BlockStoreLocation>(block.getBlockId(), new BlockStoreLocation(
-                dstTier.getTierViewAlias(), dstTier.getTierViewLevel(), dstDir.getDirViewIndex())));
+                dstTier.getTierViewAlias().getValue(), dstTier.getTierViewLevel(),
+                dstDir.getDirViewIndex())));
         if (pendingBytesInDir.containsKey(dstDir)) {
           pendingBytesInDir.put(dstDir, pendingBytesInDir.get(dstDir) + block.getBlockSize());
         } else {

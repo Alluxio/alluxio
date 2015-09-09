@@ -77,7 +77,8 @@ public class BlockMetaBaseTest {
   @Test
   public void getBlockLocationTest() {
     BlockStoreLocation expectedLocation =
-        new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDir.getDirIndex());
+        new BlockStoreLocation(mTier.getTierAlias().getValue(), mTier.getTierLevel(),
+            mDir.getDirIndex());
     Assert.assertEquals(expectedLocation, mBlockMeta.getBlockLocation());
   }
 

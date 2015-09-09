@@ -36,7 +36,7 @@ public class StorageTierTest {
   private static final long TEST_DIR1_CAPACITY = 2000;
   private static final long TEST_DIR2_CAPACITY = 3000;
   private static final int TEST_TIER_LEVEL = 0;
-  private static final int TEST_TIER_ALIAS = StorageLevelAlias.MEM.getValue();
+  private static final StorageLevelAlias TEST_TIER_ALIAS = StorageLevelAlias.MEM;
   private String mTestDirPath1;
   private String mTestDirPath2;
   private StorageTier mTier;

@@ -78,6 +78,7 @@ public final class UiFileInfo {
   private final boolean mIsPinned;
   private List<String> mFileLocations;
 
+  // TODO: size should be the max level. It maybe small than StorageLevelAlias.SIZE
   private final List<List<UiBlockInfo>> mBlocksOnTier = new ArrayList<List<UiBlockInfo>>(
       StorageLevelAlias.SIZE);
   private final List<Long> mSizeOnTier = new ArrayList<Long>(Collections.nCopies(
@@ -125,7 +126,7 @@ public final class UiFileInfo {
 
   public void addBlock(StorageLevelAlias storageLevelAlias, long blockId, long blockSize,
       long blockLastAccessTimeMs, List<NetAddress> locations) {
-    int tier = storageLevelAlias.getValue() - 1;
+    int tier = storageLevelAlias.getValue();
     UiBlockInfo block =
         new UiBlockInfo(blockId, blockSize, blockLastAccessTimeMs,
             storageLevelAlias == StorageLevelAlias.MEM, locations);
@@ -193,7 +194,7 @@ public final class UiFileInfo {
   }
 
   public int getOnTierPercentage(StorageLevelAlias storageLevelAlias) {
-    int tier = storageLevelAlias.getValue() - 1;
+    int tier = storageLevelAlias.getValue();
     return (int) (100 * mSizeOnTier.get(tier) / mSize);
   }
 

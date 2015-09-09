@@ -157,6 +157,7 @@ public final class BlockInfo {
    */
   public synchronized List<NetAddress> getLocations(TachyonConf tachyonConf) {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
+    // TODO: use level instead of alias to find and sort the net address.
     for (StorageLevelAlias alias : StorageLevelAlias.values()) {
       for (Map.Entry<NetAddress, Long> entry : mStorageDirIds.entrySet()) {
         if (alias.getValue() == StorageDirId.getStorageLevelAliasValue(entry.getValue())) {

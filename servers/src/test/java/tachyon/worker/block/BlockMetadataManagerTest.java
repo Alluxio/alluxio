@@ -30,6 +30,7 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
@@ -79,11 +80,11 @@ public final class BlockMetadataManagerTest {
   @Test
   public void getTierTest() throws Exception {
     StorageTier tier;
-    tier = mMetaManager.getTier(1); // MEM
-    Assert.assertEquals(1, tier.getTierAlias());
+    tier = mMetaManager.getTier(0); // MEM
+    Assert.assertEquals(0, tier.getTierAlias().getValue());
     Assert.assertEquals(0, tier.getTierLevel());
-    tier = mMetaManager.getTier(3); // HDD
-    Assert.assertEquals(3, tier.getTierAlias());
+    tier = mMetaManager.getTier(1); // HDD
+    Assert.assertEquals(2, tier.getTierAlias().getValue());
     Assert.assertEquals(1, tier.getTierLevel());
   }
 
@@ -92,13 +93,15 @@ public final class BlockMetadataManagerTest {
     BlockStoreLocation loc;
     StorageDir dir;
 
-    loc = new BlockStoreLocation(1, 0, 0);
+    loc = new BlockStoreLocation(0, 0, 0);
     dir = mMetaManager.getDir(loc);
+    Assert.assertEquals(loc.tierLevel(), dir.getParentTier().getTierLevel());
     Assert.assertEquals(loc.tierAlias(), dir.getParentTier().getTierAlias());
     Assert.assertEquals(loc.dir(), dir.getDirIndex());
 
-    loc = new BlockStoreLocation(3, 0, 1);
+    loc = new BlockStoreLocation(2, 1, 1);
     dir = mMetaManager.getDir(loc);
+    Assert.assertEquals(loc.tierLevel(), dir.getParentTier().getTierLevel());
     Assert.assertEquals(loc.tierAlias(), dir.getParentTier().getTierAlias());
     Assert.assertEquals(loc.dir(), dir.getDirIndex());
   }
@@ -115,36 +118,36 @@ public final class BlockMetadataManagerTest {
   public void getTiersTest() throws Exception {
     List<StorageTier> tiers = mMetaManager.getTiers();
     Assert.assertEquals(2, tiers.size());
-    Assert.assertEquals(1, tiers.get(0).getTierAlias());
+    Assert.assertEquals(0, tiers.get(0).getTierAlias().getValue());
     Assert.assertEquals(0, tiers.get(0).getTierLevel());
-    Assert.assertEquals(3, tiers.get(1).getTierAlias());
+    Assert.assertEquals(2, tiers.get(1).getTierAlias().getValue());
     Assert.assertEquals(1, tiers.get(1).getTierLevel());
   }
 
   @Test
   public void getTiersBelowTest() throws Exception {
-    List<StorageTier> tiersBelow = mMetaManager.getTiersBelow(1);
+    List<StorageTier> tiersBelow = mMetaManager.getTiersBelow(0);
     Assert.assertEquals(1, tiersBelow.size());
-    Assert.assertEquals(3, tiersBelow.get(0).getTierAlias());
+    Assert.assertEquals(2, tiersBelow.get(0).getTierAlias().getValue());
     Assert.assertEquals(1, tiersBelow.get(0).getTierLevel());
 
-    tiersBelow = mMetaManager.getTiersBelow(3);
+    tiersBelow = mMetaManager.getTiersBelow(1);
     Assert.assertEquals(0, tiersBelow.size());
   }
 
   @Test
   public void getAvailableBytesTest() throws Exception {
     Assert.assertEquals(9000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyTier()));
-    Assert.assertEquals(1000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyDirInTier(1)));
-    Assert.assertEquals(8000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyDirInTier(3)));
-    Assert.assertEquals(1000, mMetaManager.getAvailableBytes(new BlockStoreLocation(1, 0, 0)));
-    Assert.assertEquals(3000, mMetaManager.getAvailableBytes(new BlockStoreLocation(3, 1, 0)));
-    Assert.assertEquals(5000, mMetaManager.getAvailableBytes(new BlockStoreLocation(3, 1, 1)));
+    Assert.assertEquals(1000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyDirInTier(0)));
+    Assert.assertEquals(8000, mMetaManager.getAvailableBytes(BlockStoreLocation.anyDirInTier(1)));
+    Assert.assertEquals(1000, mMetaManager.getAvailableBytes(new BlockStoreLocation(0, 0, 0)));
+    Assert.assertEquals(3000, mMetaManager.getAvailableBytes(new BlockStoreLocation(2, 1, 0)));
+    Assert.assertEquals(5000, mMetaManager.getAvailableBytes(new BlockStoreLocation(2, 1, 1)));
   }
 
   @Test
   public void blockMetaTest() throws Exception {
-    StorageDir dir = mMetaManager.getTier(3).getDir(0);
+    StorageDir dir = mMetaManager.getTier(1).getDir(0);
     TempBlockMeta tempBlockMeta =
         new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
 
@@ -206,24 +209,24 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, BlockStoreLocation.anyTier());
 
     // Move to tier HDD tier
-    blockMeta = mMetaManager.moveBlockMeta(blockMeta, BlockStoreLocation.anyDirInTier(3));
-    Assert.assertEquals(3, blockMeta.getBlockLocation().tierAlias());
+    blockMeta = mMetaManager.moveBlockMeta(blockMeta, BlockStoreLocation.anyDirInTier(1));
+    Assert.assertEquals(StorageLevelAlias.HDD, blockMeta.getBlockLocation().tierAlias());
 
     // Move to tier MEM and dir 0
-    blockMeta = mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0, 0));
-    Assert.assertEquals(1, blockMeta.getBlockLocation().tierAlias());
+    blockMeta = mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(0, 0, 0));
+    Assert.assertEquals(StorageLevelAlias.MEM, blockMeta.getBlockLocation().tierAlias());
     Assert.assertEquals(0, blockMeta.getBlockLocation().dir());
   }
 
   @Test
   public void moveBlockMetaExceedCapacity() throws Exception {
-    StorageDir dir = mMetaManager.getTier(3).getDir(0);
+    StorageDir dir = mMetaManager.getTier(1).getDir(0);
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, 2000, dir);
     dir.addBlockMeta(blockMeta);
 
     mThrown.expect(OutOfSpaceException.class);
     mThrown.expectMessage("does not have enough space");
-    mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0, 0));
+    mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(0, 0, 0));
   }
 
   @Test
@@ -307,9 +310,9 @@ public final class BlockMetadataManagerTest {
     BlockStoreMeta meta = mMetaManager.getBlockStoreMeta();
     Assert.assertNotNull(meta);
 
-    // Assert the capacities are at alias level [MEM: 1000][SSD: 0][HDD: 8000]
-    List<Long> exceptedCapacityBytesOnTiers = new ArrayList<Long>(Arrays.asList(1000L, 0L, 8000L));
-    List<Long> exceptedUsedBytesOnTiers = new ArrayList<Long>(Arrays.asList(0L, 0L, 0L));
+    // Assert the capacities are at alias level [MEM: 1000][HDD: 8000]
+    List<Long> exceptedCapacityBytesOnTiers = new ArrayList<Long>(Arrays.asList(1000L,8000L));
+    List<Long> exceptedUsedBytesOnTiers = new ArrayList<Long>(Arrays.asList(0L, 0L));
     Assert.assertEquals(exceptedCapacityBytesOnTiers, meta.getCapacityBytesOnTiers());
     Assert.assertEquals(exceptedUsedBytesOnTiers, meta.getUsedBytesOnTiers());
   }

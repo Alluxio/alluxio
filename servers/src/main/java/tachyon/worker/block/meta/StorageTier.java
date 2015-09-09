@@ -36,8 +36,8 @@ import tachyon.worker.WorkerContext;
  * This class does not guarantee thread safety.
  */
 public final class StorageTier {
-  /** Alias of this tier, e.g., memory tier is 1, SSD tier is 2 and HDD tier is 3 */
-  private final int mTierAlias;
+  /** Alias of this tier */
+  private final StorageLevelAlias mTierAlias;
   /** Level of this tier in tiered storage, highest level is 0 */
   private final int mTierLevel;
   /** Total capacity of all StorageDirs in bytes */
@@ -49,9 +49,8 @@ public final class StorageTier {
 
     String tierLevelAliasProp =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
-    StorageLevelAlias alias = WorkerContext.getConf()
+    mTierAlias = WorkerContext.getConf()
         .getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
-    mTierAlias = alias.getValue();
   }
 
   private void initStorageTier() throws AlreadyExistsException, IOException,
@@ -91,7 +90,7 @@ public final class StorageTier {
     return ret;
   }
 
-  public int getTierAlias() {
+  public StorageLevelAlias getTierAlias() {
     return mTierAlias;
   }
 

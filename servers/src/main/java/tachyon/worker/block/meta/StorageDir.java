@@ -198,7 +198,7 @@ public final class StorageDir {
   // TODO: deprecate this method.
   public long getStorageDirId() {
     int level = mTier.getTierLevel();
-    int storageLevelAliasValue = mTier.getTierAlias();
+    int storageLevelAliasValue = mTier.getTierAlias().getValue();
     return StorageDirId.getStorageDirId(level, storageLevelAliasValue, mDirIndex);
   }
 
@@ -283,14 +283,12 @@ public final class StorageDir {
     long blockSize = blockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      StorageLevelAlias alias = blockMeta.getBlockLocation().tierAlias();
       throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
           getAvailableBytes(), alias);
     }
     if (hasBlockMeta(blockId)) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      StorageLevelAlias alias = blockMeta.getBlockLocation().tierAlias();
       throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
     mBlockIdToBlockMap.put(blockId, blockMeta);
@@ -312,14 +310,12 @@ public final class StorageDir {
     long blockSize = tempBlockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      StorageLevelAlias alias = tempBlockMeta.getBlockLocation().tierAlias();
       throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
           getAvailableBytes(), alias);
     }
     if (hasTempBlockMeta(blockId)) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      StorageLevelAlias alias = tempBlockMeta.getBlockLocation().tierAlias();
       throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
 
@@ -365,7 +361,7 @@ public final class StorageDir {
     }
     Set<Long> userBlocks = mUserIdToTempBlockIdsMap.get(userId);
     if (userBlocks == null || !userBlocks.contains(blockId)) {
-      StorageLevelAlias alias = StorageLevelAlias.getAlias(this.getDirIndex());
+      StorageLevelAlias alias = this.getParentTier().getTierAlias();
       throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_USER, blockId, alias,
           userId);
     }
@@ -454,7 +450,7 @@ public final class StorageDir {
    * @return the block store location of this directory.
    */
   public BlockStoreLocation toBlockStoreLocation() {
-    return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
+    return new BlockStoreLocation(mTier.getTierAlias().getValue(), mTier.getTierLevel(), mDirIndex);
   }
 
   private void reclaimSpace(long size, boolean committed) {

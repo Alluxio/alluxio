@@ -17,6 +17,8 @@ package tachyon.worker.block;
 
 import java.util.Arrays;
 
+import tachyon.StorageLevelAlias;
+
 /**
  * Where to store a block within a block store. Currently, this is a wrapper on an integer
  * representing the tier to put this block.
@@ -26,12 +28,12 @@ public final class BlockStoreLocation {
   private static final int ANY_TIER = -1;
   /** Special value to indicate any dir */
   private static final int ANY_DIR = -1;
-  /** NOTE: only reason to have level here is to calculate StorageDirId */
-  private static final int UNKNOWN_LEVEL = -1;
+  /** NOTE: only reason to have alias here is to calculate StorageDirId */
+  private static final int UNKNOWN_ALIAS = -1;
 
   /** Tier alias of the location, see {@link tachyon.StorageLevelAlias} */
-  private final int mTierAlias;
-  /** Tier level of the location, generally alias - 1, this is 0 indexed */
+  private final StorageLevelAlias mTierAlias;
+  /** Tier level of the location, this is 0 indexed */
   private final int mTierLevel;
   /** Index of the directory in its tier, 0 indexed */
   private final int mDirIndex;
@@ -42,20 +44,25 @@ public final class BlockStoreLocation {
    * @return a BlockStoreLocation of any dir in any tier
    */
   public static BlockStoreLocation anyTier() {
-    return new BlockStoreLocation(ANY_TIER, UNKNOWN_LEVEL, ANY_DIR);
+    return new BlockStoreLocation(null, ANY_TIER, ANY_DIR);
   }
 
   /**
    * Convenience method to return the block store location representing any dir in the tier.
    *
-   * @param tierAlias The tier this returned block store alias will represent
+   * @param tierLevel The tier this returned block store alias will represent
    * @return a BlockStoreLocation of any dir in the specified tier
    */
-  public static BlockStoreLocation anyDirInTier(int tierAlias) {
-    return new BlockStoreLocation(tierAlias, UNKNOWN_LEVEL, ANY_DIR);
+  public static BlockStoreLocation anyDirInTier(int tierLevel) {
+    return new BlockStoreLocation(null, tierLevel, ANY_DIR);
   }
 
+  @Deprecated
   public BlockStoreLocation(int tierAlias, int tierLevel, int dirIndex) {
+    this(StorageLevelAlias.getAlias(tierAlias), tierLevel, dirIndex);
+  }
+
+  public BlockStoreLocation(StorageLevelAlias tierAlias, int tierLevel, int dirIndex) {
     mTierLevel = tierLevel;
     mTierAlias = tierAlias;
     mDirIndex = dirIndex;
@@ -70,7 +77,8 @@ public final class BlockStoreLocation {
   // TODO: remove this method when master also understands BlockLocation
   public long getStorageDirId() {
     // Calculation copied from {@link StorageDirId.getStorageDirId}
-    return (mTierLevel << 24) + (mTierAlias << 16) + mDirIndex;
+    return (mTierLevel << 24)
+        + (mTierAlias != null ? (mTierAlias.getValue() << 16) : UNKNOWN_ALIAS) + mDirIndex;
   }
 
   /**
@@ -78,7 +86,7 @@ public final class BlockStoreLocation {
    *
    * @return the tier alias of the location, -1 for any tier
    */
-  public int tierAlias() {
+  public StorageLevelAlias tierAlias() {
     return mTierAlias;
   }
 
@@ -110,7 +118,7 @@ public final class BlockStoreLocation {
    */
   public boolean belongTo(BlockStoreLocation location) {
     boolean tierInRange =
-        (tierAlias() == location.tierAlias()) || (location.tierAlias() == ANY_TIER);
+        (tierLevel() == location.tierLevel()) || (location.tierLevel() == ANY_TIER);
     boolean dirInRange = (dir() == location.dir()) || (location.dir() == ANY_DIR);
     return tierInRange && dirInRange;
   }
@@ -129,7 +137,7 @@ public final class BlockStoreLocation {
       result.append("dir ").append(mDirIndex);
     }
 
-    if (mTierAlias == ANY_TIER) {
+    if (mTierLevel == ANY_TIER) {
       result.append(", any tier");
     } else {
       result.append(", tierAlias ").append(mTierAlias);

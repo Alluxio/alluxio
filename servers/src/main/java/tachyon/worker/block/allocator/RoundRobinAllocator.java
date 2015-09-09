@@ -75,15 +75,15 @@ public class RoundRobinAllocator implements Allocator {
           tierIndex ++;
         }
       }
-    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierLevel()))) {
+      StorageTierView tierView = mManagerView.getTierView(location.tierLevel());
       int dirViewIndex = getNextAvailDirInTier(tierView, blockSize);
       if (dirViewIndex >= 0) {
         mTierToLastDirMap.put(tierView, dirViewIndex); // update
         return tierView.getDirView(dirViewIndex);
       }
     } else {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      StorageTierView tierView = mManagerView.getTierView(location.tierLevel());
       StorageDirView dirView = tierView.getDirView(location.dir());
       if (dirView.getAvailableBytes() >= blockSize) {
         return dirView;

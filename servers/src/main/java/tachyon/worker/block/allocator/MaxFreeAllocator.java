@@ -62,11 +62,11 @@ public class MaxFreeAllocator implements Allocator {
           break;
         }
       }
-    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+    } else if (location.equals(BlockStoreLocation.anyDirInTier(location.tierLevel()))) {
+      StorageTierView tierView = mManagerView.getTierView(location.tierLevel());
       candidateDirView = getCandidateDirInTier(tierView, blockSize);
     } else {
-      StorageTierView tierView = mManagerView.getTierView(location.tierAlias());
+      StorageTierView tierView = mManagerView.getTierView(location.tierLevel());
       StorageDirView dirView = tierView.getDirView(location.dir());
       if (dirView.getAvailableBytes() >= blockSize) {
         candidateDirView = dirView;

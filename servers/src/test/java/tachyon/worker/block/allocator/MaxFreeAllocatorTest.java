@@ -65,7 +65,7 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, 2, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 300, true, 2, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     700

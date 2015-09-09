@@ -45,7 +45,7 @@ public class GreedyAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, 2, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 1000, true, 2, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -55,7 +55,7 @@ public class GreedyAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1500, true, 2, 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 1500, true, 2, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0     500
@@ -115,7 +115,7 @@ public class GreedyAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 1000, true, 3, 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1000, true, 3, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0      0

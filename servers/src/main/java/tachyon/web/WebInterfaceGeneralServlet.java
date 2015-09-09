@@ -47,8 +47,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     private final long mFreeBytes;
     private final int mFreePercent;
 
-    private StorageTierInfo(int storageLevelAliasValue, long capacityBytes, long usedBytes) {
-      mStorageLevelAlias = StorageLevelAlias.values()[storageLevelAliasValue - 1];
+    private StorageTierInfo(int storageTierLevel, long capacityBytes, long usedBytes) {
+      mStorageLevelAlias = StorageLevelAlias.getAlias(storageTierLevel);
       mCapacityBytes = capacityBytes;
       mUsedBytes = usedBytes;
       mFreeBytes = mCapacityBytes - mUsedBytes;
@@ -134,7 +134,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     for (int i = 0; i < totalBytesOnTiers.size(); i ++) {
       if (totalBytesOnTiers.get(i) > 0) {
         StorageTierInfo info =
-            new StorageTierInfo(i + 1, totalBytesOnTiers.get(i), usedBytesOnTiers.get(i));
+            // TODO: dong. i indicates tier level. Need to map it to tier type based on conf.
+            new StorageTierInfo(i, totalBytesOnTiers.get(i), usedBytesOnTiers.get(i));
         infos.add(info);
       }
     }

@@ -49,8 +49,8 @@ public class BlockMetadataManagerView {
   private final Set<Integer> mPinnedInodes = new HashSet<Integer>();
   /** Indices of locks that are being used */
   private final BitSet mInUseLocks = new BitSet();
-  /** A map from tier alias to StorageTierView */
-  private Map<Integer, StorageTierView> mAliasToTierViews = new HashMap<Integer, StorageTierView>();
+  /** A map from tier level to StorageTierView */
+  private Map<Integer, StorageTierView> mLevelToTierViews = new HashMap<Integer, StorageTierView>();
 
   /**
    * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
@@ -73,7 +73,7 @@ public class BlockMetadataManagerView {
     for (StorageTier tier : manager.getTiers()) {
       StorageTierView tierView = new StorageTierView(tier, this);
       mTierViews.add(tierView);
-      mAliasToTierViews.put(tier.getTierAlias(), tierView);
+      mLevelToTierViews.put(tier.getTierLevel(), tierView);
     }
   }
 
@@ -141,17 +141,17 @@ public class BlockMetadataManagerView {
   }
 
   /**
-   * Provides StorageTierView given tierAlias.
+   * Provides StorageTierView given tierLevel.
    *
-   * @param tierAlias the alias of this tierView
-   * @return the StorageTierView object associated with the alias
-   * @throws IllegalArgumentException if tierAlias is not found
+   * @param tierLevel the level of this tierView
+   * @return the StorageTierView object associated with the level
+   * @throws IllegalArgumentException if tierLevel is not found
    */
-  public StorageTierView getTierView(int tierAlias) {
-    StorageTierView tierView = mAliasToTierViews.get(tierAlias);
+  public StorageTierView getTierView(int tierLevel) {
+    StorageTierView tierView = mLevelToTierViews.get(tierLevel);
     if (null == tierView) {
       throw new IllegalArgumentException(
-          ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierAlias));
+          ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierLevel));
     } else {
       return tierView;
     }
@@ -169,12 +169,12 @@ public class BlockMetadataManagerView {
   /**
    * Gets all tierViews before certain tierView.
    *
-   * @param tierAlias the alias of a tierView
+   * @param tierLevel the level of a tierView
    * @return the list of StorageTierView
-   * @throws IllegalArgumentException if tierAlias is not found
+   * @throws IllegalArgumentException if tierLevel is not found
    */
-  public List<StorageTierView> getTierViewsBelow(int tierAlias) {
-    int level = getTierView(tierAlias).getTierViewLevel();
+  public List<StorageTierView> getTierViewsBelow(int tierLevel) {
+    int level = getTierView(tierLevel).getTierViewLevel();
     return mTierViews.subList(level + 1, mTierViews.size());
   }
 

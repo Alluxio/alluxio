@@ -55,7 +55,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 700, true, 2, 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 700, true, 2, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    500
@@ -105,7 +105,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 200, true, 1, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc0, 200, true, 1, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    300   <--- alloc
@@ -115,7 +115,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 100, true, 1, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc0, 100, true, 1, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200   <--- alloc
@@ -125,7 +125,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 700, false, 0, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc0, 700, false, 0, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -135,7 +135,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, 2, 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 100, true, 2, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -145,7 +145,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 100, true, 2, 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 100, true, 2, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -155,7 +155,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 1500, false, 0, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc1, 1500, false, 0, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -165,7 +165,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 2000, true, 3, 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 2000, true, 3, 1);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -175,7 +175,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 1000   <--- alloc
     //  2               └─── 3000
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 3000, true, 3, 2);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 3000, true, 3, 2);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -185,7 +185,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 1000
     //  2               └─── 0   <--- alloc
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 500, true, 3, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 500, true, 3, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -195,7 +195,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 1000
     //  2               └─── 0
     //
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 2000, false, 0, 0);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 2000, false, 0, 0);
     //
     // idx | tier1 | tier2 | tier3
     //  0    200
@@ -206,7 +206,7 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  2               └─── 0
     //
     // tier 3, dir 0, remain 0
-    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc3, 300, true, 3, 1);
+    assertTempBlockMeta(mAllocator, mAnyDirInTierLoc2, 300, true, 3, 1);
     // idx | tier1 | tier2 | tier3
     //  0    200
     //  0      ├───── 0
