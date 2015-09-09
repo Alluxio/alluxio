@@ -21,14 +21,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.thrift.ClientFileInfo;
 
 /**
  * Class for convenience methods used by {@link TFsShell}.
@@ -50,8 +52,7 @@ public class TFsShellUtils {
     } else if (path.startsWith(Constants.HEADER_FT)) {
       path = path.substring(Constants.HEADER_FT.length());
     }
-    String ret = path.substring(path.indexOf(TachyonURI.SEPARATOR));
-    return ret;
+    return path.substring(path.indexOf(TachyonURI.SEPARATOR));
   }
 
   /**
@@ -84,23 +85,19 @@ public class TFsShellUtils {
   }
 
   /**
-   * Get all the TachyonURIs that match inputURI.
-   * If the path is a regular path, the returned list only contains the corresponding URI;
-   * Else if the path contains wildcards, the returned list contains all the matched URIs
-   * It supports any number of wildcards in inputURI
+   * Get all the TachyonURIs that match inputURI. If the path is a regular path, the returned list
+   * only contains the corresponding URI; Else if the path contains wildcards, the returned list
+   * contains all the matched URIs It supports any number of wildcards in inputURI
+   *
    * @param tachyonClient The client used to fetch information of Tachyon files
    * @param inputURI the input URI (could contain wildcards)
    * @return A list of TachyonURIs that matches the inputURI
    * @throws IOException
    */
-  public static List<TachyonURI> getTachyonURIs(TachyonFS tachyonClient, TachyonURI inputURI)
-      throws IOException {
+  public static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
+      TachyonURI inputURI) throws IOException {
     if (!inputURI.getPath().contains(TachyonURI.WILDCARD)) {
-      List<TachyonURI> res = new LinkedList<TachyonURI>();
-      if (tachyonClient.getFileId(inputURI) != -1) {
-        res.add(inputURI);
-      }
-      return res;
+      return Lists.newArrayList(inputURI);
     } else {
       String inputPath = inputURI.getPath();
       TachyonURI parentURI =
@@ -122,11 +119,11 @@ public class TFsShellUtils {
    * @return A list of TachyonURIs of the files that match the inputURI in parentDir
    * @throws IOException
    */
-  private static List<TachyonURI> getTachyonURIs(TachyonFS tachyonClient, TachyonURI inputURI,
-      TachyonURI parentDir) throws IOException {
+  private static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
+      TachyonURI inputURI, TachyonURI parentDir) throws IOException {
     List<TachyonURI> res = new LinkedList<TachyonURI>();
-    List<ClientFileInfo> files = tachyonClient.listStatus(parentDir);
-    for (ClientFileInfo file : files) {
+    List<FileInfo> files = tachyonClient.listStatus(tachyonClient.open(parentDir));
+    for (FileInfo file : files) {
       TachyonURI fileURI =
           new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), file.getPath());
       if (match(fileURI, inputURI)) { // if it matches

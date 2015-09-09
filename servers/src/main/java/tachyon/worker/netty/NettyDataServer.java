@@ -72,7 +72,7 @@ public final class NettyDataServer implements DataServer {
   private ServerBootstrap createBootstrap() {
     final ServerBootstrap boot =
         createBootstrapOfType(mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
-            ChannelType.defaultType()));
+            ChannelType.class));
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);

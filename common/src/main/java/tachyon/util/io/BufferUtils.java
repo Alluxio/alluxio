@@ -37,6 +37,10 @@ public class BufferUtils {
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
 
+  public static int byteToInt(byte b) {
+    return b & 0xFF;
+  }
+
   /**
    * Force to unmap a direct buffer if this buffer is no longer used. After calling this method,
    * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to

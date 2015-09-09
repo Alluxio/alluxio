@@ -119,8 +119,7 @@ public class Users {
       if (mUsers.containsKey(userId)) {
         mUsers.get(userId).heartbeat();
       } else {
-        int userTimeoutMs =
-            mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
+        int userTimeoutMs = mTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
         mUsers.put(userId, new UserInfo(userId, userTimeoutMs));
       }
     }
