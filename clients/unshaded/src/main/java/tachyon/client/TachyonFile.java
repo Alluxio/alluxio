@@ -185,8 +185,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public String getLocalFilename(int blockIndex) throws IOException {
-    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    long blockId = blockInfo.blockInfo.getBlockId();
+    FileBlockInfo fileBlockInfo = getClientBlockInfo(blockIndex);
+    long blockId = fileBlockInfo.blockInfo.getBlockId();
     int blockLockId = mTachyonFS.getBlockLockId();
     String filename = mTachyonFS.lockBlock(blockId, blockLockId);
     if (filename != null) {
@@ -367,8 +367,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public boolean promoteBlock(int blockIndex) throws IOException {
-    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    return mTachyonFS.promoteBlock(blockInfo.blockInfo.getBlockId());
+    FileBlockInfo fileBlockInfo = getClientBlockInfo(blockIndex);
+    return mTachyonFS.promoteBlock(fileBlockInfo.blockInfo.getBlockId());
   }
 
   /**
