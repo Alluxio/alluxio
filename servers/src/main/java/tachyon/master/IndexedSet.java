@@ -40,6 +40,68 @@ import tachyon.Constants;
  *
  * <p>
  * This class is thread safe.
+ *
+ * <p>
+ * Example usage:
+ *
+ * We have a set of puppies:
+ * <pre>
+ *   class Puppy {
+ *     private final String mName;
+ *     private final long mId;
+ *
+ *     public Puppy(String name, long id) {
+ *       mName = name;
+ *       mId = id;
+ *     }
+ *
+ *     public String name() {
+ *       return mName;
+ *     }
+ *
+ *     public long id() {
+ *       return mId;
+ *     }
+ *   }
+ * </pre>
+ *
+ * We want to be able to retrieve the set of puppies via a puppy's id or name, one way is to have
+ * two maps like <code>Map&ltString, Puppy&gt nameToPuppy</code> and
+ * <code>Map&ltLong, Puppy&gt idToPuppy</code>, another way is to use a single instance of
+ * {@link IndexedSet}!
+ *
+ * First, define the fields to be indexed:
+ * <pre>
+ *  FieldIndex<Puppy> idIndex = new FieldIndex<Puppy> {
+ *    @Override
+ *    Object getFieldValue(Puppy o) {
+ *      return o.id();
+ *    }
+ *  }
+ *
+ *  FieldIndex<Puppy> nameIndex = new FieldIndex<Puppy> {
+ *    @Override
+ *    Object getFieldValue(Puppy o) {
+ *      return o.name();
+ *    }
+ *  }
+ * </pre>
+ *
+ * Then create an {@link IndexedSet} and add puppies:
+ * <pre>
+ *  IndexedSet<Puppy> puppies = new IndexedSet<Puppy>(idIndex, nameIndex);
+ *  puppies.add(new Puppy("sweet", 0));
+ *  puppies.add(new Puppy("heart", 1));
+ * </pre>
+ *
+ * Then retrieve the puppy named sweet:
+ * <pre>
+ *   Puppy sweet = puppies.getFirstByField(nameIndex, "sweet");
+ * </pre>
+ * and retrieve the puppy with id 1:
+ * <pre>
+ *   Puppy heart = puppies.getFirstByField(idIndex, 1L);
+ * </pre>
  */
 public class IndexedSet<T> implements Iterable<T> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
