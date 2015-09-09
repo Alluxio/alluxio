@@ -42,7 +42,7 @@ class EvictionDirCandidates {
   private StorageDirView mDirWithMaxBytes = null;
 
   /**
-   * Add the block in the directory to this collection
+   * Adds the block in the directory to this collection.
    *
    * @param dir the dir where the block resides
    * @param blockId blockId of the block
@@ -69,7 +69,7 @@ class EvictionDirCandidates {
   }
 
   /**
-   * The maximum sum of available bytes and total bytes of added blocks in a directory
+   * The maximum sum of available bytes and total bytes of added blocks in a directory.
    *
    * @return maximum bytes, if no directory has been added, return 0.
    */
