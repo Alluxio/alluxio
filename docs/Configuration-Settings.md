@@ -466,9 +466,9 @@ The user configuration specifies values regarding file system access.
   <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to wait for a response from the data server.</td>
 </tr>
 <tr>
-  <td>tachyon.user.remote.block.worker.threads</td>
+  <td>tachyon.user.remote.block.worker.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for remote block worker.</td>
+  <td>How many threads to use for remote block worker client.</td>
 </tr>
 <tr>
   <td>tachyon.user.local.block.worker.client.threads</td>
