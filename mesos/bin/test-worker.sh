@@ -16,9 +16,9 @@ mkdir -p "${TACHYON_LOGS_DIR}"
 
 # Start the worker.
 "${JAVA}" -cp "${CLASSPATH}" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  -Dtachyon.logger.type="WORKER_LOGGER" \
+  ${TACHYON_WORKER_JAVA_OPTS} \
   -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
-  -Dlog4j.configuration=file:"${TACHYON_CONF_DIR}/log4j.properties" \
-  ${TACHYON_WORKER_JAVA_OPTS} tachyon.mesos.TestWorkerExecutor > "${TACHYON_LOGS_DIR}"/test-worker.out 2>&1
+  -Dtachyon.home="${TACHYON_HOME}" \
+  -Dtachyon.logger.type="WORKER_LOGGER" \
+  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
+  tachyon.mesos.TestWorkerExecutor > "${TACHYON_LOGS_DIR}"/test-worker.out 2>&1

@@ -122,6 +122,7 @@ public class TachyonFramework {
             mMasterHostname = offer.getHostname();
             mMasterLaunched = true;
           } else if (mMasterLaunched) {
+            final String MEM_SIZE = FormatUtils.getSizeFromBytes((long) remainingMem * 1024 * 1024);
             executorBuilder
                 .setName("Tachyon Worker Executor")
                 .setSource("worker")
@@ -129,8 +130,14 @@ public class TachyonFramework {
                 .setCommand(
                     Protos.CommandInfo.newBuilder().setValue(
                         PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh"))
-                .setArguments(0, mMasterHostname)
-                .setArguments(1, FormatUtils.getSizeFromBytes((long) remainingMem * 1024 * 1024)));
+                        .setEnvironment(Protos.Environment.newBuilder()
+                            .addVariables(Protos.Environment.Variable.newBuilder()
+                                .setName("TACHYON_MASTER_ADDRESS")
+                                .setValue(mMasterHostname).build())
+                            .addVariables(Protos.Environment.Variable.newBuilder()
+                                .setName("TACHYON_WORKER_MEMORY_SIZE")
+                                .setValue(MEM_SIZE).build())
+                            .build()));
             targetCpu = remainingCpu;
             targetMem = remainingMem;
           }
