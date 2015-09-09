@@ -74,6 +74,7 @@ public class JournalCrashTest {
     /** Which type of operation this thread should do. */
     private final ClientOpType mOpType;
     /** The Tachyon Client hold by this thread. */
+    // TODO: use TachyonFileSystem instead of the deprecated TachyonFS
     private final TachyonFS mTfs;
     /** The working directory of this thread on Tachyon. */
     private final String mWorkDir;
@@ -114,7 +115,7 @@ public class JournalCrashTest {
             }
           } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
             int fid = mTfs.createFile(new TachyonURI(mWorkDir + mSuccessNum));
-            if(fid == -1) {
+            if (fid == -1) {
               break;
             }
             if (!mTfs.delete(fid, false)) {
@@ -122,7 +123,7 @@ public class JournalCrashTest {
             }
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
             int fid = mTfs.createFile(new TachyonURI(mWorkDir + mSuccessNum));
-            if(fid == -1) {
+            if (fid == -1) {
               break;
             }
             if (!mTfs.rename(fid, new TachyonURI(mWorkDir + mSuccessNum + "-rename"))) {
