@@ -18,6 +18,7 @@ package tachyon.client;
 /**
  * Different write types for a TachyonFile.
  */
+@Deprecated
 public enum WriteType {
   /**
    * Write the file and must cache it.
@@ -28,7 +29,7 @@ public enum WriteType {
    */
   TRY_CACHE(2),
   /**
-   * Write the file synchronously to the under fs, and also try to cache it,
+   * Write the file synchronously to the under fs, and also try to cache it.
    */
   CACHE_THROUGH(3),
   /**
@@ -48,8 +49,6 @@ public enum WriteType {
   }
 
   /**
-   * Return the value of the write type
-   *
    * @return the value of the write type
    */
   public int getValue() {

@@ -15,13 +15,12 @@
 
 package tachyon.examples;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.hadoop.conf.Configuration;
@@ -36,11 +35,11 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.OutStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.file.FileOutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
@@ -69,7 +68,7 @@ public class Performance {
   public static void createFiles() throws IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
-      int fileId = sMtc.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber)));
+      long fileId = sMtc.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber)));
       LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs,
           "user_createFiles with fileId " + fileId));
     }
@@ -198,7 +197,7 @@ public class Performance {
       for (int pId = mLeft; pId < mRight; pId ++) {
         final long startTimeMs = System.currentTimeMillis();
         TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-        OutStream os = file.getOutStream(WriteType.MUST_CACHE);
+        FileOutStream os = file.getOutStream(WriteType.MUST_CACHE);
         for (int k = 0; k < sBlocksPerFile; k ++) {
           mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
@@ -229,7 +228,7 @@ public class Performance {
 
     public void readPartition() throws IOException {
       if (sDebugMode) {
-        ByteBuffer buf = ByteBuffer.allocate((int) sBlockSizeBytes);
+        ByteBuffer buf = ByteBuffer.allocate(sBlockSizeBytes);
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {

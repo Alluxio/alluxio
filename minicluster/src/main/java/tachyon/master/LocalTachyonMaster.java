@@ -17,18 +17,20 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
+import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
-import tachyon.util.UnderFileSystemUtils;
 
 /**
  * Constructs an isolated master. Primary users of this class are the
@@ -60,6 +62,8 @@ public final class LocalTachyonMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
+  private final OldClientPool mOldClientPool = new OldClientPool(mClientSupplier);
+
   private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
     mTachyonHome = tachyonHome;
@@ -84,6 +88,15 @@ public final class LocalTachyonMaster {
     mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
+    String[] masterServiceNames = new String[] {
+        Constants.BLOCK_MASTER_SERVICE_NAME,
+        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
+        Constants.RAW_TABLE_MASTER_SERVICE_NAME,
+    };
+    for (String masterServiceName : masterServiceNames) {
+      UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
+          tachyonConf);
+    }
     UnderFileSystemUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis(),
         tachyonConf);
 
@@ -162,6 +175,10 @@ public final class LocalTachyonMaster {
     mMasterThread.start();
   }
 
+  public boolean isServing() {
+    return mTachyonMaster.isServing();
+  }
+
   /**
    * Stops the master and cleans up client connections.
    *
@@ -182,6 +199,7 @@ public final class LocalTachyonMaster {
 
   public void clearClients() throws IOException {
     mClientPool.close();
+    mOldClientPool.close();
   }
 
   public void cleanupUnderfs() throws IOException {
@@ -189,6 +207,20 @@ public final class LocalTachyonMaster {
       mUnderFSCluster.cleanup();
     }
     System.clearProperty("tachyon.underfs.address");
+  }
+
+  /**
+   * Get the externally resolvable address of the master (used by unit test only).
+   */
+  public InetSocketAddress getAddress() {
+    return mTachyonMaster.getMasterAddress();
+  }
+
+  /**
+   * Gets the actual internal master.
+   */
+  public TachyonMaster getInternalMaster() {
+    return mTachyonMaster;
   }
 
   /**
@@ -231,20 +263,12 @@ public final class LocalTachyonMaster {
     return Constants.HEADER + mHostname + ":" + getRPCLocalPort();
   }
 
-  public TachyonFS getClient() throws IOException {
+  public TachyonFS getOldClient() throws IOException {
+    return mOldClientPool.getClient(mTachyonMaster.getTachyonConf());
+  }
+
+  public TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(mTachyonMaster.getTachyonConf());
-  }
-
-  public String getEditLogPath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
-  }
-
-  public String getImagePath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
-  }
-
-  public MasterInfo getMasterInfo() {
-    return mTachyonMaster.getMasterInfo();
   }
 
   private static String uniquePath() throws IOException {
@@ -255,11 +279,11 @@ public final class LocalTachyonMaster {
     return parent + "/" + child;
   }
 
-  public boolean isStarted() {
-    return mTachyonMaster.isStarted();
-  }
-
   public TachyonConf getTachyonConf() {
     return mTachyonMaster.getTachyonConf();
+  }
+
+  public String getJournalFolder() {
+    return mJournalFolder;
   }
 }

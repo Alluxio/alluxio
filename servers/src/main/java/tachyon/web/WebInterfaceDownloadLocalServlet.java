@@ -36,7 +36,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Servlet for downloading a local file
  */
-public class WebInterfaceDownloadLocalServlet extends HttpServlet {
+public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   private static final long serialVersionUID = 7260819317567193560L;
 
   private final transient TachyonConf mTachyonConf;

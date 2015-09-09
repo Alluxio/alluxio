@@ -67,6 +67,18 @@ public class Format {
         System.exit(-1);
       }
 
+      String[] masterServiceNames = new String[] {
+          Constants.BLOCK_MASTER_SERVICE_NAME,
+          Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
+          Constants.RAW_TABLE_MASTER_SERVICE_NAME,
+      };
+      for (String masterServiceName : masterServiceNames) {
+        if (!formatFolder(masterServiceName + "JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
+            masterServiceName), tachyonConf)) {
+          System.exit(-1);
+        }
+      }
+
       String ufsDataFolder =
           tachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
       String ufsWorkerFolder =
