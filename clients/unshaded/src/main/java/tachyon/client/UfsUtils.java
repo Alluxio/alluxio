@@ -35,9 +35,9 @@ import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * Utilities related to under filesystem
+ * Utilities related to under file system.
  */
-public class UfsUtils {
+public final class UfsUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -92,6 +92,7 @@ public class UfsUtils {
    * @param tachyonConf instance of TachyonConf
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
+  @Deprecated
   public static void loadUnderFs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
       PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException {
     LOG.info("Loading to " + tachyonPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
@@ -242,4 +243,6 @@ public class UfsUtils {
     System.out.print("In the TFS, all files under local FS /b will be registered under /a, ");
     System.out.println("except for those with prefix c");
   }
+
+  private UfsUtils() {} // prevent instantiation
 }
