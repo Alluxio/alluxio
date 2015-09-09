@@ -29,7 +29,10 @@ public enum TachyonStorageType {
   STORE(1),
 
   /** Do not put data to Tachyon. */
-  NO_STORE(2);
+  NO_STORE(2),
+
+  /** Put the data into highest Tachyon tier for writes, move data to the highest tier for reads */
+  PROMOTE(3);
 
   private final int mValue;
 
@@ -41,6 +44,13 @@ public enum TachyonStorageType {
    * @return whether the data should be put in Tachyon storage
    */
   public boolean isStore() {
-    return mValue == STORE.mValue;
+    return mValue == STORE.mValue || mValue == PROMOTE.mValue;
+  }
+
+  /**
+   * @return whether the data should be promoted to the highest tier
+   */
+  public boolean isPromote() {
+    return mValue == PROMOTE.mValue;
   }
 }
