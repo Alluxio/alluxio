@@ -16,9 +16,9 @@ mkdir -p "${TACHYON_LOGS_DIR}"
 
 # Start the master.
 "${JAVA}" -cp "${CLASSPATH}" \
-  -Dtachyon.home="${TACHYON_HOME}" \
-  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
-  -Dtachyon.logger.type="MASTER_LOGGER" \
+  ${TACHYON_MASTER_JAVA_OPTS} \
   -Dtachyon.accesslogger.type="MASTER_ACCESS_LOGGER" \
-  -Dlog4j.configuration=file:"${TACHYON_CONF_DIR}/log4j.properties" \
-  ${TACHYON_MASTER_JAVA_OPTS} tachyon.mesos.TestMasterExecutor > "${TACHYON_LOGS_DIR}"/test-master.out 2>&1
+  -Dtachyon.home="${TACHYON_HOME}" \
+  -Dtachyon.logger.type="MASTER_LOGGER" \
+  -Dtachyon.logs.dir="${TACHYON_LOGS_DIR}" \
+  tachyon.mesos.TestMasterExecutor > "${TACHYON_LOGS_DIR}"/test-master.out 2>&1
