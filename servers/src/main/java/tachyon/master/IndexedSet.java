@@ -299,6 +299,8 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
+   * Return the number of objects in this indexed set
+   *
    * @return number of all objects, O(1)
    */
   public int size() {
@@ -307,6 +309,13 @@ public class IndexedSet<T> implements Iterable<T> {
     }
   }
 
+  /**
+   *  Gets the set of objects with the specified field value - internal function.
+   *
+   * @param index the field index
+   * @param value the field value
+   * @return the set of objects with the specified field value
+   */
   private Set<T> getByFieldInternal(FieldIndex<T> index, Object value) {
     return mSetIndexedByFieldValue.get(mIndexMap.get(index)).get(value);
   }
