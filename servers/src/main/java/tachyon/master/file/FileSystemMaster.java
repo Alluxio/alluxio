@@ -469,34 +469,29 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      List<Inode> created =
+      InodeTree.CreatePathResult createResult =
           createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
+      List<Inode> created = createResult.getCreated();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-      for (int i = 0; i < created.size(); i ++) {
-        Inode inode = created.get(i);
-        if (i == 0) {
-          // The first inode in the list was modified, not created.
-          writeJournalEntry(new InodeLastModificationTimeEntry(inode.getId(),
-              inode.getLastModificationTimeMs()));
-        } else {
-          writeJournalEntry(inode.toJournalEntry());
-        }
-      }
+      journalCreatePathResult(createResult);
       flushJournal();
       return created.get(created.size() - 1).getId();
     }
   }
 
-  List<Inode> createFileInternal(TachyonURI path, long blockSizeBytes, boolean recursive,
-      long opTimeMs) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
+  InodeTree.CreatePathResult createFileInternal(TachyonURI path, long blockSizeBytes,
+      boolean recursive, long opTimeMs)
+          throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+    InodeTree.CreatePathResult createResult =
+        mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
     // If the create succeeded, the list of created inodes will not be empty.
+    List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
     if (mWhitelist.inList(path.toString())) {
       inode.setCache(true);
     }
-    return created;
+    return createResult;
   }
 
   /**
@@ -798,25 +793,32 @@ public final class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       try {
-        List<Inode> created = mInodeTree.createPath(path, 0, recursive, true);
+        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, 0, recursive, true);
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-        for (int i = 0; i < created.size(); i ++) {
-          Inode inode = created.get(i);
-          if (i == 0) {
-            // The first inode in the list was modified, not created.
-            writeJournalEntry(new InodeLastModificationTimeEntry(inode.getId(),
-                inode.getLastModificationTimeMs()));
-          } else {
-            writeJournalEntry(inode.toJournalEntry());
-          }
-        }
+        journalCreatePathResult(createResult);
         flushJournal();
       } catch (BlockInfoException bie) {
         // Since we are creating a directory, the block size is ignored, no such exception should
         // happen.
         Throwables.propagate(bie);
       }
+    }
+  }
+
+  /**
+   * Journals the {@link InodeTree.CreatePathResult}. This does not flush the journal.
+   * Synchronization is required outside of this method.
+   *
+   * @param createResult the {@link InodeTree.CreatePathResult} to journal
+   */
+  private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
+    for (Inode inode : createResult.getModified()) {
+      writeJournalEntry(
+          new InodeLastModificationTimeEntry(inode.getId(), inode.getLastModificationTimeMs()));
+    }
+    for (Inode inode : createResult.getCreated()) {
+      writeJournalEntry(inode.toJournalEntry());
     }
   }
 
