@@ -240,7 +240,5 @@ public final class FileUtils {
     return new File(path).exists();
   }
 
-  private FileUtils() {
-    // util class
-  }
+  private FileUtils() {} // prevent instantiation
 }
