@@ -30,7 +30,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.worker.WorkerContext;
 
 public class StorageTierTest {
-  private static final long TEST_USER_ID = 2;
+  private static final long TEST_SESSION_ID = 2;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_BLOCK_SIZE = 20;
   private static final long TEST_DIR1_CAPACITY = 2000;
@@ -67,7 +67,7 @@ public class StorageTierTest {
 
     mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     mDir1 = mTier.getDir(0);
-    mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
+    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
 
   }
 

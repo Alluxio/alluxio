@@ -36,7 +36,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
 
 public class BaseAllocatorTest {
 
-  protected static final long USER_ID = 1;
+  protected static final long SESSION_ID = 1;
   protected int mTestBlockId = 0;
 
   // Default tier/dir configurations we use for testing
@@ -147,9 +147,9 @@ public class BaseAllocatorTest {
     mTestBlockId ++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(USER_ID, blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, mManagerView);
     TempBlockMeta tempBlockMeta =
-        dirView == null ? null : dirView.createTempBlockMeta(USER_ID, mTestBlockId, blockSize);
+        dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
     if (avail == false) {
       Assert.assertTrue(tempBlockMeta == null);
@@ -173,9 +173,9 @@ public class BaseAllocatorTest {
     mTestBlockId ++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(USER_ID, blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, mManagerView);
     TempBlockMeta tempBlockMeta =
-        dirView == null ? null : dirView.createTempBlockMeta(USER_ID, mTestBlockId, blockSize);
+        dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
     if (avail == false) {
       Assert.assertTrue(tempBlockMeta == null);
