@@ -57,7 +57,7 @@ import tachyon.worker.block.BlockServiceHandler;
  */
 public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
-  private static final long USER_ID = 1L;
+  private static final long SESSION_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   private final ExecutorService mExecutorService =
@@ -103,14 +103,14 @@ public class BlockServiceHandlerIntegrationTest {
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
 
-    String tmpFolder = mWorkerServiceHandler.getSessionUfsTempFolder(USER_ID);
+    String tmpFolder = mWorkerServiceHandler.getSessionUfsTempFolder(SESSION_ID);
     UnderFileSystem ufs = UnderFileSystem.get(tmpFolder, mMasterTachyonConf);
     ufs.mkdirs(tmpFolder, true);
     String filename = PathUtils.concatPath(tmpFolder, file.getFileId());
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
-    mWorkerServiceHandler.addCheckpoint(USER_ID, (int) file.getFileId());
+    mWorkerServiceHandler.addCheckpoint(SESSION_ID, (int) file.getFileId());
 
     // No space should be used in Tachyon, but the file should be complete
     Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
@@ -129,9 +129,9 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId0 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
     final long blockId1 = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 1);
 
-    String filename = mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId0, blockSize);
+    String filename = mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId0, blockSize);
     createBlockFile(filename, blockSize);
-    mWorkerServiceHandler.cacheBlock(USER_ID, blockId0);
+    mWorkerServiceHandler.cacheBlock(SESSION_ID, blockId0);
 
     // The master should be immediately updated with the persisted block
     Assert.assertEquals(blockSize, mBlockMasterClient.getUsedBytes());
@@ -139,7 +139,7 @@ public class BlockServiceHandlerIntegrationTest {
     // Attempting to cache a non existent block should throw an exception
     Exception exception = null;
     try {
-      mWorkerServiceHandler.cacheBlock(USER_ID, blockId1);
+      mWorkerServiceHandler.cacheBlock(SESSION_ID, blockId1);
     } catch (TException e) {
       exception = e;
     }
@@ -156,9 +156,9 @@ public class BlockServiceHandlerIntegrationTest {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 
-    String filename = mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId, blockSize);
+    String filename = mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId, blockSize);
     createBlockFile(filename, blockSize);
-    mWorkerServiceHandler.cancelBlock(USER_ID, blockId);
+    mWorkerServiceHandler.cancelBlock(SESSION_ID, blockId);
 
     // The block should not exist after being cancelled
     Assert.assertFalse(new File(filename).exists());
@@ -183,7 +183,7 @@ public class BlockServiceHandlerIntegrationTest {
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
 
-    String localPath = mWorkerServiceHandler.lockBlock(blockId, USER_ID);
+    String localPath = mWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
 
     // The local path should exist
     Assert.assertNotNull(localPath);
@@ -196,7 +196,7 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertEquals(blockSize, bytesRead);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(bytesRead, data));
 
-    mWorkerServiceHandler.unlockBlock(blockId, USER_ID);
+    mWorkerServiceHandler.unlockBlock(blockId, SESSION_ID);
   }
 
   // Tests that lock block returns error on failure
@@ -209,7 +209,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     Exception exception = null;
     try {
-      mWorkerServiceHandler.lockBlock(blockId, USER_ID);
+      mWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
     } catch (FileDoesNotExistException fdne) {
       exception = fdne;
     }
@@ -259,24 +259,24 @@ public class BlockServiceHandlerIntegrationTest {
     final long blockId2 = 12346L;
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 10;
 
-    mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId1, chunkSize);
-    boolean result = mWorkerServiceHandler.requestSpace(USER_ID, blockId1, chunkSize);
+    mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId1, chunkSize);
+    boolean result = mWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, chunkSize);
 
     // Initial request and first additional request should succeed
     Assert.assertEquals(true, result);
 
-    result = mWorkerServiceHandler.requestSpace(USER_ID, blockId1, WORKER_CAPACITY_BYTES);
+    result = mWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, WORKER_CAPACITY_BYTES);
 
     // Impossible request should fail
     Assert.assertEquals(false, result);
 
     // Request for space on a nonexistent block should fail
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(USER_ID, blockId2, chunkSize));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize));
 
     // Request for impossible initial space should fail
     Exception exception = null;
     try {
-      mWorkerServiceHandler.requestBlockLocation(USER_ID, blockId2, WORKER_CAPACITY_BYTES + 1);
+      mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2, WORKER_CAPACITY_BYTES + 1);
     } catch (OutOfSpaceException oose) {
       exception = oose;
     }
@@ -287,8 +287,8 @@ public class BlockServiceHandlerIntegrationTest {
   @Test
   public void totalOverCapacityRequestSpaceTest() throws Exception {
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 2;
-    final long userId1 = USER_ID;
-    final long userId2 = USER_ID + 1;
+    final long userId1 = SESSION_ID;
+    final long userId2 = SESSION_ID + 1;
     final long blockId1 = 12345L;
     final long blockId2 = 23456L;
 

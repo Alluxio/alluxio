@@ -387,7 +387,7 @@ number.
 <tr>
   <td>tachyon.worker.session.timeout.ms</td>
   <td>10000</td>
-  <td>Timeout between worker and clent connection indicating a lost session connection.  Specified in milliseconds</td>
+  <td>Timeout between worker and client connection indicating a lost session connection.  Specified in milliseconds</td>
 </tr>
 </table>
 
