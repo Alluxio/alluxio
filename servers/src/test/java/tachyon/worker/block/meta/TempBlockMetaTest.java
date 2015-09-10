@@ -34,7 +34,7 @@ public class TempBlockMetaTest {
   private static final long TEST_BLOCK_SIZE = 100;
   private static final int TEST_TIER_LEVEL = 0;
   private static final StorageLevelAlias TEST_TIER_ALIAS = StorageLevelAlias.MEM;
-  private static final long[] TEST_TIER_CAPACITY_BYTES = { 100 };
+  private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
   private String mTestDirPath;
   private TempBlockMeta mTempBlockMeta;
 
@@ -44,11 +44,11 @@ public class TempBlockMetaTest {
   @Before
   public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
-    TieredBlockStoreTestUtils.setTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
-        TEST_TIER_ALIAS, new String[] { mTestDirPath }, TEST_TIER_CAPACITY_BYTES, "");
+    // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
+    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
+        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
 
-    StorageTier tier = StorageTier.newStorageTier(TEST_TIER_LEVEL /* level */);
+    StorageTier tier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     StorageDir dir = tier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }

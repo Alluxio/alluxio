@@ -44,11 +44,11 @@ public class BaseAllocatorTest {
   public static final long DEFAULT_HDD_SIZE = 3000;
 
   public static final int[] TIER_LEVEL = {0, 1, 2};
-  public static final StorageLevelAlias[] TIER_ALIAS = { StorageLevelAlias.MEM,
+  public static final StorageLevelAlias[] TIER_ALIAS = {StorageLevelAlias.MEM,
       StorageLevelAlias.SSD, StorageLevelAlias.HDD };
-  public static final String[][] TIER_PATH = { {"/ramdisk"}, {"/ssd1", "/ssd2"},
+  public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
       {"/disk1", "/disk2", "/disk3"}};
-  public static final long[][] TIER_CAPACITY_BYTES = { {DEFAULT_RAM_SIZE},
+  public static final long[][] TIER_CAPACITY_BYTES = {{DEFAULT_RAM_SIZE},
       {DEFAULT_SSD_SIZE, DEFAULT_SSD_SIZE},
       {DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE}};
 
@@ -72,7 +72,7 @@ public class BaseAllocatorTest {
   protected void resetManagerView() throws Exception {
     String tachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
-    TieredBlockStoreTestUtils.setTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS,
+    TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
     BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();
     mManagerView = new BlockMetadataManagerView(metaManager, new HashSet<Long>(),

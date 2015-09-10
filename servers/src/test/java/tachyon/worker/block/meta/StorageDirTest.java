@@ -66,17 +66,17 @@ public final class StorageDirTest {
   public void before() throws Exception {
     // Creates a dummy test dir under mTestDirPath with 1 byte space so initialization can occur
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    String[] testDirPaths = {mTestDirPath };
+    String[] testDirPaths = {mTestDirPath};
     long[] testDirCapacity = {1};
 
-    TieredBlockStoreTestUtils.setTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
+    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
         StorageLevelAlias.MEM, testDirPaths, testDirCapacity, "");
 
     mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
-    mTempBlockMeta =
-        new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
+    mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE,
+        mDir);
   }
 
   private StorageDir newStorageDir(File testDir) throws Exception {
