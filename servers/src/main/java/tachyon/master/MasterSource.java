@@ -25,7 +25,11 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.master.block.BlockMaster;
+import tachyon.master.file.FileSystemMaster;
 import tachyon.metrics.source.Source;
+import tachyon.underfs.UnderFileSystem;
 
 /**
  * A MasterSource collects a Master's internal state. Metrics like *Ops are used to record how many
@@ -53,25 +57,26 @@ public class MasterSource implements Source {
   private final Counter mGetFileStatusOps =
       mMetricRegistry.counter(MetricRegistry.name("GetFileStatusOps"));
 
-  public MasterSource(final MasterInfo masterInfo) {
+  public void registerGauges(final TachyonMaster tachyonMaster) {
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return masterInfo.getCapacityBytes();
+        return tachyonMaster.getBlockMaster().getCapacityBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("CapacityUsed"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return masterInfo.getUsedBytes();
+        return tachyonMaster.getBlockMaster().getUsedBytes();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("CapacityFree"), new Gauge<Long>() {
       @Override
       public Long getValue() {
-        return masterInfo.getCapacityBytes() - masterInfo.getUsedBytes();
+        return tachyonMaster.getBlockMaster().getCapacityBytes()
+            - tachyonMaster.getBlockMaster().getUsedBytes();
       }
     });
 
@@ -80,7 +85,11 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          ret = masterInfo.getUnderFsCapacityBytes();
+          TachyonConf tachyonConf = tachyonMaster.getTachyonConf();
+          String ufsDataFolder =
+              tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, tachyonConf);
+          ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
         }
@@ -93,7 +102,11 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          ret = masterInfo.getUnderFsUsedBytes();
+          TachyonConf tachyonConf = tachyonMaster.getTachyonConf();
+          String ufsDataFolder =
+              tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, tachyonConf);
+          ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
         }
@@ -106,7 +119,11 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          ret = masterInfo.getUnderFsFreeBytes();
+          TachyonConf tachyonConf = tachyonMaster.getTachyonConf();
+          String ufsDataFolder =
+              tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, tachyonConf);
+          ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
         }
@@ -117,26 +134,23 @@ public class MasterSource implements Source {
     mMetricRegistry.register(MetricRegistry.name("Workers"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return masterInfo.getWorkerCount();
+        return tachyonMaster.getBlockMaster().getWorkerCount();
       }
     });
 
-    // TODO: renable when metrics is fully implemented on the master.
-    /*
     mMetricRegistry.register(MetricRegistry.name("FilesTotal"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return masterInfo.getNumberOfFiles();
+        return tachyonMaster.getFileSystemMaster().getNumberOfFiles();
       }
     });
 
     mMetricRegistry.register(MetricRegistry.name("FilesPinned"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return masterInfo.getNumberOfPinnedFiles();
+        return tachyonMaster.getFileSystemMaster().getNumberOfPinnedFiles();
       }
     });
-    */
   }
 
   @Override

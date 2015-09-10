@@ -103,6 +103,24 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
+   * Return the number of total inodes.
+   *
+   * @return the number of total inodes
+   */
+  public int getSize() {
+    return mInodes.size();
+  }
+
+  /**
+   * Return the number of pinned inodes.
+   *
+   * @return the number of pinned inodes
+   */
+  public int getPinnedSize() {
+    return mPinnedInodeFileIds.size();
+  }
+
+  /**
    * @param id the id to get the inode for
    * @return the inode with the given id
    * @throws FileDoesNotExistException
