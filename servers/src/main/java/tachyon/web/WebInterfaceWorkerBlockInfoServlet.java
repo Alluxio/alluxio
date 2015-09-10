@@ -228,6 +228,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         // The block last access time is not available. Use -1 for now.
         // It's not necessary to show location information here since
         // we are viewing at the context of this worker.
+        // TODO: use level instead of alias
         uiFileInfo.addBlock(storageLevelAlias, blockId, blockSize, -1);
       }
     }

@@ -98,7 +98,7 @@ public final class MasterBlockInfo {
    */
   public synchronized List<MasterBlockLocation> getBlockLocations() {
     List<MasterBlockLocation> ret = new ArrayList<MasterBlockLocation>(mWorkerIdToAlias.size());
-    // TODO: use level instead of alias to find and sort the net address
+    // TODO: use level instead of alias to find and sort the location
     for (StorageLevelAlias alias : StorageLevelAlias.values()) {
       for (Map.Entry<Long, Integer> entry : mWorkerIdToAlias.entrySet()) {
         if (alias.getValue() == entry.getValue()) {
