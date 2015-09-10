@@ -23,14 +23,14 @@ import com.codahale.metrics.MetricRegistry;
  */
 public interface Source {
   /**
-   * Get the name of the Source.
+   * Gets the name of the Source.
    *
    * @return the name of the Source
    */
   public String getName();
 
   /**
-   * Get the instance of the MetricRegistry. A MetricRegistry is used to register the metrics, and
+   * Gets the instance of the MetricRegistry. A MetricRegistry is used to register the metrics, and
    * is passed to a Sink so that the sink knows which metrics to report.
    *
    * @return the instance of the MetricRegistry

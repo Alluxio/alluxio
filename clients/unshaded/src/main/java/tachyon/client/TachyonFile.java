@@ -15,36 +15,34 @@
 
 package tachyon.client;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Closer;
-
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.ClientBlockInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.underfs.UnderFileSystem;
 
 /**
  * Tachyon File.
  */
+@Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private final TachyonFileSystem mTFS;
+
   final TachyonFS mTachyonFS;
-  final int mFileId;
+  final long mFileId;
 
   private Object mUFSConf = null;
 
@@ -57,17 +55,18 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @param fid the file id
    * @param tachyonConf the TachyonConf for this file
    */
-  TachyonFile(TachyonFS tfs, int fid, TachyonConf tachyonConf) {
+  TachyonFile(TachyonFS tfs, long fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
+    mTFS = TachyonFileSystem.get();
     mFileId = fid;
     mTachyonConf = tachyonConf;
   }
 
-  private ClientFileInfo getCachedFileStatus() throws IOException {
+  private FileInfo getCachedFileStatus() throws IOException {
     return mTachyonFS.getFileStatus(mFileId, true);
   }
 
-  private ClientFileInfo getUnCachedFileStatus() throws IOException {
+  private FileInfo getUnCachedFileStatus() throws IOException {
     return mTachyonFS.getFileStatus(mFileId, false);
   }
 
@@ -105,7 +104,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public long getBlockSizeByte() throws IOException {
-    return getCachedFileStatus().getBlockSizeByte();
+    return getCachedFileStatus().getBlockSizeBytes();
   }
 
   /**
@@ -115,7 +114,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the ClientBlockInfo of the specified block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
-  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
+  public synchronized FileBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
     return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
   }
 
@@ -133,7 +132,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the replication factor.
    */
   public int getDiskReplication() {
-    // TODO(hy): Implement it.
+    // TODO(haoyuan): Implement it.
     return 3;
   }
 
@@ -146,7 +145,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the <code>InStream</code>
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
-  public InStream getInStream(ReadType readType) throws IOException {
+  public FileInStream getInStream(ReadType readType) throws IOException {
     if (readType == null) {
       throw new IOException("ReadType can not be null.");
     }
@@ -159,18 +158,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("Cannot open a directory for reading.");
     }
 
-    ClientFileInfo fileStatus = getUnCachedFileStatus();
-    List<Long> blocks = fileStatus.getBlockIds();
-
-    if (blocks.size() == 0) {
-      return new EmptyBlockInStream(this, readType, mTachyonConf);
+    FileInfo info = getUnCachedFileStatus();
+    TachyonURI uri = new TachyonURI(info.getPath());
+    ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
+    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
+    if (readType.isCache()) {
+      optionsBuilder.setTachyonStoreType(TachyonStorageType.STORE);
+    } else {
+      optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
     }
-
-    if (blocks.size() == 1) {
-      return BlockInStream.get(this, readType, 0, mUFSConf, mTachyonConf);
-    }
-
-    return new FileInStream(this, readType, mUFSConf, mTachyonConf);
+    return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
   }
 
   /**
@@ -184,7 +181,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public String getLocalFilename(int blockIndex) throws IOException {
-    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
+    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
     long blockId = blockInfo.getBlockId();
     int blockLockId = mTachyonFS.getBlockLockId();
     String filename = mTachyonFS.lockBlock(blockId, blockLockId);
@@ -206,7 +203,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       List<NetAddress> locations = getClientBlockInfo(0).getLocations();
       if (locations != null) {
         for (NetAddress location : locations) {
-          ret.add(location.mHost);
+          ret.add(location.host);
         }
       }
     }
@@ -232,7 +229,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the OutStream
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
-  public OutStream getOutStream(WriteType writeType) throws IOException {
+  public FileOutStream getOutStream(WriteType writeType) throws IOException {
     if (isComplete()) {
       throw new IOException("Overriding after completion not supported.");
     }
@@ -241,7 +238,21 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("WriteType can not be null.");
     }
 
-    return new FileOutStream(this, writeType, mUFSConf, mTachyonConf);
+    FileInfo info = getUnCachedFileStatus();
+    ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
+    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
+
+    if (writeType.isCache()) {
+      optionsBuilder.setTachyonStoreType(TachyonStorageType.STORE);
+    } else {
+      optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
+    }
+    if (writeType.isThrough()) {
+      optionsBuilder.setUnderStorageType(UnderStorageType.PERSIST);
+    } else {
+      optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
+    }
+    return mTFS.getOutStream(mFileId, optionsBuilder.build());
   }
 
   /**
@@ -270,7 +281,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   String getUfsPath() throws IOException {
-    ClientFileInfo info = getCachedFileStatus();
+    FileInfo info = getCachedFileStatus();
 
     if (!info.getUfsPath().isEmpty()) {
       return info.getUfsPath();
@@ -281,7 +292,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   @Override
   public int hashCode() {
-    return mFileId;
+    return Long.valueOf(mFileId).hashCode();
   }
 
   /**
@@ -345,14 +356,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public boolean promoteBlock(int blockIndex) throws IOException {
-    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
+    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
     return mTachyonFS.promoteBlock(blockInfo.getBlockId());
   }
 
   /**
    * Advanced API.
    *
-   * Returns a TachyonByteBuffer of the block specified by the blockIndex
+   * Returns a TachyonByteBuffer of the block specified by the blockIndex.
+   *
+   * Currently unsupported.
    *
    * @param blockIndex The block index of the current file to read.
    * @return TachyonByteBuffer containing the block.
@@ -360,33 +373,26 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   @Deprecated
   public TachyonByteBuffer readByteBuffer(int blockIndex) throws IOException {
-    if (!isComplete()) {
-      return null;
-    }
-
-    // TODO(hy): allow user to disable local read for this advanced API
-    TachyonByteBuffer ret = readLocalByteBuffer(blockIndex);
-    if (ret == null) {
-      // TODO(hy): Make it local cache if the OpType is try cache.
-      ret = readRemoteByteBuffer(getClientBlockInfo(blockIndex));
-    }
-
-    return ret;
+    throw new UnsupportedOperationException("ReadByteBuffer is not supported");
   }
 
   /**
    * Gets the the whole block.
+   *
+   * Currently unsupported.
    *
    * @param blockIndex The block index of the current file to read.
    * @return TachyonByteBuffer containing the block.
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   TachyonByteBuffer readLocalByteBuffer(int blockIndex) throws IOException {
-    return readLocalByteBuffer(blockIndex, 0, -1);
+    throw new UnsupportedOperationException("ReadLocalByteBuffer is not supported");
   }
 
   /**
    * Read local block return a TachyonByteBuffer
+   *
+   * Currently unsupported.
    *
    * @param blockIndex The id of the block
    * @param offset The start position to read
@@ -396,157 +402,48 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   private TachyonByteBuffer readLocalByteBuffer(int blockIndex, long offset, long len)
       throws IOException {
-    if (offset < 0) {
-      throw new IOException("Offset can not be negative: " + offset);
-    }
-    if (len < 0 && len != -1) {
-      throw new IOException("Length can not be negative except -1: " + len);
-    }
+    throw new UnsupportedOperationException("ReadLocalByteBuffer is not supported");
 
-    ClientBlockInfo info = getClientBlockInfo(blockIndex);
-    long blockId = info.blockId;
-
-    int blockLockId = mTachyonFS.getBlockLockId();
-    String localFileName = mTachyonFS.lockBlock(blockId, blockLockId);
-
-    if (localFileName != null) {
-      Closer closer = Closer.create();
-      try {
-        RandomAccessFile localFile = closer.register(new RandomAccessFile(localFileName, "r"));
-
-        long fileLength = localFile.length();
-        String error = null;
-        if (offset > fileLength) {
-          error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
-        }
-        if (error == null && len != -1 && offset + len > fileLength) {
-          error =
-              String.format("Offset(%d) plus length(%d) is larger than file length(%d)", offset,
-                  len, fileLength);
-        }
-        if (error != null) {
-          throw new IOException(error);
-        }
-
-        if (len == -1) {
-          len = fileLength - offset;
-        }
-
-        FileChannel localFileChannel = closer.register(localFile.getChannel());
-        final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        mTachyonFS.accessLocalBlock(blockId);
-        return new TachyonByteBuffer(mTachyonFS, buf, blockId, blockLockId);
-      } catch (FileNotFoundException e) {
-        LOG.info(localFileName + " is not on local disk.");
-      } catch (IOException e) {
-        LOG.warn("Failed to read local file " + localFileName + " because:", e);
-      } finally {
-        closer.close();
-      }
-    }
-
-    mTachyonFS.unlockBlock(blockId, blockLockId);
-    return null;
   }
 
   /**
    * Get the the whole block from remote workers.
    *
+   * Currently unsupported.
+   *
    * @param blockInfo The blockInfo of the block to read
    * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying stream throws IOException during close()
    */
-  TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) throws IOException {
-    // Create a dummy RemoteBlockInstream object.
-    RemoteBlockInStream dummyStream = RemoteBlockInStream.getDummyStream();
-    // Using the dummy stream to read remote buffer.
-    ByteBuffer inBuf = dummyStream.readRemoteByteBuffer(mTachyonFS, blockInfo, 0,
-        blockInfo.length, mTachyonConf);
-    if (inBuf == null) {
-      // Close the stream object.
-      dummyStream.close();
-      return null;
-    }
-    // Copy data in network buffer into client buffer.
-    ByteBuffer outBuf = ByteBuffer.allocate((int) inBuf.capacity());
-    outBuf.put(inBuf);
-    // Close the stream object (must be called after buffer is copied)
-    dummyStream.close();
-    return new TachyonByteBuffer(mTachyonFS, outBuf, blockInfo.blockId, -1);
+  TachyonByteBuffer readRemoteByteBuffer(FileBlockInfo blockInfo) throws IOException {
+    throw new UnsupportedOperationException("ReadRemoteByteBuffer is not supported");
   }
 
   /**
    * Re-caches this file into memory.
    *
-   * TODO(hy): remove this method. do streaming cache. This is not a right API.
+   * Currently unsupported.
+   *
+   * TODO(haoyuan): Remove this method. Do streaming cache. This is not a right API.
    *
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public boolean recache() throws IOException {
-    int numberOfBlocks = getNumberOfBlocks();
-    if (numberOfBlocks == 0) {
-      return true;
-    }
-
-    boolean succeed = true;
-    for (int k = 0; k < numberOfBlocks; k ++) {
-      succeed &= recache(k);
-    }
-
-    return succeed;
+    throw new UnsupportedOperationException("Recache is not supported");
   }
 
   /**
    * Re-caches the given block into memory.
+   *
+   * Currently unsupported.
    *
    * @param blockIndex The block index of the current file
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   boolean recache(int blockIndex) throws IOException {
-    String path = getUfsPath();
-    UnderFileSystem underFsClient = UnderFileSystem.get(path, mTachyonConf);
-
-    InputStream inputStream = null;
-    BlockOutStream bos = null;
-    try {
-      inputStream = underFsClient.open(path);
-
-      long length = getBlockSizeByte();
-      long offset = blockIndex * length;
-      inputStream.skip(offset);
-
-      int bufferBytes =
-          (int) mTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
-      byte[] buffer = new byte[bufferBytes];
-      bos = BlockOutStream.get(this, WriteType.TRY_CACHE, blockIndex, mTachyonConf);
-      int limit;
-      while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
-        if (limit != 0) {
-          if (length >= limit) {
-            bos.write(buffer, 0, limit);
-            length -= limit;
-          } else {
-            bos.write(buffer, 0, (int) length);
-            length = 0;
-          }
-        }
-      }
-      bos.close();
-    } catch (IOException e) {
-      LOG.warn(e.getMessage(), e);
-      if (bos != null) {
-        bos.cancel();
-      }
-      return false;
-    } finally {
-      if (inputStream != null) {
-        inputStream.close();
-      }
-    }
-
-    return true;
+    throw new UnsupportedOperationException("Recache is not supported");
   }
 
   /**

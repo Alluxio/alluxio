@@ -52,7 +52,7 @@ public class EvictorFactoryTest {
             TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
       }
       sBlockMetadataManagerView = new BlockMetadataManagerView(sBlockMetadataManager,
-          Collections.<Integer>emptySet(), Collections.<Long>emptySet());
+          Collections.<Long>emptySet(), Collections.<Long>emptySet());
     }
   }
 

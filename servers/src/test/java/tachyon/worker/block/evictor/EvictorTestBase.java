@@ -37,7 +37,7 @@ import tachyon.worker.block.allocator.MaxFreeAllocator;
  * {@link TieredBlockStoreTestUtils#defaultTachyonConf(String)}.
  */
 public class EvictorTestBase {
-  protected static final int USER_ID = 2;
+  protected static final int SESSION_ID = 2;
   protected static final long BLOCK_ID = 10;
 
   protected BlockMetadataManager mMetaManager;
@@ -52,16 +52,16 @@ public class EvictorTestBase {
    * Cache a block to the tiered storage managed by the {@link #mMetaManager}. It's a wrapper around
    * {@link TieredBlockStoreTestUtils#cache}.
    *
-   * @param userId ID of user to cache this block
+   * @param sessionId ID of session to cache this block
    * @param blockId ID of the block
    * @param bytes length of the block in bytes
    * @param tierLevel tier level for the block in the tiered storage
    * @param dirIndex directory index in tierLevel for the block in the tiered storage
    * @throws Exception when anything goes wrong, should not happen in unit tests
    */
-  protected void cache(long userId, long blockId, long bytes, int tierLevel, int dirIndex)
+  protected void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIndex)
       throws Exception {
-    TieredBlockStoreTestUtils.cache(userId, blockId, bytes, tierLevel, dirIndex, mMetaManager,
+    TieredBlockStoreTestUtils.cache(sessionId, blockId, bytes, tierLevel, dirIndex, mMetaManager,
         mEvictor);
   }
 
@@ -77,7 +77,7 @@ public class EvictorTestBase {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mManagerView =
-        new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+        new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, evictorClassName);
