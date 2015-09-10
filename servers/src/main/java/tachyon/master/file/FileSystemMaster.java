@@ -36,6 +36,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterSource;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -80,6 +81,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private final TachyonConf mTachyonConf;
   private final BlockMaster mBlockMaster;
+  private final MasterSource mMasterSource;
 
   /** This manages the file system inode structure. This must be journaled. */
   private final InodeTree mInodeTree;
@@ -99,11 +101,12 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
-      Journal journal) {
+      Journal journal, MasterSource masterSource) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
     mTachyonConf = tachyonConf;
     mBlockMaster = blockMaster;
+    mMasterSource = masterSource;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator);
@@ -197,7 +200,6 @@ public final class FileSystemMaster extends MasterBase {
   public boolean completeFileCheckpoint(long workerId, long fileId, long length,
       TachyonURI checkpointPath)
           throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
-    // TODO: metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
@@ -263,6 +265,7 @@ public final class FileSystemMaster extends MasterBase {
     mDependencyMap.addFileCheckpoint(fileId);
     file.setLastModificationTimeMs(opTimeMs);
     file.setComplete(length);
+    mMasterSource.incFilesCheckpointed();
     // TODO: This probably should always be true since the last mod time is updated
     return needLog;
   }
@@ -349,7 +352,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException
    */
   public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
-    // TODO: metrics
+    mMasterSource.incGetFileStatusOps();
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       return getFileInfo(inode);
@@ -397,7 +400,6 @@ public final class FileSystemMaster extends MasterBase {
    * @throws BlockInfoException
    */
   public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
-    // TODO: metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -463,7 +465,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long createFile(TachyonURI path, long blockSizeBytes, boolean recursive)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    // TODO: metrics
+    mMasterSource.incCreateFileOps();
     synchronized (mInodeTree) {
       List<Inode> created =
           createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
@@ -487,6 +489,7 @@ public final class FileSystemMaster extends MasterBase {
     if (mWhitelist.inList(path.toString())) {
       inode.setCache(true);
     }
+    mMasterSource.incFilesCreated(created.size());
     return created;
   }
 
@@ -510,6 +513,27 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+   * Get the total number of files and directories.
+   *
+   * @return the number of files and directories.
+   */
+  public int getNumberOfFiles() {
+    synchronized (mInodeTree) {
+      return mInodeTree.getSize();
+    }
+  }
+
+  /**
+   * Get the number of pinned files and directories.
+   * @return the number of pinned files and directories.
+   */
+  public int getNumberOfPinnedFiles() {
+    synchronized (mInodeTree) {
+      return mInodeTree.getPinnedSize();
+    }
+  }
+
+  /**
    * Deletes a given file id. Called via RPC.
    *
    * @param fileId the file id to delete
@@ -520,7 +544,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public boolean deleteFile(long fileId, boolean recursive)
       throws TachyonException, FileDoesNotExistException {
-    // TODO: metrics
+    mMasterSource.incDeleteFileOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, opTimeMs);
@@ -531,6 +555,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   private void deleteFileFromEntry(DeleteFileEntry entry) {
+    mMasterSource.incDeleteFileOps();
     try {
       deleteFileInternal(entry.mFileId, entry.mRecursive, entry.mOpTimeMs);
     } catch (Exception e) {
@@ -592,6 +617,7 @@ public final class FileSystemMaster extends MasterBase {
 
       mInodeTree.deleteInode(delInode, opTimeMs);
     }
+    mMasterSource.incFilesDeleted(delInodes.size());
     return true;
   }
 
@@ -815,7 +841,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public boolean rename(long fileId, TachyonURI dstPath)
       throws InvalidPathException, FileDoesNotExistException {
-    // TODO: metrics
+    mMasterSource.incRenameOps();
     synchronized (mInodeTree) {
       Inode srcInode = mInodeTree.getInodeById(fileId);
       TachyonURI srcPath = mInodeTree.getPath(srcInode);
@@ -885,9 +911,11 @@ public final class FileSystemMaster extends MasterBase {
     srcInode.setName(dstPath.getName());
     ((InodeDirectory) dstParentInode).addChild(srcInode);
     dstParentInode.setLastModificationTimeMs(opTimeMs);
+    mMasterSource.incFilesRenamed();
   }
 
   private void renameFromEntry(RenameEntry entry) {
+    mMasterSource.incRenameOps();
     try {
       renameInternal(entry.mFileId, new TachyonURI(entry.mDstPath), entry.mOpTimeMs);
     } catch (Exception e) {

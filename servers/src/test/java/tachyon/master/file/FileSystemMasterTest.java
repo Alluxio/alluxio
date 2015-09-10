@@ -30,6 +30,7 @@ import com.google.common.collect.Maps;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterSource;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
@@ -64,7 +65,8 @@ public final class FileSystemMasterTest {
     Journal fsJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), mTachyonConf);
 
     mBlockMaster = new BlockMaster(blockJournal, mTachyonConf);
-    mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster, fsJournal);
+    mFileSystemMaster =
+        new FileSystemMaster(mTachyonConf, mBlockMaster, fsJournal, new MasterSource());
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);

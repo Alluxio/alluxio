@@ -38,6 +38,7 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.rawtable.RawTableMaster;
+import tachyon.metrics.MetricsSystem;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -85,7 +86,10 @@ public class TachyonMaster {
   private final TServerSocket mTServerSocket;
   /** The address for the rpc server */
   private final InetSocketAddress mMasterAddress;
-
+  /** The master metrics system */
+  private final MetricsSystem mMasterMetricsSystem;
+  protected final MasterSource mMasterSource;
+  
   // The masters
   /** The master managing all block metadata */
   protected BlockMaster mBlockMaster;
@@ -151,12 +155,18 @@ public class TachyonMaster {
       mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
 
+      mMasterSource = new MasterSource();
+
       mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf);
       mFileSystemMaster =
-          new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
-      mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
+          new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal,
+              mMasterSource);
+      mRawTableMaster =
+          new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
 
-      // TODO: implement metrics.
+      mMasterSource.registerGauges(this);
+      mMasterMetricsSystem = new MetricsSystem("master", mTachyonConf);
+      mMasterMetricsSystem.registerSource(mMasterSource);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -287,6 +297,7 @@ public class TachyonMaster {
   }
 
   private void startServing() {
+    mMasterMetricsSystem.start();
     startServingWebServer();
     LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
     startServingRPCServer();
@@ -329,7 +340,7 @@ public class TachyonMaster {
       mWebServer.shutdownWebServer();
       mWebServer = null;
     }
-    mIsServing = false;
+    mMasterMetricsSystem.stop();
   }
 
   /**

@@ -281,6 +281,7 @@ public final class BlockWorker {
     mBlockMasterClient.close();
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
+    mWorkerMetricsSystem.stop();
     try {
       mWebServer.shutdownWebServer();
     } catch (Exception e) {
