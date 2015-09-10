@@ -73,9 +73,9 @@ public class TieredBlockStoreTestUtils {
    * @param workerDataFolder when specified it sets up the tachyon.worker.data.folder property.
    * @throws Exception when error happens during creating temporary folder.
    */
-  public static void setTachyonConfWithMultiTier(String baseDir, int[] tierLevel, StorageLevelAlias[]
-      tierAlias, String[][] tierPath, long[][] tierCapacity, String workerDataFolder) throws Exception
-      {
+  public static void setTachyonConfWithMultiTier(String baseDir, int[] tierLevel,
+      StorageLevelAlias[] tierAlias, String[][] tierPath, long[][] tierCapacity,
+      String workerDataFolder) throws Exception {
     // make sure dimensions are legal
     Preconditions.checkNotNull(tierLevel);
     Preconditions.checkNotNull(tierAlias);
@@ -187,7 +187,8 @@ public class TieredBlockStoreTestUtils {
    * @return new joined and created paths array.
    * @throws IOException when error happens during creating temporary folder
    */
-  private static String[] concatAndCreateDir1D(String baseDir, final String[] dirs) throws Exception {
+  private static String[] concatAndCreateDir1D(String baseDir, final String[] dirs)
+      throws Exception {
     if (null == baseDir) {
       return dirs;
     }
@@ -269,6 +270,9 @@ public class TieredBlockStoreTestUtils {
   /**
    * Cache bytes into StorageDir.
    *
+   * @param userId user who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
    * @param tierLevel tier level of the StorageDir the block resides in
    * @param dirIndex index of directory in the tierLevel the block resides in
    * @param meta the metadata manager to update meta of the block

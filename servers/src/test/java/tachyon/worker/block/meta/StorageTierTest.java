@@ -97,7 +97,6 @@ public class StorageTierTest {
   public void getDirTest() {
     mThrown.expect(IndexOutOfBoundsException.class);
     StorageDir dir1 = mTier.getDir(0);
-    System.out.println(dir1.getDirPath());
     Assert.assertEquals(mTestDirPath1, dir1.getDirPath());
     StorageDir dir2 = mTier.getDir(1);
     Assert.assertEquals(mTestDirPath2, dir2.getDirPath());

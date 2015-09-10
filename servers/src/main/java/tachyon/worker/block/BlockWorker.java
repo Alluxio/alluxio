@@ -98,6 +98,56 @@ public final class BlockWorker {
   private MetricsSystem mWorkerMetricsSystem;
 
   /**
+   * @return the worker service handler
+   */
+  public BlockServiceHandler getWorkerServiceHandler() {
+    return mServiceHandler;
+  }
+
+  /**
+   * @return the worker RPC service bind host
+   */
+  public String getRPCBindHost() {
+    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
+        .toString();
+  }
+
+  /**
+   * @return the worker RPC service port
+   */
+  public int getRPCLocalPort() {
+    return mPort;
+  }
+
+  /**
+   * @return the worker data service bind host
+   */
+  public String getDataBindHost() {
+    return mDataServer.getBindHost();
+  }
+
+  /**
+   * @return the worker data service port
+   */
+  public int getDataLocalPort() {
+    return mDataServer.getPort();
+  }
+
+  /**
+   * @return the worker web service bind host
+   */
+  public String getWebBindHost() {
+    return mWebServer.getBindHost();
+  }
+
+  /**
+   * @return the worker web service port
+   */
+  public int getWebLocalPort() {
+    return mWebServer.getLocalPort();
+  }
+
+  /**
    * Creates a Tachyon Block Worker.
    *
    * @throws IOException for other exceptions
@@ -160,8 +210,8 @@ public final class BlockWorker {
     mSyncExecutorService =
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
-    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
-        mBlockMasterClient);
+    mBlockMasterSync =
+        new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress, mBlockMasterClient);
     // Get the worker id
     // TODO: Do this at TachyonWorker
     mBlockMasterSync.setWorkerId();
@@ -175,8 +225,7 @@ public final class BlockWorker {
     // Setup user metadata mapping
     // TODO: Have a top level register that gets the worker id.
     long workerId = mBlockMasterSync.getWorkerId();
-    String ufsWorkerFolder =
-        mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
+    String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
     Users users = new Users(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
     // Give BlockDataManager a pointer to the user metadata mapping
@@ -277,53 +326,5 @@ public final class BlockWorker {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
     }
-  }
-
-  // For unit test purposes only
-  public BlockServiceHandler getWorkerServiceHandler() {
-    return mServiceHandler;
-  }
-
-  /**
-   * Get the actual bind hostname on RPC service (used by unit test only).
-   */
-  public String getRPCBindHost() {
-    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getLocalSocketAddress()
-        .toString();
-  }
-
-  /**
-   * Get the actual port that the Data service is listening on (used by unit test only)
-   */
-  public int getRPCLocalPort() {
-    return mPort;
-  }
-
-  /**
-   * Get the actual bind hostname on Data service (used by unit test only).
-   */
-  public String getDataBindHost() {
-    return mDataServer.getBindHost();
-  }
-
-  /**
-   * Get the actual port that the RPC service is listening on (used by unit test only)
-   */
-  public int getDataLocalPort() {
-    return mDataServer.getPort();
-  }
-
-  /**
-   * Get the actual bind hostname on web service (used by unit test only).
-   */
-  public String getWebBindHost() {
-    return mWebServer.getBindHost();
-  }
-
-  /**
-   * Get the actual port that the web service is listening on (used by unit test only)
-   */
-  public int getWebLocalPort() {
-    return mWebServer.getLocalPort();
   }
 }
