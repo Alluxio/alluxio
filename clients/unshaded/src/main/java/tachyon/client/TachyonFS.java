@@ -169,7 +169,7 @@ public class TachyonFS extends AbstractTachyonFS {
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
   /** Mapping from block id to path of the block locked */
   private final Map<Long, String> mLockedBlockIdToPath = new HashMap<Long, String>();
-  /** Each session facing block has a unique block lock id. */
+  /** Each user facing block has a unique block lock id. */
   private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
   private TachyonURI mRootUri = null;
