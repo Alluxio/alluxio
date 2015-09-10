@@ -1417,7 +1417,6 @@ public class MasterInfo extends ImageWriter {
    * @return the total bytes on each storage tier.
    */
   public List<Long> getTotalBytesOnTiers() {
-    // TODO: size should be the max level. It maybe small than StorageLevelAlias.SIZE
     List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers.values()) {
@@ -1433,7 +1432,6 @@ public class MasterInfo extends ImageWriter {
    * @return the used bytes on each storage tier.
    */
   public List<Long> getUsedBytesOnTiers() {
-    // TODO: size should be the max level. It maybe small than StorageLevelAlias.SIZE
     List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers.values()) {
