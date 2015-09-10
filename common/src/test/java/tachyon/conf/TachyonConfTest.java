@@ -170,7 +170,7 @@ public class TachyonConfTest {
   public void testWorkerDefault() {
     String value = sDefaultTachyonConf.get(Constants.WORKER_DATA_FOLDER);
     Assert.assertNotNull(value);
-    Assert.assertEquals("/mnt/ramdisk", value);
+    Assert.assertEquals("/tachyonworker/", value);
 
     value = sDefaultTachyonConf.get(Constants.WORKER_BIND_HOST);
     Assert.assertNotNull(value);
@@ -200,7 +200,7 @@ public class TachyonConfTest {
     Assert.assertEquals(Constants.SECOND_MS, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
-    Assert.assertEquals(Runtime.getRuntime().availableProcessors(), intValue);
+    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
