@@ -56,7 +56,13 @@ public final class RemoteBlockInStream extends BlockInStream {
     // TODO(calvin): Validate these fields.
     mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
     mWorkerClient = mContext.acquireWorkerClient(location.getHost());
-    String blockPath = mWorkerClient.lockBlock(blockId);
+    String blockPath = null;
+    try {
+      blockPath = mWorkerClient.lockBlock(blockId);
+    } catch (IOException ioe) {
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw ioe;
+    }
 
     if (null == blockPath) {
       // TODO(calvin): Handle this error case better.

@@ -162,9 +162,8 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public BlockReader getBlockReader(long sessionId, long blockId, long lockId)
+  public BlockReader getBlockReader(long sessionId, long blockId)
       throws NotFoundException, InvalidStateException, IOException {
-    mLockManager.validateLock(sessionId, blockId, lockId);
     mMetadataReadLock.lock();
     try {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);

@@ -550,4 +550,27 @@ public class RemoteBlockInStreamIntegrationTest {
     Assert.assertEquals(99, is.read());
     is.close();
   }
+
+  /**
+   * Test remote read stream lock in <code>RemoteBlockInStream</code>.
+   */
+  @Test
+  public void remoteReadLockTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteTachyon, k);
+
+      long blockId = mTfs.getInfo(f).getBlockIds().get(0);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      RemoteBlockInStream is =
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
+              .getWorkerAddress());
+      is.read();
+      mTfs.delete(f);
+      is.close();
+      Assert.assertNotNull(mTfs.getInfo(f));
+    }
+  }
+
 }

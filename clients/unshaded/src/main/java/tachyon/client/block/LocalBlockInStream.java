@@ -53,7 +53,13 @@ public final class LocalBlockInStream extends BlockInStream {
     mContext = BlockStoreContext.INSTANCE;
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-    String blockPath = mWorkerClient.lockBlock(blockId);
+    String blockPath = null;
+    try {
+      blockPath = mWorkerClient.lockBlock(blockId);
+    } catch (IOException ioe) {
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw ioe;
+    }
 
     if (blockPath == null) {
       // TODO(calvin): Handle this error case better.
