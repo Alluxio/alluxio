@@ -70,7 +70,7 @@ public enum FileSystemContext {
   /**
    * @return the Tachyon block store
    */
-  public TachyonBlockStore getTachyonBS() {
+  public TachyonBlockStore getTachyonBlockStore() {
     return mTachyonBlockStore;
   }
 }
