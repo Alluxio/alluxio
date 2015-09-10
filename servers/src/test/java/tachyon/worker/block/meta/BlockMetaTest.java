@@ -32,7 +32,7 @@ import tachyon.worker.WorkerContext;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public class BlockMetaTest {
-  private static final long TEST_USER_ID = 2;
+  private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_BLOCK_SIZE = 100;
   private static final int TEST_TIER_LEVEL = 0;
@@ -55,7 +55,7 @@ public class BlockMetaTest {
 
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     mDir = tier.getDir(0);
-    mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
+    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
   }
 
   @Test

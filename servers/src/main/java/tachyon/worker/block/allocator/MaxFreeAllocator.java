@@ -15,13 +15,10 @@
 
 package tachyon.worker.block.allocator;
 
-import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
-import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
  * An allocator that allocates a block in the storage dir with most free space.
@@ -35,10 +32,10 @@ public class MaxFreeAllocator implements Allocator {
   }
 
   @Override
-  public StorageDirView allocateBlockWithView(long userId, long blockSize,
+  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
     mManagerView = view;
-    return allocateBlock(userId, blockSize, location);
+    return allocateBlock(sessionId, blockSize, location);
   }
 
   /**
@@ -46,13 +43,14 @@ public class MaxFreeAllocator implements Allocator {
    * Allocates a block from the given block store location. The location can be a specific location,
    * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
    *
-   * @param userId the ID of user to apply for the block allocation
+   * @param sessionId the ID of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a StorageDirView in which to create the temp block meta if success, null otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
-  private StorageDirView allocateBlock(long userId, long blockSize, BlockStoreLocation location) {
+  private StorageDirView allocateBlock(long sessionId, long blockSize,
+      BlockStoreLocation location) {
     StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
