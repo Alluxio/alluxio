@@ -24,18 +24,31 @@ import tachyon.Format;
 import tachyon.master.TachyonMaster;
 import tachyon.underfs.UnderFileSystemRegistry;
 
+/**
+ * <code>TachyonMasterExecutor</code> is an implementation of a Mesos executor responsible for
+ * starting the Tachyon master.
+ */
 public class TachyonMasterExecutor implements Executor {
   @Override
-  public void registered(ExecutorDriver driver, Protos.ExecutorInfo executorInfo,
-      Protos.FrameworkInfo frameworkInfo, Protos.SlaveInfo slaveInfo) {
-    System.out.println("Registered executor on " + slaveInfo.getHostname());
+  public void disconnected(ExecutorDriver driver) {
+    System.out.println("Executor has disconnected from the Mesos slave.");
   }
 
   @Override
-  public void reregistered(ExecutorDriver driver, Protos.SlaveInfo executorInfo) {}
+  public void error(ExecutorDriver driver, String message) {
+    System.out.println("A fatal error has occurred: " + message + ".");
+  }
 
   @Override
-  public void disconnected(ExecutorDriver driver) {}
+  public void frameworkMessage(ExecutorDriver driver, byte[] data) {
+    System.out.println("Received a framework message.");
+  }
+
+  @Override
+  public void killTask(ExecutorDriver driver, Protos.TaskID taskId) {
+    System.out.println("Killing task " + taskId.getValue() + ".");
+    // TODO(jsimsa): Implement.
+  }
 
   @Override
   public void launchTask(final ExecutorDriver driver, final Protos.TaskInfo task) {
@@ -48,13 +61,13 @@ public class TachyonMasterExecutor implements Executor {
 
           driver.sendStatusUpdate(status);
 
-          System.out.println("Running task " + task.getTaskId().getValue());
+          System.out.println("Launching task " + task.getTaskId().getValue());
 
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
-          Format.main(new String[]{"master"});
-          TachyonMaster.main(new String[]{});
+          Format.main(new String[] {"master"});
+          TachyonMaster.main(new String[] {});
 
           status =
               Protos.TaskStatus.newBuilder().setTaskId(task.getTaskId())
@@ -69,16 +82,22 @@ public class TachyonMasterExecutor implements Executor {
   }
 
   @Override
-  public void killTask(ExecutorDriver driver, Protos.TaskID taskId) {}
+  public void registered(ExecutorDriver driver, Protos.ExecutorInfo executorInfo,
+      Protos.FrameworkInfo frameworkInfo, Protos.SlaveInfo slaveInfo) {
+    System.out.println("Registered executor " + executorInfo.getName() + " with "
+        + slaveInfo.getHostname() + " through framework " + frameworkInfo.getName() + ".");
+  }
 
   @Override
-  public void frameworkMessage(ExecutorDriver driver, byte[] data) {}
+  public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
+    System.out.println("Re-registered executor with " + slaveInfo.getHostname() + ".");
+  }
 
   @Override
-  public void shutdown(ExecutorDriver driver) {}
-
-  @Override
-  public void error(ExecutorDriver driver, String message) {}
+  public void shutdown(ExecutorDriver driver) {
+    System.out.println("Shutting down.");
+    // TODO(jsimsa): Implement.
+  }
 
   public static void main(String[] args) throws Exception {
     MesosExecutorDriver driver = new MesosExecutorDriver(new TachyonMasterExecutor());

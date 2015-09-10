@@ -28,6 +28,14 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
+/**
+ * <code>TachyonFramework</code> is an implementation of a Mesos framework that is responsible for
+ * starting Tachyon processes. The current implementation starts a single Tachyon master and n
+ * Tachyon workers (one per Mesos slave).
+ *
+ * The current resource allocation policy uses a configurable Tachyon master allocation, while the
+ * workers use the maximum available allocation.
+ */
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
     private boolean mMasterLaunched = false;
@@ -78,7 +86,7 @@ public class TachyonFramework {
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
       TachyonConf conf = new TachyonConf();
       double masterCpu = conf.getInt(Constants.MASTER_MESOS_CPU);
-      double masterMem = conf.getBytes(Constants.MASTER_MESOS_MEM) / (1024 * 1024); // MBs
+      double masterMem = conf.getBytes(Constants.MASTER_MESOS_MEM) / Constants.MB;
       String tachyonHome = conf.get(Constants.TACHYON_HOME);
       int launchedTasks = 0;
 
@@ -87,15 +95,17 @@ public class TachyonFramework {
         double offerCpu = 0;
         double offerMem = 0;
         for (Protos.Resource resource : offer.getResourcesList()) {
-          if (resource.getName().equals("cpus")) {
+          if (resource.getName().equals(Constants.MESOS_RESOURCE_CPUS)) {
             offerCpu += resource.getScalar().getValue();
-          } else if (resource.getName().equals("mem")) {
+          } else if (resource.getName().equals(Constants.MESOS_RESOURCE_MEM)) {
             offerMem += resource.getScalar().getValue();
+          } else {
+            // Other resources are currently ignored.
           }
         }
 
-        System.out.println("Received offer " + offer.getId().getValue() + " with cpus: "
-            + offerCpu + " and mem: " + offerMem + "MB.");
+        System.out.println("Received offer " + offer.getId().getValue() + " with cpus: " + offerCpu
+            + " and mem: " + offerMem + "MB.");
 
         double remainingCpu = offerCpu;
         double remainingMem = offerMem;
@@ -122,22 +132,28 @@ public class TachyonFramework {
             mMasterHostname = offer.getHostname();
             mMasterLaunched = true;
           } else if (mMasterLaunched) {
-            final String MEM_SIZE = FormatUtils.getSizeFromBytes((long) remainingMem * 1024 * 1024);
+            final String MEM_SIZE =
+                FormatUtils.getSizeFromBytes((long) remainingMem * Constants.MB);
             executorBuilder
                 .setName("Tachyon Worker Executor")
                 .setSource("worker")
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
                 .setCommand(
-                    Protos.CommandInfo.newBuilder().setValue(
-                        PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh"))
-                        .setEnvironment(Protos.Environment.newBuilder()
-                            .addVariables(Protos.Environment.Variable.newBuilder()
-                                .setName("TACHYON_MASTER_ADDRESS")
-                                .setValue(mMasterHostname).build())
-                            .addVariables(Protos.Environment.Variable.newBuilder()
-                                .setName("TACHYON_WORKER_MEMORY_SIZE")
-                                .setValue(MEM_SIZE).build())
-                            .build()));
+                    Protos.CommandInfo
+                        .newBuilder()
+                        .setValue(
+                            PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh"))
+                        .setEnvironment(
+                            Protos.Environment
+                                .newBuilder()
+                                .addVariables(
+                                    Protos.Environment.Variable.newBuilder()
+                                        .setName("TACHYON_MASTER_ADDRESS")
+                                        .setValue(mMasterHostname).build())
+                                .addVariables(
+                                    Protos.Environment.Variable.newBuilder()
+                                        .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE)
+                                        .build()).build()));
             targetCpu = remainingCpu;
             targetMem = remainingMem;
           }
@@ -148,11 +164,12 @@ public class TachyonFramework {
                   .setTaskId(taskId)
                   .setSlaveId(offer.getSlaveId())
                   .addResources(
-                      Protos.Resource.newBuilder().setName("cpus")
+                      Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_CPUS)
                           .setType(Protos.Value.Type.SCALAR)
                           .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetCpu)))
                   .addResources(
-                      Protos.Resource.newBuilder().setName("mem").setType(Protos.Value.Type.SCALAR)
+                      Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
+                          .setType(Protos.Value.Type.SCALAR)
                           .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetMem)))
                   .setExecutor(executorBuilder).build();
 
@@ -178,6 +195,7 @@ public class TachyonFramework {
 
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID slaveId) {
+      // TODO(jsimsa): Handle lost Mesos slaves.
       System.out.println("Executor " + slaveId.getValue() + " was lost.");
     }
 
@@ -186,19 +204,18 @@ public class TachyonFramework {
       String taskId = status.getTaskId().getValue();
       Protos.TaskState state = status.getState();
       System.out.printf("Task %s is in state %s\n", taskId, state);
-      switch (state) {
-        case TASK_RUNNING:
-        case TASK_FINISHED:
-        case TASK_FAILED:
-        case TASK_KILLED:
-        case TASK_LOST:
-        default:
-      }
+      // TODO(jsimsa): Handle the case when a Tachyon master and/or worker task fails.
+      // In particular, we should enable support for the fault tolerant mode of Tachyon to account
+      // for Tachyon master process failures and keep track of the running number of Tachyon
+      // masters.
     }
   }
 
   private static void usage() {
     String name = TachyonFramework.class.getName();
+    System.err.println("This is an implementation of a Mesos framework that is responsible for "
+        + "starting\nTachyon processes. The current implementation starts a single Tachyon master "
+        + "and\n n Tachyon workers (one per Mesos slave).");
     System.err.println("Usage: " + name + " <hostname>");
   }
 
@@ -209,10 +226,11 @@ public class TachyonFramework {
     }
     String hostname = args[0];
 
-    // Start Mesos master. Have Mesos fill in the current user.
+    // Start Mesos master. Setting the user to an empty string will prompt Mesos to set it to the
+    // current user.
     Protos.FrameworkInfo framework =
-        Protos.FrameworkInfo.newBuilder().setUser("").setName("Test Tachyon Framework")
-            .setPrincipal("test-tachyon-framework").build();
+        Protos.FrameworkInfo.newBuilder().setUser("").setName("Tachyon Framework")
+            .setPrincipal("tachyon-framework").build();
 
     Scheduler scheduler = new TachyonScheduler();
 
