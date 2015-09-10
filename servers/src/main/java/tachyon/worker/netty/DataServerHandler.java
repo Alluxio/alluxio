@@ -31,8 +31,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import tachyon.Constants;
+import tachyon.Sessions;
 import tachyon.StorageLevelAlias;
-import tachyon.Users;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
@@ -67,7 +67,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     mDataManager = Preconditions.checkNotNull(dataManager);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mTransferType =
-        mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.TRANSFER);
+        mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   @Override
@@ -101,7 +101,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     final long len = req.getLength();
     long lockId;
     try {
-      lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
+      lockId = mDataManager.lockBlock(Sessions.DATASERVER_SESSION_ID, blockId);
     } catch (NotFoundException ioe) {
       LOG.error("Failed to lock block: " + blockId, ioe);
       RPCBlockReadResponse resp =
@@ -113,7 +113,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
 
     BlockReader reader;
     try {
-      reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
+      reader = mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId, lockId);
     } catch (NotFoundException nfe) {
       throw new IOException(nfe);
     } catch (InvalidStateException fpe) {
@@ -129,7 +129,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
-      mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
+      mDataManager.accessBlock(Sessions.DATASERVER_SESSION_ID, blockId);
       LOG.info("Preparation for responding to remote block request for: " + blockId + " done.");
     } catch (Exception e) {
       LOG.error("The file is not here : " + e.getMessage(), e);
@@ -154,7 +154,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   // optimized to keep state.
   private void handleBlockWriteRequest(final ChannelHandlerContext ctx,
       final RPCBlockWriteRequest req) throws IOException {
-    final long userId = req.getUserId();
+    final long sessionId = req.getSessionId();
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long length = req.getLength();
@@ -172,16 +172,17 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         // This is the first write to the block, so create the temp block file. The file will only
         // be created if the first write starts at offset 0. This allocates enough space for the
         // write.
-        mDataManager.createBlockRemote(userId, blockId, StorageLevelAlias.MEM.getValue(), length);
+        mDataManager.createBlockRemote(sessionId, blockId, StorageLevelAlias.MEM.getValue(),
+            length);
       } else {
         // Allocate enough space in the existing temporary block for the write.
-        mDataManager.requestSpace(userId, blockId, length);
+        mDataManager.requestSpace(sessionId, blockId, length);
       }
-      writer = mDataManager.getTempBlockWriterRemote(userId, blockId);
+      writer = mDataManager.getTempBlockWriterRemote(sessionId, blockId);
       writer.append(buffer);
 
       RPCBlockWriteResponse resp =
-          new RPCBlockWriteResponse(userId, blockId, offset, length, RPCResponse.Status.SUCCESS);
+          new RPCBlockWriteResponse(sessionId, blockId, offset, length, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(writer));

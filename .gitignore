@@ -1,3 +1,4 @@
+# TODO: use leading '/' to specifically ignore top level directories
 **/tachyon-site.properties
 *.iml
 *.swp
@@ -9,6 +10,7 @@
 .metadata/
 .project
 .settings/
+/journal/
 conf/tachyon-env.sh
 data/
 dependency-reduced-pom.xml
@@ -26,7 +28,6 @@ deploy/vagrant/.request_ids
 docs/_site
 docs/api
 docs/serve/
-journal/
 logs/
 script/
 target/

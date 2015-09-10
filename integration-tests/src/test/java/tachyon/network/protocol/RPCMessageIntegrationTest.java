@@ -58,7 +58,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * to the client.
  */
 public class RPCMessageIntegrationTest {
-  private static final long USER_ID = 10;
+  private static final long SESSION_ID = 10;
   private static final long BLOCK_ID = 11;
   private static final long OFFSET = 22;
   private static final long LENGTH = 33;
@@ -172,7 +172,7 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getBlockId(), actual.getBlockId());
     Assert.assertEquals(expected.getOffset(), actual.getOffset());
     Assert.assertEquals(expected.getLength(), actual.getLength());
-    Assert.assertEquals(expected.getUserId(), actual.getUserId());
+    Assert.assertEquals(expected.getSessionId(), actual.getSessionId());
     if (expected.getLength() > 0) {
       Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer((int) OFFSET, (int) LENGTH, actual
           .getPayloadDataBuffer().getReadOnlyByteBuffer()));
@@ -185,7 +185,7 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getBlockId(), actual.getBlockId());
     Assert.assertEquals(expected.getOffset(), actual.getOffset());
     Assert.assertEquals(expected.getLength(), actual.getLength());
-    Assert.assertEquals(expected.getUserId(), actual.getUserId());
+    Assert.assertEquals(expected.getSessionId(), actual.getSessionId());
     Assert.assertEquals(expected.getStatus(), actual.getStatus());
   }
 
@@ -265,7 +265,7 @@ public class RPCMessageIntegrationTest {
   public void RPCBlockWriteRequestTest() {
     ByteBuffer payload = BufferUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
     RPCBlockWriteRequest msg =
-        new RPCBlockWriteRequest(USER_ID, BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload,
+        new RPCBlockWriteRequest(SESSION_ID, BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload,
             LENGTH));
     RPCBlockWriteRequest decoded = (RPCBlockWriteRequest) encodeThenDecode(msg);
     assertValid(msg, decoded);
@@ -274,7 +274,7 @@ public class RPCMessageIntegrationTest {
   @Test
   public void RPCBlockWriteResponseTest() {
     RPCBlockWriteResponse msg =
-        new RPCBlockWriteResponse(USER_ID, BLOCK_ID, OFFSET, LENGTH, RPCResponse.Status.SUCCESS);
+        new RPCBlockWriteResponse(SESSION_ID, BLOCK_ID, OFFSET, LENGTH, RPCResponse.Status.SUCCESS);
     RPCBlockWriteResponse decoded = (RPCBlockWriteResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }

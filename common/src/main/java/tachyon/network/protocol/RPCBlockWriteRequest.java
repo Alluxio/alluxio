@@ -28,21 +28,22 @@ import tachyon.network.protocol.databuffer.DataByteBuffer;
  * This represents the request to write a block to a DataServer.
  */
 public class RPCBlockWriteRequest extends RPCRequest {
-  private final long mUserId;
+  private final long mSessionId;
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
   private final DataBuffer mData;
 
-  public RPCBlockWriteRequest(long userId, long blockId, long offset, long length,
+  public RPCBlockWriteRequest(long sessionId, long blockId, long offset, long length,
       DataBuffer data) {
-    mUserId = userId;
+    mSessionId = sessionId;
     mBlockId = blockId;
     mOffset = offset;
     mLength = length;
     mData = data;
   }
 
+  @Override
   public Type getType() {
     return Type.RPC_BLOCK_WRITE_REQUEST;
   }
@@ -54,7 +55,7 @@ public class RPCBlockWriteRequest extends RPCRequest {
    * @return The decoded RPCBlockWriteRequest object
    */
   public static RPCBlockWriteRequest decode(ByteBuf in) {
-    long userId = in.readLong();
+    long sessionId = in.readLong();
     long blockId = in.readLong();
     long offset = in.readLong();
     long length = in.readLong();
@@ -65,18 +66,18 @@ public class RPCBlockWriteRequest extends RPCRequest {
       in.readBytes(buffer);
       data = new DataByteBuffer(buffer, (int) length);
     }
-    return new RPCBlockWriteRequest(userId, blockId, offset, length, data);
+    return new RPCBlockWriteRequest(sessionId, blockId, offset, length, data);
   }
 
   @Override
   public int getEncodedLength() {
-    // 4 longs (mUserId, mBlockId, mOffset, mLength)
+    // 4 longs (mSessionId, mBlockId, mOffset, mLength)
     return Longs.BYTES * 4;
   }
 
   @Override
   public void encode(ByteBuf out) {
-    out.writeLong(mUserId);
+    out.writeLong(mSessionId);
     out.writeLong(mBlockId);
     out.writeLong(mOffset);
     out.writeLong(mLength);
@@ -89,8 +90,8 @@ public class RPCBlockWriteRequest extends RPCRequest {
     return mData;
   }
 
-  public long getUserId() {
-    return mUserId;
+  public long getSessionId() {
+    return mSessionId;
   }
 
   public long getBlockId() {
