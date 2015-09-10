@@ -75,10 +75,11 @@ public final class NIODataServer implements Runnable, DataServer {
   private volatile boolean mShutdownComplete = false;
 
   /**
-   * Create a data server with direct access to worker storage.
+   * Creates a data server with direct access to worker storage.
    *
-   * @param address The address of the data server.
-   * @param dataManager The lock system for lock blocks.
+   * @param address the address of the data server
+   * @param dataManager the lock system for lock blocks
+   * @param tachyonConf Tachyon configuration
    */
   public NIODataServer(final InetSocketAddress address, final BlockDataManager dataManager,
       TachyonConf tachyonConf) {
@@ -110,11 +111,6 @@ public final class NIODataServer implements Runnable, DataServer {
     socketChannel.register(mSelector, SelectionKey.OP_READ);
   }
 
-  /**
-   * Closes the data server.
-   *
-   * @throws IOException
-   */
   @Override
   public void close() throws IOException {
     mShutdown = true;
@@ -122,27 +118,16 @@ public final class NIODataServer implements Runnable, DataServer {
     mSelector.close();
   }
 
-  /**
-   * Gets the actual bind hostname on DataServer service.
-   *
-   * @return the bind host
-   */
   @Override
   public String getBindHost() {
     return mServerChannel.socket().getLocalSocketAddress().toString();
   }
 
-  /**
-   * Gets the port listening on.
-   */
   @Override
   public int getPort() {
     return mServerChannel.socket().getLocalPort();
   }
 
-  /**
-   * @return true if the server is closed, false otherwise
-   */
   @Override
   public boolean isClosed() {
     return mShutdownComplete;
