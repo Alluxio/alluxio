@@ -32,10 +32,6 @@ import tachyon.thrift.InvalidPathException;
  */
 public final class PathUtils {
 
-  private PathUtils() {
-    // util class
-  }
-
   /**
    * Checks and normalizes the given path.
    *
@@ -164,4 +160,6 @@ public final class PathUtils {
     long time = System.nanoTime();
     return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
   }
+
+  private PathUtils() {} // prevent instantiation
 }
