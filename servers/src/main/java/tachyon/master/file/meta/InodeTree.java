@@ -556,14 +556,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     /**
      * @return the list of inodes modified during path creation.
      */
-    public List<Inode> getModified() {
+    public List<Inode> modified() {
       return mModified;
     }
 
     /**
      * @return the list of inodes created during path creation.
      */
-    public List<Inode> getCreated() {
+    public List<Inode> created() {
       return mCreated;
     }
   }
