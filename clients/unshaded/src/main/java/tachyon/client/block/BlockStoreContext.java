@@ -15,10 +15,12 @@
 
 package tachyon.client.block;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +43,6 @@ import tachyon.worker.WorkerClient;
  */
 public enum BlockStoreContext {
   INSTANCE;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
@@ -95,14 +95,14 @@ public enum BlockStoreContext {
   /**
    * Gets the worker address based on its hostname by querying the master.
    *
-   * @param hostname Hostname of the worker to query
+   * @param hostname hostname of the worker to query, empty string denotes any worker
    * @return NetAddress of hostname, or null if no worker found
    */
   private NetAddress getWorkerAddress(String hostname) {
     BlockMasterClient masterClient = acquireMasterClient();
     try {
       List<WorkerInfo> workers = masterClient.getWorkerInfoList();
-      if (hostname.isEmpty()) {
+      if (hostname.isEmpty() && !workers.isEmpty()) {
         // TODO(calvin): Do this in a more defined way.
         return workers.get(0).getAddress();
       }
@@ -111,13 +111,12 @@ public enum BlockStoreContext {
           return worker.getAddress();
         }
       }
-      return null;
-    } catch (Exception e) {
-      LOG.error("getWorkerAddress for " + hostname + " failed due to exception " + e.getMessage());
-      return null;
+    } catch (IOException ioe) {
+      Throwables.propagate(ioe);
     } finally {
       releaseMasterClient(masterClient);
     }
+    return null;
   }
 
   /**

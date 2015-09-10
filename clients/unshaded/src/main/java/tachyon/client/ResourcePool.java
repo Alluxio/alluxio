@@ -24,7 +24,7 @@ import com.google.common.base.Preconditions;
  * Class representing a pool of resources to be temporarily used and returned. Inheriting classes
  * must implement the close method as well as initialize the resources in the constructor. The
  * implemented methods are thread-safe and inheriting classes should also written in a thread-safe
- * manner. See {@link tachyon.client.file.FSMasterClientPool} as an example.
+ * manner. See {@link tachyon.client.file.FileSystemMasterClientPool} as an example.
  *
  * @param <T> The type of resource this pool manages.
  */
