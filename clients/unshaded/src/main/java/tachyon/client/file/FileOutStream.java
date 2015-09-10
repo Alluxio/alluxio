@@ -229,7 +229,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     if (mTachyonStorageType.isStore()) {
       mCurrentBlockOutStream =
-          mContext.getTachyonBS().getOutStream(getNextBlockId(), mBlockSize, null);
+          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, null);
       mShouldCacheCurrentBlock = true;
     }
   }

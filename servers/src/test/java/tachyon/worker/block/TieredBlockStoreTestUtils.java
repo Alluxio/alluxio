@@ -174,6 +174,9 @@ public class TieredBlockStoreTestUtils {
   /**
    * Caches bytes into StorageDir.
    *
+   * @param userId user who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
    * @param tierLevel tier level of the StorageDir the block resides in
    * @param dirIndex index of directory in the tierLevel the block resides in
    * @param meta the metadata manager to update meta of the block

@@ -53,6 +53,10 @@ interface BlockStore {
 
   /**
    * NOTE: temporary, will be removed after changing client side code.
+   *
+   * @param userId the ID of the user to lock this block
+   * @param blockId the ID of the block to lock
+   * @throws NotFoundException if blockId can not be found, for example, evicted already.
    */
   void unlockBlock(long sessionId, long blockId) throws NotFoundException;
 

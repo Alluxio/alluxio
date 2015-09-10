@@ -52,38 +52,38 @@ public final class StorageTierView {
   }
 
   /**
-   * Gets the list of StorageDirView under this TierView
+   * @return a list of directory views in this storage tier view.
    */
   public List<StorageDirView> getDirViews() {
     return Collections.unmodifiableList(mDirViews);
   }
 
   /**
-   * Gets a StorageDirView with a dirIndex
+   * Returns a directory view for the given index.
    *
-   * @param dirIndex of the dirView requested
-   * @throws IndexOutOfBoundsException if dirIndex is out of range
+   * @param dirIndex the directory view index
+   * @return a directory view
    */
   public StorageDirView getDirView(int dirIndex) {
     return mDirViews.get(dirIndex);
   }
 
   /**
-   * Gets the alias for this tier
+   * @return the storage tier view alias
    */
   public int getTierViewAlias() {
     return mTier.getTierAlias();
   }
 
   /**
-   * Gets the level for this tier
+   * @return the storage tier view level
    */
   public int getTierViewLevel() {
     return mTier.getTierLevel();
   }
 
   /**
-   * Gets the block metadata manager view.
+   * @return the block metadata manager view for this storage tier view
    */
   public BlockMetadataManagerView getBlockMetadataManagerView() {
     return mManagerView;

@@ -32,6 +32,9 @@ public abstract class BlockMetaBase {
    * <p>
    * /mnt/mem/0/2/100
    *
+   * @param blockId the block id
+   * @param userId the user id
+   * @param dir the parent directory
    * @return temp file path
    */
   public static String tempPath(StorageDir dir, long sessionId, long blockId) {
@@ -44,6 +47,8 @@ public abstract class BlockMetaBase {
    * <p>
    * /mnt/mem/0/100
    *
+   * @param blockId the block id
+   * @param dir the parent directory
    * @return committed file path
    */
   public static String commitPath(StorageDir dir, long blockId) {
@@ -53,28 +58,44 @@ public abstract class BlockMetaBase {
   protected final long mBlockId;
   protected final StorageDir mDir;
 
+  /**
+   * @param blockId the block id
+   * @param dir the parent directory
+   */
   public BlockMetaBase(long blockId, StorageDir dir) {
     mBlockId = blockId;
     mDir = Preconditions.checkNotNull(dir);
   }
 
+  /**
+   * @return the block id
+   */
   public long getBlockId() {
     return mBlockId;
   }
 
   /**
-   * Get the location of a specific block
+   * @return location of the block
    */
   public BlockStoreLocation getBlockLocation() {
     StorageTier tier = mDir.getParentTier();
     return new BlockStoreLocation(tier.getTierAlias(), tier.getTierLevel(), mDir.getDirIndex());
   }
 
+  /**
+   * @return the parent directory
+   */
   public StorageDir getParentDir() {
     return mDir;
   }
 
+  /**
+   * @return the block path
+   */
   public abstract String getPath();
 
+  /**
+   * @return the block size
+   */
   public abstract long getBlockSize();
 }

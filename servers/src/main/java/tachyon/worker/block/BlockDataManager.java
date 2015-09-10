@@ -74,6 +74,7 @@ public final class BlockDataManager {
    * Creates a BlockDataManager based on the configuration values.
    *
    * @param workerSource object for collecting the worker metrics
+   * @param masterClient the Tachyon master client
    * @throws IOException if fail to connect to under filesystem
    */
   public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
