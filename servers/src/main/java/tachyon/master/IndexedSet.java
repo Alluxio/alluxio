@@ -310,7 +310,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   *  Gets the set of objects with the specified field value - internal function.
+   * Gets the set of objects with the specified field value - internal function.
    *
    * @param index the field index
    * @param value the field value
