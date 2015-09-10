@@ -43,6 +43,7 @@ public class TachyonFramework {
     private boolean mMasterLaunched = false;
     private String mMasterHostname = "";
     private Set<String> mWorkers = new HashSet<String>();
+    int mLaunchedTasks = 0;
 
     @Override
     public void disconnected(SchedulerDriver driver) {
@@ -64,7 +65,7 @@ public class TachyonFramework {
     public void frameworkMessage(SchedulerDriver driver, Protos.ExecutorID executorId,
         Protos.SlaveID slaveId, byte[] data) {
       System.out.println("Executor: " + executorId.getValue() + ", " + "Slave: "
-          + slaveId.getValue() + ", " + "Data: " + data + ".");
+          + slaveId.getValue() + ", " + "Data: " + data.toString() + ".");
     }
 
     @Override
@@ -93,7 +94,6 @@ public class TachyonFramework {
       double workerCpu = conf.getInt(Constants.WORKER_RESOURCE_CPU);
       double workerMem = conf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
       String tachyonHome = conf.get(Constants.TACHYON_HOME);
-      int launchedTasks = 0;
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -113,14 +113,14 @@ public class TachyonFramework {
             + " and mem: " + offerMem + "MB.");
 
         Protos.TaskID taskId =
-            Protos.TaskID.newBuilder().setValue(Integer.toString(launchedTasks++)).build();
+            Protos.TaskID.newBuilder().setValue(Integer.toString(mLaunchedTasks ++)).build();
 
         System.out.println("Launching task " + taskId.getValue() + " using offer "
             + offer.getId().getValue());
 
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
-        double targetCpu = 0;
-        double targetMem = 0;
+        double targetCpu;
+        double targetMem;
         if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem) {
           executorBuilder
               .setName("Tachyon Master Executor")
@@ -160,7 +160,8 @@ public class TachyonFramework {
           targetMem = workerMem;
           mWorkers.add(offer.getHostname());
         } else {
-          // The offer cannot be used to start either master or a worker.
+          // The resource offer cannot be used to start either master or a worker.
+          continue;
         }
         Protos.TaskInfo task =
             Protos.TaskInfo
