@@ -24,7 +24,7 @@ public enum JournalEntryType {
   // File system master entries
   INODE_FILE,
   INODE_DIRECTORY,
-  INODE_LAST_MODIFICATION_TIME,
+  INODE_MTIME,
   ADD_CHECKPOINT,
   DEPENDENCY,
   COMPLETE_FILE,

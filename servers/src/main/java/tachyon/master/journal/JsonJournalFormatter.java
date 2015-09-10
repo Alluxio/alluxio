@@ -279,7 +279,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("lastModificationTimeMs"),
                 entry.get("childrenIds", new TypeReference<Set<Long>>() {}));
           }
-          case INODE_LAST_MODIFICATION_TIME: {
+          case INODE_MTIME: {
             return new InodeLastModificationTimeEntry(
                 entry.getLong("id"),
                 entry.getLong("lastModificationTimeMs"));
