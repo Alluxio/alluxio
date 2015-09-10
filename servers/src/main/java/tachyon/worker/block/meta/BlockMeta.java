@@ -23,11 +23,19 @@ import java.io.File;
 public final class BlockMeta extends BlockMetaBase {
   private final long mBlockSize;
 
+  /**
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param dir the parent directory
+   */
   public BlockMeta(long blockId, long blockSize, StorageDir dir) {
     super(blockId, dir);
     mBlockSize = blockSize;
   }
 
+  /**
+   * @param tempBlock uncommitted block metadata
+   */
   public BlockMeta(TempBlockMeta tempBlock) {
     super(tempBlock.getBlockId(), tempBlock.getParentDir());
     // NOTE: TempBlockMeta must be committed after the actual data block file is moved.

@@ -22,26 +22,26 @@ package tachyon.worker.block;
 public abstract class BlockStoreEventListenerBase implements BlockStoreEventListener {
 
   @Override
-  public void onAccessBlock(long userId, long blockId) {}
+  public void onAccessBlock(long sessionId, long blockId) {}
 
   @Override
-  public void onAbortBlock(long userId, long blockId) {}
+  public void onAbortBlock(long sessionId, long blockId) {}
 
   @Override
-  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {}
+  public void onCommitBlock(long sessionId, long blockId, BlockStoreLocation location) {}
 
   @Override
-  public void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {}
 
   @Override
-  public void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {}
 
   @Override
-  public void onRemoveBlockByClient(long userId, long blockId) {}
+  public void onRemoveBlockByClient(long sessionId, long blockId) {}
 
   @Override
-  public void onRemoveBlockByWorker(long userId, long blockId) {}
+  public void onRemoveBlockByWorker(long sessionId, long blockId) {}
 
 }
