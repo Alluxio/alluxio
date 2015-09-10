@@ -22,9 +22,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
+import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public class BlockMetaBaseTest {
   // This class extending BlockMetaBase is only for test purpose
@@ -48,6 +50,9 @@ public class BlockMetaBaseTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   private static final long TEST_BLOCK_ID = 9;
+  private static final int TEST_TIER_LEVEL = 0;
+  private static final StorageLevelAlias TEST_TIER_ALIAS = StorageLevelAlias.MEM;
+  private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
   private String mTestDirPath;
   private StorageTier mTier;
   private StorageDir mDir;
@@ -56,15 +61,11 @@ public class BlockMetaBaseTest {
   @Before
   public void before() throws Exception {
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    // Set up tier with one storage dir under mTestDirPath with 100 bytes capacity.
-    TachyonConf tachyonConf = WorkerContext.getConf();
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
-        mTestDirPath);
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        "100b");
-    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
+    // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
+    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
+        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
 
-    mTier = StorageTier.newStorageTier(0 /* level */);
+    mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     mDir = mTier.getDir(0);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);
   }
