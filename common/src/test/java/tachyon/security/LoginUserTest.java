@@ -74,6 +74,9 @@ public class LoginUserTest {
 
     Assert.assertNotNull(loginUser);
     Assert.assertEquals(loginUser.getName(), "tachyon-user");
+
+    // clean up
+    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
   }
 
   /**
@@ -128,6 +131,9 @@ public class LoginUserTest {
 
     Assert.assertNotNull(loginUser);
     Assert.assertEquals(loginUser.getName(), "tachyon-user");
+
+    // clean up
+    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
   }
 
   /**
