@@ -70,7 +70,7 @@ public class BaseAllocatorTest {
     tachyonConf.merge(createTestTachyonConf());
     mManagerView = new BlockMetadataManagerView(
         BlockMetadataManager.newBlockMetadataManager(),
-        new HashSet<Integer>(), new HashSet<Long>());
+        new HashSet<Long>(), new HashSet<Long>());
   }
 
   protected TachyonConf createTestTachyonConf(

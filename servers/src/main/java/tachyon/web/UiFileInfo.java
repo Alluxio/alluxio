@@ -20,11 +20,12 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
 
@@ -42,7 +43,7 @@ public final class UiFileInfo {
       });
 
   // Simple class for describing a file on the local filesystem.
-  public static class LocalFileInfo {
+  static class LocalFileInfo {
     public static final long EMPTY_CREATION_TIME = 0;
 
     private final String mName;
@@ -54,8 +55,8 @@ public final class UiFileInfo {
 
     public LocalFileInfo(String name, String absolutePath, long size, long creationTimeMs,
         long lastModificationTimeMs, boolean isDirectory) {
-      mName = name;
-      mAbsolutePath = absolutePath;
+      mName = Preconditions.checkNotNull(name);
+      mAbsolutePath = Preconditions.checkNotNull(absolutePath);
       mSize = size;
       mCreationTimeMs = creationTimeMs;
       mLastModificationTimeMs = lastModificationTimeMs;
@@ -63,7 +64,7 @@ public final class UiFileInfo {
     }
   }
 
-  private final int mId;
+  private final long mId;
   private final int mDependencyId;
   private final String mName;
   private final String mAbsolutePath;
@@ -84,13 +85,13 @@ public final class UiFileInfo {
   private final List<Long> mSizeOnTier = new ArrayList<Long>(Collections.nCopies(
       StorageLevelAlias.SIZE, 0L));
 
-  public UiFileInfo(ClientFileInfo fileInfo) {
-    mId = fileInfo.getId();
+  public UiFileInfo(FileInfo fileInfo) {
+    mId = fileInfo.getFileId();
     mDependencyId = fileInfo.getDependencyId();
     mName = fileInfo.getName();
     mAbsolutePath = fileInfo.getPath();
     mCheckpointPath = fileInfo.getUfsPath();
-    mBlockSizeBytes = fileInfo.getBlockSizeByte();
+    mBlockSizeBytes = fileInfo.getBlockSizeBytes();
     mSize = fileInfo.getLength();
     mCreationTimeMs = fileInfo.getCreationTimeMs();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
@@ -125,11 +126,11 @@ public final class UiFileInfo {
   }
 
   public void addBlock(StorageLevelAlias storageLevelAlias, long blockId, long blockSize,
-      long blockLastAccessTimeMs, List<NetAddress> locations) {
+      long blockLastAccessTimeMs) {
     int tier = storageLevelAlias.getValue();
     UiBlockInfo block =
         new UiBlockInfo(blockId, blockSize, blockLastAccessTimeMs,
-            storageLevelAlias == StorageLevelAlias.MEM, locations);
+            storageLevelAlias == StorageLevelAlias.MEM);
     mBlocksOnTier.get(tier).add(block);
     mSizeOnTier.set(tier, mSizeOnTier.get(tier) + blockSize);
   }
@@ -173,7 +174,7 @@ public final class UiFileInfo {
     return mFileLocations;
   }
 
-  public int getId() {
+  public long getId() {
     return mId;
   }
 
@@ -216,7 +217,7 @@ public final class UiFileInfo {
 
   public void setFileLocations(List<NetAddress> fileLocations) {
     for (NetAddress addr : fileLocations) {
-      mFileLocations.add(addr.getMHost() + ":" + addr.getMPort());
+      mFileLocations.add(addr.getHost() + ":" + addr.getRpcPort());
     }
   }
 }

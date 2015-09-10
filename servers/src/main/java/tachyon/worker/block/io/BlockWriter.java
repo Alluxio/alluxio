@@ -31,7 +31,7 @@ public interface BlockWriter extends Closeable {
    *
    * @param inputBuf ByteBuffer that input data is stored in
    * @return the size of data that was appended in bytes
-   * @throws IOException
+   * @throws IOException if the operation fails
    */
   long append(ByteBuffer inputBuf) throws IOException;
 

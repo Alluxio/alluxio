@@ -18,6 +18,7 @@ package tachyon.worker.block.evictor;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.block.BlockMetadataManagerView;
@@ -27,13 +28,14 @@ import tachyon.worker.block.allocator.Allocator;
 /**
  * Interface for the eviction policy in Tachyon
  */
+@PublicApi
 public interface Evictor {
 
   class Factory {
     /**
-     *
      * @param conf TachyonConf to determine the evictor type
      * @param view BlockMetadataManagerView to pass to Evictor
+     * @param allocator an allocation policy
      * @return the generated Evictor
      */
     public static Evictor createEvictor(TachyonConf conf, BlockMetadataManagerView view,

@@ -42,6 +42,10 @@ public class LRUEvictor extends EvictorBase {
       Collections.synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
+  /**
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
+   */
   public LRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
 

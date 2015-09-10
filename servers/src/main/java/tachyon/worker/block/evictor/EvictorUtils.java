@@ -27,10 +27,11 @@ import tachyon.worker.block.meta.StorageTierView;
 public final class EvictorUtils {
 
   /**
-   * Get StorageDirView with max free space.
+   * Gets StorageDirView with max free space.
    *
    * @param bytesToBeAvailable space size to be requested
    * @param location location that the space will be allocated in
+   * @param mManagerView a view of block metadata information
    * @return the StorageDirView selected
    */
   public static StorageDirView getDirWithMaxFreeSpace(long bytesToBeAvailable,
@@ -73,6 +74,11 @@ public final class EvictorUtils {
   }
 
   /**
+   * Finds a directory in the given location range with capacity upwards of the given bound.
+   *
+   * @param bytesToBeAvailable the capacity bound
+   * @param location the location range
+   * @param mManagerView the storage manager view
    * @return a StorageDirView in the range of location that already has availableBytes larger than
    *         bytesToBeAvailable, otherwise null
    */
@@ -104,7 +110,5 @@ public final class EvictorUtils {
     return (dirView.getAvailableBytes() >= bytesToBeAvailable) ? dirView : null;
   }
 
-  private EvictorUtils() {
-    // util class
-  }
+  private EvictorUtils() {} // prevent instantiation
 }
