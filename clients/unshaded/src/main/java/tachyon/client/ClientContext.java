@@ -24,6 +24,7 @@ import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.ClientMetrics;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Tachyon
@@ -39,6 +40,8 @@ public class ClientContext {
 
   private static InetSocketAddress sMasterAddress;
 
+  private static ClientMetrics sClientMetrics;
+
   private static Random sRandom;
 
   static {
@@ -49,6 +52,8 @@ public class ClientContext {
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
+    sClientMetrics = new ClientMetrics();
+
     sRandom = new Random();
   }
 
@@ -57,6 +62,13 @@ public class ClientContext {
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
+  }
+
+  /**
+   * @return the ClientMetrics for this client
+   */
+  public static ClientMetrics getClientMetrics() {
+    return sClientMetrics;
   }
 
   /**
