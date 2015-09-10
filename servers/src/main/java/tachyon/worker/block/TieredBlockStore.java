@@ -703,9 +703,12 @@ public final class TieredBlockStore implements BlockStore {
    * Moves a block to new location only if allocator finds available space in newLocation. This
    * method will not trigger any eviction. Returns MoveBlockResult.
    *
+   * When the dstLocation belongs to the srcLocation, simply do nothing and return MoveBlockResult
+   * on behalf of success move-info.
+   *
    * @param userId user Id
    * @param blockId block Id
-   * @param newLocation new location to move this block
+   * @param dstLocation new location to move this block
    * @return the resulting information about the move operation
    * @throws NotFoundException if block is not found
    * @throws AlreadyExistsException if a block with same Id already exists in new location
@@ -713,7 +716,7 @@ public final class TieredBlockStore implements BlockStore {
    * @throws IOException if I/O errors occur when moving block file
    */
   private MoveBlockResult moveBlockInternal(long userId, long blockId,
-      BlockStoreLocation newLocation) throws NotFoundException, AlreadyExistsException,
+      BlockStoreLocation dstLocation) throws NotFoundException, AlreadyExistsException,
       InvalidStateException, IOException {
     long lockId = mLockManager.lockBlock(userId, blockId, BlockLockType.WRITE);
     try {
@@ -722,7 +725,6 @@ public final class TieredBlockStore implements BlockStore {
       String dstFilePath;
       BlockMeta srcBlockMeta;
       BlockStoreLocation srcLocation;
-      BlockStoreLocation dstLocation;
 
       mMetadataReadLock.lock();
       try {
@@ -733,16 +735,21 @@ public final class TieredBlockStore implements BlockStore {
         srcLocation = srcBlockMeta.getBlockLocation();
         srcFilePath = srcBlockMeta.getPath();
         blockSize = srcBlockMeta.getBlockSize();
+
+        // when the dstLocation belongs to srcLocation, simply do nothing and return success
+        if (dstLocation.belongTo(srcLocation)) {
+          return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
+        }
       } finally {
         mMetadataReadLock.unlock();
       }
 
-      TempBlockMeta dstTempBlock =
-          createBlockMetaInternal(userId, blockId, newLocation, blockSize, false);
+      TempBlockMeta dstTempBlock = createBlockMetaInternal(userId, blockId, dstLocation,
+          blockSize, false);
       if (dstTempBlock == null) {
         return new MoveBlockResult(false, blockSize, null, null);
       }
-      dstLocation = dstTempBlock.getBlockLocation();
+
       dstFilePath = dstTempBlock.getCommitPath();
 
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
