@@ -262,7 +262,5 @@ public final class Constants {
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
 
-  private Constants() {
-    // util class
-  }
+  private Constants() {} // prevent instantiation
 }

@@ -98,7 +98,5 @@ final class Utils {
     return ret;
   }
 
-  private Utils() {
-    // util class
-  }
+  private Utils() {} // prevent instantiation
 }

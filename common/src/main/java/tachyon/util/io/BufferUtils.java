@@ -285,7 +285,5 @@ public final class BufferUtils {
     os.close();
   }
 
-  private BufferUtils() {
-    // util class
-  }
+  private BufferUtils() {} // prevent instantiation
 }
