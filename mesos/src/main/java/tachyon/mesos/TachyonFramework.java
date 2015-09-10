@@ -16,7 +16,9 @@
 package tachyon.mesos;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -40,6 +42,7 @@ public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
     private boolean mMasterLaunched = false;
     private String mMasterHostname = "";
+    private Set<String> mWorkers = new HashSet<String>();
 
     @Override
     public void disconnected(SchedulerDriver driver) {
@@ -85,8 +88,10 @@ public class TachyonFramework {
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
       TachyonConf conf = new TachyonConf();
-      double masterCpu = conf.getInt(Constants.MASTER_MESOS_CPU);
-      double masterMem = conf.getBytes(Constants.MASTER_MESOS_MEM) / Constants.MB;
+      double masterCpu = conf.getInt(Constants.MASTER_RESOURCE_CPU);
+      double masterMem = conf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
+      double workerCpu = conf.getInt(Constants.WORKER_RESOURCE_CPU);
+      double workerMem = conf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
       String tachyonHome = conf.get(Constants.TACHYON_HOME);
       int launchedTasks = 0;
 
@@ -107,77 +112,73 @@ public class TachyonFramework {
         System.out.println("Received offer " + offer.getId().getValue() + " with cpus: " + offerCpu
             + " and mem: " + offerMem + "MB.");
 
-        double remainingCpu = offerCpu;
-        double remainingMem = offerMem;
-        while (remainingCpu > 0 && remainingMem > 0) {
-          Protos.TaskID taskId =
-              Protos.TaskID.newBuilder().setValue(Integer.toString(launchedTasks ++)).build();
+        Protos.TaskID taskId =
+            Protos.TaskID.newBuilder().setValue(Integer.toString(launchedTasks++)).build();
 
-          System.out.println("Launching task " + taskId.getValue() + " using offer "
-              + offer.getId().getValue());
+        System.out.println("Launching task " + taskId.getValue() + " using offer "
+            + offer.getId().getValue());
 
-          Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
-          double targetCpu = 0;
-          double targetMem = 0;
-          if (!mMasterLaunched && remainingCpu >= masterCpu && remainingMem >= masterMem) {
-            executorBuilder
-                .setName("Tachyon Master Executor")
-                .setSource("master")
-                .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
-                .setCommand(
-                    Protos.CommandInfo.newBuilder().setValue(
-                        PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-master.sh")));
-            targetCpu = masterCpu;
-            targetMem = masterMem;
-            mMasterHostname = offer.getHostname();
-            mMasterLaunched = true;
-          } else if (mMasterLaunched) {
-            final String MEM_SIZE =
-                FormatUtils.getSizeFromBytes((long) remainingMem * Constants.MB);
-            executorBuilder
-                .setName("Tachyon Worker Executor")
-                .setSource("worker")
-                .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
-                .setCommand(
-                    Protos.CommandInfo
-                        .newBuilder()
-                        .setValue(
-                            PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh"))
-                        .setEnvironment(
-                            Protos.Environment
-                                .newBuilder()
-                                .addVariables(
-                                    Protos.Environment.Variable.newBuilder()
-                                        .setName("TACHYON_MASTER_ADDRESS")
-                                        .setValue(mMasterHostname).build())
-                                .addVariables(
-                                    Protos.Environment.Variable.newBuilder()
-                                        .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE)
-                                        .build()).build()));
-            targetCpu = remainingCpu;
-            targetMem = remainingMem;
-          }
-          Protos.TaskInfo task =
-              Protos.TaskInfo
-                  .newBuilder()
-                  .setName("task " + taskId.getValue())
-                  .setTaskId(taskId)
-                  .setSlaveId(offer.getSlaveId())
-                  .addResources(
-                      Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_CPUS)
-                          .setType(Protos.Value.Type.SCALAR)
-                          .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetCpu)))
-                  .addResources(
-                      Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
-                          .setType(Protos.Value.Type.SCALAR)
-                          .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetMem)))
-                  .setExecutor(executorBuilder).build();
-
-          launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
-
-          remainingCpu -= targetCpu;
-          remainingMem -= targetMem;
+        Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
+        double targetCpu = 0;
+        double targetMem = 0;
+        if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem) {
+          executorBuilder
+              .setName("Tachyon Master Executor")
+              .setSource("master")
+              .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
+              .setCommand(
+                  Protos.CommandInfo.newBuilder().setValue(
+                      PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-master.sh")));
+          targetCpu = masterCpu;
+          targetMem = masterMem;
+          mMasterHostname = offer.getHostname();
+          mMasterLaunched = true;
+        } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
+            && masterCpu >= workerCpu && offerMem >= workerMem) {
+          final String MEM_SIZE = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
+          executorBuilder
+              .setName("Tachyon Worker Executor")
+              .setSource("worker")
+              .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
+              .setCommand(
+                  Protos.CommandInfo
+                      .newBuilder()
+                      .setValue(
+                          PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh"))
+                      .setEnvironment(
+                          Protos.Environment
+                              .newBuilder()
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("TACHYON_MASTER_ADDRESS").setValue(mMasterHostname)
+                                      .build())
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE)
+                                      .build()).build()));
+          targetCpu = workerCpu;
+          targetMem = workerMem;
+          mWorkers.add(offer.getHostname());
+        } else {
+          // The offer cannot be used to start either master or a worker.
         }
+        Protos.TaskInfo task =
+            Protos.TaskInfo
+                .newBuilder()
+                .setName("task " + taskId.getValue())
+                .setTaskId(taskId)
+                .setSlaveId(offer.getSlaveId())
+                .addResources(
+                    Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_CPUS)
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetCpu)))
+                .addResources(
+                    Protos.Resource.newBuilder().setName(Constants.MESOS_RESOURCE_MEM)
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(targetMem)))
+                .setExecutor(executorBuilder).build();
+
+        launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
 
         // NOTE: We use the new API `acceptOffers` here to launch tasks.
         // The 'launchTasks' API will be deprecated.

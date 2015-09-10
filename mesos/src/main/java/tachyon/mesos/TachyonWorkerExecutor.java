@@ -66,6 +66,7 @@ public class TachyonWorkerExecutor implements Executor {
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
+          // TODO(jsimsa): Consider handling Format.main() failures gracefully.
           Format.main(new String[] {"master"});
           TachyonWorker.main(new String[] {});
 

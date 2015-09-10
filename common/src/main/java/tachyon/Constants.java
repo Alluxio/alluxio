@@ -145,8 +145,8 @@ public class Constants {
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
-  public static final String MASTER_MESOS_CPU = "tachyon.master.mesos.cpu";
-  public static final String MASTER_MESOS_MEM = "tachyon.master.mesos.mem";
+  public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
+  public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
@@ -218,6 +218,8 @@ public class Constants {
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
+  public static final String WORKER_RESOURCE_CPU = "tachyon.worker.resource.cpu";
+  public static final String WORKER_RESOURCE_MEM = "tachyon.worker.resource.mem";
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
