@@ -276,7 +276,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying worker RPC or under file system interaction fails
    */
   synchronized String createAndGetUserUfsTempFolder(Object ufsConf) throws IOException {
-    String tmpFolder = mWorkerClient.getUserUfsTempFolder();
+    String tmpFolder = mWorkerClient.getSessionUfsTempFolder();
     if (tmpFolder == null) {
       return null;
     }
@@ -707,13 +707,11 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Returns the userId of the worker client. This is only used for testing.
-   *
-   * @return the userId of the worker client
+   * @return the sessionId of the worker client. This is only used for testing.
    * @throws IOException when the underlying master RPC fails
    */
-  long getUserId() throws IOException {
-    return mWorkerClient.getUserId();
+  long getSessionId() throws IOException {
+    return mWorkerClient.getSessionId();
   }
 
   /**

@@ -42,7 +42,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
 
 // TODO: improve code health of this unittest.
 public final class BlockMetadataManagerTest {
-  private static final long TEST_USER_ID = 2;
+  private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_TEMP_BLOCK_ID2 = TEST_TEMP_BLOCK_ID + 1;
@@ -147,7 +147,7 @@ public final class BlockMetadataManagerTest {
   public void blockMetaTest() throws Exception {
     StorageDir dir = mMetaManager.getTier(3).getDir(0);
     TempBlockMeta tempBlockMeta =
-        new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+        new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
 
     // Empty storage
     Assert.assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
@@ -198,9 +198,9 @@ public final class BlockMetadataManagerTest {
   public void moveBlockMetaSameDirTest() throws Exception {
     // create and add two temp block metas with same tier and dir to the meta manager
     StorageDir dir = mMetaManager.getTier(1).getDir(0);
-    TempBlockMeta tempBlockMeta1 = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID,
+    TempBlockMeta tempBlockMeta1 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID,
         TEST_BLOCK_SIZE, dir);
-    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID2,
+    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID2,
         TEST_BLOCK_SIZE, dir);
     mMetaManager.addTempBlockMeta(tempBlockMeta1);
     mMetaManager.addTempBlockMeta(tempBlockMeta2);
@@ -223,9 +223,9 @@ public final class BlockMetadataManagerTest {
     // create and add two temp block metas with different dirs in the same HDD tier
     StorageDir dir1 = mMetaManager.getTier(3).getDir(0);
     StorageDir dir2 = mMetaManager.getTier(3).getDir(1);
-    TempBlockMeta tempBlockMeta1 = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID,
+    TempBlockMeta tempBlockMeta1 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID,
         TEST_BLOCK_SIZE, dir1);
-    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID2,
+    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID2,
         TEST_BLOCK_SIZE, dir2);
     mMetaManager.addTempBlockMeta(tempBlockMeta1);
     mMetaManager.addTempBlockMeta(tempBlockMeta2);
@@ -247,7 +247,7 @@ public final class BlockMetadataManagerTest {
   public void moveBlockMetaTestDeprecated() throws Exception {
     StorageDir dir = mMetaManager.getTier(1).getDir(0);
     TempBlockMeta tempBlockMeta =
-        new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+        new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
     mMetaManager.addTempBlockMeta(tempBlockMeta);
     mMetaManager.commitTempBlockMeta(tempBlockMeta);
     BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
@@ -280,30 +280,33 @@ public final class BlockMetadataManagerTest {
   public void resizeTempBlockMetaTest() throws Exception {
     StorageDir dir = mMetaManager.getTier(1).getDir(0);
     TempBlockMeta tempBlockMeta =
-        new TempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+        new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
     mMetaManager.resizeTempBlockMeta(tempBlockMeta, TEST_BLOCK_SIZE + 1);
     Assert.assertEquals(TEST_BLOCK_SIZE + 1, tempBlockMeta.getBlockSize());
   }
 
   @Test
-  public void cleanupUserTest() throws Exception {
+  public void cleanupSessionTest() throws Exception {
     StorageDir dir = mMetaManager.getTier(1).getDir(0);
     final long tempBlockId1 = 1;
     final long tempBlockId2 = 2;
     final long tempBlockId3 = 3;
-    final long userId1 = 100;
-    final long userId2 = 200;
-    TempBlockMeta tempBlockMeta1 = new TempBlockMeta(userId1, tempBlockId1, TEST_BLOCK_SIZE, dir);
-    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(userId1, tempBlockId2, TEST_BLOCK_SIZE, dir);
-    TempBlockMeta tempBlockMeta3 = new TempBlockMeta(userId2, tempBlockId3, TEST_BLOCK_SIZE, dir);
+    final long sessionId1 = 100;
+    final long sessionId2 = 200;
+    TempBlockMeta tempBlockMeta1 =
+        new TempBlockMeta(sessionId1, tempBlockId1, TEST_BLOCK_SIZE, dir);
+    TempBlockMeta tempBlockMeta2 =
+        new TempBlockMeta(sessionId1, tempBlockId2, TEST_BLOCK_SIZE, dir);
+    TempBlockMeta tempBlockMeta3 =
+        new TempBlockMeta(sessionId2, tempBlockId3, TEST_BLOCK_SIZE, dir);
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
     dir.addTempBlockMeta(tempBlockMeta1);
     dir.addTempBlockMeta(tempBlockMeta2);
     dir.addTempBlockMeta(tempBlockMeta3);
     dir.addBlockMeta(blockMeta);
 
-    // Get temp blocks for userId1, expect to get tempBlock1 and tempBlock2
-    List<TempBlockMeta> toRemove = mMetaManager.getUserTempBlocks(userId1);
+    // Get temp blocks for sessionId1, expect to get tempBlock1 and tempBlock2
+    List<TempBlockMeta> toRemove = mMetaManager.getSessionTempBlocks(sessionId1);
     List<Long> toRemoveBlockIds = new ArrayList<Long>(toRemove.size());
     for (TempBlockMeta tempBlockMeta : toRemove) {
       toRemoveBlockIds.add(tempBlockMeta.getBlockId());
@@ -313,30 +316,30 @@ public final class BlockMetadataManagerTest {
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId2));
 
-    // Clean up userId1, expect tempBlock1 and tempBlock2 to be removed.
-    mMetaManager.cleanupUserTempBlocks(userId1, toRemoveBlockIds);
+    // Clean up sessionId1, expect tempBlock1 and tempBlock2 to be removed.
+    mMetaManager.cleanupSessionTempBlocks(sessionId1, toRemoveBlockIds);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
-    // Get temp blocks for userId1 again, expect to get nothing
-    toRemove = mMetaManager.getUserTempBlocks(userId1);
+    // Get temp blocks for sessionId1 again, expect to get nothing
+    toRemove = mMetaManager.getSessionTempBlocks(sessionId1);
     toRemoveBlockIds = new ArrayList<Long>(toRemove.size());
     for (TempBlockMeta tempBlockMeta : toRemove) {
       toRemoveBlockIds.add(tempBlockMeta.getBlockId());
     }
     Assert.assertTrue(toRemove.isEmpty());
 
-    // Clean up userId1 again, expect nothing to happen
-    mMetaManager.cleanupUserTempBlocks(userId1, toRemoveBlockIds);
+    // Clean up sessionId1 again, expect nothing to happen
+    mMetaManager.cleanupSessionTempBlocks(sessionId1, toRemoveBlockIds);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
-    // Get temp blocks for userId2, expect to get tempBlock3
-    toRemove = mMetaManager.getUserTempBlocks(userId2);
+    // Get temp blocks for sessionId2, expect to get tempBlock3
+    toRemove = mMetaManager.getSessionTempBlocks(sessionId2);
     toRemoveBlockIds = new ArrayList<Long>(toRemove.size());
     for (TempBlockMeta tempBlockMeta : toRemove) {
       toRemoveBlockIds.add(tempBlockMeta.getBlockId());
@@ -344,8 +347,8 @@ public final class BlockMetadataManagerTest {
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta3), new HashSet<TempBlockMeta>(toRemove));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
 
-    // Clean up userId2, expect tempBlock3 to be removed
-    mMetaManager.cleanupUserTempBlocks(userId2, toRemoveBlockIds);
+    // Clean up sessionId2, expect tempBlock3 to be removed
+    mMetaManager.cleanupSessionTempBlocks(sessionId2, toRemoveBlockIds);
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId3));
