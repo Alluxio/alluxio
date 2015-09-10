@@ -36,7 +36,7 @@ public class StorageTierTest {
   private static final int TEST_TIER_LEVEL = 0;
   private static final StorageLevelAlias TEST_TIER_ALIAS = StorageLevelAlias.MEM;
 
-  private final long[] mTierCapacityBytes = { TEST_DIR1_CAPACITY, TEST_DIR2_CAPACITY};
+  private static final long[] TIER_CAPACITY_BYTES = {TEST_DIR1_CAPACITY, TEST_DIR2_CAPACITY};
 
   private StorageTier mTier;
   private StorageDir mDir1;
@@ -56,8 +56,8 @@ public class StorageTierTest {
     mTestDirPath2 = mFolder.newFolder().getAbsolutePath();
     String[] tierPath = {mTestDirPath1, mTestDirPath2};
 
-    TieredBlockStoreTestUtils.setTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
-        TEST_TIER_ALIAS, tierPath, mTierCapacityBytes, "");
+    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
+        TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES, "");
 
     mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     mDir1 = mTier.getDir(0);
