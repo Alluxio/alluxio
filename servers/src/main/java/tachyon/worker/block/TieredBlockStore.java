@@ -758,8 +758,7 @@ public final class TieredBlockStore implements BlockStore {
       }
 
       if (!oldLocation.equals(srcLocation) && !oldLocation.equals(BlockStoreLocation.anyTier())) {
-        LOG.info("Failed to move block, because the location is changed!");
-        return new MoveBlockResult(false, blockSize, oldLocation, newLocation);
+        throw new NotFoundException("Block " + blockId + "not found at location: " + oldLocation);
       }
       TempBlockMeta dstTempBlock =
           createBlockMetaInternal(sessionId, blockId, newLocation, blockSize, false);
@@ -824,8 +823,7 @@ public final class TieredBlockStore implements BlockStore {
 
       if (!location.equals(blockMeta.getBlockLocation())
           && !location.equals(BlockStoreLocation.anyTier())) {
-        LOG.info("Failed to remove block, because the location is changed!");
-        return;
+        throw new NotFoundException("Block " + blockId + "not found at location: " + location);
       }
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
       FileUtils.delete(filePath);
