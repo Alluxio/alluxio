@@ -92,6 +92,7 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
     mCloser.close();
     if (mWrittenBytes > 0) {
       mWorkerClient.cacheBlock(mBlockId);
+      ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
     }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
@@ -110,6 +111,7 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
     mReservedBytes -= bytesToWrite;
     mFlushedBytes += bytesToWrite;
     mBuffer.clear();
+    ClientContext.getClientMetrics().incBytesWrittenLocal(bytesToWrite);
   }
 
   @Override
@@ -123,6 +125,7 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
     BufferUtils.cleanDirectBuffer(mappedBuffer);
     mReservedBytes -= len;
     mFlushedBytes += len;
+    ClientContext.getClientMetrics().incBytesWrittenLocal(len);
   }
 
   private long requestSpace(long requestBytes) throws IOException {
