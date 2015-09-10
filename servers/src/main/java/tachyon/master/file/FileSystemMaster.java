@@ -471,7 +471,7 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult =
           createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
-      List<Inode> created = createResult.getCreated();
+      List<Inode> created = createResult.created();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
       journalCreatePathResult(createResult);
@@ -486,7 +486,7 @@ public final class FileSystemMaster extends MasterBase {
     InodeTree.CreatePathResult createResult =
         mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
     // If the create succeeded, the list of created inodes will not be empty.
-    List<Inode> created = createResult.getCreated();
+    List<Inode> created = createResult.created();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
     if (mWhitelist.inList(path.toString())) {
       inode.setCache(true);
@@ -813,11 +813,11 @@ public final class FileSystemMaster extends MasterBase {
    * @param createResult the {@link InodeTree.CreatePathResult} to journal
    */
   private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
-    for (Inode inode : createResult.getModified()) {
+    for (Inode inode : createResult.modified()) {
       writeJournalEntry(
           new InodeLastModificationTimeEntry(inode.getId(), inode.getLastModificationTimeMs()));
     }
-    for (Inode inode : createResult.getCreated()) {
+    for (Inode inode : createResult.created()) {
       writeJournalEntry(inode.toJournalEntry());
     }
   }
