@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
+import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.NetAddress;
