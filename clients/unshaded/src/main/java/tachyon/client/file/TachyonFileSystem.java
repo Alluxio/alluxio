@@ -107,10 +107,12 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    */
   // TODO(calvin): Consider FileInfo caching.
   @Override
-  public FileInfo getInfo(TachyonFile file) throws IOException, FileDoesNotExistException {
+  public FileInfo getInfo(TachyonFile file) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getFileInfo(file.getFileId());
+    } catch (FileDoesNotExistException e) {
+      return null;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

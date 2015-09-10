@@ -33,6 +33,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 
@@ -98,7 +99,7 @@ public class TachyonFileSystemIntegrationTest {
     }
   }
 
-  @Test(expected = IOException.class)
+  @Test(expected = FileAlreadyExistException.class)
   public void createFileWithFileAlreadyExistExceptionTest() throws IOException, TException {
     TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uri, sWriteBoth).close();
