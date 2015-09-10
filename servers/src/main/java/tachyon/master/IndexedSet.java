@@ -299,9 +299,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Return the number of objects in this indexed set
-   *
-   * @return number of all objects, O(1)
+   * @return the number of objects in this indexed set (O(1) time)
    */
   public int size() {
     synchronized (mLock) {
