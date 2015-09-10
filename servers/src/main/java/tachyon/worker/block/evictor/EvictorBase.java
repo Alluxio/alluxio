@@ -42,6 +42,10 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
   protected final Allocator mAllocator;
   protected BlockMetadataManagerView mManagerView;
 
+  /**
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
+   */
   public EvictorBase(BlockMetadataManagerView view, Allocator allocator) {
     mManagerView = Preconditions.checkNotNull(view);
     mAllocator = Preconditions.checkNotNull(allocator);

@@ -96,11 +96,12 @@ public class EvictorTestUtils {
    * @param bytesToBeAvailable requested bytes to be available after eviction
    * @param plan the eviction plan, should not be empty
    * @param metaManager the meta data manager
-   * @return true if the above requirements are satisfied, otherwise false.
+   * @return true if the above requirements are satisfied, otherwise false
+   * @throws NotFoundException if a block for which metadata cannot be found is encountered
    */
   // TODO: unit test this method
   public static boolean validCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws Exception {
+      BlockMetadataManager metaManager) throws NotFoundException {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
     // space in lower tier to move blocks in upper tier there
 

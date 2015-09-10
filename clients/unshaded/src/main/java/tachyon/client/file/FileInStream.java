@@ -213,7 +213,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         mCurrentBlockInStream.close();
       }
       try {
-        mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+        mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(currentBlockId);
         mShouldCacheCurrentBlock =
             !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
@@ -229,7 +229,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mShouldCacheCurrentBlock) {
         try {
           // TODO(calvin): Specify the location to be local.
-          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
+          mCurrentCacheStream =
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
@@ -257,9 +258,12 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   }
 
   /**
-   * @return the current block id based on mPos
+   * @return the current block id based on mPos, -1 if at the end of the file
    */
   private long getBlockCurrentBlockId() {
+    if (mPos == mFileLength) {
+      return -1;
+    }
     int index = (int) (mPos / mBlockSize);
     Preconditions.checkState(index < mBlockIds.size(), "Current block index exceeds max index.");
     return mBlockIds.get(index);
@@ -284,7 +288,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         mCurrentBlockInStream.close();
       }
       try {
-        mCurrentBlockInStream = mContext.getTachyonBS().getInStream(currentBlockId);
+        mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(currentBlockId);
         mShouldCacheCurrentBlock =
             !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
       } catch (IOException ioe) {
@@ -297,7 +301,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
-          mCurrentCacheStream = mContext.getTachyonBS().getOutStream(currentBlockId, -1, null);
+          mCurrentCacheStream =
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;

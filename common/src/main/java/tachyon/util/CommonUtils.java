@@ -56,7 +56,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Parses <code>ArrayList<String></code> into <code>String[]</code>.
+   * Parses <code>ArrayList&lt;String&gt;</code> into <code>String[]</code>.
    *
    * @param src is the ArrayList of strings
    * @return an array of strings
