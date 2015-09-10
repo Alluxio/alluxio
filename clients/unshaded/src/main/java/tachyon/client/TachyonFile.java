@@ -16,14 +16,12 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -202,8 +200,15 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public List<String> getLocationHosts() throws IOException {
-    Set<String> ret = Sets.newHashSet();
+    List<String> ret = Lists.newArrayList();
     if (getNumberOfBlocks() > 0) {
+      // add tachyon locations first
+      List<BlockLocation> blockLocations = getClientBlockInfo(0).getBlockInfo().getLocations();
+      if (blockLocations != null) {
+        for (BlockLocation location : blockLocations) {
+          ret.add(location.workerAddress.host);
+        }
+      }
       // under FS locations
       List<NetAddress> underFsLocations = getClientBlockInfo(0).getUnderFsLocations();
       if (underFsLocations != null) {
@@ -211,15 +216,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
           ret.add(location.host);
         }
       }
-      List<BlockLocation> blockLocations = getClientBlockInfo(0).getBlockInfo().getLocations();
-      if (blockLocations != null) {
-        for (BlockLocation location : blockLocations) {
-          ret.add(location.workerAddress.host);
-        }
-      }
     }
 
-    return new ArrayList<String>(ret);
+    return ret;
   }
 
   /**
