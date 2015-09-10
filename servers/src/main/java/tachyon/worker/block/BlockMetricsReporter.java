@@ -31,12 +31,12 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   }
 
   @Override
-  public void onAccessBlock(long userId, long blockId) {
+  public void onAccessBlock(long sessionId, long blockId) {
     mWorkerSource.incBlocksAccessed();
   }
 
   @Override
-  public void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     int oldTier = oldLocation.tierAlias();
     int newTier = newLocation.tierAlias();
@@ -46,12 +46,12 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   }
 
   @Override
-  public void onRemoveBlockByClient(long userId, long blockId) {
+  public void onRemoveBlockByClient(long sessionId, long blockId) {
     mWorkerSource.incBlocksDeleted();
   }
 
   @Override
-  public void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     int oldTier = oldLocation.tierAlias();
     int newTier = newLocation.tierAlias();
@@ -61,17 +61,17 @@ public final class BlockMetricsReporter extends BlockStoreEventListenerBase {
   }
 
   @Override
-  public void onRemoveBlockByWorker(long userId, long blockId) {
+  public void onRemoveBlockByWorker(long sessionId, long blockId) {
     mWorkerSource.incBlocksEvicted();
   }
 
   @Override
-  public void onAbortBlock(long userId, long blockId) {
+  public void onAbortBlock(long sessionId, long blockId) {
     mWorkerSource.incBlocksCanceled();
   }
 
   /**
-   * Updates user metrics from the heartbeat from a client.
+   * Updates session metrics from the heartbeat from a client.
    *
    * @param metrics The set of metrics the client has gathered since the last heartbeat
    */

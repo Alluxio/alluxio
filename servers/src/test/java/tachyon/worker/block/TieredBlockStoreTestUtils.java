@@ -91,7 +91,7 @@ public class TieredBlockStoreTestUtils {
         "tierCapacity and tierLevel should have the same length");
     int nTier = tierLevel.length;
 
-    tierPath = createTierHierarchy(baseDir, tierPath);
+    tierPath = createDirHierarchy(baseDir, tierPath);
     if (workerDataFolder != null) {
       sTachyonConf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
@@ -167,7 +167,7 @@ public class TieredBlockStoreTestUtils {
    * @return New joined and created paths array.
    * @throws Exception When error happens during creating temporary folder.
    */
-  private static String[][] createTierHierarchy(String baseDir, final String[][] dirs)
+  private static String[][] createDirHierarchy(String baseDir, final String[][] dirs)
       throws Exception {
     if (null == baseDir) {
       return dirs;
@@ -244,7 +244,7 @@ public class TieredBlockStoreTestUtils {
   /**
    * Caches bytes into StorageDir.
    *
-   * @param userId user who caches the data
+   * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
    * @param dir the StorageDir the block resides in
@@ -252,9 +252,9 @@ public class TieredBlockStoreTestUtils {
    * @param evictor the evictor to be informed of the new block
    * @throws Exception when fail to cache
    */
-  public static void cache(long userId, long blockId, long bytes, StorageDir dir,
+  public static void cache(long sessionId, long blockId, long bytes, StorageDir dir,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
-    TempBlockMeta tempBlockMeta = createTempBlock(userId, blockId, bytes, dir);
+    TempBlockMeta tempBlockMeta = createTempBlock(sessionId, blockId, bytes, dir);
 
     // commit block
     FileUtils.move(tempBlockMeta.getPath(), tempBlockMeta.getCommitPath());
@@ -263,7 +263,7 @@ public class TieredBlockStoreTestUtils {
     // update evictor
     if (evictor instanceof BlockStoreEventListener) {
       ((BlockStoreEventListener) evictor)
-          .onCommitBlock(userId, blockId, dir.toBlockStoreLocation());
+          .onCommitBlock(sessionId, blockId, dir.toBlockStoreLocation());
     }
   }
 
@@ -279,26 +279,26 @@ public class TieredBlockStoreTestUtils {
    * @param evictor the evictor to be informed of the new block
    * @throws Exception when fail to cache
    */
-  public static void cache(long userId, long blockId, long bytes, int tierLevel, int dirIndex,
+  public static void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIndex,
       BlockMetadataManager meta, Evictor evictor) throws Exception {
     StorageDir dir = meta.getTiers().get(tierLevel).getDir(dirIndex);
-    cache(userId, blockId, bytes, dir, meta, evictor);
+    cache(sessionId, blockId, bytes, dir, meta, evictor);
   }
 
   /**
    * Makes a temp block of a given size in StorageDir.
    *
-   * @param userId user who caches the data
+   * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
    * @param dir the StorageDir the block resides in
    * @return the temp block meta
    * @throws Exception when fail to create this block
    */
-  public static TempBlockMeta createTempBlock(long userId, long blockId, long bytes, StorageDir dir)
-      throws Exception {
+  public static TempBlockMeta createTempBlock(long sessionId, long blockId, long bytes,
+      StorageDir dir) throws Exception {
     // prepare temp block
-    TempBlockMeta tempBlockMeta = new TempBlockMeta(userId, blockId, bytes, dir);
+    TempBlockMeta tempBlockMeta = new TempBlockMeta(sessionId, blockId, bytes, dir);
     dir.addTempBlockMeta(tempBlockMeta);
 
     // write data

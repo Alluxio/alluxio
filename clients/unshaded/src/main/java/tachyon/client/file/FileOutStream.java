@@ -75,11 +75,11 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isPersist()) {
       mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-      String userUnderStorageFolder = mWorkerClient.getUserUfsTempFolder();
-      mUnderStorageFile = PathUtils.concatPath(userUnderStorageFolder, mFileId);
+      String sessionUnderStorageFolder = mWorkerClient.getSessionUfsTempFolder();
+      mUnderStorageFile = PathUtils.concatPath(sessionUnderStorageFolder, mFileId);
       UnderFileSystem underStorageClient =
           UnderFileSystem.get(mUnderStorageFile, ClientContext.getConf());
-      underStorageClient.mkdirs(userUnderStorageFolder, true);
+      underStorageClient.mkdirs(sessionUnderStorageFolder, true);
       mUnderStorageOutputStream = underStorageClient.create(mUnderStorageFile, (int) mBlockSize);
     } else {
       mWorkerClient = null;

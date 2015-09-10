@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.Users;
+import tachyon.Sessions;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
@@ -135,13 +135,12 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
           if (null == block) {
             continue;
           }
-          StorageDirView nextDirView =
-              mAllocator.allocateBlockWithView(Users.MIGRATE_DATA_USER_ID, block.getBlockSize(),
-                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
+          StorageDirView nextDirView = mAllocator.allocateBlockWithView(
+              Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
+              BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
           if (nextDirView == null) {
-            nextDirView =
-                cascadingEvict(block.getBlockSize(),
-                    BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
+            nextDirView = cascadingEvict(block.getBlockSize(),
+                BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
           }
           if (nextDirView == null) {
             // If we failed to find a dir in the next tier to move this block, evict it and
