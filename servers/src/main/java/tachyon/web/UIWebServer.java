@@ -45,10 +45,10 @@ public abstract class UIWebServer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected final WebAppContext mWebAppContext;
-  private Server mServer;
-  private ServiceType mService;
-  private InetSocketAddress mAddress;
+  private final Server mServer;
+  private final ServiceType mService;
   private final TachyonConf mTachyonConf;
+  private InetSocketAddress mAddress;
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
@@ -101,16 +101,24 @@ public abstract class UIWebServer {
     mServer.setHandler(handlers);
   }
 
+  /**
+   * @param handler to use
+   */
   public void setHandler(AbstractHandler handler) {
     mServer.setHandler(handler);
   }
 
+  /**
+   * @return the underlying Jetty server
+   */
   public Server getServer() {
     return mServer;
   }
 
   /**
-   * Return the actual bind hostname (used by unit test only).
+   * Gets the actual bind hostname.
+   *
+   * @return the bind host
    */
   public String getBindHost() {
     String bindHost = mServer.getServer().getConnectors()[0].getHost();
@@ -118,7 +126,9 @@ public abstract class UIWebServer {
   }
 
   /**
-   * Get the actual port that the web server is listening on (used by unit test only)
+   * Gets the actual port that the web server is listening on.
+   *
+   * @return the local port
    */
   public int getLocalPort() {
     return mServer.getServer().getConnectors()[0].getLocalPort();
@@ -133,13 +143,16 @@ public abstract class UIWebServer {
     mServer.stop();
   }
 
+  /**
+   * Starts the web server.
+   */
   public void startWebServer() {
     try {
       mServer.getConnectors()[0].close();
       mServer.getConnectors()[0].open();
       mServer.start();
       if (mAddress.getPort() == 0) {
-        int webPort =  mServer.getConnectors()[0].getLocalPort();
+        int webPort = mServer.getConnectors()[0].getLocalPort();
         mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
         // reset web service port
         mTachyonConf.set(mService.getPortKey(), Integer.toString(webPort));

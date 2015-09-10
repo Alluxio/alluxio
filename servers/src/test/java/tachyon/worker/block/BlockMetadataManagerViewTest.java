@@ -28,15 +28,16 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Sets;
 
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NotFoundException;
-import tachyon.master.BlockInfo;
+import tachyon.master.block.BlockId;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTier;
 import tachyon.worker.block.meta.StorageTierView;
 
-public class BlockMetadataManagerViewTest {
+public final class BlockMetadataManagerViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR = 0;
   private static final long TEST_BLOCK_ID = 9;
@@ -54,11 +55,9 @@ public class BlockMetadataManagerViewTest {
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
-    mMetaManager =
-        TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mMetaManagerView =
-        Mockito.spy(new BlockMetadataManagerView(mMetaManager, Sets.<Integer>newHashSet(),
-            Sets.<Long>newHashSet()));
+    mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
+        Sets.<Long>newHashSet(), Sets.<Long>newHashSet()));
   }
 
   @Test
@@ -110,8 +109,17 @@ public class BlockMetadataManagerViewTest {
   @Test
   public void getBlockMetaNotExistingTest() throws NotFoundException {
     mThrown.expect(NotFoundException.class);
-    mThrown.expectMessage("Failed to get BlockMeta: blockId " + TEST_BLOCK_ID + " not found");
+    mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mMetaManagerView.getBlockMeta(TEST_BLOCK_ID);
+  }
+
+
+  @Test
+  public void getTierNotExistingTest() throws Exception {
+    int badTierAlias = 3;
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage(ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(badTierAlias));
+    mMetaManagerView.getTierView(badTierAlias);
   }
 
   @Test
@@ -145,20 +153,21 @@ public class BlockMetadataManagerViewTest {
 
   @Test
   public void isBlockPinnedOrLockedTest() {
-    int inode = BlockInfo.computeInodeId(TEST_BLOCK_ID);
+    long inode = BlockId.createBlockId(BlockId.getContainerId(TEST_BLOCK_ID),
+        BlockId.getMaxSequenceNumber());
 
     // With no pinned and locked blocks
     Assert.assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // Pin block by passing its inode to mMetaManagerView
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode),
-            Sets.<Long>newHashSet());
+    mMetaManagerView =
+        new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode), Sets.<Long>newHashSet());
     Assert.assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // lock block
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.<Integer>newHashSet(),
+    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.<Long>newHashSet(),
         Sets.<Long>newHashSet(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
@@ -196,17 +205,20 @@ public class BlockMetadataManagerViewTest {
    * TierView as <code>new StorageTierView(mMetadataManager.getTier(tierAlias), this)</code>.
    */
   @Test
-  public void sameTierViewTest() throws Exception {
+  public void sameTierViewTest() {
     int tierAlias = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getTierAlias();
     StorageTierView tierView1 = mMetaManagerView.getTierView(tierAlias);
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getDir(TEST_DIR);
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
-    dir.addBlockMeta(blockMeta);
-
-    StorageTierView tierView2 = new StorageTierView(mMetaManager.getTier(tierAlias),
-        mMetaManagerView);
+    try {
+      dir.addBlockMeta(blockMeta);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    StorageTierView tierView2 =
+        new StorageTierView(mMetaManager.getTier(tierAlias), mMetaManagerView);
     assertSameTierView(tierView1, tierView2);
   }
 
@@ -215,15 +227,18 @@ public class BlockMetadataManagerViewTest {
    * TierViews as constructing by <code>BlockMetadataManager.getTiersBelow(tierAlias)</code>.
    */
   @Test
-  public void sameTierViewsBelowTest() throws Exception {
+  public void sameTierViewsBelowTest() {
     int tierAlias = mMetaManager.getTiers().get(TEST_TIER_LEVEL).getTierAlias();
     List<StorageTierView> tierViews1 = mMetaManagerView.getTierViewsBelow(tierAlias);
 
     // Do some operations on metadata
     StorageDir dir = mMetaManager.getTiers().get(TEST_TIER_LEVEL + 1).getDir(TEST_DIR);
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
-    dir.addBlockMeta(blockMeta);
-
+    try {
+      dir.addBlockMeta(blockMeta);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     List<StorageTier> tiers2 = mMetaManager.getTiersBelow(tierAlias);
     Assert.assertEquals(tierViews1.size(), tiers2.size());
     for (int i = 0; i < tierViews1.size(); i ++) {

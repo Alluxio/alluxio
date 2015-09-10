@@ -36,7 +36,7 @@ import tachyon.worker.block.TieredBlockStoreTestUtils;
 public class StorageDirViewTest {
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR = 0;
-  private static final long TEST_USER_ID = 2;
+  private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_BLOCK_SIZE = 20;
@@ -55,7 +55,7 @@ public class StorageDirViewTest {
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView =
-        Mockito.spy(new BlockMetadataManagerView(metaManager, Sets.<Integer>newHashSet(), Sets
+        Mockito.spy(new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(), Sets
             .<Long>newHashSet()));
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestDir = mTestTier.getDir(TEST_DIR);
@@ -129,8 +129,8 @@ public class StorageDirViewTest {
   @Test
   public void createTempBlockMetaTest() {
     TempBlockMeta tempBlockMeta =
-        mTestDirView.createTempBlockMeta(TEST_USER_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE);
-    Assert.assertEquals(TEST_USER_ID, tempBlockMeta.getUserId());
+        mTestDirView.createTempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE);
+    Assert.assertEquals(TEST_SESSION_ID, tempBlockMeta.getSessionId());
     Assert.assertEquals(TEST_TEMP_BLOCK_ID, tempBlockMeta.getBlockId());
     Assert.assertEquals(TEST_BLOCK_SIZE, tempBlockMeta.getBlockSize());
     Assert.assertEquals(mTestDir, tempBlockMeta.getParentDir());

@@ -33,7 +33,9 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
@@ -46,15 +48,15 @@ import tachyon.worker.block.BlockStoreLocation;
  * <p>
  * This class does not guarantee thread safety.
  */
-public class StorageDir {
+public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
   /** A map from block ID to block meta data */
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
   /** A map from block ID to temp block meta data */
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
-  /** A map from user ID to the set of temp blocks created by this user */
-  private Map<Long, Set<Long>> mUserIdToTempBlockIdsMap;
+  /** A map from session ID to the set of temp blocks created by this session */
+  private Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
   private AtomicLong mAvailableBytes;
   private AtomicLong mCommittedBytes;
   private String mDirPath;
@@ -70,7 +72,7 @@ public class StorageDir {
     mDirPath = dirPath;
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
     mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
-    mUserIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
+    mSessionIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
   }
 
   /**
@@ -98,7 +100,7 @@ public class StorageDir {
   }
 
   /**
-   * Initialize meta data for existing blocks in this StorageDir.
+   * Initializes meta data for existing blocks in this StorageDir.
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath} are legal,
    * should be in format like {dir}/{blockId}. other paths will be deleted.
@@ -248,8 +250,7 @@ public class StorageDir {
   public BlockMeta getBlockMeta(long blockId) throws NotFoundException {
     BlockMeta blockMeta = mBlockIdToBlockMap.get(blockId);
     if (blockMeta == null) {
-      throw new NotFoundException("Failed to get BlockMeta: blockId " + blockId + " not found in "
-          + toString());
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     return blockMeta;
   }
@@ -264,8 +265,7 @@ public class StorageDir {
   public TempBlockMeta getTempBlockMeta(long blockId) throws NotFoundException {
     TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.get(blockId);
     if (tempBlockMeta == null) {
-      throw new NotFoundException("Failed to get TempBlockMeta: blockId " + blockId
-          + " not found in " + toString());
+      throw new NotFoundException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
     }
     return tempBlockMeta;
   }
@@ -283,11 +283,15 @@ public class StorageDir {
     long blockSize = blockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      throw new OutOfSpaceException("Failed to add BlockMeta: blockId " + blockId + " is "
-          + blockSize + " bytes, but only " + getAvailableBytes() + " bytes available");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
+          getAvailableBytes(), alias);
     }
     if (hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("Failed to add BlockMeta: blockId " + blockId + " exists");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
@@ -300,28 +304,31 @@ public class StorageDir {
    * @throws AlreadyExistsException if blockId already exists
    * @throws OutOfSpaceException when not enough space to hold block
    */
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws OutOfSpaceException,
-      AlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws OutOfSpaceException, AlreadyExistsException {
     Preconditions.checkNotNull(tempBlockMeta);
-    long userId = tempBlockMeta.getUserId();
+    long sessionId = tempBlockMeta.getSessionId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      throw new OutOfSpaceException("Failed to add TempBlockMeta: blockId " + blockId + " is "
-          + blockSize + " bytes, but only " + getAvailableBytes() + " bytes available");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
+          getAvailableBytes(), alias);
     }
     if (hasTempBlockMeta(blockId)) {
-      throw new AlreadyExistsException("Failed to add TempBlockMeta: blockId " + blockId
-          + " exists");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
-    Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (userTempBlocks == null) {
-      mUserIdToTempBlockIdsMap.put(userId, Sets.newHashSet(blockId));
+    Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
+    if (sessionTempBlocks == null) {
+      mSessionIdToTempBlockIdsMap.put(sessionId, Sets.newHashSet(blockId));
     } else {
-      userTempBlocks.add(blockId);
+      sessionTempBlocks.add(blockId);
     }
     reserveSpace(blockSize, false);
   }
@@ -337,7 +344,7 @@ public class StorageDir {
     long blockId = blockMeta.getBlockId();
     BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
     if (deletedBlockMeta == null) {
-      throw new NotFoundException("Failed to remove BlockMeta: blockId " + blockId + " not found");
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     reclaimSpace(blockMeta.getBlockSize(), true);
   }
@@ -351,24 +358,20 @@ public class StorageDir {
   public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws NotFoundException {
     Preconditions.checkNotNull(tempBlockMeta);
     final long blockId = tempBlockMeta.getBlockId();
-    final long userId = tempBlockMeta.getUserId();
+    final long sessionId = tempBlockMeta.getSessionId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
     if (deletedTempBlockMeta == null) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId
-          + " not found");
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
-    Set<Long> userBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (userBlocks == null) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId
-          + " has userId " + userId + " not found");
+    Set<Long> sessionBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
+    if (sessionBlocks == null || !sessionBlocks.contains(blockId)) {
+      StorageLevelAlias alias = StorageLevelAlias.getAlias(this.getDirIndex());
+      throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION, blockId, alias,
+          sessionId);
     }
-    if (!userBlocks.contains(blockId)) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId + " not "
-          + "associated with userId " + userId);
-    }
-    Preconditions.checkState(userBlocks.remove(blockId));
-    if (userBlocks.isEmpty()) {
-      mUserIdToTempBlockIdsMap.remove(userId);
+    Preconditions.checkState(sessionBlocks.remove(blockId));
+    if (sessionBlocks.isEmpty()) {
+      mSessionIdToTempBlockIdsMap.remove(sessionId);
     }
     reclaimSpace(tempBlockMeta.getBlockSize(), false);
   }
@@ -391,13 +394,67 @@ public class StorageDir {
     }
   }
 
-  private void reserveSpace(long size, boolean committed) {
-    Preconditions.checkState(size <= mAvailableBytes.get(),
-        "Available bytes should always be non-negative");
-    mAvailableBytes.addAndGet(-size);
-    if (committed) {
-      mCommittedBytes.addAndGet(size);
+  /**
+   * Cleans up the temp block meta data for each block id passed in.
+   *
+   * @param sessionId the ID of the client associated with the temporary blocks
+   * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or
+   *        nonexistent blocks will be ignored
+   */
+  public void cleanupSessionTempBlocks(long sessionId, List<Long> tempBlockIds) {
+    Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
+    // The session's temporary blocks have already been removed.
+    if (sessionTempBlocks == null) {
+      return;
     }
+    for (Long tempBlockId : tempBlockIds) {
+      if (!mBlockIdToTempBlockMap.containsKey(tempBlockId)) {
+        // This temp block does not exist in this dir, this is expected for some blocks since the
+        // input list is across all dirs
+        continue;
+      }
+      sessionTempBlocks.remove(tempBlockId);
+      TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.remove(tempBlockId);
+      if (tempBlockMeta != null) {
+        reclaimSpace(tempBlockMeta.getBlockSize(), false);
+      } else {
+        LOG.error("Cannot find blockId {} when cleanup sessionId {}", tempBlockId, sessionId);
+      }
+    }
+    if (sessionTempBlocks.isEmpty()) {
+      mSessionIdToTempBlockIdsMap.remove(sessionId);
+    } else {
+      // This may happen if the client comes back during clean up and creates more blocks or some
+      // temporary blocks failed to be deleted
+      LOG.warn("Blocks still owned by session " + sessionId + " after cleanup.");
+    }
+  }
+
+  /**
+   * Gets the temporary blocks associated with a session in this StorageDir, an empty list is
+   * returned if the session has no temporary blocks in this StorageDir.
+   *
+   * @param sessionId the ID of the session
+   * @return A list of temporary blocks the session is associated with in this StorageDir
+   */
+  public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
+    Set<Long> sessionTempBlockIds = mSessionIdToTempBlockIdsMap.get(sessionId);
+
+    if (sessionTempBlockIds == null || sessionTempBlockIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<TempBlockMeta> sessionTempBlocks = new ArrayList<TempBlockMeta>();
+    for (long blockId : sessionTempBlockIds) {
+      sessionTempBlocks.add(mBlockIdToTempBlockMap.get(blockId));
+    }
+    return sessionTempBlocks;
+  }
+
+  /**
+   * @return the block store location of this directory.
+   */
+  public BlockStoreLocation toBlockStoreLocation() {
+    return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
   }
 
   private void reclaimSpace(long size, boolean committed) {
@@ -409,63 +466,12 @@ public class StorageDir {
     }
   }
 
-  /**
-   * Cleans up the temp block meta data for each block id passed in.
-   *
-   * @param userId the ID of the client associated with the temporary blocks
-   * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or
-   *        nonexistent blocks will be ignored
-   */
-  public void cleanupUserTempBlocks(long userId, List<Long> tempBlockIds) {
-    Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    // The user's temporary blocks have already been removed.
-    if (userTempBlocks == null) {
-      return;
+  private void reserveSpace(long size, boolean committed) {
+    Preconditions.checkState(size <= mAvailableBytes.get(),
+        "Available bytes should always be non-negative");
+    mAvailableBytes.addAndGet(-size);
+    if (committed) {
+      mCommittedBytes.addAndGet(size);
     }
-    for (Long tempBlockId : tempBlockIds) {
-      if (!mBlockIdToTempBlockMap.containsKey(tempBlockId)) {
-        // This temp block does not exist in this dir, this is expected for some blocks since the
-        // input list is across all dirs
-        continue;
-      }
-      userTempBlocks.remove(tempBlockId);
-      TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.remove(tempBlockId);
-      if (tempBlockMeta != null) {
-        reclaimSpace(tempBlockMeta.getBlockSize(), false);
-      } else {
-        LOG.error("Cannot find blockId {} when cleanup userId {}", tempBlockId, userId);
-      }
-    }
-    if (userTempBlocks.isEmpty()) {
-      mUserIdToTempBlockIdsMap.remove(userId);
-    } else {
-      // This may happen if the client comes back during clean up and creates more blocks or some
-      // temporary blocks failed to be deleted
-      LOG.warn("Blocks still owned by user " + userId + " after cleanup.");
-    }
-  }
-
-  /**
-   * Gets the temporary blocks associated with a user in this StorageDir, an empty list is returned
-   * if the user has no temporary blocks in this StorageDir.
-   *
-   * @param userId the ID of the user
-   * @return A list of temporary blocks the user is associated with in this StorageDir
-   */
-  public List<TempBlockMeta> getUserTempBlocks(long userId) {
-    Set<Long> userTempBlockIds = mUserIdToTempBlockIdsMap.get(userId);
-
-    if (userTempBlockIds == null || userTempBlockIds.isEmpty()) {
-      return Collections.emptyList();
-    }
-    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
-    for (long blockId : userTempBlockIds) {
-      userTempBlocks.add(mBlockIdToTempBlockMap.get(blockId));
-    }
-    return userTempBlocks;
-  }
-
-  public BlockStoreLocation toBlockStoreLocation() {
-    return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
   }
 }

@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
@@ -73,8 +74,8 @@ public class BlockMetadataManager {
     return ret;
   }
 
-  private void initBlockMetadataManager() throws AlreadyExistsException,
-      IOException, OutOfSpaceException {
+  private void initBlockMetadataManager() throws AlreadyExistsException, IOException,
+      OutOfSpaceException {
     // Initialize storage tiers
     int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
@@ -129,15 +130,15 @@ public class BlockMetadataManager {
   /**
    * Cleans up the meta data of the given temp block ids
    *
-   * @param userId the ID of the client associated with the temp blocks
+   * @param sessionId the ID of the client associated with the temp blocks
    * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block ids
    *        will be ignored.
    */
   @Deprecated
-  public void cleanupUserTempBlocks(long userId, List<Long> tempBlockIds) {
+  public void cleanupSessionTempBlocks(long sessionId, List<Long> tempBlockIds) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dir.cleanupUserTempBlocks(userId, tempBlockIds);
+        dir.cleanupSessionTempBlocks(sessionId, tempBlockIds);
       }
     }
   }
@@ -188,7 +189,7 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new NotFoundException("Failed to get BlockMeta: blockId " + blockId + " not found");
+    throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
   }
 
   /**
@@ -224,8 +225,8 @@ public class BlockMetadataManager {
   public StorageDir getDir(BlockStoreLocation location) {
     if (location.equals(BlockStoreLocation.anyTier())
         || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      throw new IllegalArgumentException("Failed to get block path: " + location
-          + " is not a specific dir.");
+      throw new IllegalArgumentException(
+          ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
     }
     return getTier(location.tierAlias()).getDir(location.dir());
   }
@@ -245,8 +246,7 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new NotFoundException("Failed to get TempBlockMeta: temp blockId " + blockId
-        + " not found");
+    throw new NotFoundException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
   }
 
   /**
@@ -259,7 +259,8 @@ public class BlockMetadataManager {
   public StorageTier getTier(int tierAlias) {
     StorageTier tier = mAliasToTiers.get(tierAlias);
     if (tier == null) {
-      throw new IllegalArgumentException("Cannot find tier with alias " + tierAlias);
+      throw new IllegalArgumentException(
+          ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(tierAlias));
     }
     return tier;
   }
@@ -286,20 +287,20 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets all the temporary blocks associated with a user, empty list is returned if the user has no
-   * temporary blocks.
+   * Gets all the temporary blocks associated with a session, empty list is returned if the session
+   * has no temporary blocks.
    *
-   * @param userId the ID of the user
-   * @return A list of temp blocks associated with the user
+   * @param sessionId the ID of the session
+   * @return A list of temp blocks associated with the session
    */
-  public List<TempBlockMeta> getUserTempBlocks(long userId) {
-    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
+  public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
+    List<TempBlockMeta> sessionTempBlocks = new ArrayList<TempBlockMeta>();
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        userTempBlocks.addAll(dir.getUserTempBlocks(userId));
+        sessionTempBlocks.addAll(dir.getSessionTempBlocks(sessionId));
       }
     }
-    return userTempBlocks;
+    return sessionTempBlocks;
   }
 
   /**

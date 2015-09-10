@@ -31,6 +31,12 @@ import tachyon.util.CommonUtils;
 public interface RemoteBlockWriter extends Closeable {
 
   class Factory {
+    /**
+     * Creates a new <code>RemoteBlockWriter</code>.
+     *
+     * @param conf Tachyon configuration
+     * @return a new instance of <code>RemoteBlockWriter</code>
+     */
     public static RemoteBlockWriter createRemoteBlockWriter(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
@@ -42,22 +48,22 @@ public interface RemoteBlockWriter extends Closeable {
   }
 
   /**
-   * Open a block writer to a data server.
+   * Opens a block writer to a data server.
    *
    * @param address The {@link InetSocketAddress} of the data server.
    * @param blockId The id of the block to write.
-   * @param userId The id of the user writing the block.
-   * @throws IOException
+   * @param sessionId The id of the session writing the block.
+   * @throws IOException when the operation fails
    */
-  void open(InetSocketAddress address, long blockId, long userId) throws IOException;
+  void open(InetSocketAddress address, long blockId, long sessionId) throws IOException;
 
   /**
-   * Write data to the remote block.
+   * Writes data to the remote block.
    *
    * @param bytes An array of bytes representing the source data.
    * @param offset The offset into the source array of bytes.
    * @param length The length of the data to write (in bytes).
-   * @throws IOException
+   * @throws IOException when the operation fails
    */
   void write(byte[] bytes, int offset, int length) throws IOException;
 }

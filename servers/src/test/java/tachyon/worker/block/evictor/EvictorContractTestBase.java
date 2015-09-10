@@ -15,6 +15,7 @@
 
 package tachyon.worker.block.evictor;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,7 +68,8 @@ public class EvictorContractTestBase extends EvictorTestBase {
       for (ClassPath.ClassInfo clazz : clazzInPackage) {
         Set<Class<?>> interfaces =
             new HashSet<Class<?>>(Arrays.asList(clazz.load().getInterfaces()));
-        if (interfaces.size() > 0 && interfaces.contains(Evictor.class)) {
+        if (!Modifier.isAbstract(clazz.load().getModifiers()) && interfaces.size() > 0
+            && interfaces.contains(Evictor.class)) {
           list.add(new Object[] {clazz.getName()});
         }
       }
@@ -109,7 +111,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
     StorageDir dir = mTestDir;
     long capacity = dir.getCapacityBytes();
     long cachedBytes = capacity / 2 + 1;
-    TieredBlockStoreTestUtils.cache(USER_ID, BLOCK_ID, cachedBytes, dir, mMetaManager, mEvictor);
+    TieredBlockStoreTestUtils.cache(SESSION_ID, BLOCK_ID, cachedBytes, dir, mMetaManager, mEvictor);
     Assert.assertTrue(mEvictor.freeSpaceWithView(capacity - cachedBytes,
         dir.toBlockStoreLocation(), mManagerView).isEmpty());
   }
@@ -123,7 +125,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
     for (StorageTier tier : mMetaManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir != dirLeft) {
-          TieredBlockStoreTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes(), dir,
+          TieredBlockStoreTestUtils.cache(SESSION_ID, blockId, dir.getCapacityBytes(), dir,
               mMetaManager, mEvictor);
           blockId ++;
         }
@@ -141,7 +143,8 @@ public class EvictorContractTestBase extends EvictorTestBase {
     // evicted.
     StorageDir dir = mTestDir;
     long capacityBytes = dir.getCapacityBytes();
-    TieredBlockStoreTestUtils.cache(USER_ID, BLOCK_ID, capacityBytes, dir, mMetaManager, mEvictor);
+    TieredBlockStoreTestUtils.cache(SESSION_ID, BLOCK_ID, capacityBytes, dir, mMetaManager,
+        mEvictor);
 
     EvictionPlan plan =
         mEvictor.freeSpaceWithView(capacityBytes, dir.toBlockStoreLocation(), mManagerView);
@@ -157,7 +160,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
     long blockId = BLOCK_ID;
     List<StorageDir> dirs = tier.getStorageDirs();
     for (StorageDir dir : dirs) {
-      TieredBlockStoreTestUtils.cache(USER_ID, blockId, dir.getCapacityBytes() - 1, dir,
+      TieredBlockStoreTestUtils.cache(SESSION_ID, blockId, dir.getCapacityBytes() - 1, dir,
           mMetaManager, mEvictor);
       blockId ++;
     }
@@ -180,7 +183,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
         long capacity = dir.getCapacityBytes();
         minCapacity = Math.min(minCapacity, capacity);
         TieredBlockStoreTestUtils
-            .cache(USER_ID, blockId, capacity - 1, dir, mMetaManager, mEvictor);
+            .cache(SESSION_ID, blockId, capacity - 1, dir, mMetaManager, mEvictor);
         blockId ++;
       }
     }
@@ -198,7 +201,7 @@ public class EvictorContractTestBase extends EvictorTestBase {
     BlockStoreLocation dirLocation = dir.toBlockStoreLocation();
     long dirCapacity = mMetaManager.getAvailableBytes(dirLocation);
 
-    TieredBlockStoreTestUtils.cache(USER_ID, BLOCK_ID, dirCapacity, dir, mMetaManager, mEvictor);
+    TieredBlockStoreTestUtils.cache(SESSION_ID, BLOCK_ID, dirCapacity, dir, mMetaManager, mEvictor);
 
     // request space larger than total capacity, no eviction plan should be available
     Assert.assertNull(mEvictor.freeSpaceWithView(totalCapacity + 1, BlockStoreLocation.anyTier(),

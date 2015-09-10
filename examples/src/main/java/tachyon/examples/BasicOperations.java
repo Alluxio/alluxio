@@ -26,11 +26,12 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.OutStream;
-import tachyon.client.TachyonByteBuffer;
-import tachyon.client.TachyonFile;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
@@ -60,8 +61,8 @@ public class BasicOperations implements Callable<Boolean> {
   private void createFile(TachyonFS tachyonClient) throws IOException {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    int fileId = tachyonClient.createFile(mFilePath);
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
+    long fileId = tachyonClient.createFile(mFilePath);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
   }
 
   private void writeFile(TachyonFS tachyonClient) throws IOException {
@@ -77,11 +78,11 @@ public class BasicOperations implements Callable<Boolean> {
 
     long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = tachyonClient.getFile(mFilePath);
-    OutStream os = file.getOutStream(mWriteType);
+    FileOutStream os = file.getOutStream(mWriteType);
     os.write(buf.array());
     os.close();
 
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "writeFile to file " + mFilePath);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
   private boolean readFile(TachyonFS tachyonClient) throws IOException {
@@ -90,18 +91,16 @@ public class BasicOperations implements Callable<Boolean> {
 
     final long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = tachyonClient.getFile(mFilePath);
-    TachyonByteBuffer buf = file.readByteBuffer(0);
-    if (buf == null) {
-      file.recache();
-      buf = file.readByteBuffer(0);
-    }
-    buf.mData.order(ByteOrder.nativeOrder());
+    FileInStream is = file.getInStream(ReadType.CACHE);
+    ByteBuffer buf = ByteBuffer.allocate((int) file.getBlockSizeByte());
+    is.read(buf.array());
+    buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
-      pass = pass && (buf.mData.getInt() == k);
+      pass = pass && (buf.getInt() == k);
     }
-    buf.close();
+    is.close();
 
-    FormatUtils.printTimeTakenMs(startTimeMs, LOG, "readFile file " + mFilePath);
+    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "readFile file " + mFilePath));
     return pass;
   }
 

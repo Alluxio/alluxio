@@ -23,18 +23,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.Users;
+import tachyon.Sessions;
+import tachyon.client.BlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
-import tachyon.master.MasterClient;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.ThreadFactoryUtils;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -64,7 +60,7 @@ public final class BlockMasterSync implements Runnable {
   private final int mHeartbeatTimeoutMs;
 
   /** Client for all master communication */
-  private MasterClient mMasterClient;
+  private BlockMasterClient mMasterClient;
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
   /** The id of the worker */
@@ -74,7 +70,7 @@ public final class BlockMasterSync implements Runnable {
           Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      NetAddress workerAddress, MasterClient masterClient) {
+      NetAddress workerAddress, BlockMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
@@ -97,21 +93,27 @@ public final class BlockMasterSync implements Runnable {
     return mWorkerId;
   }
 
-  /**
-   * Registers with the Tachyon master. This should be called before the continuous heartbeat thread
-   * begins. The workerId will be set after this method is successful.
-   *
-   * @throws IOException if the registration fails
-   */
-  public void registerWithMaster() throws IOException {
-    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+  public void setWorkerId() throws IOException {
     try {
-      mWorkerId =
-          mMasterClient.worker_register(mWorkerAddress, storeMeta.getCapacityBytesOnTiers(),
-              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+      mWorkerId = mMasterClient.workerGetId(mWorkerAddress);
     } catch (IOException ioe) {
       LOG.error("Failed to register with master.", ioe);
       throw ioe;
+    }
+  }
+
+  /**
+   * Registers with the Tachyon master. This should be called before the continuous heartbeat thread
+   * begins. The workerId will be set after this method is successful.
+   */
+  public void registerWithMaster() {
+    BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
+    try {
+      mWorkerId =
+          mMasterClient.workerRegister(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
+              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+    } catch (IOException ioe) {
+      throw new RuntimeException("Failed to register with master.", ioe);
     }
   }
 
@@ -122,6 +124,7 @@ public final class BlockMasterSync implements Runnable {
   @Override
   public void run() {
     long lastHeartbeatMs = System.currentTimeMillis();
+    registerWithMaster();
     while (mRunning) {
       // Check the time since last heartbeat, and wait until it is within heartbeat interval
       long lastIntervalMs = System.currentTimeMillis() - lastHeartbeatMs;
@@ -139,14 +142,15 @@ public final class BlockMasterSync implements Runnable {
       // Send the heartbeat and execute the response
       try {
         Command cmdFromMaster =
-            mMasterClient.worker_heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
+            mMasterClient.workerHeartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
                 blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if heartbeat timeout is reached
         LOG.error("Failed to receive or execute master heartbeat command.", ioe);
-        mMasterClient.resetConnection();
+        // TODO: Add this method in MasterClientBase
+        //mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
@@ -183,7 +187,7 @@ public final class BlockMasterSync implements Runnable {
       case Free:
         for (long block : cmd.mData) {
           mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
-                  Users.MASTER_COMMAND_USER_ID, block));
+                  Sessions.MASTER_COMMAND_SESSION_ID, block));
         }
         break;
       // No action required
@@ -207,19 +211,19 @@ public final class BlockMasterSync implements Runnable {
    */
   private class BlockRemover implements Runnable {
     private BlockDataManager mBlockDataManager;
-    private long mUserId;
+    private long mSessionId;
     private long mBlockId;
 
-    public BlockRemover(BlockDataManager blockDataManager, long userId, long blockId) {
+    public BlockRemover(BlockDataManager blockDataManager, long sessionId, long blockId) {
       mBlockDataManager = blockDataManager;
-      mUserId = userId;
+      mSessionId = sessionId;
       mBlockId = blockId;
     }
 
     @Override
     public void run() {
       try {
-        mBlockDataManager.removeBlock(mUserId, mBlockId);
+        mBlockDataManager.removeBlock(mSessionId, mBlockId);
       } catch (IOException ioe) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
       } catch (InvalidStateException e) {

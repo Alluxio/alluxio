@@ -37,6 +37,10 @@ public class BufferUtils {
   private static Method sCleanerCleanMethod;
   private static Method sByteBufferCleanerMethod;
 
+  public static int byteToInt(byte b) {
+    return b & 0xFF;
+  }
+
   /**
    * Force to unmap a direct buffer if this buffer is no longer used. After calling this method,
    * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to
@@ -96,6 +100,12 @@ public class BufferUtils {
     return ret;
   }
 
+  /**
+   * Clone a list of ByteBuffers.
+   *
+   * @param source the list of ByteBuffers to clone
+   * @return the new list of ByteBuffers
+   */
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
     for (ByteBuffer b : source) {
@@ -104,6 +114,12 @@ public class BufferUtils {
     return ret;
   }
 
+  /**
+   * Extract a correct ByteBuffer from Thrift RPC result.
+   *
+   * @param data result of Thrift RPC
+   * @return ByteBuffer with data extracted from the Thrift RPC result
+   */
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
     // TODO this is a trick to fix the issue in thrift. Change the code to use
     // metadata directly when thrift fixes the issue.
@@ -113,14 +129,33 @@ public class BufferUtils {
     return correctData;
   }
 
+  /**
+   * Put a byte (the first byte of an integer) into a ByteBuffer.
+   *
+   * @param buf ByteBuffer to use
+   * @param b byte to put into the ByteBuffer
+   */
   public static void putIntByteBuffer(ByteBuffer buf, int b) {
     buf.put((byte) (b & 0xFF));
   }
 
+  /**
+   * Get an increasing sequence of bytes starting at zero.
+   *
+   * @param len the target length of the sequence
+   * @return an increasing sequence of bytes
+   */
   public static byte[] getIncreasingByteArray(int len) {
     return getIncreasingByteArray(0, len);
   }
 
+  /**
+   * Get an increasing sequence of bytes starting with the given value.
+   *
+   * @param start the starting value to use
+   * @param len the target length of the sequence
+   * @return an increasing sequence of bytes
+   */
   public static byte[] getIncreasingByteArray(int start, int len) {
     byte[] ret = new byte[len];
     for (int k = 0; k < len; k ++) {
@@ -129,12 +164,31 @@ public class BufferUtils {
     return ret;
   }
 
+  /**
+   * Check if the given byte array starts with an increasing sequence of bytes starting at zero of
+   * length equal to or greater than the given length.
+   *
+   * @param len the target length of the sequence
+   * @param arr the byte array to check
+   * @return true if the byte array has a prefix of length <code>len</code> that is an increasing
+   *         sequence of bytes starting at zero
+   */
   public static boolean equalIncreasingByteArray(int len, byte[] arr) {
     return equalIncreasingByteArray(0, len, arr);
   }
 
+  /**
+   * Check if the given byte array starts with an increasing sequence of bytes starting at the given
+   * value of length equal to or greater than the given length.
+   *
+   * @param start the starting value to use
+   * @param len the target length of the sequence
+   * @param arr the byte array to check
+   * @return true if the byte array has a prefix of length <code>len</code> that is an increasing
+   *         sequence of bytes starting at <code>start</code>
+   */
   public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
-    if (arr == null || arr.length < len) {
+    if (arr == null || arr.length != len) {
       return false;
     }
     for (int k = 0; k < len; k ++) {
@@ -145,14 +199,37 @@ public class BufferUtils {
     return true;
   }
 
+  /**
+   * Get a ByteBuffer containing an increasing sequence of bytes starting at zero.
+   *
+   * @param len the target length of the sequence
+   * @return ByteBuffer containing an increasing sequence of bytes
+   */
   public static ByteBuffer getIncreasingByteBuffer(int len) {
     return getIncreasingByteBuffer(0, len);
   }
 
+  /**
+   * Get a ByteBuffer containing an increasing sequence of bytes starting at the given value.
+   *
+   * @param len the target length of the sequence
+   * @param start the starting value to use
+   * @return ByteBuffer containing an increasing sequence of bytes
+   */
   public static ByteBuffer getIncreasingByteBuffer(int start, int len) {
     return ByteBuffer.wrap(getIncreasingByteArray(start, len));
   }
 
+  /**
+   * Check if the given ByteBuffer starts with an increasing sequence of bytes starting at the given
+   * value of length equal to or greater than the given length.
+   *
+   * @param start the starting value to use
+   * @param len the target length of the sequence
+   * @param buf the ByteBuffer to check
+   * @return true if the ByteBuffer has a prefix of length <code>len</code> that is an increasing
+   *         sequence of bytes starting at <code>start</code>
+   */
   public static boolean equalIncreasingByteBuffer(int start, int len, ByteBuffer buf) {
     if (buf == null) {
       return false;
@@ -169,10 +246,27 @@ public class BufferUtils {
     return true;
   }
 
+  /**
+   * Get a ByteBuffer containing an increasing sequence of integers starting at zero.
+   *
+   * @param len the target length of the sequence
+   * @return ByteBuffer containing an increasing sequence of integers
+   */
   public static ByteBuffer getIncreasingIntBuffer(int len) {
+    return getIncreasingIntBuffer(0, len);
+  }
+
+  /**
+   * Get a ByteBuffer containing an increasing sequence of integers starting at the given value.
+   *
+   * @param start the starting value to use
+   * @param len the target length of the sequence
+   * @return ByteBuffer containing an increasing sequence of integers
+   */
+  public static ByteBuffer getIncreasingIntBuffer(int start, int len) {
     ByteBuffer ret = ByteBuffer.allocate(len * 4);
     for (int k = 0; k < len; k ++) {
-      ret.putInt(k);
+      ret.putInt(start + k);
     }
     ret.flip();
     return ret;
@@ -183,7 +277,7 @@ public class BufferUtils {
    *
    * @param path file path to write the data
    * @param buffer raw data
-   * @throws java.io.IOException
+   * @throws IOException if the operation fails
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
     FileOutputStream os = new FileOutputStream(path);

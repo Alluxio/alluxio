@@ -26,7 +26,7 @@ import tachyon.worker.block.BlockMetadataManagerView;
 /**
  * This class is a wrapper of {@link StorageTier} to provide more limited access
  */
-public class StorageTierView {
+public final class StorageTierView {
 
   /** the StorageTier this view is derived from */
   private final StorageTier mTier;
@@ -36,7 +36,7 @@ public class StorageTierView {
   private final BlockMetadataManagerView mManagerView;
 
   /**
-   * Create a StorageTierView using the actual StorageTier and the above BlockMetadataView
+   * Creates a StorageTierView using the actual StorageTier and the above BlockMetadataView
    *
    * @param tier which the tierView is constructed from
    * @param view the BlockMetadataManagerView this tierView is associated with
@@ -52,33 +52,40 @@ public class StorageTierView {
   }
 
   /**
-   * Get the list of StorageDirView under this TierView
+   * @return a list of directory views in this storage tier view.
    */
   public List<StorageDirView> getDirViews() {
     return Collections.unmodifiableList(mDirViews);
   }
 
   /**
-   * Get a StorageDirView with a dirIndex
+   * Returns a directory view for the given index.
    *
-   * @param dirIndex of the dirView requested
-   * @throws IndexOutOfBoundsException if dirIndex is out of range
+   * @param dirIndex the directory view index
+   * @return a directory view
    */
   public StorageDirView getDirView(int dirIndex) {
     return mDirViews.get(dirIndex);
   }
 
   /**
-   * Get the alias for this tier
+   * @return the storage tier view alias
    */
   public int getTierViewAlias() {
     return mTier.getTierAlias();
   }
 
   /**
-   * Get the level for this tier
+   * @return the storage tier view level
    */
   public int getTierViewLevel() {
     return mTier.getTierLevel();
+  }
+
+  /**
+   * @return the block metadata manager view for this storage tier view
+   */
+  public BlockMetadataManagerView getBlockMetadataManagerView() {
+    return mManagerView;
   }
 }

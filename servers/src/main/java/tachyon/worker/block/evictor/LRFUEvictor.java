@@ -25,17 +25,12 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
-import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
 import tachyon.worker.block.meta.BlockMeta;
@@ -53,13 +48,7 @@ import tachyon.worker.block.meta.StorageTierView;
  * {@link #mStepFactor} is close to 0, LRFU is close to LFU. Conversely, LRFU is close to LRU
  * when {@link #mStepFactor} is close to 1.
  */
-public final class LRFUEvictor extends BlockStoreEventListenerBase implements Evictor {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final double DEFAULT_STEP_FACTOR = 0.25;
-  private static final double DEFAULT_ATTENUATION_FACTOR = 2.0;
-
-  private BlockMetadataManagerView mManagerView;
+public final class LRFUEvictor extends EvictorBase {
   // Map from block id to the last updated logic time count
   private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<Long, Long>();
   // Map from block id to the CRF value of the block
@@ -69,14 +58,16 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
   // In the range of [2, INF]
   private final double mAttenuationFactor;
   private final TachyonConf mTachyonConf;
-  private final Allocator mAllocator;
 
   //logic time count
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
+  /**
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
+   */
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
-    mManagerView = Preconditions.checkNotNull(view);
-    mAllocator = Preconditions.checkNotNull(allocator);
+    super(view, allocator);
     mTachyonConf = new TachyonConf();
     mStepFactor = mTachyonConf
         .getDouble(Constants.WORKER_EVICT_STRATEGY_LRFU_STEP_FACTOR);
@@ -99,82 +90,14 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
   }
 
   /**
-   * A recursive implementation of cascading LRFU eviction.
+   * Calculates weight of an access, which is the function value of
+   * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
    *
-   * @param bytesToBeAvailable bytes to be available after eviction
-   * @param location target location to evict blocks from
-   * @param plan the plan to be recursively updated, is empty when first called in
-   *        {@link #freeSpaceWithView}
-   * @param sortedCRF sorted CRF of all blocks in ascending order
-   * @return the first StorageDirView in the range of location to evict/move bytes from, or null if
-   *         there is no plan
+   * @param logicTimeInterval time interval since that access to current
+   * @return Function value of F(t)
    */
-  private StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
-      EvictionPlan plan, List<Map.Entry<Long, Double>> sortedCRF) {
-    // 1. if bytesToBeAvailable can already be satisfied without eviction, return emtpy plan
-    StorageDirView candidateDirView = EvictorUtils
-        .selectDirWithRequestedSpace(bytesToBeAvailable, location, mManagerView);
-    if (candidateDirView != null) {
-      return candidateDirView;
-    }
-
-    // 2. iterate over blocks in increasing order of CRF until we find a dir view that is in
-    // the range of location and can satisfy bytesToBeAvailable after evicting its blocks
-    // iterated so far
-    EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
-    Iterator<Map.Entry<Long, Double>> it = sortedCRF.iterator();
-    while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
-      Entry<Long, Double> pair = it.next();
-      long blockId = pair.getKey();
-      try {
-        BlockMeta block = mManagerView.getBlockMeta(blockId);
-        if (null != block) { // might not present in this view
-          if (block.getBlockLocation().belongTo(location)) {
-            int tierAlias = block.getParentDir().getParentTier().getTierAlias();
-            int dirIndex = block.getParentDir().getDirIndex();
-            dirCandidates.add(mManagerView.getTierView(tierAlias).getDirView(dirIndex), blockId,
-                block.getBlockSize());
-          }
-        }
-      } catch (NotFoundException nfe) {
-        LOG.warn("Remove block {} from LRFU Cache because {}", blockId, nfe);
-        it.remove();
-        mBlockIdToLastUpdateTime.remove(blockId);
-        mBlockIdToCRFValue.remove(blockId);
-      }
-    }
-
-    // 3. have no eviction plan
-    if (dirCandidates.candidateSize() < bytesToBeAvailable) {
-      return null;
-    }
-
-    // 4. cascading eviction: try to free space in next tier to move candidate blocks there, evict
-    // blocks only when it can not be moved to next tiers
-    candidateDirView = dirCandidates.candidateDir();
-    List<Long> candidateBlocks = dirCandidates.candidateBlocks();
-    List<StorageTierView> tierViewsBelow =
-        mManagerView.getTierViewsBelow(candidateDirView.getParentTierView().getTierViewAlias());
-    // find a dir in below tiers to transfer blocks there, from top tier to bottom tier
-    StorageDirView candidateNextDir = null;
-    for (StorageTierView tierView : tierViewsBelow) {
-      candidateNextDir =
-          cascadingEvict(dirCandidates.candidateSize() - candidateDirView.getAvailableBytes(),
-              BlockStoreLocation.anyDirInTier(tierView.getTierViewAlias()), plan, sortedCRF);
-      if (candidateNextDir != null) {
-        break;
-      }
-    }
-    if (candidateNextDir == null) {
-      // nowhere to transfer blocks to, so evict them
-      plan.toEvict().addAll(candidateBlocks);
-    } else {
-      BlockStoreLocation dest = candidateNextDir.toBlockStoreLocation();
-      for (long block : candidateBlocks) {
-        plan.toMove().add(new Pair<Long, BlockStoreLocation>(block, dest));
-      }
-    }
-    return candidateDirView;
+  private double calculateAccessWeight(long logicTimeInterval) {
+    return Math.pow(1.0 / mAttenuationFactor, logicTimeInterval * mStepFactor);
   }
 
   @Override
@@ -184,13 +107,13 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
       updateCRFValue();
       mManagerView = view;
 
-      List<Map.Entry<Long, Double>> sortedCRF = getSortedCRF();
       List<Pair<Long, BlockStoreLocation>> toMove =
           new ArrayList<Pair<Long, BlockStoreLocation>>();
       List<Long> toEvict = new ArrayList<Long>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
-      StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, sortedCRF);
+      StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
+      mManagerView.clearBlockMarks();
       if (candidateDir == null) {
         return null;
       }
@@ -199,8 +122,13 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
     }
   }
 
+  @Override
+  protected Iterator<Map.Entry<Long, Object>> getBlockIterator() {
+    return (Iterator) getSortedCRF().iterator();
+  }
+
   /**
-   * Sort all blocks in ascending order of CRF
+   * Sorts all blocks in ascending order of CRF
    *
    * @return the sorted CRF of all blocks
    */
@@ -223,15 +151,30 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
     return sortedCRF;
   }
 
-  /**
-   * Calculate weight of an access, which is the function value of
-   * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
-   *
-   * @param logicTimeInterval time interval since that access to current
-   * @return Function value of F(t)
-   */
-  private double calculateAccessWeight(long logicTimeInterval) {
-    return Math.pow(1.0 / mAttenuationFactor, logicTimeInterval * mStepFactor);
+  @Override
+  public void onAccessBlock(long userId, long blockId) {
+    updateOnAccessAndCommit(blockId);
+  }
+
+  @Override
+  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
+    updateOnAccessAndCommit(blockId);
+  }
+
+  @Override
+  public void onRemoveBlockByClient(long userId, long blockId) {
+    updateOnRemoveBlock(blockId);
+  }
+
+  @Override
+  public void onRemoveBlockByWorker(long userId, long blockId) {
+    updateOnRemoveBlock(blockId);
+  }
+
+  @Override
+  protected void onRemoveBlockFromIterator(long blockId) {
+    mBlockIdToLastUpdateTime.remove(blockId);
+    mBlockIdToCRFValue.remove(blockId);
   }
 
   /**
@@ -255,7 +198,7 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
   }
 
   /**
-   * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
+   * Updates {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
    * accessed or committed. Only CRF of the accessed or committed block will be updated, CRF
    * of other blocks will be lazily updated (only when {@link #updateCRFValue()} is called).
    * If the block is updated at the first time, CRF of the block will be set to 1.0, otherwise
@@ -270,8 +213,8 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
       // CRF(currentLogicTime)=CRF(lastUpdateTime)*F(currentLogicTime-lastUpdateTime)+F(0)
       if (mBlockIdToCRFValue.containsKey(blockId)) {
         mBlockIdToCRFValue.put(blockId, mBlockIdToCRFValue.get(blockId)
-            * calculateAccessWeight(currentLogicTime - mBlockIdToLastUpdateTime
-                .get(blockId)) + 1.0);
+            * calculateAccessWeight(currentLogicTime - mBlockIdToLastUpdateTime.get(blockId))
+            + 1.0);
       } else {
         mBlockIdToCRFValue.put(blockId, 1.0);
       }
@@ -281,7 +224,7 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
   }
 
   /**
-   * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
+   * Updates {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
    * removed.
    *
    * @param blockId id of the block to be removed
@@ -292,25 +235,5 @@ public final class LRFUEvictor extends BlockStoreEventListenerBase implements Ev
       mBlockIdToCRFValue.remove(blockId);
       mBlockIdToLastUpdateTime.remove(blockId);
     }
-  }
-
-  @Override
-  public void onAccessBlock(long userId, long blockId) {
-    updateOnAccessAndCommit(blockId);
-  }
-
-  @Override
-  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
-    updateOnAccessAndCommit(blockId);
-  }
-
-  @Override
-  public void onRemoveBlockByClient(long userId, long blockId) {
-    updateOnRemoveBlock(blockId);
-  }
-
-  @Override
-  public void onRemoveBlockByWorker(long userId, long blockId) {
-    updateOnRemoveBlock(blockId);
   }
 }

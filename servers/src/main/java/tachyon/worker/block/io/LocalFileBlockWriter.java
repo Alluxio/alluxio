@@ -36,7 +36,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * <p>
  * This class does not provide thread-safety. Corresponding lock must be acquired.
  */
-public class LocalFileBlockWriter implements BlockWriter {
+public final class LocalFileBlockWriter implements BlockWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final String mFilePath;
   private final RandomAccessFile mLocalFile;
@@ -44,7 +44,7 @@ public class LocalFileBlockWriter implements BlockWriter {
   private final Closer mCloser = Closer.create();
 
   /**
-   * Construct a Block writer given the metadata of a temp block
+   * Constructs a Block writer given the metadata of a temp block.
    *
    * @param tempBlockMeta metadata of this temp block
    * @throws IOException if its file can not be open with "rw" mode
@@ -54,7 +54,7 @@ public class LocalFileBlockWriter implements BlockWriter {
   }
 
   /**
-   * Construct a Block writer given the file path of the block
+   * Constructs a Block writer given the file path of the block.
    *
    * @param path file path of the block
    * @throws IOException if its file can not be open with "rw" mode
