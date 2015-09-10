@@ -41,7 +41,7 @@ public final class InodeLastModificationTimeEntry implements JournalEntry {
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.INODE_LAST_MODIFICATION_TIME;
+    return JournalEntryType.INODE_MTIME;
   }
 
   @Override
