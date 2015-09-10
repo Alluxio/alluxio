@@ -241,7 +241,12 @@ public class TachyonConf {
   }
 
   public String get(String key) {
-    return get(key, null);
+    if (!mProperties.containsKey(key)) {
+      // if key is not found among the default properties
+      return null;
+    }
+    String raw = mProperties.getProperty(key);
+    return lookup(raw);
   }
 
   public boolean containsKey(String key) {
