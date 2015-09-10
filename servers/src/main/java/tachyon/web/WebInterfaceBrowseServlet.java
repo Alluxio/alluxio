@@ -215,11 +215,13 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster().getFileBlockInfoList(toAdd.getId()).get(0);
-          List<NetAddress> addrs = Lists.newArrayList(blockInfo.getUnderFsLocations());
+          List<NetAddress> addrs = Lists.newArrayList();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
             addrs.add(location.getWorkerAddress());
           }
+          // add underFS locations
+          addrs.addAll(blockInfo.getUnderFsLocations());
           toAdd.setFileLocations(addrs);
         }
       } catch (FileDoesNotExistException fdne) {

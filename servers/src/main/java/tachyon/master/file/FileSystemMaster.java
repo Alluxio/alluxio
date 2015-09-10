@@ -621,7 +621,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Returns all the {@link FileBlockInfo} of the given file. Called via RPC, and internal masters.
    *
-   * @param path the patht to the file
+   * @param path the path to the file
    * @return a list of {@link FileBlockInfo} for all the blocks of the file.
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
