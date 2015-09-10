@@ -166,6 +166,10 @@ class HadoopVersion
   def spark_profile
     return @spark_profile
   end
+
+  def type
+    return @type
+  end
 end
 
 class S3Version
