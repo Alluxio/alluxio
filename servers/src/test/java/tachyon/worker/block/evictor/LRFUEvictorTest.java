@@ -209,7 +209,7 @@ public class LRFUEvictorTest {
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       Assert.assertEquals(0, plan.toEvict().size());
       Assert.assertEquals(1, plan.toMove().size());
-      long blockId = plan.toMove().get(0).getFirst();
+      long blockId = plan.toMove().get(0).getBlockId();
       long objectBlockId = blockCRF.get(i).getKey();
       Assert.assertEquals(objectBlockId, blockId);
       // update CRF of the chosen block in case that it is chosen again
@@ -282,7 +282,7 @@ public class LRFUEvictorTest {
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       // block with minimum CRF in the first tier needs to be moved to the second tier
       Assert.assertEquals(1, plan.toMove().size());
-      long blockIdMovedInFirstTier = plan.toMove().get(0).getFirst();
+      long blockIdMovedInFirstTier = plan.toMove().get(0).getBlockId();
       long objectBlockIdInFirstTier = blocksInFirstTier.get(i);
       Assert.assertEquals(objectBlockIdInFirstTier, blockIdMovedInFirstTier);
       // cached block with minimum CRF in the second tier will be evicted to hold blocks moved

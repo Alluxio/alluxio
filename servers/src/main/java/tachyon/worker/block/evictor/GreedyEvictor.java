@@ -79,8 +79,7 @@ public final class GreedyEvictor implements Evictor {
     }
 
     // 2. Check if the selected StorageDirView already has enough space.
-    List<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>> toTransfer =
-        new ArrayList<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>();
+    List<BlockTransferInfo> toTransfer = new ArrayList<BlockTransferInfo>();
     List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<Pair<Long, BlockStoreLocation>>();
     long bytesAvailableInDir = selectedDirView.getAvailableBytes();
     if (bytesAvailableInDir >= availableBytes) {
@@ -112,11 +111,9 @@ public final class GreedyEvictor implements Evictor {
             block.getBlockLocation()));
       } else {
         StorageTierView dstTier = dstDir.getParentTierView();
-        toTransfer
-            .add(new Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>(block.getBlockId(),
-                new Pair<BlockStoreLocation, BlockStoreLocation>(block.getBlockLocation(),
-                    new BlockStoreLocation(dstTier.getTierViewAlias(), dstTier.getTierViewLevel(),
-                        dstDir.getDirViewIndex()))));
+        toTransfer.add(new BlockTransferInfo(block.getBlockId(), block.getBlockLocation(),
+            new BlockStoreLocation(dstTier.getTierViewAlias(), dstTier.getTierViewLevel(),
+                dstDir.getDirViewIndex())));
         if (pendingBytesInDir.containsKey(dstDir)) {
           pendingBytesInDir.put(dstDir, pendingBytesInDir.get(dstDir) + block.getBlockSize());
         } else {
