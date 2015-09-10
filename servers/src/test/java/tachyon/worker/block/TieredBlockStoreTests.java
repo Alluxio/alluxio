@@ -181,6 +181,17 @@ public final class TieredBlockStoreTests {
   }
 
   @Test
+  public void moveBlockToSameLocationTest() throws Exception {
+    TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // move block to same location will simply do nothing, so the src block keeps where it was
+    mBlockStore.moveBlock(USER_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
+    Assert.assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    Assert.assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID1));
+    Assert.assertTrue(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+  }
+
+  @Test
   public void removeBlockTest() throws Exception {
     TieredBlockStoreTestUtils.cache(USER_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
