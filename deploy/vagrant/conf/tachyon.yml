@@ -10,7 +10,7 @@ Github:
   Version: branch-0.6
 
 Release:
-  Dist: tachyon-0.6.4-bin.tar.gz # name of release tarball in https://github.com/amplab/tachyon/releases
+  Version: 0.7.1 # name of release version
 
 # how much memory to use (e.g. 1000MB, 2GB) per worker
 # make sure your virtual machine has more memory than what is specified here

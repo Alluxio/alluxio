@@ -28,7 +28,8 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.client.TachyonFS;
+import tachyon.client.ClientContext;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
@@ -94,7 +95,7 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
-  public synchronized TachyonFS getClient() throws IOException {
+  public synchronized TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(mMasterConf);
   }
 
@@ -112,7 +113,7 @@ public class LocalTachyonClusterMultiMaster {
 
   public boolean killLeader() {
     for (int k = 0; k < mNumOfMasters; k ++) {
-      if (mMasters.get(k).isStarted()) {
+      if (mMasters.get(k).isServing()) {
         try {
           mMasters.get(k).stop();
         } catch (Exception e) {
@@ -187,9 +188,22 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
       master.start();
+      LOG.info("master NO." + k + " started, isServing: " + master.isServing());
       mMasters.add(master);
       // Each master should generate a new port for binding
       mMasterConf.set(Constants.MASTER_PORT, "0");
+    }
+    LOG.info("all " + mNumOfMasters + " masters started.");
+    LOG.info("waiting for a leader.");
+    boolean hasLeader = false;
+    while (!hasLeader) {
+      for (int i = 0; i < mMasters.size(); i++) {
+        if (mMasters.get(i).isServing()) {
+          LOG.info("master NO." + i + " is selected as leader.");
+          hasLeader = true;
+          break;
+        }
+      }
     }
     // Use first master port
     mMasterConf.set(Constants.MASTER_PORT, getMasterPort() + "");

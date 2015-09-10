@@ -70,6 +70,10 @@ public class Constants {
 
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
+  public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
+  public static final String FILE_SYSTEM_MASTER_SERVICE_NAME = "FileSystemMaster";
+  public static final String RAW_TABLE_MASTER_SERVICE_NAME = "RawTableMaster";
+
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
    * Version 2 [0.5.0] Starts to use JSON. <br>
@@ -155,7 +159,7 @@ public class Constants {
   public static final String WORKER_HEARTBEAT_TIMEOUT_MS = "tachyon.worker.heartbeat.timeout.ms";
   public static final String WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.to.master.heartbeat.interval.ms";
-  public static final String WORKER_USER_TIMEOUT_MS = "tachyon.worker.user.timeout.ms";
+  public static final String WORKER_SESSION_TIMEOUT_MS = "tachyon.worker.session.timeout.ms";
   public static final String WORKER_MAX_WORKER_THREADS = "tachyon.worker.max.worker.threads";
   public static final String WORKER_MIN_WORKER_THREADS = "tachyon.worker.min.worker.threads";
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
@@ -225,6 +229,10 @@ public class Constants {
   public static final String USER_REMOTE_READ_BUFFER_SIZE_BYTE =
       "tachyon.user.remote.read.buffer.size.byte";
   public static final String USER_DEFAULT_WRITE_TYPE = "tachyon.user.file.writetype.default";
+  public static final String USER_DEFAULT_TACHYON_STORAGE_TYPE =
+      "tachyon.user.file.tachyonstoragetype.default";
+  public static final String USER_DEFAULT_UNDER_STORAGE_TYPE =
+      "tachyon.user.file.understoragetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final String USER_REMOTE_BLOCK_WRITER = "tachyon.user.remote.block.writer.class";
   public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";

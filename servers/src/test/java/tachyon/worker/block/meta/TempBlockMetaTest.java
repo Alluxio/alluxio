@@ -27,7 +27,7 @@ import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
 
 public class TempBlockMetaTest {
-  private static final long TEST_USER_ID = 2;
+  private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_BLOCK_SIZE = 100;
   private String mTestDirPath;
@@ -49,12 +49,12 @@ public class TempBlockMetaTest {
 
     StorageTier tier = StorageTier.newStorageTier(0 /* level */);
     StorageDir dir = tier.getDir(0);
-    mTempBlockMeta = new TempBlockMeta(TEST_USER_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
+    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }
 
   @Test
   public void getPathTest() {
-    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_USER_ID, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_SESSION_ID, TEST_BLOCK_ID),
         mTempBlockMeta.getPath());
   }
 
@@ -65,8 +65,8 @@ public class TempBlockMetaTest {
   }
 
   @Test
-  public void getUserIdTest() {
-    Assert.assertEquals(TEST_USER_ID, mTempBlockMeta.getUserId());
+  public void getSessionIdTest() {
+    Assert.assertEquals(TEST_SESSION_ID, mTempBlockMeta.getSessionId());
   }
 
   @Test

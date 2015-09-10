@@ -45,8 +45,8 @@ public final class NettyClient {
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
   private static final TachyonConf TACHYON_CONF = new TachyonConf();
-  private static final ChannelType CHANNEL_TYPE = TACHYON_CONF.getEnum(
-      Constants.USER_NETTY_CHANNEL, ChannelType.defaultType());
+  private static final ChannelType CHANNEL_TYPE =
+      TACHYON_CONF.getEnum(Constants.USER_NETTY_CHANNEL, ChannelType.class);
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
       .getClientChannelClass(CHANNEL_TYPE);
   // Reuse EventLoopGroup for all clients.

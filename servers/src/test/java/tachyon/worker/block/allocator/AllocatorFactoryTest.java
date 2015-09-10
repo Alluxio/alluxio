@@ -47,7 +47,7 @@ public class AllocatorFactoryTest {
     File tempFolder = mTestFolder.newFolder();
     mTachyonConf = new TachyonConf();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
-    mManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Integer>emptySet(),
+    mManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
   }
 

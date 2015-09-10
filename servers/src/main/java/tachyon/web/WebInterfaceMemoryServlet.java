@@ -25,20 +25,23 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.TachyonURI;
-import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.master.TachyonMaster;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.
  */
-public class WebInterfaceMemoryServlet extends HttpServlet {
+public final class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
-  private final transient MasterInfo mMasterInfo;
+  private final transient TachyonMaster mMaster;
 
-  public WebInterfaceMemoryServlet(MasterInfo masterInfo) {
-    mMasterInfo = masterInfo;
+  public WebInterfaceMemoryServlet(TachyonMaster master) {
+    mMaster = Preconditions.checkNotNull(master);
   }
 
   /**
@@ -46,22 +49,23 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
    *
    * @param request The HttpServletRequest object
    * @param response The HttpServletReponse object
-   * @throws ServletException
-   * @throws IOException
+   * @throws ServletException if the target resource throws this exception
+   * @throws IOException if the target resource throws this exception
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
+    request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("fatalError", "");
 
-    List<TachyonURI> inMemoryFiles = mMasterInfo.getInMemoryFiles();
+    List<TachyonURI> inMemoryFiles = mMaster.getFileSystemMaster().getInMemoryFiles();
     Collections.sort(inMemoryFiles);
 
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(inMemoryFiles.size());
     for (TachyonURI file : inMemoryFiles) {
       try {
-        ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(file);
+        long fileId = mMaster.getFileSystemMaster().getFileId(file);
+        FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);
         if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
           fileInfos.add(new UiFileInfo(fileInfo));
         }
@@ -69,9 +73,14 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
         request.setAttribute("fatalError", "Error: Invalid Path " + ipe.getLocalizedMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
+      } catch (FileDoesNotExistException fee) {
+        request.setAttribute("fatalError",
+            "Error: File does not exist " + fee.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
       }
     }
-    request.setAttribute("inMemoryFileNum", Integer.valueOf(fileInfos.size()));
+    request.setAttribute("inMemoryFileNum", fileInfos.size());
 
     // URL is "./memory", can not determine offset and limit, let javascript in jsp determine
     // and redirect to "./memory?offset=xxx&limit=xxx"

@@ -17,6 +17,7 @@ package tachyon.worker.block.meta;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import tachyon.Constants;
@@ -34,7 +35,7 @@ import tachyon.worker.WorkerContext;
  * <p>
  * This class does not guarantee thread safety.
  */
-public class StorageTier {
+public final class StorageTier {
   /** Alias of this tier, e.g., memory tier is 1, SSD tier is 2 and HDD tier is 3 */
   private final int mTierAlias;
   /** Level of this tier in tiered storage, highest level is 0 */
@@ -49,7 +50,7 @@ public class StorageTier {
     String tierLevelAliasProp =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
     StorageLevelAlias alias = WorkerContext.getConf()
-        .getEnum(tierLevelAliasProp, StorageLevelAlias.MEM);
+        .getEnum(tierLevelAliasProp, StorageLevelAlias.class);
     mTierAlias = alias.getValue();
   }
 
@@ -83,6 +84,14 @@ public class StorageTier {
     mCapacityBytes = totalCapacity;
   }
 
+  /**
+   *
+   * @param tierLevel the tier level
+   * @return a new storage tier
+   * @throws AlreadyExistsException if the tier already exists
+   * @throws IOException if an I/O error occurred
+   * @throws OutOfSpaceException if there is not enough space available
+   */
   public static StorageTier newStorageTier(int tierLevel)
       throws AlreadyExistsException, IOException, OutOfSpaceException {
     StorageTier ret = new StorageTier(tierLevel);
@@ -90,18 +99,30 @@ public class StorageTier {
     return ret;
   }
 
+  /**
+   * @return the tier alias
+   */
   public int getTierAlias() {
     return mTierAlias;
   }
 
+  /**
+   * @return the tier level
+   */
   public int getTierLevel() {
     return mTierLevel;
   }
 
+  /**
+   * @return the capacity (in bytes)
+   */
   public long getCapacityBytes() {
     return mCapacityBytes;
   }
 
+  /**
+   * @return the remaining capacity (in bytes)
+   */
   public long getAvailableBytes() {
     long availableBytes = 0;
     for (StorageDir dir : mDirs) {
@@ -110,11 +131,20 @@ public class StorageTier {
     return availableBytes;
   }
 
+  /**
+   * Returns a directory for the given index.
+   *
+   * @param dirIndex the directory index
+   * @return a directory
+   */
   public StorageDir getDir(int dirIndex) {
     return mDirs.get(dirIndex);
   }
 
+  /**
+   * @return a list of directories in this tier
+   */
   public List<StorageDir> getStorageDirs() {
-    return mDirs;
+    return Collections.unmodifiableList(mDirs);
   }
 }

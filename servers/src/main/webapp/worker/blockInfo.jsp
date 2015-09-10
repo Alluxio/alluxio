@@ -36,7 +36,8 @@
             <% if (request.getAttribute("fileInfos") != null) { %>
               <% for (UiFileInfo fileInfo : ((List<UiFileInfo>) request.getAttribute("fileInfos"))) { %>
                 <tr>
-                  <th><a href="<%= (request.getAttribute("baseUrl") == null) ? "./blockInfo" : request.getAttribute("baseUrl").toString() %>?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= fileInfo.getAbsolutePath() %></a></th>
+                  <th><a href="<%= (request.getAttribute("baseUrl") == null) ? "./blockInfo" :
+                  request.getAttribute("baseUrl").toString() %>?path=<%=encode(fileInfo.getAbsolutePath(), "UTF-8")%>"><%= fileInfo.getAbsolutePath() %></a></th>
                   <% for (int i = 0; i < StorageLevelAlias.SIZE; i ++) { %>
                   <th><%= fileInfo.getOnTierPercentage(StorageLevelAlias.values()[i]) %>%</th>
                   <% } %>

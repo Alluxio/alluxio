@@ -15,13 +15,12 @@
 
 package tachyon.examples;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.hadoop.conf.Configuration;
@@ -36,12 +35,11 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.OutStream;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonByteBuffer;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.file.FileOutStream;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
@@ -70,8 +68,9 @@ public class Performance {
   public static void createFiles() throws IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
-      int fileId = sMtc.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber)));
-      FormatUtils.printTimeTakenMs(startTimeMs, LOG, "user_createFiles with fileId " + fileId);
+      long fileId = sMtc.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber)));
+      LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs,
+          "user_createFiles with fileId " + fileId));
     }
   }
 
@@ -108,10 +107,10 @@ public class Performance {
       mMsg = msg;
     }
 
-    public void memoryCopyParition() throws IOException {
+    public void memoryCopyPartition() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        FormatUtils.printByteBuffer(LOG, mBuf);
+        LOG.info(FormatUtils.byteBufferToString(mBuf));
       }
       mBuf.flip();
       long sum = 0;
@@ -172,7 +171,7 @@ public class Performance {
     @Override
     public void run() {
       try {
-        memoryCopyParition();
+        memoryCopyPartition();
       } catch (IOException e) {
         throw Throwables.propagate(e);
       }
@@ -191,14 +190,14 @@ public class Performance {
     public void writeParition() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        FormatUtils.printByteBuffer(LOG, mBuf);
+        LOG.info(FormatUtils.byteBufferToString(mBuf));
       }
 
       mBuf.flip();
       for (int pId = mLeft; pId < mRight; pId ++) {
         final long startTimeMs = System.currentTimeMillis();
         TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-        OutStream os = file.getOutStream(WriteType.MUST_CACHE);
+        FileOutStream os = file.getOutStream(WriteType.MUST_CACHE);
         for (int k = 0; k < sBlocksPerFile; k ++) {
           mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
@@ -228,18 +227,18 @@ public class Performance {
     }
 
     public void readPartition() throws IOException {
-      TachyonByteBuffer buf;
       if (sDebugMode) {
+        ByteBuffer buf = ByteBuffer.allocate(sBlockSizeBytes);
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-          buf = file.readByteBuffer(0);
-          IntBuffer intBuf;
-          intBuf = buf.mData.order(ByteOrder.nativeOrder()).asIntBuffer();
+          InputStream is = file.getInStream(ReadType.CACHE);
+          is.read(buf.array());
+          buf.order(ByteOrder.nativeOrder());
           for (int i = 0; i < sBlocksPerFile; i ++) {
             for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
-              int tmp = intBuf.get();
+              int tmp = buf.getInt();
               if ((k == 0 && tmp == (i + mWorkerId)) || (k != 0 && tmp == k)) {
                 LOG.debug("Partition at {} is {}", k, tmp);
               } else {
@@ -247,7 +246,7 @@ public class Performance {
               }
             }
           }
-          buf.close();
+          is.close();
         }
       }
 
@@ -271,19 +270,20 @@ public class Performance {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
           TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
-          buf = file.readByteBuffer(0);
+          InputStream is = file.getInStream(ReadType.CACHE);
           for (int i = 0; i < sBlocksPerFile; i ++) {
-            buf.mData.get(mBuf.array());
+            is.read(mBuf.array());
           }
           sum += mBuf.get(pId % 16);
 
           if (sDebugMode) {
-            buf.mData.order(ByteOrder.nativeOrder()).flip();
-            FormatUtils.printByteBuffer(LOG, buf.mData);
+            mBuf.order(ByteOrder.nativeOrder());
+            mBuf.flip();
+            LOG.info(FormatUtils.byteBufferToString(mBuf));
           }
-          buf.mData.clear();
+          mBuf.clear();
           logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
-          buf.close();
+          is.close();
         }
       }
       sResults[mWorkerId] = sum;
@@ -331,7 +331,7 @@ public class Performance {
     public void io() throws IOException {
       if (sDebugMode) {
         mBuf.flip();
-        FormatUtils.printByteBuffer(LOG, mBuf);
+        LOG.info(FormatUtils.byteBufferToString(mBuf));
       }
       mBuf.flip();
       long sum = 0;

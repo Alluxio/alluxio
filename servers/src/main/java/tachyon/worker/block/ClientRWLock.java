@@ -21,18 +21,12 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import tachyon.Constants;
-
 /**
  * Read/write lock associated with clients rather than threads. Either its read lock or write lock
  * can be released by a thread different from the one acquiring them (but supposed to be requested
  * by the same client).
  */
 public final class ClientRWLock implements ReadWriteLock {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make this const a configurable
   /** Total number of permits. This value decides the max number of concurrent readers */
   private static final int MAX_AVAILABLE = 100;
@@ -41,18 +35,18 @@ public final class ClientRWLock implements ReadWriteLock {
 
   @Override
   public Lock readLock() {
-    return new UserLock(1);
+    return new SessionLock(1);
   }
 
   @Override
   public Lock writeLock() {
-    return new UserLock(MAX_AVAILABLE);
+    return new SessionLock(MAX_AVAILABLE);
   }
 
-  private class UserLock implements Lock {
+  private class SessionLock implements Lock {
     private final int mPermits;
 
-    private UserLock(int permits) {
+    private SessionLock(int permits) {
       mPermits = permits;
     }
 
