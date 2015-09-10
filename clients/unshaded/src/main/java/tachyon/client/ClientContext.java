@@ -70,9 +70,6 @@ public class ClientContext {
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
     sRandom = new Random();
-
-    BlockStoreContext.INSTANCE.accessReinitializer(sBSCReinitializerAccesser);
-    FileSystemContext.INSTANCE.accessReinitializer(sFSCReinitializerAccesser);
   }
 
   /**
@@ -110,7 +107,12 @@ public class ClientContext {
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
     sRandom = new Random();
-
+    // the initialization is done lazily because BlockStoreContext and FileSystemContext need
+    // ClientContext for class initialization
+    if (sBSCReinitializer == null || sFSCReinitializer == null) {
+      BlockStoreContext.INSTANCE.accessReinitializer(sBSCReinitializerAccesser);
+      FileSystemContext.INSTANCE.accessReinitializer(sFSCReinitializerAccesser);
+    }
     sBSCReinitializer.resetContext();
     sFSCReinitializer.resetContext();
   }
