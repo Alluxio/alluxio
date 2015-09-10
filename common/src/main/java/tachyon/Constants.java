@@ -35,6 +35,11 @@ public class Constants {
   public static final String ANSI_CYAN = "\u001B[36m";
   public static final String ANSI_WHITE = "\u001B[37m";
 
+  public static final String MESOS_RESOURCE_CPUS = "cpus";
+  public static final String MESOS_RESOURCE_MEM = "mem";
+  public static final String MESOS_RESOURCE_DISK = "disk";
+  public static final String MESOS_RESOURCE_PORTS = "ports";
+
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
