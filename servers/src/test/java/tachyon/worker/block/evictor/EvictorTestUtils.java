@@ -52,8 +52,8 @@ public class EvictorTestUtils {
     for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
       blockIds.add(evict.getFirst());
     }
-    for (Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>> move : plan.toMove()) {
-      blockIds.add(move.getFirst());
+    for (BlockTransferInfo move : plan.toMove()) {
+      blockIds.add(move.getBlockId());
     }
 
     for (long blockId : blockIds) {
@@ -123,12 +123,12 @@ public class EvictorTestUtils {
       }
     }
 
-    for (Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>> move : plan.toMove()) {
-      long blockId = move.getFirst();
+    for (BlockTransferInfo move : plan.toMove()) {
+      long blockId = move.getBlockId();
       BlockMeta block = metaManager.getBlockMeta(blockId);
       long blockSize = block.getBlockSize();
       StorageDir srcDir = block.getParentDir();
-      StorageDir destDir = metaManager.getDir(move.getSecond().getSecond());
+      StorageDir destDir = metaManager.getDir(move.getDstLocation());
 
       if (spaceInfoInDir.containsKey(srcDir)) {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(srcDir);
@@ -209,8 +209,8 @@ public class EvictorTestUtils {
     for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
       blockIds.add(evict.getFirst());
     }
-    for (Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>> move : plan.toMove()) {
-      blockIds.add(move.getFirst());
+    for (BlockTransferInfo move : plan.toMove()) {
+      blockIds.add(move.getBlockId());
     }
 
     long evictedOrMovedBytes = 0;

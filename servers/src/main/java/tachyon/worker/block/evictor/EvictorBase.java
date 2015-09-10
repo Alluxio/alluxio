@@ -151,10 +151,8 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             continue;
           }
-          plan.toMove().add(
-              new Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>(blockId, 
-                  new Pair<BlockStoreLocation, BlockStoreLocation>(block.getBlockLocation(), 
-                      nextDirView.toBlockStoreLocation())));
+          plan.toMove().add(new BlockTransferInfo(blockId, block.getBlockLocation(),
+              nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
         } catch (NotFoundException nfe) {
@@ -171,8 +169,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       BlockMetadataManagerView view) {
     mManagerView = view;
 
-    List<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>> toMove =
-        new ArrayList<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>();
+    List<BlockTransferInfo> toMove = new ArrayList<BlockTransferInfo>();
     List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<Pair<Long, BlockStoreLocation>>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
     StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);

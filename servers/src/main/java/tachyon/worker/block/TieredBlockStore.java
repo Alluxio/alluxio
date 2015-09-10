@@ -45,6 +45,7 @@ import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.allocator.Allocator;
+import tachyon.worker.block.evictor.BlockTransferInfo;
 import tachyon.worker.block.evictor.EvictionPlan;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.io.BlockReader;
@@ -657,14 +658,12 @@ public final class TieredBlockStore implements BlockStore {
     }
     // 2. transfer blocks among tiers.
     // 2.1. group blocks move plan by the destination tier.
-    Map<Integer, Set<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>> 
-        blocksGroupedByDestTier =
-            new HashMap<Integer, Set<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>>();
-    for (Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>> entry : plan.toMove()) {
-      int alias = entry.getSecond().getSecond().tierAlias();
+    Map<Integer, Set<BlockTransferInfo>> blocksGroupedByDestTier =
+        new HashMap<Integer, Set<BlockTransferInfo>>();
+    for (BlockTransferInfo entry : plan.toMove()) {
+      int alias = entry.getDstLocation().tierAlias();
       if (!blocksGroupedByDestTier.containsKey(alias)) {
-        blocksGroupedByDestTier.put(alias,
-            new HashSet<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>>());
+        blocksGroupedByDestTier.put(alias, new HashSet<BlockTransferInfo>());
       }
       blocksGroupedByDestTier.get(alias).add(entry);
     }
@@ -673,12 +672,11 @@ public final class TieredBlockStore implements BlockStore {
     Collections.sort(dstTierAlias, Collections.reverseOrder());
     // 2.3. move blocks in the order of their dst tiers.
     for (int alias : dstTierAlias) {
-      Set<Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>>> toMove =
-          blocksGroupedByDestTier.get(alias);
-      for (Pair<Long, Pair<BlockStoreLocation, BlockStoreLocation>> entry : toMove) {
-        long blockId = entry.getFirst();
-        BlockStoreLocation oldLocation = entry.getSecond().getFirst();
-        BlockStoreLocation newLocation = entry.getSecond().getSecond();
+      Set<BlockTransferInfo> toMove = blocksGroupedByDestTier.get(alias);
+      for (BlockTransferInfo entry : toMove) {
+        long blockId = entry.getBlockId();
+        BlockStoreLocation oldLocation = entry.getSrcLocation();
+        BlockStoreLocation newLocation = entry.getDstLocation();
         MoveBlockResult moveResult;
         try {
           moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
@@ -758,7 +756,7 @@ public final class TieredBlockStore implements BlockStore {
       }
 
       if (!oldLocation.equals(srcLocation) && !oldLocation.equals(BlockStoreLocation.anyTier())) {
-        throw new NotFoundException("Block " + blockId + "not found at location: " + oldLocation);
+        throw new NotFoundException("Block " + blockId + " not found at location: " + oldLocation);
       }
       TempBlockMeta dstTempBlock =
           createBlockMetaInternal(sessionId, blockId, newLocation, blockSize, false);
@@ -823,7 +821,7 @@ public final class TieredBlockStore implements BlockStore {
 
       if (!location.equals(blockMeta.getBlockLocation())
           && !location.equals(BlockStoreLocation.anyTier())) {
-        throw new NotFoundException("Block " + blockId + "not found at location: " + location);
+        throw new NotFoundException("Block " + blockId + " not found at location: " + location);
       }
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
       FileUtils.delete(filePath);
