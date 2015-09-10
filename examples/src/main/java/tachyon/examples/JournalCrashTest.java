@@ -15,11 +15,7 @@
 
 package tachyon.examples;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +35,8 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * Class to perform Journal crash test. Launch clients to generate the Journal and check status.
+ * Class to perform Journal crash test. The clients issue commands to the master, and the master
+ * generates journal events. Check if the master can generate and reproduce the journal correctly.
  */
 public class JournalCrashTest {
 
@@ -70,7 +67,7 @@ public class JournalCrashTest {
   /**
    * The client thread class. Each thread hold a Tachyon Client and keep requesting to Master.
    */
-  static class ClientThread implements Runnable {
+  static class ClientThread extends Thread {
     /** Which type of operation this thread should do. */
     private final ClientOpType mOpType;
     /** The Tachyon Client hold by this thread. */
@@ -104,7 +101,8 @@ public class JournalCrashTest {
      * Keep requesting to Master until something crashes or fail to create. Record how many
      * operations are performed successfully.
      */
-    @Override public void run() {
+    @Override
+    public void run() {
       try {
         // This infinity loop will be broken if something crashes or fails. This is
         // expected since we are testing the crash scenario.
@@ -135,115 +133,39 @@ public class JournalCrashTest {
           //    break;
           //  }
           //}
-          mSuccessNum++;
+          mSuccessNum ++;
           CommonUtils.sleepMs(null, 100);
         }
       }  catch (Exception e) {
         // Something crashed. Stop the thread.
+      } finally {
+        try {
+          mTfs.close();
+        } catch (IOException e) {
+          LOG.error("Error when stop client.", e);
+        }
       }
-    }
-  }
-
-
-  /**
-   * Class to record the correct status, which are the success operations of each client thread.
-   * The status will be stored in a local temp file and also load from it.
-   */
-  static class StatusRecord {
-    /**
-     * Read the status from a local file.
-     * @param localFile the path of the local file
-     * @return the loaded StatusRecord
-     * @throws ClassNotFoundException
-     * @throws IOException
-     */
-    public static StatusRecord readStatus(String localFile)
-        throws ClassNotFoundException, IOException {
-      StatusRecord status = new StatusRecord();
-      ObjectInputStream obIn = new ObjectInputStream(new FileInputStream(localFile));
-      status.setStatus((List<ClientOpType>) obIn.readObject(), (List<Integer>) obIn.readObject(),
-          (List<String>) obIn.readObject());
-      obIn.close();
-      return status;
-    }
-
-    private List<ClientOpType> mOpTypes = null;
-    private List<Integer> mSuccessNums = null;
-    private List<String> mWorkDirs = null;
-
-    public List<ClientOpType> getOpTypes() {
-      return mOpTypes;
-    }
-
-    public List<Integer> getSuccessNums() {
-      return mSuccessNums;
-    }
-
-    public List<String> getWorkDirs() {
-      return mWorkDirs;
-    }
-
-    public void record(List<ClientThread> clientThreads) {
-      mOpTypes = new ArrayList<ClientOpType>(clientThreads.size());
-      mSuccessNums = new ArrayList<Integer>(clientThreads.size());
-      mWorkDirs = new ArrayList<String>(clientThreads.size());
-      for (ClientThread client : clientThreads) {
-        mOpTypes.add(client.getOpType());
-        mSuccessNums.add(client.getSuccessNum());
-        mWorkDirs.add(client.getWorkDir());
-      }
-    }
-
-    /**
-     * Set the status values. This is only used when reading status from local file.
-     */
-    private void setStatus(List<ClientOpType> opTypes, List<Integer> successNums,
-        List<String> workDirs) {
-      mOpTypes = opTypes;
-      mSuccessNums = successNums;
-      mWorkDirs = workDirs;
-    }
-
-    /**
-     * Write this status to a local file.
-     * @param localFile the path of the local file
-     * @throws IOException
-     */
-    public void writeStatus(String localFile) throws IOException {
-      ObjectOutputStream obOut = new ObjectOutputStream(new FileOutputStream(localFile));
-      obOut.writeObject(mOpTypes);
-      obOut.writeObject(mSuccessNums);
-      obOut.writeObject(mWorkDirs);
-      obOut.close();
     }
   }
 
   // The two Exit Codes are used to tell script if the test runs well.
-  private static final int EXIT_FAILED = 99;
-  private static final int EXIT_SUCCESS = 100;
+  private static final int EXIT_FAILED = 1;
+  private static final int EXIT_SUCCESS = 0;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static int sClientNum = 10;
   private static TachyonURI sMasterAddress = null;
   private static String sTestDir = null;
-  private static List<Thread> sClientThreadList = null;
-  private static List<ClientThread> sClientThreads = null;
-  private static String sTmpOutFile = null;
+  private static List<ClientThread> sClientThreadList = null;
 
   private static boolean checkStatus() throws Exception {
-    // Load the status.
-    StatusRecord status = StatusRecord.readStatus(sTmpOutFile);
-    List<ClientOpType> opTypes = status.getOpTypes();
-    List<Integer> successNums = status.getSuccessNums();
-    List<String> workDirs = status.getWorkDirs();
-
     // Launch a Tachyon Client and connect to Master. Check if all the test operations are
     // reproduced by Master successfully.
     TachyonFS tfs = TachyonFS.get(sMasterAddress, new TachyonConf());
-    for (int clientIndex = 0; clientIndex < opTypes.size(); clientIndex ++) {
-      ClientOpType opType = opTypes.get(clientIndex);
-      String workDir = workDirs.get(clientIndex);
-      for (int s = 0; s < successNums.get(clientIndex); s ++) {
+    for (ClientThread clientThread : sClientThreadList) {
+      ClientOpType opType = clientThread.getOpType();
+      String workDir = clientThread.getWorkDir();
+      for (int s = 0; s < clientThread.getSuccessNum(); s ++) {
         if (ClientOpType.CREATE_FILE == opType) {
           if (tfs.getFileId(new TachyonURI(workDir + s)) == -1) {
             tfs.close();
@@ -275,84 +197,85 @@ public class JournalCrashTest {
   public static void main(String[] args) {
     if (args.length < 4) {
       System.out.println("java -cp tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-          + "tachyon.examples.JournalCrashTest " + "<0:Run Clients|1: Check Status> "
-          + "<TachyonMasterAddress> <TestTachyonDir> <TmpOutFile> [-options]");
+          + "tachyon.examples.JournalCrashTest "
+          + "<TachyonMasterAddress> <TestTachyonDir> [-options]");
       System.exit(EXIT_FAILED);
     }
 
-    int runType = Integer.parseInt(args[0]);
-    sMasterAddress = new TachyonURI(args[1]);
-    sTestDir = args[2];
-    sTmpOutFile = args[3];
+    sMasterAddress = new TachyonURI(args[0]);
+    sTestDir = args[1];
 
-    if (runType == 0) {
-      // Parse the input args.
-      CommandLine cmd = parseInputArgs(args);
-      if (cmd != null) {
-        try {
-          sClientNum = Integer.parseInt(cmd.getOptionValue("cn"));
-        } catch (NumberFormatException e) {
-          LOG.warn("Error clients number. Use the default value 10.");
-        }
-        // TODO: add more configurable settings for this test
-      }
-
-      sClientThreadList = new ArrayList<Thread>(sClientNum);
-      sClientThreads = new ArrayList<ClientThread>(sClientNum);
-
-      // Currently, half of the threads to create file and others to create table.
-      // TODO: this should be reconsidered when supporting more operations
-      int createFileClients = sClientNum;
-      for (int f = 0; f < createFileClients; f ++) {
-        ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
-            sTestDir + "/createFile" + f + "/", ClientOpType.CREATE_FILE);
-        sClientThreads.add(thread);
-        sClientThreadList.add(new Thread(thread));
-      }
-      //int createTableClients = sClientNum - createFileClients;
-      //for (int t = 0; t < createTableClients; t ++) {
-      //  ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
-      //      sTestDir + "/createTable" + t + "/", ClientOpType.CREATE_TABLE);
-      //  sClientThreads.add(thread);
-      //  sClientThreadList.add(new Thread(thread));
-      //}
-
-      // Launch all the client threads and wait for them. If Master crashes, all the threads will
-      // stop at a certain time.
-      for (Thread thread : sClientThreadList) {
-        thread.start();
-      }
-      for (Thread thread : sClientThreadList) {
-        try {
-          thread.join();
-        } catch (InterruptedException e) {
-          LOG.error("Error when waiting thread", e);
-        }
-      }
-
-      // Record the status and output to the local temp file.
-      StatusRecord status = new StatusRecord();
-      status.record(sClientThreads);
+    // Parse the input args.
+    CommandLine cmd = parseInputArgs(args);
+    if (cmd != null) {
       try {
-        status.writeStatus(sTmpOutFile);
+        sClientNum = Integer.parseInt(cmd.getOptionValue("cn"));
+      } catch (NumberFormatException e) {
+        LOG.warn("Error clients number. Use the default value 10.");
+      }
+      // TODO: add more configurable settings for this test
+    }
+
+    sClientThreadList = new ArrayList<ClientThread>(sClientNum);
+
+    // Currently, half of the threads to create file and others to create table.
+    // TODO: this should be reconsidered when supporting more operations
+    int createFileClients = sClientNum;
+    for (int f = 0; f < createFileClients; f ++) {
+      ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
+          sTestDir + "/createFile" + f + "/", ClientOpType.CREATE_FILE);
+      sClientThreadList.add(thread);
+    }
+    //int createTableClients = sClientNum - createFileClients;
+    //for (int t = 0; t < createTableClients; t ++) {
+    //  ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
+    //      sTestDir + "/createTable" + t + "/", ClientOpType.CREATE_TABLE);
+    //  sClientThreads.add(thread);
+    //  sClientThreadList.add(new Thread(thread));
+    //}
+
+    // Launch all the client threads and wait for them. If Master crashes, all the threads will
+    // stop at a certain time.
+    for (Thread thread : sClientThreadList) {
+      thread.start();
+    }
+    for (Thread thread : sClientThreadList) {
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        LOG.error("Error when waiting thread", e);
+      }
+    }
+
+    // Wait for Master restart.
+    CommonUtils.sleepMs(null, 1000);
+    TachyonFS waitMasterTfs = TachyonFS.get(sMasterAddress, new TachyonConf());
+    while (!waitMasterTfs.isConnected()) {
+      try {
+        // ping Master
+        waitMasterTfs.getFile(0, false);
       } catch (IOException e) {
-        LOG.error("Failed to write status", e);
+        // Master has not started.
+      }
+      CommonUtils.sleepMs(null, 1000);
+    }
+    try {
+      waitMasterTfs.close();
+    } catch (IOException e) {
+      LOG.error("Error when stop client.", e);
+    }
+
+    // Check status and print pass info.
+    try {
+      if (!checkStatus()) {
+        Utils.printPassInfo(false);
         System.exit(EXIT_FAILED);
       }
-    } else if (runType == 1) {
-      // Check status and print pass info.
-      try {
-        if (!checkStatus()) {
-          Utils.printPassInfo(false);
-          System.exit(EXIT_FAILED);
-        }
-        Utils.printPassInfo(true);
-      } catch (Exception e) {
-        LOG.error("Failed to check status", e);
-      }
-    } else {
-      throw new RuntimeException("Incorrect Input Args[0]: " + runType);
+      Utils.printPassInfo(true);
+    } catch (Exception e) {
+      LOG.error("Failed to check status", e);
     }
+
     System.exit(EXIT_SUCCESS);
   }
 
