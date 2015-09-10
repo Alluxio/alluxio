@@ -72,7 +72,7 @@ public class FileSystemMasterClientIntegrationTest {
     fsMasterClient.close();
   }
 
-  @Test(timeout = 3000, expected = IOException.class)
+  @Test(timeout = 3000, expected = FileDoesNotExistException.class)
   public void user_getClientBlockInfoReturnsOnError() throws IOException,
           FileDoesNotExistException {
     // This test was created to show that an infinite loop occurs.

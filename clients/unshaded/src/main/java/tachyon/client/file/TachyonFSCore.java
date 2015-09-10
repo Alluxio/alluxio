@@ -56,10 +56,9 @@ interface TachyonFSCore {
    *
    * @param file the handler for the file.
    * @return the FileInfo of the file, null if the file does not exist.
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if the master cannot retrieve the file's metadata for some other reason
    */
-  FileInfo getInfo(TachyonFile file) throws IOException, FileDoesNotExistException;
+  FileInfo getInfo(TachyonFile file) throws IOException;
 
   /**
    * If the file is a folder, returns the {@link FileInfo} of all the direct entries in it.
