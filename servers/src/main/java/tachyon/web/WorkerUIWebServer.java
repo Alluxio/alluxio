@@ -22,14 +22,13 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
-import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.block.BlockDataManager;
 
 /**
  * A worker's UI web server
  */
-public class WorkerUIWebServer extends UIWebServer {
+public final class WorkerUIWebServer extends UIWebServer {
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
       BlockDataManager blockdataManager, InetSocketAddress workerAddress, long startTimeMs,
       TachyonConf conf) {

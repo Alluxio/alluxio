@@ -31,6 +31,13 @@ import tachyon.TachyonURI;
 public final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Returns an HDFS path for the given Tachyon path and under filesystem address.
+   *
+   * @param path Tachyon path
+   * @param ufsAddress under filesystem address
+   * @return an HDFS path
+   */
   public static Path getHDFSPath(TachyonURI path, String ufsAddress) {
     if (path.isPathAbsolute()) {
       return new Path(ufsAddress + path.getPath());
@@ -39,10 +46,23 @@ public final class Utils {
     }
   }
 
+  /**
+   * Given a <code>Path</code> path, it returns the path component of its URI, which has the form
+   * scheme://authority/path.
+   *
+   * @param path an HDFS <code>Path</code>
+   * @return the path component of the <code>Path</code> URI
+   */
   public static String getPathWithoutScheme(Path path) {
     return path.toUri().getPath();
   }
 
+  /**
+   * Given a <code>String</code> path, it returns an equivalent Tachyon path.
+   *
+   * @param path the path to parse
+   * @return a valid Tachyon path
+   */
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
       return TachyonURI.SEPARATOR;
@@ -60,6 +80,12 @@ public final class Utils {
     return path;
   }
 
+  /**
+   * Returns a string representation of a Hadoop <code>FileSplit</code>.
+   *
+   * @param fs Hadoop <code>FileSplit</code>
+   * @return its string representation
+   */
   public static String toStringHadoopFileSplit(FileSplit fs) {
     StringBuilder sb = new StringBuilder();
     sb.append("HadoopFileSplit: Path: ").append(fs.getPath());
@@ -80,6 +106,12 @@ public final class Utils {
     return sb.toString();
   }
 
+  /**
+   * Returns a string representation of a Hadoop <code>FileStatus</code>.
+   *
+   * @param fs Hadoop <code>FileStatus</code>
+   * @return its string representation
+   */
   public static String toStringHadoopFileStatus(FileStatus fs) {
     StringBuilder sb = new StringBuilder();
     sb.append("HadoopFileStatus: Path: ").append(fs.getPath());
@@ -95,6 +127,12 @@ public final class Utils {
     return sb.toString();
   }
 
+  /**
+   * Returns a string representation of a <code>InputSplit</code>.
+   *
+   * @param is Hadoop <code>InputSplit</code>
+   * @return its string representation
+   */
   public static String toStringHadoopInputSplit(InputSplit is) {
     StringBuilder sb = new StringBuilder("HadoopInputSplit: ");
     try {
@@ -110,13 +148,15 @@ public final class Utils {
   }
 
   /**
-   * TODO: This function is duplicated from tachyon.underfs.hdfs.HdfsUnderFileSystemUtils, to avoid
-   * making module tachyon-client depending on tachyon-underfs. Remove duplication in the future.
-   *
-   * <p>
-   * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
+   * Adds S3 keys to the given Hadoop Configuration object if the user has specified them using
    * System properties, and they're not already set.
    *
+   * This function is duplicated from tachyon.underfs.hdfs.HdfsUnderFileSystemUtils, to prevent the
+   * module tachyon-client from depending on the module tachyon-underfs.
+   *
+   * TODO(hy): Remove duplication in the future.
+   *
+   * @param conf Hadoop configuration
    */
   public static void addS3Credentials(Configuration conf) {
     String accessKeyConf = Constants.S3_ACCESS_KEY;

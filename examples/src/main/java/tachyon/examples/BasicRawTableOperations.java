@@ -26,11 +26,12 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.OutStream;
-import tachyon.client.TachyonByteBuffer;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
@@ -45,7 +46,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   private final WriteType mWriteType;
   private final int mDataLength = 20;
   private final int mMetadataLength = 5;
-  private int mId;
+  private long mId;
 
   public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
       WriteType writeType) {
@@ -87,17 +88,14 @@ public class BasicRawTableOperations implements Callable<Boolean> {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-
-      TachyonByteBuffer buf = tFile.readByteBuffer(0);
-      if (buf == null) {
-        tFile.recache();
-        buf = tFile.readByteBuffer(0);
-      }
-      buf.mData.order(ByteOrder.nativeOrder());
+      FileInStream is = tFile.getInStream(ReadType.CACHE);
+      ByteBuffer buf = ByteBuffer.allocate((int) tFile.getBlockSizeByte());
+      is.read(buf.array());
+      buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mDataLength; k ++) {
-        pass = pass && (buf.mData.getInt() == k);
+        pass = pass && (buf.getInt() == k);
       }
-      buf.close();
+      is.close();
     }
     return pass;
   }
@@ -121,7 +119,7 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       buf.flip();
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      OutStream os = tFile.getOutStream(mWriteType);
+      FileOutStream os = tFile.getOutStream(mWriteType);
       os.write(buf.array());
       os.close();
     }

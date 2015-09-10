@@ -33,7 +33,9 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.StorageDirId;
+import tachyon.StorageLevelAlias;
 import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
@@ -46,7 +48,7 @@ import tachyon.worker.block.BlockStoreLocation;
  * <p>
  * This class does not guarantee thread safety.
  */
-public class StorageDir {
+public final class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
   /** A map from block ID to block meta data */
@@ -98,7 +100,7 @@ public class StorageDir {
   }
 
   /**
-   * Initialize meta data for existing blocks in this StorageDir.
+   * Initializes meta data for existing blocks in this StorageDir.
    *
    * Only paths satisfying the contract defined in {@link BlockMetaBase#commitPath} are legal,
    * should be in format like {dir}/{blockId}. other paths will be deleted.
@@ -248,8 +250,7 @@ public class StorageDir {
   public BlockMeta getBlockMeta(long blockId) throws NotFoundException {
     BlockMeta blockMeta = mBlockIdToBlockMap.get(blockId);
     if (blockMeta == null) {
-      throw new NotFoundException("Failed to get BlockMeta: blockId " + blockId + " not found in "
-          + toString());
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     return blockMeta;
   }
@@ -264,8 +265,7 @@ public class StorageDir {
   public TempBlockMeta getTempBlockMeta(long blockId) throws NotFoundException {
     TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.get(blockId);
     if (tempBlockMeta == null) {
-      throw new NotFoundException("Failed to get TempBlockMeta: blockId " + blockId
-          + " not found in " + toString());
+      throw new NotFoundException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
     }
     return tempBlockMeta;
   }
@@ -283,11 +283,15 @@ public class StorageDir {
     long blockSize = blockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      throw new OutOfSpaceException("Failed to add BlockMeta: blockId " + blockId + " is "
-          + blockSize + " bytes, but only " + getAvailableBytes() + " bytes available");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
+          getAvailableBytes(), alias);
     }
     if (hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException("Failed to add BlockMeta: blockId " + blockId + " exists");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
+      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
@@ -300,20 +304,23 @@ public class StorageDir {
    * @throws AlreadyExistsException if blockId already exists
    * @throws OutOfSpaceException when not enough space to hold block
    */
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws OutOfSpaceException,
-      AlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
+      throws OutOfSpaceException, AlreadyExistsException {
     Preconditions.checkNotNull(tempBlockMeta);
     long userId = tempBlockMeta.getUserId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
     if (getAvailableBytes() < blockSize) {
-      throw new OutOfSpaceException("Failed to add TempBlockMeta: blockId " + blockId + " is "
-          + blockSize + " bytes, but only " + getAvailableBytes() + " bytes available");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
+          getAvailableBytes(), alias);
     }
     if (hasTempBlockMeta(blockId)) {
-      throw new AlreadyExistsException("Failed to add TempBlockMeta: blockId " + blockId
-          + " exists");
+      StorageLevelAlias alias =
+          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
+      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
     }
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
@@ -337,7 +344,7 @@ public class StorageDir {
     long blockId = blockMeta.getBlockId();
     BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
     if (deletedBlockMeta == null) {
-      throw new NotFoundException("Failed to remove BlockMeta: blockId " + blockId + " not found");
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     reclaimSpace(blockMeta.getBlockSize(), true);
   }
@@ -354,17 +361,13 @@ public class StorageDir {
     final long userId = tempBlockMeta.getUserId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
     if (deletedTempBlockMeta == null) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId
-          + " not found");
+      throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     Set<Long> userBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (userBlocks == null) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId
-          + " has userId " + userId + " not found");
-    }
-    if (!userBlocks.contains(blockId)) {
-      throw new NotFoundException("Failed to remove TempBlockMeta: blockId " + blockId + " not "
-          + "associated with userId " + userId);
+    if (userBlocks == null || !userBlocks.contains(blockId)) {
+      StorageLevelAlias alias = StorageLevelAlias.getAlias(this.getDirIndex());
+      throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_USER, blockId, alias,
+          userId);
     }
     Preconditions.checkState(userBlocks.remove(blockId));
     if (userBlocks.isEmpty()) {
@@ -388,24 +391,6 @@ public class StorageDir {
       tempBlockMeta.setBlockSize(newSize);
     } else if (newSize < oldSize) {
       throw new InvalidStateException("Shrinking block, not supported!");
-    }
-  }
-
-  private void reserveSpace(long size, boolean committed) {
-    Preconditions.checkState(size <= mAvailableBytes.get(),
-        "Available bytes should always be non-negative");
-    mAvailableBytes.addAndGet(-size);
-    if (committed) {
-      mCommittedBytes.addAndGet(size);
-    }
-  }
-
-  private void reclaimSpace(long size, boolean committed) {
-    Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
-        "Available bytes should always be less than total capacity bytes");
-    mAvailableBytes.addAndGet(size);
-    if (committed) {
-      mCommittedBytes.addAndGet(-size);
     }
   }
 
@@ -465,7 +450,28 @@ public class StorageDir {
     return userTempBlocks;
   }
 
+  /**
+   * @return the block store location of this directory.
+   */
   public BlockStoreLocation toBlockStoreLocation() {
     return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
+  }
+
+  private void reclaimSpace(long size, boolean committed) {
+    Preconditions.checkState(mCapacityBytes >= mAvailableBytes.get() + size,
+        "Available bytes should always be less than total capacity bytes");
+    mAvailableBytes.addAndGet(size);
+    if (committed) {
+      mCommittedBytes.addAndGet(-size);
+    }
+  }
+
+  private void reserveSpace(long size, boolean committed) {
+    Preconditions.checkState(size <= mAvailableBytes.get(),
+        "Available bytes should always be non-negative");
+    mAvailableBytes.addAndGet(-size);
+    if (committed) {
+      mCommittedBytes.addAndGet(size);
+    }
   }
 }

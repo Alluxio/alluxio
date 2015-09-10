@@ -34,7 +34,6 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.security.PlainSaslHelper;
 
 /**
  * Unit test for inner class {@link tachyon.security.authentication.AuthenticationFactory
