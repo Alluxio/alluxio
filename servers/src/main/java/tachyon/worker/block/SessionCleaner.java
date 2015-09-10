@@ -23,11 +23,11 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
- * UserCleaner periodically checks if any user have become zombies, removes the zombie user and
- * associated data when necessary. The syncing parameters (intervals) adopt directly from
+ * SessionCleaner periodically checks if any session have become zombies, removes the zombie session
+ * and associated data when necessary. The syncing parameters (intervals) adopt directly from
  * worker-to-master heartbeat configurations.
  */
-public final class UserCleaner implements Runnable {
+public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
@@ -40,12 +40,12 @@ public final class UserCleaner implements Runnable {
   private volatile boolean mRunning;
 
   /**
-   * Constructor for UserCleaner
+   * Constructor for SessionCleaner
    *
    * @param blockDataManager the blockDataManager this checker is updating to
    * @param tachyonConf the configuration values to be used
    */
-  public UserCleaner(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
+  public SessionCleaner(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mCheckIntervalMs =
@@ -56,7 +56,7 @@ public final class UserCleaner implements Runnable {
 
 
   /**
-   * Main loop for the cleanup, continuously look for zombie users
+   * Main loop for the cleanup, continuously look for zombie sessions
    */
   @Override
   public void run() {
@@ -68,11 +68,11 @@ public final class UserCleaner implements Runnable {
       if (toSleepMs > 0) {
         CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("User cleanup took: " + lastIntervalMs + ", expected: " + mCheckIntervalMs);
+        LOG.warn("Session cleanup took: " + lastIntervalMs + ", expected: " + mCheckIntervalMs);
       }
 
-      // Check if any users have become zombies, if so clean them up
-      mBlockDataManager.cleanupUsers();
+      // Check if any sessions have become zombies, if so clean them up
+      mBlockDataManager.cleanupSessions();
       lastCheckMs = System.currentTimeMillis();
     }
   }

@@ -79,8 +79,18 @@ public final class JournalTailerThread extends Thread {
         long waitForShutdownStart = -1;
 
         // Load the checkpoint file.
+        LOG.info("Waiting to load the checkpoint file.");
         JournalTailer tailer = new JournalTailer(mMaster, mJournal);
+        while (!tailer.checkpointExists()) {
+          CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
+          if (mInitiateShutdown) {
+            LOG.info("Journal tailer is shutdown when waiting to load the checkpoint file.");
+            return;
+          }
+        }
+        LOG.info("Start loading the checkpoint file.");
         tailer.processJournalCheckpoint(true);
+        LOG.info("Checkpoint file has been loaded.");
 
         // Continually process completed log files.
         while (tailer.isValid()) {

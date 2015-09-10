@@ -219,14 +219,14 @@ public class FileOutStreamIntegrationTest {
   }
 
   /**
-   * Test writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the userId doesn't
+   * Test writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the sessionId doesn't
    * change. Tracks [TACHYON-171].
    *
    * @throws IOException
    * @throws InterruptedException
    */
   @Test
-  public void longWriteChangesUserId() throws IOException, InterruptedException {
+  public void longWriteChangesSessionId() throws IOException, InterruptedException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     int len = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteUnderStore);
