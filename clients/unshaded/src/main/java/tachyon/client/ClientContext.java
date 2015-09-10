@@ -41,6 +41,26 @@ public class ClientContext {
 
   private static Random sRandom;
 
+  // private access to the reinitializer of BlockStoreContext
+  private static BlockStoreContext.ReinitializerAccesser sBSCReinitializerAccesser =
+      new BlockStoreContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(BlockStoreContext.PrivateReinitializer access) {
+          sBSCReinitializer = access;
+        }
+      };
+  private static BlockStoreContext.PrivateReinitializer sBSCReinitializer;
+
+  // private access to the reinitializer of FileSystemContext
+  private static FileSystemContext.ReinitializerAccesser sFSCReinitializerAccesser =
+      new FileSystemContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(FileSystemContext.PrivateReinitializer access) {
+          sFSCReinitializer = access;
+        }
+      };
+  private static FileSystemContext.PrivateReinitializer sFSCReinitializer;
+
   static {
     sTachyonConf = new TachyonConf();
 
@@ -50,6 +70,9 @@ public class ClientContext {
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
     sRandom = new Random();
+
+    BlockStoreContext.INSTANCE.accessReinitializer(sBSCReinitializerAccesser);
+    FileSystemContext.INSTANCE.accessReinitializer(sFSCReinitializerAccesser);
   }
 
   /**
@@ -88,8 +111,8 @@ public class ClientContext {
 
     sRandom = new Random();
 
-    BlockStoreContext.INSTANCE.resetContext(new ClientContext());
-    FileSystemContext.INSTANCE.resetContext();
+    sBSCReinitializer.resetContext();
+    sFSCReinitializer.resetContext();
   }
 
   private ClientContext() {}
