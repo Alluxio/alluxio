@@ -229,13 +229,10 @@ public class TachyonConf {
   }
 
   public String get(String key, final String defaultValue) {
-    if (mProperties.containsKey(key)) {
-      String raw = mProperties.getProperty(key);
-      String updated = lookup(raw);
-      LOG.debug("Get Tachyon property {} as {} with default {}", key, updated, defaultValue);
-      return updated;
-    }
-    return defaultValue;
+    String raw = mProperties.getProperty(key, defaultValue);
+    String updated = lookup(raw);
+    LOG.debug("Get Tachyon property {} as {} with default {}", key, updated, defaultValue);
+    return updated;
   }
 
   public String get(String key) {
