@@ -256,6 +256,8 @@ public final class Constants {
       "tachyon.user.local.block.worker.client.threads";
   public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
       "tachyon.user.block.master.client.threads";
+  public static final String USER_FILE_MASTER_CLIENT_THREADS =
+      "tachyon.user.file.master.client.threads";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";

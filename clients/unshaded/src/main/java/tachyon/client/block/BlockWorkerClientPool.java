@@ -21,7 +21,6 @@ import java.util.concurrent.Executors;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
-import tachyon.client.ResourcePool;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.ThreadFactoryUtils;

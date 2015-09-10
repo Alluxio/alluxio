@@ -480,6 +480,11 @@ The user configuration specifies values regarding file system access.
   <td>10</td>
   <td>How many threads to use for block master client pool.</td>
 </tr>
+<tr>
+  <td>tachyon.user.file.master.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for file system master client pool.</td>
+</tr>
 </table>
 
 ## Working with Apache Hadoop MapReduce Configuration
