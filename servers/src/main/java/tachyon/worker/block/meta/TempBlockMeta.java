@@ -19,20 +19,20 @@ package tachyon.worker.block.meta;
  * Represents the metadata of an uncommitted block in Tachyon managed storage.
  */
 public class TempBlockMeta extends BlockMetaBase {
-  private final long mUserId;
+  private final long mSessionId;
   private long mTempBlockSize;
 
   /**
    * Constructs the metadata of a temp block.
    *
-   * @param userId the user ID
+   * @param sessionId the session ID
    * @param blockId the block ID
    * @param initialBlockSize initial size of this block in bytes
    * @param dir StorageDir of this temp block belonging to
    */
-  public TempBlockMeta(long userId, long blockId, long initialBlockSize, StorageDir dir) {
+  public TempBlockMeta(long sessionId, long blockId, long initialBlockSize, StorageDir dir) {
     super(blockId, dir);
-    mUserId = userId;
+    mSessionId = sessionId;
     mTempBlockSize = initialBlockSize;
   }
 
@@ -43,7 +43,7 @@ public class TempBlockMeta extends BlockMetaBase {
 
   @Override
   public String getPath() {
-    return tempPath(mDir, mUserId, mBlockId);
+    return tempPath(mDir, mSessionId, mBlockId);
   }
 
   /**
@@ -54,10 +54,10 @@ public class TempBlockMeta extends BlockMetaBase {
   }
 
   /**
-   * @return the user id
+   * @return the session id
    */
-  public long getUserId() {
-    return mUserId;
+  public long getSessionId() {
+    return mSessionId;
   }
 
   /**

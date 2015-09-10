@@ -35,18 +35,18 @@ public final class ClientRWLock implements ReadWriteLock {
 
   @Override
   public Lock readLock() {
-    return new UserLock(1);
+    return new SessionLock(1);
   }
 
   @Override
   public Lock writeLock() {
-    return new UserLock(MAX_AVAILABLE);
+    return new SessionLock(MAX_AVAILABLE);
   }
 
-  private class UserLock implements Lock {
+  private class SessionLock implements Lock {
     private final int mPermits;
 
-    private UserLock(int permits) {
+    private SessionLock(int permits) {
       mPermits = permits;
     }
 

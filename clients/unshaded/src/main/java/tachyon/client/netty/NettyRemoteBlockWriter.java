@@ -47,7 +47,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   private boolean mOpen;
   private InetSocketAddress mAddress;
   private long mBlockId;
-  private long mUserId;
+  private long mSessionId;
 
   // Total number of bytes written to the remote block.
   private long mWrittenBytes;
@@ -62,14 +62,14 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
   }
 
   @Override
-  public void open(InetSocketAddress address, long blockId, long userId) throws IOException {
+  public void open(InetSocketAddress address, long blockId, long sessionId) throws IOException {
     if (mOpen) {
       throw new IOException("This writer is already open for address: " + mAddress + ", blockId: "
-          + mBlockId + ", userId: " + mUserId);
+          + mBlockId + ", sessionId: " + mSessionId);
     }
     mAddress = address;
     mBlockId = blockId;
-    mUserId = userId;
+    mSessionId = sessionId;
     mWrittenBytes = 0;
     mOpen = true;
   }
@@ -91,7 +91,7 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
       LOG.info("Connected to remote machine " + mAddress);
       Channel channel = f.channel();
       mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCBlockWriteRequest(mUserId, mBlockId, mWrittenBytes, length,
+      channel.writeAndFlush(new RPCBlockWriteRequest(mSessionId, mBlockId, mWrittenBytes, length,
           new DataByteArrayChannel(bytes, offset, length)));
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
@@ -104,8 +104,8 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
           LOG.info("status: {} from remote machine {} received", status, mAddress);
 
           if (status != RPCResponse.Status.SUCCESS) {
-            throw new IOException("error writing blockId: " + mBlockId + ", userId: " + mUserId
-                + ", address: " + mAddress + ", message: " + status.getMessage());
+            throw new IOException("error writing blockId: " + mBlockId + ", sessionId: "
+                + mSessionId + ", address: " + mAddress + ", message: " + status.getMessage());
           }
           mWrittenBytes += length;
           break;
