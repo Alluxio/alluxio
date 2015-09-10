@@ -35,7 +35,7 @@ public class LRUEvictorTestBase extends EvictorTestBase {
 
   // access the block to update evictor
   private void access(long blockId) {
-    ((BlockStoreEventListener) mEvictor).onAccessBlock(USER_ID, blockId);
+    ((BlockStoreEventListener) mEvictor).onAccessBlock(SESSION_ID, blockId);
   }
 
   @Test
@@ -47,7 +47,7 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     int nDir = bottomTierDirCapacity.length;
     // fill in dirs from larger to smaller capacity with blockId equal to BLOCK_ID plus dir index
     for (int i = nDir - 1; i >= 0; i --) {
-      cache(USER_ID, BLOCK_ID + i, bottomTierDirCapacity[i], bottomTierLevel, i);
+      cache(SESSION_ID, BLOCK_ID + i, bottomTierDirCapacity[i], bottomTierLevel, i);
     }
     BlockStoreLocation anyDirInBottomTier = BlockStoreLocation.anyDirInTier(bottomTierLevel + 1);
     // request smallest capacity and update access time on the evicted block for nDir times, the dir
@@ -74,7 +74,7 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[0];
     int nDir = firstTierDirCapacity.length;
     for (int i = 0; i < nDir; i ++) {
-      cache(USER_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierLevel, i);
+      cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierLevel, i);
     }
     BlockStoreLocation anyDirInFirstTier = BlockStoreLocation.anyDirInTier(firstTierLevel + 1);
     long smallestCapacity = firstTierDirCapacity[0];
@@ -101,7 +101,7 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     for (int tierLevel : TieredBlockStoreTestUtils.TIER_LEVEL) {
       long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY[tierLevel];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx ++) {
-        cache(USER_ID, blockId, tierCapacity[dirIdx], tierLevel, dirIdx);
+        cache(SESSION_ID, blockId, tierCapacity[dirIdx], tierLevel, dirIdx);
         blockId ++;
       }
     }
@@ -134,12 +134,12 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     // First Tier 2000, 3000
     // Second Tier 10000, 20000, 30000
     int blockSize = 1000;
-    cache(USER_ID, 101, blockSize, 0, 0);
-    cache(USER_ID, 102, blockSize, 0, 0);
-    cache(USER_ID, 103, blockSize, 0, 1);
-    cache(USER_ID, 104, blockSize, 0, 1);
-    cache(USER_ID, 105, blockSize, 0, 1);
-    cache(USER_ID, 106, 9500, 1, 2);
+    cache(SESSION_ID, 101, blockSize, 0, 0);
+    cache(SESSION_ID, 102, blockSize, 0, 0);
+    cache(SESSION_ID, 103, blockSize, 0, 1);
+    cache(SESSION_ID, 104, blockSize, 0, 1);
+    cache(SESSION_ID, 105, blockSize, 0, 1);
+    cache(SESSION_ID, 106, 9500, 1, 2);
 
     // After caching blocks, the free space looks like
     // First Tier 0, 0
@@ -167,9 +167,9 @@ public class LRUEvictorTestBase extends EvictorTestBase {
     dstLocation = plan.toMove().get(1).getSecond();
     Assert.assertEquals(secondDirSecondTier, dstLocation);
 
-    cache(USER_ID, 107, 10000, 1, 0);
-    cache(USER_ID, 108, 20000, 1, 1);
-    cache(USER_ID, 109, 19000, 1, 2);
+    cache(SESSION_ID, 107, 10000, 1, 0);
+    cache(SESSION_ID, 108, 20000, 1, 1);
+    cache(SESSION_ID, 109, 19000, 1, 2);
     access(106);
 
     // After caching more blocks, the free space looks like
