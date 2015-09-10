@@ -24,10 +24,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.Constants;
 import tachyon.StorageLevelAlias;
-import tachyon.conf.TachyonConf;
-import tachyon.worker.WorkerContext;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public class StorageTierTest {
   private static final long TEST_SESSION_ID = 2;
@@ -36,12 +34,15 @@ public class StorageTierTest {
   private static final long TEST_DIR1_CAPACITY = 2000;
   private static final long TEST_DIR2_CAPACITY = 3000;
   private static final int TEST_TIER_LEVEL = 0;
-  private static final int TEST_TIER_ALIAS = StorageLevelAlias.MEM.getValue();
-  private String mTestDirPath1;
-  private String mTestDirPath2;
+  private static final StorageLevelAlias TEST_TIER_ALIAS = StorageLevelAlias.MEM;
+
+  private static final long[] TIER_CAPACITY_BYTES = {TEST_DIR1_CAPACITY, TEST_DIR2_CAPACITY};
+
   private StorageTier mTier;
   private StorageDir mDir1;
   private TempBlockMeta mTempBlockMeta;
+  private String mTestDirPath1;
+  private String mTestDirPath2;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -53,27 +54,19 @@ public class StorageTierTest {
   public final void before() throws Exception {
     mTestDirPath1 = mFolder.newFolder().getAbsolutePath();
     mTestDirPath2 = mFolder.newFolder().getAbsolutePath();
+    String[] tierPath = {mTestDirPath1, mTestDirPath2};
 
-    TachyonConf tachyonConf = WorkerContext.getConf();
-    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
-    tachyonConf.set(
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, TEST_TIER_LEVEL), "MEM");
-    tachyonConf.set(
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, TEST_TIER_LEVEL),
-        mTestDirPath1 + "," + mTestDirPath2);
-    tachyonConf.set(
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, TEST_TIER_LEVEL),
-        TEST_DIR1_CAPACITY + "," + TEST_DIR2_CAPACITY);
+    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
+        TEST_TIER_ALIAS, tierPath, TIER_CAPACITY_BYTES, "");
 
     mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
-
   }
 
   @Test
   public void getTierAliasTest() {
-    Assert.assertEquals(TEST_TIER_ALIAS, mTier.getTierAlias());
+    Assert.assertEquals(TEST_TIER_ALIAS.getValue(), mTier.getTierAlias());
   }
 
   @Test
