@@ -73,7 +73,5 @@ public final class UnderFileSystemUtils {
     os.close();
   }
 
-  private UnderFileSystemUtils() {
-    // util class
-  }
+  private UnderFileSystemUtils() {} // prevent instantiation
 }

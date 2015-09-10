@@ -136,7 +136,5 @@ public final class CommonUtils {
     return ctor.newInstance(ctorArgs);
   }
 
-  private CommonUtils() {
-    // util class
-  }
+  private CommonUtils() {} // prevent instantiation
 }

@@ -164,7 +164,5 @@ public final class FormatUtils {
     }
   }
 
-  private FormatUtils() {
-    // util class
-  }
+  private FormatUtils() {} // prevent instantiation
 }
