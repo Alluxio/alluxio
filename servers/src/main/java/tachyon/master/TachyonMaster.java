@@ -151,7 +151,7 @@ public class TachyonMaster {
       mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
 
-      mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf);
+      mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal);
       mFileSystemMaster =
           new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
