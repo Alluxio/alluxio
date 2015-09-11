@@ -56,7 +56,7 @@ public final class MasterInfo {
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mMasterAddress = Preconditions.checkNotNull(address);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
     mStartTimeMs = System.currentTimeMillis();
   }
 
