@@ -54,7 +54,7 @@ interface BlockStore {
   /**
    * NOTE: temporary, will be removed after changing client side code.
    *
-   * @param userId the ID of the user to lock this block
+   * @param sessionId the ID of the session to lock this block
    * @param blockId the ID of the block to lock
    * @throws NotFoundException if blockId can not be found, for example, evicted already.
    */
@@ -220,6 +220,24 @@ interface BlockStore {
       IOException;
 
   /**
+   * Moves an existing block to a new location.
+   *
+   * @param sessionId the ID of the session to remove a block
+   * @param blockId the ID of an existing block
+   * @param oldLocation the location of the source
+   * @param newLocation the location of the destination
+   * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
+   * @throws NotFoundException if blockId can not be found
+   * @throws AlreadyExistsException if blockId already exists in committed blocks of the newLocation
+   * @throws InvalidStateException if blockId has not been committed
+   * @throws OutOfSpaceException if newLocation does not have enough extra space to hold the block
+   * @throws IOException if block cannot be moved from current location to newLocation
+   */
+  void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
+      BlockStoreLocation newLocation) throws NotFoundException, AlreadyExistsException,
+      InvalidStateException, OutOfSpaceException, IOException;
+
+  /**
    * Removes an existing block. If the block can not be found in this store.
    *
    * @param sessionId the ID of the session to remove a block
@@ -230,6 +248,19 @@ interface BlockStore {
    */
   void removeBlock(long sessionId, long blockId) throws InvalidStateException, NotFoundException,
       IOException;
+
+  /**
+   * Removes an existing block. If the block can not be found in this store.
+   *
+   * @param sessionId the ID of the session to move a block
+   * @param blockId the ID of an existing block
+   * @param location the location of the block
+   * @throws InvalidStateException if blockId has not been committed
+   * @throws NotFoundException if block can not be found
+   * @throws IOException if block cannot be removed from current path
+   */
+  void removeBlock(long sessionId, long blockId, BlockStoreLocation location) throws
+      InvalidStateException, NotFoundException, IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly

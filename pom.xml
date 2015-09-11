@@ -151,6 +151,7 @@
     <module>integration-tests</module>
     <module>assembly</module>
     <module>minicluster</module>
+    <module>integration</module>
   </modules>
 
   <dependencyManagement>
@@ -165,6 +166,11 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>3.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.mesos</groupId>
+        <artifactId>mesos</artifactId>
+        <version>0.23.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
