@@ -158,7 +158,7 @@ public class LRFUEvictorTest {
       Assert.assertNotNull(plan);
       Assert.assertTrue(plan.toMove().isEmpty());
       Assert.assertEquals(1, plan.toEvict().size());
-      long toEvictBlockId = plan.toEvict().get(0);
+      long toEvictBlockId = plan.toEvict().get(0).getFirst();
       long objectBlockId = blockCRF.get(i).getKey();
       Assert.assertEquals(objectBlockId + " " + toEvictBlockId, objectBlockId, toEvictBlockId);
       // update CRF of the chosen block in case that it is chosen again
@@ -209,7 +209,7 @@ public class LRFUEvictorTest {
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       Assert.assertEquals(0, plan.toEvict().size());
       Assert.assertEquals(1, plan.toMove().size());
-      long blockId = plan.toMove().get(0).getFirst();
+      long blockId = plan.toMove().get(0).getBlockId();
       long objectBlockId = blockCRF.get(i).getKey();
       Assert.assertEquals(objectBlockId, blockId);
       // update CRF of the chosen block in case that it is chosen again
@@ -282,13 +282,13 @@ public class LRFUEvictorTest {
       Assert.assertTrue(EvictorTestUtils.validCascadingPlan(smallestCapacity, plan, mMetaManager));
       // block with minimum CRF in the first tier needs to be moved to the second tier
       Assert.assertEquals(1, plan.toMove().size());
-      long blockIdMovedInFirstTier = plan.toMove().get(0).getFirst();
+      long blockIdMovedInFirstTier = plan.toMove().get(0).getBlockId();
       long objectBlockIdInFirstTier = blocksInFirstTier.get(i);
       Assert.assertEquals(objectBlockIdInFirstTier, blockIdMovedInFirstTier);
       // cached block with minimum CRF in the second tier will be evicted to hold blocks moved
       // from first tier
       Assert.assertEquals(1, plan.toEvict().size());
-      long blockIdEvictedInSecondTier = plan.toEvict().get(0);
+      long blockIdEvictedInSecondTier = plan.toEvict().get(0).getFirst();
       long objectBlockIdInSecondTier = blocksInSecondTier.get(i);
       Assert.assertEquals(objectBlockIdInSecondTier, blockIdEvictedInSecondTier);
       // update CRF of the chosen blocks in case that they are chosen again
