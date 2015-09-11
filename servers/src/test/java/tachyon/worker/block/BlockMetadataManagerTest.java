@@ -185,6 +185,9 @@ public final class BlockMetadataManagerTest {
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
   }
 
+  /**
+   * Dummy unit test, actually the case of move block meta to same dir should never happen
+   */
   @Test
   public void moveBlockMetaSameDirTest() throws Exception {
     // create and add two temp block metas with same tier and dir to the meta manager
@@ -235,7 +238,28 @@ public final class BlockMetadataManagerTest {
   }
 
   @Test
-  public void moveBlockMetaTestDeprecated() throws Exception {
+  public void moveBlockMetaOutOfSpaceExceptionTest() throws Exception {
+    // Create a committed block under dir2 with larger size than the capacity of dir1,
+    // so that OutOfSpaceException should be thrown when move this block to dir1.
+
+    StorageDir dir1 = mMetaManager.getTier(3).getDir(0);
+    StorageDir dir2 = mMetaManager.getTier(3).getDir(1);
+    long maxHddDir1Capacity = TIER_CAPACITY_BYTES[1][0];
+    long blockMetaSize = maxHddDir1Capacity + 1;
+    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, blockMetaSize, dir2);
+    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID2,
+        TEST_BLOCK_SIZE, dir1);
+    mMetaManager.addTempBlockMeta(tempBlockMeta2);
+    dir2.addBlockMeta(blockMeta);
+
+    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
+        blockMetaSize, maxHddDir1Capacity, TIER_ALIAS[1]));
+    mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
+  }
+
+  @Test
+  public void moveBlockMetaDeprecatedTest() throws Exception {
     StorageDir dir = mMetaManager.getTier(1).getDir(0);
     TempBlockMeta tempBlockMeta =
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
@@ -257,7 +281,7 @@ public final class BlockMetadataManagerTest {
   }
 
   @Test
-  public void moveBlockMetaExceedCapacityDeprecatedTest() throws Exception {
+  public void moveBlockMetaDeprecatedExceedCapacityTest() throws Exception {
     StorageDir dir = mMetaManager.getTier(3).getDir(0);
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, 2000, dir);
     dir.addBlockMeta(blockMeta);
