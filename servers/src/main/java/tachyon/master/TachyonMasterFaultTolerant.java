@@ -84,7 +84,7 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
 
         if (started) {
           // Transitioning from standby to master, replace readonly journal with writable journal.
-          mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf);
+          mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal);
           mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
               mFileSystemMasterJournal);
           mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
@@ -102,7 +102,7 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
 
           // When transitioning from master to standby, recreate the masters with a readonly
           // journal.
-          mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal(), mTachyonConf);
+          mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal.getReadOnlyJournal());
           mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
               mFileSystemMasterJournal.getReadOnlyJournal());
           mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
