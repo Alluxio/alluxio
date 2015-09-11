@@ -301,7 +301,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
     } catch (IOException ioe) {
-      if (null == mUfsPath || mUfsPath.isEmpty()) {
+      if (mUfsPath == null || mUfsPath.isEmpty()) {
         // TODO(yupeng): Maybe debug log here.
         throw ioe;
       }
