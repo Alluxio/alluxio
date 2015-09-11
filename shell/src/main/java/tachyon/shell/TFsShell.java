@@ -598,15 +598,30 @@ public class TFsShell implements Closeable {
    * @return The number of argument of the input command
    */
   public int getNumOfArgs(String cmd) {
-    if (cmd.equals("getUsedBytes") || cmd.equals("getCapacityBytes")) {
+    if (cmd.equals("getUsedBytes")
+        || cmd.equals("getCapacityBytes")) {
       return 0;
-    } else if (cmd.equals("cat") || cmd.equals("count") || cmd.equals("ls") || cmd.equals("lsr")
-        || cmd.equals("mkdir") || cmd.equals("rm") || cmd.equals("rmr") || cmd.equals("tail")
-        || cmd.equals("touch") || cmd.equals("load") || cmd.equals("fileinfo")
-        || cmd.equals("location") || cmd.equals("report") || cmd.equals("pin")
-        || cmd.equals("unpin") || cmd.equals("free") || cmd.equals("du")) {
+    } else if (cmd.equals("cat")
+        || cmd.equals("count")
+        || cmd.equals("ls")
+        || cmd.equals("lsr")
+        || cmd.equals("mkdir")
+        || cmd.equals("rm")
+        || cmd.equals("rmr")
+        || cmd.equals("tail")
+        || cmd.equals("touch")
+        || cmd.equals("load")
+        || cmd.equals("fileinfo")
+        || cmd.equals("location")
+        || cmd.equals("report")
+        || cmd.equals("pin")
+        || cmd.equals("unpin")
+        || cmd.equals("free")
+        || cmd.equals("du")) {
       return 1;
-    } else if (cmd.equals("copyFromLocal") || cmd.equals("copyToLocal") || cmd.equals("request")
+    } else if (cmd.equals("copyFromLocal")
+        || cmd.equals("copyToLocal")
+        || cmd.equals("request")
         || cmd.equals("mv")) {
       return 2;
     } else {
