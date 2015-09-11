@@ -36,6 +36,7 @@ import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.conf.TachyonConf;
+import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -232,7 +233,8 @@ public final class WorkerClient implements Closeable {
       mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
-      mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));
+      mProtocol = new TBinaryProtocol(new AuthenticationFactory(mTachyonConf).getClientTransport(
+          new InetSocketAddress(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
       mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);

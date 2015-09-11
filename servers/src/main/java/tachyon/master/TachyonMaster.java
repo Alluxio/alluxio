@@ -22,8 +22,9 @@ import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
+import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
@@ -268,7 +270,6 @@ public class TachyonMaster {
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
       mRawTableMaster.start(isLeader);
-
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -286,7 +287,7 @@ public class TachyonMaster {
     }
   }
 
-  private void startServing() {
+  private void startServing() throws IOException {
     startServingWebServer();
     LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
     startServingRPCServer();
@@ -300,7 +301,7 @@ public class TachyonMaster {
     mWebServer.startWebServer();
   }
 
-  protected void startServingRPCServer() {
+  protected void startServingRPCServer() throws IOException {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     processor.registerProcessor(mBlockMaster.getServiceName(), mBlockMaster.getProcessor());
@@ -308,10 +309,14 @@ public class TachyonMaster {
         mFileSystemMaster.getProcessor());
     processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
 
+    // Return a TTransportFactory based on the authentication type
+    TTransportFactory transportFactory =
+        new AuthenticationFactory(mTachyonConf).getServerTransportFactory();
+
     // create master thrift service with the multiplexed processor.
     mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
         .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-        .processor(processor).transportFactory(new TFramedTransport.Factory())
+        .processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start thrift rpc server
