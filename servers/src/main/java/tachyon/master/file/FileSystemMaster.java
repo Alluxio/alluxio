@@ -624,7 +624,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns all the {@link FileBlockInfo} of the given file. Called via RPC, and internal masters.
+   * Returns all the {@link FileBlockInfo} of the given file. Called by web UI.
    *
    * @param path the path to the file
    * @return a list of {@link FileBlockInfo} for all the blocks of the file.
