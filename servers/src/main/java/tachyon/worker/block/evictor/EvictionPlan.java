@@ -36,10 +36,16 @@ public final class EvictionPlan {
     mToEvict = Preconditions.checkNotNull(toEvict);
   }
 
+  /**
+   * @return a list of pairs of a block id and the location to move it to
+   */
   public List<Pair<Long, BlockStoreLocation>> toMove() {
     return mToMove;
   }
 
+  /**
+   * @return a list of block ids to remove
+   */
   public List<Long> toEvict() {
     return mToEvict;
   }

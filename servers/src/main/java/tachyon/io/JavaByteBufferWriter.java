@@ -19,10 +19,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * The wrapper for to write ByteBuffer using ByteBuffer's default methods.
+ * A wrapper for writing a ByteBuffer using ByteBuffer's default methods.
  */
 public class JavaByteBufferWriter extends ByteBufferWriter {
-
+  /**
+   * @param buf the <code>ByteBuffer</code> to write
+   * @throws IOException if the given buffer is null
+   */
   public JavaByteBufferWriter(ByteBuffer buf) throws IOException {
     super(buf);
   }
