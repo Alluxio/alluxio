@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.ClientOptions;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -59,6 +59,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * Other references to the old client may still be used.
    */
   // TODO(calvin): Evaluate the necessity of this method.
+  @Override
   public synchronized void close() {
     sClient = null;
   }
@@ -124,8 +125,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
 
   /**
    * Gets a {@link FileInStream} for the specified file. The stream's settings can be customized by
-   * setting the options parameter. The user should close the stream after finishing the operations
-   * on it.
+   * setting the options parameter. The caller should close the stream after finishing the
+   * operations on it.
    *
    * @param file the handler for the file.
    * @param options the set of options specific to this operation.

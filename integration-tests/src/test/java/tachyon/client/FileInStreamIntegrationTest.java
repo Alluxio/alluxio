@@ -274,6 +274,29 @@ public class FileInStreamIntegrationTest {
   }
 
   /**
+   * Test <code>void seek(long pos)</code> when at the end of a file at the block boundary.
+   *
+   * @throws IOException
+   */
+  @Test
+  public void eofSeekTest() throws IOException {
+    String uniqPath = PathUtils.uniqPath();
+    int length = BLOCK_SIZE * 3;
+    for (ClientOptions op : getOptionSet()) {
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + op, op, length);
+      FileInStream is = sTfs.getInStream(f, op);
+      byte[] data = new byte[length];
+      is.read(data, 0, length);
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(length, data));
+      is.seek(0);
+      is.read(data, 0, length);
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(length, data));
+      is.close();
+    }
+  }
+
+  /**
    * Test <code>long skip(long len)</code>.
    */
   @Test

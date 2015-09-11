@@ -34,7 +34,7 @@ import tachyon.worker.block.meta.StorageTier;
  * Unit tests for tachyon.worker.block.BlockStoreMeta
  */
 public class BlockStoreMetaTest {
-  private static final long TEST_USER_ID = 33L;
+  private static final long TEST_SESSION_ID = 33L;
   /** block size in Bytes for test */
   private static final long TEST_BLOCK_SIZE = 200L;
   /** num of total committed blocks */
@@ -54,7 +54,7 @@ public class BlockStoreMetaTest {
     // Add and commit COMMITTED_BLOCKS_NUM temp blocks repeatedly
     StorageDir dir = mMetadataManager.getTier(1).getDir(0);
     for (long blockId = 0L; blockId < COMMITTED_BLOCKS_NUM; blockId ++) {
-      TieredBlockStoreTestUtils.cache(TEST_USER_ID, blockId, TEST_BLOCK_SIZE, dir,
+      TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }
     mBlockStoreMeta = new BlockStoreMeta(mMetadataManager);
