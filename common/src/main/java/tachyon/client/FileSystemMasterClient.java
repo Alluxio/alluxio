@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -79,6 +79,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param path the path
    * @return the file id for the given path
+   * @throws InvalidPathException if the given path is invalid
    * @throws IOException if an I/O error occurs
    */
   public synchronized long getFileId(String path) throws IOException, InvalidPathException {
@@ -100,6 +101,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return the file info for the given file id
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized FileInfo getFileInfo(long fileId) throws IOException,
@@ -122,6 +124,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return the list of file information for the given file id
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException,
@@ -145,6 +148,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param fileBlockIndex the file block index
    * @return the file block information
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws BlockInfoException if the block index is invalid
    * @throws IOException if an I/O error occurs
    */
   // TODO: Not sure if this is necessary
@@ -170,6 +175,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return the list of file block information for the given file id
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   // TODO: Not sure if this is necessary
@@ -193,6 +199,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return a new block id for the given file id
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs.
    */
   public synchronized long getNewBlockIdForFile(long fileId) throws IOException,
@@ -214,6 +221,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
 
   /**
    * @return the set of pinned file ids
+   * @throws InvalidPathException if the given path is invalid
    * @throws IOException if an I/O error occurs
    */
   public synchronized Set<Long> getPinList() throws IOException, InvalidPathException {
@@ -257,6 +265,9 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param blockSizeBytes the file size
    * @param recursive whether parent directories should be created if not present yet
    * @return the file id
+   * @throws InvalidPathException if the given path is invalid
+   * @throws BlockInfoException if the block index is invalid
+   * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
   public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
@@ -288,6 +299,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param blockSizeByte the file size
    * @param recursive whether parent directories should be loaded if not present yet
    * @return the file id
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
@@ -311,10 +323,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Marks a file as completed.
    *
    * @param fileId the file id
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws BlockInfoException if the block index is invalid
    * @throws IOException if an I/O error occurs
    */
   public synchronized void completeFile(long fileId) throws IOException, FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException {
+      BlockInfoException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
@@ -322,8 +336,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mClient.completeFile(fileId);
         return;
       } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (SuspectedFileSizeException e) {
         throw e;
       } catch (BlockInfoException e) {
         throw e;
@@ -341,6 +353,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param recursive whether to delete the file recursively (when it is a directory)
    * @return whether operation succeeded or not
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException,
@@ -366,6 +379,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param dstPath new file path
    * @return whether operation succeeded or not
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean renameFile(long fileId, String dstPath) throws IOException,
@@ -390,6 +404,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param fileId the file id
    * @param pinned the pinned status to use
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized void setPinned(long fileId, boolean pinned) throws IOException,
@@ -416,6 +431,8 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the directory path
    * @param recursive whether parent directories should be created if they don't exist yet
    * @return whether operation succeeded or not
+   * @throws InvalidPathException if the given path is invalid
+   * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean createDirectory(String path, boolean recursive) throws IOException,
@@ -443,6 +460,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param recursive whether free the file recursively (when it is a directory)
    * @return whether operation succeeded or not
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean free(long fileId, boolean recursive) throws IOException,
@@ -470,6 +488,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param length the checkpoint length
    * @param checkpointPath the checkpoint path
    * @return whether operation succeeded or not
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
@@ -493,6 +512,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Reports a lost file.
    *
    * @param fileId the file id
+   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized void reportLostFile(long fileId) throws IOException,
@@ -516,6 +536,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Requests files in a dependency.
    *
    * @param depId the dependency id
+   * @throws DependencyDoesNotExistException if the dependency does not exist
    * @throws IOException if an I/O error occurs
    */
   public synchronized void requestFilesInDependency(int depId) throws IOException,
