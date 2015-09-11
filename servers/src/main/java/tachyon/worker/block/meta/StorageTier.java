@@ -84,6 +84,14 @@ public final class StorageTier {
     mCapacityBytes = totalCapacity;
   }
 
+  /**
+   *
+   * @param tierLevel the tier level
+   * @return a new storage tier
+   * @throws AlreadyExistsException if the tier already exists
+   * @throws IOException if an I/O error occurred
+   * @throws OutOfSpaceException if there is not enough space available
+   */
   public static StorageTier newStorageTier(int tierLevel)
       throws AlreadyExistsException, IOException, OutOfSpaceException {
     StorageTier ret = new StorageTier(tierLevel);
@@ -91,18 +99,30 @@ public final class StorageTier {
     return ret;
   }
 
+  /**
+   * @return the tier alias
+   */
   public int getTierAlias() {
     return mTierAlias;
   }
 
+  /**
+   * @return the tier level
+   */
   public int getTierLevel() {
     return mTierLevel;
   }
 
+  /**
+   * @return the capacity (in bytes)
+   */
   public long getCapacityBytes() {
     return mCapacityBytes;
   }
 
+  /**
+   * @return the remaining capacity (in bytes)
+   */
   public long getAvailableBytes() {
     long availableBytes = 0;
     for (StorageDir dir : mDirs) {
@@ -111,10 +131,19 @@ public final class StorageTier {
     return availableBytes;
   }
 
+  /**
+   * Returns a directory for the given index.
+   *
+   * @param dirIndex the directory index
+   * @return a directory
+   */
   public StorageDir getDir(int dirIndex) {
     return mDirs.get(dirIndex);
   }
 
+  /**
+   * @return a list of directories in this tier
+   */
   public List<StorageDir> getStorageDirs() {
     return Collections.unmodifiableList(mDirs);
   }

@@ -52,10 +52,10 @@ public interface RemoteBlockWriter extends Closeable {
    *
    * @param address The {@link InetSocketAddress} of the data server.
    * @param blockId The id of the block to write.
-   * @param userId The id of the user writing the block.
+   * @param sessionId The id of the session writing the block.
    * @throws IOException when the operation fails
    */
-  void open(InetSocketAddress address, long blockId, long userId) throws IOException;
+  void open(InetSocketAddress address, long blockId, long sessionId) throws IOException;
 
   /**
    * Writes data to the remote block.
