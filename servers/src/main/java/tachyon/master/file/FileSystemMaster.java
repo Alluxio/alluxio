@@ -44,6 +44,7 @@ import tachyon.master.file.journal.DeleteFileEntry;
 import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
+import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
@@ -127,6 +128,14 @@ public final class FileSystemMaster extends MasterBase {
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry instanceof InodeEntry) {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else if (entry instanceof InodeLastModificationTimeEntry) {
+      InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) entry;
+      try {
+        Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
+        inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+      } catch (FileDoesNotExistException fdnee) {
+        throw new RuntimeException(fdnee);
+      }
     } else if (entry instanceof DependencyEntry) {
       DependencyEntry dependencyEntry = (DependencyEntry) entry;
       Dependency dependency = new Dependency(dependencyEntry.mId, dependencyEntry.mParentFiles,
@@ -465,29 +474,29 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      List<Inode> created =
+      InodeTree.CreatePathResult createResult =
           createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
+      List<Inode> created = createResult.getCreated();
 
-      // Journal all of the created inodes.
-      for (Inode inode : created) {
-        writeJournalEntry(inode.toJournalEntry());
-      }
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+      journalCreatePathResult(createResult);
       flushJournal();
-
       return created.get(created.size() - 1).getId();
     }
   }
 
-  List<Inode> createFileInternal(TachyonURI path, long blockSizeBytes, boolean recursive,
-      long opTimeMs) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
+  InodeTree.CreatePathResult createFileInternal(TachyonURI path, long blockSizeBytes,
+      boolean recursive, long opTimeMs)
+          throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+    InodeTree.CreatePathResult createResult =
+        mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
     // If the create succeeded, the list of created inodes will not be empty.
+    List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
     if (mWhitelist.inList(path.toString())) {
       inode.setCache(true);
     }
-    return created;
+    return createResult;
   }
 
   /**
@@ -789,18 +798,32 @@ public final class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       try {
-        List<Inode> created = mInodeTree.createPath(path, 0, recursive, true);
-        // Journal all of the created inodes.
-        for (Inode inode : created) {
-          writeJournalEntry(inode.toJournalEntry());
-        }
+        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, 0, recursive, true);
+
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+        journalCreatePathResult(createResult);
         flushJournal();
       } catch (BlockInfoException bie) {
         // Since we are creating a directory, the block size is ignored, no such exception should
         // happen.
         Throwables.propagate(bie);
       }
+    }
+  }
+
+  /**
+   * Journals the {@link InodeTree.CreatePathResult}. This does not flush the journal.
+   * Synchronization is required outside of this method.
+   *
+   * @param createResult the {@link InodeTree.CreatePathResult} to journal
+   */
+  private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
+    for (Inode inode : createResult.getModified()) {
+      writeJournalEntry(
+          new InodeLastModificationTimeEntry(inode.getId(), inode.getLastModificationTimeMs()));
+    }
+    for (Inode inode : createResult.getCreated()) {
+      writeJournalEntry(inode.toJournalEntry());
     }
   }
 
