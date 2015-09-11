@@ -118,7 +118,11 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
-    mTachyonMaster = new TachyonMaster(tachyonConf);
+    if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
+      mTachyonMaster = new TachyonMasterFaultTolerant(tachyonConf);
+    } else {
+      mTachyonMaster = new TachyonMaster(tachyonConf);
+    }
 
     // Reset the master port
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));

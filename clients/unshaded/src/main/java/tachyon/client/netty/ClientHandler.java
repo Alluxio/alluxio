@@ -40,7 +40,11 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
    * The interface for listeners to implement to receive callbacks when messages are received.
    */
   public interface ResponseListener {
-    /** This method will be called when a message is received on the client. */
+    /**
+     * This method will be called when a message is received on the client.
+     *
+     * @param response the RPC response
+     */
     void onResponseReceived(RPCResponse response);
   }
 

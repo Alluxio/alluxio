@@ -168,7 +168,12 @@ public final class FileSystemMaster extends MasterBase {
 
   @Override
   public void start(boolean isLeader) throws IOException {
-    mInodeTree.initializeRoot();
+    if (isLeader) {
+      // Only initialize root when isLeader because when initializing root, BlockMaster needs to
+      // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
+      // If it is standby, it should be able to load the inode tree from leader's checkpoint.
+      mInodeTree.initializeRoot();
+    }
     super.start(isLeader);
   }
 

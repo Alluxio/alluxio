@@ -26,16 +26,19 @@ import tachyon.worker.block.BlockStoreLocation;
 public abstract class BlockMetaBase {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
-   * subdir of its StorageDir, the subdir is the same as the creator's userId, and the block file is
-   * the same as its blockId. e.g. userId 2 creates a temp Block 100 in StorageDir "/mnt/mem/0",
-   * this temp block has path:
+   * subdir of its StorageDir, the subdir is the same as the creator's sessionId, and the block file
+   * is the same as its blockId. e.g. sessionId 2 creates a temp Block 100 in StorageDir
+   * "/mnt/mem/0", this temp block has path:
    * <p>
    * /mnt/mem/0/2/100
    *
+   * @param blockId the block id
+   * @param userId the user id
+   * @param dir the parent directory
    * @return temp file path
    */
-  public static String tempPath(StorageDir dir, long userId, long blockId) {
-    return PathUtils.concatPath(dir.getDirPath(), userId, blockId);
+  public static String tempPath(StorageDir dir, long sessionId, long blockId) {
+    return PathUtils.concatPath(dir.getDirPath(), sessionId, blockId);
   }
 
   /**
@@ -44,6 +47,8 @@ public abstract class BlockMetaBase {
    * <p>
    * /mnt/mem/0/100
    *
+   * @param blockId the block id
+   * @param dir the parent directory
    * @return committed file path
    */
   public static String commitPath(StorageDir dir, long blockId) {
@@ -53,28 +58,44 @@ public abstract class BlockMetaBase {
   protected final long mBlockId;
   protected final StorageDir mDir;
 
+  /**
+   * @param blockId the block id
+   * @param dir the parent directory
+   */
   public BlockMetaBase(long blockId, StorageDir dir) {
     mBlockId = blockId;
     mDir = Preconditions.checkNotNull(dir);
   }
 
+  /**
+   * @return the block id
+   */
   public long getBlockId() {
     return mBlockId;
   }
 
   /**
-   * Get the location of a specific block
+   * @return location of the block
    */
   public BlockStoreLocation getBlockLocation() {
     StorageTier tier = mDir.getParentTier();
     return new BlockStoreLocation(tier.getTierAlias(), tier.getTierLevel(), mDir.getDirIndex());
   }
 
+  /**
+   * @return the parent directory
+   */
   public StorageDir getParentDir() {
     return mDir;
   }
 
+  /**
+   * @return the block path
+   */
   public abstract String getPath();
 
+  /**
+   * @return the block size
+   */
   public abstract long getBlockSize();
 }

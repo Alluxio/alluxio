@@ -176,13 +176,15 @@ public class IndexedSet<T> implements Iterable<T> {
     Preconditions.checkNotNull(object);
     synchronized (mLock) {
       boolean success = mObjects.add(object);
-      for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
-        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
-        Object value = index.getKey().getFieldValue(object);
-        if (fieldValueToSet.containsKey(value)) {
-          success = success && fieldValueToSet.get(value).add(object);
-        } else {
-          fieldValueToSet.put(value, Sets.newHashSet(object));
+      if (success) {
+        for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
+          Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
+          Object value = index.getKey().getFieldValue(object);
+          if (fieldValueToSet.containsKey(value)) {
+            success = fieldValueToSet.get(value).add(object) && success;
+          } else {
+            fieldValueToSet.put(value, Sets.newHashSet(object));
+          }
         }
       }
       return success;
@@ -299,7 +301,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * @return number of all objects, O(1)
+   * @return the number of objects in this indexed set (O(1) time)
    */
   public int size() {
     synchronized (mLock) {
@@ -307,6 +309,13 @@ public class IndexedSet<T> implements Iterable<T> {
     }
   }
 
+  /**
+   * Gets the set of objects with the specified field value - internal function.
+   *
+   * @param index the field index
+   * @param value the field value
+   * @return the set of objects with the specified field value
+   */
   private Set<T> getByFieldInternal(FieldIndex<T> index, Object value) {
     return mSetIndexedByFieldValue.get(mIndexMap.get(index)).get(value);
   }
