@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.client.BlockMasterClient;
+import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
@@ -34,7 +35,7 @@ import tachyon.util.CommonUtils;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
- * heartbeat. This class manages its own {@link tachyon.master.MasterClient}.
+ * heartbeat. This class manages its own {@link tachyon.client.WorkerBlockMasterClient}.
  *
  * When running, this task first requests a block report from the
  * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may
@@ -60,7 +61,7 @@ public final class BlockMasterSync implements Runnable {
   private final int mHeartbeatTimeoutMs;
 
   /** Client for all master communication */
-  private BlockMasterClient mMasterClient;
+  private WorkerBlockMasterClient mMasterClient;
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
   /** The id of the worker */
@@ -70,7 +71,7 @@ public final class BlockMasterSync implements Runnable {
           Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      NetAddress workerAddress, BlockMasterClient masterClient) {
+      NetAddress workerAddress, WorkerBlockMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
