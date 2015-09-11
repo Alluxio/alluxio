@@ -79,13 +79,13 @@ public class LocalBlockInStream extends BlockInStream {
     if (mClosed) {
       return;
     }
+    if (mBytesReadLocal > 0) {
+      ClientContext.getClientMetrics().incBlocksReadLocal(1);
+    }
     mWorkerClient.unlockBlock(mBlockId);
     mContext.releaseWorkerClient(mWorkerClient);
     // TODO(calvin): Evaluate if this is necessary.
     BufferUtils.cleanDirectBuffer(mData);
-    if (mBytesReadLocal > 0) {
-      ClientContext.getClientMetrics().incBlocksReadLocal(1);
-    }
     mClosed = true;
   }
 

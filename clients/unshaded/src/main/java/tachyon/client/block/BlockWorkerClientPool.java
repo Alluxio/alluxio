@@ -15,9 +15,14 @@
 
 package tachyon.client.block;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.ResourcePool;
 import tachyon.thrift.NetAddress;
@@ -31,6 +36,7 @@ import tachyon.worker.WorkerClient;
  * using the client.
  */
 public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
    * The capacity for this pool must be large, since each block written will hold a client until
    * the block is committed at the end of the file completion.
@@ -60,6 +66,12 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
 
   @Override
   public void release(WorkerClient workerClient) {
+    try {
+      // Heartbeat to send the client metrics.
+      workerClient.sessionHeartbeat();
+    } catch (IOException ioe) {
+      LOG.warn("Failed sending client metrics before releasing the worker client", ioe);
+    }
     workerClient.createNewSession(ClientContext.getRandomNonNegativeLong());
     super.release(workerClient);
   }
@@ -68,6 +80,6 @@ public class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   protected WorkerClient createNewResource() {
     long clientId = ClientContext.getRandomNonNegativeLong();
     return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
-        clientId, true, new ClientMetrics());
+        clientId, true, ClientContext.getClientMetrics());
   }
 }
