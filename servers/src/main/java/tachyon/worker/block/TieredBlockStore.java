@@ -705,10 +705,7 @@ public final class TieredBlockStore implements BlockStore {
    * Moves a block to new location only if allocator finds available space in newLocation. This
    * method will not trigger any eviction. Returns MoveBlockResult.
    *
-   * When the dstLocation belongs to the srcLocation, simply do nothing and return MoveBlockResult
-   * on behalf of success move-info.
-   *
-   * @param userId user Id
+   * @param sessionId session Id
    * @param blockId block Id
    * @param newLocation new location to move this block
    * @return the resulting information about the move operation
