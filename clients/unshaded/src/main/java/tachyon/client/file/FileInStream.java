@@ -19,8 +19,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
 import tachyon.client.ClientOptions;
@@ -43,6 +47,8 @@ import tachyon.thrift.FileInfo;
  */
 @PublicApi
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Whether the data should be written into Tachyon space */
   private final boolean mShouldCache;
   /** Standard block size in bytes of the file, guaranteed for all but the last block */
@@ -145,7 +151,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
-          // TODO(yupeng): Log debug maybe?
+          LOG.error("Failed to write into buffer: " + ioe.getMessage());
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -217,7 +223,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          // TODO(yupeng): Maybe debug log here.
+          LOG.info("Failed to get BufferedBlockOutStream: " + ioe.getMessage());
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -275,7 +281,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          // TODO(yupeng): Maybe debug log here.
+          LOG.info("Failed to get BufferedBlockOutStream: " + ioe.getMessage());
           mShouldCacheCurrentBlock = false;
         }
       } else {
@@ -301,8 +307,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
     } catch (IOException ioe) {
+      LOG.info("Failed to get BlockInStream: " + ioe.getMessage());
       if (mUfsPath == null || mUfsPath.isEmpty()) {
-        // TODO(yupeng): Maybe debug log here.
         throw ioe;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;

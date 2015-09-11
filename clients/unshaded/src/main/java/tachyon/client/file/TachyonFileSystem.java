@@ -19,6 +19,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientOptions;
@@ -33,6 +37,8 @@ import tachyon.thrift.FileInfo;
  */
 @PublicApi
 public class TachyonFileSystem implements Closeable, TachyonFSCore {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** A cached instance of the TachyonFileSystem */
   private static TachyonFileSystem sClient;
 
@@ -63,6 +69,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   // TODO(calvin): Evaluate the necessity of this method.
   @Override
   public synchronized void close() {
+    LOG.info("Tachyon File System Client is closed");
     sClient = null;
   }
 
@@ -81,6 +88,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.deleteFile(file.getFileId(), true);
+      LOG.info("Deleted file " + file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -99,6 +107,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.free(file.getFileId(), true);
+      LOG.info("Removed file " + file.getFileId() + " from Tachyon Storage");
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -138,7 +147,6 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   public FileInStream getInStream(TachyonFile file, ClientOptions options) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO(calvin): Make sure the file is not a folder.
       FileInfo info = masterClient.getFileInfo(file.getFileId());
       if (info.isFolder) {
         throw new IOException("Cannot get an instream to a folder.");
@@ -209,7 +217,11 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
       throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(), -1L, recursive);
+      long fileId =
+          masterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(), -1L, recursive);
+      LOG.info(
+          "Loaded file " + path.getPath() + " from " + ufsPath + (recursive ? " recursively" : ""));
+      return fileId;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -227,7 +239,11 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Change this RPC's arguments
-      return masterClient.createDirectory(path.getPath(), true);
+      boolean result = masterClient.createDirectory(path.getPath(), true);
+      if (result) {
+        LOG.info("Created directory " + path.getPath());
+      }
+      return result;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -264,6 +280,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setPinned(file.getFileId(), pinned);
+      LOG.info(pinned ? "Pinned" : "Unpinned" + " file " + file.getFileId());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -281,7 +298,11 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   public boolean rename(TachyonFile src, TachyonURI dst) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.renameFile(src.getFileId(), dst.getPath());
+      boolean result = masterClient.renameFile(src.getFileId(), dst.getPath());
+      if (result) {
+        LOG.info("Renamed file " + src.getFileId() + " to " + dst.getPath());
+      }
+      return result;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
