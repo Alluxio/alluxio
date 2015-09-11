@@ -89,7 +89,7 @@ public class TachyonMaster {
   /** The master metrics system */
   private final MetricsSystem mMasterMetricsSystem;
   protected final MasterSource mMasterSource;
-  
+
   // The masters
   /** The master managing all block metadata */
   protected BlockMaster mBlockMaster;
@@ -308,6 +308,8 @@ public class TachyonMaster {
     // start web ui
     mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
         ServiceType.MASTER_WEB, mTachyonConf), this, mTachyonConf);
+    // Add the metrics servlet to the web server, this must be done after the metrics system starts
+    mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
     mWebServer.startWebServer();
   }
 
@@ -341,6 +343,7 @@ public class TachyonMaster {
       mWebServer = null;
     }
     mMasterMetricsSystem.stop();
+    mIsServing = false;
   }
 
   /**
