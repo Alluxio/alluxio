@@ -26,27 +26,28 @@ import tachyon.worker.block.BlockStoreLocation;
  * This class provides information about the blocks that need to be moved when evicting.
  */
 public final class EvictionPlan {
-  /** A list of pairs of blockId and its location to move to */
-  private final List<Pair<Long, BlockStoreLocation>> mToMove;
-  /** A list of blockId to remove */
-  private final List<Long> mToEvict;
+  /** A list of block transfer information, with block id, source and destination location */
+  private final List<BlockTransferInfo> mToMove;
+  /** A list of pairs of block id to remove and its location */
+  private final List<Pair<Long, BlockStoreLocation>> mToEvict;
 
-  public EvictionPlan(List<Pair<Long, BlockStoreLocation>> toTransfer, List<Long> toEvict) {
+  public EvictionPlan(List<BlockTransferInfo> toTransfer,
+      List<Pair<Long, BlockStoreLocation>> toEvict) {
     mToMove = Preconditions.checkNotNull(toTransfer);
     mToEvict = Preconditions.checkNotNull(toEvict);
   }
 
   /**
-   * @return a list of pairs of a block id and the location to move it to
+   * @return a list of block transfer information, with block id, source and destination location
    */
-  public List<Pair<Long, BlockStoreLocation>> toMove() {
+  public List<BlockTransferInfo> toMove() {
     return mToMove;
   }
 
   /**
-   * @return a list of block ids to remove
+   * @return a list of pairs of block id to remove and its location
    */
-  public List<Long> toEvict() {
+  public List<Pair<Long, BlockStoreLocation>> toEvict() {
     return mToEvict;
   }
 
