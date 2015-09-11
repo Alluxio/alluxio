@@ -38,6 +38,7 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.DependencyInfo;
@@ -57,6 +58,8 @@ import tachyon.worker.WorkerClient;
  * while tachyon.hadoop.AbstractTFS provides another API that exposes Tachyon as HDFS file system.
  * Under the hood, this class maintains a MasterClientBase to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
+ *
+ * As of 0.8, replaced by {@link TachyonFileSystem}
  */
 @PublicApi
 @Deprecated

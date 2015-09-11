@@ -34,6 +34,8 @@ import tachyon.thrift.NetAddress;
 
 /**
  * Tachyon File.
+ *
+ * As of 0.8, replaced by {@link TachyonFileSystem}
  */
 @Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
