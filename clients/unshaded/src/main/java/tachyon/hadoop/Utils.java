@@ -58,7 +58,7 @@ public final class Utils {
   }
 
   /**
-   * Given a <code>String</code> path, it returns an equivalent Tachyon path.
+   * Given a <code>String</code> path, returns an equivalent Tachyon path.
    *
    * @param path the path to parse
    * @return a valid Tachyon path
@@ -168,4 +168,6 @@ public final class Utils {
       conf.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
   }
+
+  private Utils() {} // prevent instantiation
 }
