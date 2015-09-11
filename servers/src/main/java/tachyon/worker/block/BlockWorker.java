@@ -158,15 +158,16 @@ public final class BlockWorker {
     mStartTimeMs = System.currentTimeMillis();
 
     // Setup MasterClientBase along with its heartbeat ExecutorService
-    mMasterClientExecutorService = Executors.newFixedThreadPool(1,
-        ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mBlockMasterClient = new BlockMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+    mMasterClientExecutorService =
+        Executors.newFixedThreadPool(1,
+            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
+    mBlockMasterClient =
+        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
 
-    mFileSystemMasterClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+    mFileSystemMasterClient =
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
@@ -179,9 +180,10 @@ public final class BlockWorker {
     mWorkerMetricsSystem.registerSource(workerSource);
 
     // Set up DataServer
-    mDataServer = DataServer.Factory.createDataServer(
-        NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
-        mBlockDataManager, mTachyonConf);
+    mDataServer =
+        DataServer.Factory.createDataServer(
+            NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
+            mBlockDataManager, mTachyonConf);
     // reset data server port
     mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
@@ -197,10 +199,11 @@ public final class BlockWorker {
             mPort, mDataServer.getPort());
 
     // Set up web server
-    mWebServer = new WorkerUIWebServer(ServiceType.WORKER_WEB,
-        NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB, mTachyonConf), mBlockDataManager,
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf), mStartTimeMs,
-        mTachyonConf);
+    mWebServer =
+        new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
+            ServiceType.WORKER_WEB, mTachyonConf), mBlockDataManager,
+            NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
+            mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
     // We create three threads for two syncers and one cleaner: mBlockMasterSync,
@@ -322,8 +325,8 @@ public final class BlockWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(
-          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, mTachyonConf));
+      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
+          mTachyonConf));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
