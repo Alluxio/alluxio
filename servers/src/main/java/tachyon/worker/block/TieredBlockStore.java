@@ -42,7 +42,7 @@ import com.google.common.collect.Multimap;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.Users;
+import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
@@ -1012,14 +1012,15 @@ public final class TieredBlockStore implements BlockStore {
             if (null == plan) {
               continue;
             }
-            for (Pair<Long, BlockStoreLocation> toMoveBlock : plan.toMove()) {
+            for (BlockTransferInfo move : plan.toMove()) {
               Future<Boolean> res = mExecutorService.submit(new BlockMover(TieredBlockStore.this,
-                  Users.MIGRATE_DATA_USER_ID, toMoveBlock.getFirst(), toMoveBlock.getSecond()));
+                  Sessions.MIGRATE_DATA_SESSION_ID, move.getBlockId(), move.getSrcLocation(),
+                  move.getDstLocation()));
               mMoverResOnTiers.put(tierAlias, res);
             }
-            for (long toEvictBlock : plan.toEvict()) {
+            for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
               Future<Boolean> res = mExecutorService.submit(new BlockMover(TieredBlockStore.this,
-                  Users.MIGRATE_DATA_USER_ID, toEvictBlock, null));
+                  Sessions.MIGRATE_DATA_SESSION_ID, evict.getFirst(), evict.getSecond(), null));
               mMoverResOnTiers.put(tierAlias, res);
             }
           }

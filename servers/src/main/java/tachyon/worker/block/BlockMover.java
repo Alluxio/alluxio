@@ -27,26 +27,32 @@ public class BlockMover implements Callable<Boolean> {
   private final long mUserId;
   private final BlockStore mBlockStore;
   private final long mBlockId;
+  private BlockStoreLocation mSrcLocation;
   private BlockStoreLocation mDstLocation;
 
   public BlockMover(BlockStore blockStore, long userId, long blockId,
-      BlockStoreLocation dstLocation) {
+      BlockStoreLocation srcLocation, BlockStoreLocation dstLocation) {
     mUserId = userId;
     mBlockStore = blockStore;
     mBlockId = blockId;
+    mSrcLocation = srcLocation;
     mDstLocation = dstLocation;
   }
 
   public Boolean call() {
+    String errorInfo = null;
     try {
-      if (mDstLocation == null) {
-        mBlockStore.removeBlock(mUserId, mBlockId);
+      if (null == mDstLocation) {
+        mBlockStore.removeBlock(mUserId, mBlockId, mSrcLocation);
+        errorInfo = "Failed to remove block " + mBlockId + " at location: " + mSrcLocation;
       } else {
-        mBlockStore.moveBlock(mUserId, mBlockId, mDstLocation);
+        mBlockStore.moveBlock(mUserId, mBlockId, mSrcLocation, mDstLocation);
+        errorInfo = "Failed to move block" + mBlockId + " from " + mSrcLocation + " to "
+            + mDstLocation;
       }
       return true;
     } catch (Exception e) {
-      LOG.error("Failed to migrate block {} to {}", mBlockId, mDstLocation, e);
+      LOG.error(errorInfo, e);
       return false;
     }
   }
