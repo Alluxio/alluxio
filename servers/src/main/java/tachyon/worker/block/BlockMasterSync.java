@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.client.BlockMasterClient;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidStateException;

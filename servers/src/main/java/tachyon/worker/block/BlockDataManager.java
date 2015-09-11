@@ -59,7 +59,7 @@ public final class BlockDataManager {
   /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
 
-  /** BlockMasterClient, only used to inform the master of a new block in commitBlock */
+  /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
   private WorkerBlockMasterClient mWorkerBlockMasterClient;
   /** FileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
   private FileSystemMasterClient mFileSystemMasterClient;
