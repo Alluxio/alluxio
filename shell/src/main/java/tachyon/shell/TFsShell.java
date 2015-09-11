@@ -105,9 +105,6 @@ public class TFsShell implements Closeable {
     } catch (InvalidPathException ioe) {
       System.out.println(path + " does not exist.");
       return -1;
-    } catch (FileDoesNotExistException ioe) {
-      System.out.println(path + " does not exist.");
-      return -1;
     }
 
     if (!tFile.isFolder) {
@@ -164,8 +161,6 @@ public class TFsShell implements Closeable {
     } catch (IOException ioe) {
       return -1;
     } catch (InvalidPathException e) {
-      return -1;
-    } catch (FileDoesNotExistException e) {
       return -1;
     }
 
@@ -237,8 +232,6 @@ public class TFsShell implements Closeable {
           dstPath = dstPath.join(src.getName());
         }
       } catch (InvalidPathException e) {
-        // The dstPath may already be the path of the file where src will be copied to, do nothing
-      } catch (FileDoesNotExistException e) {
         // The dstPath may already be the path of the file where src will be copied to, do nothing
       }
       Closer closer = Closer.create();
@@ -372,8 +365,6 @@ public class TFsShell implements Closeable {
     } catch (InvalidPathException e) {
       System.out.println(path + " does not exist.");
       return -1;
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
     }
 
     if (fInfo.isFolder) {
@@ -404,8 +395,6 @@ public class TFsShell implements Closeable {
     } catch (InvalidPathException ioe) {
       System.out.println(path + " does not exist.");
       return -1;
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
     }
 
     System.out.println(path + " with file id " + fd.getFileId() + " is on nodes: ");
@@ -688,8 +677,6 @@ public class TFsShell implements Closeable {
     } catch (InvalidPathException ioe) {
       System.out.println("rm: cannot remove '" + path + "': No such file or directory");
       return -1;
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
     }
 
     if (fInfo.isFolder) {
@@ -869,8 +856,6 @@ public class TFsShell implements Closeable {
     } catch (InvalidPathException e) {
       System.out.println(path + " does not exist.");
       return -1;
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
     }
 
     if (!fInfo.isFolder) {
