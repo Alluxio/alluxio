@@ -49,9 +49,11 @@ public class EvictorTestUtils {
 
     StorageDir dir = null;
     List<Long> blockIds = new ArrayList<Long>();
-    blockIds.addAll(plan.toEvict());
-    for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
-      blockIds.add(move.getFirst());
+    for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
+      blockIds.add(evict.getFirst());
+    }
+    for (BlockTransferInfo move : plan.toMove()) {
+      blockIds.add(move.getBlockId());
     }
 
     for (long blockId : blockIds) {
@@ -109,8 +111,8 @@ public class EvictorTestUtils {
     // after the plan taking action
     Map<StorageDir, Pair<Long, Long>> spaceInfoInDir = new HashMap<StorageDir, Pair<Long, Long>>();
 
-    for (long blockId : plan.toEvict()) {
-      BlockMeta block = metaManager.getBlockMeta(blockId);
+    for (Pair<Long, BlockStoreLocation> blockInfo : plan.toEvict()) {
+      BlockMeta block = metaManager.getBlockMeta(blockInfo.getFirst());
       StorageDir dir = block.getParentDir();
       if (spaceInfoInDir.containsKey(dir)) {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
@@ -121,12 +123,12 @@ public class EvictorTestUtils {
       }
     }
 
-    for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
-      long blockId = move.getFirst();
+    for (BlockTransferInfo move : plan.toMove()) {
+      long blockId = move.getBlockId();
       BlockMeta block = metaManager.getBlockMeta(blockId);
       long blockSize = block.getBlockSize();
       StorageDir srcDir = block.getParentDir();
-      StorageDir destDir = metaManager.getDir(move.getSecond());
+      StorageDir destDir = metaManager.getDir(move.getDstLocation());
 
       if (spaceInfoInDir.containsKey(srcDir)) {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(srcDir);
@@ -204,9 +206,11 @@ public class EvictorTestUtils {
     Preconditions.checkNotNull(plan);
 
     List<Long> blockIds = new ArrayList<Long>();
-    blockIds.addAll(plan.toEvict());
-    for (Pair<Long, BlockStoreLocation> move : plan.toMove()) {
-      blockIds.add(move.getFirst());
+    for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
+      blockIds.add(evict.getFirst());
+    }
+    for (BlockTransferInfo move : plan.toMove()) {
+      blockIds.add(move.getBlockId());
     }
 
     long evictedOrMovedBytes = 0;
