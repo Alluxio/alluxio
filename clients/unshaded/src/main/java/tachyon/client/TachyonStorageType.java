@@ -31,7 +31,7 @@ public enum TachyonStorageType {
   /** Do not put data to Tachyon. */
   NO_STORE(2),
 
-  /** Put the data into highest Tachyon tier for writes, move data to the highest tier for reads */
+  /** Same as STORE for writes. Will move the data to highest tier before access for reads. */
   PROMOTE(3);
 
   private final int mValue;
