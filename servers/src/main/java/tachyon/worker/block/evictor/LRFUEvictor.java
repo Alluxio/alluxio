@@ -107,9 +107,9 @@ public final class LRFUEvictor extends EvictorBase {
       updateCRFValue();
       mManagerView = view;
 
-      List<Pair<Long, BlockStoreLocation>> toMove =
+      List<BlockTransferInfo> toMove = new ArrayList<BlockTransferInfo>();
+      List<Pair<Long, BlockStoreLocation>> toEvict =
           new ArrayList<Pair<Long, BlockStoreLocation>>();
-      List<Long> toEvict = new ArrayList<Long>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
       StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
