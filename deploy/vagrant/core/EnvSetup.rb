@@ -77,6 +77,7 @@ class MesosVersion
     @repo = ''
     @version = ''
     @dist = ''
+    @use_mesos = true
     case @type
     when "Github"
       @repo = @yml['Github']['Repo']
@@ -85,6 +86,9 @@ class MesosVersion
     when "Release"
       @dist = @yml['Release']['Dist']
       puts "using mesos dist #{@dist}"
+    when "None"
+      puts 'No Mesos will be set up'
+      @use_mesos = false
     else
       puts "Unknown VersionType"
       exit(1)
@@ -97,6 +101,10 @@ class MesosVersion
 
   def type
     return @type
+  end
+
+  def use_mesos
+    return @use_mesos
   end
 
   def repo_version
