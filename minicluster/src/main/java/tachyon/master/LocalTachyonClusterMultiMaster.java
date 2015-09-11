@@ -182,8 +182,8 @@ public class LocalTachyonClusterMultiMaster {
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
 
-    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER));
 
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
@@ -231,7 +231,7 @@ public class LocalTachyonClusterMultiMaster {
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       String newPath = "";
       for (String dirPath : dirPaths) {
         newPath += mTachyonHome + dirPath + ",";
