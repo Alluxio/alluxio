@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.ClientOptions;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -30,15 +30,15 @@ import tachyon.thrift.FileInfo;
  * class is thread safe. The read/write interface provided by this client is similar to Java's
  * input/output streams.
  */
-public class TachyonFileSystem implements Closeable, TachyonFSCore {
-  /** A cached instance of the TachyonFileSystem */
+public final class TachyonFileSystem implements Closeable, TachyonFSCore {
+  /** The single instance of the TachyonFileSystem */
   private static TachyonFileSystem sClient;
 
   /**
    * @return a TachyonFileSystem instance, there is only one instance available at any time
    */
   public static synchronized TachyonFileSystem get() {
-    if (null == sClient) {
+    if (sClient == null) {
       sClient = new TachyonFileSystem();
     }
     return sClient;
@@ -59,6 +59,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * Other references to the old client may still be used.
    */
   // TODO(calvin): Evaluate the necessity of this method.
+  @Override
   public synchronized void close() {
     sClient = null;
   }
