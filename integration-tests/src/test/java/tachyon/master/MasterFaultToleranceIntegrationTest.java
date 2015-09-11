@@ -92,7 +92,7 @@ public class MasterFaultToleranceIntegrationTest {
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
           mTfs.getInfo(new TachyonFile(answer.get(k).getFirst())).getPath());
-      Assert.assertEquals(answer.get(k).getFirst().intValue(),
+      Assert.assertEquals(answer.get(k).getFirst().longValue(),
           mTfs.open(answer.get(k).getSecond()).getFileId());
     }
   }
@@ -108,10 +108,9 @@ public class MasterFaultToleranceIntegrationTest {
 
     for (int kills = 0; kills < MASTERS - 1; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(Constants.SECOND_MS * 3);
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
-      // TODO Add the following line back
-      // faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
+      faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
     }
   }
 
