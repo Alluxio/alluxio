@@ -24,7 +24,7 @@ import tachyon.client.FileSystemMasterClient;
 import tachyon.client.ResourcePool;
 import tachyon.util.ThreadFactoryUtils;
 
-class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
+final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   private static final int CAPACITY = 10;
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
