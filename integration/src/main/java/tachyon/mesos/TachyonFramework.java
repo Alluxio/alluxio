@@ -127,8 +127,8 @@ public class TachyonFramework {
               .setSource("master")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
               .setCommand(
-                  Protos.CommandInfo.newBuilder().setValue(
-                      PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-master.sh")));
+                  Protos.CommandInfo.newBuilder().setValue(PathUtils
+                      .concatPath(tachyonHome, "integration", "bin", "tachyon-master.sh")));
           targetCpu = masterCpu;
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
@@ -141,13 +141,9 @@ public class TachyonFramework {
               .setSource("worker")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
               .setCommand(
-                  Protos.CommandInfo
-                      .newBuilder()
-                      .setValue(
-                          PathUtils.concatPath(tachyonHome, "mesos", "bin", "tachyon-worker.sh"))
-                      .setEnvironment(
-                          Protos.Environment
-                              .newBuilder()
+                  Protos.CommandInfo.newBuilder().setValue(PathUtils
+                      .concatPath(tachyonHome, "integration", "bin", "tachyon-worker.sh"))
+                      .setEnvironment(Protos.Environment.newBuilder()
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
                                       .setName("TACHYON_MASTER_ADDRESS").setValue(mMasterHostname)
@@ -155,7 +151,8 @@ public class TachyonFramework {
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
                                       .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE)
-                                      .build()).build()));
+                                      .build())
+                          .build()));
           targetCpu = workerCpu;
           targetMem = workerMem;
           mWorkers.add(offer.getHostname());

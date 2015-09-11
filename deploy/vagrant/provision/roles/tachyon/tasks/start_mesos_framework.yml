@@ -1,5 +1,5 @@
 - name: start tachyon mesos framework
-  command: /tachyon/mesos/bin/tachyon-framework.sh TachyonMaster:1234
+  command: /tachyon/integration/bin/tachyon-framework.sh TachyonMaster:1234
   async: 10
   poll: 0
 

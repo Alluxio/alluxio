@@ -8,8 +8,8 @@
     <groupId>org.tachyonproject</groupId>
     <version>0.8.0-SNAPSHOT</version>
   </parent>
-  <name>Tachyon Mesos</name>
-  <artifactId>tachyon-mesos</artifactId>
+  <name>Tachyon Integration</name>
+  <artifactId>tachyon-integration</artifactId>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
