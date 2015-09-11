@@ -151,7 +151,7 @@
     <module>integration-tests</module>
     <module>assembly</module>
     <module>minicluster</module>
-    <module>mesos</module>
+    <module>integration</module>
   </modules>
 
   <dependencyManagement>
