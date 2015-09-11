@@ -57,7 +57,7 @@ public final class InodeTreeTest {
     TachyonConf conf = new TachyonConf();
     Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), conf);
 
-    BlockMaster blockMaster = new BlockMaster(blockJournal, conf);
+    BlockMaster blockMaster = new BlockMaster(conf, blockJournal);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     mTree = new InodeTree(blockMaster, directoryIdGenerator);
 
