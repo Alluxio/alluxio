@@ -18,24 +18,24 @@ package tachyon;
 import com.google.common.base.Preconditions;
 
 /**
- * Represent one user in the worker daemon.
+ * Represent one session in the worker daemon.
  */
-public class UserInfo {
-  private final long mUserId;
+public class SessionInfo {
+  private final long mSessionId;
 
   private long mLastHeartbeatMs;
-  private int mUserTimeoutMs;
+  private int mSessionTimeoutMs;
 
-  public UserInfo(long userId, int userTimeoutMs) {
-    Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
-    Preconditions.checkArgument(userTimeoutMs > 0, "Invalid user timeout");
-    mUserId = userId;
+  public SessionInfo(long sessionId, int sessionTimeoutMs) {
+    Preconditions.checkArgument(sessionId > 0, "Invalid session id " + sessionId);
+    Preconditions.checkArgument(sessionTimeoutMs > 0, "Invalid session timeout");
+    mSessionId = sessionId;
     mLastHeartbeatMs = System.currentTimeMillis();
-    mUserTimeoutMs = userTimeoutMs;
+    mSessionTimeoutMs = sessionTimeoutMs;
   }
 
-  public long getUserId() {
-    return mUserId;
+  public long getSessionId() {
+    return mSessionId;
   }
 
   public synchronized void heartbeat() {
@@ -43,13 +43,13 @@ public class UserInfo {
   }
 
   public synchronized boolean timeout() {
-    return (System.currentTimeMillis() - mLastHeartbeatMs > mUserTimeoutMs);
+    return (System.currentTimeMillis() - mLastHeartbeatMs > mSessionTimeoutMs);
   }
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("UserInfo(");
-    sb.append(" mUserId: ").append(mUserId);
+    StringBuilder sb = new StringBuilder("SessionInfo(");
+    sb.append(" mSessionId: ").append(mSessionId);
     sb.append(", mLastHeartbeatMs: ").append(mLastHeartbeatMs);
     sb.append(")");
     return sb.toString();
@@ -63,12 +63,12 @@ public class UserInfo {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    UserInfo userInfo = (UserInfo) o;
-    return mUserId == userInfo.mUserId;
+    SessionInfo sessionInfo = (SessionInfo) o;
+    return mSessionId == sessionInfo.mSessionId;
   }
 
   @Override
   public int hashCode() {
-    return (int) (mUserId ^ (mUserId >>> 32));
+    return (int) (mSessionId ^ (mSessionId >>> 32));
   }
 }
