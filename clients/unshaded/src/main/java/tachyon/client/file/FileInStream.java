@@ -299,6 +299,13 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       mCurrentBlockInStream.close();
     }
     try {
+      if (mTachyonStorageType.isPromote()) {
+        try {
+          mContext.getTachyonBlockStore().promote(blockId);
+        } catch (IOException ioe) {
+          // Failed to promote
+        }
+      }
       mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(blockId);
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
