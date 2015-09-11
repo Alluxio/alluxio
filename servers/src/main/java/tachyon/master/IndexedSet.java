@@ -40,6 +40,68 @@ import tachyon.Constants;
  *
  * <p>
  * This class is thread safe.
+ *
+ * <p>
+ * Example usage:
+ *
+ * We have a set of puppies:
+ * <pre>
+ *   class Puppy {
+ *     private final String mName;
+ *     private final long mId;
+ *
+ *     public Puppy(String name, long id) {
+ *       mName = name;
+ *       mId = id;
+ *     }
+ *
+ *     public String name() {
+ *       return mName;
+ *     }
+ *
+ *     public long id() {
+ *       return mId;
+ *     }
+ *   }
+ * </pre>
+ *
+ * We want to be able to retrieve the set of puppies via a puppy's id or name, one way is to have
+ * two maps like <code>Map&ltString, Puppy&gt nameToPuppy</code> and
+ * <code>Map&ltLong, Puppy&gt idToPuppy</code>, another way is to use a single instance of
+ * {@link IndexedSet}!
+ *
+ * First, define the fields to be indexed:
+ * <pre>
+ *  FieldIndex<Puppy> idIndex = new FieldIndex<Puppy> {
+ *    @Override
+ *    Object getFieldValue(Puppy o) {
+ *      return o.id();
+ *    }
+ *  }
+ *
+ *  FieldIndex<Puppy> nameIndex = new FieldIndex<Puppy> {
+ *    @Override
+ *    Object getFieldValue(Puppy o) {
+ *      return o.name();
+ *    }
+ *  }
+ * </pre>
+ *
+ * Then create an {@link IndexedSet} and add puppies:
+ * <pre>
+ *  IndexedSet<Puppy> puppies = new IndexedSet<Puppy>(idIndex, nameIndex);
+ *  puppies.add(new Puppy("sweet", 0));
+ *  puppies.add(new Puppy("heart", 1));
+ * </pre>
+ *
+ * Then retrieve the puppy named sweet:
+ * <pre>
+ *   Puppy sweet = puppies.getFirstByField(nameIndex, "sweet");
+ * </pre>
+ * and retrieve the puppy with id 1:
+ * <pre>
+ *   Puppy heart = puppies.getFirstByField(idIndex, 1L);
+ * </pre>
  */
 public class IndexedSet<T> implements Iterable<T> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -114,13 +176,15 @@ public class IndexedSet<T> implements Iterable<T> {
     Preconditions.checkNotNull(object);
     synchronized (mLock) {
       boolean success = mObjects.add(object);
-      for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
-        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
-        Object value = index.getKey().getFieldValue(object);
-        if (fieldValueToSet.containsKey(value)) {
-          success = success && fieldValueToSet.get(value).add(object);
-        } else {
-          fieldValueToSet.put(value, Sets.newHashSet(object));
+      if (success) {
+        for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
+          Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
+          Object value = index.getKey().getFieldValue(object);
+          if (fieldValueToSet.containsKey(value)) {
+            success = fieldValueToSet.get(value).add(object) && success;
+          } else {
+            fieldValueToSet.put(value, Sets.newHashSet(object));
+          }
         }
       }
       return success;
@@ -237,7 +301,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * @return number of all objects, O(1)
+   * @return the number of objects in this indexed set (O(1) time)
    */
   public int size() {
     synchronized (mLock) {
@@ -245,6 +309,13 @@ public class IndexedSet<T> implements Iterable<T> {
     }
   }
 
+  /**
+   * Gets the set of objects with the specified field value - internal function.
+   *
+   * @param index the field index
+   * @param value the field value
+   * @return the set of objects with the specified field value
+   */
   private Set<T> getByFieldInternal(FieldIndex<T> index, Object value) {
     return mSetIndexedByFieldValue.get(mIndexMap.get(index)).get(value);
   }

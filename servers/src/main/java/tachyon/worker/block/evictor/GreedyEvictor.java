@@ -42,7 +42,10 @@ public final class GreedyEvictor implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * GreedyEvictor does not need BlockMetadataManagerView
+   * GreedyEvictor does not use the block metadata information or the allocation policy.
+   *
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
    */
   public GreedyEvictor(BlockMetadataManagerView view, Allocator allocator) {}
 

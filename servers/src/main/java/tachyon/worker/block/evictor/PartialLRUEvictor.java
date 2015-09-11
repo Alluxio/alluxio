@@ -27,6 +27,10 @@ import tachyon.worker.block.meta.StorageDirView;
  * with maximum free space first and evict old blocks in the selected StorageDir by LRU
  */
 public class PartialLRUEvictor extends LRUEvictor {
+  /**
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
+   */
   public PartialLRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
   }

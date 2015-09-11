@@ -257,7 +257,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * This method is not supported in <code>HdfsFileInputStream</code>.
    *
-   * @return N/A
    * @throws IOException always
    */
   @Override
@@ -268,7 +267,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   /**
    * This method is not supported in <code>HdfsFileInputStream</code>.
    *
-   * @return N/A
    * @throws IOException always
    */
   @Override

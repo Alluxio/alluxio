@@ -27,11 +27,14 @@ import org.apache.commons.codec.binary.Base64;
 import com.google.common.collect.Lists;
 
 /**
- * Utilities to do ser/de String, and ByteBuffer
+ * Utilities for serialization and deserialization of various data types.
  */
 public class Utils {
   /**
    * Converts a list of byte buffers to a list of base64-encoded Strings.
+   *
+   * @param bufs the list of byte buffer to convert
+   * @return list of base64-encoded Strings
    */
   public static List<String> byteBufferListToBase64(List<ByteBuffer> bufs) {
     if (bufs == null) {
@@ -47,6 +50,9 @@ public class Utils {
 
   /**
    * Converts a byte buffer to a base64-encoded String. Avoids copying the array if possible.
+   *
+   * @param buf a byte buffer to convert
+   * @return a base64-encoded String
    */
   public static String byteBufferToBase64(ByteBuffer buf) {
     if (buf == null) {
@@ -62,6 +68,13 @@ public class Utils {
     }
   }
 
+  /**
+   * Reads a byte buffer out of a data stream.
+   *
+   * @param is the stream to read from
+   * @return a byte buffer
+   * @throws IOException if an I/O error occurs
+   */
   public static ByteBuffer readByteBuffer(DataInputStream is) throws IOException {
     int len = is.readInt();
     if (len == -1) {
@@ -76,6 +89,13 @@ public class Utils {
     return ByteBuffer.wrap(arr);
   }
 
+  /**
+   * Reads a list of byte buffers out of a data stream.
+   *
+   * @param is the stream to read from
+   * @return a list of byte buffers
+   * @throws IOException if an I/O error occurs
+   */
   public static List<ByteBuffer> readByteBufferList(DataInputStream is) throws IOException {
     int size = is.readInt();
     if (size == -1) {
@@ -89,6 +109,13 @@ public class Utils {
     return ret;
   }
 
+  /**
+   * Reads a list of Integers out of a data stream.
+   *
+   * @param is the stream to read from
+   * @return a list of Integers
+   * @throws IOException if an I/O error occurs
+   */
   public static List<Integer> readIntegerList(DataInputStream is) throws IOException {
     int size = is.readInt();
     if (size == -1) {
@@ -101,6 +128,13 @@ public class Utils {
     return ret;
   }
 
+  /**
+   * Reads a String out of a data stream.
+   *
+   * @param is the stream to read from
+   * @return a String
+   * @throws IOException if an I/O error occurs
+   */
   public static String readString(DataInputStream is) throws IOException {
     int len = is.readInt();
 
@@ -118,6 +152,13 @@ public class Utils {
 
   }
 
+  /**
+   * Reads a list of Strings out of a data stream.
+   *
+   * @param is the stream to read from
+   * @return a Strings
+   * @throws IOException if an I/O error occurs
+   */
   public static List<String> readStringList(DataInputStream is) throws IOException {
     int size = is.readInt();
 
@@ -132,6 +173,13 @@ public class Utils {
     return ret;
   }
 
+  /**
+   * Writes a byte buffer into a data stream.
+   *
+   * @param buf the byte buffer to write
+   * @param os the stream to write to
+   * @throws IOException if an I/O error occurs
+   */
   public static void writeByteBuffer(ByteBuffer buf, DataOutputStream os) throws IOException {
     if (buf == null) {
       os.writeInt(-1);
@@ -142,6 +190,13 @@ public class Utils {
     os.write(buf.array(), buf.position(), len);
   }
 
+  /**
+   * Writes a list of byte buffers into a data stream.
+   *
+   * @param list the list of byte buffers to write
+   * @param os the stream to write to
+   * @throws IOException if an I/O error occurs
+   */
   public static void writeByteBufferList(List<ByteBuffer> list, DataOutputStream os)
       throws IOException {
     if (list == null) {
@@ -154,6 +209,13 @@ public class Utils {
     }
   }
 
+  /**
+   * Writes a list of Integers into a data stream.
+   *
+   * @param list the list of Integers to write
+   * @param os the stream to write to
+   * @throws IOException if an I/O error occurs
+   */
   public static void writeIntegerList(List<Integer> list, DataOutputStream os) throws IOException {
     if (list == null) {
       os.writeInt(-1);
@@ -166,6 +228,13 @@ public class Utils {
     }
   }
 
+  /**
+   * Writes a String into a data stream.
+   *
+   * @param str the String to write
+   * @param os the stream to write to
+   * @throws IOException if an I/O error occurs
+   */
   public static void writeString(String str, DataOutputStream os) throws IOException {
     if (str == null) {
       os.writeInt(-1);
@@ -175,6 +244,13 @@ public class Utils {
     }
   }
 
+  /**
+   * Writes a list of Strings into a data stream.
+   *
+   * @param list the list of Strings to write
+   * @param os the stream to write to
+   * @throws IOException if an I/O error occurs
+   */
   public static void writeStringList(List<String> list, DataOutputStream os) throws IOException {
     if (list == null) {
       os.writeInt(-1);
