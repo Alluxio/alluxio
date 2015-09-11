@@ -101,8 +101,8 @@ public final class InodeTreeTest {
     // create nested directory
     InodeTree.CreatePathResult createResult =
         mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    List<Inode> modified = createResult.modified();
-    List<Inode> created = createResult.created();
+    List<Inode> modified = createResult.getModified();
+    List<Inode> created = createResult.getCreated();
     // 1 modified directory
     Assert.assertEquals(1, modified.size());
     Assert.assertEquals("", modified.get(0).getName());
@@ -118,15 +118,15 @@ public final class InodeTreeTest {
 
     // creating the directory path again results in no new inodes.
     createResult = mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    modified = createResult.modified();
-    created = createResult.created();
+    modified = createResult.getModified();
+    created = createResult.getCreated();
     Assert.assertEquals(0, modified.size());
     Assert.assertEquals(0, created.size());
 
     // create a file
     createResult = mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
-    modified = createResult.modified();
-    created = createResult.created();
+    modified = createResult.getModified();
+    created = createResult.getCreated();
     // test directory was modified
     Assert.assertEquals(1, modified.size());
     Assert.assertEquals("test", modified.get(0).getName());
@@ -226,12 +226,12 @@ public final class InodeTreeTest {
 
     // test one level
     InodeTree.CreatePathResult createResult = mTree.createPath(TEST_URI, Constants.KB, false, true);
-    List<Inode> created = createResult.created();
+    List<Inode> created = createResult.getCreated();
     Assert.assertEquals(new TachyonURI("/test"), mTree.getPath(created.get(created.size() - 1)));
 
     // test nesting
     createResult = mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    created = createResult.created();
+    created = createResult.getCreated();
     Assert.assertEquals(new TachyonURI("/nested/test"),
         mTree.getPath(created.get(created.size() - 1)));
   }
@@ -253,7 +253,7 @@ public final class InodeTreeTest {
   public void deleteInodeTest() throws Exception {
     InodeTree.CreatePathResult createResult =
         mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    List<Inode> created = createResult.created();
+    List<Inode> created = createResult.getCreated();
 
     // all inodes under root
     List<Inode> inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
@@ -279,7 +279,7 @@ public final class InodeTreeTest {
   public void setPinnedTest() throws Exception {
     InodeTree.CreatePathResult createResult =
         mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    List<Inode> created = createResult.created();
+    List<Inode> created = createResult.getCreated();
     Inode nested = created.get(created.size() - 1);
     mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
 

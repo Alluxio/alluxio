@@ -27,6 +27,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -541,8 +542,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
      * @param created a list of created inodes
      */
     CreatePathResult(List<Inode> modified, List<Inode> created) {
-      mModified = modified;
-      mCreated = created;
+      mModified = Preconditions.checkNotNull(modified);
+      mCreated = Preconditions.checkNotNull(created);
     }
 
     /**
@@ -556,14 +557,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     /**
      * @return the list of inodes modified during path creation.
      */
-    public List<Inode> modified() {
+    public List<Inode> getModified() {
       return mModified;
     }
 
     /**
      * @return the list of inodes created during path creation.
      */
-    public List<Inode> created() {
+    public List<Inode> getCreated() {
       return mCreated;
     }
   }
