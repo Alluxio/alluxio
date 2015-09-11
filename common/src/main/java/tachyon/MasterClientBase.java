@@ -35,6 +35,7 @@ import com.google.common.base.Throwables;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
+import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -118,8 +119,8 @@ public abstract class MasterClientBase implements Closeable {
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with "
           + getServiceName() + " master @ " + mMasterAddress);
 
-      TProtocol binaryProtocol = new TBinaryProtocol(new TFramedTransport(
-          new TSocket(NetworkAddressUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
+      TProtocol binaryProtocol = new TBinaryProtocol(new AuthenticationFactory(mTachyonConf)
+          .getClientTransport(mMasterAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();

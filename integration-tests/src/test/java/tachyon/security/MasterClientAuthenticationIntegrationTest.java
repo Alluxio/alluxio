@@ -40,7 +40,6 @@ import tachyon.security.authentication.AuthenticationProvider;
  * Though its name indicates that it provides the tests for Tachyon authentication. This class is
  * likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
  */
-@Ignore
 public class MasterClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private ExecutorService mExecutorService = null;
