@@ -94,27 +94,41 @@ public class ClientContext {
   }
 
   /**
-   * This method is only for testing purposes.
-   *
-   * @param conf new configuration to use
+   * PrivateReinitializer can be used to reset the context. This access is limited only to classes
+   * that implement ReinitializeAccess class.
    */
-  // TODO(calvin): Find a better way to handle testing configurations
-  public static synchronized void reinitializeWithConf(TachyonConf conf) {
-    sTachyonConf = conf;
-    String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
+  public static class PrivateReinitializer {
+    /**
+     * Re-initializes the client context.
+     *
+     * @param conf new configuration to use
+     */
+    public synchronized void reinitializeWithConf(TachyonConf conf) {
+      sTachyonConf = conf;
+      String masterHostname =
+          Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
+      int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
 
-    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
+      sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
-    sRandom = new Random();
-    // the initialization is done lazily because BlockStoreContext and FileSystemContext need
-    // ClientContext for class initialization
-    if (sBSCReinitializer == null || sFSCReinitializer == null) {
-      BlockStoreContext.INSTANCE.accessReinitializer(sBSCReinitializerAccesser);
-      FileSystemContext.INSTANCE.accessReinitializer(sFSCReinitializerAccesser);
+      sRandom = new Random();
+      // the initialization is done lazily because BlockStoreContext and FileSystemContext need
+      // ClientContext for class initialization
+      if (sBSCReinitializer == null || sFSCReinitializer == null) {
+        BlockStoreContext.INSTANCE.accessReinitializer(sBSCReinitializerAccesser);
+        FileSystemContext.INSTANCE.accessReinitializer(sFSCReinitializerAccesser);
+      }
+      sBSCReinitializer.resetContext();
+      sFSCReinitializer.resetContext();
     }
-    sBSCReinitializer.resetContext();
-    sFSCReinitializer.resetContext();
+  }
+
+  public interface ReinitializerAccesser {
+    void receiveAccess(PrivateReinitializer access);
+  }
+
+  public static void accessReinitializer(ReinitializerAccesser accesser) {
+    accesser.receiveAccess(new PrivateReinitializer());
   }
 
   private ClientContext() {}

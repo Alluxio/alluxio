@@ -23,8 +23,8 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
-import tachyon.client.TachyonFS;
 import tachyon.client.ClientContext;
+import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
@@ -52,6 +52,16 @@ public final class LocalTachyonCluster {
     cluster.stop();
     CommonUtils.sleepMs(Constants.SECOND_MS);
   }
+
+  // private access to the reinitializer of ClientContext
+  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
+      new ClientContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(ClientContext.PrivateReinitializer access) {
+          sReinitializer = access;
+        }
+      };
+  private static ClientContext.PrivateReinitializer sReinitializer;
 
   private BlockWorker mWorker = null;
 
@@ -219,7 +229,10 @@ public final class LocalTachyonCluster {
     mWorkerThread.start();
     // waiting for worker web server startup
     CommonUtils.sleepMs(null, 100);
-    ClientContext.reinitializeWithConf(mWorkerConf);
+    if (sReinitializer == null) {
+      ClientContext.accessReinitializer(sReinitializerAccesser);
+    }
+    sReinitializer.reinitializeWithConf(mWorkerConf);
   }
 
   /**
