@@ -177,7 +177,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     Preconditions.checkArgument(pos <= mFileLength,
         "Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
 
-    moveBlockInStream(pos);
+    seekBlockInStream(pos);
     checkAndAdvanceBlockInStream();
     mCurrentBlockInStream.seek(mPos % mBlockSize);
   }
@@ -191,7 +191,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     long toSkip = Math.min(n, mFileLength - mPos);
     long newPos = mPos + toSkip;
     long toSkipInBlock = ((newPos / mBlockSize) > mPos / mBlockSize) ? newPos % mBlockSize : toSkip;
-    moveBlockInStream(newPos);
+    seekBlockInStream(newPos);
     checkAndAdvanceBlockInStream();
     if (toSkipInBlock != mCurrentBlockInStream.skip(toSkipInBlock)) {
       throw new IOException("The underlying BlockInStream could not skip " + toSkip);
@@ -211,25 +211,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   private void checkAndAdvanceBlockInStream() throws IOException {
     long currentBlockId = getBlockCurrentBlockId();
     if (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0) {
-      if (mCurrentBlockInStream != null) {
-        mCurrentBlockInStream.close();
-      }
-      try {
-        if (mTachyonStorageType.isPromote()) {
-          mContext.getTachyonBlockStore().promote(currentBlockId);
-        }
-        mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(currentBlockId);
-        mShouldCacheCurrentBlock =
-            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
-      } catch (IOException ioe) {
-        if (null == mUfsPath || mUfsPath.isEmpty()) {
-          throw ioe;
-        }
-        // TODO(yupeng): Maybe debug log here.
-        long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
-        mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
-        mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
-      }
+      updateBlockInStream(currentBlockId);
       closeCacheStream();
       if (mShouldCacheCurrentBlock) {
         try {
@@ -281,31 +263,14 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @param newPos the new position to set the stream to
    * @throws IOException if the stream at the specified position cannot be opened
    */
-  // TODO(yupeng): This can be combined with check and advance.
-  private void moveBlockInStream(long newPos) throws IOException {
+  private void seekBlockInStream(long newPos) throws IOException {
     long oldBlockId = getBlockCurrentBlockId();
     mPos = newPos;
     closeCacheStream();
     long currentBlockId = getBlockCurrentBlockId();
 
     if (oldBlockId != currentBlockId) {
-      if (mCurrentBlockInStream != null) {
-        mCurrentBlockInStream.close();
-      }
-      try {
-        if (mTachyonStorageType.isPromote()) {
-          mContext.getTachyonBlockStore().promote(currentBlockId);
-        }
-        mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(currentBlockId);
-        mShouldCacheCurrentBlock =
-            !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
-      } catch (IOException ioe) {
-        // TODO(yupeng): Maybe debug log here.
-        long blockStart = BlockId.getSequenceNumber(currentBlockId) * mBlockSize;
-        mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
-        mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
-      }
-
+      updateBlockInStream(currentBlockId);
       // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
@@ -318,6 +283,33 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       } else {
         mShouldCacheCurrentBlock = false;
       }
+    }
+  }
+
+  /**
+   * Helper method to checkAndAdvanceBlockInStream and seekBlockInStream. The current
+   * BlockInStream will be closed and a new BlockInStream for the given blockId will be opened at
+   * position 0.
+   *
+   * @param blockId blockId to set the mCurrentBlockInStream to read
+   * @throws IOException if the next BlockInStream cannot be obtained
+   */
+  private void updateBlockInStream(long blockId) throws IOException {
+    if (mCurrentBlockInStream != null) {
+      mCurrentBlockInStream.close();
+    }
+    try {
+      mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(blockId);
+      mShouldCacheCurrentBlock =
+          !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
+    } catch (IOException ioe) {
+      if (mUfsPath == null || mUfsPath.isEmpty()) {
+        // TODO(yupeng): Maybe debug log here.
+        throw ioe;
+      }
+      long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
+      mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
+      mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     }
   }
 }
