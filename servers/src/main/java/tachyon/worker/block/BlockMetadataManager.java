@@ -345,9 +345,6 @@ public class BlockMetadataManager {
   /**
    * Moves an existing block to another location currently hold by a temp block.
    *
-   * When the src blockMeta and the tempBlockMeta share the same dir under same tier, this
-   * method will simply remove the latter from meta manager and return the blockMeta directly.
-   *
    * @param blockMeta the meta data of the block to move
    * @param tempBlockMeta a placeholder in the destination directory
    * @return the new block metadata if success, absent otherwise
@@ -359,16 +356,10 @@ public class BlockMetadataManager {
       throws NotFoundException, OutOfSpaceException, AlreadyExistsException {
     StorageDir srcDir = blockMeta.getParentDir();
     StorageDir dstDir = tempBlockMeta.getParentDir();
-
-    dstDir.removeTempBlockMeta(tempBlockMeta);
-
-    if (srcDir.equals(dstDir)) {
-      return blockMeta;
-    }
-
     srcDir.removeBlockMeta(blockMeta);
     BlockMeta newBlockMeta =
         new BlockMeta(blockMeta.getBlockId(), blockMeta.getBlockSize(), dstDir);
+    dstDir.removeTempBlockMeta(tempBlockMeta);
     dstDir.addBlockMeta(newBlockMeta);
     return newBlockMeta;
   }
