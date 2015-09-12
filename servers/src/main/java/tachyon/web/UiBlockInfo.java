@@ -58,7 +58,7 @@ public final class UiBlockInfo {
       locations.add(location.getWorkerAddress().getHost());
     }
     // add underFS locations
-    for (NetAddress address : fileBlockInfo.getUnderFsLocations()) {
+    for (NetAddress address : fileBlockInfo.getUfsLocations()) {
       locations.add(address.getHost());
     }
     mLocations.addAll(locations);

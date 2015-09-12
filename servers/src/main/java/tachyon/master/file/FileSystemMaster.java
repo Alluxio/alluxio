@@ -650,7 +650,7 @@ public final class FileSystemMaster extends MasterBase {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
     fileBlockInfo.blockInfo = blockInfo;
-    fileBlockInfo.underFsLocations = new ArrayList<NetAddress>();
+    fileBlockInfo.ufsLocations = new ArrayList<NetAddress>();
 
     // The sequence number part of the block id is the block index.
     fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
@@ -679,7 +679,7 @@ public final class FileSystemMaster extends MasterBase {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.underFsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort));
+          fileBlockInfo.ufsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort));
         }
       }
     }

@@ -221,7 +221,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
             addrs.add(location.getWorkerAddress());
           }
           // add underFS locations
-          addrs.addAll(blockInfo.getUnderFsLocations());
+          addrs.addAll(blockInfo.getUfsLocations());
           toAdd.setFileLocations(addrs);
         }
       } catch (FileDoesNotExistException fdne) {

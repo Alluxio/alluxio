@@ -212,7 +212,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         }
       }
       // under FS locations
-      List<NetAddress> underFsLocations = getClientBlockInfo(0).getUnderFsLocations();
+      List<NetAddress> underFsLocations = getClientBlockInfo(0).getUfsLocations();
       if (underFsLocations != null) {
         for (NetAddress location : underFsLocations) {
           ret.add(location.host);
