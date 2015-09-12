@@ -12,6 +12,7 @@
 .settings/
 /journal/
 conf/tachyon-env.sh
+conf/tachyon-env.sh.bootstrap.bk
 data/
 dependency-reduced-pom.xml
 deploy/vagrant/.vagrant/
