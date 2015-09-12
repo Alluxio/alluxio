@@ -322,7 +322,7 @@ abstract class AbstractTFS extends FileSystem {
           addrs.add(location.getWorkerAddress());
         }
         // then add under file system location
-        addrs.addAll(info.getUnderFsLocations());
+        addrs.addAll(info.getUfsLocations());
         for (NetAddress addr : addrs) {
           // Name format is "hostname:data transfer port"
           String name = addr.host + ":" + addr.dataPort;
