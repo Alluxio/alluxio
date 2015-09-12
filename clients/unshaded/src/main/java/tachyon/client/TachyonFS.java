@@ -327,14 +327,13 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   @Override
-  public synchronized int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
+  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
     validateUri(path);
-    // TODO(calvin): This is not safe.
     if (blockSizeByte > 0) {
-      return (int) mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
+      return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
     } else {
-      return (int) mFSMasterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(),
+      return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(),
           blockSizeByte, recursive);
     }
   }
