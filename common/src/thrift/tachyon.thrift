@@ -29,19 +29,20 @@ struct BlockLocation {
   3: i32 tier
 }
 
+// Contains the information of a block in Tachyon. It maintains the worker nodes where the replicas
+// of the blocks are stored.
 struct BlockInfo {
   1: i64 blockId
   2: i64 length
   3: list<BlockLocation> locations
 }
 
-// Information about files.
-// TODO: Just include a BlockInfo in this FileBlockInfo
+// Contains the information of a block in a file. In addition to the BlockInfo, it includes the 
+// offset in the file, and the under file system locations of the block replicas
 struct FileBlockInfo {
-  1: i64 blockId
+  1: BlockInfo blockInfo
   2: i64 offset
-  3: i64 length
-  4: list<NetAddress> locations
+  3: list<NetAddress> underFsLocations
 }
 
 struct FileInfo {

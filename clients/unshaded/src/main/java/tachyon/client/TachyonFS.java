@@ -432,7 +432,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return info.blockIds.get(blockIndex);
     }
 
-    return mFSMasterClient.getFileBlockInfo(fileId, blockIndex).getBlockId();
+    return mFSMasterClient.getFileBlockInfo(fileId, blockIndex).blockInfo.getBlockId();
   }
 
   /**

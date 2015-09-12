@@ -312,30 +312,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets the list of block info of an InodeFile determined by path.
-   *
-   * TODO: get rid of this after FileBlockInfo contains MasterBlockInfo
-   *
-   * @param path path to the file
-   * @return The list of the block info of the file
-   * @throws InvalidPathException when the path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
-   */
-  public List<BlockInfo> getBlockInfoList(TachyonURI path)
-      throws InvalidPathException, FileDoesNotExistException {
-    long fileId = getFileId(path);
-    Inode inode = mInodeTree.getInodeById(fileId);
-    if (inode == null) {
-      throw new FileDoesNotExistException(path + " does not exist.");
-    }
-    if (!inode.isFile()) {
-      throw new FileDoesNotExistException(path + " is not a file.");
-    }
-    InodeFile inodeFile = (InodeFile) inode;
-    return mBlockMaster.getBlockInfoList(inodeFile.getBlockIds());
-  }
-
-  /**
    * Returns the file id for a given path. Called via RPC, as well as internal masters.
    *
    * @param path the path to get the file id for
@@ -656,21 +632,30 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * Returns all the {@link FileBlockInfo} of the given file. Called by web UI.
+   *
+   * @param path the path to the file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the file.
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   */
+  public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
+      throws FileDoesNotExistException, InvalidPathException {
+    long fileId = getFileId(path);
+    return getFileBlockInfoList(fileId);
+  }
+
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
-    fileBlockInfo.blockId = blockInfo.blockId;
-    fileBlockInfo.length = blockInfo.length;
-    List<NetAddress> addressList = new ArrayList<NetAddress>();
-    for (BlockLocation blockLocation : blockInfo.locations) {
-      addressList.add(blockLocation.workerAddress);
-    }
-    fileBlockInfo.locations = addressList;
+    fileBlockInfo.blockInfo = blockInfo;
+    fileBlockInfo.underFsLocations = new ArrayList<NetAddress>();
 
     // The sequence number part of the block id is the block index.
     fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
 
-    if (fileBlockInfo.locations.isEmpty() && file.hasCheckpointed()) {
+    if (fileBlockInfo.blockInfo.locations.isEmpty() && file.hasCheckpointed()) {
       // No tachyon locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       UnderFileSystem ufs = UnderFileSystem.get(file.getUfsPath(), mTachyonConf);
@@ -694,7 +679,7 @@ public final class FileSystemMaster extends MasterBase {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.locations.add(new NetAddress(resolvedHost, -1, resolvedPort));
+          fileBlockInfo.underFsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort));
         }
       }
     }
