@@ -31,8 +31,8 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.WorkerBlockMasterClient;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
@@ -75,7 +75,7 @@ public final class BlockWorker {
   /** Client for all block master communication */
   private final WorkerBlockMasterClient mWorkerBlockMasterClient;
   /** Client for all file system master communication */
-  private final FileSystemMasterClient mFileSystemMasterClient;
+  private final WorkerFileSystemMasterClient mWorkerFileSystemMasterClient;
   /** The executor service for the master client thread */
   private final ExecutorService mMasterClientExecutorService;
   /** Threadpool for the master sync */
@@ -164,14 +164,14 @@ public final class BlockWorker {
         new WorkerBlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
             mTachyonConf), mMasterClientExecutorService, mTachyonConf);
 
-    mFileSystemMasterClient =
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
+    mWorkerFileSystemMasterClient = new WorkerFileSystemMasterClient(
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
+        mMasterClientExecutorService, mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
     mBlockDataManager =
-        new BlockDataManager(workerSource, mWorkerBlockMasterClient, mFileSystemMasterClient);
+        new BlockDataManager(workerSource, mWorkerBlockMasterClient, mWorkerFileSystemMasterClient);
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -217,7 +217,7 @@ public final class BlockWorker {
     mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
+    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mWorkerFileSystemMasterClient);
 
     // Setup session cleaner
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager, mTachyonConf);
