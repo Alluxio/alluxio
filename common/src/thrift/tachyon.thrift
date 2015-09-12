@@ -42,7 +42,7 @@ struct BlockInfo {
 struct FileBlockInfo {
   1: BlockInfo blockInfo
   2: i64 offset
-  3: list<NetAddress> underFsLocations
+  3: list<NetAddress> ufsLocations
 }
 
 struct FileInfo {
