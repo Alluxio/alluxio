@@ -23,8 +23,8 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.WorkerBlockMasterClient;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
@@ -61,8 +61,8 @@ public final class BlockDataManager {
 
   /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
   private WorkerBlockMasterClient mWorkerBlockMasterClient;
-  /** FileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
-  private FileSystemMasterClient mFileSystemMasterClient;
+  /** WorkerFileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
+  private WorkerFileSystemMasterClient mWorkerFileSystemMasterClient;
   /** UnderFileSystem Client */
   private UnderFileSystem mUfs;
   /** Session metadata, used to keep track of session heartbeats */
@@ -79,7 +79,7 @@ public final class BlockDataManager {
    */
   public BlockDataManager(WorkerSource workerSource,
       WorkerBlockMasterClient workerBlockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient) throws IOException {
+      WorkerFileSystemMasterClient workerFileSystemMasterClient) throws IOException {
     // TODO: We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -88,7 +88,7 @@ public final class BlockDataManager {
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
     mWorkerBlockMasterClient = workerBlockMasterClient;
-    mFileSystemMasterClient = fileSystemMasterClient;
+    mWorkerFileSystemMasterClient = workerFileSystemMasterClient;
 
     // Create Under FileSystem Client
     String ufsAddress =
@@ -165,7 +165,7 @@ public final class BlockDataManager {
     } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
-    mFileSystemMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
+    mWorkerFileSystemMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
   }
 
   /**
