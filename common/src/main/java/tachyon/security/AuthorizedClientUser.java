@@ -24,7 +24,7 @@ package tachyon.security;
  * all the RPC happens in this thread. These RPC methods implemented in server side could
  * get the client user by this class.
  */
-public class AuthorizedClientUser {
+public final class AuthorizedClientUser {
 
   /**
    * A ThreadLocal variable to maintain the client user along with a specific thread.

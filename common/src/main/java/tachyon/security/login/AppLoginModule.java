@@ -32,7 +32,7 @@ import tachyon.security.User;
  * want to get different identifies (for resource and data management), or if Tachyon clients
  * running under different OS user names want to get same identify.
  */
-public class AppLoginModule implements LoginModule {
+public final class AppLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
 

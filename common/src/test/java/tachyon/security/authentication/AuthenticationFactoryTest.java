@@ -77,17 +77,10 @@ public class AuthenticationFactoryTest {
     authType = new AuthenticationFactory(mTachyonConf).getAuthType();
     Assert.assertEquals(AuthenticationFactory.AuthType.KERBEROS, authType);
 
-    // case insensitive - should return a SIMPLE AuthType with conf "simple"
-    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "simple");
-    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
-    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authType);
-
     // wrong configuration - should throw exception with conf "wrong"
     mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "wrong");
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("wrong is not a valid authentication type. Check the configuration "
-        + "parameter " + Constants.TACHYON_SECURITY_AUTHENTICATION);
-    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
+    new AuthenticationFactory(mTachyonConf).getAuthType();
   }
 
   /**

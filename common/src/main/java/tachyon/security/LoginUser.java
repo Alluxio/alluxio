@@ -22,6 +22,7 @@ import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
+import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.security.authentication.AuthenticationFactory;
 import tachyon.security.login.TachyonJaasConfiguration;
@@ -34,7 +35,7 @@ import tachyon.security.login.TachyonJaasConfiguration;
  *
  * This singleton uses lazy initialization.
  */
-public class LoginUser {
+public final class LoginUser {
 
   /** User instance of the login user in Tachyon client process */
   private static User sLoginUser;
@@ -42,14 +43,13 @@ public class LoginUser {
   /**
    * This constructor should never be invoked.
    */
-  private LoginUser() {
-  }
+  private LoginUser() {} // prevent instantiation
 
   /**
-   * Get current singleton login user.
-   * This method is called to identify the singleton user who runs Tachyon client.
-   * When Tachyon client gets a user by this method and connects to Tachyon service,
+   * Get current singleton login user. This method is called to identify the singleton user who runs
+   * Tachyon client. When Tachyon client gets a user by this method and connects to Tachyon service,
    * this user represents the client and is maintained in service.
+   *
    * @param conf Tachyon configuration
    * @return the login user
    * @throws java.io.IOException if login fails
@@ -66,20 +66,22 @@ public class LoginUser {
   }
 
   /**
-   * Login based on the LoginModules
+   * Login based on the LoginModules.
+   *
    * @param conf Tachyon configuration
    * @return the login user
    * @throws IOException if login fails
    */
   private static User login(TachyonConf conf) throws IOException {
-    AuthenticationFactory.AuthType authType = AuthenticationFactory.getAuthTypeFromConf(conf);
+    AuthenticationFactory.AuthType authType = conf.getEnum(
+        Constants.TACHYON_SECURITY_AUTHENTICATION, AuthenticationFactory.AuthType.class);
     checkSecurityEnabled(authType);
 
     try {
       Subject subject = new Subject();
 
-      LoginContext loginContext = new LoginContext(authType.getAuthName(), subject, null,
-          new TachyonJaasConfiguration());
+      LoginContext loginContext =
+          new LoginContext(authType.getAuthName(), subject, null, new TachyonJaasConfiguration());
       loginContext.login();
 
       Set<User> userSet = subject.getPrincipals(User.class);
@@ -99,14 +101,15 @@ public class LoginUser {
 
   /**
    * Check whether Tachyon is running in secure mode, such as SIMPLE, KERBEROS, CUSTOM.
+   *
    * @param authType the authentication type in configuration
    */
   private static void checkSecurityEnabled(AuthenticationFactory.AuthType authType) {
-    //TODO: add Kerberos condition check.
+    // TODO: add Kerberos condition check.
     if (authType != AuthenticationFactory.AuthType.SIMPLE
         && authType != AuthenticationFactory.AuthType.CUSTOM) {
-      throw new UnsupportedOperationException("User is not supported in " + authType.getAuthName()
-          + " mode");
+      throw new UnsupportedOperationException(
+          "User is not supported in " + authType.getAuthName() + " mode");
     }
   }
 }

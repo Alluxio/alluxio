@@ -32,7 +32,7 @@ import tachyon.security.authentication.AuthenticationFactory;
  * Then JAAS login framework use the selected array of AppConfigurationEntry to determine the
  * login modules to be used.
  */
-public class TachyonJaasConfiguration extends Configuration {
+public final class TachyonJaasConfiguration extends Configuration {
 
   private static final Map<String, String> BASIC_JAAS_OPTIONS = new HashMap<String,String>();
 

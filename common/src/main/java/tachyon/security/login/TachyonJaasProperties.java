@@ -20,7 +20,7 @@ import tachyon.util.PlatformUtils;
 /**
  * This class collects constants used in JAAS login.
  */
-public class TachyonJaasProperties {
+public final class TachyonJaasProperties {
 
   private static final String OS_LOGIN_MODULE_NAME;
   private static final String OS_PRINCIPAL_CLASS_NAME;
