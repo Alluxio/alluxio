@@ -60,14 +60,7 @@ public class TachyonMaster {
     try {
       // TODO: create a master context with the tachyon conf.
       TachyonConf conf = new TachyonConf();
-      TachyonMaster master;
-      if (conf.getBoolean(Constants.USE_ZOOKEEPER)) {
-        // fault tolerant mode.
-        master = new TachyonMasterFaultTolerant(conf);
-      } else {
-        master = new TachyonMaster(conf);
-      }
-      master.start();
+      Factory.createMaster(conf).start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
@@ -112,7 +105,25 @@ public class TachyonMaster {
   /** The start time for when the master started serving the RPC server */
   private long mStartTimeMs = -1;
 
-  public TachyonMaster(TachyonConf tachyonConf) {
+  /**
+   * Factory for creating {@link TachyonMaster} or {@link TachyonMasterFaultTolerant} based on
+   * {@link TachyonConf}.
+   */
+  public static class Factory {
+    /**
+     * @param tachyonConf
+     * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
+     *         return {@link TachyonMaster}.
+     */
+    public static TachyonMaster createMaster(TachyonConf tachyonConf) {
+      if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
+        return new TachyonMasterFaultTolerant(tachyonConf);
+      }
+      return new TachyonMaster(tachyonConf);
+    }
+  }
+
+  protected TachyonMaster(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
 
     mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
