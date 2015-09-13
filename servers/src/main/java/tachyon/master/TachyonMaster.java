@@ -58,16 +58,7 @@ public class TachyonMaster {
     }
 
     try {
-      // TODO: create a master context with the tachyon conf.
-      TachyonConf conf = new TachyonConf();
-      TachyonMaster master;
-      if (conf.getBoolean(Constants.USE_ZOOKEEPER)) {
-        // fault tolerant mode.
-        master = new TachyonMasterFaultTolerant(conf);
-      } else {
-        master = new TachyonMaster(conf);
-      }
-      master.start();
+      TachyonMaster.createTachyonMaster().start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
@@ -112,8 +103,15 @@ public class TachyonMaster {
   /** The start time for when the master started serving the RPC server */
   private long mStartTimeMs = -1;
 
-  public TachyonMaster(TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+  public static TachyonMaster createTachyonMaster() {
+    if (MasterContext.getConf().getBoolean(Constants.USE_ZOOKEEPER)) {
+      return new TachyonMasterFaultTolerant();
+    }
+    return new TachyonMaster();
+  }
+
+  public TachyonMaster() {
+    mTachyonConf = MasterContext.getConf();
 
     mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
     mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);

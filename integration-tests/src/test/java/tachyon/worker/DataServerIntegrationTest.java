@@ -44,6 +44,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -105,9 +106,6 @@ public class DataServerIntegrationTest {
     mTFS.close();
     mBlockMasterClient.close();
     mLocalTachyonCluster.stop();
-    System.clearProperty(Constants.WORKER_DATA_SERVER);
-    System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
-    System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   /**
@@ -140,16 +138,15 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = MasterContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-
-    System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mBlockReader);
+    tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    tachyonConf.set(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    tachyonConf.set(Constants.USER_REMOTE_BLOCK_READER, mBlockReader);
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
 
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mTFS = mLocalTachyonCluster.getClient();
 

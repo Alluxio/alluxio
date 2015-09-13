@@ -133,12 +133,10 @@ public final class LocalTachyonCluster {
   /**
    * Configure and start master.
    *
-   * @param conf Tachyon configuration
    * @throws IOException when the operation fails
    */
-  public void startMaster(TachyonConf conf) throws IOException {
-    // TODO: Would be good to have a masterContext as well
-    mMasterConf = conf;
+  public void startMaster() throws IOException {
+    mMasterConf = MasterContext.getConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
@@ -149,7 +147,7 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.MASTER_PORT, Integer.toString(0));
     mMasterConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
 
-    mMaster = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
+    mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();
   }
 
@@ -228,16 +226,6 @@ public final class LocalTachyonCluster {
    * @throws IOException when the operation fails
    */
   public void start() throws IOException {
-    start(new TachyonConf());
-  }
-
-  /**
-   * Start both a master and a worker using the given configuration.
-   *
-   * @param conf Tachyon configuration
-   * @throws IOException when the operation fails
-   */
-  public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     mWorkerDataFolder = "/datastore";
@@ -246,7 +234,7 @@ public final class LocalTachyonCluster {
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
-    startMaster(conf);
+    startMaster();
 
     UnderFileSystemUtils.mkdirIfNotExists(
         mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"), mMasterConf);
