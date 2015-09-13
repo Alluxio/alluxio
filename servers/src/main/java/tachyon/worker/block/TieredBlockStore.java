@@ -163,7 +163,7 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockReader getBlockReader(long sessionId, long blockId)
-      throws NotFoundException, InvalidStateException, IOException {
+      throws NotFoundException, IOException {
     mMetadataReadLock.lock();
     try {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);

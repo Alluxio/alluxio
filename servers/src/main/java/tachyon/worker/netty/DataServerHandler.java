@@ -105,8 +105,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       reader = mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId);
     } catch (NotFoundException nfe) {
       throw new IOException(nfe);
-    } catch (InvalidStateException fpe) {
-      throw new IOException(fpe);
     }
     try {
       req.validate();

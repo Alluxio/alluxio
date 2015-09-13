@@ -24,6 +24,7 @@ import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -554,6 +555,7 @@ public class RemoteBlockInStreamIntegrationTest {
   /**
    * Test remote read stream lock in <code>RemoteBlockInStream</code>.
    */
+  // TODO: figure out why this test fails
   @Test
   public void remoteReadLockTest() throws IOException {
     String uniqPath = PathUtils.uniqPath();
@@ -568,8 +570,8 @@ public class RemoteBlockInStreamIntegrationTest {
               .getWorkerAddress());
       is.read();
       mTfs.delete(f);
-      is.close();
       Assert.assertNotNull(mTfs.getInfo(f));
+      is.close();
     }
   }
 

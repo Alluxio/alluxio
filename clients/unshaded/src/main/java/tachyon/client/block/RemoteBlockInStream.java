@@ -64,7 +64,7 @@ public final class RemoteBlockInStream extends BlockInStream {
       throw ioe;
     }
 
-    if (null == blockPath) {
+    if (blockPath == null) {
       // TODO(calvin): Handle this error case better.
       mContext.releaseWorkerClient(mWorkerClient);
       throw new IOException("Block is not available on remote machine: " + location.getHost());
