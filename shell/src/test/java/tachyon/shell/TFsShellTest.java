@@ -459,14 +459,15 @@ public class TFsShellTest {
 
   @Test
   public void mkdirTest() throws IOException, TException {
-    String qualifiedPath = "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
-        + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
+    String qualifiedPath =
+        "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
+            + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
     mFsShell.run(new String[] {"mkdir", qualifiedPath});
     TachyonFile tFile = mTfs.open(new TachyonURI("/root/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
-    Assert.assertEquals(getCommandOutput(new String[]{"mkdir", qualifiedPath}),
-            mOutput.toString());
+    Assert
+        .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
 
