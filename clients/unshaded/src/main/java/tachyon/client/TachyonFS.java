@@ -652,8 +652,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
-                                             boolean useCachedMetadata)
-      throws IOException {
+      boolean useCachedMetadata) throws IOException {
     if (fileId == -1) {
       try {
         fileId = mFSMasterClient.getFileId(path.getPath());

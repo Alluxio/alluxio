@@ -17,8 +17,6 @@ package tachyon.client;
 
 import java.io.IOException;
 
-import org.apache.thrift.TException;
-
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;

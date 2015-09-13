@@ -972,7 +972,7 @@ public class TFsShell implements Closeable {
    * @throws IOException
    */
   private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
-          throws IOException {
+      throws IOException {
     long sizeInBytes = 0;
     List<FileInfo> files = null;
     try {
