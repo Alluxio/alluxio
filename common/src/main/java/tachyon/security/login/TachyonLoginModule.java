@@ -30,7 +30,7 @@ import tachyon.security.User;
  * A login module that search the Kerberos or OS user from Subject, and then convert to a Tachyon
  * user. It does not really authenticate the user in its login method.
  */
-public class TachyonLoginModule implements LoginModule {
+public final class TachyonLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
 

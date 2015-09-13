@@ -29,7 +29,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Unit test for {@link tachyon.security.LoginUser}
  */
-public class LoginUserTest {
+public final class LoginUserTest {
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

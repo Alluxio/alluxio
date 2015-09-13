@@ -21,7 +21,7 @@ import java.security.Principal;
  * This class represents a user in Tachyon. It implements {@link java.security.Principal} in the
  * context of Java security frameworks.
  */
-public class User implements Principal {
+public final class User implements Principal {
   private final String mName;
 
   // TODO: add more attributes and methods for supporting Kerberos
