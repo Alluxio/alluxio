@@ -131,7 +131,7 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Configure and start master.
+   * Configures and starts master.
    *
    * @throws IOException when the operation fails
    */

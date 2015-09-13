@@ -18,9 +18,13 @@ package tachyon.master;
 import tachyon.conf.TachyonConf;
 
 /**
- * A MasterContext object stores TachyonConf
+ * A MasterContext object stores TachyonConf.
  */
-public class MasterContext {
+public final class MasterContext {
+  private MasterContext() {
+    // To prevent initialization
+  }
+
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
    * master process.
@@ -29,7 +33,7 @@ public class MasterContext {
 
   /**
    * Returns the one and only static {@link tachyon.conf.TachyonConf} object which is shared among
-   * all classes within the master process
+   * all classes within the master process.
    *
    * @return the tachyonConf for the worker process
    */
