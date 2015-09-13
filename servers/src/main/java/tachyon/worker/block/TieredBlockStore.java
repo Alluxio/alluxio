@@ -769,9 +769,10 @@ public final class TieredBlockStore implements BlockStore {
       // is a specific one with specific tier and dir which belongs to newLocation.
       dstLocation = dstTempBlock.getBlockLocation();
 
-      // when the dstLocation belongs to srcLocation, simply do nothing and return success with
-      // specific block location.
-      if (newLocation.belongTo(srcLocation)) {
+      // When the dstLocation belongs to srcLocation, simply abort the tempBlockMeta just created
+      // internally from the newLocation and return success with specific block location.
+      if (dstLocation.belongTo(srcLocation)) {
+        mMetaManager.abortTempBlockMeta(dstTempBlock);
         return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
       }
       dstFilePath = dstTempBlock.getCommitPath();
