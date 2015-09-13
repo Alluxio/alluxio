@@ -58,9 +58,7 @@ public class TachyonMaster {
     }
 
     try {
-      // TODO: create a master context with the tachyon conf.
-      TachyonConf conf = new TachyonConf();
-      Factory.createMaster(conf).start();
+      Factory.createMaster().start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
@@ -111,20 +109,19 @@ public class TachyonMaster {
    */
   public static class Factory {
     /**
-     * @param tachyonConf
      * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
      *         return {@link TachyonMaster}.
      */
-    public static TachyonMaster createMaster(TachyonConf tachyonConf) {
-      if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
-        return new TachyonMasterFaultTolerant(tachyonConf);
+    public static TachyonMaster createMaster() {
+      if (MasterContext.getConf().getBoolean(Constants.USE_ZOOKEEPER)) {
+        return new TachyonMasterFaultTolerant();
       }
-      return new TachyonMaster(tachyonConf);
+      return new TachyonMaster();
     }
   }
 
-  protected TachyonMaster(TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+  protected TachyonMaster() {
+    mTachyonConf = MasterContext.getConf();
 
     mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
     mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);

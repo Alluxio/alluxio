@@ -26,7 +26,6 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
 import tachyon.Version;
-import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.rawtable.RawTableMaster;
@@ -42,9 +41,9 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public TachyonMasterFaultTolerant(TachyonConf tachyonConf) {
-    super(tachyonConf);
-    Preconditions.checkArgument(tachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
+  public TachyonMasterFaultTolerant() {
+    super();
+    Preconditions.checkArgument(mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
 
     // Set up zookeeper specific functionality.
     try {
