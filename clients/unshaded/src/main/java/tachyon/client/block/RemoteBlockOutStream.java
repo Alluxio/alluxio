@@ -45,6 +45,22 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
         mWorkerClient.getSessionId());
   }
 
+  /**
+   * Creates a new block output stream on a specific host.
+   *
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param hostname the hostname of the preferred worker
+   * @throws IOException if I/O error occurs
+   */
+  public RemoteBlockOutStream(long blockId, long blockSize, String hostname) throws IOException {
+    super(blockId, blockSize);
+    mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
+    mWorkerClient = mContext.acquireWorkerClient(hostname);
+    mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
+        mWorkerClient.getSessionId());
+  }
+
   @Override
   public void cancel() throws IOException {
     if (mClosed) {
