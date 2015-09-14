@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.List;
 
 import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.thrift.FileInfo;
@@ -30,6 +31,7 @@ import tachyon.thrift.FileInfo;
  * class is thread safe. The read/write interface provided by this client is similar to Java's
  * input/output streams.
  */
+@PublicApi
 public class TachyonFileSystem implements Closeable, TachyonFSCore {
   /** A cached instance of the TachyonFileSystem */
   private static TachyonFileSystem sClient;
