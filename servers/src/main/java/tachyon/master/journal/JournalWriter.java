@@ -42,7 +42,7 @@ import tachyon.underfs.UnderFileSystem;
  */
 public final class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // TODO: make this a config parameter.
+  // TODO(gene): Make this a config parameter.
   private static int sMaxLogSize = 10 * Constants.MB;
 
   private final Journal mJournal;
@@ -63,7 +63,7 @@ public final class JournalWriter {
   /** The output stream singleton for the entry log files. */
   private EntryOutputStream mEntryOutputStream = null;
 
-  // TODO: start from the last known sequence number
+  // TODO(gene): Start from the last known sequence number.
   /** The sequence number for the next entry in the log. */
   private long mNextEntrySequenceNumber = 1;
 
@@ -76,7 +76,7 @@ public final class JournalWriter {
     mUfs = UnderFileSystem.get(mJournalDirectory, mTachyonConf);
   }
 
-  // TODO: when this max size is a config parameter, this method can be removed.
+  // TODO(gene): When this max size is a config parameter, this method can be removed.
   public static void setMaxLogSize(int sizeInBytes) {
     sMaxLogSize = sizeInBytes;
   }
@@ -173,7 +173,7 @@ public final class JournalWriter {
   private void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
-    // TODO: should the deletes start from the end?
+    // TODO(gene): Should the deletes start from the end?
     int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
@@ -265,7 +265,7 @@ public final class JournalWriter {
 
       LOG.info("Successfully created tmp checkpoint file: " + mTempCheckpointPath);
       mUfs.delete(mJournal.getCheckpointFilePath(), false);
-      // TODO: the real checkpoint should not be overwritten here, but after all operations.
+      // TODO(gene): The real checkpoint should not be overwritten here, but after all operations.
       mUfs.rename(mTempCheckpointPath, mJournal.getCheckpointFilePath());
       mUfs.delete(mTempCheckpointPath, false);
       LOG.info("Renamed checkpoint file " + mTempCheckpointPath + " to "

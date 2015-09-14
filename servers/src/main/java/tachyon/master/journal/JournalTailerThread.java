@@ -28,9 +28,9 @@ import tachyon.util.CommonUtils;
 
 public final class JournalTailerThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // TODO: make the quiet period a configuration parameter.
+  // TODO(gene): make the quiet period a configuration parameter.
   private static final int SHUTDOWN_QUIET_WAIT_TIME_MS = 5 * Constants.SECOND_MS;
-  // TODO: make this sleep time  a config parameter.
+  // TODO(gene): make this sleep time  a config parameter.
   private static final int JOURNAL_TAILER_SLEEP_TIME_MS = 1 * Constants.SECOND_MS;
 
   private final Master mMaster;
