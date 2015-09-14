@@ -61,7 +61,7 @@ public class RPCBlockWriteRequest extends RPCRequest {
     long length = in.readLong();
     DataBuffer data = null;
     if (length > 0) {
-      // TODO: look into accessing Netty ByteBuf directly, to avoid copying the data.
+      // TODO(hy): Look into accessing Netty ByteBuf directly, to avoid copying the data.
       ByteBuffer buffer = ByteBuffer.allocate((int) length);
       in.readBytes(buffer);
       data = new DataByteBuffer(buffer, (int) length);
