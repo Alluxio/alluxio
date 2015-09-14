@@ -1,0 +1,9 @@
+- name: mkdir /mesos
+  script: mkdir.sh
+
+- name: download mesos release
+  script: down_release.sh
+  environment:
+    MESOS_DIST: "{{ mesos_dist }}"
+
+# vim :set filetype=ansible.yaml:

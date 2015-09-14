@@ -22,12 +22,11 @@ import java.util.HashSet;
 import org.junit.Assert;
 import org.junit.Before;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-import tachyon.worker.WorkerContext;
+import tachyon.StorageLevelAlias;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
@@ -36,20 +35,26 @@ import tachyon.worker.block.meta.TempBlockMeta;
 
 public class BaseAllocatorTest {
 
-  protected static final long USER_ID = 1;
+  protected static final long SESSION_ID = 1;
   protected int mTestBlockId = 0;
 
   // Default tier/dir configurations we use for testing
-  protected static final int DEFAULT_WORKER_MAX_TIERED_STORAGE_LEVEL = 3;
+  public static final long DEFAULT_RAM_SIZE = 1000;
+  public static final long DEFAULT_SSD_SIZE = 2000;
+  public static final long DEFAULT_HDD_SIZE = 3000;
 
-  protected static final int DEFAULT_RAM_SIZE = 1000;
-  protected static final int DEFAULT_RAM_NUM  = 1;
+  public static final int[] TIER_LEVEL = {0, 1, 2};
+  public static final StorageLevelAlias[] TIER_ALIAS = {StorageLevelAlias.MEM,
+      StorageLevelAlias.SSD, StorageLevelAlias.HDD };
+  public static final String[][] TIER_PATH = {{"/ramdisk"}, {"/ssd1", "/ssd2"},
+      {"/disk1", "/disk2", "/disk3"}};
+  public static final long[][] TIER_CAPACITY_BYTES = {{DEFAULT_RAM_SIZE},
+      {DEFAULT_SSD_SIZE, DEFAULT_SSD_SIZE},
+      {DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE, DEFAULT_HDD_SIZE}};
 
-  protected static final int DEFAULT_SSD_SIZE = 2000;
-  protected static final int DEFAULT_SSD_NUM  = 2;
-
-  protected static final int DEFAULT_HDD_SIZE = 3000;
-  protected static final int DEFAULT_HDD_NUM  = 3;
+  public static final int DEFAULT_RAM_NUM  = TIER_PATH[0].length;
+  public static final int DEFAULT_SSD_NUM  = TIER_PATH[1].length;
+  public static final int DEFAULT_HDD_NUM  = TIER_PATH[2].length;
 
   protected BlockMetadataManagerView mManagerView = null;
   protected Allocator mAllocator = null;
@@ -65,76 +70,13 @@ public class BaseAllocatorTest {
   }
 
   protected void resetManagerView() throws Exception {
-    //TODO: we will probably want to set WorkerContext.tachyonConf
-    TachyonConf tachyonConf = WorkerContext.getConf();
-    tachyonConf.merge(createTestTachyonConf());
-    mManagerView = new BlockMetadataManagerView(
-        BlockMetadataManager.newBlockMetadataManager(),
-        new HashSet<Long>(), new HashSet<Long>());
-  }
-
-  protected TachyonConf createTestTachyonConf(
-      int nram, int ramsize,
-      int nssd, int ssdsize,
-      int nhdd, int hddsize) throws IOException {
-
     String tachyonHome =
         File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
-
-    TachyonConf tachyonConf = new TachyonConf();
-    tachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL,
-        DEFAULT_WORKER_MAX_TIERED_STORAGE_LEVEL + "");
-
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
-        generateDirsStr(nram, tachyonHome + "/ramdisk"));
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        generateSizeStr(nram, ramsize));
-
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "SSD");
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
-        generateDirsStr(nssd, tachyonHome + "/ssd"));
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
-        generateSizeStr(nssd, ssdsize));
-
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 2), "HDD");
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 2),
-        generateDirsStr(nhdd, tachyonHome + "/hdd"));
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 2),
-        generateSizeStr(nhdd, hddsize));
-    return tachyonConf;
-  }
-
-
-  /**
-   * Use the default configuration
-   * @throws IOException
-   */
-  protected TachyonConf createTestTachyonConf() throws IOException {
-    return createTestTachyonConf(
-        DEFAULT_RAM_NUM, DEFAULT_RAM_SIZE,
-        DEFAULT_SSD_NUM, DEFAULT_SSD_SIZE,
-        DEFAULT_HDD_NUM, DEFAULT_HDD_SIZE
-        );
-  }
-
-  /**
-   * Generate a string consisting of multiple dirs used as the configuration value
-   */
-  protected String generateDirsStr(int num, String dirBase) {
-    String res = "";
-    for (int i = 1; i < num + 1; i ++) {
-      res += (dirBase + i + ",");
-    }
-    return res.substring(0, res.length() - 1); //remove the last comma
-  }
-
-  protected String generateSizeStr(int num, int size) {
-    String res = "";
-    for (int i = 0; i < num; i ++) {
-      res += (size + ",");
-    }
-    return res.substring(0, res.length() - 1); //remove the last comma
+    TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS,
+        TIER_PATH, TIER_CAPACITY_BYTES, null);
+    BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();
+    mManagerView = new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+        new HashSet<Long>());
   }
 
   /**
@@ -142,14 +84,14 @@ public class BaseAllocatorTest {
    * we assert whether the block can be allocated
    */
   protected void assertTempBlockMeta(Allocator allocator, BlockStoreLocation location,
-      int blockSize, boolean avail) throws IOException {
+      long blockSize, boolean avail) throws IOException {
 
     mTestBlockId ++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(USER_ID, blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, mManagerView);
     TempBlockMeta tempBlockMeta =
-        dirView == null ? null : dirView.createTempBlockMeta(USER_ID, mTestBlockId, blockSize);
+        dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
     if (avail == false) {
       Assert.assertTrue(tempBlockMeta == null);
@@ -173,9 +115,9 @@ public class BaseAllocatorTest {
     mTestBlockId ++;
 
     StorageDirView dirView =
-        allocator.allocateBlockWithView(USER_ID, blockSize, location, mManagerView);
+        allocator.allocateBlockWithView(SESSION_ID, blockSize, location, mManagerView);
     TempBlockMeta tempBlockMeta =
-        dirView == null ? null : dirView.createTempBlockMeta(USER_ID, mTestBlockId, blockSize);
+        dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
     if (avail == false) {
       Assert.assertTrue(tempBlockMeta == null);

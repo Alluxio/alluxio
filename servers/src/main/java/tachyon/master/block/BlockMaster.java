@@ -132,7 +132,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_SERVICE_NAME);
   }
 
-  public BlockMaster(Journal journal, TachyonConf tachyonConf) {
+  public BlockMaster(TachyonConf tachyonConf, Journal journal) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)));
     mTachyonConf = tachyonConf;
@@ -300,7 +300,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   public long getNewContainerId() {
     synchronized (mBlockContainerIdGenerator) {
       long containerId = mBlockContainerIdGenerator.getNewContainerId();
-      writeJournalEntry(new BlockContainerIdGeneratorEntry(containerId));
+      writeJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
       flushJournal();
       return containerId;
     }
