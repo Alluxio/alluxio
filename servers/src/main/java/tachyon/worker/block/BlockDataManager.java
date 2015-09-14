@@ -23,6 +23,7 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.Sessions;
+import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
@@ -31,6 +32,7 @@ import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.thrift.FailedToCheckpointException;
+import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
@@ -56,7 +58,7 @@ public final class BlockDataManager {
   private final TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
   private final WorkerSource mWorkerSource;
-  /** Metrics reporter that listens on block events and increases metrics counters*/
+  /** Metrics reporter that listens on block events and increases metrics counters */
   private final BlockMetricsReporter mMetricsReporter;
 
   /** BlockMasterClient, only used to inform the master of a new block in commitBlock */
@@ -74,12 +76,11 @@ public final class BlockDataManager {
    * Creates a BlockDataManager based on the configuration values.
    *
    * @param workerSource object for collecting the worker metrics
-   * @param masterClient the Tachyon master client
+   * @param blockMasterClient the Tachyon master client
    * @throws IOException if fail to connect to under filesystem
    */
   public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
-                          FileSystemMasterClient fileSystemMasterClient)
-      throws IOException {
+      FileSystemMasterClient fileSystemMasterClient) throws IOException {
     // TODO: We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -91,8 +92,7 @@ public final class BlockDataManager {
     mFileSystemMasterClient = fileSystemMasterClient;
 
     // Create Under FileSystem Client
-    String ufsAddress =
-        mTachyonConf.get(Constants.UNDERFS_ADDRESS);
+    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
 
     // Connect to UFS to handle UFS security
@@ -135,8 +135,8 @@ public final class BlockDataManager {
    * Add the checkpoint information of a file. The information is from the session
    * <code>sessionId</code>.
    *
-   * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
-   * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
+   * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
+   * only if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
    * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a session temp
    * directory (temp directory is defined in the worker as {@link #getSessionUfsTmpFolder(long)}).
@@ -151,13 +151,22 @@ public final class BlockDataManager {
     String srcPath = PathUtils.concatPath(getSessionUfsTmpFolder(sessionId), fileId);
     String ufsDataFolder =
         mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-    String dstPath = PathUtils.concatPath(ufsDataFolder, fileId);
+    FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
+    TachyonURI uri = new TachyonURI(fileInfo.getPath());
+    String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
+    String parentPath = PathUtils.concatPath(ufsDataFolder, uri.getParent().getPath());
     try {
+      if (!mUfs.exists(parentPath)) {
+        if (!mUfs.mkdirs(parentPath, true)) {
+          throw new FailedToCheckpointException("Failed to create " + parentPath);
+        }
+      }
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
       }
     } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
+      throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath + ": "
+          + ioe);
     }
     long fileSize;
     try {
@@ -169,8 +178,8 @@ public final class BlockDataManager {
   }
 
   /**
-   * Cleans up after sessions, to prevent zombie sessions. This method is called periodically
-   * by {@link SessionCleaner} thread.
+   * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
+   * {@link SessionCleaner} thread.
    */
   public void cleanupSessions() {
     for (long session : mSessions.getTimedOutSessions()) {
@@ -180,9 +189,9 @@ public final class BlockDataManager {
   }
 
   /**
-   * Commits a block to Tachyon managed space. The block must be temporary. The block is
-   * persisted after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible
-   * until {@link BlockMasterClient#workerCommitBlock} succeeds
+   * Commits a block to Tachyon managed space. The block must be temporary. The block is persisted
+   * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
+   * {@link BlockMasterClient#workerCommitBlock} succeeds
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to commit
@@ -386,8 +395,8 @@ public final class BlockDataManager {
    * @throws InvalidStateException if sessionId or blockId is not the same as that in the LockRecord
    *         of lockId
    */
-  public String readBlock(long sessionId, long blockId, long lockId)
-      throws NotFoundException, InvalidStateException {
+  public String readBlock(long sessionId, long blockId, long lockId) throws NotFoundException,
+      InvalidStateException {
     BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
     return meta.getPath();
   }
@@ -472,8 +481,7 @@ public final class BlockDataManager {
   /**
    * Stop the block data manager. This method should only be called when terminating the worker.
    */
-  public void stop() {
-  }
+  public void stop() {}
 
   /**
    * Relinquishes the lock with the specified lock id.
@@ -502,8 +510,7 @@ public final class BlockDataManager {
   }
 
   /**
-   * Set the pinlist for the underlying blockstore.
-   * Typically called by PinListSync.
+   * Set the pinlist for the underlying blockstore. Typically called by PinListSync.
    *
    * @param pinnedInodes a set of pinned inodes
    */
