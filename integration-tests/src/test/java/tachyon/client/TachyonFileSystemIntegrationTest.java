@@ -105,7 +105,7 @@ public class TachyonFileSystemIntegrationTest {
     sTfs.getOutStream(uri, sWriteBoth);
   }
 
-  // TODO: Validate the URI
+  // TODO(calvin): Validate the URI.
   @Ignore
   @Test
   public void createFileWithInvalidPathExceptionTest() throws IOException {
@@ -114,9 +114,8 @@ public class TachyonFileSystemIntegrationTest {
     sTfs.getOutStream(new TachyonURI("root/testFile1"), sWriteBoth);
   }
 
-  // TODO: Add Raw Table Tests
-
-  // TODO: Check worker capacity?
+  // TODO(calvin): Add Raw Table tests.
+  // TODO(calvin): Check worker capacity?
   @Test
   public void deleteFileTest() throws IOException {
     String uniqPath = PathUtils.uniqPath();
