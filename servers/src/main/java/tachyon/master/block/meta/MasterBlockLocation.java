@@ -29,15 +29,17 @@ public final class MasterBlockLocation {
     mTier = tier;
   }
 
+  /**
+   * @return the Tachyon worker id
+   */
   public long getWorkerId() {
     return mWorkerId;
   }
 
+  /**
+   * @return the tier that the block is on in this worker.
+   */
   public int getTier() {
     return mTier;
-  }
-
-  public void setTier(int tier) {
-    mTier = tier;
   }
 }
