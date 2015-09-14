@@ -43,8 +43,6 @@ public final class LocalTachyonMaster {
   // TODO should this be moved to TachyonURI? Prob after UFS supports it
 
   private final String mTachyonHome;
-  private final String mDataDir;
-  private final String mLogDir;
   private final String mHostname;
 
   private final UnderFileSystemCluster mUnderFSCluster;
@@ -67,12 +65,6 @@ public final class LocalTachyonMaster {
   private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
     mTachyonHome = tachyonHome;
-
-    mDataDir = path(mTachyonHome, "data");
-    mLogDir = path(mTachyonHome, "logs");
-
-    UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
-    UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 

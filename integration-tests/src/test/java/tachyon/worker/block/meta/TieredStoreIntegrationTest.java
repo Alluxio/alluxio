@@ -37,6 +37,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 
@@ -100,7 +101,7 @@ public class TieredStoreIntegrationTest {
     try {
       mTFS.open(new TachyonURI("/test1"));
       Assert.fail("file should not exist: /test1");
-    } catch (IOException ioe) {
+    } catch (InvalidPathException e) {
       // This is expected, since the file should not exist.
     }
 

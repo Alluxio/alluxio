@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -148,7 +149,8 @@ public class PinIntegrationTest {
         Sets.newHashSet(file0.getFileId(), file3.getFileId()));
   }
 
-  private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException {
+  private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException,
+    TException {
     ClientOptions options =
         new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();

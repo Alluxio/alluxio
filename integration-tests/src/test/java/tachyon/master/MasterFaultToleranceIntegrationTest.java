@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,8 +33,9 @@ import tachyon.Pair;
 import tachyon.TachyonURI;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
@@ -67,13 +69,13 @@ public class MasterFaultToleranceIntegrationTest {
    * @throws IOException if an error occurs creating the file
    */
   private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
-      throws IOException {
+      throws IOException, TException {
     mTfs.mkdirs(folderName);
     answer.add(new Pair<Long, TachyonURI>(mTfs.open(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k ++) {
       TachyonURI path =
-          new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1), k));
+          new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
       mTfs.getOutStream(path, ClientOptions.defaults()).close();
       answer.add(new Pair<Long, TachyonURI>(mTfs.open(path).getFileId(), path));
     }
@@ -85,49 +87,45 @@ public class MasterFaultToleranceIntegrationTest {
    * @param answer the correct results
    * @throws IOException if an error occurs opening the file
    */
-  private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException {
+  private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException,
+      TException {
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
           mTfs.getInfo(new TachyonFile(answer.get(k).getFirst())).getPath());
-      Assert.assertEquals(answer.get(k).getFirst().intValue(),
+      Assert.assertEquals(answer.get(k).getFirst().longValue(),
           mTfs.open(answer.get(k).getSecond()).getFileId());
     }
   }
 
+  // TODO: Resolve the issue with HDFS as UnderFS
   @Ignore
   @Test
-  public void faultTest() throws IOException {
+  public void faultTest() throws IOException, TException {
     int clients = 10;
     List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
     for (int k = 0; k < clients; k ++) {
       faultTestDataCreation(new TachyonURI("/data" + k), answer);
     }
-
     faultTestDataCheck(answer);
 
-    for (int kills = 0; kills < 1; kills ++) {
+    for (int kills = 0; kills < MASTERS - 1; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(Constants.SECOND_MS * 3);
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
-    }
-
-    for (int kills = 1; kills < MASTERS - 1; kills ++) {
-      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(null, Constants.SECOND_MS * 3);
-      faultTestDataCheck(answer);
-      // TODO Add the following line back
-      // faultTestDataCreation("/data" + (clients + kills + 1), answer);
+      faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
     }
   }
 
+  // TODO: Resolve the issue with HDFS as UnderFS
   @Ignore
   @Test
-  public void getClientsTest() throws IOException {
+  public void createFilesTest() throws IOException, TException {
     int clients = 10;
-    ClientOptions option = new ClientOptions.Builder(new TachyonConf()).setBlockSize(1024).build();
+    ClientOptions option = new ClientOptions.Builder(new TachyonConf()).setBlockSize(1024)
+        .setUnderStorageType(UnderStorageType.PERSIST).build();
     for (int k = 0; k < clients; k ++) {
       TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
