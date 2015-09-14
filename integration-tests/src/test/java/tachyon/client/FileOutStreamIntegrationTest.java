@@ -169,7 +169,7 @@ public class FileOutStreamIntegrationTest {
   }
 
   private void writeTest1Util(TachyonURI filePath, ClientOptions op, int len) throws IOException,
-    TException {
+      TException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
@@ -192,7 +192,7 @@ public class FileOutStreamIntegrationTest {
   }
 
   private void writeTest2Util(TachyonURI filePath, ClientOptions op, int len) throws IOException,
-    TException {
+      TException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
     os.close();
@@ -213,7 +213,7 @@ public class FileOutStreamIntegrationTest {
   }
 
   private void writeTest3Util(TachyonURI filePath, ClientOptions op, int len) throws IOException,
-    TException {
+      TException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
     os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
