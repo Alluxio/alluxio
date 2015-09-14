@@ -15,26 +15,28 @@
 
 package tachyon.worker.block.allocator;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
 
 /**
- * A greedy allocator that returns the first Storage dir fitting the size of block to allocate.
- * This class serves as an example how to implement an allocator.
+ * A greedy allocator that returns the first Storage dir fitting the size of block to allocate. This
+ * class serves as an example how to implement an allocator.
  */
-public class GreedyAllocator implements Allocator {
+public final class GreedyAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   public GreedyAllocator(BlockMetadataManagerView view) {
-    mManagerView = view;
+    mManagerView = Preconditions.checkNotNull(view);
   }
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = view;
+    mManagerView = Preconditions.checkNotNull(view);
     return allocateBlock(sessionId, blockSize, location);
   }
 
@@ -51,6 +53,7 @@ public class GreedyAllocator implements Allocator {
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
+    Preconditions.checkNotNull(location);
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all tier views and dir views,
       // and return a temp block meta from the first available dirview.

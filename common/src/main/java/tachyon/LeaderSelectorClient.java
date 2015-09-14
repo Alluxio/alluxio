@@ -157,11 +157,12 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
       LOG.error(mName + " was interrupted.", e);
       Thread.currentThread().interrupt();
     } finally {
+      mIsLeader.set(false);
       mCurrentMasterThread = null;
       LOG.warn(mName + " relinquishing leadership.");
+      LOG.info("The current leader is " + mLeaderSelector.getLeader().getId());
+      LOG.info("All participants: " + mLeaderSelector.getParticipants());
+      client.delete().forPath(mLeaderFolder + mName);
     }
-    LOG.info("The current leader is " + mLeaderSelector.getLeader().getId());
-    LOG.info("All partitations: " + mLeaderSelector.getParticipants());
-    client.delete().forPath(mLeaderFolder + mName);
   }
 }
