@@ -48,7 +48,7 @@ public class CapacityUsageIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    // TODO Remove this once we are able to push tiered storage info to LocalTachyonCluster
+    // TODO(hy): Remove this once we are able to push tiered storage info to LocalTachyonCluster.
     System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1));
     System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1));
@@ -57,7 +57,7 @@ public class CapacityUsageIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
+    // TODO(hy): Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
     System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
     System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
     System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
@@ -108,7 +108,7 @@ public class CapacityUsageIntegrationTest {
     mTFS.delete(file2);
   }
 
-  // TODO: Rethink the approach of this test and what it should be testing
+  // TODO(calvin): Rethink the approach of this test and what it should be testing.
   // @Test
   public void deleteDuringEvictionTest() throws IOException {
     // This test may not trigger eviction each time, repeat it 20 times.
