@@ -37,9 +37,9 @@ import tachyon.thrift.WorkerInfo;
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon clients.
  *
- * TODO(jsimsa): The functions in this wrapper contain very similar boilerplate. It would make
- * sense to have a single "Retry" utility is used to to execute ther while () { try ... catch ... }
- * logic, parametrized by the RPC to invoke.
+ * TODO(jsimsa): The functions in this wrapper contain very similar boilerplate. It would make sense
+ * to have a single "Retry" utility is used to to execute the while () { try ... catch ... } logic,
+ * parametrized by the RPC to invoke.
  *
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
@@ -152,8 +152,8 @@ public final class BlockMasterClient extends MasterClientBase {
     throw new IOException("Failed after " + retry + " retries.");
   }
 
-  // TODO: split out the following worker specific interactions to a separate block master client
-  // for the worker.
+  // TODO(gene): Split out the following worker specific interactions to a separate block master
+  // client for the worker.
 
   /**
    * Commits a block on a worker.
@@ -188,7 +188,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * @return a worker id
    * @throws IOException if an I/O error occurs
    */
-  // TODO: rename to workerRegister?
+  // TODO(gene): Rename to workerRegister?
   public synchronized long workerGetId(NetAddress address) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
@@ -240,9 +240,9 @@ public final class BlockMasterClient extends MasterClientBase {
    * @return the worker id
    * @throws IOException if an I/O error occurs
    */
-  // TODO: rename to workerBlockReport or workerInitialize?
-  public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers, List<Long>
-      usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
+  // TODO(gene): Rename to workerBlockReport or workerInitialize?
+  public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers,
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();

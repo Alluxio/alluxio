@@ -47,8 +47,8 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-// TODO: split out worker-specific calls to a fs master client for workers.
-// TODO: figure out a retry utility to make all the retry logic in this file better.
+// TODO(gene): Split out worker-specific calls to a fs master client for workers.
+// TODO(gene): Figure out a retry utility to make all the retry logic in this file better.
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -149,7 +149,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the file block information
    * @throws IOException if an I/O error occurs
    */
-  // TODO: Not sure if this is necessary
+  // TODO(calvin): Not sure if this is necessary.
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException {
     int retry = 0;
@@ -174,7 +174,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @return the list of file block information for the given file id
    * @throws IOException if an I/O error occurs
    */
-  // TODO: Not sure if this is necessary
+  // TODO(calvin): Not sure if this is necessary.
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
