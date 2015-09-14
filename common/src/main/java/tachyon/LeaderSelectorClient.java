@@ -149,10 +149,13 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
         .forPath(mLeaderFolder.substring(0, mLeaderFolder.length() - 1)) != null) {
       childList = client.getChildren()
             .forPath(mLeaderFolder.substring(0, mLeaderFolder.length() - 1));
+
+      LOG.info("Deleting previous leaders under leader znode");
+      for (String child : childList) { 
+        client.delete().forPath(mLeaderFolder + child);
+      }
     }
-    for (String child : childList) { 
-      client.delete().forPath(mLeaderFolder + child);
-    }
+    
 
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
     LOG.info(mName + " is now the leader.");
