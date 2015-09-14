@@ -341,7 +341,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException, InvalidPathException {
+  private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
     return fileInfo;
@@ -358,7 +358,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException
    */
   public List<FileInfo> getFileInfoList(long fileId)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
 
@@ -943,11 +943,9 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the file to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
-   * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  public boolean free(long fileId, boolean recursive)
-      throws InvalidPathException, FileDoesNotExistException {
+  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
