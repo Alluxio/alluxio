@@ -226,7 +226,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
   public boolean mkdirs(TachyonURI path) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Change this RPC's arguments
+      // TODO(calvin): Change this RPC's arguments
       return masterClient.createDirectory(path.getPath(), true);
     } finally {
       mContext.releaseMasterClient(masterClient);
