@@ -81,7 +81,8 @@ public class FileSystemMasterClientIntegrationTest {
     fsMasterClient.close();
   }
 
-  // TODO: Cannot find counterpart for {@link MasterClientBase#user_getWorker} in new master clients
+  // TODO(gene): Cannot find counterpart for {@link MasterClientBase#user_getWorker} in new master
+  // clients.
   // @Test(timeout = 3000, expected = NoWorkerException.class)
   // public void user_getWorkerReturnsWhenNotLocal() throws Exception {
   // // This test was created to show that an infinite loop occurs.

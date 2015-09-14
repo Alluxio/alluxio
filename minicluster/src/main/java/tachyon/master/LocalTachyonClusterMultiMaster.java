@@ -155,7 +155,7 @@ public class LocalTachyonClusterMultiMaster {
 
     mHostname = NetworkAddressUtils.getLocalHostName(100);
 
-    // TODO: Would be good to have a masterContext as well
+    // TODO(calvin): Would be good to have a masterContext as well.
     mMasterConf = new TachyonConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);

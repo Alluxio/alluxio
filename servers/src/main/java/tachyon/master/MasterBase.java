@@ -97,8 +97,8 @@ public abstract class MasterBase implements Master {
       mJournalWriter.completeAllLogs();
 
       // Phase 2: Replay all the state of the checkpoint and the completed log files.
-      // TODO: only do this if this is a fresh start, not if this master had already been tailing
-      // the journal.
+      // TODO(gene): only do this if this is a fresh start, not if this master had already been
+      // tailing the journal.
       LOG.info(getServiceName() + ": process completed logs before becoming master.");
       JournalTailer catchupTailer = new JournalTailer(this, mJournal);
       if (catchupTailer.checkpointExists()) {
