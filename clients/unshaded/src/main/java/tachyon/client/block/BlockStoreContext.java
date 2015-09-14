@@ -220,7 +220,7 @@ public enum BlockStoreContext {
    * @return true if there was a local worker, false otherwise
    */
   // TODO(calvin): Handle the case when the local worker starts up after the client or shuts down
-  // TODO before the client does.
+  // before the client does.
   public boolean hasLocalWorker() {
     return mLocalBlockWorkerClientPool != null;
   }
