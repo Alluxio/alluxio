@@ -92,6 +92,9 @@
                 <filter>
                   <artifact>*:* </artifact>
                   <excludes>
+                    <!-- Excluding licenses in order to avoid case-insensitive collisions when unpacking with case-insensitive HFS+ -->
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
