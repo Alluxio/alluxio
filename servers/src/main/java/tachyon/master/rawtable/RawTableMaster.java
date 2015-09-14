@@ -272,7 +272,7 @@ public class RawTableMaster extends MasterBase {
    * @param metadata the metadata to be validated
    * @throws TachyonException if the metadata is too large
    */
-  // TODO(cc) have a more explicit TableMetaException ?
+  // TODO(cc): Have a more explicit TableMetaException?
   private void validateMetadataSize(ByteBuffer metadata) throws TachyonException {
     if (metadata.limit() - metadata.position() >= mMaxTableMetadataBytes) {
       throw new TachyonException("Too big table metadata: " + metadata.toString());
