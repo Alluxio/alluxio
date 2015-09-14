@@ -156,10 +156,8 @@ public final class BlockDataManager {
     String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
     String parentPath = PathUtils.concatPath(ufsDataFolder, uri.getParent().getPath());
     try {
-      if (!mUfs.exists(parentPath)) {
-        if (!mUfs.mkdirs(parentPath, true)) {
-          throw new FailedToCheckpointException("Failed to create " + parentPath);
-        }
+      if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
+        throw new FailedToCheckpointException("Failed to create " + parentPath);
       }
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
