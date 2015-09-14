@@ -37,6 +37,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 
@@ -189,11 +190,26 @@ public class TieredStoreIntegrationTest {
 
     CommonUtils.sleepMs(null, mWorkerToMasterHeartbeatIntervalMs * 3);
 
-    Assert.assertEquals(0, mTFS.getInfo(file1).getInMemoryPercentage());
-    Assert.assertEquals(100, mTFS.getInfo(file2).getInMemoryPercentage());
-    Assert.assertEquals(100, mTFS.getInfo(file3).getInMemoryPercentage());
+    TachyonFile toPromote = null;
+    FileInfo file1Info = mTFS.getInfo(file1);
+    FileInfo file2Info = mTFS.getInfo(file2);
+    FileInfo file3Info = mTFS.getInfo(file3);
 
-    FileInStream is = mTFS.getInStream(file1, new ClientOptions.Builder(mWorkerConf)
+    if (file1Info.getInMemoryPercentage() < 100) {
+      toPromote = file1;
+      Assert.assertEquals(100, file2Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file3Info.getInMemoryPercentage());
+    } else if (file2Info.getInMemoryPercentage() < 100) {
+      toPromote = file2;
+      Assert.assertEquals(100, file1Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file3Info.getInMemoryPercentage());
+    } else {
+      toPromote = file3;
+      Assert.assertEquals(100, file1Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file2Info.getInMemoryPercentage());
+    }
+
+    FileInStream is = mTFS.getInStream(toPromote, new ClientOptions.Builder(mWorkerConf)
         .setTachyonStoreType(TachyonStorageType.PROMOTE).build());
     byte[] buf = new byte[MEM_CAPACITY_BYTES / 6];
     int len = is.read(buf);
@@ -202,7 +218,7 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len);
-    Assert.assertEquals(100, mTFS.getInfo(file1).getInMemoryPercentage());
+    Assert.assertEquals(100, mTFS.getInfo(toPromote).getInMemoryPercentage());
   }
 
 }
