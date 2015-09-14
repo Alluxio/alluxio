@@ -26,9 +26,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -36,7 +36,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalWriter;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -158,13 +157,26 @@ public class JournalIntegrationTest {
   }
 
   /**
+   * Assume {@link #before} has been called, then we need to first stop the cluster and start the
+   * cluster again after reconfiguring {@link Constants#MASTER_JOURNAL_MAX_LOG_SIZE_BYTES}.
+   *
+   * @param bytes max log size in bytes
+   */
+  private void configureMaxLogSizeAndRestart(int bytes) throws Exception {
+    mLocalTachyonCluster.stop();
+    mMasterTachyonConf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES,
+        Integer.toString(bytes));
+    mLocalTachyonCluster.start(mMasterTachyonConf);
+  }
+
+  /**
    * Test completed Editlog deletion
    *
    * @throws Exception
    */
   @Test
   public void CompletedEditLogDeletionTest() throws Exception {
-    JournalWriter.setMaxLogSize(Constants.KB);
+    configureMaxLogSizeAndRestart(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       mTfs.getOutStream(new TachyonURI("/a" + i), new ClientOptions.Builder(mMasterTachyonConf)
         .setBlockSize((i + 10) / 10 * 64).build()).close();
@@ -413,7 +425,7 @@ public class JournalIntegrationTest {
    */
   @Test
   public void MultiEditLogTest() throws Exception {
-    JournalWriter.setMaxLogSize(Constants.KB);
+    configureMaxLogSizeAndRestart(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       ClientOptions op = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(
           (i + 10) / 10 * 64).build();

@@ -139,6 +139,8 @@ public class Constants {
       = "tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms";
   public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS
       = "tachyon.master.journal.tailer.sleep.time.ms";
+  public static final String MASTER_JOURNAL_MAX_LOG_SIZE_BYTES
+      = "tachyon.master.journal.max.log.size.bytes";
   public static final String MASTER_HOSTNAME = "tachyon.master.hostname";
   public static final String MASTER_BIND_HOST = "tachyon.master.bind.host";
   public static final String MASTER_PORT = "tachyon.master.port";
