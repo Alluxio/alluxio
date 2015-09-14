@@ -235,6 +235,7 @@ public final class LocalTachyonCluster {
    * @param conf Tachyon configuration
    * @throws IOException when the operation fails
    */
+  // TODO(cc): Since we have MasterContext now, remove the parameter.
   public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();

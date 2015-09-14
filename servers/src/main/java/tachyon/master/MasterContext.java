@@ -21,9 +21,7 @@ import tachyon.conf.TachyonConf;
  * A MasterContext object stores TachyonConf.
  */
 public final class MasterContext {
-  private MasterContext() {
-    // To prevent initialization
-  }
+  private MasterContext() {} // to prevent initialization
 
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same

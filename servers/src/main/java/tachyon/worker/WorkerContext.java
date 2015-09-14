@@ -21,9 +21,7 @@ import tachyon.conf.TachyonConf;
  * A WorkerContext object stores TachyonConf.
  */
 public final class WorkerContext {
-  private WorkerContext() {
-    // To prevent initialization
-  }
+  private WorkerContext() {} // to prevent initialization
 
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
