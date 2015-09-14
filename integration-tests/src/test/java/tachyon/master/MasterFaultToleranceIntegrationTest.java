@@ -35,6 +35,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
@@ -98,7 +99,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void faultTest() throws IOException {
+  public void createFileFaultTest() throws IOException {
     int clients = 10;
     List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
     for (int k = 0; k < clients; k ++) {
@@ -111,6 +112,35 @@ public class MasterFaultToleranceIntegrationTest {
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
       faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
+    }
+  }
+
+  @Test
+  public void deleteFileFaultTest() throws Exception {
+    // Kill leader -> create files -> kill leader -> delete files, repeat.
+    List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
+    for (int kills = 0; kills < MASTERS - 1; kills ++) {
+      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+
+      if (kills % 2 != 0) {
+        faultTestDataCheck(answer);
+
+        // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
+        // node can not be deleted.
+        for (FileInfo file : mTfs.listStatus(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR)))) {
+          mTfs.delete(new TachyonFile(file.getFileId()));
+        }
+        answer.clear();
+        faultTestDataCheck(answer);
+      } else {
+        Assert.assertEquals(0, answer.size());
+        faultTestDataCheck(answer);
+
+        faultTestDataCreation(new TachyonURI(PathUtils.concatPath(
+            TachyonURI.SEPARATOR, "data_" + kills)), answer);
+        faultTestDataCheck(answer);
+      }
     }
   }
 
