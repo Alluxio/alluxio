@@ -83,7 +83,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  */
 public final class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // TODO: change maxRetry to be configurable.
+  // TODO(bin): Change maxRetry to be configurable.
   private static final int MAX_RETRIES = 3;
 
   private final TachyonConf mTachyonConf;
@@ -151,7 +151,7 @@ public final class TieredBlockStore implements BlockStore {
       IOException {
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
-    // TODO: handle the case where multiple writers compete for the same block
+    // TODO(bin): Handle the case where multiple writers compete for the same block.
     mMetadataReadLock.lock();
     try {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
@@ -191,13 +191,13 @@ public final class TieredBlockStore implements BlockStore {
         freeSpaceInternal(sessionId, initialBlockSize, location);
       }
     }
-    // TODO: we are probably seeing a rare transient failure, maybe define and throw some other
-    // types of exception to indicate this case.
+    // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
+    // other types of exception to indicate this case.
     throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION, initialBlockSize,
         MAX_RETRIES, blockId);
   }
 
-  // TODO: make this method to return a snapshot
+  // TODO(bin): Make this method to return a snapshot.
   @Override
   public BlockMeta getVolatileBlockMeta(long blockId) throws NotFoundException {
     mMetadataReadLock.lock();
@@ -324,7 +324,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
       throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException {
-    // TODO: consider whether to retry here
+    // TODO(bin): Consider whether to retry here.
     freeSpaceInternal(sessionId, availableBytes, location);
   }
 
@@ -557,8 +557,8 @@ public final class TieredBlockStore implements BlockStore {
         // Allocator fails to find a proper place for this new block.
         return null;
       }
-      // TODO: Add tempBlock to corresponding storageDir and remove the use of
-      // StorageDirView.createTempBlockMeta
+      // TODO(carson): Add tempBlock to corresponding storageDir and remove the use of
+      // StorageDirView.createTempBlockMeta.
       TempBlockMeta tempBlock = dirView.createTempBlockMeta(sessionId, blockId, initialBlockSize);
       try {
         // Add allocated temp block to metadata manager. This should never fail if allocator
@@ -709,7 +709,7 @@ public final class TieredBlockStore implements BlockStore {
    * @return BlockMetadataManagerView, an updated view with most recent information.
    */
   private BlockMetadataManagerView getUpdatedView() {
-    // TODO: update the view object instead of creating new one every time
+    // TODO(calvin): Update the view object instead of creating new one every time.
     synchronized (mPinnedInodes) {
       return new BlockMetadataManagerView(mMetaManager, mPinnedInodes,
           mLockManager.getLockedBlocks());
@@ -772,7 +772,7 @@ public final class TieredBlockStore implements BlockStore {
       mMetadataWriteLock.lock();
       try {
         // If this metadata update fails, we panic for now.
-        // TODO: implement rollback scheme to recover from IO failures
+        // TODO(bin): Implement rollback scheme to recover from IO failures.
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
       } catch (AlreadyExistsException aee) {
         throw Throwables.propagate(aee); // we shall never reach here

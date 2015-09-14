@@ -69,7 +69,7 @@ public final class TieredBlockStoreTests {
     TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
 
-    // TODO: avoid using reflection to get private members.
+    // TODO(bin): Avoid using reflection to get private members.
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
     field.setAccessible(true);
     mMetaManager = (BlockMetadataManager) field.get(mBlockStore);
