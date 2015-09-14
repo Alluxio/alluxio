@@ -137,7 +137,7 @@ public final class LocalTachyonCluster {
    * @throws IOException when the operation fails
    */
   public void startMaster(TachyonConf conf) throws IOException {
-    // TODO: Would be good to have a masterContext as well
+    // TODO(calvin): Would be good to have a masterContext as well.
     mMasterConf = conf;
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
