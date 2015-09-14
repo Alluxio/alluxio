@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,10 +86,8 @@ public class MetricsSystem {
   public static void checkMinimalPollingPeriod(TimeUnit pollUnit, int pollPeriod)
       throws IllegalArgumentException {
     int period = (int) MINIMAL_POLL_UNIT.convert(pollPeriod, pollUnit);
-    if (period < MINIMAL_POLL_PERIOD) {
-      throw new IllegalArgumentException("Polling period " + pollPeriod + " " + pollUnit
-          + " is below than minimal polling period");
-    }
+    Preconditions.checkArgument(period >= MINIMAL_POLL_PERIOD, "Polling period " + pollPeriod + " "
+        + pollUnit + " is below than minimal polling period");
   }
 
   /**

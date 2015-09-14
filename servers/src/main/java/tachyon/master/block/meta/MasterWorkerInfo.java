@@ -83,12 +83,10 @@ public final class MasterWorkerInfo {
   public Set<Long> register(final List<Long> totalBytesOnTiers, final List<Long> usedBytesOnTiers,
       final Set<Long> blocks) {
     // validate the number of tiers
-    if (totalBytesOnTiers.size() != usedBytesOnTiers.size()) {
-      throw new IllegalArgumentException(
-          "totalBytesOnTiers should have the same number of tiers as usedBytesOnTiers,"
-              + " but totalBytesOnTiers has " + totalBytesOnTiers.size()
-              + " tiers, while usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
-    }
+    Preconditions.checkArgument(totalBytesOnTiers.size() == usedBytesOnTiers.size(),
+        "totalBytesOnTiers should have the same number of tiers as usedBytesOnTiers,"
+            + " but totalBytesOnTiers has " + totalBytesOnTiers.size()
+            + " tiers, while usedBytesOnTiers has " + usedBytesOnTiers.size() + " tiers");
 
     // defensive copy
     mTotalBytesOnTiers = new ArrayList<Long>(totalBytesOnTiers);

@@ -22,6 +22,8 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.metrics.MetricsSystem;
 
 /**
@@ -52,9 +54,8 @@ public class GraphiteSink implements Sink {
     mProperties = properties;
     String host = properties.getProperty(GRAPHITE_KEY_HOST);
     String port = properties.getProperty(GRAPHITE_KEY_PORT);
-    if (host == null || port == null) {
-      throw new IllegalArgumentException("Graphite sink requires 'host' and 'port' properties");
-    }
+    Preconditions.checkArgument(host != null && port != null, "Graphite sink requires 'host' and "
+        + "'port' properties");
     String prefix = properties.getProperty(GRAPHITE_KEY_PREFIX);
     if (prefix == null) {
       prefix = GRAPHITE_DEFAULT_PREFIX;

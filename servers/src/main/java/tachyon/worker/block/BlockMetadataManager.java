@@ -228,11 +228,9 @@ public class BlockMetadataManager {
    * @throws IllegalArgumentException if location is not a specific dir or the location is invalid
    */
   public StorageDir getDir(BlockStoreLocation location) {
-    if (location.equals(BlockStoreLocation.anyTier())
-        || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      throw new IllegalArgumentException(
-          ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
-    }
+    Preconditions.checkArgument(!location.equals(BlockStoreLocation.anyTier())
+        && !location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias())),
+        ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
     return getTier(location.tierAlias()).getDir(location.dir());
   }
 
@@ -263,10 +261,8 @@ public class BlockMetadataManager {
    */
   public StorageTier getTier(int tierAlias) {
     StorageTier tier = mAliasToTiers.get(tierAlias);
-    if (tier == null) {
-      throw new IllegalArgumentException(
-          ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(tierAlias));
-    }
+    Preconditions.checkArgument(tier != null,
+        ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(tierAlias));
     return tier;
   }
 

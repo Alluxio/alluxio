@@ -15,6 +15,8 @@
 
 package tachyon;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Different storage level alias for StorageTier.
  */
@@ -52,9 +54,7 @@ public enum StorageLevelAlias {
    * @return the StorageLevelAlias
    */
   public static StorageLevelAlias getAlias(int value) {
-    if (value > SIZE || value < 1) {
-      throw new IllegalArgumentException("non existing storage level");
-    }
+    Preconditions.checkArgument(value <= SIZE && value >= 1, "non existing storage level");
     return StorageLevelAlias.values()[value - 1];
   }
 
