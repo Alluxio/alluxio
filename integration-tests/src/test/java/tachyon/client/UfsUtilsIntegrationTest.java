@@ -18,6 +18,7 @@ package tachyon.client;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,7 +62,7 @@ public class UfsUtilsIntegrationTest {
   }
 
   @Test
-  public void loadUnderFsTest() throws IOException {
+  public void loadUnderFsTest() throws IOException, TException {
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
