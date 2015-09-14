@@ -52,7 +52,7 @@ public abstract class MasterBase implements Master {
   private JournalTailerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
-  private TachyonConf mTachyonConf;
+  protected final TachyonConf mTachyonConf;
 
   protected MasterBase(Journal journal, ExecutorService executorService, TachyonConf conf) {
     mJournal = Preconditions.checkNotNull(journal);
