@@ -187,7 +187,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
    * specifying the iteration order using its own strategy. For example, LRUEvictor returns an
    * iterator that iterates the blocks in LRU order. The key of the map entry is the block Id.
    */
-  // TODO: Is a key iterator sufficient?
+  // TODO(calvin): Is a key iterator sufficient?
   protected abstract Iterator<Map.Entry<Long, Object>> getBlockIterator();
 
   /**
