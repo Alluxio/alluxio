@@ -111,6 +111,40 @@ public class LocalTachyonClusterMultiMaster {
     return mMasters.get(0).getRPCLocalPort();
   }
 
+  /**
+   * @return index of leader master in {@link #mMasters}, or -1 if there is no leader temporarily
+   */
+  public int getLeaderIndex() {
+    for (int i = 0; i < mNumOfMasters; i ++) {
+      if (mMasters.get(i).isServing()) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Iterate over the masters in the order of master creation, kill the first standby master.
+   *
+   * @return true if a standby master is successfully killed, otherwise, false
+   */
+  public boolean killStandby() {
+    for (int k = 0; k < mNumOfMasters; k ++) {
+      if (!mMasters.get(k).isServing()) {
+        try {
+          LOG.info("master " + k + " is a standby. killing it...");
+          mMasters.get(k).stop();
+          LOG.info("master " + k + " killed.");
+        } catch (Exception e) {
+          LOG.error(e.getMessage(), e);
+          return false;
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean killLeader() {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (mMasters.get(k).isServing()) {
