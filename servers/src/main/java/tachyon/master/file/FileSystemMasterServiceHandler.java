@@ -174,7 +174,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       int dependencyType, long childrenBlockSizeByte)
           throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
           BlockInfoException, TachyonException, TException {
-    // TODO
+    // TODO(gene): Implement lineage.
     return 0;
   }
 
