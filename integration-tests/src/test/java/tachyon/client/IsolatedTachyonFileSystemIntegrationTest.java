@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -75,7 +76,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest1() throws IOException {
+  public void lockBlockTest1() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -86,8 +87,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     for (int k = 0; k < numOfFiles; k ++) {
       Assert.assertTrue(mTfs.getInfo(files.get(k)).getInMemoryPercentage() == 100);
     }
-    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles,
-        mWriteBoth, fileSize));
+    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
 
     CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
 
@@ -98,7 +98,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest2() throws IOException {
+  public void lockBlockTest2() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -129,7 +129,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest3() throws IOException {
+  public void lockBlockTest3() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -165,7 +165,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest1() throws IOException {
+  public void unlockBlockTest1() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -196,7 +196,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest2() throws IOException {
+  public void unlockBlockTest2() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -230,7 +230,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest3() throws IOException {
+  public void unlockBlockTest3() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -240,8 +240,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
     for (int k = 0; k < numOfFiles; k ++) {
-      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth,
-          fileSize));
+      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth, fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
