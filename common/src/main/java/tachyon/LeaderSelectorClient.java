@@ -81,7 +81,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     try {
       mLeaderSelector.close();
     } catch (IllegalStateException e) {
-      // TODO This should not happen in unit tests.
+      // TODO(hy): This should not happen in unit tests.
       if (!e.getMessage().equals("Already closed or has not been started")) {
         throw e;
       }
