@@ -557,7 +557,7 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   // TODO: figure out why this test fails
   @Test
-  public void remoteReadLockTest() throws IOException {
+  public void remoteReadLockTest() throws IOException, InterruptedException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
@@ -568,10 +568,13 @@ public class RemoteBlockInStreamIntegrationTest {
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
               .getWorkerAddress());
-      is.read();
+      Assert.assertEquals(0, is.read());
       mTfs.delete(f);
-      Assert.assertNotNull(mTfs.getInfo(f));
+      Thread.sleep(1000);
+      Assert.assertNull(mTfs.getInfo(f));
+      Assert.assertEquals(1, is.read());
       is.close();
+      Assert.assertNull(mTfs.getInfo(f));
     }
   }
 
