@@ -49,7 +49,6 @@ import tachyon.util.io.PathUtils;
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonConf mTachyonConf;
   private final long mMaxTableMetadataBytes;
   private final int mMaxColumns;
 
@@ -63,8 +62,8 @@ public class RawTableMaster extends MasterBase {
   public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster,
       Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("raw-table-master-%d", true)));
-    mTachyonConf = tachyonConf;
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("raw-table-master-%d", true)),
+        tachyonConf);
     mMaxTableMetadataBytes = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
     mMaxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     mFileSystemMaster = fileSystemMaster;
