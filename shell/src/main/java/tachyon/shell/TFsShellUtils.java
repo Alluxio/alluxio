@@ -27,7 +27,9 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.InvalidPathException;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -52,8 +54,7 @@ public class TFsShellUtils {
     } else if (path.startsWith(Constants.HEADER_FT)) {
       path = path.substring(Constants.HEADER_FT.length());
     }
-    String ret = path.substring(path.indexOf(TachyonURI.SEPARATOR));
-    return ret;
+    return path.substring(path.indexOf(TachyonURI.SEPARATOR));
   }
 
   /**
@@ -123,7 +124,14 @@ public class TFsShellUtils {
   private static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
       TachyonURI inputURI, TachyonURI parentDir) throws IOException {
     List<TachyonURI> res = new LinkedList<TachyonURI>();
-    List<FileInfo> files = tachyonClient.listStatus(tachyonClient.open(parentDir));
+    List<FileInfo> files = null;
+    try {
+      files = tachyonClient.listStatus(tachyonClient.open(parentDir));
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
     for (FileInfo file : files) {
       TachyonURI fileURI =
           new TachyonURI(inputURI.getScheme(), inputURI.getAuthority(), file.getPath());

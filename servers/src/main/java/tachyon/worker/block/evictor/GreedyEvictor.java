@@ -42,7 +42,10 @@ public final class GreedyEvictor implements Evictor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * GreedyEvictor does not need BlockMetadataManagerView
+   * GreedyEvictor does not use the block metadata information or the allocation policy.
+   *
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
    */
   public GreedyEvictor(BlockMetadataManagerView view, Allocator allocator) {}
 
@@ -76,9 +79,8 @@ public final class GreedyEvictor implements Evictor {
     }
 
     // 2. Check if the selected StorageDirView already has enough space.
-    List<Pair<Long, BlockStoreLocation>> toTransfer =
-        new ArrayList<Pair<Long, BlockStoreLocation>>();
-    List<Long> toEvict = new ArrayList<Long>();
+    List<BlockTransferInfo> toTransfer = new ArrayList<BlockTransferInfo>();
+    List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<Pair<Long, BlockStoreLocation>>();
     long bytesAvailableInDir = selectedDirView.getAvailableBytes();
     if (bytesAvailableInDir >= availableBytes) {
       // No need to evict anything, return an eviction plan with empty instructions.
@@ -105,12 +107,13 @@ public final class GreedyEvictor implements Evictor {
       StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);
       if (dstDir == null) {
         // Not possible to transfer
-        toEvict.add(block.getBlockId());
+        toEvict.add(new Pair<Long, BlockStoreLocation>(block.getBlockId(),
+            block.getBlockLocation()));
       } else {
         StorageTierView dstTier = dstDir.getParentTierView();
-        toTransfer
-            .add(new Pair<Long, BlockStoreLocation>(block.getBlockId(), new BlockStoreLocation(
-                dstTier.getTierViewAlias(), dstTier.getTierViewLevel(), dstDir.getDirViewIndex())));
+        toTransfer.add(new BlockTransferInfo(block.getBlockId(), block.getBlockLocation(),
+            new BlockStoreLocation(dstTier.getTierViewAlias(), dstTier.getTierViewLevel(),
+                dstDir.getDirViewIndex())));
         if (pendingBytesInDir.containsKey(dstDir)) {
           pendingBytesInDir.put(dstDir, pendingBytesInDir.get(dstDir) + block.getBlockSize());
         } else {

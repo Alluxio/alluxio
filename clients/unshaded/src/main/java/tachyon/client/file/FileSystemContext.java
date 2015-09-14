@@ -15,8 +15,8 @@
 
 package tachyon.client.file;
 
-import tachyon.client.FileSystemMasterClient;
 import tachyon.client.ClientContext;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.client.block.TachyonBlockStore;
 
 /**
@@ -36,17 +36,6 @@ public enum FileSystemContext {
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());
     mTachyonBlockStore = TachyonBlockStore.get();
-  }
-
-  /**
-   * Re-initializes the File System Context. This method should only be used in ClientContext.
-   *
-   * TODO(jsimsa): Prevent classes other than ClientContext from accessing this method.
-   */
-  public void resetContext() {
-    mFileSystemMasterClientPool.close();
-    mFileSystemMasterClientPool =
-        new FileSystemMasterClientPool(ClientContext.getMasterAddress());
   }
 
   /**
@@ -70,7 +59,31 @@ public enum FileSystemContext {
   /**
    * @return the Tachyon block store
    */
-  public TachyonBlockStore getTachyonBS() {
+  public TachyonBlockStore getTachyonBlockStore() {
     return mTachyonBlockStore;
+  }
+
+  /**
+   * PrivateReinitializer can be used to reset the context. This access is limited only to classes
+   * that implement ReinitializeAccess class.
+   */
+  public class PrivateReinitializer {
+    /**
+     * Re-initializes the Block Store context. This method should only be used in
+     * {@link ClientContext}.
+     */
+    public void resetContext() {
+      mFileSystemMasterClientPool.close();
+      mFileSystemMasterClientPool =
+          new FileSystemMasterClientPool(ClientContext.getMasterAddress());
+    }
+  }
+
+  public interface ReinitializerAccesser {
+    void receiveAccess(PrivateReinitializer access);
+  }
+
+  public void accessReinitializer(ReinitializerAccesser accesser) {
+    accesser.receiveAccess(new PrivateReinitializer());
   }
 }

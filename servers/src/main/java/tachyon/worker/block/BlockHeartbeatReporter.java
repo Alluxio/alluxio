@@ -64,7 +64,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   }
 
   @Override
-  public void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {
@@ -77,7 +77,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   }
 
   @Override
-  public void onRemoveBlockByClient(long userId, long blockId) {
+  public void onRemoveBlockByClient(long sessionId, long blockId) {
     synchronized (mLock) {
       // Remove the block from list of added blocks, in case it was added in this heartbeat period.
       removeBlockFromAddedBlocks(blockId);
@@ -89,7 +89,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   }
 
   @Override
-  public void onRemoveBlockByWorker(long userId, long blockId) {
+  public void onRemoveBlockByWorker(long sessionId, long blockId) {
     synchronized (mLock) {
       // Remove the block from list of added blocks, in case it was added in this heartbeat period.
       removeBlockFromAddedBlocks(blockId);
@@ -101,7 +101,7 @@ public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   }
 
   @Override
-  public void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+  public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
     Long storageDirId = newLocation.getStorageDirId();
     synchronized (mLock) {

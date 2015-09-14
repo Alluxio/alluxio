@@ -15,10 +15,12 @@
 
 package tachyon.client.block;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +43,6 @@ import tachyon.worker.WorkerClient;
  */
 public enum BlockStoreContext {
   INSTANCE;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
@@ -71,38 +71,16 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Re-initializes the Block Store context. This method should only be used in ClientContext.
-   *
-   * TODO(calvin): Prevent classes other than ClientContext from accessing this method.
-   */
-  public void resetContext() {
-    mBlockMasterClientPool.close();
-    if (mLocalBlockWorkerClientPool != null) {
-      mLocalBlockWorkerClientPool.close();
-    }
-    mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    NetAddress localWorkerAddress =
-        getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-
-    // If the local worker is not available, do not initialize the local worker client pool.
-    if (null == localWorkerAddress) {
-      mLocalBlockWorkerClientPool = null;
-    } else {
-      mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
-    }
-  }
-
-  /**
    * Gets the worker address based on its hostname by querying the master.
    *
-   * @param hostname Hostname of the worker to query
+   * @param hostname hostname of the worker to query, empty string denotes any worker
    * @return NetAddress of hostname, or null if no worker found
    */
   private NetAddress getWorkerAddress(String hostname) {
     BlockMasterClient masterClient = acquireMasterClient();
     try {
       List<WorkerInfo> workers = masterClient.getWorkerInfoList();
-      if (hostname.isEmpty()) {
+      if (hostname.isEmpty() && !workers.isEmpty()) {
         // TODO(calvin): Do this in a more defined way.
         return workers.get(0).getAddress();
       }
@@ -111,13 +89,12 @@ public enum BlockStoreContext {
           return worker.getAddress();
         }
       }
-      return null;
-    } catch (Exception e) {
-      LOG.error("getWorkerAddress for " + hostname + " failed due to exception " + e.getMessage());
-      return null;
+    } catch (IOException ioe) {
+      Throwables.propagate(ioe);
     } finally {
       releaseMasterClient(masterClient);
     }
+    return null;
   }
 
   /**
@@ -224,5 +201,40 @@ public enum BlockStoreContext {
   // TODO before the client does.
   public boolean hasLocalWorker() {
     return mLocalBlockWorkerClientPool != null;
+  }
+
+  /**
+   * PrivateReinitializer can be used to reset the context. This access is limited only to classes
+   * that implement ReinitializeAccess class.
+   */
+  public class PrivateReinitializer {
+    /**
+     * Re-initializes the Block Store context. This method should only be used in
+     * {@link ClientContext}.
+     */
+    public void resetContext() {
+      mBlockMasterClientPool.close();
+      if (mLocalBlockWorkerClientPool != null) {
+        mLocalBlockWorkerClientPool.close();
+      }
+      mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
+      NetAddress localWorkerAddress =
+          getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+
+      // If the local worker is not available, do not initialize the local worker client pool.
+      if (null == localWorkerAddress) {
+        mLocalBlockWorkerClientPool = null;
+      } else {
+        mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
+      }
+    }
+  }
+
+  public interface ReinitializerAccesser {
+    void receiveAccess(PrivateReinitializer access);
+  }
+
+  public void accessReinitializer(ReinitializerAccesser accesser) {
+    accesser.receiveAccess(new PrivateReinitializer());
   }
 }

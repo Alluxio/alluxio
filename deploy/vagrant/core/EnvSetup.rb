@@ -19,8 +19,8 @@ def validate_provider(provider)
       return
     end
 
-    raise "\nMISMATCH FOUND\nProvider in init.yml is #{provider}." + 
-          "\nBut vagrant provider is #{current_provider}." 
+    raise "\nMISMATCH FOUND\nProvider in init.yml is #{provider}." +
+          "\nBut vagrant provider is #{current_provider}."
   end
 end
 
@@ -36,7 +36,6 @@ class TachyonVersion
     @type = @yml['Type']
     @repo = ''
     @version = ''
-    @dist = ''
     case @type
     when "Local"
       puts 'using local tachyon dir'
@@ -45,18 +44,14 @@ class TachyonVersion
       @version = @yml['Github']['Version']
       puts "using github #{@repo}, version #{@version}"
     when "Release"
-      @dist = @yml['Release']['Dist']
-      puts "using tachyon dist #{@dist}"
+      @version = @yml['Release']['Version']
+      puts "using tachyon version #{@version}"
     else
       puts "Unknown VersionType"
       exit(1)
     end
 
     @mem = @yml['WorkerMemory']
-  end
-
-  def dist
-    return @dist
   end
 
   def type
@@ -69,6 +64,51 @@ class TachyonVersion
 
   def memory
     return @mem
+  end
+end
+
+# parse mesos_version.yml
+class MesosVersion
+  def initialize(yaml_path)
+    puts 'parsing mesos_version.yml'
+    @yml = YAML.load_file(yaml_path)
+
+    @type = @yml['Type']
+    @repo = ''
+    @version = ''
+    @dist = ''
+    @use_mesos = true
+    case @type
+    when "Github"
+      @repo = @yml['Github']['Repo']
+      @version = @yml['Github']['Version']
+      puts "using github #{@repo}, version #{@version}"
+    when "Release"
+      @dist = @yml['Release']['Dist']
+      puts "using mesos dist #{@dist}"
+    when "None"
+      puts 'No Mesos will be set up'
+      @use_mesos = false
+    else
+      puts "Unknown VersionType"
+      exit(1)
+    end
+  end
+
+  def dist
+    return @dist
+  end
+
+  def type
+    return @type
+  end
+
+  def use_mesos
+    return @use_mesos
+  end
+
+  def repo_version
+    return @repo, @version
   end
 end
 
@@ -166,6 +206,40 @@ class HadoopVersion
   def spark_profile
     return @spark_profile
   end
+
+  def tachyon_dist(tachyon_version)
+    # compute the tachyon distribution string
+    errmsg = "ERROR: hadoop #{@type}-#{@version} does not have a " \
+             "corresponding tachyon distribution"
+    if @type == 'apache'
+      if @version.start_with?('1')
+        # It's the release distribution, so no suffix
+        suffix = ''
+      elsif @version.start_with?('2.4')
+        suffix = 'hadoop2.4'
+      elsif @version.start_with?('2.6')
+        suffix = 'hadoop2.6'
+      else
+        puts errmsg
+        exit(1)
+      end
+    elsif @type == 'cdh'
+      if @version.start_with?('2') and @version.include?('cdh4')
+        suffix = 'cdh4'
+      else
+        puts errmsg
+        exit(1)
+      end
+    else
+      puts "Unknown hadoop type #{@type}"
+      exit(1)
+    end
+    if suffix.empty?
+      return "tachyon-#{tachyon_version}-bin.tar.gz"
+    else
+      return "tachyon-#{tachyon_version}-#{suffix}-bin.tar.gz"
+    end
+  end
 end
 
 class S3Version
@@ -183,14 +257,14 @@ class S3Version
       puts 'ERROR: S3:Bucket is not set'
       exit(1)
     end
-    @id = ENV['AWS_ACCESS_KEY']
+    @id = ENV['AWS_ACCESS_KEY_ID']
     if @id == nil
-      puts 'ERROR: AWS_ACCESS_KEY needs to be set as environment variable'
+      puts 'ERROR: AWS_ACCESS_KEY_ID needs to be set as environment variable'
       exit(1)
     end
-    @key = ENV['AWS_SECRET_KEY']
+    @key = ENV['AWS_SECRET_ACCESS_KEY']
     if @key == nil
-      puts 'ERROR: AWS_SECRET_KEY needs to be set as environment variable'
+      puts 'ERROR: AWS_SECRET_ACCESS_KEY needs to be set as environment variable'
       exit(1)
     end
   end
@@ -205,6 +279,11 @@ class S3Version
 
   def bucket
     return @bucket
+  end
+
+  def tachyon_dist(tachyon_version)
+    # The base version should work for S3
+    return "tachyon-#{tachyon_version}-bin.tar.gz"
   end
 end
 
@@ -238,5 +317,20 @@ class UfsVersion
 
   def s3
     return @s3
+  end
+
+  def tachyon_dist(tachyon_version)
+    case @yml['Type']
+    when 'hadoop1', 'hadoop2'
+      return @hadoop.tachyon_dist(tachyon_version)
+    when 's3'
+      return @s3.tachyon_dist(tachyon_version)
+    when 'glusterfs'
+    # The base version should work for glusterfs
+      return "tachyon-#{tachyon_version}-bin.tar.gz"
+    else
+      puts 'unsupported ufs'
+      exit(1)
+    end
   end
 end

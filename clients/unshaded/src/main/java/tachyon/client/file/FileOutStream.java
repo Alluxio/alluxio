@@ -22,6 +22,8 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import org.apache.thrift.TException;
+
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
@@ -75,11 +77,11 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isPersist()) {
       mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-      String userUnderStorageFolder = mWorkerClient.getUserUfsTempFolder();
-      mUnderStorageFile = PathUtils.concatPath(userUnderStorageFolder, mFileId);
+      String sessionUnderStorageFolder = mWorkerClient.getSessionUfsTempFolder();
+      mUnderStorageFile = PathUtils.concatPath(sessionUnderStorageFolder, mFileId);
       UnderFileSystem underStorageClient =
           UnderFileSystem.get(mUnderStorageFile, ClientContext.getConf());
-      underStorageClient.mkdirs(userUnderStorageFolder, true);
+      underStorageClient.mkdirs(sessionUnderStorageFolder, true);
       mUnderStorageOutputStream = underStorageClient.create(mUnderStorageFile, (int) mBlockSize);
     } else {
       mWorkerClient = null;
@@ -148,6 +150,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(mFileId);
+      } catch (TException e) {
+        throw new IOException(e);
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
@@ -229,7 +233,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     if (mTachyonStorageType.isStore()) {
       mCurrentBlockOutStream =
-          mContext.getTachyonBS().getOutStream(getNextBlockId(), mBlockSize, null);
+          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, null);
       mShouldCacheCurrentBlock = true;
     }
   }
@@ -238,6 +242,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getNewBlockIdForFile(mFileId);
+    } catch (TException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

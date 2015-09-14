@@ -27,7 +27,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.Users;
+import tachyon.Sessions;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
@@ -42,6 +42,10 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
   protected final Allocator mAllocator;
   protected BlockMetadataManagerView mManagerView;
 
+  /**
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
+   */
   public EvictorBase(BlockMetadataManagerView view, Allocator allocator) {
     mManagerView = Preconditions.checkNotNull(view);
     mAllocator = Preconditions.checkNotNull(allocator);
@@ -113,12 +117,13 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
     StorageTierView nextTierView = mManagerView.getNextTier(candidateDirView.getParentTierView());
     if (nextTierView == null) {
       // This is the last tier, evict all the blocks.
-      plan.toEvict().addAll(candidateBlocks);
       for (Long blockId : candidateBlocks) {
         try {
           BlockMeta block = mManagerView.getBlockMeta(blockId);
           if (null != block) {
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
+            plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
+                candidateDirView.toBlockStoreLocation()));
           }
         } catch (NotFoundException nfe) {
           continue;
@@ -131,23 +136,23 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
           if (null == block) {
             continue;
           }
-          StorageDirView nextDirView =
-              mAllocator.allocateBlockWithView(Users.MIGRATE_DATA_USER_ID, block.getBlockSize(),
-                  BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
+          StorageDirView nextDirView = mAllocator.allocateBlockWithView(
+              Sessions.MIGRATE_DATA_SESSION_ID, block.getBlockSize(),
+              BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
           if (nextDirView == null) {
-            nextDirView =
-                cascadingEvict(block.getBlockSize(),
-                    BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
+            nextDirView = cascadingEvict(block.getBlockSize(),
+                BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
           }
           if (nextDirView == null) {
             // If we failed to find a dir in the next tier to move this block, evict it and
             // continue. Normally this should not happen.
-            plan.toEvict().add(blockId);
+            plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
+                block.getBlockLocation()));
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             continue;
           }
-          plan.toMove().add(
-              new Pair<Long, BlockStoreLocation>(blockId, nextDirView.toBlockStoreLocation()));
+          plan.toMove().add(new BlockTransferInfo(blockId, block.getBlockLocation(),
+              nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
         } catch (NotFoundException nfe) {
@@ -164,8 +169,8 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       BlockMetadataManagerView view) {
     mManagerView = view;
 
-    List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
-    List<Long> toEvict = new ArrayList<Long>();
+    List<BlockTransferInfo> toMove = new ArrayList<BlockTransferInfo>();
+    List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<Pair<Long, BlockStoreLocation>>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
     StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
