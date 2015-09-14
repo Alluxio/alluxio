@@ -30,7 +30,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.TachyonFS;
+import tachyon.client.ClientOptions;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -70,18 +74,14 @@ public class JournalCrashTest {
   static class ClientThread extends Thread {
     /** Which type of operation this thread should do. */
     private final ClientOpType mOpType;
-    /** The Tachyon Client hold by this thread. */
-    // TODO: use TachyonFileSystem instead of the deprecated TachyonFS
-    private final TachyonFS mTfs;
     /** The working directory of this thread on Tachyon. */
     private final String mWorkDir;
 
     /** The number of successfully operations. */
     private int mSuccessNum = 0;
 
-    public ClientThread(TachyonFS tfs, String workDir, ClientOpType opType) {
+    public ClientThread(String workDir, ClientOpType opType) {
       mOpType = opType;
-      mTfs = tfs;
       mWorkDir = workDir;
     }
 
@@ -107,24 +107,15 @@ public class JournalCrashTest {
         // This infinity loop will be broken if something crashes or fails. This is
         // expected since we are testing the crash scenario.
         while (true) {
+          TachyonURI testURI = new TachyonURI(mWorkDir + mSuccessNum);
           if (ClientOpType.CREATE_FILE == mOpType) {
-            if (mTfs.createFile(new TachyonURI(mWorkDir + mSuccessNum)) == -1) {
-              break;
-            }
+            sTfs.getOutStream(testURI, sClientOptions).close();
           } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
-            int fid = mTfs.createFile(new TachyonURI(mWorkDir + mSuccessNum));
-            if (fid == -1) {
-              break;
-            }
-            if (!mTfs.delete(fid, false)) {
-              break;
-            }
+            sTfs.getOutStream(testURI, sClientOptions).close();
+            sTfs.delete(sTfs.open(testURI));
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
-            int fid = mTfs.createFile(new TachyonURI(mWorkDir + mSuccessNum));
-            if (fid == -1) {
-              break;
-            }
-            if (!mTfs.rename(fid, new TachyonURI(mWorkDir + mSuccessNum + "-rename"))) {
+            sTfs.getOutStream(testURI, sClientOptions).close();
+            if (!sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"))) {
               break;
             }
           }
@@ -138,12 +129,6 @@ public class JournalCrashTest {
         }
       }  catch (Exception e) {
         // Something crashed. Stop the thread.
-      } finally {
-        try {
-          mTfs.close();
-        } catch (IOException e) {
-          LOG.error("Error when stop client.", e);
-        }
       }
     }
   }
@@ -153,32 +138,42 @@ public class JournalCrashTest {
   private static final int EXIT_SUCCESS = 0;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static int sClientNum = 10;
-  private static TachyonURI sMasterAddress = null;
-  private static String sTestDir = null;
+  private static ClientOptions sClientOptions = null;
   private static List<ClientThread> sClientThreadList = null;
+  private static int sCreateDeleteClientNum;
+  private static int sCreateFileClientNum;
+  private static int sCreateRenameClientNum;
+  private static String sTestDir;
+  /** The Tachyon Client. This can be shared by all the threads. */
+  private static TachyonFileSystem sTfs = null;
 
   private static boolean checkStatus() throws Exception {
-    // Launch a Tachyon Client and connect to Master. Check if all the test operations are
-    // reproduced by Master successfully.
-    TachyonFS tfs = TachyonFS.get(sMasterAddress, new TachyonConf());
+    // Connect to Master and check if all the test operations are reproduced by Master successfully.
     for (ClientThread clientThread : sClientThreadList) {
       ClientOpType opType = clientThread.getOpType();
       String workDir = clientThread.getWorkDir();
       for (int s = 0; s < clientThread.getSuccessNum(); s ++) {
+        TachyonURI checkURI = new TachyonURI(workDir + s);
         if (ClientOpType.CREATE_FILE == opType) {
-          if (tfs.getFileId(new TachyonURI(workDir + s)) == -1) {
-            tfs.close();
+          try {
+            sTfs.open(checkURI);
+          } catch (IOException ioe) {
+            // File not exist. This is unexpected for CREATE_FILE.
             return false;
           }
         } else if (ClientOpType.CREATE_DELETE_FILE == opType) {
-          if (tfs.getFileId(new TachyonURI(workDir + s)) != -1) {
-            tfs.close();
-            return false;
+          try {
+            sTfs.open(checkURI);
+          } catch (IOException ioe) {
+            // File not exist. This is expected for CREATE_DELETE_FILE.
+            continue;
           }
+          return false;
         } else if (ClientOpType.CREATE_RENAME_FILE == opType) {
-          if (tfs.getFileId(new TachyonURI(workDir + s + "-rename")) == -1) {
-            tfs.close();
+          try {
+            sTfs.open(new TachyonURI(checkURI + "-rename"));
+          } catch (IOException ioe) {
+            // File not exist. This is unexpected for CREATE_RENAME_FILE.
             return false;
           }
         }
@@ -190,49 +185,42 @@ public class JournalCrashTest {
         //}
       }
     }
-    tfs.close();
     return true;
   }
 
   public static void main(String[] args) {
-    if (args.length < 4) {
-      System.out.println("java -cp tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-          + "tachyon.examples.JournalCrashTest "
-          + "<TachyonMasterAddress> <TestTachyonDir> [-options]");
+    // Parse the input args.
+    if (!parseInputArgs(args)) {
+      printUsage();
       System.exit(EXIT_FAILED);
     }
 
-    sMasterAddress = new TachyonURI(args[0]);
-    sTestDir = args[1];
-
-    // Parse the input args.
-    CommandLine cmd = parseInputArgs(args);
-    if (cmd != null) {
-      try {
-        sClientNum = Integer.parseInt(cmd.getOptionValue("cn"));
-      } catch (NumberFormatException e) {
-        LOG.warn("Error clients number. Use the default value 10.");
-      }
-      // TODO: add more configurable settings for this test
+    // Set NO_STORE and NO_PERSIST so that this test can work without TachyonWorker.
+    sClientOptions = new ClientOptions.Builder(new TachyonConf())
+        .setStorageTypes(TachyonStorageType.NO_STORE, UnderStorageType.NO_PERSIST).build();
+    sClientThreadList = new ArrayList<ClientThread>();
+    sTfs = TachyonFileSystem.get();
+    try {
+      sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
+    } catch (IOException ioe) {
+      // Test Directory not exist
     }
 
-    sClientThreadList = new ArrayList<ClientThread>(sClientNum);
-
-    // Currently, half of the threads to create file and others to create table.
-    // TODO: this should be reconsidered when supporting more operations
-    int createFileClients = sClientNum;
-    for (int f = 0; f < createFileClients; f ++) {
-      ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
-          sTestDir + "/createFile" + f + "/", ClientOpType.CREATE_FILE);
+    for (int i = 0; i < sCreateFileClientNum; i ++) {
+      ClientThread thread = new ClientThread(sTestDir + "/createFile" + i + "/",
+          ClientOpType.CREATE_FILE);
       sClientThreadList.add(thread);
     }
-    //int createTableClients = sClientNum - createFileClients;
-    //for (int t = 0; t < createTableClients; t ++) {
-    //  ClientThread thread = new ClientThread(TachyonFS.get(sMasterAddress, new TachyonConf()),
-    //      sTestDir + "/createTable" + t + "/", ClientOpType.CREATE_TABLE);
-    //  sClientThreads.add(thread);
-    //  sClientThreadList.add(new Thread(thread));
-    //}
+    for (int i = 0; i < sCreateDeleteClientNum; i ++) {
+      ClientThread thread = new ClientThread(sTestDir + "/createDelete" + i + "/",
+          ClientOpType.CREATE_DELETE_FILE);
+      sClientThreadList.add(thread);
+    }
+    for (int i = 0; i < sCreateRenameClientNum; i ++) {
+      ClientThread thread = new ClientThread(sTestDir + "/createRename" + i + "/",
+          ClientOpType.CREATE_RENAME_FILE);
+      sClientThreadList.add(thread);
+    }
 
     // Launch all the client threads and wait for them. If Master crashes, all the threads will
     // stop at a certain time.
@@ -247,22 +235,26 @@ public class JournalCrashTest {
       }
     }
 
+    // Restart Tachyon Master.
+    String restartMasterCommand = new TachyonConf().get(Constants.TACHYON_HOME)
+        + "/bin/tachyon-start.sh master";
+    try {
+      Runtime.getRuntime().exec(restartMasterCommand).waitFor();
+    } catch (Exception e) {
+      LOG.error("Error when restarting Master", e);
+    }
     // Wait for Master restart.
     CommonUtils.sleepMs(null, 1000);
-    TachyonFS waitMasterTfs = TachyonFS.get(sMasterAddress, new TachyonConf());
-    while (!waitMasterTfs.isConnected()) {
+    boolean isRestart = false;
+    while (!isRestart) {
       try {
         // ping Master
-        waitMasterTfs.getFile(0, false);
-      } catch (IOException e) {
+        sTfs.getInfo(new TachyonFile(0));
+        isRestart = true;
+      } catch (Exception e) {
         // Master has not started.
       }
       CommonUtils.sleepMs(null, 1000);
-    }
-    try {
-      waitMasterTfs.close();
-    } catch (IOException e) {
-      LOG.error("Error when stop client.", e);
     }
 
     // Check status and print pass info.
@@ -272,29 +264,48 @@ public class JournalCrashTest {
         System.exit(EXIT_FAILED);
       }
       Utils.printPassInfo(true);
+      System.exit(EXIT_SUCCESS);
     } catch (Exception e) {
       LOG.error("Failed to check status", e);
     }
 
-    System.exit(EXIT_SUCCESS);
+    System.exit(EXIT_FAILED);
   }
 
   /**
    * Parse the input args with a command line format, using
    * <code>org.apache.commons.cli.CommandLineParser</code>.
    * @param args the input args
-   * @return the parsed command line
+   * @return true if parse successfully, false otherwise
    */
-  private static CommandLine parseInputArgs(String[] args) {
-    CommandLine ret = null;
+  private static boolean parseInputArgs(String[] args) {
     Options options = new Options();
-    options.addOption("cn", true, "Clients number");
+    options.addOption("testDir", true, "Test Directory on Tachyon");
+    options.addOption("creates", true, "create Threads Num");
+    options.addOption("deletes", true, "create/delete Threads Num");
+    options.addOption("renames", true, "create/rename Threads Num");
     CommandLineParser parser = new BasicParser();
+    CommandLine cmd = null;
     try {
-      ret = parser.parse(options, args);
+      cmd = parser.parse(options, args);
     } catch (ParseException e) {
-      LOG.warn("Failed to parse input args", e);
+      LOG.error("Failed to parse input args", e);
+      return false;
     }
-    return ret;
+    sTestDir = cmd.getOptionValue("testDir", "/default_tests_files");
+    sCreateFileClientNum = Integer.parseInt(cmd.getOptionValue("creates", "2"));
+    sCreateDeleteClientNum = Integer.parseInt(cmd.getOptionValue("deletes", "2"));
+    sCreateRenameClientNum = Integer.parseInt(cmd.getOptionValue("renames", "2"));
+    return true;
+  }
+
+  private static void printUsage() {
+    System.out.println("Usage: java -cp tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+        + "tachyon.examples.JournalCrashTest [-options]");
+    System.out.println("where options include:");
+    System.out.println("\t-testDir <Test Directory on Tachyon>");
+    System.out.println("\t-creates <Number of Client Threads to request create operations>");
+    System.out.println("\t-deletes <Number of Client Threads to request create/delete operations>");
+    System.out.println("\t-renames <Number of Client Threads to request create/rename operations>");
   }
 }
