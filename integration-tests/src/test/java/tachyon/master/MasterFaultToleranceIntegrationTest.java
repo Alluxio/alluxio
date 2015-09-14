@@ -130,4 +130,30 @@ public class MasterFaultToleranceIntegrationTest {
       Assert.assertEquals(TachyonURI.SEPARATOR + k, files.get(k));
     }
   }
+
+  @Test
+  public void killStandbyTest() throws Exception {
+    // If standby masters are killed(or node failure), current leader should not be affected and the
+    // cluster should run properly.
+
+    int leaderIndex = mLocalTachyonClusterMultiMaster.getLeaderIndex();
+    Assert.assertNotEquals(-1, leaderIndex);
+
+    List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
+    for (int k = 0; k < 5; k ++) {
+      faultTestDataCreation(new TachyonURI("/data" + k), answer);
+    }
+    faultTestDataCheck(answer);
+
+    for (int kills = 0; kills < MASTERS - 1; kills ++) {
+      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killStandby());
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+
+      // Leader should not change.
+      Assert.assertEquals(leaderIndex, mLocalTachyonClusterMultiMaster.getLeaderIndex());
+      // Cluster should still work.
+      faultTestDataCheck(answer);
+      faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
+    }
+  }
 }
