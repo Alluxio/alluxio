@@ -121,8 +121,11 @@ function journalCrashTest {
   if [ "$#" -lt 1 ]; then
     echo "Usage: tachyon journalCrashTest <test-duration-in-seconds> [-options]"
     echo "where options include:"
-    echo -e "    -cn <Clients number>"
-    echo "e.g. 'tachyon journalCrashTest 5 -cn 10' will launch 10 clients connecting to the Master and kill the Master after 5 seconds"
+    echo -e "    -testDir <Test Directory on Tachyon>"
+    echo -e "    -creates <Number of Client Threads to request create operations>"
+    echo -e "    -deletes <Number of Client Threads to request create/delete operations>"
+    echo -e "    -renames <Number of Client Threads to request create/rename operations>"
+    echo "e.g. 'tachyon journalCrashTest 5 -creates 2 -deletes 2 -renames 2' will launch total 6 clients connecting to the Master and kill the Master after 5 seconds"
     echo "NOTE: This command will stop the existing server and creates a new one!"
     exit 1
   fi
@@ -132,8 +135,6 @@ function journalCrashTest {
     MASTER_ADDRESS=localhost
   fi
 
-  local testDir="/default_tests_files"
-  local tachyonMasterUri="tachyon://$MASTER_ADDRESS:19998"
   local class="tachyon.examples.JournalCrashTest"
   local sleepSec=$1
   shift
@@ -142,11 +143,9 @@ function journalCrashTest {
   $bin/tachyon-stop.sh
   $bin/tachyon-start.sh master
   sleep 1
-  echo "Delete $testDir on $tachyonMasterUri"
-  $LAUNCHER $bin/tachyon tfs rmr "$testDir"
 
   echo "Tachyon Master started. Run JournalCrashTest..."
-  ($JAVA -cp $CLASSPATH -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS "$class" "$tachyonMasterUri" "$testDir" $@) &
+  ($JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$MASTER_ADDRESS -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS "$class" $@) &
   local testPid=$!
   echo "Kill Tachyon Master after $sleepSec seconds..."
   sleep $sleepSec
@@ -156,15 +155,10 @@ function journalCrashTest {
   for pid in `ps -Aww -o pid,command | grep -i "[j]ava" | grep "tachyon.master.TachyonMaster" | awk '{print $1}'`; do
       kill -9 "$pid" > /dev/null 2>&1
   done
-  echo "Tachyon Master Killed."
-
-  echo "Restart Master and check status..."
-  $bin/tachyon-start.sh master
-  sleep 1
+  echo "Tachyon Master Killed. Check status..."
   wait $testPid
   RET=$?
-  echo "Delete temp file $tmpOutFile"
-  rm "$tmpOutFile"
+
   echo "Stop Tachyon Master"
   $bin/tachyon-stop.sh
   # If test process received a signal abort early
