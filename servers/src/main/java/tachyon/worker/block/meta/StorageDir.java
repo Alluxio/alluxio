@@ -39,6 +39,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.TachyonPreconditions;
 import tachyon.util.io.FileUtils;
 import tachyon.worker.block.BlockStoreLocation;
 
@@ -288,11 +289,8 @@ public final class StorageDir {
       throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
           getAvailableBytes(), alias);
     }
-    if (hasBlockMeta(blockId)) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias());
-      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
-    }
+    TachyonPreconditions.checkNotExist(!hasBlockMeta(blockId), ExceptionMessage.ADD_EXISTING_BLOCK,
+        blockId, StorageLevelAlias.getAlias(blockMeta.getBlockLocation().tierAlias()));
     mBlockIdToBlockMap.put(blockId, blockMeta);
     reserveSpace(blockSize, true);
   }
@@ -317,11 +315,9 @@ public final class StorageDir {
       throw new OutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_META, blockId, blockSize,
           getAvailableBytes(), alias);
     }
-    if (hasTempBlockMeta(blockId)) {
-      StorageLevelAlias alias =
-          StorageLevelAlias.getAlias(tempBlockMeta.getBlockLocation().tierAlias());
-      throw new AlreadyExistsException(ExceptionMessage.ADD_EXISTING_BLOCK, blockId, alias);
-    }
+    TachyonPreconditions.checkNotExist(!hasTempBlockMeta(blockId),
+        ExceptionMessage.ADD_EXISTING_BLOCK, blockId, StorageLevelAlias
+        .getAlias(tempBlockMeta.getBlockLocation().tierAlias()));
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
     Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);

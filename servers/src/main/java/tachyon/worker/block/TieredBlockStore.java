@@ -41,6 +41,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.TachyonPreconditions;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
@@ -402,12 +403,10 @@ public final class TieredBlockStore implements BlockStore {
    * @throws AlreadyExistsException if blockId already exists
    */
   private void checkTempBlockIdAvailable(long blockId) throws AlreadyExistsException {
-    if (mMetaManager.hasTempBlockMeta(blockId)) {
-      throw new AlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_EXISTS, blockId);
-    }
-    if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
-    }
+    TachyonPreconditions.checkNotExist(!mMetaManager.hasTempBlockMeta(blockId),
+        ExceptionMessage.TEMP_BLOCK_ID_EXISTS, blockId);
+    TachyonPreconditions.checkNotExist(!mMetaManager.hasBlockMeta(blockId),
+        ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
   }
 
   /**
@@ -422,15 +421,12 @@ public final class TieredBlockStore implements BlockStore {
    */
   private void checkTempBlockOwnedBySession(long sessionId, long blockId) throws NotFoundException,
       AlreadyExistsException, InvalidStateException {
-    if (mMetaManager.hasBlockMeta(blockId)) {
-      throw new AlreadyExistsException(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
-    }
+    TachyonPreconditions.checkNotExist(!mMetaManager.hasBlockMeta(blockId),
+        ExceptionMessage.TEMP_BLOCK_ID_COMMITTED, blockId);
     TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
     long ownerSessionId = tempBlockMeta.getSessionId();
-    if (ownerSessionId != sessionId) {
-      throw new InvalidStateException(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION, blockId,
-          ownerSessionId, sessionId);
-    }
+    TachyonPreconditions.checkState(ownerSessionId == sessionId,
+        ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION, blockId, ownerSessionId, sessionId);
   }
 
   /**
@@ -744,9 +740,8 @@ public final class TieredBlockStore implements BlockStore {
 
       mMetadataReadLock.lock();
       try {
-        if (mMetaManager.hasTempBlockMeta(blockId)) {
-          throw new InvalidStateException(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId);
-        }
+        TachyonPreconditions.checkState(!mMetaManager.hasTempBlockMeta(blockId),
+            ExceptionMessage.MOVE_UNCOMMITTED_BLOCK, blockId);
         srcBlockMeta = mMetaManager.getBlockMeta(blockId);
         srcLocation = srcBlockMeta.getBlockLocation();
         srcFilePath = srcBlockMeta.getPath();
@@ -822,9 +817,8 @@ public final class TieredBlockStore implements BlockStore {
       BlockMeta blockMeta;
       mMetadataReadLock.lock();
       try {
-        if (mMetaManager.hasTempBlockMeta(blockId)) {
-          throw new InvalidStateException(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK, blockId);
-        }
+        TachyonPreconditions.checkState(!mMetaManager.hasTempBlockMeta(blockId),
+            ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK, blockId);
         blockMeta = mMetaManager.getBlockMeta(blockId);
         filePath = blockMeta.getPath();
       } finally {
