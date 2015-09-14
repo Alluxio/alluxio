@@ -106,7 +106,7 @@ public abstract class UnderFileSystemCluster {
    * @return true if reads on end of file return negative otherwise false
    */
   public static boolean readEOFReturnsNegative() {
-    // TODO Should be dynamically determined - may need additional method on UnderFileSystem
+    // TODO(hy): Should be dynamically determined - may need additional method on UnderFileSystem.
     return null != sUfsClz && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
 
