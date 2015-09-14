@@ -43,8 +43,6 @@ public final class LocalTachyonMaster {
   // TODO should this be moved to TachyonURI? Prob after UFS supports it
 
   private final String mTachyonHome;
-  private final String mDataDir;
-  private final String mLogDir;
   private final String mHostname;
 
   private final UnderFileSystemCluster mUnderFSCluster;
@@ -67,12 +65,6 @@ public final class LocalTachyonMaster {
   private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
       throws IOException {
     mTachyonHome = tachyonHome;
-
-    mDataDir = path(mTachyonHome, "data");
-    mLogDir = path(mTachyonHome, "logs");
-
-    UnderFileSystemUtils.mkdirIfNotExists(mDataDir, tachyonConf);
-    UnderFileSystemUtils.mkdirIfNotExists(mLogDir, tachyonConf);
 
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
@@ -118,7 +110,11 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
-    mTachyonMaster = new TachyonMaster(tachyonConf);
+    if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
+      mTachyonMaster = new TachyonMasterFaultTolerant(tachyonConf);
+    } else {
+      mTachyonMaster = new TachyonMaster(tachyonConf);
+    }
 
     // Reset the master port
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));

@@ -22,58 +22,59 @@ import org.junit.Test;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit tests for tachyon.UserInfo
+ * Unit tests for {@link SessionInfo}
  */
-public class UserInfoTest {
+public final class SessionInfoTest {
   private static final int MIN_LEN = 1;
   private static final int MAX_LEN = 1000;
   private static final int DELTA = 50;
 
-  private static final String USERINFOR_TOSTRING = "UserInfo( mUserId: 99, mLastHeartbeatMs: ";
+  private static final String SESSIONINFOR_TOSTRING =
+      "SessionInfo( mSessionId: 99, mLastHeartbeatMs: ";
 
-  private int mUserTimeoutMs;
+  private int mSessionTimeoutMs;
 
   @Before
   public final void before() {
     TachyonConf tachyonConf = new TachyonConf();
-    mUserTimeoutMs = tachyonConf.getInt(Constants.WORKER_USER_TIMEOUT_MS);
+    mSessionTimeoutMs = tachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
   }
 
   @Test
   public void constructorTest() {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      UserInfo tUserInfo = new UserInfo(k, mUserTimeoutMs);
-      Assert.assertEquals(k, tUserInfo.getUserId());
+      SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
+      Assert.assertEquals(k, tSessionInfo.getSessionId());
     }
   }
 
   @Test(expected = RuntimeException.class)
   public void constructorWithExceptionTest() {
     for (int k = 0; k >= -1000; k -= DELTA) {
-      UserInfo tUserInfo = new UserInfo(k, mUserTimeoutMs);
-      Assert.assertEquals(k, tUserInfo.getUserId());
-      Assert.fail("UserId " + k + " should be invalid.");
+      SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
+      Assert.assertEquals(k, tSessionInfo.getSessionId());
+      Assert.fail("SessionId " + k + " should be invalid.");
     }
   }
 
   @Test
-  public void getUserIdTest() {
+  public void getSessionIdTest() {
     for (int k = MIN_LEN; k < MAX_LEN; k += 66) {
-      UserInfo tUserInfo = new UserInfo(k, mUserTimeoutMs);
-      Assert.assertEquals(k, tUserInfo.getUserId());
+      SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
+      Assert.assertEquals(k, tSessionInfo.getSessionId());
     }
   }
 
   @Test
   public void timeoutTest() {
-    UserInfo tUserInfo = new UserInfo(1, mUserTimeoutMs);
-    Assert.assertFalse(tUserInfo.timeout());
+    SessionInfo tSessionInfo = new SessionInfo(1, mSessionTimeoutMs);
+    Assert.assertFalse(tSessionInfo.timeout());
   }
 
   @Test
   public void toStringTest() {
-    UserInfo tUserInfo = new UserInfo(99, mUserTimeoutMs);
-    Assert.assertEquals(USERINFOR_TOSTRING,
-        tUserInfo.toString().substring(0, USERINFOR_TOSTRING.length()));
+    SessionInfo tSessionInfo = new SessionInfo(99, mSessionTimeoutMs);
+    Assert.assertEquals(SESSIONINFOR_TOSTRING,
+        tSessionInfo.toString().substring(0, SESSIONINFOR_TOSTRING.length()));
   }
 }

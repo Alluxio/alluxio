@@ -42,6 +42,10 @@ public class LRUEvictor extends EvictorBase {
       Collections.synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
           LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
+  /**
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
+   */
   public LRUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
 
@@ -61,23 +65,23 @@ public class LRUEvictor extends EvictorBase {
   }
 
   @Override
-  public void onAccessBlock(long userId, long blockId) {
+  public void onAccessBlock(long sessionId, long blockId) {
     mLRUCache.put(blockId, UNUSED_MAP_VALUE);
   }
 
   @Override
-  public void onCommitBlock(long userId, long blockId, BlockStoreLocation location) {
+  public void onCommitBlock(long sessionId, long blockId, BlockStoreLocation location) {
     // Since the temp block has been committed, update Evictor about the new added blocks
     mLRUCache.put(blockId, UNUSED_MAP_VALUE);
   }
 
   @Override
-  public void onRemoveBlockByClient(long userId, long blockId) {
+  public void onRemoveBlockByClient(long sessionId, long blockId) {
     mLRUCache.remove(blockId);
   }
 
   @Override
-  public void onRemoveBlockByWorker(long userId, long blockId) {
+  public void onRemoveBlockByWorker(long sessionId, long blockId) {
     mLRUCache.remove(blockId);
   }
 }

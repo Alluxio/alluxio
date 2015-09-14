@@ -130,15 +130,15 @@ public class BlockMetadataManager {
   /**
    * Cleans up the meta data of the given temp block ids
    *
-   * @param userId the ID of the client associated with the temp blocks
+   * @param sessionId the ID of the client associated with the temp blocks
    * @param tempBlockIds the list of temporary block ids to be cleaned up, non temporary block ids
    *        will be ignored.
    */
   @Deprecated
-  public void cleanupUserTempBlocks(long userId, List<Long> tempBlockIds) {
+  public void cleanupSessionTempBlocks(long sessionId, List<Long> tempBlockIds) {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dir.cleanupUserTempBlocks(userId, tempBlockIds);
+        dir.cleanupSessionTempBlocks(sessionId, tempBlockIds);
       }
     }
   }
@@ -287,20 +287,20 @@ public class BlockMetadataManager {
   }
 
   /**
-   * Gets all the temporary blocks associated with a user, empty list is returned if the user has no
-   * temporary blocks.
+   * Gets all the temporary blocks associated with a session, empty list is returned if the session
+   * has no temporary blocks.
    *
-   * @param userId the ID of the user
-   * @return A list of temp blocks associated with the user
+   * @param sessionId the ID of the session
+   * @return A list of temp blocks associated with the session
    */
-  public List<TempBlockMeta> getUserTempBlocks(long userId) {
-    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
+  public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
+    List<TempBlockMeta> sessionTempBlocks = new ArrayList<TempBlockMeta>();
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        userTempBlocks.addAll(dir.getUserTempBlocks(userId));
+        sessionTempBlocks.addAll(dir.getSessionTempBlocks(sessionId));
       }
     }
-    return userTempBlocks;
+    return sessionTempBlocks;
   }
 
   /**

@@ -36,32 +36,32 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
   }
 
   @Override
-  public long userCreateRawTable(String path, int columns, ByteBuffer metadata)
+  public long createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException, TException {
     return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
   }
 
   @Override
-  public long userGetRawTableId(String path) throws InvalidPathException,
-      TableDoesNotExistException, TException {
+  public long getRawTableId(String path)
+      throws InvalidPathException, TableDoesNotExistException, TException {
     return mRawTableMaster.getRawTableId(new TachyonURI(path));
   }
 
   @Override
-  public RawTableInfo userGetClientRawTableInfoById(long id) throws TableDoesNotExistException,
-      TException {
+  public RawTableInfo getClientRawTableInfoById(long id)
+      throws TableDoesNotExistException, TException {
     return mRawTableMaster.getClientRawTableInfo(id);
   }
 
   @Override
-  public RawTableInfo userGetClientRawTableInfoByPath(String path)
+  public RawTableInfo getClientRawTableInfoByPath(String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
     return mRawTableMaster.getClientRawTableInfo(new TachyonURI(path));
   }
 
   @Override
-  public void userUpdateRawTableMetadata(long tableId, ByteBuffer metadata)
+  public void updateRawTableMetadata(long tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException, TException {
     mRawTableMaster.updateRawTableMetadata(tableId, metadata);
   }

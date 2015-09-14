@@ -62,6 +62,10 @@ public final class LRFUEvictor extends EvictorBase {
   //logic time count
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
 
+  /**
+   * @param view a view of block metadata information
+   * @param allocator an allocation policy
+   */
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
     mTachyonConf = new TachyonConf();
@@ -86,7 +90,7 @@ public final class LRFUEvictor extends EvictorBase {
   }
 
   /**
-   * Calculate weight of an access, which is the function value of
+   * Calculates weight of an access, which is the function value of
    * F(t) = pow (1.0 / {@link #mAttenuationFactor}, t * {@link #mStepFactor})
    *
    * @param logicTimeInterval time interval since that access to current
@@ -103,9 +107,9 @@ public final class LRFUEvictor extends EvictorBase {
       updateCRFValue();
       mManagerView = view;
 
-      List<Pair<Long, BlockStoreLocation>> toMove =
+      List<BlockTransferInfo> toMove = new ArrayList<BlockTransferInfo>();
+      List<Pair<Long, BlockStoreLocation>> toEvict =
           new ArrayList<Pair<Long, BlockStoreLocation>>();
-      List<Long> toEvict = new ArrayList<Long>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
       StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
@@ -124,7 +128,7 @@ public final class LRFUEvictor extends EvictorBase {
   }
 
   /**
-   * Sort all blocks in ascending order of CRF
+   * Sorts all blocks in ascending order of CRF
    *
    * @return the sorted CRF of all blocks
    */
@@ -194,7 +198,7 @@ public final class LRFUEvictor extends EvictorBase {
   }
 
   /**
-   * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
+   * Updates {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
    * accessed or committed. Only CRF of the accessed or committed block will be updated, CRF
    * of other blocks will be lazily updated (only when {@link #updateCRFValue()} is called).
    * If the block is updated at the first time, CRF of the block will be set to 1.0, otherwise
@@ -220,7 +224,7 @@ public final class LRFUEvictor extends EvictorBase {
   }
 
   /**
-   * Update {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
+   * Updates {@link #mBlockIdToLastUpdateTime} and {@link #mBlockIdToCRFValue} when block is
    * removed.
    *
    * @param blockId id of the block to be removed

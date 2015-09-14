@@ -25,7 +25,8 @@
       when: tachyon_type == "Release"
 
     - include: roles/tachyon/tasks/clone_local_repo.yml
-      when: (tachyon_type == "Local") and (provider != "vb") # vb syncs local repo to vm through kernel module instead of rsync
+      # vb syncs local repo to vm through kernel module instead of rsync
+      when: (tachyon_type == "Local") and (provider != "vb")
 
     - include: roles/tachyon/tasks/clone_remote_repo.yml
       when: tachyon_type == "Github"
@@ -51,6 +52,16 @@
     - include: roles/spark/tasks/config.yml
       when: spark_type != "None"
 
+    # Mesos
+    - include: roles/mesos/tasks/download_release.yml
+      when: mesos_type == "Release"
+
+    - include: roles/mesos/tasks/clone_remote_repo.yml
+      when: mesos_type == "Github"
+
+    - include: roles/mesos/tasks/compile.yml
+      when: mesos_type == "Github"
+
 - hosts: TachyonWorker*
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/rsync_dist.yml
@@ -60,11 +71,34 @@
     - include: roles/spark/tasks/rsync_dist.yml
       when: spark_type != "None"
 
+    - include: roles/mesos/tasks/rsync_dist.yml
+      when: mesos_type != "None"
+
+- hosts: TachyonMaster
+  tasks:
+    - include: roles/mesos/tasks/start_master.yml
+      when: mesos_type != "None"
+
+- hosts: all
+  tasks:
+    - include: roles/mesos/tasks/start_slave.yml
+      when: mesos_type != "None"
+
+    - include: roles/tachyon/tasks/create_mount.yml
+      when: mesos_type != "None"
+
+    - include: roles/mesos/tasks/config_tachyon.yml
+      when: mesos_type != "None"
+
 - hosts: TachyonMaster
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/start.yml
 
     - include: roles/tachyon/tasks/start.yml
+      when: mesos_type == "None"
+
+    - include: roles/tachyon/tasks/start_mesos_framework.yml
+      when: mesos_type != "None"
 
     - include: roles/spark/tasks/start.yml
       when: spark_type != "None"
