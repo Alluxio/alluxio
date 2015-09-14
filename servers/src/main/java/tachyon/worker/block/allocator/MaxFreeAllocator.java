@@ -15,44 +15,45 @@
 
 package tachyon.worker.block.allocator;
 
-import tachyon.worker.block.BlockMetadataManager;
+import com.google.common.base.Preconditions;
+
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
-import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageDirView;
 import tachyon.worker.block.meta.StorageTierView;
-import tachyon.worker.block.meta.TempBlockMeta;
 
 /**
- * An allocator that allocates a block in the storage dir with most free space.
- * It always allocates to the highest tier if the requested block store location is any tier.
+ * An allocator that allocates a block in the storage dir with most free space. It always allocates
+ * to the highest tier if the requested block store location is any tier.
  */
-public class MaxFreeAllocator implements Allocator {
+public final class MaxFreeAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   public MaxFreeAllocator(BlockMetadataManagerView view) {
-    mManagerView = view;
+    mManagerView = Preconditions.checkNotNull(view);
   }
 
   @Override
-  public StorageDirView allocateBlockWithView(long userId, long blockSize,
+  public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = view;
-    return allocateBlock(userId, blockSize, location);
+    mManagerView = Preconditions.checkNotNull(view);
+    return allocateBlock(sessionId, blockSize, location);
   }
 
   /**
-   * Should only be accessed by {@link allocateBlockWithView} inside class.
-   * Allocates a block from the given block store location. The location can be a specific location,
-   * or {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
+   * Should only be accessed by {@link allocateBlockWithView} inside class. Allocates a block from
+   * the given block store location. The location can be a specific location, or
+   * {@link BlockStoreLocation#anyTier()} or {@link BlockStoreLocation#anyDirInTier(int)}.
    *
-   * @param userId the ID of user to apply for the block allocation
+   * @param sessionId the ID of session to apply for the block allocation
    * @param blockSize the size of block in bytes
    * @param location the location in block store
    * @return a StorageDirView in which to create the temp block meta if success, null otherwise
    * @throws IllegalArgumentException if block location is invalid
    */
-  private StorageDirView allocateBlock(long userId, long blockSize, BlockStoreLocation location) {
+  private StorageDirView allocateBlock(long sessionId, long blockSize,
+      BlockStoreLocation location) {
+    Preconditions.checkNotNull(location);
     StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {

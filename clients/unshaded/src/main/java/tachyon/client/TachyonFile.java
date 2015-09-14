@@ -16,11 +16,12 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -28,12 +29,17 @@ import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 
 /**
  * Tachyon File.
+ *
+ * As of 0.8, replaced by {@link TachyonFileSystem}
  */
 @Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
@@ -167,7 +173,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } else {
       optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
     }
-    return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
+    try {
+      return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
+    } catch (InvalidPathException e) {
+      throw new IOException(e.getMessage());
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -181,8 +193,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public String getLocalFilename(int blockIndex) throws IOException {
-    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    long blockId = blockInfo.getBlockId();
+    FileBlockInfo fileBlockInfo = getClientBlockInfo(blockIndex);
+    long blockId = fileBlockInfo.blockInfo.getBlockId();
     int blockLockId = mTachyonFS.getBlockLockId();
     String filename = mTachyonFS.lockBlock(blockId, blockLockId);
     if (filename != null) {
@@ -198,11 +210,19 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public List<String> getLocationHosts() throws IOException {
-    List<String> ret = new ArrayList<String>();
+    List<String> ret = Lists.newArrayList();
     if (getNumberOfBlocks() > 0) {
-      List<NetAddress> locations = getClientBlockInfo(0).getLocations();
-      if (locations != null) {
-        for (NetAddress location : locations) {
+      // add tachyon locations first
+      List<BlockLocation> blockLocations = getClientBlockInfo(0).getBlockInfo().getLocations();
+      if (blockLocations != null) {
+        for (BlockLocation location : blockLocations) {
+          ret.add(location.workerAddress.host);
+        }
+      }
+      // under FS locations
+      List<NetAddress> underFsLocations = getClientBlockInfo(0).getUfsLocations();
+      if (underFsLocations != null) {
+        for (NetAddress location : underFsLocations) {
           ret.add(location.host);
         }
       }
@@ -356,8 +376,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public boolean promoteBlock(int blockIndex) throws IOException {
-    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    return mTachyonFS.promoteBlock(blockInfo.getBlockId());
+    FileBlockInfo fileBlockInfo = getClientBlockInfo(blockIndex);
+    return mTachyonFS.promoteBlock(fileBlockInfo.blockInfo.getBlockId());
   }
 
   /**

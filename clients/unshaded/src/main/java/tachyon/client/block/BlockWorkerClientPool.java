@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import tachyon.client.ClientContext;
-import tachyon.client.ResourcePool;
+import tachyon.resource.ResourcePool;
 import tachyon.thrift.NetAddress;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;

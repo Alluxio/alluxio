@@ -30,6 +30,7 @@ import com.google.common.reflect.Reflection;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.WorkerContext;
 
 /**
  * This is the class to test the "contact" of different kinds of allocators,
@@ -65,7 +66,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
 
   @Test
   public void shouldNotAllocateTest() throws Exception {
-    TachyonConf conf = createTestTachyonConf();
+    TachyonConf conf = WorkerContext.getConf();
     for (String strategyName : mStrategies) {
       conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, strategyName);
       resetManagerView();
@@ -80,7 +81,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
 
   @Test
   public void shouldAllocateTest() throws Exception {
-    TachyonConf conf = createTestTachyonConf();
+    TachyonConf conf = WorkerContext.getConf();
     for (String strategyName : mStrategies) {
       conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, strategyName);
       resetManagerView();

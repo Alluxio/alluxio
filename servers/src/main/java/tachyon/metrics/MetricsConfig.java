@@ -42,6 +42,11 @@ public final class MetricsConfig {
   private Properties mProperties;
   private Map<String, Properties> mPropertyCategories;
 
+  /**
+   * Creates a new instance of <code>MetricConfig</code> using the given config file.
+   *
+   * @param configFile config file to use
+   */
   public MetricsConfig(String configFile) {
     mConfigFile = configFile;
     mProperties = new Properties();
@@ -50,6 +55,11 @@ public final class MetricsConfig {
     parseConfiguration();
   }
 
+  /**
+   * Creates a new instance of <code>MetricConfig</code> using the given <code>Properties</code>.
+   *
+   * @param properties properties to use
+   */
   public MetricsConfig(Properties properties) {
     mProperties = new Properties();
     setDefaultProperties();
@@ -67,7 +77,7 @@ public final class MetricsConfig {
   }
 
   /**
-   * Get an instance's properties.
+   * Gets properties for the given instance.
    *
    * @param inst the instance name. Currently there are only two instances: "master" and "worker".
    * @return the instance's properties if it is present, otherwise a default one is returned.
@@ -84,7 +94,7 @@ public final class MetricsConfig {
   }
 
   /**
-   * Get the propertyCategories, used by unit tests only.
+   * Gets the propertyCategories, used by unit tests only.
    *
    * @return a Map that maps from instance name to its properties.
    */
@@ -135,7 +145,7 @@ public final class MetricsConfig {
   }
 
   /**
-   * Set the default properties. The MetricsServlet is enabled and the path is /metrics/json
+   * Sets the default properties. The MetricsServlet is enabled and the path is /metrics/json
    * by default.
    */
   private void setDefaultProperties() {
