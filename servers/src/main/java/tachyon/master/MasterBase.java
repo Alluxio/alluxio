@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
@@ -51,10 +52,12 @@ public abstract class MasterBase implements Master {
   private JournalTailerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
+  private TachyonConf mTachyonConf;
 
-  protected MasterBase(Journal journal, ExecutorService executorService) {
+  protected MasterBase(Journal journal, ExecutorService executorService, TachyonConf conf) {
     mJournal = Preconditions.checkNotNull(journal);
     mExecutorService = Preconditions.checkNotNull(executorService);
+    mTachyonConf = conf;
   }
 
   @Override
@@ -115,7 +118,7 @@ public abstract class MasterBase implements Master {
       checkpointStream.close();
     } else {
       // in standby mode. Start the journal tailer thread.
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal, mTachyonConf);
       mStandbyJournalTailer.start();
     }
   }
