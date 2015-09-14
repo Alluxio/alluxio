@@ -53,6 +53,7 @@ public final class JournalWriter {
   private final String mCompletedDirectory;
   /** Absolute path to the temporary checkpoint file. */
   private final String mTempCheckpointPath;
+  /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
 
   /** The log number to assign to the next complete log. */
@@ -63,7 +64,6 @@ public final class JournalWriter {
   /** The output stream singleton for the entry log files. */
   private EntryOutputStream mEntryOutputStream = null;
 
-  // TODO: start from the last known sequence number
   /** The sequence number for the next entry in the log. */
   private long mNextEntrySequenceNumber = 1;
 

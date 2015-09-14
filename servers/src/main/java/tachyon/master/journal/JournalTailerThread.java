@@ -26,6 +26,10 @@ import tachyon.Constants;
 import tachyon.master.Master;
 import tachyon.util.CommonUtils;
 
+/**
+ * This thread continually tails the journal and applies it to the master, until the master
+ * initiates the shutdown of the thread.
+ */
 public final class JournalTailerThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // TODO: make the quiet period a configuration parameter.
@@ -33,9 +37,11 @@ public final class JournalTailerThread extends Thread {
   // TODO: make this sleep time  a config parameter.
   private static final int JOURNAL_TAILER_SLEEP_TIME_MS = 1 * Constants.SECOND_MS;
 
+  /** The master to apply the journal entries to. */
   private final Master mMaster;
+  /** The journal to tail. */
   private final Journal mJournal;
-  /** This become true when this class is instructed to shutdown. */
+  /** This becomes true when the master initiates the shutdown. */
   private volatile boolean mInitiateShutdown = false;
 
   /**
