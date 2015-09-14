@@ -397,7 +397,8 @@ public class TachyonConf {
     }
 
     String resolved = base;
-    // Lets find pattern match to ${key}. TODO: Consider using Apache Commons StrSubstitutor
+    // Lets find pattern match to ${key}.
+    // TODO(hsaputra): Consider using Apache Commons StrSubstitutor.
     Matcher matcher = CONF_REGEX.matcher(base);
     while (matcher.find()) {
       String match = matcher.group(2).trim();
