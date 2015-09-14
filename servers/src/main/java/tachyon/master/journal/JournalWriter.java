@@ -42,8 +42,6 @@ import tachyon.underfs.UnderFileSystem;
  */
 public final class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // TODO: make this a config parameter.
-  private static int sMaxLogSize = 10 * Constants.MB;
 
   private final Journal mJournal;
   private final TachyonConf mTachyonConf;
@@ -54,6 +52,7 @@ public final class JournalWriter {
   /** Absolute path to the temporary checkpoint file. */
   private final String mTempCheckpointPath;
   private final UnderFileSystem mUfs;
+  private final long mMaxLogSize;
 
   /** The log number to assign to the next complete log. */
   private int mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
@@ -74,11 +73,7 @@ public final class JournalWriter {
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
     mUfs = UnderFileSystem.get(mJournalDirectory, mTachyonConf);
-  }
-
-  // TODO: when this max size is a config parameter, this method can be removed.
-  public static void setMaxLogSize(int sizeInBytes) {
-    sMaxLogSize = sizeInBytes;
+    mMaxLogSize = tachyonConf.getBytes(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES);
   }
 
   /**
@@ -332,8 +327,8 @@ public final class JournalWriter {
       if (mOutputStream instanceof FSDataOutputStream) {
         ((FSDataOutputStream) mOutputStream).sync();
       }
-      if (mOutputStream.size() > sMaxLogSize) {
-        LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + sMaxLogSize);
+      if (mOutputStream.size() > mMaxLogSize) {
+        LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + mMaxLogSize);
         // rotate the current log.
         mOutputStream.close();
         completeCurrentLog();
