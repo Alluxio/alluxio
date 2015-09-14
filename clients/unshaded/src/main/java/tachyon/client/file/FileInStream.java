@@ -19,8 +19,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
 import tachyon.client.ClientOptions;
@@ -44,7 +48,10 @@ import tachyon.thrift.FileInfo;
  */
 @PublicApi
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {
-  /** Whether the data should be written into Tachyon space */
+  /** Logger for this class */
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /** How the data should be written into Tachyon space, if at all */
   private final TachyonStorageType mTachyonStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block */
   private final long mBlockSize;
@@ -304,6 +311,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mContext.getTachyonBlockStore().promote(blockId);
         } catch (IOException ioe) {
           // Failed to promote
+          LOG.warn("Promotion of block " + blockId + " failed.", ioe);
         }
       }
       mCurrentBlockInStream = mContext.getTachyonBlockStore().getInStream(blockId);

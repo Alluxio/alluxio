@@ -170,13 +170,24 @@ public class TachyonBlockStore implements Closeable {
     }
   }
 
+  /**
+   * Attempts to promote a block in Tachyon space. If the block is not present, this method will
+   * return without an error. If the block is present in multiple workers, only one worker will
+   * receive the promotion request.
+   *
+   * @param blockId the id of the block to promote
+   * @throws IOException if the block does not exist
+   */
   public void promote(long blockId) throws IOException {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       BlockInfo info = blockMasterClient.getBlockInfo(blockId);
       if (info.getLocations().isEmpty()) {
-        throw new IOException("Block " + blockId + " is not available in Tachyon.");
+        // Nothing to promote
+        return;
       }
+      // Get the first worker address for now, as this will likely be the location being read from
+      // TODO: Get this location via a policy (possibly location is a parameter to promote)
       NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
       try {
