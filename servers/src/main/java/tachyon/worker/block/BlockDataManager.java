@@ -80,7 +80,7 @@ public final class BlockDataManager {
   public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
                           FileSystemMasterClient fileSystemMasterClient)
       throws IOException {
-    // TODO: We may not need to assign the conf to a variable
+    // TODO(jiri): We may not need to assign the conf to a variable.
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore();
@@ -147,7 +147,7 @@ public final class BlockDataManager {
    * @throws IOException if the update to the master fails
    */
   public void addCheckpoint(long sessionId, long fileId) throws TException, IOException {
-    // TODO This part needs to be changed.
+    // TODO(calvin): This part needs to be changed.
     String srcPath = PathUtils.concatPath(getSessionUfsTmpFolder(sessionId), fileId);
     String ufsDataFolder =
         mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
@@ -196,7 +196,7 @@ public final class BlockDataManager {
       NotFoundException, InvalidStateException, IOException, OutOfSpaceException {
     mBlockStore.commitBlock(sessionId, blockId);
 
-    // TODO: Reconsider how to do this without heavy locking
+    // TODO)(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(sessionId, blockId);
     try {
@@ -230,10 +230,10 @@ public final class BlockDataManager {
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
    */
-  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
-  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
-  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
-  // exception
+  // TODO(cc): Exceptions like NotFoundException, IOException and InvalidStateException here
+  // involves implementation details, also, AlreadyExistsException has two possible semantic now,
+  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
+  // more general exception.
   public String createBlock(long sessionId, long blockId, int tierAlias, long initialBytes)
       throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
       InvalidStateException {
@@ -260,10 +260,10 @@ public final class BlockDataManager {
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
    */
-  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
-  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
-  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
-  // exception
+  // TODO(cc): Exceptions like NotFoundException, IOException and InvalidStateException here
+  // involves implementation details, also, AlreadyExistsException has two possible semantic now,
+  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
+  // more general exception.
   public void createBlockRemote(long sessionId, long blockId, int tierAlias, long initialBytes)
       throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
       InvalidStateException {
@@ -441,9 +441,9 @@ public final class BlockDataManager {
    * @throws InvalidStateException if the space requested is less than current space or blocks to
    *         move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO: exceptions like IOException AlreadyExistsException and InvalidStateException here
+  // TODO(cc): Exceptions like IOException AlreadyExistsException and InvalidStateException here
   // involves implementation details, also, NotFoundException has two semantic now, revisit this
-  // with a more general exception
+  // with a more general exception.
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
       InvalidStateException {
@@ -485,7 +485,7 @@ public final class BlockDataManager {
     mBlockStore.unlockBlock(lockId);
   }
 
-  // TODO: Remove when lock and reads are separate operations
+  // TODO(calvin): Remove when lock and reads are separate operations.
   public void unlockBlock(long sessionId, long blockId) throws NotFoundException {
     mBlockStore.unlockBlock(sessionId, blockId);
   }

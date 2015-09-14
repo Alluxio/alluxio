@@ -35,9 +35,11 @@ import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
- * filtering out un-evictable blocks and un-allocatable space (TODO) internally, so that evictors
- * and allocators can be developed with much simpler logic, without worrying about various
- * constraints, e.g. pinned files, locked blocks, etc.
+ * filtering out un-evictable blocks and un-allocatable space internally, so that evictors and
+ * allocators can be developed with much simpler logic, without worrying about various constraints,
+ * e.g. pinned files, locked blocks, etc.
+ *
+ * TODO(cc): Filter un-allocatable space.
  */
 public class BlockMetadataManagerView {
 
@@ -54,7 +56,7 @@ public class BlockMetadataManagerView {
 
   /**
    * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
-   * TODO: incrementally update the view
+   * TODO(qifan): Incrementally update the view.
    *
    * @param manager which the view should be constructed from
    * @param pinnedInodes a set of pinned inodes
