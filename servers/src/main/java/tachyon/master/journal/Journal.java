@@ -58,7 +58,7 @@ public class Journal {
     }
     mDirectory = directory;
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    // TODO: maybe this can be constructed, specified by a parameter in tachyonConf.
+    // TODO(gene): Maybe this can be constructed, specified by a parameter in tachyonConf.
     mJournalFormatter = new JsonJournalFormatter();
   }
 
