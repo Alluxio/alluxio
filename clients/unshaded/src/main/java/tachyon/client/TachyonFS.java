@@ -38,6 +38,7 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.DependencyInfo;
@@ -57,6 +58,8 @@ import tachyon.worker.WorkerClient;
  * while tachyon.hadoop.AbstractTFS provides another API that exposes Tachyon as HDFS file system.
  * Under the hood, this class maintains a MasterClientBase to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
+ *
+ * As of 0.8, replaced by {@link TachyonFileSystem}
  */
 @PublicApi
 @Deprecated
@@ -324,14 +327,13 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   @Override
-  public synchronized int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
+  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
     validateUri(path);
-    // TODO(calvin): This is not safe.
     if (blockSizeByte > 0) {
-      return (int) mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
+      return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
     } else {
-      return (int) mFSMasterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(),
+      return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(),
           blockSizeByte, recursive);
     }
   }
@@ -430,7 +432,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return info.blockIds.get(blockIndex);
     }
 
-    return mFSMasterClient.getFileBlockInfo(fileId, blockIndex).getBlockId();
+    return mFSMasterClient.getFileBlockInfo(fileId, blockIndex).blockInfo.getBlockId();
   }
 
   /**
