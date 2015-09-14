@@ -175,7 +175,7 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(file2).getInMemoryPercentage() == 100);
   }
 
-  // TODO: Add this test back when CACHE_PROMOTE is enabled again
+  // TODO(calvin): Add this test back when CACHE_PROMOTE is enabled again.
   /*
    * @Test public void promoteBlock() throws IOException, InterruptedException { int fileId1 =
    * TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES
