@@ -32,7 +32,7 @@ public class MasterTestUtils {
     Journal fsJournal = new Journal(FileSystemMaster.getJournalDirectory(masterJournal),
         tachyonConf);
 
-    BlockMaster blockMaster = new BlockMaster(blockJournal, tachyonConf);
+    BlockMaster blockMaster = new BlockMaster(tachyonConf, blockJournal);
     FileSystemMaster fsMaster = new FileSystemMaster(tachyonConf, blockMaster, fsJournal);
     blockMaster.start(true);
     fsMaster.start(true);

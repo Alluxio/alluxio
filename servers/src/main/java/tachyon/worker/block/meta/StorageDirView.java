@@ -26,8 +26,8 @@ import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 
 /**
- * This class is a wrapper of {@link StorageDir} to provide more limited access
- * and a filtered list of blocks.
+ * This class is a wrapper of {@link StorageDir} to provide more limited access and a filtered list
+ * of blocks.
  */
 public final class StorageDirView {
 
@@ -46,7 +46,7 @@ public final class StorageDirView {
   private long mBlocksToMoveOutSize = 0L;
 
   /**
-   * Create a StorageDirView using the actual StorageDir and the associated BlockMetadataView
+   * Creates a StorageDirView using the actual StorageDir and the associated BlockMetadataView.
    *
    * @param dir which the dirView is constructed from
    * @param tierView which the dirView is under
@@ -60,7 +60,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Get the index of this Dir
+   * Gets the index of this Dir.
    *
    * @return index of the dir
    */
@@ -69,8 +69,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Get a filtered list of block metadata,
-   * for blocks that are neither pinned or being blocked.
+   * Get a filtered list of block metadata, for blocks that are neither pinned or being blocked.
    *
    * @return a list of metadata for all evictable blocks
    */
@@ -87,7 +86,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Get capacity bytes for this dir
+   * Gets capacity bytes for this dir.
    *
    * @return capacity bytes for this dir
    */
@@ -96,7 +95,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Get available bytes for this dir
+   * Gets available bytes for this dir.
    *
    * @return available bytes for this dir
    */
@@ -105,8 +104,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Get committed bytes for this dir.
-   * This includes all blocks, locked, pinned, committed etc.
+   * Gets committed bytes for this dir. This includes all blocks, locked, pinned, committed etc.
    *
    * @return committed bytes for this dir
    */
@@ -115,7 +113,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Get evictable bytes for this dir, i.e., the total bytes of total evictable blocks
+   * Gets evictable bytes for this dir, i.e., the total bytes of total evictable blocks
    *
    * @return evictable bytes for this dir
    */
@@ -131,7 +129,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Clear all marks about blocks to move in/out in this view.
+   * Clears all marks about blocks to move in/out in this view.
    */
   public void clearBlockMarks() {
     mBlocksToMoveIn.clear();
@@ -140,32 +138,36 @@ public final class StorageDirView {
   }
 
   /**
-   * Create a TempBlockMeta given userId, blockId, and initialBlockSize.
+   * Creates a TempBlockMeta given sessionId, blockId, and initialBlockSize.
    *
-   * @param userId of the owning user
+   * @param sessionId of the owning session
    * @param blockId of the new block
    * @param initialBlockSize of the new block
    * @return a new TempBlockMeta under the underlying directory.
    */
-  public TempBlockMeta createTempBlockMeta(long userId, long blockId, long initialBlockSize) {
-    return new TempBlockMeta(userId, blockId, initialBlockSize, mDir);
+  public TempBlockMeta createTempBlockMeta(long sessionId, long blockId, long initialBlockSize) {
+    return new TempBlockMeta(sessionId, blockId, initialBlockSize, mDir);
   }
 
   /**
-   * Get the parent TierView for this view.
-   *
    * @return parent tierview
    */
   public StorageTierView getParentTierView() {
     return mTierView;
   }
 
+  /**
+   * Returns an indication whether the given block is marked to be moved out.
+   *
+   * @param blockId the block id
+   * @return whether the block is marked to be moved out
+   */
   public boolean isMarkedToMoveOut(long blockId) {
     return mBlocksToMoveOut.contains(blockId);
   }
 
   /**
-   * Mark a block to move into this dir view, which is used by the evictor.
+   * Marks a block to move into this dir view, which is used by the evictor.
    *
    * @param blockId the Id of the block
    * @param blockSize the block size
@@ -177,7 +179,7 @@ public final class StorageDirView {
   }
 
   /**
-   * Mark a block to move out of this dir view, which is used by the evictor.
+   * Marks a block to move out of this dir view, which is used by the evictor.
    *
    * @param blockId the Id of the block
    * @param blockSize the block size
@@ -189,8 +191,8 @@ public final class StorageDirView {
   }
 
   /**
-   * Create a BlockStoraLocation for this directory view.
-   * Redirecting to {@link StorageDir#toBlockStoreLocation}
+   * Creates a BlockStoraLocation for this directory view. Redirecting to
+   * {@link StorageDir#toBlockStoreLocation}
    *
    * @return BlockStoreLocation created
    */

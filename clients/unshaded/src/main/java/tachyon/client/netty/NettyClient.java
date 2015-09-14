@@ -35,9 +35,7 @@ import tachyon.util.network.NettyUtils;
  * Shared configuration and methods for the Netty client.
  */
 public final class NettyClient {
-  /**
-   *  Share both the encoder and decoder with all the client pipelines.
-   */
+  /**  Share both the encoder and decoder with all the client pipelines. */
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
@@ -54,9 +52,7 @@ public final class NettyClient {
   private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
       TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS), "netty-client-worker-%d", true);
 
-  /**
-   *  The maximum number of milliseconds to wait for a response from the server.
-   */
+  /** The maximum number of milliseconds to wait for a response from the server. */
   public static final long TIMEOUT_MS =
       TACHYON_CONF.getInt(Constants.USER_NETTY_TIMEOUT_MS);
 

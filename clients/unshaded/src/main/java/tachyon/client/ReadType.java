@@ -17,6 +17,8 @@ package tachyon.client;
 
 /**
  * Different read types for a TachyonFile.
+ *
+ * As of 0.8, replaced by {@link TachyonStorageType} and {@link UnderStorageType}
  */
 @Deprecated
 public enum ReadType {

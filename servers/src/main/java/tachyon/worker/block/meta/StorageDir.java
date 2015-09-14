@@ -55,8 +55,8 @@ public final class StorageDir {
   private Map<Long, BlockMeta> mBlockIdToBlockMap;
   /** A map from block ID to temp block meta data */
   private Map<Long, TempBlockMeta> mBlockIdToTempBlockMap;
-  /** A map from user ID to the set of temp blocks created by this user */
-  private Map<Long, Set<Long>> mUserIdToTempBlockIdsMap;
+  /** A map from session ID to the set of temp blocks created by this session */
+  private Map<Long, Set<Long>> mSessionIdToTempBlockIdsMap;
   private AtomicLong mAvailableBytes;
   private AtomicLong mCommittedBytes;
   private String mDirPath;
@@ -72,7 +72,7 @@ public final class StorageDir {
     mDirPath = dirPath;
     mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
     mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
-    mUserIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
+    mSessionIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
   }
 
   /**
@@ -307,7 +307,7 @@ public final class StorageDir {
   public void addTempBlockMeta(TempBlockMeta tempBlockMeta)
       throws OutOfSpaceException, AlreadyExistsException {
     Preconditions.checkNotNull(tempBlockMeta);
-    long userId = tempBlockMeta.getUserId();
+    long sessionId = tempBlockMeta.getSessionId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
 
@@ -324,11 +324,11 @@ public final class StorageDir {
     }
 
     mBlockIdToTempBlockMap.put(blockId, tempBlockMeta);
-    Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (userTempBlocks == null) {
-      mUserIdToTempBlockIdsMap.put(userId, Sets.newHashSet(blockId));
+    Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
+    if (sessionTempBlocks == null) {
+      mSessionIdToTempBlockIdsMap.put(sessionId, Sets.newHashSet(blockId));
     } else {
-      userTempBlocks.add(blockId);
+      sessionTempBlocks.add(blockId);
     }
     reserveSpace(blockSize, false);
   }
@@ -358,20 +358,20 @@ public final class StorageDir {
   public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws NotFoundException {
     Preconditions.checkNotNull(tempBlockMeta);
     final long blockId = tempBlockMeta.getBlockId();
-    final long userId = tempBlockMeta.getUserId();
+    final long sessionId = tempBlockMeta.getSessionId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);
     if (deletedTempBlockMeta == null) {
       throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
-    Set<Long> userBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    if (userBlocks == null || !userBlocks.contains(blockId)) {
+    Set<Long> sessionBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
+    if (sessionBlocks == null || !sessionBlocks.contains(blockId)) {
       StorageLevelAlias alias = StorageLevelAlias.getAlias(this.getDirIndex());
-      throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_USER, blockId, alias,
-          userId);
+      throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_FOR_SESSION, blockId, alias,
+          sessionId);
     }
-    Preconditions.checkState(userBlocks.remove(blockId));
-    if (userBlocks.isEmpty()) {
-      mUserIdToTempBlockIdsMap.remove(userId);
+    Preconditions.checkState(sessionBlocks.remove(blockId));
+    if (sessionBlocks.isEmpty()) {
+      mSessionIdToTempBlockIdsMap.remove(sessionId);
     }
     reclaimSpace(tempBlockMeta.getBlockSize(), false);
   }
@@ -397,14 +397,14 @@ public final class StorageDir {
   /**
    * Cleans up the temp block meta data for each block id passed in.
    *
-   * @param userId the ID of the client associated with the temporary blocks
+   * @param sessionId the ID of the client associated with the temporary blocks
    * @param tempBlockIds the list of temporary blocks to clean up, non temporary blocks or
    *        nonexistent blocks will be ignored
    */
-  public void cleanupUserTempBlocks(long userId, List<Long> tempBlockIds) {
-    Set<Long> userTempBlocks = mUserIdToTempBlockIdsMap.get(userId);
-    // The user's temporary blocks have already been removed.
-    if (userTempBlocks == null) {
+  public void cleanupSessionTempBlocks(long sessionId, List<Long> tempBlockIds) {
+    Set<Long> sessionTempBlocks = mSessionIdToTempBlockIdsMap.get(sessionId);
+    // The session's temporary blocks have already been removed.
+    if (sessionTempBlocks == null) {
       return;
     }
     for (Long tempBlockId : tempBlockIds) {
@@ -413,41 +413,41 @@ public final class StorageDir {
         // input list is across all dirs
         continue;
       }
-      userTempBlocks.remove(tempBlockId);
+      sessionTempBlocks.remove(tempBlockId);
       TempBlockMeta tempBlockMeta = mBlockIdToTempBlockMap.remove(tempBlockId);
       if (tempBlockMeta != null) {
         reclaimSpace(tempBlockMeta.getBlockSize(), false);
       } else {
-        LOG.error("Cannot find blockId {} when cleanup userId {}", tempBlockId, userId);
+        LOG.error("Cannot find blockId {} when cleanup sessionId {}", tempBlockId, sessionId);
       }
     }
-    if (userTempBlocks.isEmpty()) {
-      mUserIdToTempBlockIdsMap.remove(userId);
+    if (sessionTempBlocks.isEmpty()) {
+      mSessionIdToTempBlockIdsMap.remove(sessionId);
     } else {
       // This may happen if the client comes back during clean up and creates more blocks or some
       // temporary blocks failed to be deleted
-      LOG.warn("Blocks still owned by user " + userId + " after cleanup.");
+      LOG.warn("Blocks still owned by session " + sessionId + " after cleanup.");
     }
   }
 
   /**
-   * Gets the temporary blocks associated with a user in this StorageDir, an empty list is returned
-   * if the user has no temporary blocks in this StorageDir.
+   * Gets the temporary blocks associated with a session in this StorageDir, an empty list is
+   * returned if the session has no temporary blocks in this StorageDir.
    *
-   * @param userId the ID of the user
-   * @return A list of temporary blocks the user is associated with in this StorageDir
+   * @param sessionId the ID of the session
+   * @return A list of temporary blocks the session is associated with in this StorageDir
    */
-  public List<TempBlockMeta> getUserTempBlocks(long userId) {
-    Set<Long> userTempBlockIds = mUserIdToTempBlockIdsMap.get(userId);
+  public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
+    Set<Long> sessionTempBlockIds = mSessionIdToTempBlockIdsMap.get(sessionId);
 
-    if (userTempBlockIds == null || userTempBlockIds.isEmpty()) {
+    if (sessionTempBlockIds == null || sessionTempBlockIds.isEmpty()) {
       return Collections.emptyList();
     }
-    List<TempBlockMeta> userTempBlocks = new ArrayList<TempBlockMeta>();
-    for (long blockId : userTempBlockIds) {
-      userTempBlocks.add(mBlockIdToTempBlockMap.get(blockId));
+    List<TempBlockMeta> sessionTempBlocks = new ArrayList<TempBlockMeta>();
+    for (long blockId : sessionTempBlockIds) {
+      sessionTempBlocks.add(mBlockIdToTempBlockMap.get(blockId));
     }
-    return userTempBlocks;
+    return sessionTempBlocks;
   }
 
   /**

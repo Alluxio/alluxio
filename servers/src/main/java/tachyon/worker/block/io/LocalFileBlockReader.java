@@ -44,7 +44,7 @@ public final class LocalFileBlockReader implements BlockReader {
   private final long mFileSize;
 
   /**
-   * Construct a Block reader given the metadata of this block
+   * Constructs a Block reader given the metadata of this block.
    *
    * @param blockMeta metadata of this block
    * @throws IOException if its file can not be open with "r" mode
@@ -54,7 +54,7 @@ public final class LocalFileBlockReader implements BlockReader {
   }
 
   /**
-   * Construct a Block reader given the file path of the block
+   * Constructs a Block reader given the file path of the block.
    *
    * @param path file path of the block
    * @throws IOException if its file can not be open with "r" mode

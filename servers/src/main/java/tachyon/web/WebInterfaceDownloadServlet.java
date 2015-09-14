@@ -97,7 +97,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @throws IOException
    */
   private void downloadFile(TachyonURI path, HttpServletRequest request,
-      HttpServletResponse response) throws FileDoesNotExistException, IOException {
+      HttpServletResponse response) throws FileDoesNotExistException, IOException,
+      InvalidPathException {
     TachyonFileSystem tachyonClient = TachyonFileSystem.get();
     TachyonFile fd = tachyonClient.open(path);
     FileInfo tFile = tachyonClient.getInfo(fd);
