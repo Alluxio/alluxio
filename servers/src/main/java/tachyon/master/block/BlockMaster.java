@@ -480,6 +480,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
+          // Current master has no information about this worker, it is because the master is
+          // a newly selected leader under fault tolerance mode, and the worker is asked to re-
+          // register to the new master by the Register Command sent by workerHeartbeat.
           MasterWorkerInfo info = new MasterWorkerInfo(workerId, workerAddress);
           LOG.info(info + " re-registers to master.");
           mWorkers.add(info);
