@@ -19,8 +19,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
 import tachyon.client.ClientOptions;
@@ -32,9 +36,9 @@ import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 
 /**
- * A streaming API to read a file. This API represents a file as a stream of bytes and provides
- * a collection of {@link #read} methods to access this stream of bytes. In addition, one can
- * seek into a given offset of the stream to read.
+ * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
+ * collection of {@link #read} methods to access this stream of bytes. In addition, one can seek
+ * into a given offset of the stream to read.
  *
  * <p>
  * This class wraps the {@link BlockInStream} for each of the blocks in the file and abstracts the
@@ -43,6 +47,8 @@ import tachyon.thrift.FileInfo;
  */
 @PublicApi
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Whether the data should be written into Tachyon space */
   private final boolean mShouldCache;
   /** Standard block size in bytes of the file, guaranteed for all but the last block */
@@ -145,7 +151,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
-          // TODO(yupeng): Log debug maybe?
+          long currentBlockId = getBlockCurrentBlockId();
+          LOG.warn("Failed to write into buffer, the block " + currentBlockId
+              + " will not be in TachyonStorage", ioe);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -217,7 +225,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          // TODO(yupeng): Maybe debug log here.
+          LOG.warn("Failed to get TachyonStore stream, the block " + currentBlockId
+              + " will not be in TachyonStorage", ioe);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -275,7 +284,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          // TODO(yupeng): Maybe debug log here.
+          LOG.info("Failed to write to TachyonStore stream, block " + getBlockCurrentBlockId()
+              + " will not be in TachyonStorage.", ioe);
           mShouldCacheCurrentBlock = false;
         }
       } else {
@@ -285,9 +295,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   }
 
   /**
-   * Helper method to checkAndAdvanceBlockInStream and seekBlockInStream. The current
-   * BlockInStream will be closed and a new BlockInStream for the given blockId will be opened at
-   * position 0.
+   * Helper method to checkAndAdvanceBlockInStream and seekBlockInStream. The current BlockInStream
+   * will be closed and a new BlockInStream for the given blockId will be opened at position 0.
    *
    * @param blockId blockId to set the mCurrentBlockInStream to read
    * @throws IOException if the next BlockInStream cannot be obtained
@@ -301,8 +310,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
     } catch (IOException ioe) {
+      LOG.info("Failed to get BlockInStream: " + ioe.getMessage());
       if (mUfsPath == null || mUfsPath.isEmpty()) {
-        // TODO(yupeng): Maybe debug log here.
         throw ioe;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
