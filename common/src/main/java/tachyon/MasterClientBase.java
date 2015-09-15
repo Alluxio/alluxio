@@ -178,6 +178,14 @@ public abstract class MasterClientBase implements Closeable {
   }
 
   /**
+   * Closes the connection, then query and set current master address.
+   */
+  public synchronized void resetConnection() {
+    disconnect();
+    mMasterAddress = getMasterAddress();
+  }
+
+  /**
    * Returns the {@link InetSocketAddress} of the master. If zookeeper is used, this will consult
    * the zookeeper instance for the master address.
    *
