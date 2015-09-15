@@ -44,7 +44,7 @@ import tachyon.thrift.WorkerInfo;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-public class BlockMasterClient extends MasterClientBase {
+public final class BlockMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private BlockMasterService.Client mClient = null;

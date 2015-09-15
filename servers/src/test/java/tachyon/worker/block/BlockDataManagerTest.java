@@ -23,7 +23,11 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import tachyon.Constants;
 import tachyon.Sessions;
@@ -39,6 +43,10 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
+    BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
+    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class})
 public class BlockDataManagerTest implements Tester<BlockDataManager> {
   TestHarness mHarness;
   BlockDataManager.PrivateAccess mPrivateAccess;
@@ -64,16 +72,16 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     public TestHarness() throws IOException {
       mRandom = new Random();
 
-      mBlockMasterClient = Mockito.mock(BlockMasterClient.class);
-      mBlockStore = Mockito.mock(BlockStore.class);
-      mFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
-      mHeartbeatReporter = Mockito.mock(BlockHeartbeatReporter.class);
-      mMetricsReporter = Mockito.mock(BlockMetricsReporter.class);
-      mSessions = Mockito.mock(Sessions.class);
-      mTachyonConf = Mockito.mock(TachyonConf.class);
-      mUfs = Mockito.mock(UnderFileSystem.class);
+      mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
+      mBlockStore = PowerMockito.mock(BlockStore.class);
+      mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+      mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
+      mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
+      mSessions = PowerMockito.mock(Sessions.class);
+      mTachyonConf = PowerMockito.mock(TachyonConf.class);
+      mUfs = PowerMockito.mock(UnderFileSystem.class);
       mWorkerId = mRandom.nextLong();
-      mWorkerSource = Mockito.mock(WorkerSource.class);
+      mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
       mManager = new BlockDataManager(mWorkerSource, mBlockMasterClient, mFileSystemMasterClient);
       mManager.setSessions(mSessions);
@@ -121,8 +129,9 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     String dstPath = "/tmp/foo/bar";
 
     // TODO(jsimsa): Add test cases for error cases.
-    Mockito.when(mHarness.mTachyonConf
-        .get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER)).thenReturn("/tmp");
+    Mockito.when(
+        mHarness.mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER))
+        .thenReturn("/tmp");
     Mockito.when(mHarness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
     Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
     Mockito.when(mHarness.mUfs.exists(parentPath)).thenReturn(true);
@@ -130,8 +139,8 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     Mockito.when(mHarness.mUfs.rename(srcPath, dstPath)).thenReturn(true);
     Mockito.when(mHarness.mUfs.getFileSize(dstPath)).thenReturn(fileSize);
     mHarness.mManager.addCheckpoint(sessionId, fileId);
-    Mockito.verify(mHarness.mFileSystemMasterClient)
-        .addCheckpoint(mHarness.mWorkerId, fileId, fileSize, dstPath);
+    Mockito.verify(mHarness.mFileSystemMasterClient).addCheckpoint(mHarness.mWorkerId, fileId,
+        fileSize, dstPath);
   }
 
   @Test
@@ -156,13 +165,13 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     int tierAlias = 1;
     LinkedList<Long> usedBytesOnTiers = new LinkedList<Long>();
     usedBytesOnTiers.add(usedBytes);
-    BlockMeta blockMeta = Mockito.mock(BlockMeta.class);
-    BlockStoreLocation blockStoreLocation = Mockito.mock(BlockStoreLocation.class);
-    BlockStoreMeta blockStoreMeta = Mockito.mock(BlockStoreMeta.class);
+    BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
+    BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
+    BlockStoreMeta blockStoreMeta = PowerMockito.mock(BlockStoreMeta.class);
 
     Mockito.when(mHarness.mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    Mockito.when(mHarness.mBlockStore.getBlockMeta(sessionId, blockId, lockId))
-        .thenReturn(blockMeta);
+    Mockito.when(mHarness.mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(
+        blockMeta);
     Mockito.when(mHarness.mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     Mockito.when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
     Mockito.when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
@@ -170,8 +179,8 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     Mockito.when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
     mHarness.mManager.commitBlock(sessionId, blockId);
-    Mockito.verify(mHarness.mBlockMasterClient)
-        .workerCommitBlock(mHarness.mWorkerId, usedBytes, tierAlias, blockId, length);
+    Mockito.verify(mHarness.mBlockMasterClient).workerCommitBlock(mHarness.mWorkerId, usedBytes,
+        tierAlias, blockId, length);
     Mockito.verify(mHarness.mBlockStore).unlockBlock(lockId);
   }
 
@@ -185,8 +194,8 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    Mockito.when(mHarness.mBlockStore
-        .createBlockMeta(sessionId, blockId, location, initialBytes)).thenReturn(meta);
+    Mockito.when(mHarness.mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
+        .thenReturn(meta);
     Mockito.when(storageDir.getDirPath()).thenReturn("/tmp");
     Assert.assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
         mHarness.mManager.createBlock(sessionId, blockId, tierAlias, initialBytes));
