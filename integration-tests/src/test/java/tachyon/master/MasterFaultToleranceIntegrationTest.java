@@ -148,8 +148,12 @@ public class MasterFaultToleranceIntegrationTest {
   public void workerReRegisterTest() throws Exception {
     Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
 
+    List<Pair<Long, TachyonURI>> emptyAnswer = Lists.newArrayList();
     for (int kills = 0; kills < MASTERS - 1; kills ++) {
       killLeaderAndWait();
+
+      // TODO(cc) Why this test fail without this line? [TACHYON-970]
+      faultTestDataCheck(emptyAnswer);
 
       // If worker is successfully re-registered, the capacity bytes should not change.
       Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
