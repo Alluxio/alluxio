@@ -164,10 +164,7 @@ public final class FileUtils {
    * @throws IOException when fails to move
    */
   public static void move(String srcPath, String dstPath) throws IOException {
-    long start = System.currentTimeMillis();
     Files.move(new File(srcPath), new File(dstPath));
-    long end = System.currentTimeMillis();
-    LOG.info("Move file from {} to {}, cost {}", srcPath, dstPath, end - start);
   }
 
   /**

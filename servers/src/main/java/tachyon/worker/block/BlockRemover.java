@@ -53,11 +53,11 @@ public class BlockRemover implements Callable<Boolean> {
       }
       return true;
     } catch (IOException ioe) {
-      LOG.warn("Failed to remove block " + mBlockId + " due to concurrent read.");
+      LOG.warn(ioe.getMessage());
     } catch (InvalidStateException e) {
-      LOG.warn("Failed to remove block " + mBlockId + " due to block uncommitted.");
+      LOG.warn(e.getMessage());
     } catch (NotFoundException e) {
-      LOG.warn("Failed to remove block " + mBlockId + " due to block not found.");
+      LOG.warn(e.getMessage());
     }
     return false;
   }
