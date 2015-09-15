@@ -73,9 +73,9 @@ public final class BlockWorker {
   /** Server for data requests and responses. */
   private final DataServer mDataServer;
   /** Client for all block master communication */
-  private final WorkerBlockMasterClient mWorkerBlockMasterClient;
+  private final WorkerBlockMasterClient mBlockMasterClient;
   /** Client for all file system master communication */
-  private final WorkerFileSystemMasterClient mWorkerFileSystemMasterClient;
+  private final WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** The executor service for the master client thread */
   private final ExecutorService mMasterClientExecutorService;
   /** Threadpool for the master sync */
@@ -160,18 +160,18 @@ public final class BlockWorker {
     mMasterClientExecutorService =
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mWorkerBlockMasterClient =
+    mBlockMasterClient =
         new WorkerBlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
             mTachyonConf), mMasterClientExecutorService, mTachyonConf);
 
-    mWorkerFileSystemMasterClient = new WorkerFileSystemMasterClient(
+    mFileSystemMasterClient = new WorkerFileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
         mMasterClientExecutorService, mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
     mBlockDataManager =
-        new BlockDataManager(workerSource, mWorkerBlockMasterClient, mWorkerFileSystemMasterClient);
+        new BlockDataManager(workerSource, mBlockMasterClient, mFileSystemMasterClient);
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -211,13 +211,13 @@ public final class BlockWorker {
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
-        mWorkerBlockMasterClient);
+            mBlockMasterClient);
     // Get the worker id
     // TODO: Do this at TachyonWorker
     mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mWorkerFileSystemMasterClient);
+    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
 
     // Setup session cleaner
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager, mTachyonConf);
@@ -278,7 +278,8 @@ public final class BlockWorker {
     mBlockMasterSync.stop();
     mPinListSync.stop();
     mSessionCleanerThread.stop();
-    mWorkerBlockMasterClient.close();
+    mBlockMasterClient.close();
+    mFileSystemMasterClient.close();
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     try {
