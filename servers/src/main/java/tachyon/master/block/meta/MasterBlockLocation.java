@@ -37,7 +37,7 @@ public final class MasterBlockLocation {
   }
 
   /**
-   * @return the tier that the block is on in this worker.
+   * @return the tier that the block is on in this worker
    */
   public int getTier() {
     return mTier;

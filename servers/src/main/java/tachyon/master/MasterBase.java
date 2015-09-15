@@ -91,8 +91,8 @@ public abstract class MasterBase implements Master {
        * writes out the checkpoint file. When the checkpoint file is closed, it will then delete the
        * complete log files.
        *
-       * Since this method start() is called before the master RPC server starts serving, there is
-       * no concurrent access to the master during these phases.
+       * Since this method is called before the master RPC server starts serving, there is no
+       * concurrent access to the master during these phases.
        */
 
       // Phase 1: Mark all logs as complete, including the current log. After this call, the current
@@ -119,7 +119,7 @@ public abstract class MasterBase implements Master {
     } else {
       // This master is in standby mode. Start the journal tailer thread. Since the master is in
       // standby mode, its RPC server is NOT serving. Therefore, the only thread modifying the
-      // master is the this journal tailer thread (no concurrent access).
+      // master is this journal tailer thread (no concurrent access).
       mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
       mStandbyJournalTailer.start();
     }

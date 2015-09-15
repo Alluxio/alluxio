@@ -29,7 +29,7 @@ import tachyon.underfs.UnderFileSystem;
 /**
  * This class manages reading from the journal. The reading must occur in two phases:
  *
- * 1. First the checkpoint file must be read.
+ * 1. First, the checkpoint file must be read.
  *
  * 2. Afterwards, completed entries are read in order. Only completed logs are read, so the last log
  * currently being written is not read until it is marked as complete.
@@ -78,8 +78,8 @@ public class JournalReader {
    * Gets the {@link JournalInputStream} for the journal checkpoint file. This must be called before
    * calling {@link #getNextInputStream()}.
    *
-   * @return the {@link JournalInputStream} for the journal checkpoint file. This must be done
-   * @throws IOException
+   * @return the {@link JournalInputStream} for the journal checkpoint file
+   * @throws IOException if the checkpoint file cannot be read, or was already read
    */
   public JournalInputStream getCheckpointInputStream() throws IOException {
     if (mCheckpointRead) {
