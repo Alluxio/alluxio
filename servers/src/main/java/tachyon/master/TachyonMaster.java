@@ -58,16 +58,7 @@ public class TachyonMaster {
     }
 
     try {
-      // TODO: create a master context with the tachyon conf.
-      TachyonConf conf = new TachyonConf();
-      TachyonMaster master;
-      if (conf.getBoolean(Constants.USE_ZOOKEEPER)) {
-        // fault tolerant mode.
-        master = new TachyonMasterFaultTolerant(conf);
-      } else {
-        master = new TachyonMaster(conf);
-      }
-      master.start();
+      Factory.createMaster().start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
@@ -112,8 +103,25 @@ public class TachyonMaster {
   /** The start time for when the master started serving the RPC server */
   private long mStartTimeMs = -1;
 
-  public TachyonMaster(TachyonConf tachyonConf) {
-    mTachyonConf = tachyonConf;
+  /**
+   * Factory for creating {@link TachyonMaster} or {@link TachyonMasterFaultTolerant} based on
+   * {@link TachyonConf}.
+   */
+  public static class Factory {
+    /**
+     * @return {@link TachyonMasterFaultTolerant} if tachyonConf is set to use zookeeper, otherwise,
+     *         return {@link TachyonMaster}.
+     */
+    public static TachyonMaster createMaster() {
+      if (MasterContext.getConf().getBoolean(Constants.USE_ZOOKEEPER)) {
+        return new TachyonMasterFaultTolerant();
+      }
+      return new TachyonMaster();
+    }
+  }
+
+  protected TachyonMaster() {
+    mTachyonConf = MasterContext.getConf();
 
     mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
     mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
@@ -151,7 +159,7 @@ public class TachyonMaster {
       mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
 
-      mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf);
+      mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal);
       mFileSystemMaster =
           new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);

@@ -34,7 +34,7 @@ import tachyon.util.CommonUtils;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
- * heartbeat. This class manages its own {@link tachyon.master.MasterClient}.
+ * heartbeat. This class manages its own {@link tachyon.client.BlockMasterClient}.
  *
  * When running, this task first requests a block report from the
  * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may
@@ -140,17 +140,21 @@ public final class BlockMasterSync implements Runnable {
       BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
 
       // Send the heartbeat and execute the response
+      Command cmdFromMaster = null;
       try {
-        Command cmdFromMaster =
-            mMasterClient.workerHeartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
-                blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+        cmdFromMaster = mMasterClient.workerHeartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
+            blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
-      } catch (Exception ioe) {
+      } catch (Exception e) {
         // An error occurred, retry after 1 second or error if heartbeat timeout is reached
-        LOG.error("Failed to receive or execute master heartbeat command.", ioe);
-        // TODO: Add this method in MasterClientBase
-        //mMasterClient.resetConnection();
+        if (cmdFromMaster == null) {
+          LOG.error("Failed to receive master heartbeat command.", e);
+        } else {
+          LOG.error("Failed to receive or execute master heartbeat command: "
+              + cmdFromMaster.toString(), e);
+        }
+        mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);

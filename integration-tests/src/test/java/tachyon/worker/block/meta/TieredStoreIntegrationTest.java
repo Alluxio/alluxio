@@ -38,6 +38,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 
@@ -101,7 +102,7 @@ public class TieredStoreIntegrationTest {
     try {
       mTFS.open(new TachyonURI("/test1"));
       Assert.fail("file should not exist: /test1");
-    } catch (IOException ioe) {
+    } catch (InvalidPathException e) {
       // This is expected, since the file should not exist.
     }
 
@@ -177,7 +178,7 @@ public class TieredStoreIntegrationTest {
   }
 
   @Test
-  public void promoteBlock() throws IOException, InterruptedException {
+  public void promoteBlock() throws Exception {
     TachyonFile file1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", TachyonStorageType.STORE,
             UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 6);

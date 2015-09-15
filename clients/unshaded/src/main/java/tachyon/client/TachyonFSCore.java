@@ -40,7 +40,7 @@ interface TachyonFSCore extends Closeable {
    * @return The file id, which is globally unique.
    * @throws IOException if the operation fails
    */
-  int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
+  long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
       throws IOException;
 
   /**
