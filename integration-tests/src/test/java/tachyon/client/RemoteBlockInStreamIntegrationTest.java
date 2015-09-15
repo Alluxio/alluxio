@@ -43,6 +43,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -557,7 +558,8 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   // TODO: figure out why this test fails
   @Test
-  public void remoteReadLockTest() throws IOException, InterruptedException {
+  public void remoteReadLockTest()
+      throws IOException, InterruptedException, FileDoesNotExistException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       TachyonFile f =
