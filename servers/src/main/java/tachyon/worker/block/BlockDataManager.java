@@ -81,11 +81,11 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws IOException if fail to connect to under filesystem
    */
   public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient) throws IOException {
+      FileSystemMasterClient fileSystemMasterClient, BlockStore blockStore) throws IOException {
     // TODO: We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    mBlockStore = new TieredBlockStore();
+    mBlockStore = blockStore;
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
     mBlockMasterClient = blockMasterClient;
