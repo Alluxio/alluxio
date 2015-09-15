@@ -149,8 +149,7 @@ public class PinIntegrationTest {
         Sets.newHashSet(file0.getFileId(), file3.getFileId()));
   }
 
-  private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException,
-    TException {
+  private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException, TException {
     ClientOptions options =
         new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();

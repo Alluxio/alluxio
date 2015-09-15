@@ -100,7 +100,7 @@ public class JournalReader {
     }
     String currentLogPath = mJournal.getCompletedLogFilePath(mCurrentLogNumber);
     if (!mUfs.exists(currentLogPath)) {
-      LOG.info("Journal log file: " + currentLogPath + " does not exist yet.");
+      LOG.debug("Journal log file: " + currentLogPath + " does not exist yet.");
       return null;
     }
     // Open input stream from the current log file.

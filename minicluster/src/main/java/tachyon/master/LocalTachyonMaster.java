@@ -62,10 +62,11 @@ public final class LocalTachyonMaster {
 
   private final OldClientPool mOldClientPool = new OldClientPool(mClientSupplier);
 
-  private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
+  private LocalTachyonMaster(final String tachyonHome)
       throws IOException {
     mTachyonHome = tachyonHome;
 
+    TachyonConf tachyonConf = MasterContext.getConf();
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
@@ -110,11 +111,7 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
-    if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
-      mTachyonMaster = new TachyonMasterFaultTolerant(tachyonConf);
-    } else {
-      mTachyonMaster = new TachyonMaster(tachyonConf);
-    }
+    mTachyonMaster = TachyonMaster.Factory.createMaster();
 
     // Reset the master port
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));
@@ -136,35 +133,34 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated home and port.
    *
-   * @param tachyonConf Tachyon configuration
    * @throws IOException when unable to do file operation or listen on port
    * @return an instance of Tachyon master
    */
-  public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
+  public static LocalTachyonMaster create() throws IOException {
     final String tachyonHome = uniquePath();
+    TachyonConf tachyonConf = MasterContext.getConf();
     UnderFileSystemUtils.deleteDir(tachyonHome, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
 
     // Update Tachyon home in the passed TachyonConf instance.
     tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
 
-    return new LocalTachyonMaster(tachyonHome, tachyonConf);
+    return new LocalTachyonMaster(tachyonHome);
   }
 
   /**
    * Creates a new local tachyon master with a isolated port.
    *
    * @param tachyonHome Tachyon home directory
-   * @param tachyonConf Tachyon configuration
    * @return an instance of Tachyon master
    * @throws IOException when unable to do file operation or listen on port
    */
-  public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
-      throws IOException {
+  public static LocalTachyonMaster create(final String tachyonHome) throws IOException {
+    TachyonConf tachyonConf = MasterContext.getConf();
     UnderFileSystemUtils.deleteDir(tachyonHome, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
 
-    return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome), tachyonConf);
+    return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome));
   }
 
   public void start() {
