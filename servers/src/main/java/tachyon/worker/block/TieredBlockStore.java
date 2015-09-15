@@ -755,8 +755,9 @@ public final class TieredBlockStore implements BlockStore {
         mMetadataReadLock.unlock();
       }
 
-      if (!oldLocation.equals(srcLocation) && !oldLocation.equals(BlockStoreLocation.anyTier())) {
-        throw new NotFoundException("Block " + blockId + " not found at location: " + oldLocation);
+      if (!srcLocation.belongTo(oldLocation)) {
+        throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
+            oldLocation);
       }
       TempBlockMeta dstTempBlock =
           createBlockMetaInternal(sessionId, blockId, newLocation, blockSize, false);
@@ -819,9 +820,9 @@ public final class TieredBlockStore implements BlockStore {
         mMetadataReadLock.unlock();
       }
 
-      if (!location.equals(blockMeta.getBlockLocation())
-          && !location.equals(BlockStoreLocation.anyTier())) {
-        throw new NotFoundException("Block " + blockId + " not found at location: " + location);
+      if (!blockMeta.getBlockLocation().belongTo(location)) {
+        throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
+            location);
       }
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
       FileUtils.delete(filePath);
