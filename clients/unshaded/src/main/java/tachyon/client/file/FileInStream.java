@@ -151,9 +151,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
-          long currentBlockId = getBlockCurrentBlockId();
-          LOG.warn("Failed to write into buffer, the block " + currentBlockId
-              + " will not be in TachyonStorage", ioe);
+          LOG.warn("Failed to write into TachyonStorage, the block " + getBlockCurrentBlockId()
+          + " will not be in TachyonStorage", ioe);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -284,7 +283,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          LOG.info("Failed to write to TachyonStore stream, block " + getBlockCurrentBlockId()
+          LOG.warn("Failed to write to TachyonStore stream, block " + getBlockCurrentBlockId()
               + " will not be in TachyonStorage.", ioe);
           mShouldCacheCurrentBlock = false;
         }
@@ -310,8 +309,10 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mShouldCache;
     } catch (IOException ioe) {
-      LOG.info("Failed to get BlockInStream: " + ioe.getMessage());
+      LOG.debug("Failed to get BlockInStream for " + blockId + ", using ufs instead", ioe);
       if (mUfsPath == null || mUfsPath.isEmpty()) {
+        LOG.error("Could not obtain data for " + blockId + " from Tachyon and no checkpoint is"
+            + " available in under storage.");
         throw ioe;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
