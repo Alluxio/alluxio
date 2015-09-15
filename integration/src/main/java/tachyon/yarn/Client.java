@@ -246,7 +246,7 @@ public final class Client {
 
   private void setupContainerLaunchContext() throws IOException {
     String command =
-        "$JAVA_HOME/bin/java" + " -Xmx256M " + mAppMasterMainClass + " " + mAppMasterJar + " "
+        "$JAVA_HOME/bin/java" + " -Xmx256M " + mAppMasterMainClass + " "
             + String.valueOf(mNumWorkers) + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
             + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
     System.out.println("AM command: " + command);
