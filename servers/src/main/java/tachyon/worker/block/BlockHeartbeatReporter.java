@@ -30,7 +30,7 @@ import com.google.common.collect.Lists;
  * through {@link tachyon.worker.block.BlockDataManager#commitBlock(long, long)}. This class is
  * thread safe.
  */
-public class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
+public final class BlockHeartbeatReporter extends BlockStoreEventListenerBase {
   /** Lock for operations on the removed and added block collections */
   private final Object mLock;
 

@@ -48,7 +48,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  */
 // TODO: split out worker-specific calls to a fs master client for workers.
 // TODO: figure out a retry utility to make all the retry logic in this file better.
-public class FileSystemMasterClient extends MasterClientBase {
+public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystemMasterService.Client mClient = null;
