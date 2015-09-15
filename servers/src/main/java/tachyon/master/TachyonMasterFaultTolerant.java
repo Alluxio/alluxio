@@ -79,6 +79,7 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
 
     while (true) {
       if (mLeaderSelectorClient.isLeader()) {
+        stopServing();
         stopMasters();
 
         if (started) {
@@ -91,7 +92,7 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
         }
         startMasters(true);
         started = true;
-        startServing();
+        startServing("(gained leadership)", "(lost leadership)");
       } else {
         // This master should be standby, and not the leader
         if (isServing() || !started) {
@@ -125,14 +126,5 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
     if (mLeaderSelectorClient != null) {
       mLeaderSelectorClient.close();
     }
-  }
-
-  private void startServing() {
-    startServingWebServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " started (gained leadership) @ "
-        + getMasterAddress());
-    startServingRPCServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " ended (lost leadership) @ "
-        + getMasterAddress());
   }
 }

@@ -295,10 +295,16 @@ public class TachyonMaster {
   }
 
   private void startServing() {
+    startServing("", "");
+  }
+
+  protected void startServing(String startMessage, String stopMessage) {
     startServingWebServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
+    LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress + " "
+        + startMessage);
     startServingRPCServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress);
+    LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress + " "
+        + stopMessage);
   }
 
   protected void startServingWebServer() {
