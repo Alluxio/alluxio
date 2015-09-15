@@ -151,22 +151,11 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    mLocalTachyonCluster.start();
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(Constants.KB));
+    mLocalTachyonCluster.start(conf);
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
-  }
-
-  /**
-   * Assume {@link #before} has been called, then we need to first stop the cluster and start the
-   * cluster again after reconfiguring {@link Constants#MASTER_JOURNAL_MAX_LOG_SIZE_BYTES}.
-   *
-   * @param bytes max log size in bytes
-   */
-  private void configureMaxLogSizeAndRestart(int bytes) throws Exception {
-    mLocalTachyonCluster.stop();
-    mMasterTachyonConf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES,
-        Integer.toString(bytes));
-    mLocalTachyonCluster.start(mMasterTachyonConf);
   }
 
   /**
@@ -176,7 +165,6 @@ public class JournalIntegrationTest {
    */
   @Test
   public void CompletedEditLogDeletionTest() throws Exception {
-    configureMaxLogSizeAndRestart(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       mTfs.getOutStream(new TachyonURI("/a" + i), new ClientOptions.Builder(mMasterTachyonConf)
         .setBlockSize((i + 10) / 10 * 64).build()).close();
@@ -425,7 +413,6 @@ public class JournalIntegrationTest {
    */
   @Test
   public void MultiEditLogTest() throws Exception {
-    configureMaxLogSizeAndRestart(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       ClientOptions op = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(
           (i + 10) / 10 * 64).build();
