@@ -17,6 +17,8 @@ package tachyon.client.block;
 
 import java.io.IOException;
 
+import org.apache.thrift.TException;
+
 import tachyon.client.ClientContext;
 import tachyon.client.RemoteBlockWriter;
 import tachyon.worker.WorkerClient;
@@ -51,7 +53,11 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
       return;
     }
     mRemoteWriter.close();
-    mWorkerClient.cancelBlock(mBlockId);
+    try {
+      mWorkerClient.cancelBlock(mBlockId);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
   }
@@ -63,10 +69,14 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     }
     flush();
     mRemoteWriter.close();
-    if (mFlushedBytes == mBlockSize) {
-      mWorkerClient.cacheBlock(mBlockId);
-    } else {
-      mWorkerClient.cancelBlock(mBlockId);
+    try {
+      if (mFlushedBytes == mBlockSize) {
+        mWorkerClient.cacheBlock(mBlockId);
+      } else {
+        mWorkerClient.cancelBlock(mBlockId);
+      }
+    } catch (TException e) {
+      throw new IOException(e);
     }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;

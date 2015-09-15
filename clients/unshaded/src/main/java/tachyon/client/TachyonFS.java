@@ -41,12 +41,15 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.BlockDoesNotExistException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.InvalidWorkerStateException;
 import tachyon.thrift.WorkerInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.ThreadFactoryUtils;
@@ -216,7 +219,13 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying worker RPC fails
    */
   synchronized void addCheckpoint(long fid) throws IOException {
-    mWorkerClient.addCheckpoint(fid);
+    try {
+      mWorkerClient.addCheckpoint(fid);
+    } catch (FailedToCheckpointException e) {
+      throw new IOException(e);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -237,7 +246,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying worker RPC fails
    */
   public synchronized void cacheBlock(long blockId) throws IOException {
-    mWorkerClient.cacheBlock(blockId);
+    try {
+      mWorkerClient.cacheBlock(blockId);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -247,7 +260,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying worker RPC fails
    */
   public synchronized void cancelBlock(long blockId) throws IOException {
-    mWorkerClient.cancelBlock(blockId);
+    try {
+      mWorkerClient.cancelBlock(blockId);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -690,7 +707,12 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized String getLocalBlockTemporaryPath(long blockId, long initialBytes)
       throws IOException {
-    String blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
+    String blockPath = null;
+    try {
+      blockPath = mWorkerClient.requestBlockLocation(blockId, initialBytes);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
     // TODO(haoyuan): Handle this in the worker?
     FileUtils.createBlockPath(blockPath);
     return blockPath;
@@ -855,7 +877,12 @@ public class TachyonFS extends AbstractTachyonFS {
     if (!mWorkerClient.isLocal()) {
       return null;
     }
-    String blockPath = mWorkerClient.lockBlock(blockId);
+    String blockPath = null;
+    try {
+      blockPath = mWorkerClient.lockBlock(blockId);
+    } catch (InvalidWorkerStateException e) {
+      throw new IOException(e);
+    }
 
     if (blockPath != null) {
       Set<Integer> lockIds = new HashSet<Integer>(4);
@@ -933,7 +960,11 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized boolean promoteBlock(long blockId) throws IOException {
     if (mWorkerClient.isLocal()) {
-      return mWorkerClient.promoteBlock(blockId);
+      try {
+        return mWorkerClient.promoteBlock(blockId);
+      } catch (TException e) {
+        throw new IOException(e);
+      }
     }
     return false;
   }
@@ -1076,7 +1107,11 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mLockedBlockIdToPath.remove(blockId);
     mLockedBlockIds.remove(blockId);
-    return mWorkerClient.unlockBlock(blockId);
+    try {
+      return mWorkerClient.unlockBlock(blockId);
+    } catch (BlockDoesNotExistException e) {
+      throw new IOException(e);
+    }
   }
 
   /**

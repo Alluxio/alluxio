@@ -126,7 +126,11 @@ public final class FileOutStream extends OutputStream implements Cancelable {
         mUnderStorageOutputStream.close();
         try {
           // TODO(yupeng): Investigate if this RPC can be moved to master.
-          mWorkerClient.addCheckpoint(mFileId);
+          try {
+            mWorkerClient.addCheckpoint(mFileId);
+          } catch (TException e) {
+            throw new IOException(e);
+          }
         } finally {
           BlockStoreContext.INSTANCE.releaseWorkerClient(mWorkerClient);
         }

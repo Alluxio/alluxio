@@ -24,6 +24,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
+import tachyon.thrift.BlockDoesNotExistException;
+import tachyon.thrift.InvalidWorkerStateException;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerClient;
@@ -53,7 +55,12 @@ public final class LocalBlockInStream extends BlockInStream {
     mContext = BlockStoreContext.INSTANCE;
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-    String blockPath = mWorkerClient.lockBlock(blockId);
+    String blockPath = null;
+    try {
+      blockPath = mWorkerClient.lockBlock(blockId);
+    } catch (InvalidWorkerStateException e) {
+      throw new IOException(e);
+    }
 
     if (blockPath == null) {
       // TODO(calvin): Handle this error case better.
@@ -78,7 +85,11 @@ public final class LocalBlockInStream extends BlockInStream {
     if (mClosed) {
       return;
     }
-    mWorkerClient.unlockBlock(mBlockId);
+    try {
+      mWorkerClient.unlockBlock(mBlockId);
+    } catch (BlockDoesNotExistException e) {
+      throw new IOException(e);
+    }
     mContext.releaseWorkerClient(mWorkerClient);
     // TODO(calvin): Evaluate if this is necessary.
     BufferUtils.cleanDirectBuffer(mData);

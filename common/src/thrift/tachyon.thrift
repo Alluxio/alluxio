@@ -286,8 +286,7 @@ service WorkerService {
   void accessBlock(1: i64 blockId) throws (1: BlockDoesNotExistException bE)
 
   void addCheckpoint(1: i64 sessionId, 2: i64 fileId)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
-      3: FailedToCheckpointException eF, 4: BlockInfoException eB)
+    throws (1: FileDoesNotExistException eP, 2: FailedToCheckpointException eF)
 
   bool asyncCheckpoint(1: i64 fileId)
 

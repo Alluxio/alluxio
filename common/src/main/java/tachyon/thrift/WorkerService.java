@@ -41,7 +41,7 @@ public class WorkerService {
 
     public void accessBlock(long blockId) throws BlockDoesNotExistException, org.apache.thrift.TException;
 
-    public void addCheckpoint(long sessionId, long fileId) throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, org.apache.thrift.TException;
+    public void addCheckpoint(long sessionId, long fileId) throws FileDoesNotExistException, FailedToCheckpointException, org.apache.thrift.TException;
 
     public boolean asyncCheckpoint(long fileId) throws org.apache.thrift.TException;
 
@@ -207,7 +207,7 @@ public class WorkerService {
       return;
     }
 
-    public void addCheckpoint(long sessionId, long fileId) throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, org.apache.thrift.TException
+    public void addCheckpoint(long sessionId, long fileId) throws FileDoesNotExistException, FailedToCheckpointException, org.apache.thrift.TException
     {
       send_addCheckpoint(sessionId, fileId);
       recv_addCheckpoint();
@@ -221,21 +221,15 @@ public class WorkerService {
       sendBase("addCheckpoint", args);
     }
 
-    public void recv_addCheckpoint() throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, org.apache.thrift.TException
+    public void recv_addCheckpoint() throws FileDoesNotExistException, FailedToCheckpointException, org.apache.thrift.TException
     {
       addCheckpoint_result result = new addCheckpoint_result();
       receiveBase(result, "addCheckpoint");
       if (result.eP != null) {
         throw result.eP;
       }
-      if (result.eS != null) {
-        throw result.eS;
-      }
       if (result.eF != null) {
         throw result.eF;
-      }
-      if (result.eB != null) {
-        throw result.eB;
       }
       return;
     }
@@ -611,7 +605,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, org.apache.thrift.TException {
+      public void getResult() throws FileDoesNotExistException, FailedToCheckpointException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1039,12 +1033,8 @@ public class WorkerService {
           iface.addCheckpoint(args.sessionId, args.fileId);
         } catch (FileDoesNotExistException eP) {
           result.eP = eP;
-        } catch (SuspectedFileSizeException eS) {
-          result.eS = eS;
         } catch (FailedToCheckpointException eF) {
           result.eF = eF;
-        } catch (BlockInfoException eB) {
-          result.eB = eB;
         }
         return result;
       }
@@ -1425,19 +1415,9 @@ public class WorkerService {
                         result.setEPIsSet(true);
                         msg = result;
             }
-            else             if (e instanceof SuspectedFileSizeException) {
-                        result.eS = (SuspectedFileSizeException) e;
-                        result.setESIsSet(true);
-                        msg = result;
-            }
             else             if (e instanceof FailedToCheckpointException) {
                         result.eF = (FailedToCheckpointException) e;
                         result.setEFIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof BlockInfoException) {
-                        result.eB = (BlockInfoException) e;
-                        result.setEBIsSet(true);
                         msg = result;
             }
              else 
@@ -3278,9 +3258,7 @@ public class WorkerService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addCheckpoint_result");
 
     private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)3);
-    private static final org.apache.thrift.protocol.TField E_B_FIELD_DESC = new org.apache.thrift.protocol.TField("eB", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3289,16 +3267,12 @@ public class WorkerService {
     }
 
     public FileDoesNotExistException eP; // required
-    public SuspectedFileSizeException eS; // required
     public FailedToCheckpointException eF; // required
-    public BlockInfoException eB; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       E_P((short)1, "eP"),
-      E_S((short)2, "eS"),
-      E_F((short)3, "eF"),
-      E_B((short)4, "eB");
+      E_F((short)2, "eF");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3315,12 +3289,8 @@ public class WorkerService {
         switch(fieldId) {
           case 1: // E_P
             return E_P;
-          case 2: // E_S
-            return E_S;
-          case 3: // E_F
+          case 2: // E_F
             return E_F;
-          case 4: // E_B
-            return E_B;
           default:
             return null;
         }
@@ -3366,11 +3336,7 @@ public class WorkerService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_B, new org.apache.thrift.meta_data.FieldMetaData("eB", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addCheckpoint_result.class, metaDataMap);
@@ -3381,15 +3347,11 @@ public class WorkerService {
 
     public addCheckpoint_result(
       FileDoesNotExistException eP,
-      SuspectedFileSizeException eS,
-      FailedToCheckpointException eF,
-      BlockInfoException eB)
+      FailedToCheckpointException eF)
     {
       this();
       this.eP = eP;
-      this.eS = eS;
       this.eF = eF;
-      this.eB = eB;
     }
 
     /**
@@ -3399,14 +3361,8 @@ public class WorkerService {
       if (other.isSetEP()) {
         this.eP = new FileDoesNotExistException(other.eP);
       }
-      if (other.isSetES()) {
-        this.eS = new SuspectedFileSizeException(other.eS);
-      }
       if (other.isSetEF()) {
         this.eF = new FailedToCheckpointException(other.eF);
-      }
-      if (other.isSetEB()) {
-        this.eB = new BlockInfoException(other.eB);
       }
     }
 
@@ -3417,9 +3373,7 @@ public class WorkerService {
     @Override
     public void clear() {
       this.eP = null;
-      this.eS = null;
       this.eF = null;
-      this.eB = null;
     }
 
     public FileDoesNotExistException getEP() {
@@ -3443,30 +3397,6 @@ public class WorkerService {
     public void setEPIsSet(boolean value) {
       if (!value) {
         this.eP = null;
-      }
-    }
-
-    public SuspectedFileSizeException getES() {
-      return this.eS;
-    }
-
-    public addCheckpoint_result setES(SuspectedFileSizeException eS) {
-      this.eS = eS;
-      return this;
-    }
-
-    public void unsetES() {
-      this.eS = null;
-    }
-
-    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
-    public boolean isSetES() {
-      return this.eS != null;
-    }
-
-    public void setESIsSet(boolean value) {
-      if (!value) {
-        this.eS = null;
       }
     }
 
@@ -3494,30 +3424,6 @@ public class WorkerService {
       }
     }
 
-    public BlockInfoException getEB() {
-      return this.eB;
-    }
-
-    public addCheckpoint_result setEB(BlockInfoException eB) {
-      this.eB = eB;
-      return this;
-    }
-
-    public void unsetEB() {
-      this.eB = null;
-    }
-
-    /** Returns true if field eB is set (has been assigned a value) and false otherwise */
-    public boolean isSetEB() {
-      return this.eB != null;
-    }
-
-    public void setEBIsSet(boolean value) {
-      if (!value) {
-        this.eB = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case E_P:
@@ -3525,14 +3431,6 @@ public class WorkerService {
           unsetEP();
         } else {
           setEP((FileDoesNotExistException)value);
-        }
-        break;
-
-      case E_S:
-        if (value == null) {
-          unsetES();
-        } else {
-          setES((SuspectedFileSizeException)value);
         }
         break;
 
@@ -3544,14 +3442,6 @@ public class WorkerService {
         }
         break;
 
-      case E_B:
-        if (value == null) {
-          unsetEB();
-        } else {
-          setEB((BlockInfoException)value);
-        }
-        break;
-
       }
     }
 
@@ -3560,14 +3450,8 @@ public class WorkerService {
       case E_P:
         return getEP();
 
-      case E_S:
-        return getES();
-
       case E_F:
         return getEF();
-
-      case E_B:
-        return getEB();
 
       }
       throw new IllegalStateException();
@@ -3582,12 +3466,8 @@ public class WorkerService {
       switch (field) {
       case E_P:
         return isSetEP();
-      case E_S:
-        return isSetES();
       case E_F:
         return isSetEF();
-      case E_B:
-        return isSetEB();
       }
       throw new IllegalStateException();
     }
@@ -3614,30 +3494,12 @@ public class WorkerService {
           return false;
       }
 
-      boolean this_present_eS = true && this.isSetES();
-      boolean that_present_eS = true && that.isSetES();
-      if (this_present_eS || that_present_eS) {
-        if (!(this_present_eS && that_present_eS))
-          return false;
-        if (!this.eS.equals(that.eS))
-          return false;
-      }
-
       boolean this_present_eF = true && this.isSetEF();
       boolean that_present_eF = true && that.isSetEF();
       if (this_present_eF || that_present_eF) {
         if (!(this_present_eF && that_present_eF))
           return false;
         if (!this.eF.equals(that.eF))
-          return false;
-      }
-
-      boolean this_present_eB = true && this.isSetEB();
-      boolean that_present_eB = true && that.isSetEB();
-      if (this_present_eB || that_present_eB) {
-        if (!(this_present_eB && that_present_eB))
-          return false;
-        if (!this.eB.equals(that.eB))
           return false;
       }
 
@@ -3653,20 +3515,10 @@ public class WorkerService {
       if (present_eP)
         list.add(eP);
 
-      boolean present_eS = true && (isSetES());
-      list.add(present_eS);
-      if (present_eS)
-        list.add(eS);
-
       boolean present_eF = true && (isSetEF());
       list.add(present_eF);
       if (present_eF)
         list.add(eF);
-
-      boolean present_eB = true && (isSetEB());
-      list.add(present_eB);
-      if (present_eB)
-        list.add(eB);
 
       return list.hashCode();
     }
@@ -3689,32 +3541,12 @@ public class WorkerService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetES()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
       if (lastComparison != 0) {
         return lastComparison;
       }
       if (isSetEF()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEB()).compareTo(other.isSetEB());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEB()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eB, other.eB);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -3747,27 +3579,11 @@ public class WorkerService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("eS:");
-      if (this.eS == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eS);
-      }
-      first = false;
-      if (!first) sb.append(", ");
       sb.append("eF:");
       if (this.eF == null) {
         sb.append("null");
       } else {
         sb.append(this.eF);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eB:");
-      if (this.eB == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eB);
       }
       first = false;
       sb.append(")");
@@ -3822,29 +3638,11 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // E_S
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eS = new SuspectedFileSizeException();
-                struct.eS.read(iprot);
-                struct.setESIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // E_F
+            case 2: // E_F
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.eF = new FailedToCheckpointException();
                 struct.eF.read(iprot);
                 struct.setEFIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 4: // E_B
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eB = new BlockInfoException();
-                struct.eB.read(iprot);
-                struct.setEBIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -3869,19 +3667,9 @@ public class WorkerService {
           struct.eP.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.eS != null) {
-          oprot.writeFieldBegin(E_S_FIELD_DESC);
-          struct.eS.write(oprot);
-          oprot.writeFieldEnd();
-        }
         if (struct.eF != null) {
           oprot.writeFieldBegin(E_F_FIELD_DESC);
           struct.eF.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eB != null) {
-          oprot.writeFieldBegin(E_B_FIELD_DESC);
-          struct.eB.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3905,53 +3693,31 @@ public class WorkerService {
         if (struct.isSetEP()) {
           optionals.set(0);
         }
-        if (struct.isSetES()) {
+        if (struct.isSetEF()) {
           optionals.set(1);
         }
-        if (struct.isSetEF()) {
-          optionals.set(2);
-        }
-        if (struct.isSetEB()) {
-          optionals.set(3);
-        }
-        oprot.writeBitSet(optionals, 4);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetEP()) {
           struct.eP.write(oprot);
         }
-        if (struct.isSetES()) {
-          struct.eS.write(oprot);
-        }
         if (struct.isSetEF()) {
           struct.eF.write(oprot);
-        }
-        if (struct.isSetEB()) {
-          struct.eB.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, addCheckpoint_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(4);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.eP = new FileDoesNotExistException();
           struct.eP.read(iprot);
           struct.setEPIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.eS = new SuspectedFileSizeException();
-          struct.eS.read(iprot);
-          struct.setESIsSet(true);
-        }
-        if (incoming.get(2)) {
           struct.eF = new FailedToCheckpointException();
           struct.eF.read(iprot);
           struct.setEFIsSet(true);
-        }
-        if (incoming.get(3)) {
-          struct.eB = new BlockInfoException();
-          struct.eB.read(iprot);
-          struct.setEBIsSet(true);
         }
       }
     }
