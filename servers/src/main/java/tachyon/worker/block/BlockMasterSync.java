@@ -214,33 +214,4 @@ public final class BlockMasterSync implements Runnable {
         throw new RuntimeException("Un-recognized command from master " + cmd);
     }
   }
-
-  /**
-   * Thread to remove block from master
-   */
-  private class BlockRemover implements Runnable {
-    private BlockDataManager mBlockDataManager;
-    private long mSessionId;
-    private long mBlockId;
-
-    public BlockRemover(BlockDataManager blockDataManager, long sessionId, long blockId) {
-      mBlockDataManager = blockDataManager;
-      mSessionId = sessionId;
-      mBlockId = blockId;
-    }
-
-    @Override
-    public void run() {
-      try {
-        mBlockDataManager.removeBlock(mSessionId, mBlockId);
-      } catch (IOException ioe) {
-        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
-      } catch (InvalidStateException e) {
-        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted.");
-      } catch (NotFoundException e) {
-        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
-      }
-    }
-
-  }
 }
