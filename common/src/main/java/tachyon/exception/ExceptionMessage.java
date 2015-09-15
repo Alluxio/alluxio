@@ -55,6 +55,7 @@ public enum ExceptionMessage {
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted block {0}"),
   TEMP_BLOCK_ID_COMMITTED("Temp blockId {0} is not available, because it is already committed"),
   TEMP_BLOCK_ID_EXISTS("Temp blockId {0} is not available, because it already exists"),
+  BLOCK_NOT_FOUND_AT_LOCATION("Block {0} not found at location: {1}"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
