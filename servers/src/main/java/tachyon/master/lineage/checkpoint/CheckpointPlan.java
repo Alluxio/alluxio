@@ -26,23 +26,23 @@ import tachyon.master.lineage.meta.Lineage;
  * A plan for checkpointing lineage. It essentially contains a list of lineages to checkpoint in
  * order.
  */
-public final class CheckPointPlan {
+public final class CheckpointPlan {
   /** A list of lineage to checkpoint */
   private final List<Lineage> mToCheckPoint;
 
-  public CheckPointPlan(List<Lineage> toCheckPoint) {
+  public CheckpointPlan(List<Lineage> toCheckPoint) {
     mToCheckPoint = Preconditions.checkNotNull(toCheckPoint);
   }
 
   /**
    * @return a list of lineages to check point in sequence.
    */
-  public List<Lineage> toCheckPoint() {
+  public List<Lineage> toCheckpoint() {
     return mToCheckPoint;
   }
 
   @Override
   public String toString() {
-    return "toCheckPoint: " + Joiner.on(", ").join(mToCheckPoint);
+    return "toCheckpoint: " + Joiner.on(", ").join(mToCheckPoint);
   }
 }
