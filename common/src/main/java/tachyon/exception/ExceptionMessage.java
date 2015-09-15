@@ -47,6 +47,7 @@ public enum ExceptionMessage {
 
   // tieredBlockStore
   BLOCK_ID_FOR_DIFFERENT_SESSION("BlockId {0} is owned by sessionId {1} not {2}"),
+  BLOCK_NOT_FOUND_AT_LOCATION("Block {0} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted block {0}"),
   NO_BLOCK_ID_FOUND("BlockId {0} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
@@ -55,7 +56,6 @@ public enum ExceptionMessage {
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted block {0}"),
   TEMP_BLOCK_ID_COMMITTED("Temp blockId {0} is not available, because it is already committed"),
   TEMP_BLOCK_ID_EXISTS("Temp blockId {0} is not available, because it already exists"),
-  BLOCK_NOT_FOUND_AT_LOCATION("Block {0} not found at location: {1}"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
