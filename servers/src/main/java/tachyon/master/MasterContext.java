@@ -13,25 +13,25 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.master;
 
 import tachyon.conf.TachyonConf;
 
 /**
- * A WorkerContext object stores TachyonConf.
+ * A MasterContext object stores TachyonConf.
  */
-public final class WorkerContext {
-  private WorkerContext() {} // to prevent initialization
+public final class MasterContext {
+  private MasterContext() {} // to prevent initialization
 
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
-   * worker process.
+   * master process.
    */
   private static TachyonConf sTachyonConf = new TachyonConf();
 
   /**
-   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
-   * within the worker process.
+   * Returns the one and only static {@link tachyon.conf.TachyonConf} object which is shared among
+   * all classes within the master process.
    *
    * @return the tachyonConf for the worker process
    */

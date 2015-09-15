@@ -79,7 +79,6 @@ import tachyon.util.io.PathUtils;
 public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonConf mTachyonConf;
   private final BlockMaster mBlockMaster;
 
   /** This manages the file system inode structure. This must be journaled. */
@@ -102,8 +101,8 @@ public final class FileSystemMaster extends MasterBase {
   public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
       Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
-    mTachyonConf = tachyonConf;
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)),
+        tachyonConf);
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);

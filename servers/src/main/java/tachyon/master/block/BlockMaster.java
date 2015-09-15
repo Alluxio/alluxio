@@ -72,9 +72,6 @@ import tachyon.util.io.PathUtils;
 public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  // TODO(gene): Use a master context in the future.
-  private final TachyonConf mTachyonConf;
-
   /** Block metadata management. */
   /**
    * Blocks on all workers, including active and lost blocks. This state must be journaled. Access
@@ -134,8 +131,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   public BlockMaster(TachyonConf tachyonConf, Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)));
-    mTachyonConf = tachyonConf;
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)),
+        tachyonConf);
   }
 
   @Override

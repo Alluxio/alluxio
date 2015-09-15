@@ -26,9 +26,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -36,7 +36,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalWriter;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -152,7 +151,9 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    mLocalTachyonCluster.start();
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(Constants.KB));
+    mLocalTachyonCluster.start(conf);
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
@@ -164,7 +165,6 @@ public class JournalIntegrationTest {
    */
   @Test
   public void CompletedEditLogDeletionTest() throws Exception {
-    JournalWriter.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       mTfs.getOutStream(new TachyonURI("/a" + i), new ClientOptions.Builder(mMasterTachyonConf)
         .setBlockSize((i + 10) / 10 * 64).build()).close();
@@ -413,7 +413,6 @@ public class JournalIntegrationTest {
    */
   @Test
   public void MultiEditLogTest() throws Exception {
-    JournalWriter.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       ClientOptions op = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(
           (i + 10) / 10 * 64).build();
