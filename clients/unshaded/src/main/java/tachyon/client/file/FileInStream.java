@@ -152,7 +152,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
           LOG.warn("Failed to write into TachyonStorage, the block " + getBlockCurrentBlockId()
-          + " will not be in TachyonStorage", ioe);
+              + " will not be in TachyonStorage", ioe);
           mShouldCacheCurrentBlock = false;
         }
       }
