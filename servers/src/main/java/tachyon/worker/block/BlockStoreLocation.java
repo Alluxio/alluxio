@@ -21,7 +21,7 @@ import java.util.Arrays;
  * Where to store a block within a block store. Currently, this is a wrapper on an integer
  * representing the tier to put this block.
  */
-public final class BlockStoreLocation {
+public class BlockStoreLocation {
   /** Special value to indicate any tier */
   private static final int ANY_TIER = -1;
   /** Special value to indicate any dir */

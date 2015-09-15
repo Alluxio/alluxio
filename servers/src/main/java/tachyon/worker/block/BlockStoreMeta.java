@@ -33,7 +33,7 @@ import tachyon.worker.block.meta.StorageTier;
  * <p>
  * TODO: use proto buf to represent this information
  */
-public final class BlockStoreMeta {
+public class BlockStoreMeta {
   // TODO: the following two fields don't need to be computed on the creation of each
   // {@link BlockStoreMeta} instance.
   /**

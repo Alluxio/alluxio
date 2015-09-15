@@ -86,8 +86,8 @@ public class BlockDataManager implements Testable<BlockDataManager> {
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore();
-    mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
     mWorkerSource = workerSource;
+    mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
     mBlockMasterClient = blockMasterClient;
     mFileSystemMasterClient = fileSystemMasterClient;
 
