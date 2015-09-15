@@ -88,7 +88,8 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.deleteFile(file.getFileId(), true);
-      LOG.info("Deleted file " + file.getFileId());
+      LOG.info(
+          "Deleted file " + file.getFileId() + " from both Tachyon Storage and under file system");
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
