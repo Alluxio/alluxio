@@ -109,6 +109,7 @@ public class LocalTachyonClusterMultiMaster {
     return mClientPool.getClient(mMasterConf);
   }
 
+  // TODO(cc): Since we have MasterContext now, remove this.
   public TachyonConf getMasterTachyonConf() {
     return mMasterConf;
   }
@@ -165,8 +166,7 @@ public class LocalTachyonClusterMultiMaster {
 
     mHostname = NetworkAddressUtils.getLocalHostName(100);
 
-    // TODO: Would be good to have a masterContext as well
-    mMasterConf = new TachyonConf();
+    mMasterConf = MasterContext.getConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USE_ZOOKEEPER, "true");
@@ -190,7 +190,7 @@ public class LocalTachyonClusterMultiMaster {
     mkdir(mTachyonHome);
 
     for (int k = 0; k < mNumOfMasters; k ++) {
-      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
+      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
       master.start();
       LOG.info("master NO." + k + " started, isServing: " + master.isServing() + ", address: "
           + master.getAddress());
