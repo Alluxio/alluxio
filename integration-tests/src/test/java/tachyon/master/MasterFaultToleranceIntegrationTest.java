@@ -124,6 +124,8 @@ public class MasterFaultToleranceIntegrationTest {
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
 
       if (kills % 2 != 0) {
+        // Delete files.
+
         faultTestDataCheck(answer);
 
         // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
@@ -134,6 +136,8 @@ public class MasterFaultToleranceIntegrationTest {
         answer.clear();
         faultTestDataCheck(answer);
       } else {
+        // Create files.
+
         Assert.assertEquals(0, answer.size());
         faultTestDataCheck(answer);
 
