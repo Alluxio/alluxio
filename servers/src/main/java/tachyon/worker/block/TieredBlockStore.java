@@ -920,9 +920,10 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   private class AsyncEvictor implements Runnable {
-    // Alias of the storage tier and reserved space on it
+    // Pairs of alias of the storage tier and space size reserved on it
     private final List<Pair<Integer, Long>> mReservedBytesOnTiers =
         new ArrayList<Pair<Integer, Long>>();
+    // Mapping from alias of the storage tier and running movers/removers
     private final Multimap<Integer, Future<Boolean>> mMoverResOnTiers =
         HashMultimap.<Integer, Future<Boolean>>create();
     private final Timer mTimer;
@@ -951,15 +952,21 @@ public final class TieredBlockStore implements BlockStore {
       mExecutorService = executorService;
     }
 
+    /**
+     * Get eviction plan on some tier to make enough space
+     * 
+     * @param reservedBytes space size to be reserved
+     * @param location the location on the BlockStore
+     * @return eviction plan
+     */
     private EvictionPlan getEvictionPlanOnTier(long reservedBytes, BlockStoreLocation location) {
       EvictionPlan plan = null;
       mMetadataReadLock.lock();
       try {
         BlockMetadataManagerView updatedView = getUpdatedView();
         long availableBytes = updatedView.getAvailableBytes(location);
-        if (availableBytes <= reservedBytes) {
+        if (availableBytes < reservedBytes) {
           plan = mEvictor.freeSpaceWithView(reservedBytes - availableBytes, location, updatedView);
-          // Absent plan means failed to evict enough space.
           if (null == plan) {
             LOG.error("Failed to free space: no eviction plan by evictor");
           }
@@ -970,6 +977,12 @@ public final class TieredBlockStore implements BlockStore {
       return plan;
     }
 
+    /**
+     * Check whether the eviction on some tier is done
+     * 
+     * @param tierAlias the alias of the storage tier
+     * @return true if it is done, else false
+     */
     private boolean isEvictionDone(int tierAlias) {
       boolean done = true;
       List<Future<Boolean>> moversDone = new ArrayList<Future<Boolean>>();

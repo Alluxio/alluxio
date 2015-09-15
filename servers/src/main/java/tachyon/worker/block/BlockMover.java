@@ -27,6 +27,9 @@ import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 
+/**
+ * Used to move block on a thread pool
+ */
 public class BlockMover implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mSessionId;
