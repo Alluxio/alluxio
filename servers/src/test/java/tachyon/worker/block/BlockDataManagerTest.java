@@ -82,12 +82,13 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       mWorkerId = mRandom.nextLong();
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
-      mManager = new BlockDataManager(mWorkerSource, mBlockMasterClient, mFileSystemMasterClient);
+      mManager =
+          new BlockDataManager(mWorkerSource, mBlockMasterClient, mFileSystemMasterClient,
+              mBlockStore);
       mManager.setSessions(mSessions);
       mManager.setWorkerId(mWorkerId);
 
       mManager.grantAccess(BlockDataManagerTest.this); // initializes mPrivateAccess
-      mPrivateAccess.setBlockStore(mBlockStore);
       mPrivateAccess.setHeartbeatReporter(mHeartbeatReporter);
       mPrivateAccess.setMetricsReporter(mMetricsReporter);
       mPrivateAccess.setTachyonConf(mTachyonConf);
