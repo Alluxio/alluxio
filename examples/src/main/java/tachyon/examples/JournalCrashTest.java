@@ -15,7 +15,6 @@
 
 package tachyon.examples;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +35,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -119,15 +119,19 @@ public class JournalCrashTest {
           } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
             try {
               sTfs.getOutStream(testURI, sClientOptions).close();
-            } catch (IOException ioe) {
+            } catch (FileAlreadyExistException e) {
               // File already exists, ignore it.
+            } catch (Exception e) {
+              throw e;
             }
             sTfs.delete(sTfs.open(testURI));
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
             try {
               sTfs.getOutStream(testURI, sClientOptions).close();
-            } catch (IOException ioe) {
+            } catch (FileAlreadyExistException e) {
               // File already exists, ignore it.
+            } catch (Exception e) {
+              throw e;
             }
             sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"));
           }
@@ -176,7 +180,7 @@ public class JournalCrashTest {
         if (ClientOpType.CREATE_FILE == opType) {
           try {
             sTfs.open(checkURI);
-          } catch (IOException ioe) {
+          } catch (Exception e) {
             // File not exist. This is unexpected for CREATE_FILE.
             LOG.error("File not exist for create test. Check failed! File: {}", checkURI);
             return false;
@@ -184,7 +188,7 @@ public class JournalCrashTest {
         } else if (ClientOpType.CREATE_DELETE_FILE == opType) {
           try {
             sTfs.open(checkURI);
-          } catch (IOException ioe) {
+          } catch (Exception e) {
             // File not exist. This is expected for CREATE_DELETE_FILE.
             continue;
           }
@@ -193,7 +197,7 @@ public class JournalCrashTest {
         } else if (ClientOpType.CREATE_RENAME_FILE == opType) {
           try {
             sTfs.open(new TachyonURI(checkURI + "-rename"));
-          } catch (IOException ioe) {
+          } catch (Exception e) {
             // File not exist. This is unexpected for CREATE_RENAME_FILE.
             LOG.error("File not exist for create/rename test. Check failed! File: {}-rename",
                 checkURI);
@@ -246,7 +250,7 @@ public class JournalCrashTest {
     sTfs = TachyonFileSystem.get();
     try {
       sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
-    } catch (IOException ioe) {
+    } catch (Exception ioe) {
       // Test Directory not exist
     }
 
