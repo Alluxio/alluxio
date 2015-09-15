@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 
 import tachyon.client.ClientContext;
 import tachyon.client.FileSystemMasterClient;
-import tachyon.client.ResourcePool;
+import tachyon.resource.ResourcePool;
 import tachyon.util.ThreadFactoryUtils;
 
 class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {

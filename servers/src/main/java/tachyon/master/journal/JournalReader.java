@@ -47,7 +47,7 @@ public class JournalReader {
   /** The modified time (in ms) for the opened checkpoint file. */
   private long mCheckpointOpenedTime = -1;
   /** The modified time (in ms) for the latest checkpoint file. */
-  private long mLatestCheckpointModifiedTime = -1;
+  private long mCheckpointLastModifiedTime = -1;
   /** The log number for the completed log file. */
   private int mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
@@ -69,7 +69,7 @@ public class JournalReader {
    * @return true if the checkpoint file has not been modified.
    */
   public boolean isValid() {
-    return mCheckpointRead && (mCheckpointOpenedTime == mLatestCheckpointModifiedTime);
+    return mCheckpointRead && (mCheckpointOpenedTime == mCheckpointLastModifiedTime);
   }
 
   public JournalInputStream getCheckpointInputStream() throws IOException {
@@ -100,7 +100,7 @@ public class JournalReader {
     }
     String currentLogPath = mJournal.getCompletedLogFilePath(mCurrentLogNumber);
     if (!mUfs.exists(currentLogPath)) {
-      LOG.info("Journal log file: " + currentLogPath + " does not exist yet.");
+      LOG.debug("Journal log file: " + currentLogPath + " does not exist yet.");
       return null;
     }
     // Open input stream from the current log file.
@@ -121,7 +121,7 @@ public class JournalReader {
     if (!mUfs.exists(mCheckpointPath)) {
       throw new IOException("Checkpoint file " + mCheckpointPath + " does not exist.");
     }
-    mLatestCheckpointModifiedTime = mUfs.getModificationTimeMs(mCheckpointPath);
-    return mLatestCheckpointModifiedTime;
+    mCheckpointLastModifiedTime = mUfs.getModificationTimeMs(mCheckpointPath);
+    return mCheckpointLastModifiedTime;
   }
 }

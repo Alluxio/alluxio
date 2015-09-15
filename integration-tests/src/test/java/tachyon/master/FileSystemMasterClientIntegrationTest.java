@@ -28,6 +28,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.FileDoesNotExistException;
 
 /**
  * Test the internal implementation of tachyon Master via a
@@ -55,8 +56,9 @@ public class FileSystemMasterClientIntegrationTest {
 
   @Test
   public void openCloseTest() throws TException, IOException {
-    FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
-        mLocalTachyonCluster.getMaster().getAddress(), mExecutorService, mMasterTachyonConf);
+    FileSystemMasterClient fsMasterClient =
+        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
+            mMasterTachyonConf);
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
@@ -70,13 +72,15 @@ public class FileSystemMasterClientIntegrationTest {
     fsMasterClient.close();
   }
 
-  @Test(timeout = 3000, expected = IOException.class)
-  public void user_getClientBlockInfoReturnsOnError() throws IOException {
+  @Test(timeout = 3000, expected = FileDoesNotExistException.class)
+  public void user_getClientBlockInfoReturnsOnError() throws IOException,
+          FileDoesNotExistException {
     // This test was created to show that an infinite loop occurs.
     // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
-        mLocalTachyonCluster.getMaster().getAddress(), mExecutorService, mMasterTachyonConf);
+    FileSystemMasterClient fsMasterClient =
+        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
+            mMasterTachyonConf);
     fsMasterClient.getFileInfo(Long.MAX_VALUE);
     fsMasterClient.close();
   }
