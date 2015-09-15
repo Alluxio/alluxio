@@ -18,16 +18,22 @@ package tachyon.master.lineage;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.thrift.TProcessor;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.client.file.TachyonFile;
+import tachyon.conf.TachyonConf;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.lineage.checkpoint.CheckpointExecutor;
+import tachyon.master.lineage.checkpoint.CheckpointThread;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.thrift.LineageMasterService;
 import tachyon.util.ThreadFactoryUtils;
@@ -37,12 +43,17 @@ import tachyon.util.ThreadFactoryUtils;
  * manage all lineage-related activities.
  */
 public final class LineageMaster extends MasterBase {
+  private final TachyonConf mTachyonConf;
   private final LineageStore mLineageStore;
 
-  public LineageMaster(Journal journal) {
+  /** The service that checkpoints lineages. */
+  private Future<?> mCheckpointExecutionService;
+
+  public LineageMaster(TachyonConf conf, Journal journal) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
 
+    mTachyonConf = Preconditions.checkNotNull(conf);
     mLineageStore = new LineageStore();
   }
 
@@ -63,6 +74,25 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
+  public void start(boolean isLeader) throws IOException {
+    super.start(isLeader);
+    if (isLeader) {
+      mCheckpointExecutionService =
+          getExecutorService().submit(new CheckpointThread("Checkpoint execution service",
+              new CheckpointExecutor(mTachyonConf, mLineageStore),
+              mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+    }
+  }
+
+  @Override
+  public void stop() throws IOException {
+    super.stop();
+    if (mCheckpointExecutionService != null) {
+      mCheckpointExecutionService.cancel(true);
+    }
+  }
+
+  @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     // TODO add journal support
   }
@@ -76,4 +106,6 @@ public final class LineageMaster extends MasterBase {
     // TODO delete lineage
     return false;
   }
+
+
 }

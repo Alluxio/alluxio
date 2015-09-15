@@ -25,7 +25,7 @@ import tachyon.util.CommonUtils;
 /**
  * Scheduling strategy for Lineage checkpointing.
  */
-public interface CheckPointScheduler {
+public interface CheckpointScheduler {
 
   class Factory {
     /**
@@ -33,10 +33,10 @@ public interface CheckPointScheduler {
      * @param store lineage store to pass to scheduler
      * @return the generated scheduler
      */
-    public static CheckPointScheduler createScheduler(TachyonConf conf, LineageStoreView store) {
+    public static CheckpointScheduler createScheduler(TachyonConf conf, LineageStoreView store) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<CheckPointScheduler>getClass(Constants.MASTER_CHECKPOINT_STRATEGY_CLASS),
+            conf.<CheckpointScheduler>getClass(Constants.MASTER_CHECKPOINT_STRATEGY_CLASS),
             new Class[] {LineageStoreView.class}, new Object[] {store});
       } catch (Exception e) {
         throw Throwables.propagate(e);
@@ -56,5 +56,5 @@ public interface CheckPointScheduler {
    * @return a scheduling plan (possibly empty) to checkpoint the lineages, or null if no plan is
    *         feasible.
    */
-  CheckPointPlan schedule(LineageStoreView store);
+  CheckpointPlan schedule(LineageStoreView store);
 }
