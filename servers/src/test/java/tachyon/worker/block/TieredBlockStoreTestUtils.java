@@ -169,7 +169,7 @@ public class TieredBlockStoreTestUtils {
    */
   private static String[][] createDirHierarchy(String baseDir, final String[][] dirs)
       throws Exception {
-    if (null == baseDir) {
+    if (baseDir == null) {
       return dirs;
     }
     String[][] newDirs = new String[dirs.length][];
@@ -189,7 +189,7 @@ public class TieredBlockStoreTestUtils {
    */
   private static String[] createDirHierarchy(String baseDir, final String[] dirs)
       throws Exception {
-    if (null == baseDir) {
+    if (baseDir == null) {
       return dirs;
     }
     String[] newDirs = new String[dirs.length];
