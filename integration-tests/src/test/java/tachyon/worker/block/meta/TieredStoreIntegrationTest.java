@@ -189,36 +189,42 @@ public class TieredStoreIntegrationTest {
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", TachyonStorageType.STORE,
             UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
 
-    CommonUtils.sleepMs(null, mWorkerToMasterHeartbeatIntervalMs * 3);
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     TachyonFile toPromote = null;
+    int toPromoteLen = 0;
     FileInfo file1Info = mTFS.getInfo(file1);
     FileInfo file2Info = mTFS.getInfo(file2);
     FileInfo file3Info = mTFS.getInfo(file3);
 
+    // We know some file will not be in memory, but not which one since we do not want to make
+    // any assumptions on the eviction policy
     if (file1Info.getInMemoryPercentage() < 100) {
       toPromote = file1;
+      toPromoteLen = (int) file1Info.getLength();
       Assert.assertEquals(100, file2Info.getInMemoryPercentage());
       Assert.assertEquals(100, file3Info.getInMemoryPercentage());
     } else if (file2Info.getInMemoryPercentage() < 100) {
       toPromote = file2;
+      toPromoteLen = (int) file2Info.getLength();
       Assert.assertEquals(100, file1Info.getInMemoryPercentage());
       Assert.assertEquals(100, file3Info.getInMemoryPercentage());
     } else {
       toPromote = file3;
+      toPromoteLen = (int) file3Info.getLength();
       Assert.assertEquals(100, file1Info.getInMemoryPercentage());
       Assert.assertEquals(100, file2Info.getInMemoryPercentage());
     }
 
     FileInStream is = mTFS.getInStream(toPromote, new ClientOptions.Builder(mWorkerConf)
         .setTachyonStoreType(TachyonStorageType.PROMOTE).build());
-    byte[] buf = new byte[MEM_CAPACITY_BYTES / 6];
+    byte[] buf = new byte[toPromoteLen];
     int len = is.read(buf);
     is.close();
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
-    Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len);
+    Assert.assertEquals(toPromoteLen, len);
     Assert.assertEquals(100, mTFS.getInfo(toPromote).getInMemoryPercentage());
   }
 
