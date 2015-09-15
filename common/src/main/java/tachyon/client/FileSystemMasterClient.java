@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
@@ -46,7 +45,6 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-// TODO: split out worker-specific calls to a fs master client for workers.
 // TODO: figure out a retry utility to make all the retry logic in this file better.
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -209,27 +207,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         return mClient.getNewBlockIdForFile(fileId);
       } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
-
-  /**
-   * @return the set of pinned file ids
-   * @throws InvalidPathException if the given path is invalid
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized Set<Long> getPinList() throws IOException, InvalidPathException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.workerGetPinIdList();
-      } catch (InvalidPathException e) {
         throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -478,35 +455,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     }
     throw new IOException("Failed after " + retry + " retries.");
   }
-
-  /**
-   * Adds a checkpoint.
-   *
-   * @param workerId the worker id
-   * @param fileId the file id
-   * @param length the checkpoint length
-   * @param checkpointPath the checkpoint path
-   * @return whether operation succeeded or not
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
-      String checkpointPath) throws IOException, FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
-
+  
   /**
    * Reports a lost file.
    *
