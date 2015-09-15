@@ -104,8 +104,8 @@ public final class Client {
     mOptions.addOption("timeout", true, "Application timeout in milliseconds");
     mOptions.addOption("master_memory", true,
         "Amount of memory in MB to be requested to run the application master");
-    mOptions.addOption("master_vcores", true,
-        "Amount of virtual cores to be requested to run the " + "application master");
+    mOptions.addOption("master_vcores", true, "Amount of virtual cores to be requested to run the "
+        + "application master");
     mOptions.addOption("jar", true, "Jar file containing the application master");
     mOptions.addOption("debug", false, "Dump out debug information");
     mOptions.addOption("help", false, "Print usage");
@@ -245,9 +245,10 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    String command = "$JAVA_HOME/bin/java" + " -Xmx256M " + mAppMasterMainClass + " "
-        + String.valueOf(mNumWorkers) + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
-        + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
+    String command =
+        "$JAVA_HOME/bin/java" + " -Xmx256M " + mAppMasterMainClass + " " + mAppMasterJar + " "
+            + String.valueOf(mNumWorkers) + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
+            + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
     System.out.println("AM command: " + command);
     mAmContainer.setCommands(Collections.singletonList(command));
 
