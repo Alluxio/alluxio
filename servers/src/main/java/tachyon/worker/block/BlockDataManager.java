@@ -31,6 +31,8 @@ import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.test.Testable;
+import tachyon.test.Tester;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -49,18 +51,17 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * Class is responsible for managing the Tachyon BlockStore and Under FileSystem. This class is
  * thread-safe.
  */
-public final class BlockDataManager {
+public class BlockDataManager implements Testable<BlockDataManager> {
   /** Block store delta reporter for master heartbeat */
-  private final BlockHeartbeatReporter mHeartbeatReporter;
+  private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
-  private final BlockStore mBlockStore;
+  private BlockStore mBlockStore;
   /** Configuration values */
-  private final TachyonConf mTachyonConf;
+  private TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
-  private final WorkerSource mWorkerSource;
+  private WorkerSource mWorkerSource;
   /** Metrics reporter that listens on block events and increases metrics counters */
-  private final BlockMetricsReporter mMetricsReporter;
-
+  private BlockMetricsReporter mMetricsReporter;
   /** BlockMasterClient, only used to inform the master of a new block in commitBlock */
   private BlockMasterClient mBlockMasterClient;
   /** FileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
@@ -85,9 +86,8 @@ public final class BlockDataManager {
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore();
-    mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
-
+    mWorkerSource = workerSource;
     mBlockMasterClient = blockMasterClient;
     mFileSystemMasterClient = fileSystemMasterClient;
 
@@ -102,6 +102,35 @@ public final class BlockDataManager {
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
+  }
+
+  class PrivateAccess {
+    private PrivateAccess() {}
+
+    public void setBlockStore(BlockStore blockStore) {
+      mBlockStore = blockStore;
+    }
+
+    public void setHeartbeatReporter(BlockHeartbeatReporter reporter) {
+      mHeartbeatReporter = reporter;
+    }
+
+    public void setMetricsReporter(BlockMetricsReporter reporter) {
+      mMetricsReporter = reporter;
+    }
+
+    public void setTachyonConf(TachyonConf conf) {
+      mTachyonConf = conf;
+    }
+
+    public void setUnderFileSystem(UnderFileSystem ufs) {
+      mUfs = ufs;
+    }
+  }
+
+  /** Grants access to private members to testers of this class. */
+  public void grantAccess(Tester<BlockDataManager> tester) {
+    tester.receiveAccess(new PrivateAccess());
   }
 
   /**
@@ -274,7 +303,8 @@ public final class BlockDataManager {
   public void createBlockRemote(long sessionId, long blockId, int tierAlias, long initialBytes)
       throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
       InvalidStateException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc =
+        tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     FileUtils.createBlockPath(createdBlock.getPath());
   }
