@@ -26,7 +26,7 @@ import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 
 /**
- * Thread to remove block from master
+ * Used to remove block on a thread pool
  */
 public class BlockRemover implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
