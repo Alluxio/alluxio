@@ -76,8 +76,8 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @param length the length of the block being committed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void workerCommitBlock(long workerId, long usedBytesOnTier, int tier,
-      long blockId, long length) throws IOException {
+  public synchronized void commitBlock(long workerId, long usedBytesOnTier, int tier, long blockId,
+      long length) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
@@ -100,7 +100,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO: rename to workerRegister?
-  public synchronized long workerGetId(NetAddress address) throws IOException {
+  public synchronized long getId(NetAddress address) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
@@ -125,7 +125,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @return an optional command for the worker to execute
    * @throws IOException if an I/O error occurs
    */
-  public synchronized Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
+  public synchronized Command heartbeat(long workerId, List<Long> usedBytesOnTiers,
       List<Long> removedBlocks, Map<Long, List<Long>> addedBlocks) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
@@ -152,7 +152,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO: rename to workerBlockReport or workerInitialize?
-  public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers,
+  public synchronized long register(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {

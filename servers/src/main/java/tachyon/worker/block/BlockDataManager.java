@@ -182,7 +182,7 @@ public final class BlockDataManager {
   /**
    * Commits a block to Tachyon managed space. The block must be temporary. The block is
    * persisted after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible
-   * until {@link WorkerBlockMasterClient#workerCommitBlock} succeeds
+   * until {@link WorkerBlockMasterClient#commitBlock} succeeds
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to commit
@@ -206,7 +206,7 @@ public final class BlockDataManager {
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mWorkerBlockMasterClient.workerCommitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
+      mWorkerBlockMasterClient.commitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {

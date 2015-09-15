@@ -95,7 +95,7 @@ public final class BlockMasterSync implements Runnable {
 
   public void setWorkerId() throws IOException {
     try {
-      mWorkerId = mMasterClient.workerGetId(mWorkerAddress);
+      mWorkerId = mMasterClient.getId(mWorkerAddress);
     } catch (IOException ioe) {
       LOG.error("Failed to register with master.", ioe);
       throw ioe;
@@ -110,7 +110,7 @@ public final class BlockMasterSync implements Runnable {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
       mWorkerId =
-          mMasterClient.workerRegister(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
+          mMasterClient.register(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
               storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to register with master.", ioe);
@@ -142,7 +142,7 @@ public final class BlockMasterSync implements Runnable {
       // Send the heartbeat and execute the response
       try {
         Command cmdFromMaster =
-            mMasterClient.workerHeartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
+            mMasterClient.heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
                 blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
