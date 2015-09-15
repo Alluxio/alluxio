@@ -78,6 +78,7 @@ public class Constants {
   public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_SERVICE_NAME = "FileSystemMaster";
   public static final String RAW_TABLE_MASTER_SERVICE_NAME = "RawTableMaster";
+  public static final String LINEAGE_MASTER_SERVICE_NAME = "LineageMaster";
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>

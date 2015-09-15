@@ -245,6 +245,12 @@ service FileSystemMasterService {
     throws (1: DependencyDoesNotExistException ddnee)
 }
 
+service LineageMasterService {
+  i64 createLineage(1: list<i64> inputFiles, 2: list<i64> outputFiles, 3: binary job)
+  
+  bool deleteLineage(1: i64 lineageId)
+}
+
 service RawTableMasterService {
   i64 createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
     throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe, 3: TableColumnException tce,
