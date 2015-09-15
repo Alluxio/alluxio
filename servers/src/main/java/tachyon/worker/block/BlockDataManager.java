@@ -303,8 +303,7 @@ public class BlockDataManager implements Testable<BlockDataManager> {
   public void createBlockRemote(long sessionId, long blockId, int tierAlias, long initialBytes)
       throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
       InvalidStateException {
-    BlockStoreLocation loc =
-        tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
+    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     FileUtils.createBlockPath(createdBlock.getPath());
   }
