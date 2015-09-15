@@ -12,33 +12,12 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package tachyon.master.lineage.meta;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
-
-import tachyon.client.file.TachyonFile;
-import tachyon.dag.DAG;
-
 /**
- * A store of lineages.
+ * The state of lineage.
  */
-public final class LineageStore {
-  private DAG<Lineage> mLineageDAG;
-
-  /** Indices for lineages */
-  private Map<TachyonFile, Lineage> mInputFileIndex;
-  private Map<TachyonFile, Lineage> mOutputFileIndex;
-  private Map<LineageState, Lineage> mStateIndex;
-
-  public LineageStore() {
-    mLineageDAG = new DAG<Lineage>();
-    mInputFileIndex = Maps.newHashMap();
-    mOutputFileIndex = Maps.newHashMap();
-    mStateIndex = Maps.newHashMap();
-  }
-
-
-
+public enum LineageState {
+  ADDED, IN_RECORD, RECORDED, IN_CHECKPOINT, CHECKPOINTED, IN_RECOMPUTE
 }
