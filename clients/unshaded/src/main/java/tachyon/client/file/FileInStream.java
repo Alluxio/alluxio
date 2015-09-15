@@ -36,9 +36,9 @@ import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 
 /**
- * A streaming API to read a file. This API represents a file as a stream of bytes and provides
- * a collection of {@link #read} methods to access this stream of bytes. In addition, one can
- * seek into a given offset of the stream to read.
+ * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
+ * collection of {@link #read} methods to access this stream of bytes. In addition, one can seek
+ * into a given offset of the stream to read.
  *
  * <p>
  * This class wraps the {@link BlockInStream} for each of the blocks in the file and abstracts the
@@ -151,7 +151,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
-          LOG.error("Failed to write into buffer: " + ioe.getMessage());
+          long currentBlockId = getBlockCurrentBlockId();
+          LOG.warn("Failed to write into buffer, the block " + currentBlockId
+              + " will not be in TachyonStorage", ioe);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -223,7 +225,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          LOG.info("Failed to get BufferedBlockOutStream: " + ioe.getMessage());
+          LOG.warn("Failed to get TachyonStore stream, the block " + currentBlockId
+              + " will not be in TachyonStorage", ioe);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -281,7 +284,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           mCurrentCacheStream =
               mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
         } catch (IOException ioe) {
-          LOG.info("Failed to get BufferedBlockOutStream: " + ioe.getMessage());
+          LOG.info("Failed to write to TachyonStore stream, block " + getBlockCurrentBlockId()
+              + " will not be in TachyonStorage.", ioe);
           mShouldCacheCurrentBlock = false;
         }
       } else {
@@ -291,9 +295,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   }
 
   /**
-   * Helper method to checkAndAdvanceBlockInStream and seekBlockInStream. The current
-   * BlockInStream will be closed and a new BlockInStream for the given blockId will be opened at
-   * position 0.
+   * Helper method to checkAndAdvanceBlockInStream and seekBlockInStream. The current BlockInStream
+   * will be closed and a new BlockInStream for the given blockId will be opened at position 0.
    *
    * @param blockId blockId to set the mCurrentBlockInStream to read
    * @throws IOException if the next BlockInStream cannot be obtained
