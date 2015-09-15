@@ -375,7 +375,8 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * Gets the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
-   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
+   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so cannot put
+   * @Override.
    *
    * @return schema hadoop should map to.
    *

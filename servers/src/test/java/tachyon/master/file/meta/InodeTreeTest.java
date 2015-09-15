@@ -66,6 +66,15 @@ public final class InodeTreeTest {
   }
 
   @Test
+  public void initializeRootTwiceTest() throws Exception {
+    Inode root = mTree.getInodeByPath(new TachyonURI("/"));
+    // initializeRoot call does nothing
+    mTree.initializeRoot();
+    Inode newRoot = mTree.getInodeByPath(new TachyonURI("/"));
+    Assert.assertEquals(root, newRoot);
+  }
+
+  @Test
   public void createDirectoryTest() throws Exception {
     // create directory
     mTree.createPath(TEST_URI, Constants.KB, false, true);
@@ -79,6 +88,24 @@ public final class InodeTreeTest {
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
     Assert.assertTrue(test.isDirectory());
+  }
+
+  @Test
+  public void createFileUnderPinnedDirectoryTest() throws Exception {
+    // create nested directory
+    InodeTree.CreatePathResult createResult =
+        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    List<Inode> created = createResult.getCreated();
+    Inode nested = created.get(created.size() - 1);
+
+    // pin nested folder
+    mTree.setPinned(nested, true);
+
+    // create nested file under pinned folder
+    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+
+    // the nested file is pinned
+    Assert.assertEquals(1, mTree.getPinIdSet().size());
   }
 
   @Test
