@@ -41,7 +41,7 @@ import tachyon.conf.TachyonConf;
 /**
  * Actual owner of Tachyon running on Yarn. The YARN ResourceManager will launch this
  * ApplicationMaster on an allocated container. The ApplicationMaster communicates with YARN
- * cluster, and handles application execution. It performs operations in an asynchronous fashion.
+ * cluster, and handles application execution. It performs operations in a synchronous fashion.
  */
 public final class ApplicationMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -113,7 +113,7 @@ public final class ApplicationMaster {
     // Make container requests to ResourceManager
     for (int i = 0; i < numWorkers; i ++) {
       ContainerRequest containerAsk = new ContainerRequest(workerCapability, null, null, priority);
-      System.out.println("Making resource request for tachyon worker " + i);
+      LOG.info("Making resource request for tachyon worker " + i);
       mRMClient.addContainerRequest(containerAsk);
     }
 
@@ -129,12 +129,12 @@ public final class ApplicationMaster {
         ctx.setCommands(
             Collections.singletonList(command + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
                 + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr"));
-        System.out.println("Launching container " + container.getId());
+        LOG.info("Launching container " + container.getId());
         mNMClient.startContainer(container, ctx);
       }
       for (ContainerStatus status : response.getCompletedContainersStatuses()) {
         completedContainers ++;
-        System.out.println("Completed container " + status.getContainerId());
+        LOG.info("Completed container " + status.getContainerId());
       }
       Thread.sleep(100);
     }
@@ -144,9 +144,9 @@ public final class ApplicationMaster {
     try {
       mRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
     } catch (YarnException ye) {
-      System.err.println("Failed to unregister application " + ye);
+      LOG.error("Failed to unregister application " + ye);
     } catch (IOException ioe) {
-      System.err.println("Failed to unregister application " + ioe);
+      LOG.error("Failed to unregister application " + ioe);
     }
     mRMClient.stop();
   }
