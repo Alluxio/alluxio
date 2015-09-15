@@ -82,14 +82,11 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
         stopServing();
         stopMasters();
 
-        if (started) {
-          // Transitioning from standby to master, replace readonly journal with writable journal.
-          mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal);
-          mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
-              mFileSystemMasterJournal);
-          mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
-              mRawTableMasterJournal);
-        }
+        // Transitioning from standby to master, replace readonly journal with writable journal.
+        mBlockMaster.upgradeToWriteJournal(mBlockMasterJournal);
+        mFileSystemMaster.upgradeToWriteJournal(mFileSystemMasterJournal);
+        mRawTableMaster.upgradeToWriteJournal(mRawTableMasterJournal);
+
         startMasters(true);
         started = true;
         startServing("(gained leadership)", "(lost leadership)");

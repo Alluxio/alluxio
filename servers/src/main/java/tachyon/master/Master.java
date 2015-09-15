@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import org.apache.thrift.TProcessor;
 
+import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
@@ -74,4 +75,13 @@ public interface Master extends JournalCheckpointStreamable {
    * @throws IOException
    */
   void stop() throws IOException;
+
+  /**
+   * Provides the master with a {@link Journal} capable of writing, in preparation to starting as
+   * the leader. This enables transitioning from standby master to leader master without having to
+   * construct a new master object.
+   *
+   * @param journal the {@link Journal} capable of writing
+   */
+  void upgradeToWriteJournal(Journal journal);
 }
