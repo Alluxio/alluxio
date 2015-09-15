@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.lineage.meta;
+package tachyon.dag;
 
 import java.util.List;
 import java.util.Map;
