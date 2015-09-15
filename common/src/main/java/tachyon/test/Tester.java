@@ -19,24 +19,21 @@ package tachyon.test;
  * This interface should be implemented by test classes that want to gain access to private members
  * of classes they test. The tested classes should in turn implement the {@link Testable} interface.
  *
- * The idiomatic use of this pattern is for the test class to encapsulate the granted access in an
- * inner class:
+ * The idiomatic use of this pattern is for the test class to capture the access object in a private
+ * member:
  *
  * <code>
- * public class FooTest {
- *   class FooTester implements Tester$lt;Foo$gt; {
- *     Foo.PrivateAccess mPrivateAccess;
+ * public class FooTest implements Tester$lt;Foo$gt; {
+ *   Foo.PrivateAccess mPrivateAccess;
  *
- *     public void receiveAccess(Object access) { mPrivateAccess = (Foo.PrivateAccess) access; }
- *   }
+ *   public void receiveAccess(Object access) { mPrivateAccess = (Foo.PrivateAccess) access; }
  *
  *   &#64;Test
  *   public void SecretTest() {
  *     Foo foo = new Foo();
- *     FooTester fooTester = new Tester();
- *     foo.grantAccess(fooTester);
- *     fooTester.mPrivateAccess.setSecret(10);
- *     Assert.equals(fooTester.mPrivateAccess.getSecret(), 10);
+ *     foo.grantAccess(this);
+ *     mPrivateAccess.setSecret(10);
+ *     Assert.equals(mPrivateAccess.getSecret(), 10);
  *   }
  * }
  * </code>
