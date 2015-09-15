@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.lineage.checkpoint;
+package tachyon.master.lineage.recompute;
 
 import java.util.List;
 
@@ -23,26 +23,36 @@ import com.google.common.base.Preconditions;
 import tachyon.master.lineage.meta.Lineage;
 
 /**
- * A plan for checkpointing lineage. It essentially contains a list of lineages to checkpoint in
- * order.
+ * A plan for recomputing the lost files. It essentially contains a batch of jobs from the
+ * corresponding lineages to execute.
+ *
+ * TODO(yupeng): in this version it simply returns a list of jobs to execute in sequence. In the
+ * future, we will explore the possibility of executing jobs in in parallel.
  */
-public final class CheckpointPlan {
-  /** A list of lineages to checkpoint */
-  private final List<Lineage> mToCheckPoint;
+public class RecomputePlan {
+  /** A list of lineages to recompute */
+  private final List<Lineage> mToRecompute;
 
-  public CheckpointPlan(List<Lineage> toCheckPoint) {
-    mToCheckPoint = Preconditions.checkNotNull(toCheckPoint);
+  public RecomputePlan(List<Lineage> toRecompute) {
+    mToRecompute = Preconditions.checkNotNull(toRecompute);
   }
 
   /**
-   * @return a list of lineages to check point in sequence.
+   * @return a list of lineages to recompute.
    */
-  public List<Lineage> toCheckpoint() {
-    return mToCheckPoint;
+  public List<Lineage> toRecompute() {
+    return mToRecompute;
+  }
+
+  /**
+   * @return true if the plan is empty, false otherwise
+   */
+  public boolean isEmpty() {
+    return mToRecompute.isEmpty();
   }
 
   @Override
   public String toString() {
-    return "toCheckpoint: " + Joiner.on(", ").join(mToCheckPoint);
+    return "toRecompute: " + Joiner.on(", ").join(mToRecompute);
   }
 }
