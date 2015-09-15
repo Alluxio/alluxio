@@ -110,9 +110,8 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   @Override
   public long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
-                                  boolean recursive)
-      throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
-      TachyonException, InvalidPathException {
+      boolean recursive) throws FileAlreadyExistException, BlockInfoException,
+      SuspectedFileSizeException, TachyonException, InvalidPathException {
     if (ufsPath == null || ufsPath.isEmpty()) {
       throw new IllegalArgumentException("the underFS path is not provided");
     }
