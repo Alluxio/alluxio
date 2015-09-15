@@ -48,7 +48,7 @@ import tachyon.worker.block.BlockStoreLocation;
  * <p>
  * This class does not guarantee thread safety.
  */
-public final class StorageDir {
+public class StorageDir {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final long mCapacityBytes;
   /** A map from block ID to block meta data */
