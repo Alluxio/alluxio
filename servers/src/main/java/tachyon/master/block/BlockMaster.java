@@ -466,18 +466,23 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * Updates metadata when a worker registers with the master. Called by workers via RPC.
    *
    * @param workerId the worker id of the worker registering
+   * @param workerAddress the worker NetAddress of the worker registering
    * @param totalBytesOnTiers list of total bytes on each tier
    * @param usedBytesOnTiers list of the used byes on each tier
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
    * @return the worker id
    */
-  public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
+  public long workerRegister(long workerId, NetAddress workerAddress, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
-          LOG.warn("Could not find worker id: " + workerId + " to register.");
-          return -1L;
+          // Current master has no information about this worker, it is because the master is
+          // a newly selected leader under fault tolerance mode, and the worker is asked to re-
+          // register to the new master by the Register Command sent by workerHeartbeat.
+          MasterWorkerInfo info = new MasterWorkerInfo(workerId, workerAddress);
+          LOG.info(info + " re-registers to master.");
+          mWorkers.add(info);
         }
         MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
         workerInfo.updateLastUpdatedTimeMs();

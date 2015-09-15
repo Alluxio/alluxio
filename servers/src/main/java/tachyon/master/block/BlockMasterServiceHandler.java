@@ -40,10 +40,10 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
   }
 
   @Override
-  public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
+  public long workerRegister(long workerId, NetAddress workerAddress, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)
       throws BlockInfoException, TException {
-    return mBlockMaster.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
+    return mBlockMaster.workerRegister(workerId, workerAddress, totalBytesOnTiers, usedBytesOnTiers,
         currentBlocksOnTiers);
   }
 

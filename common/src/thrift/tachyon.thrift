@@ -37,7 +37,7 @@ struct BlockInfo {
   3: list<BlockLocation> locations
 }
 
-// Contains the information of a block in a file. In addition to the BlockInfo, it includes the 
+// Contains the information of a block in a file. In addition to the BlockInfo, it includes the
 // offset in the file, and the under file system locations of the block replicas
 struct FileBlockInfo {
   1: BlockInfo blockInfo
@@ -144,8 +144,8 @@ exception DependencyDoesNotExistException {
 service BlockMasterService {
   i64 workerGetWorkerId(1: NetAddress workerNetAddress)
 
-  i64 workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers, 3: list<i64> usedBytesOnTiers,
-      4: map<i64, list<i64>> currentBlocksOnTiers)
+  i64 workerRegister(1: i64 workerId, 2: NetAddress workerAddress, 3: list<i64> totalBytesOnTiers,
+      4: list<i64> usedBytesOnTiers, 5: map<i64, list<i64>> currentBlocksOnTiers)
     throws (1: BlockInfoException bie)
 
   Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,

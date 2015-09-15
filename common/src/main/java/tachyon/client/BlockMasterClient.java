@@ -233,6 +233,7 @@ public final class BlockMasterClient extends MasterClientBase {
    * The method the worker should execute to register with the block master.
    *
    * @param workerId the worker id of the worker registering
+   * @param workerAddress the worker NetAddress of the worker registering
    * @param totalBytesOnTiers list of total bytes on each tier
    * @param usedBytesOnTiers list of the used byes on each tier
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
@@ -241,13 +242,14 @@ public final class BlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO: rename to workerBlockReport or workerInitialize?
-  public synchronized long workerRegister(long workerId, List<Long> totalBytesOnTiers, List<Long>
-      usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
+  public synchronized long workerRegister(long workerId, NetAddress workerAddress,
+      List<Long> totalBytesOnTiers, List<Long> usedBytesOnTiers,
+      Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
+        return mClient.workerRegister(workerId, workerAddress, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);

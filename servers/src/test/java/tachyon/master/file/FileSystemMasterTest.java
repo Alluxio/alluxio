@@ -31,7 +31,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -70,9 +69,10 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.start(true);
 
     // set up worker
-    mWorkerId = mBlockMaster.getWorkerId(new NetAddress("localhost", 80, 81));
-    mBlockMaster.workerRegister(mWorkerId, Lists.newArrayList(Constants.MB * 1L, Constants.MB * 1L),
-        Lists.<Long>newArrayList(Constants.KB * 1L, Constants.KB * 1L),
+    NetAddress workerAddress = new NetAddress("localhost", 80, 81);
+    mWorkerId = mBlockMaster.getWorkerId(workerAddress);
+    mBlockMaster.workerRegister(mWorkerId, workerAddress, Lists.newArrayList(Constants.MB * 1L,
+        Constants.MB * 1L), Lists.<Long>newArrayList(Constants.KB * 1L, Constants.KB * 1L),
         Maps.<Long, List<Long>>newHashMap());
   }
 
