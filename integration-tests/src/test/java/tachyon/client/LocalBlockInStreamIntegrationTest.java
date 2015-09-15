@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -83,7 +84,7 @@ public class LocalBlockInStreamIntegrationTest {
    * Test <code>void read()</code>.
    */
   @Test
-  public void readTest1() throws IOException {
+  public void readTest1() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -127,7 +128,7 @@ public class LocalBlockInStreamIntegrationTest {
    * Test <code>void read(byte[] b)</code>.
    */
   @Test
-  public void readTest2() throws IOException {
+  public void readTest2() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -155,7 +156,7 @@ public class LocalBlockInStreamIntegrationTest {
    * Test <code>void read(byte[] b, int off, int len)</code>.
    */
   @Test
-  public void readTest3() throws IOException {
+  public void readTest3() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -184,9 +185,10 @@ public class LocalBlockInStreamIntegrationTest {
    * position.
    *
    * @throws IOException
+   * @throws TException
    */
   @Test
-  public void seekExceptionTest1() throws IOException {
+  public void seekExceptionTest1() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Seek position is negative: -1");
     String uniqPath = PathUtils.uniqPath();
@@ -211,9 +213,10 @@ public class LocalBlockInStreamIntegrationTest {
    * that is past buffer limit.
    *
    * @throws IOException
+   * @throws TException
    */
   @Test
-  public void seekExceptionTest2() throws IOException {
+  public void seekExceptionTest2() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
 
@@ -237,9 +240,10 @@ public class LocalBlockInStreamIntegrationTest {
    * Test <code>void seek(long pos)</code>.
    *
    * @throws IOException
+   * @throws TException
    */
   @Test
-  public void seekTest() throws IOException {
+  public void seekTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -263,7 +267,7 @@ public class LocalBlockInStreamIntegrationTest {
    * Test <code>long skip(long len)</code>.
    */
   @Test
-  public void skipTest() throws IOException {
+  public void skipTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {

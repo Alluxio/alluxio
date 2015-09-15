@@ -63,7 +63,7 @@ public final class FileSystemMasterTest {
     Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), mTachyonConf);
     Journal fsJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), mTachyonConf);
 
-    mBlockMaster = new BlockMaster(blockJournal, mTachyonConf);
+    mBlockMaster = new BlockMaster(mTachyonConf, blockJournal);
     mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster, fsJournal);
 
     mBlockMaster.start(true);
