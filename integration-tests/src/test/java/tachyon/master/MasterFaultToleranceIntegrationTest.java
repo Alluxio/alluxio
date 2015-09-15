@@ -34,6 +34,7 @@ import tachyon.TachyonURI;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
+import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -100,6 +101,12 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
+  private void killLeaderAndWait() {
+    Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
+    // Wait for worker to re-register.
+    CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+  }
+
   // TODO: Resolve the issue with HDFS as UnderFS
   @Ignore
   @Test
@@ -112,8 +119,7 @@ public class MasterFaultToleranceIntegrationTest {
     faultTestDataCheck(answer);
 
     for (int kills = 0; kills < MASTERS - 1; kills ++) {
-      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+      killLeaderAndWait();
       faultTestDataCheck(answer);
       faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
     }
@@ -135,6 +141,18 @@ public class MasterFaultToleranceIntegrationTest {
     Collections.sort(files);
     for (int k = 0; k < clients; k ++) {
       Assert.assertEquals(TachyonURI.SEPARATOR + k, files.get(k));
+    }
+  }
+
+  @Test
+  public void workerReRegisterTest() throws Exception {
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
+
+    for (int kills = 0; kills < MASTERS - 1; kills ++) {
+      killLeaderAndWait();
+
+      // If worker is successfully re-registered, the capacity bytes should not change.
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
     }
   }
 }
