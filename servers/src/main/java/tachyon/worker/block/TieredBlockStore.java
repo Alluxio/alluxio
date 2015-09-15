@@ -626,9 +626,8 @@ public final class TieredBlockStore implements BlockStore {
     try {
       plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
       // Absent plan means failed to evict enough space.
-      if (plan == null) {
-        throw new OutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE);
-      }
+      TachyonPreconditions.checkSpace(plan != null,
+          ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE);
     } finally {
       mMetadataReadLock.unlock();
     }

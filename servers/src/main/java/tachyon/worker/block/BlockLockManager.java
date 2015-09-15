@@ -33,6 +33,7 @@ import tachyon.Constants;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
+import tachyon.exception.TachyonPreconditions;
 
 /**
  * Handle all block locks.
@@ -118,9 +119,8 @@ public final class BlockLockManager {
     Lock lock;
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
-      if (record == null) {
-        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
-      }
+      TachyonPreconditions.checkExist(record, ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
+          lockId);
       long sessionId = record.sessionId();
       lock = record.lock();
       mLockIdToRecordMap.remove(lockId);
@@ -139,9 +139,8 @@ public final class BlockLockManager {
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       for (long lockId : sessionLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
-        if (record == null) {
-          throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
-        }
+        TachyonPreconditions.checkExist(record, ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
+            lockId);
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
           sessionLockIds.remove(lockId);
@@ -172,9 +171,8 @@ public final class BlockLockManager {
       throws NotFoundException, InvalidStateException {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
-      if (record == null) {
-        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
-      }
+      TachyonPreconditions.checkExist(record, ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID,
+          lockId);
       if (sessionId != record.sessionId()) {
         throw new InvalidStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION, lockId,
             record.sessionId(), sessionId);

@@ -32,6 +32,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.TachyonPreconditions;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.BlockMetaBase;
@@ -399,10 +400,8 @@ public class BlockMetadataManager {
       }
     }
 
-    if (newDir == null) {
-      throw new OutOfSpaceException("Failed to move BlockMeta: newLocation " + newLocation
-          + " does not have enough space for " + blockSize + " bytes");
-    }
+    TachyonPreconditions.checkSpace(newDir != null, ExceptionMessage.FAIL_TO_MOVE_META,
+        newLocation, blockSize);
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
     BlockMeta newBlockMeta = new BlockMeta(blockMeta.getBlockId(), blockSize, newDir);

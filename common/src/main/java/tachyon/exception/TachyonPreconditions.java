@@ -50,6 +50,72 @@ public final class TachyonPreconditions{
    * Ensures the truth of an expression involving the state of the calling
    * instance, but not involving any parameters to the calling method.
    *
+   * @param reference an object reference
+   * @throws NotFoundException if {@code expression} is false
+   */
+  public static <T> T checkExist(T reference) throws NotFoundException {
+    if (reference == null) {
+      throw new NotFoundException("");
+    }
+    return reference;
+  }
+
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
+   * @param reference an object reference
+   * @param message an exception message should the check fail.
+   * @param params the arguments to be substituted into the message
+   * @throws NotFoundException if {@code expression} is false
+   */
+  public static <T> T checkExist(T reference, ExceptionMessage message, Object... params)
+      throws NotFoundException {
+    if (reference == null) {
+      throw new NotFoundException(message, params);
+    }
+    return reference;
+  }
+
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
+   * @param reference an object reference
+   * @param message an exception message should the check fail.
+   * @throws NotFoundException if {@code expression} is false
+   */
+  public static <T> T checkExist(T reference, String message) throws NotFoundException {
+    if (reference == null) {
+      throw new NotFoundException(message);
+    }
+    return reference;
+  }
+
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
+   * @param reference an object reference
+   * @param message an exception message should the check fail.
+   * @param cause a throwable object indicating the cause (which is saved for later retrieval by
+   *              the Throwable.getCause() method)
+   * @param params the arguments to be substituted into the message
+   * @throws NotFoundException if {@code expression} is false
+   */
+  public static <T> T checkExist(T reference,
+                                   ExceptionMessage message, Throwable cause, Object... params)
+      throws NotFoundException {
+    if (reference == null) {
+      throw new NotFoundException(message, cause, params);
+    }
+    return reference;
+  }
+
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
    * @param expression a boolean expression
    * @throws AlreadyExistsException if {@code expression} is false
    */
@@ -170,6 +236,70 @@ public final class TachyonPreconditions{
       throws InvalidStateException {
     if (!expression) {
       throw new InvalidStateException(message, cause, params);
+    }
+  }
+
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
+   * @param expression a boolean expression
+   * @throws OutOfSpaceException if {@code expression} is false
+   */
+  public static void checkSpace(boolean expression)
+      throws OutOfSpaceException {
+    if (!expression) {
+      throw new OutOfSpaceException("");
+    }
+  }
+
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
+   * @param expression a boolean expression
+   * @param message an exception message should the check fail.
+   * @throws OutOfSpaceException if {@code expression} is false
+   */
+  public static void checkSpace(boolean expression, ExceptionMessage message)
+      throws OutOfSpaceException {
+    if (!expression) {
+      throw new OutOfSpaceException(message);
+    }
+  }
+
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
+   * @param expression a boolean expression
+   * @param message an exception message should the check fail.
+   * @param params the arguments to be substituted into the message
+   * @throws OutOfSpaceException if {@code expression} is false
+   */
+  public static void checkSpace(boolean expression, ExceptionMessage message, Object... params)
+      throws OutOfSpaceException {
+    if (!expression) {
+      throw new OutOfSpaceException(message, params);
+    }
+  }
+
+  /**
+   * Ensures the truth of an expression involving the state of the calling
+   * instance, but not involving any parameters to the calling method.
+   *
+   * @param expression a boolean expression
+   * @param message an exception message should the check fail.
+   * @param cause a throwable object indicating the cause (which is saved for later retrieval by
+   *              the Throwable.getCause() method)
+   * @param params the arguments to be substituted into the message
+   * @throws OutOfSpaceException if {@code expression} is false
+   */
+  public static void checkSpace(boolean expression,
+                                ExceptionMessage message, Throwable cause, Object... params)
+      throws OutOfSpaceException {
+    if (!expression) {
+      throw new OutOfSpaceException(message, cause, params);
     }
   }
 }
