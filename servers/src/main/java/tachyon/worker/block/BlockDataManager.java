@@ -60,9 +60,9 @@ public final class BlockDataManager {
   private final BlockMetricsReporter mMetricsReporter;
 
   /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
-  private WorkerBlockMasterClient mWorkerBlockMasterClient;
+  private WorkerBlockMasterClient mBlockMasterClient;
   /** WorkerFileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
-  private WorkerFileSystemMasterClient mWorkerFileSystemMasterClient;
+  private WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** UnderFileSystem Client */
   private UnderFileSystem mUfs;
   /** Session metadata, used to keep track of session heartbeats */
@@ -87,8 +87,8 @@ public final class BlockDataManager {
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
-    mWorkerBlockMasterClient = workerBlockMasterClient;
-    mWorkerFileSystemMasterClient = workerFileSystemMasterClient;
+    mBlockMasterClient = workerBlockMasterClient;
+    mFileSystemMasterClient = workerFileSystemMasterClient;
 
     // Create Under FileSystem Client
     String ufsAddress =
@@ -165,7 +165,7 @@ public final class BlockDataManager {
     } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
-    mWorkerFileSystemMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
+    mFileSystemMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
   }
 
   /**
@@ -206,7 +206,7 @@ public final class BlockDataManager {
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mWorkerBlockMasterClient.commitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
+      mBlockMasterClient.commitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {
