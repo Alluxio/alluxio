@@ -101,7 +101,7 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO: Resolve the issue with HDFS as UnderFS
+  // TODO(cc): Resolve the issue with HDFS as UnderFS.
   @Ignore
   @Test
   public void createFileFaultTest() throws Exception {
@@ -120,7 +120,7 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO: Resolve the issue with HDFS as UnderFS
+  // TODO(cc): Resolve the issue with HDFS as UnderFS.
   @Ignore
   @Test
   public void deleteFileFaultTest() throws Exception {
@@ -155,7 +155,7 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO: Resolve the issue with HDFS as UnderFS
+  // TODO(cc): Resolve the issue with HDFS as UnderFS.
   @Ignore
   @Test
   public void createFilesTest() throws Exception {
@@ -174,7 +174,7 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO: Resolve the issue with HDFS as UnderFS
+  // TODO(cc): Resolve the issue with HDFS as UnderFS.
   @Ignore
   @Test
   public void killStandbyTest() throws Exception {
