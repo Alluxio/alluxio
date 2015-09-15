@@ -15,7 +15,6 @@
 
 package tachyon.worker.block;
 
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Random;
@@ -48,14 +47,14 @@ import tachyon.worker.block.meta.TempBlockMeta;
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class})
 public class BlockDataManagerTest implements Tester<BlockDataManager> {
-  TestHarness mHarness;
-  BlockDataManager.PrivateAccess mPrivateAccess;
+  private TestHarness mHarness;
+  private BlockDataManager.PrivateAccess mPrivateAccess;
 
   public void receiveAccess(Object access) {
     mPrivateAccess = (BlockDataManager.PrivateAccess) access;
   }
 
-  class TestHarness {
+  private class TestHarness {
     BlockMasterClient mBlockMasterClient;
     BlockStore mBlockStore;
     FileSystemMasterClient mFileSystemMasterClient;
@@ -185,7 +184,7 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
   }
 
   @Test
-  public void CreateBlockTest() throws Exception {
+  public void createBlockTest() throws Exception {
     long blockId = mHarness.mRandom.nextLong();
     long initialBytes = mHarness.mRandom.nextLong();
     long sessionId = mHarness.mRandom.nextLong();
