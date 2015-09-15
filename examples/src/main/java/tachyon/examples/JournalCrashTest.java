@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
@@ -33,7 +34,6 @@ import tachyon.Version;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
@@ -77,6 +77,8 @@ public class JournalCrashTest {
     /** The working directory of this thread on Tachyon. */
     private final String mWorkDir;
 
+    /** Used for supervisor to stop this thread. */
+    private boolean mIsStopped = false;
     /** The number of successfully operations. */
     private int mSuccessNum = 0;
 
@@ -103,33 +105,49 @@ public class JournalCrashTest {
      */
     @Override
     public void run() {
-      try {
-        // This infinity loop will be broken if something crashes or fails. This is
-        // expected since we are testing the crash scenario.
-        while (true) {
+      // This infinity loop will be broken when the master is crashed and the client needs to stop.
+      while (true) {
+        synchronized (this) {
+          if (mIsStopped) {
+            break;
+          }
+        }
+        try {
           TachyonURI testURI = new TachyonURI(mWorkDir + mSuccessNum);
           if (ClientOpType.CREATE_FILE == mOpType) {
             sTfs.getOutStream(testURI, sClientOptions).close();
           } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
-            sTfs.getOutStream(testURI, sClientOptions).close();
+            try {
+              sTfs.getOutStream(testURI, sClientOptions).close();
+            } catch (IOException ioe) {
+              // File already exists, ignore it.
+            }
             sTfs.delete(sTfs.open(testURI));
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
-            sTfs.getOutStream(testURI, sClientOptions).close();
-            if (!sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"))) {
-              break;
+            try {
+              sTfs.getOutStream(testURI, sClientOptions).close();
+            } catch (IOException ioe) {
+              // File already exists, ignore it.
             }
+            sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"));
           }
           //else if (ClientOpType.CREATE_TABLE == mOpType) {
           //  if (mTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
           //    break;
           //  }
           //}
-          mSuccessNum ++;
-          CommonUtils.sleepMs(null, 100);
+        } catch (Exception e) {
+          // Since master may crash/restart for several times, so this exception is expected.
+          // Ignore the exception and still keep requesting to master.
+          continue;
         }
-      }  catch (Exception e) {
-        // Something crashed. Stop the thread.
+        mSuccessNum ++;
+        CommonUtils.sleepMs(null, 100);
       }
+    }
+
+    public synchronized void setIsStopped(boolean isStopped) {
+      mIsStopped = isStopped;
     }
   }
 
@@ -140,6 +158,7 @@ public class JournalCrashTest {
 
   private static ClientOptions sClientOptions = null;
   private static List<ClientThread> sClientThreadList = null;
+  private static int sCrashTimes;
   private static int sCreateDeleteClientNum;
   private static int sCreateFileClientNum;
   private static int sCreateRenameClientNum;
@@ -159,6 +178,7 @@ public class JournalCrashTest {
             sTfs.open(checkURI);
           } catch (IOException ioe) {
             // File not exist. This is unexpected for CREATE_FILE.
+            LOG.error("File not exist for create test. Check failed! File: {}", checkURI);
             return false;
           }
         } else if (ClientOpType.CREATE_DELETE_FILE == opType) {
@@ -168,12 +188,15 @@ public class JournalCrashTest {
             // File not exist. This is expected for CREATE_DELETE_FILE.
             continue;
           }
+          LOG.error("File exists for create/delete test. Check failed! File: {}", checkURI);
           return false;
         } else if (ClientOpType.CREATE_RENAME_FILE == opType) {
           try {
             sTfs.open(new TachyonURI(checkURI + "-rename"));
           } catch (IOException ioe) {
             // File not exist. This is unexpected for CREATE_RENAME_FILE.
+            LOG.error("File not exist for create/rename test. Check failed! File: {}-rename",
+                checkURI);
             return false;
           }
         }
@@ -188,17 +211,38 @@ public class JournalCrashTest {
     return true;
   }
 
+  /**
+   * Kill Tachyon Master by 'kill -9' command.
+   */
+  private static void killMaster() {
+    String[] killMasterCommand = new String[]{"/usr/bin/env", "bash", "-c",
+        "for pid in `ps -Aww -o pid,command | grep -i \"[j]ava\" | grep "
+            + "\"tachyon.master.TachyonMaster\" | awk '{print $1}'`; do kill -9 \"$pid\"; done"};
+    try {
+      Runtime.getRuntime().exec(killMasterCommand).waitFor();
+      CommonUtils.sleepMs(LOG, 1000);
+    } catch (Exception e) {
+      LOG.error("Error when killing Master", e);
+    }
+  }
+
   public static void main(String[] args) {
     // Parse the input args.
     if (!parseInputArgs(args)) {
-      printUsage();
       System.exit(EXIT_FAILED);
     }
+
+    System.out.println("Stop the current Tachyon cluster...");
+    stopCluster();
 
     // Set NO_STORE and NO_PERSIST so that this test can work without TachyonWorker.
     sClientOptions = new ClientOptions.Builder(new TachyonConf())
         .setStorageTypes(TachyonStorageType.NO_STORE, UnderStorageType.NO_PERSIST).build();
     sClientThreadList = new ArrayList<ClientThread>();
+
+    // Start Tachyon Master and prepare for this test.
+    System.out.println("Start Journal Crash Test...");
+    startMaster();
     sTfs = TachyonFileSystem.get();
     try {
       sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
@@ -206,6 +250,7 @@ public class JournalCrashTest {
       // Test Directory not exist
     }
 
+    // Setup and launch all the client threads.
     for (int i = 0; i < sCreateFileClientNum; i ++) {
       ClientThread thread = new ClientThread(sTestDir + "/createFile" + i + "/",
           ClientOpType.CREATE_FILE);
@@ -221,11 +266,25 @@ public class JournalCrashTest {
           ClientOpType.CREATE_RENAME_FILE);
       sClientThreadList.add(thread);
     }
-
-    // Launch all the client threads and wait for them. If Master crashes, all the threads will
-    // stop at a certain time.
     for (Thread thread : sClientThreadList) {
       thread.start();
+    }
+
+    // Kill/Restart master for several times.
+    System.out.println("Kill/Restart master for " + sCrashTimes + " times...");
+    CommonUtils.sleepMs(LOG, 1000);
+    for (int i = 0; i < sCrashTimes; i ++) {
+      System.out.println("\tTimes " + i);
+      killMaster();
+      startMaster();
+    }
+    killMaster();
+
+    // Wait all client threads stopped.
+    System.out.println("Wait all the Clients stopped...");
+    System.out.println("(This step may take a few seconds due to the retry policy)");
+    for (ClientThread clientThread : sClientThreadList) {
+      clientThread.setIsStopped(true);
     }
     for (Thread thread : sClientThreadList) {
       try {
@@ -235,77 +294,90 @@ public class JournalCrashTest {
       }
     }
 
-    // Restart Tachyon Master.
-    String restartMasterCommand = new TachyonConf().get(Constants.TACHYON_HOME)
-        + "/bin/tachyon-start.sh master";
+    // Restart Tachyon Master. Check status and print pass info.
+    System.out.println("Check status...");
+    startMaster();
+    boolean checkSuccess = false;
     try {
-      Runtime.getRuntime().exec(restartMasterCommand).waitFor();
-    } catch (Exception e) {
-      LOG.error("Error when restarting Master", e);
-    }
-    // Wait for Master restart.
-    CommonUtils.sleepMs(null, 1000);
-    boolean isRestart = false;
-    while (!isRestart) {
-      try {
-        // ping Master
-        sTfs.getInfo(new TachyonFile(0));
-        isRestart = true;
-      } catch (Exception e) {
-        // Master has not started.
-      }
-      CommonUtils.sleepMs(null, 1000);
-    }
-
-    // Check status and print pass info.
-    try {
-      if (!checkStatus()) {
-        Utils.printPassInfo(false);
-        System.exit(EXIT_FAILED);
-      }
-      Utils.printPassInfo(true);
-      System.exit(EXIT_SUCCESS);
+      checkSuccess = checkStatus();
     } catch (Exception e) {
       LOG.error("Failed to check status", e);
+    } finally {
+      stopCluster();
     }
-
-    System.exit(EXIT_FAILED);
+    Utils.printPassInfo(checkSuccess);
+    System.exit(checkSuccess ? EXIT_SUCCESS : EXIT_FAILED);
   }
 
   /**
    * Parse the input args with a command line format, using
    * <code>org.apache.commons.cli.CommandLineParser</code>.
    * @param args the input args
-   * @return true if parse successfully, false otherwise
+   * @return true if parse successfully and can run the next step, false if parse failed or need to
+   * print out the help information.
    */
   private static boolean parseInputArgs(String[] args) {
     Options options = new Options();
+    options.addOption("help", false, "Show help for this test");
+    options.addOption("crashes", true, "Repeat times to kill/restart Master");
+    options.addOption("creates", true, "Number of Client Threads to request create operations");
+    options.addOption("deletes", true,
+        "Number of Client Threads to request create/delete operations");
+    options.addOption("renames", true,
+        "Number of Client Threads to request create/rename operations");
     options.addOption("testDir", true, "Test Directory on Tachyon");
-    options.addOption("creates", true, "create Threads Num");
-    options.addOption("deletes", true, "create/delete Threads Num");
-    options.addOption("renames", true, "create/rename Threads Num");
     CommandLineParser parser = new BasicParser();
     CommandLine cmd = null;
+    boolean ret = true;
     try {
       cmd = parser.parse(options, args);
     } catch (ParseException e) {
       LOG.error("Failed to parse input args", e);
-      return false;
+      ret = false;
     }
-    sTestDir = cmd.getOptionValue("testDir", "/default_tests_files");
-    sCreateFileClientNum = Integer.parseInt(cmd.getOptionValue("creates", "2"));
-    sCreateDeleteClientNum = Integer.parseInt(cmd.getOptionValue("deletes", "2"));
-    sCreateRenameClientNum = Integer.parseInt(cmd.getOptionValue("renames", "2"));
-    return true;
+    if (ret && !cmd.hasOption("help")) {
+      sCrashTimes = Integer.parseInt(cmd.getOptionValue("crashes", "2"));
+      sCreateFileClientNum = Integer.parseInt(cmd.getOptionValue("creates", "2"));
+      sCreateDeleteClientNum = Integer.parseInt(cmd.getOptionValue("deletes", "2"));
+      sCreateRenameClientNum = Integer.parseInt(cmd.getOptionValue("renames", "2"));
+      sTestDir = cmd.getOptionValue("testDir", "/default_tests_files");
+    } else {
+      ret = false;
+      new HelpFormatter().printHelp("java -cp tachyon-" + Version.VERSION
+          + "-jar-with-dependencies.jar tachyon.examples.JournalCrashTest",
+          "Test the Master Journal System in a crash scenario", options,
+          "e.g. options '-crashes 5 -creates 2 -deletes 2 -renames 2' will launch total 6 clients"
+          + " connecting to the Master and kill/restart the Master for 5 times", true);
+    }
+    return ret;
   }
 
-  private static void printUsage() {
-    System.out.println("Usage: java -cp tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-        + "tachyon.examples.JournalCrashTest [-options]");
-    System.out.println("where options include:");
-    System.out.println("\t-testDir <Test Directory on Tachyon>");
-    System.out.println("\t-creates <Number of Client Threads to request create operations>");
-    System.out.println("\t-deletes <Number of Client Threads to request create/delete operations>");
-    System.out.println("\t-renames <Number of Client Threads to request create/rename operations>");
+  /**
+   * Start Tachyon Master by executing the launch script.
+   */
+  private static void startMaster() {
+    String startMasterCommand = new TachyonConf().get(Constants.TACHYON_HOME)
+        + "/bin/tachyon-start.sh master";
+    try {
+      Runtime.getRuntime().exec(startMasterCommand).waitFor();
+      CommonUtils.sleepMs(LOG, 1000);
+    } catch (Exception e) {
+      LOG.error("Error when starting Master", e);
+    }
+  }
+
+  /**
+   * Stop the current Tachyon cluster. This is used for preparation and clean up.
+   * To crash the Master, use <code>killMaster</code>.
+   */
+  private static void stopCluster() {
+    String stopClusterCommand = new TachyonConf().get(Constants.TACHYON_HOME)
+        + "/bin/tachyon-stop.sh";
+    try {
+      Runtime.getRuntime().exec(stopClusterCommand).waitFor();
+      CommonUtils.sleepMs(LOG, 1000);
+    } catch (Exception e) {
+      LOG.error("Error when stop Tachyon cluster", e);
+    }
   }
 }
