@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.Random;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -38,13 +39,12 @@ import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.TempBlockMeta;
 
-public class BlockDataManagerTest {
-  class BlockDataManagerTester implements Tester<BlockDataManager> {
-    BlockDataManager.PrivateAccess mPrivateAccess;
+public class BlockDataManagerTest implements Tester<BlockDataManager> {
+  TestHarness mHarness;
+  BlockDataManager.PrivateAccess mPrivateAccess;
 
-    public void receiveAccess(Object access) {
-      mPrivateAccess = (BlockDataManager.PrivateAccess) access;
-    }
+  public void receiveAccess(Object access) {
+    mPrivateAccess = (BlockDataManager.PrivateAccess) access;
   }
 
   class TestHarness {
@@ -57,7 +57,6 @@ public class BlockDataManagerTest {
     Random mRandom;
     Sessions mSessions;
     TachyonConf mTachyonConf;
-    BlockDataManagerTester mTester;
     UnderFileSystem mUfs;
     long mWorkerId;
     WorkerSource mWorkerSource;
@@ -80,40 +79,41 @@ public class BlockDataManagerTest {
       mManager.setSessions(mSessions);
       mManager.setWorkerId(mWorkerId);
 
-      mTester = new BlockDataManagerTester();
-      mManager.grantAccess(mTester);
-      mTester.mPrivateAccess.setBlockStore(mBlockStore);
-      mTester.mPrivateAccess.setHeartbeatReporter(mHeartbeatReporter);
-      mTester.mPrivateAccess.setMetricsReporter(mMetricsReporter);
-      mTester.mPrivateAccess.setTachyonConf(mTachyonConf);
-      mTester.mPrivateAccess.setUnderFileSystem(mUfs);
+      mManager.grantAccess(BlockDataManagerTest.this); // initializes mPrivateAccess
+      mPrivateAccess.setBlockStore(mBlockStore);
+      mPrivateAccess.setHeartbeatReporter(mHeartbeatReporter);
+      mPrivateAccess.setMetricsReporter(mMetricsReporter);
+      mPrivateAccess.setTachyonConf(mTachyonConf);
+      mPrivateAccess.setUnderFileSystem(mUfs);
     }
   }
 
-  @Test
-  public void AbortBlockTest() throws Exception {
-    TestHarness harness = new TestHarness();
-    long blockId = harness.mRandom.nextLong();
-    long sessionId = harness.mRandom.nextLong();
-    harness.mManager.abortBlock(sessionId, blockId);
-    Mockito.verify(harness.mBlockStore).abortBlock(sessionId, blockId);
+  @Before
+  public void initialize() throws IOException {
+    mHarness = new TestHarness();
   }
 
   @Test
-  public void AccessBlockTest() throws Exception {
-    TestHarness harness = new TestHarness();
-    long blockId = harness.mRandom.nextLong();
-    long sessionId = harness.mRandom.nextLong();
-    harness.mManager.accessBlock(sessionId, blockId);
-    Mockito.verify(harness.mBlockStore).accessBlock(sessionId, blockId);
+  public void abortBlockTest() throws Exception {
+    long blockId = mHarness.mRandom.nextLong();
+    long sessionId = mHarness.mRandom.nextLong();
+    mHarness.mManager.abortBlock(sessionId, blockId);
+    Mockito.verify(mHarness.mBlockStore).abortBlock(sessionId, blockId);
   }
 
   @Test
-  public void AddCheckpointTest() throws Exception {
-    TestHarness harness = new TestHarness();
-    long fileId = harness.mRandom.nextLong();
-    long fileSize = harness.mRandom.nextLong();
-    long sessionId = harness.mRandom.nextLong();
+  public void accessBlockTest() throws Exception {
+    long blockId = mHarness.mRandom.nextLong();
+    long sessionId = mHarness.mRandom.nextLong();
+    mHarness.mManager.accessBlock(sessionId, blockId);
+    Mockito.verify(mHarness.mBlockStore).accessBlock(sessionId, blockId);
+  }
+
+  @Test
+  public void addCheckpointTest() throws Exception {
+    long fileId = mHarness.mRandom.nextLong();
+    long fileSize = mHarness.mRandom.nextLong();
+    long sessionId = mHarness.mRandom.nextLong();
     FileInfo fileInfo = new FileInfo();
     fileInfo.setPath("/foo/bar");
     String srcPath = "/tmp/" + fileId;
@@ -121,40 +121,38 @@ public class BlockDataManagerTest {
     String dstPath = "/tmp/foo/bar";
 
     // TODO(jsimsa): Add test cases for error cases.
-    Mockito.when(harness.mTachyonConf
+    Mockito.when(mHarness.mTachyonConf
         .get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER)).thenReturn("/tmp");
-    Mockito.when(harness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
-    Mockito.when(harness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
-    Mockito.when(harness.mUfs.exists(parentPath)).thenReturn(true);
-    Mockito.when(harness.mUfs.mkdirs(parentPath, true)).thenReturn(true);
-    Mockito.when(harness.mUfs.rename(srcPath, dstPath)).thenReturn(true);
-    Mockito.when(harness.mUfs.getFileSize(dstPath)).thenReturn(fileSize);
-    harness.mManager.addCheckpoint(sessionId, fileId);
-    Mockito.verify(harness.mFileSystemMasterClient)
-        .addCheckpoint(harness.mWorkerId, fileId, fileSize, dstPath);
+    Mockito.when(mHarness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
+    Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
+    Mockito.when(mHarness.mUfs.exists(parentPath)).thenReturn(true);
+    Mockito.when(mHarness.mUfs.mkdirs(parentPath, true)).thenReturn(true);
+    Mockito.when(mHarness.mUfs.rename(srcPath, dstPath)).thenReturn(true);
+    Mockito.when(mHarness.mUfs.getFileSize(dstPath)).thenReturn(fileSize);
+    mHarness.mManager.addCheckpoint(sessionId, fileId);
+    Mockito.verify(mHarness.mFileSystemMasterClient)
+        .addCheckpoint(mHarness.mWorkerId, fileId, fileSize, dstPath);
   }
 
   @Test
-  public void CleanupSessionsTest() throws Exception {
-    TestHarness harness = new TestHarness();
+  public void cleanupSessionsTest() throws Exception {
     long sessionId = 1;
     LinkedList<Long> sessions = new LinkedList<Long>();
     sessions.add(sessionId);
 
-    Mockito.when(harness.mSessions.getTimedOutSessions()).thenReturn(sessions);
-    harness.mManager.cleanupSessions();
-    Mockito.verify(harness.mSessions).removeSession(sessionId);
-    Mockito.verify(harness.mBlockStore).cleanupSession(sessionId);
+    Mockito.when(mHarness.mSessions.getTimedOutSessions()).thenReturn(sessions);
+    mHarness.mManager.cleanupSessions();
+    Mockito.verify(mHarness.mSessions).removeSession(sessionId);
+    Mockito.verify(mHarness.mBlockStore).cleanupSession(sessionId);
   }
 
   @Test
-  public void CommitBlockTest() throws Exception {
-    TestHarness harness = new TestHarness();
-    long blockId = harness.mRandom.nextLong();
-    long length = harness.mRandom.nextLong();
-    long lockId = harness.mRandom.nextLong();
-    long sessionId = harness.mRandom.nextLong();
-    long usedBytes = harness.mRandom.nextLong();
+  public void commitBlockTest() throws Exception {
+    long blockId = mHarness.mRandom.nextLong();
+    long length = mHarness.mRandom.nextLong();
+    long lockId = mHarness.mRandom.nextLong();
+    long sessionId = mHarness.mRandom.nextLong();
+    long usedBytes = mHarness.mRandom.nextLong();
     int tierAlias = 1;
     LinkedList<Long> usedBytesOnTiers = new LinkedList<Long>();
     usedBytesOnTiers.add(usedBytes);
@@ -162,37 +160,36 @@ public class BlockDataManagerTest {
     BlockStoreLocation blockStoreLocation = Mockito.mock(BlockStoreLocation.class);
     BlockStoreMeta blockStoreMeta = Mockito.mock(BlockStoreMeta.class);
 
-    Mockito.when(harness.mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
-    Mockito.when(harness.mBlockStore.getBlockMeta(sessionId, blockId, lockId))
+    Mockito.when(mHarness.mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
+    Mockito.when(mHarness.mBlockStore.getBlockMeta(sessionId, blockId, lockId))
         .thenReturn(blockMeta);
-    Mockito.when(harness.mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
+    Mockito.when(mHarness.mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
     Mockito.when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
     Mockito.when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
     Mockito.when(blockMeta.getBlockSize()).thenReturn(length);
     Mockito.when(blockStoreMeta.getUsedBytesOnTiers()).thenReturn(usedBytesOnTiers);
 
-    harness.mManager.commitBlock(sessionId, blockId);
-    Mockito.verify(harness.mBlockMasterClient)
-        .workerCommitBlock(harness.mWorkerId, usedBytes, tierAlias, blockId, length);
-    Mockito.verify(harness.mBlockStore).unlockBlock(lockId);
+    mHarness.mManager.commitBlock(sessionId, blockId);
+    Mockito.verify(mHarness.mBlockMasterClient)
+        .workerCommitBlock(mHarness.mWorkerId, usedBytes, tierAlias, blockId, length);
+    Mockito.verify(mHarness.mBlockStore).unlockBlock(lockId);
   }
 
   @Test
   public void CreateBlockTest() throws Exception {
-    TestHarness harness = new TestHarness();
-    long blockId = harness.mRandom.nextLong();
-    long initialBytes = harness.mRandom.nextLong();
-    long sessionId = harness.mRandom.nextLong();
+    long blockId = mHarness.mRandom.nextLong();
+    long initialBytes = mHarness.mRandom.nextLong();
+    long sessionId = mHarness.mRandom.nextLong();
     int tierAlias = 1;
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
     StorageDir storageDir = Mockito.mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
-    Mockito.when(harness.mBlockStore
+    Mockito.when(mHarness.mBlockStore
         .createBlockMeta(sessionId, blockId, location, initialBytes)).thenReturn(meta);
     Mockito.when(storageDir.getDirPath()).thenReturn("/tmp");
     Assert.assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
-        harness.mManager.createBlock(sessionId, blockId, tierAlias, initialBytes));
+        mHarness.mManager.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
   // TODO(jsimsa): Write unit tests for untested public methods.
