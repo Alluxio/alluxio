@@ -211,6 +211,23 @@ public final class TieredBlockStoreTests {
   }
 
   @Test
+  public void moveBlockToSameLocationTest() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // Move block to same location will simply do nothing, so the src block keeps where it was,
+    // and the available space should also remain unchanged.
+    long availableBytesBefore = mMetaManager.getAvailableBytes(mTestDir1.toBlockStoreLocation());
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
+    long availableBytesAfter = mMetaManager.getAvailableBytes(mTestDir1.toBlockStoreLocation());
+
+    Assert.assertEquals(availableBytesBefore, availableBytesAfter);
+    Assert.assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    Assert.assertFalse(mMetaManager.hasTempBlockMeta(BLOCK_ID1));
+    Assert.assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID1));
+    Assert.assertTrue(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+  }
+
+  @Test
   public void removeBlockTest() throws Exception {
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);

@@ -759,12 +759,23 @@ public final class TieredBlockStore implements BlockStore {
         throw new NotFoundException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION, blockId,
             oldLocation);
       }
-      TempBlockMeta dstTempBlock =
-          createBlockMetaInternal(sessionId, blockId, newLocation, blockSize, false);
+      TempBlockMeta dstTempBlock = createBlockMetaInternal(sessionId, blockId, newLocation,
+          blockSize, false);
       if (dstTempBlock == null) {
         return new MoveBlockResult(false, blockSize, null, null);
       }
+
+      // When `newLocation` is some specific location, the `newLocation` and the `dstLocation` are
+      // just the same; while for `newLocation` with a wildcard significance, the `dstLocation`
+      // is a specific one with specific tier and dir which belongs to newLocation.
       dstLocation = dstTempBlock.getBlockLocation();
+
+      // When the dstLocation belongs to srcLocation, simply abort the tempBlockMeta just created
+      // internally from the newLocation and return success with specific block location.
+      if (dstLocation.belongTo(srcLocation)) {
+        mMetaManager.abortTempBlockMeta(dstTempBlock);
+        return new MoveBlockResult(true, blockSize, srcLocation, dstLocation);
+      }
       dstFilePath = dstTempBlock.getCommitPath();
 
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
