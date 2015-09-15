@@ -31,8 +31,8 @@ import com.google.common.collect.Sets;
 
 import tachyon.StorageLevelAlias;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.NotFoundException;
-import tachyon.exception.OutOfSpaceException;
+import tachyon.thrift.BlockDoesNotExistException;
+import tachyon.thrift.WorkerOutOfSpaceException;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
 import tachyon.worker.block.meta.StorageTier;
@@ -172,14 +172,14 @@ public final class BlockMetadataManagerTest {
 
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mMetaManager.getBlockMeta(TEST_BLOCK_ID);
   }
 
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown
         .expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(TEST_TEMP_BLOCK_ID));
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
@@ -206,7 +206,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
     // test to make sure that the dst tempBlockMeta has been removed from the dir
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND
         .getMessage(TEST_TEMP_BLOCK_ID2));
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
@@ -231,7 +231,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
 
     // make sure that the dst tempBlockMeta has been removed from the dir2
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND
         .getMessage(TEST_TEMP_BLOCK_ID2));
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
@@ -252,7 +252,7 @@ public final class BlockMetadataManagerTest {
     mMetaManager.addTempBlockMeta(tempBlockMeta2);
     dir2.addBlockMeta(blockMeta);
 
-    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
         blockMetaSize, maxHddDir1Capacity, TIER_ALIAS[1]));
     mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
@@ -286,7 +286,7 @@ public final class BlockMetadataManagerTest {
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, 2000, dir);
     dir.addBlockMeta(blockMeta);
 
-    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage("does not have enough space");
     mMetaManager.moveBlockMeta(blockMeta, new BlockStoreLocation(1, 0, 0));
   }

@@ -44,7 +44,7 @@ import tachyon.master.block.BlockId;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.OutOfSpaceException;
+import tachyon.thrift.WorkerOutOfSpaceException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -275,7 +275,7 @@ public class BlockServiceHandlerIntegrationTest {
     Exception exception = null;
     try {
       mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2, WORKER_CAPACITY_BYTES + 1);
-    } catch (OutOfSpaceException oose) {
+    } catch (WorkerOutOfSpaceException oose) {
       exception = oose;
     }
     Assert.assertNotNull(exception);

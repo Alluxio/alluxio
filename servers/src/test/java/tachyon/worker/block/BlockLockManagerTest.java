@@ -24,8 +24,8 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
+import tachyon.thrift.BlockDoesNotExistException;
+import tachyon.thrift.InvalidWorkerStateException;
 
 public class BlockLockManagerTest {
   private static final long TEST_SESSION_ID = 2;
@@ -57,7 +57,7 @@ public class BlockLockManagerTest {
   @Test
   public void unlockNonExistingLockTest() throws Exception {
     long badLockId = 1;
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Unlock a non-existing lockId, expect to see IOException
     mLockManager.unlockBlock(badLockId);
@@ -66,7 +66,7 @@ public class BlockLockManagerTest {
   @Test
   public void validateLockIdWithNoRecordTest() throws Exception {
     long badLockId = 1;
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
     // Validate a non-existing lockId, expect to see IOException
     mLockManager.validateLock(TEST_SESSION_ID, TEST_BLOCK_ID, badLockId);
@@ -76,7 +76,7 @@ public class BlockLockManagerTest {
   public void validateLockIdWithWrongSessionIdTest() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongSessionId = TEST_SESSION_ID + 1;
-    mThrown.expect(InvalidStateException.class);
+    mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION.getMessage(lockId,
         TEST_SESSION_ID, wrongSessionId));
     // Validate an existing lockId with wrong sessionId, expect to see IOException
@@ -87,7 +87,7 @@ public class BlockLockManagerTest {
   public void validateLockIdWithWrongBlockIdTest() throws Exception {
     long lockId = mLockManager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     long wrongBlockId = TEST_BLOCK_ID + 1;
-    mThrown.expect(InvalidStateException.class);
+    mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK.getMessage(lockId,
         TEST_BLOCK_ID, wrongBlockId));
     // Validate an existing lockId with wrong blockId, expect to see IOException
@@ -100,7 +100,7 @@ public class BlockLockManagerTest {
     long sessionId2 = TEST_SESSION_ID + 1;
     long lockId1 = mLockManager.lockBlock(sessionId1, TEST_BLOCK_ID, BlockLockType.READ);
     long lockId2 = mLockManager.lockBlock(sessionId2, TEST_BLOCK_ID, BlockLockType.READ);
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId2));
     mLockManager.cleanupSession(sessionId2);
     // Expect validating sessionId1 to get through

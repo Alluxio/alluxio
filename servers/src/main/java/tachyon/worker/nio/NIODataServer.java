@@ -37,7 +37,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.NotFoundException;
+import tachyon.thrift.BlockDoesNotExistException;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
 import tachyon.worker.block.BlockDataManager;
@@ -313,7 +313,7 @@ public final class NIODataServer implements Runnable, DataServer {
       // TODO(calvin): Reconsider how we handle this exception.
       try {
         mDataManager.unlockBlock(sendMessage.getLockId());
-      } catch (NotFoundException ioe) {
+      } catch (BlockDoesNotExistException ioe) {
         LOG.error("Failed to unlock block: " + sendMessage.getBlockId(), ioe);
       }
     }

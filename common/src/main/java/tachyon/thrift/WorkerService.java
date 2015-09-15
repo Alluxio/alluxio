@@ -39,11 +39,11 @@ public class WorkerService {
 
   public interface Iface {
 
-    public void accessBlock(long blockId) throws org.apache.thrift.TException;
+    public void accessBlock(long blockId) throws BlockDoesNotExistException, org.apache.thrift.TException;
 
     public void addCheckpoint(long sessionId, long fileId) throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, org.apache.thrift.TException;
 
-    public boolean asyncCheckpoint(long fileId) throws TachyonException, org.apache.thrift.TException;
+    public boolean asyncCheckpoint(long fileId) throws org.apache.thrift.TException;
 
     /**
      * Used to cache a block into Tachyon space, worker will move the temporary block file from session
@@ -53,7 +53,7 @@ public class WorkerService {
      * @param sessionId
      * @param blockId
      */
-    public void cacheBlock(long sessionId, long blockId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
+    public void cacheBlock(long sessionId, long blockId) throws WorkerOutOfSpaceException, BlockDoesNotExistException, InvalidWorkerStateException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Used to cancel a block which is being written. worker will delete the temporary block file and
@@ -62,7 +62,7 @@ public class WorkerService {
      * @param sessionId
      * @param blockId
      */
-    public void cancelBlock(long sessionId, long blockId) throws org.apache.thrift.TException;
+    public void cancelBlock(long sessionId, long blockId) throws InvalidWorkerStateException, BlockAlreadyExistsException, BlockDoesNotExistException, ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Used to get session's temporary folder on under file system, and the path of the session's temporary
@@ -80,7 +80,7 @@ public class WorkerService {
      * @param blockId
      * @param sessionId
      */
-    public String lockBlock(long blockId, long sessionId) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public String lockBlock(long blockId, long sessionId) throws FileDoesNotExistException, InvalidWorkerStateException, org.apache.thrift.TException;
 
     /**
      * Used to promote block on under storage layer to top storage layer when there are more than one
@@ -89,7 +89,7 @@ public class WorkerService {
      * 
      * @param blockId
      */
-    public boolean promoteBlock(long blockId) throws org.apache.thrift.TException;
+    public boolean promoteBlock(long blockId) throws WorkerOutOfSpaceException, BlockDoesNotExistException, InvalidWorkerStateException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Used to allocate location and space for a new coming block, worker will choose the appropriate
@@ -102,7 +102,7 @@ public class WorkerService {
      * @param blockId
      * @param initialBytes
      */
-    public String requestBlockLocation(long sessionId, long blockId, long initialBytes) throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException;
+    public String requestBlockLocation(long sessionId, long blockId, long initialBytes) throws InvalidWorkerStateException, WorkerOutOfSpaceException, BlockDoesNotExistException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Used to request space for some block file. return true if the worker successfully allocates
@@ -113,7 +113,7 @@ public class WorkerService {
      * @param blockId
      * @param requestBytes
      */
-    public boolean requestSpace(long sessionId, long blockId, long requestBytes) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public boolean requestSpace(long sessionId, long blockId, long requestBytes) throws org.apache.thrift.TException;
 
     /**
      * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
@@ -123,7 +123,7 @@ public class WorkerService {
      * @param blockId
      * @param sessionId
      */
-    public boolean unlockBlock(long blockId, long sessionId) throws org.apache.thrift.TException;
+    public boolean unlockBlock(long blockId, long sessionId) throws BlockDoesNotExistException, org.apache.thrift.TException;
 
     /**
      * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
@@ -184,7 +184,7 @@ public class WorkerService {
       super(iprot, oprot);
     }
 
-    public void accessBlock(long blockId) throws org.apache.thrift.TException
+    public void accessBlock(long blockId) throws BlockDoesNotExistException, org.apache.thrift.TException
     {
       send_accessBlock(blockId);
       recv_accessBlock();
@@ -197,10 +197,13 @@ public class WorkerService {
       sendBase("accessBlock", args);
     }
 
-    public void recv_accessBlock() throws org.apache.thrift.TException
+    public void recv_accessBlock() throws BlockDoesNotExistException, org.apache.thrift.TException
     {
       accessBlock_result result = new accessBlock_result();
       receiveBase(result, "accessBlock");
+      if (result.bE != null) {
+        throw result.bE;
+      }
       return;
     }
 
@@ -237,7 +240,7 @@ public class WorkerService {
       return;
     }
 
-    public boolean asyncCheckpoint(long fileId) throws TachyonException, org.apache.thrift.TException
+    public boolean asyncCheckpoint(long fileId) throws org.apache.thrift.TException
     {
       send_asyncCheckpoint(fileId);
       return recv_asyncCheckpoint();
@@ -250,20 +253,17 @@ public class WorkerService {
       sendBase("asyncCheckpoint", args);
     }
 
-    public boolean recv_asyncCheckpoint() throws TachyonException, org.apache.thrift.TException
+    public boolean recv_asyncCheckpoint() throws org.apache.thrift.TException
     {
       asyncCheckpoint_result result = new asyncCheckpoint_result();
       receiveBase(result, "asyncCheckpoint");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.e != null) {
-        throw result.e;
-      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "asyncCheckpoint failed: unknown result");
     }
 
-    public void cacheBlock(long sessionId, long blockId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public void cacheBlock(long sessionId, long blockId) throws WorkerOutOfSpaceException, BlockDoesNotExistException, InvalidWorkerStateException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException
     {
       send_cacheBlock(sessionId, blockId);
       recv_cacheBlock();
@@ -277,20 +277,29 @@ public class WorkerService {
       sendBase("cacheBlock", args);
     }
 
-    public void recv_cacheBlock() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public void recv_cacheBlock() throws WorkerOutOfSpaceException, BlockDoesNotExistException, InvalidWorkerStateException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException
     {
       cacheBlock_result result = new cacheBlock_result();
       receiveBase(result, "cacheBlock");
-      if (result.eP != null) {
-        throw result.eP;
+      if (result.eW != null) {
+        throw result.eW;
       }
-      if (result.eB != null) {
-        throw result.eB;
+      if (result.eDNE != null) {
+        throw result.eDNE;
+      }
+      if (result.iW != null) {
+        throw result.iW;
+      }
+      if (result.eAE != null) {
+        throw result.eAE;
+      }
+      if (result.eT != null) {
+        throw result.eT;
       }
       return;
     }
 
-    public void cancelBlock(long sessionId, long blockId) throws org.apache.thrift.TException
+    public void cancelBlock(long sessionId, long blockId) throws InvalidWorkerStateException, BlockAlreadyExistsException, BlockDoesNotExistException, ThriftIOException, org.apache.thrift.TException
     {
       send_cancelBlock(sessionId, blockId);
       recv_cancelBlock();
@@ -304,10 +313,22 @@ public class WorkerService {
       sendBase("cancelBlock", args);
     }
 
-    public void recv_cancelBlock() throws org.apache.thrift.TException
+    public void recv_cancelBlock() throws InvalidWorkerStateException, BlockAlreadyExistsException, BlockDoesNotExistException, ThriftIOException, org.apache.thrift.TException
     {
       cancelBlock_result result = new cancelBlock_result();
       receiveBase(result, "cancelBlock");
+      if (result.eW != null) {
+        throw result.eW;
+      }
+      if (result.eAE != null) {
+        throw result.eAE;
+      }
+      if (result.eDNE != null) {
+        throw result.eDNE;
+      }
+      if (result.eT != null) {
+        throw result.eT;
+      }
       return;
     }
 
@@ -334,7 +355,7 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getSessionUfsTempFolder failed: unknown result");
     }
 
-    public String lockBlock(long blockId, long sessionId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public String lockBlock(long blockId, long sessionId) throws FileDoesNotExistException, InvalidWorkerStateException, org.apache.thrift.TException
     {
       send_lockBlock(blockId, sessionId);
       return recv_lockBlock();
@@ -348,7 +369,7 @@ public class WorkerService {
       sendBase("lockBlock", args);
     }
 
-    public String recv_lockBlock() throws FileDoesNotExistException, org.apache.thrift.TException
+    public String recv_lockBlock() throws FileDoesNotExistException, InvalidWorkerStateException, org.apache.thrift.TException
     {
       lockBlock_result result = new lockBlock_result();
       receiveBase(result, "lockBlock");
@@ -358,10 +379,13 @@ public class WorkerService {
       if (result.eP != null) {
         throw result.eP;
       }
+      if (result.eW != null) {
+        throw result.eW;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "lockBlock failed: unknown result");
     }
 
-    public boolean promoteBlock(long blockId) throws org.apache.thrift.TException
+    public boolean promoteBlock(long blockId) throws WorkerOutOfSpaceException, BlockDoesNotExistException, InvalidWorkerStateException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException
     {
       send_promoteBlock(blockId);
       return recv_promoteBlock();
@@ -374,17 +398,32 @@ public class WorkerService {
       sendBase("promoteBlock", args);
     }
 
-    public boolean recv_promoteBlock() throws org.apache.thrift.TException
+    public boolean recv_promoteBlock() throws WorkerOutOfSpaceException, BlockDoesNotExistException, InvalidWorkerStateException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException
     {
       promoteBlock_result result = new promoteBlock_result();
       receiveBase(result, "promoteBlock");
       if (result.isSetSuccess()) {
         return result.success;
       }
+      if (result.eWSpace != null) {
+        throw result.eWSpace;
+      }
+      if (result.eDNE != null) {
+        throw result.eDNE;
+      }
+      if (result.eWState != null) {
+        throw result.eWState;
+      }
+      if (result.eAE != null) {
+        throw result.eAE;
+      }
+      if (result.eT != null) {
+        throw result.eT;
+      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "promoteBlock failed: unknown result");
     }
 
-    public String requestBlockLocation(long sessionId, long blockId, long initialBytes) throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException
+    public String requestBlockLocation(long sessionId, long blockId, long initialBytes) throws InvalidWorkerStateException, WorkerOutOfSpaceException, BlockDoesNotExistException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException
     {
       send_requestBlockLocation(sessionId, blockId, initialBytes);
       return recv_requestBlockLocation();
@@ -399,23 +438,32 @@ public class WorkerService {
       sendBase("requestBlockLocation", args);
     }
 
-    public String recv_requestBlockLocation() throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException
+    public String recv_requestBlockLocation() throws InvalidWorkerStateException, WorkerOutOfSpaceException, BlockDoesNotExistException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException
     {
       requestBlockLocation_result result = new requestBlockLocation_result();
       receiveBase(result, "requestBlockLocation");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.eP != null) {
-        throw result.eP;
+      if (result.eWState != null) {
+        throw result.eWState;
       }
-      if (result.eS != null) {
-        throw result.eS;
+      if (result.eWSpace != null) {
+        throw result.eWSpace;
+      }
+      if (result.eDNE != null) {
+        throw result.eDNE;
+      }
+      if (result.eAE != null) {
+        throw result.eAE;
+      }
+      if (result.eT != null) {
+        throw result.eT;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestBlockLocation failed: unknown result");
     }
 
-    public boolean requestSpace(long sessionId, long blockId, long requestBytes) throws FileDoesNotExistException, org.apache.thrift.TException
+    public boolean requestSpace(long sessionId, long blockId, long requestBytes) throws org.apache.thrift.TException
     {
       send_requestSpace(sessionId, blockId, requestBytes);
       return recv_requestSpace();
@@ -430,20 +478,17 @@ public class WorkerService {
       sendBase("requestSpace", args);
     }
 
-    public boolean recv_requestSpace() throws FileDoesNotExistException, org.apache.thrift.TException
+    public boolean recv_requestSpace() throws org.apache.thrift.TException
     {
       requestSpace_result result = new requestSpace_result();
       receiveBase(result, "requestSpace");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.eP != null) {
-        throw result.eP;
-      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestSpace failed: unknown result");
     }
 
-    public boolean unlockBlock(long blockId, long sessionId) throws org.apache.thrift.TException
+    public boolean unlockBlock(long blockId, long sessionId) throws BlockDoesNotExistException, org.apache.thrift.TException
     {
       send_unlockBlock(blockId, sessionId);
       return recv_unlockBlock();
@@ -457,12 +502,15 @@ public class WorkerService {
       sendBase("unlockBlock", args);
     }
 
-    public boolean recv_unlockBlock() throws org.apache.thrift.TException
+    public boolean recv_unlockBlock() throws BlockDoesNotExistException, org.apache.thrift.TException
     {
       unlockBlock_result result = new unlockBlock_result();
       receiveBase(result, "unlockBlock");
       if (result.isSetSuccess()) {
         return result.success;
+      }
+      if (result.eDNE != null) {
+        throw result.eDNE;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "unlockBlock failed: unknown result");
     }
@@ -528,7 +576,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws org.apache.thrift.TException {
+      public void getResult() throws BlockDoesNotExistException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -595,7 +643,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws TachyonException, org.apache.thrift.TException {
+      public boolean getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -630,7 +678,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException {
+      public void getResult() throws WorkerOutOfSpaceException, BlockDoesNotExistException, InvalidWorkerStateException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -665,7 +713,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws org.apache.thrift.TException {
+      public void getResult() throws InvalidWorkerStateException, BlockAlreadyExistsException, BlockDoesNotExistException, ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -732,7 +780,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public String getResult() throws FileDoesNotExistException, InvalidWorkerStateException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -764,7 +812,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws org.apache.thrift.TException {
+      public boolean getResult() throws WorkerOutOfSpaceException, BlockDoesNotExistException, InvalidWorkerStateException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -802,7 +850,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws OutOfSpaceException, FileAlreadyExistException, org.apache.thrift.TException {
+      public String getResult() throws InvalidWorkerStateException, WorkerOutOfSpaceException, BlockDoesNotExistException, BlockAlreadyExistsException, ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -840,7 +888,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public boolean getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -875,7 +923,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws org.apache.thrift.TException {
+      public boolean getResult() throws BlockDoesNotExistException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -963,7 +1011,11 @@ public class WorkerService {
 
       public accessBlock_result getResult(I iface, accessBlock_args args) throws org.apache.thrift.TException {
         accessBlock_result result = new accessBlock_result();
-        iface.accessBlock(args.blockId);
+        try {
+          iface.accessBlock(args.blockId);
+        } catch (BlockDoesNotExistException bE) {
+          result.bE = bE;
+        }
         return result;
       }
     }
@@ -1013,12 +1065,8 @@ public class WorkerService {
 
       public asyncCheckpoint_result getResult(I iface, asyncCheckpoint_args args) throws org.apache.thrift.TException {
         asyncCheckpoint_result result = new asyncCheckpoint_result();
-        try {
-          result.success = iface.asyncCheckpoint(args.fileId);
-          result.setSuccessIsSet(true);
-        } catch (TachyonException e) {
-          result.e = e;
-        }
+        result.success = iface.asyncCheckpoint(args.fileId);
+        result.setSuccessIsSet(true);
         return result;
       }
     }
@@ -1040,10 +1088,16 @@ public class WorkerService {
         cacheBlock_result result = new cacheBlock_result();
         try {
           iface.cacheBlock(args.sessionId, args.blockId);
-        } catch (FileDoesNotExistException eP) {
-          result.eP = eP;
-        } catch (BlockInfoException eB) {
-          result.eB = eB;
+        } catch (WorkerOutOfSpaceException eW) {
+          result.eW = eW;
+        } catch (BlockDoesNotExistException eDNE) {
+          result.eDNE = eDNE;
+        } catch (InvalidWorkerStateException iW) {
+          result.iW = iW;
+        } catch (BlockAlreadyExistsException eAE) {
+          result.eAE = eAE;
+        } catch (ThriftIOException eT) {
+          result.eT = eT;
         }
         return result;
       }
@@ -1064,7 +1118,17 @@ public class WorkerService {
 
       public cancelBlock_result getResult(I iface, cancelBlock_args args) throws org.apache.thrift.TException {
         cancelBlock_result result = new cancelBlock_result();
-        iface.cancelBlock(args.sessionId, args.blockId);
+        try {
+          iface.cancelBlock(args.sessionId, args.blockId);
+        } catch (InvalidWorkerStateException eW) {
+          result.eW = eW;
+        } catch (BlockAlreadyExistsException eAE) {
+          result.eAE = eAE;
+        } catch (BlockDoesNotExistException eDNE) {
+          result.eDNE = eDNE;
+        } catch (ThriftIOException eT) {
+          result.eT = eT;
+        }
         return result;
       }
     }
@@ -1108,6 +1172,8 @@ public class WorkerService {
           result.success = iface.lockBlock(args.blockId, args.sessionId);
         } catch (FileDoesNotExistException eP) {
           result.eP = eP;
+        } catch (InvalidWorkerStateException eW) {
+          result.eW = eW;
         }
         return result;
       }
@@ -1128,8 +1194,20 @@ public class WorkerService {
 
       public promoteBlock_result getResult(I iface, promoteBlock_args args) throws org.apache.thrift.TException {
         promoteBlock_result result = new promoteBlock_result();
-        result.success = iface.promoteBlock(args.blockId);
-        result.setSuccessIsSet(true);
+        try {
+          result.success = iface.promoteBlock(args.blockId);
+          result.setSuccessIsSet(true);
+        } catch (WorkerOutOfSpaceException eWSpace) {
+          result.eWSpace = eWSpace;
+        } catch (BlockDoesNotExistException eDNE) {
+          result.eDNE = eDNE;
+        } catch (InvalidWorkerStateException eWState) {
+          result.eWState = eWState;
+        } catch (BlockAlreadyExistsException eAE) {
+          result.eAE = eAE;
+        } catch (ThriftIOException eT) {
+          result.eT = eT;
+        }
         return result;
       }
     }
@@ -1151,10 +1229,16 @@ public class WorkerService {
         requestBlockLocation_result result = new requestBlockLocation_result();
         try {
           result.success = iface.requestBlockLocation(args.sessionId, args.blockId, args.initialBytes);
-        } catch (OutOfSpaceException eP) {
-          result.eP = eP;
-        } catch (FileAlreadyExistException eS) {
-          result.eS = eS;
+        } catch (InvalidWorkerStateException eWState) {
+          result.eWState = eWState;
+        } catch (WorkerOutOfSpaceException eWSpace) {
+          result.eWSpace = eWSpace;
+        } catch (BlockDoesNotExistException eDNE) {
+          result.eDNE = eDNE;
+        } catch (BlockAlreadyExistsException eAE) {
+          result.eAE = eAE;
+        } catch (ThriftIOException eT) {
+          result.eT = eT;
         }
         return result;
       }
@@ -1175,12 +1259,8 @@ public class WorkerService {
 
       public requestSpace_result getResult(I iface, requestSpace_args args) throws org.apache.thrift.TException {
         requestSpace_result result = new requestSpace_result();
-        try {
-          result.success = iface.requestSpace(args.sessionId, args.blockId, args.requestBytes);
-          result.setSuccessIsSet(true);
-        } catch (FileDoesNotExistException eP) {
-          result.eP = eP;
-        }
+        result.success = iface.requestSpace(args.sessionId, args.blockId, args.requestBytes);
+        result.setSuccessIsSet(true);
         return result;
       }
     }
@@ -1200,8 +1280,12 @@ public class WorkerService {
 
       public unlockBlock_result getResult(I iface, unlockBlock_args args) throws org.apache.thrift.TException {
         unlockBlock_result result = new unlockBlock_result();
-        result.success = iface.unlockBlock(args.blockId, args.sessionId);
-        result.setSuccessIsSet(true);
+        try {
+          result.success = iface.unlockBlock(args.blockId, args.sessionId);
+          result.setSuccessIsSet(true);
+        } catch (BlockDoesNotExistException eDNE) {
+          result.eDNE = eDNE;
+        }
         return result;
       }
     }
@@ -1280,6 +1364,12 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             accessBlock_result result = new accessBlock_result();
+            if (e instanceof BlockDoesNotExistException) {
+                        result.bE = (BlockDoesNotExistException) e;
+                        result.setBEIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1403,12 +1493,6 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             asyncCheckpoint_result result = new asyncCheckpoint_result();
-            if (e instanceof TachyonException) {
-                        result.e = (TachyonException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1459,14 +1543,29 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             cacheBlock_result result = new cacheBlock_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.eP = (FileDoesNotExistException) e;
-                        result.setEPIsSet(true);
+            if (e instanceof WorkerOutOfSpaceException) {
+                        result.eW = (WorkerOutOfSpaceException) e;
+                        result.setEWIsSet(true);
                         msg = result;
             }
-            else             if (e instanceof BlockInfoException) {
-                        result.eB = (BlockInfoException) e;
-                        result.setEBIsSet(true);
+            else             if (e instanceof BlockDoesNotExistException) {
+                        result.eDNE = (BlockDoesNotExistException) e;
+                        result.setEDNEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof InvalidWorkerStateException) {
+                        result.iW = (InvalidWorkerStateException) e;
+                        result.setIWIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof BlockAlreadyExistsException) {
+                        result.eAE = (BlockAlreadyExistsException) e;
+                        result.setEAEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof ThriftIOException) {
+                        result.eT = (ThriftIOException) e;
+                        result.setETIsSet(true);
                         msg = result;
             }
              else 
@@ -1520,6 +1619,27 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             cancelBlock_result result = new cancelBlock_result();
+            if (e instanceof InvalidWorkerStateException) {
+                        result.eW = (InvalidWorkerStateException) e;
+                        result.setEWIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof BlockAlreadyExistsException) {
+                        result.eAE = (BlockAlreadyExistsException) e;
+                        result.setEAEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof BlockDoesNotExistException) {
+                        result.eDNE = (BlockDoesNotExistException) e;
+                        result.setEDNEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof ThriftIOException) {
+                        result.eT = (ThriftIOException) e;
+                        result.setETIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1627,6 +1747,11 @@ public class WorkerService {
                         result.setEPIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof InvalidWorkerStateException) {
+                        result.eW = (InvalidWorkerStateException) e;
+                        result.setEWIsSet(true);
+                        msg = result;
+            }
              else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
@@ -1680,6 +1805,32 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             promoteBlock_result result = new promoteBlock_result();
+            if (e instanceof WorkerOutOfSpaceException) {
+                        result.eWSpace = (WorkerOutOfSpaceException) e;
+                        result.setEWSpaceIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof BlockDoesNotExistException) {
+                        result.eDNE = (BlockDoesNotExistException) e;
+                        result.setEDNEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof InvalidWorkerStateException) {
+                        result.eWState = (InvalidWorkerStateException) e;
+                        result.setEWStateIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof BlockAlreadyExistsException) {
+                        result.eAE = (BlockAlreadyExistsException) e;
+                        result.setEAEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof ThriftIOException) {
+                        result.eT = (ThriftIOException) e;
+                        result.setETIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1731,14 +1882,29 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             requestBlockLocation_result result = new requestBlockLocation_result();
-            if (e instanceof OutOfSpaceException) {
-                        result.eP = (OutOfSpaceException) e;
-                        result.setEPIsSet(true);
+            if (e instanceof InvalidWorkerStateException) {
+                        result.eWState = (InvalidWorkerStateException) e;
+                        result.setEWStateIsSet(true);
                         msg = result;
             }
-            else             if (e instanceof FileAlreadyExistException) {
-                        result.eS = (FileAlreadyExistException) e;
-                        result.setESIsSet(true);
+            else             if (e instanceof WorkerOutOfSpaceException) {
+                        result.eWSpace = (WorkerOutOfSpaceException) e;
+                        result.setEWSpaceIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof BlockDoesNotExistException) {
+                        result.eDNE = (BlockDoesNotExistException) e;
+                        result.setEDNEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof BlockAlreadyExistsException) {
+                        result.eAE = (BlockAlreadyExistsException) e;
+                        result.setEAEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof ThriftIOException) {
+                        result.eT = (ThriftIOException) e;
+                        result.setETIsSet(true);
                         msg = result;
             }
              else 
@@ -1794,12 +1960,6 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             requestSpace_result result = new requestSpace_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.eP = (FileDoesNotExistException) e;
-                        result.setEPIsSet(true);
-                        msg = result;
-            }
-             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1852,6 +2012,12 @@ public class WorkerService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             unlockBlock_result result = new unlockBlock_result();
+            if (e instanceof BlockDoesNotExistException) {
+                        result.eDNE = (BlockDoesNotExistException) e;
+                        result.setEDNEIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -2290,6 +2456,7 @@ public class WorkerService {
   public static class accessBlock_result implements org.apache.thrift.TBase<accessBlock_result, accessBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<accessBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("accessBlock_result");
 
+    private static final org.apache.thrift.protocol.TField B_E_FIELD_DESC = new org.apache.thrift.protocol.TField("bE", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2297,10 +2464,11 @@ public class WorkerService {
       schemes.put(TupleScheme.class, new accessBlock_resultTupleSchemeFactory());
     }
 
+    public BlockDoesNotExistException bE; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      B_E((short)1, "bE");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2315,6 +2483,8 @@ public class WorkerService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // B_E
+            return B_E;
           default:
             return null;
         }
@@ -2353,9 +2523,13 @@ public class WorkerService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.B_E, new org.apache.thrift.meta_data.FieldMetaData("bE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(accessBlock_result.class, metaDataMap);
     }
@@ -2363,10 +2537,20 @@ public class WorkerService {
     public accessBlock_result() {
     }
 
+    public accessBlock_result(
+      BlockDoesNotExistException bE)
+    {
+      this();
+      this.bE = bE;
+    }
+
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public accessBlock_result(accessBlock_result other) {
+      if (other.isSetBE()) {
+        this.bE = new BlockDoesNotExistException(other.bE);
+      }
     }
 
     public accessBlock_result deepCopy() {
@@ -2375,15 +2559,51 @@ public class WorkerService {
 
     @Override
     public void clear() {
+      this.bE = null;
+    }
+
+    public BlockDoesNotExistException getBE() {
+      return this.bE;
+    }
+
+    public accessBlock_result setBE(BlockDoesNotExistException bE) {
+      this.bE = bE;
+      return this;
+    }
+
+    public void unsetBE() {
+      this.bE = null;
+    }
+
+    /** Returns true if field bE is set (has been assigned a value) and false otherwise */
+    public boolean isSetBE() {
+      return this.bE != null;
+    }
+
+    public void setBEIsSet(boolean value) {
+      if (!value) {
+        this.bE = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case B_E:
+        if (value == null) {
+          unsetBE();
+        } else {
+          setBE((BlockDoesNotExistException)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case B_E:
+        return getBE();
+
       }
       throw new IllegalStateException();
     }
@@ -2395,6 +2615,8 @@ public class WorkerService {
       }
 
       switch (field) {
+      case B_E:
+        return isSetBE();
       }
       throw new IllegalStateException();
     }
@@ -2412,12 +2634,26 @@ public class WorkerService {
       if (that == null)
         return false;
 
+      boolean this_present_bE = true && this.isSetBE();
+      boolean that_present_bE = true && that.isSetBE();
+      if (this_present_bE || that_present_bE) {
+        if (!(this_present_bE && that_present_bE))
+          return false;
+        if (!this.bE.equals(that.bE))
+          return false;
+      }
+
       return true;
     }
 
     @Override
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
+
+      boolean present_bE = true && (isSetBE());
+      list.add(present_bE);
+      if (present_bE)
+        list.add(bE);
 
       return list.hashCode();
     }
@@ -2430,6 +2666,16 @@ public class WorkerService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetBE()).compareTo(other.isSetBE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetBE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bE, other.bE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -2450,6 +2696,13 @@ public class WorkerService {
       StringBuilder sb = new StringBuilder("accessBlock_result(");
       boolean first = true;
 
+      sb.append("bE:");
+      if (this.bE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.bE);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -2493,6 +2746,15 @@ public class WorkerService {
             break;
           }
           switch (schemeField.id) {
+            case 1: // B_E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.bE = new BlockDoesNotExistException();
+                struct.bE.read(iprot);
+                struct.setBEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2508,6 +2770,11 @@ public class WorkerService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.bE != null) {
+          oprot.writeFieldBegin(B_E_FIELD_DESC);
+          struct.bE.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -2525,11 +2792,25 @@ public class WorkerService {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, accessBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetBE()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetBE()) {
+          struct.bE.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, accessBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.bE = new BlockDoesNotExistException();
+          struct.bE.read(iprot);
+          struct.setBEIsSet(true);
+        }
       }
     }
 
@@ -4040,7 +4321,6 @@ public class WorkerService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("asyncCheckpoint_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4049,12 +4329,10 @@ public class WorkerService {
     }
 
     public boolean success; // required
-    public TachyonException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E((short)1, "e");
+      SUCCESS((short)0, "success");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4071,8 +4349,6 @@ public class WorkerService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // E
-            return E;
           default:
             return null;
         }
@@ -4120,8 +4396,6 @@ public class WorkerService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(asyncCheckpoint_result.class, metaDataMap);
     }
@@ -4130,13 +4404,11 @@ public class WorkerService {
     }
 
     public asyncCheckpoint_result(
-      boolean success,
-      TachyonException e)
+      boolean success)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.e = e;
     }
 
     /**
@@ -4145,9 +4417,6 @@ public class WorkerService {
     public asyncCheckpoint_result(asyncCheckpoint_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetE()) {
-        this.e = new TachyonException(other.e);
-      }
     }
 
     public asyncCheckpoint_result deepCopy() {
@@ -4158,7 +4427,6 @@ public class WorkerService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.e = null;
     }
 
     public boolean isSuccess() {
@@ -4184,30 +4452,6 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public TachyonException getE() {
-      return this.e;
-    }
-
-    public asyncCheckpoint_result setE(TachyonException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -4218,14 +4462,6 @@ public class WorkerService {
         }
         break;
 
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((TachyonException)value);
-        }
-        break;
-
       }
     }
 
@@ -4233,9 +4469,6 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
-
-      case E:
-        return getE();
 
       }
       throw new IllegalStateException();
@@ -4250,8 +4483,6 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case E:
-        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -4278,15 +4509,6 @@ public class WorkerService {
           return false;
       }
 
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
-
       return true;
     }
 
@@ -4298,11 +4520,6 @@ public class WorkerService {
       list.add(present_success);
       if (present_success)
         list.add(success);
-
-      boolean present_e = true && (isSetE());
-      list.add(present_e);
-      if (present_e)
-        list.add(e);
 
       return list.hashCode();
     }
@@ -4321,16 +4538,6 @@ public class WorkerService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4357,14 +4564,6 @@ public class WorkerService {
 
       sb.append("success:");
       sb.append(this.success);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -4419,15 +4618,6 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new TachyonException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -4446,11 +4636,6 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeBool(struct.success);
-          oprot.writeFieldEnd();
-        }
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -4474,30 +4659,19 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetE()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
+        oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
-        }
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, asyncCheckpoint_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.e = new TachyonException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
         }
       }
     }
@@ -4965,8 +5139,11 @@ public class WorkerService {
   public static class cacheBlock_result implements org.apache.thrift.TBase<cacheBlock_result, cacheBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<cacheBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cacheBlock_result");
 
-    private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_B_FIELD_DESC = new org.apache.thrift.protocol.TField("eB", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_W_FIELD_DESC = new org.apache.thrift.protocol.TField("eW", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_DNE_FIELD_DESC = new org.apache.thrift.protocol.TField("eDNE", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField I_W_FIELD_DESC = new org.apache.thrift.protocol.TField("iW", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_AE_FIELD_DESC = new org.apache.thrift.protocol.TField("eAE", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+    private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4974,13 +5151,19 @@ public class WorkerService {
       schemes.put(TupleScheme.class, new cacheBlock_resultTupleSchemeFactory());
     }
 
-    public FileDoesNotExistException eP; // required
-    public BlockInfoException eB; // required
+    public WorkerOutOfSpaceException eW; // required
+    public BlockDoesNotExistException eDNE; // required
+    public InvalidWorkerStateException iW; // required
+    public BlockAlreadyExistsException eAE; // required
+    public ThriftIOException eT; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E_P((short)1, "eP"),
-      E_B((short)2, "eB");
+      E_W((short)1, "eW"),
+      E_DNE((short)2, "eDNE"),
+      I_W((short)3, "iW"),
+      E_AE((short)4, "eAE"),
+      E_T((short)5, "eT");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4995,10 +5178,16 @@ public class WorkerService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // E_P
-            return E_P;
-          case 2: // E_B
-            return E_B;
+          case 1: // E_W
+            return E_W;
+          case 2: // E_DNE
+            return E_DNE;
+          case 3: // I_W
+            return I_W;
+          case 4: // E_AE
+            return E_AE;
+          case 5: // E_T
+            return E_T;
           default:
             return null;
         }
@@ -5042,9 +5231,15 @@ public class WorkerService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E_W, new org.apache.thrift.meta_data.FieldMetaData("eW", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_B, new org.apache.thrift.meta_data.FieldMetaData("eB", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E_DNE, new org.apache.thrift.meta_data.FieldMetaData("eDNE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.I_W, new org.apache.thrift.meta_data.FieldMetaData("iW", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AE, new org.apache.thrift.meta_data.FieldMetaData("eAE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cacheBlock_result.class, metaDataMap);
@@ -5054,23 +5249,38 @@ public class WorkerService {
     }
 
     public cacheBlock_result(
-      FileDoesNotExistException eP,
-      BlockInfoException eB)
+      WorkerOutOfSpaceException eW,
+      BlockDoesNotExistException eDNE,
+      InvalidWorkerStateException iW,
+      BlockAlreadyExistsException eAE,
+      ThriftIOException eT)
     {
       this();
-      this.eP = eP;
-      this.eB = eB;
+      this.eW = eW;
+      this.eDNE = eDNE;
+      this.iW = iW;
+      this.eAE = eAE;
+      this.eT = eT;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public cacheBlock_result(cacheBlock_result other) {
-      if (other.isSetEP()) {
-        this.eP = new FileDoesNotExistException(other.eP);
+      if (other.isSetEW()) {
+        this.eW = new WorkerOutOfSpaceException(other.eW);
       }
-      if (other.isSetEB()) {
-        this.eB = new BlockInfoException(other.eB);
+      if (other.isSetEDNE()) {
+        this.eDNE = new BlockDoesNotExistException(other.eDNE);
+      }
+      if (other.isSetIW()) {
+        this.iW = new InvalidWorkerStateException(other.iW);
+      }
+      if (other.isSetEAE()) {
+        this.eAE = new BlockAlreadyExistsException(other.eAE);
+      }
+      if (other.isSetET()) {
+        this.eT = new ThriftIOException(other.eT);
       }
     }
 
@@ -5080,73 +5290,172 @@ public class WorkerService {
 
     @Override
     public void clear() {
-      this.eP = null;
-      this.eB = null;
+      this.eW = null;
+      this.eDNE = null;
+      this.iW = null;
+      this.eAE = null;
+      this.eT = null;
     }
 
-    public FileDoesNotExistException getEP() {
-      return this.eP;
+    public WorkerOutOfSpaceException getEW() {
+      return this.eW;
     }
 
-    public cacheBlock_result setEP(FileDoesNotExistException eP) {
-      this.eP = eP;
+    public cacheBlock_result setEW(WorkerOutOfSpaceException eW) {
+      this.eW = eW;
       return this;
     }
 
-    public void unsetEP() {
-      this.eP = null;
+    public void unsetEW() {
+      this.eW = null;
     }
 
-    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
-    public boolean isSetEP() {
-      return this.eP != null;
+    /** Returns true if field eW is set (has been assigned a value) and false otherwise */
+    public boolean isSetEW() {
+      return this.eW != null;
     }
 
-    public void setEPIsSet(boolean value) {
+    public void setEWIsSet(boolean value) {
       if (!value) {
-        this.eP = null;
+        this.eW = null;
       }
     }
 
-    public BlockInfoException getEB() {
-      return this.eB;
+    public BlockDoesNotExistException getEDNE() {
+      return this.eDNE;
     }
 
-    public cacheBlock_result setEB(BlockInfoException eB) {
-      this.eB = eB;
+    public cacheBlock_result setEDNE(BlockDoesNotExistException eDNE) {
+      this.eDNE = eDNE;
       return this;
     }
 
-    public void unsetEB() {
-      this.eB = null;
+    public void unsetEDNE() {
+      this.eDNE = null;
     }
 
-    /** Returns true if field eB is set (has been assigned a value) and false otherwise */
-    public boolean isSetEB() {
-      return this.eB != null;
+    /** Returns true if field eDNE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEDNE() {
+      return this.eDNE != null;
     }
 
-    public void setEBIsSet(boolean value) {
+    public void setEDNEIsSet(boolean value) {
       if (!value) {
-        this.eB = null;
+        this.eDNE = null;
+      }
+    }
+
+    public InvalidWorkerStateException getIW() {
+      return this.iW;
+    }
+
+    public cacheBlock_result setIW(InvalidWorkerStateException iW) {
+      this.iW = iW;
+      return this;
+    }
+
+    public void unsetIW() {
+      this.iW = null;
+    }
+
+    /** Returns true if field iW is set (has been assigned a value) and false otherwise */
+    public boolean isSetIW() {
+      return this.iW != null;
+    }
+
+    public void setIWIsSet(boolean value) {
+      if (!value) {
+        this.iW = null;
+      }
+    }
+
+    public BlockAlreadyExistsException getEAE() {
+      return this.eAE;
+    }
+
+    public cacheBlock_result setEAE(BlockAlreadyExistsException eAE) {
+      this.eAE = eAE;
+      return this;
+    }
+
+    public void unsetEAE() {
+      this.eAE = null;
+    }
+
+    /** Returns true if field eAE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAE() {
+      return this.eAE != null;
+    }
+
+    public void setEAEIsSet(boolean value) {
+      if (!value) {
+        this.eAE = null;
+      }
+    }
+
+    public ThriftIOException getET() {
+      return this.eT;
+    }
+
+    public cacheBlock_result setET(ThriftIOException eT) {
+      this.eT = eT;
+      return this;
+    }
+
+    public void unsetET() {
+      this.eT = null;
+    }
+
+    /** Returns true if field eT is set (has been assigned a value) and false otherwise */
+    public boolean isSetET() {
+      return this.eT != null;
+    }
+
+    public void setETIsSet(boolean value) {
+      if (!value) {
+        this.eT = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case E_P:
+      case E_W:
         if (value == null) {
-          unsetEP();
+          unsetEW();
         } else {
-          setEP((FileDoesNotExistException)value);
+          setEW((WorkerOutOfSpaceException)value);
         }
         break;
 
-      case E_B:
+      case E_DNE:
         if (value == null) {
-          unsetEB();
+          unsetEDNE();
         } else {
-          setEB((BlockInfoException)value);
+          setEDNE((BlockDoesNotExistException)value);
+        }
+        break;
+
+      case I_W:
+        if (value == null) {
+          unsetIW();
+        } else {
+          setIW((InvalidWorkerStateException)value);
+        }
+        break;
+
+      case E_AE:
+        if (value == null) {
+          unsetEAE();
+        } else {
+          setEAE((BlockAlreadyExistsException)value);
+        }
+        break;
+
+      case E_T:
+        if (value == null) {
+          unsetET();
+        } else {
+          setET((ThriftIOException)value);
         }
         break;
 
@@ -5155,11 +5464,20 @@ public class WorkerService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case E_P:
-        return getEP();
+      case E_W:
+        return getEW();
 
-      case E_B:
-        return getEB();
+      case E_DNE:
+        return getEDNE();
+
+      case I_W:
+        return getIW();
+
+      case E_AE:
+        return getEAE();
+
+      case E_T:
+        return getET();
 
       }
       throw new IllegalStateException();
@@ -5172,10 +5490,16 @@ public class WorkerService {
       }
 
       switch (field) {
-      case E_P:
-        return isSetEP();
-      case E_B:
-        return isSetEB();
+      case E_W:
+        return isSetEW();
+      case E_DNE:
+        return isSetEDNE();
+      case I_W:
+        return isSetIW();
+      case E_AE:
+        return isSetEAE();
+      case E_T:
+        return isSetET();
       }
       throw new IllegalStateException();
     }
@@ -5193,21 +5517,48 @@ public class WorkerService {
       if (that == null)
         return false;
 
-      boolean this_present_eP = true && this.isSetEP();
-      boolean that_present_eP = true && that.isSetEP();
-      if (this_present_eP || that_present_eP) {
-        if (!(this_present_eP && that_present_eP))
+      boolean this_present_eW = true && this.isSetEW();
+      boolean that_present_eW = true && that.isSetEW();
+      if (this_present_eW || that_present_eW) {
+        if (!(this_present_eW && that_present_eW))
           return false;
-        if (!this.eP.equals(that.eP))
+        if (!this.eW.equals(that.eW))
           return false;
       }
 
-      boolean this_present_eB = true && this.isSetEB();
-      boolean that_present_eB = true && that.isSetEB();
-      if (this_present_eB || that_present_eB) {
-        if (!(this_present_eB && that_present_eB))
+      boolean this_present_eDNE = true && this.isSetEDNE();
+      boolean that_present_eDNE = true && that.isSetEDNE();
+      if (this_present_eDNE || that_present_eDNE) {
+        if (!(this_present_eDNE && that_present_eDNE))
           return false;
-        if (!this.eB.equals(that.eB))
+        if (!this.eDNE.equals(that.eDNE))
+          return false;
+      }
+
+      boolean this_present_iW = true && this.isSetIW();
+      boolean that_present_iW = true && that.isSetIW();
+      if (this_present_iW || that_present_iW) {
+        if (!(this_present_iW && that_present_iW))
+          return false;
+        if (!this.iW.equals(that.iW))
+          return false;
+      }
+
+      boolean this_present_eAE = true && this.isSetEAE();
+      boolean that_present_eAE = true && that.isSetEAE();
+      if (this_present_eAE || that_present_eAE) {
+        if (!(this_present_eAE && that_present_eAE))
+          return false;
+        if (!this.eAE.equals(that.eAE))
+          return false;
+      }
+
+      boolean this_present_eT = true && this.isSetET();
+      boolean that_present_eT = true && that.isSetET();
+      if (this_present_eT || that_present_eT) {
+        if (!(this_present_eT && that_present_eT))
+          return false;
+        if (!this.eT.equals(that.eT))
           return false;
       }
 
@@ -5218,15 +5569,30 @@ public class WorkerService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_eP = true && (isSetEP());
-      list.add(present_eP);
-      if (present_eP)
-        list.add(eP);
+      boolean present_eW = true && (isSetEW());
+      list.add(present_eW);
+      if (present_eW)
+        list.add(eW);
 
-      boolean present_eB = true && (isSetEB());
-      list.add(present_eB);
-      if (present_eB)
-        list.add(eB);
+      boolean present_eDNE = true && (isSetEDNE());
+      list.add(present_eDNE);
+      if (present_eDNE)
+        list.add(eDNE);
+
+      boolean present_iW = true && (isSetIW());
+      list.add(present_iW);
+      if (present_iW)
+        list.add(iW);
+
+      boolean present_eAE = true && (isSetEAE());
+      list.add(present_eAE);
+      if (present_eAE)
+        list.add(eAE);
+
+      boolean present_eT = true && (isSetET());
+      list.add(present_eT);
+      if (present_eT)
+        list.add(eT);
 
       return list.hashCode();
     }
@@ -5239,22 +5605,52 @@ public class WorkerService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetEP()).compareTo(other.isSetEP());
+      lastComparison = Boolean.valueOf(isSetEW()).compareTo(other.isSetEW());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetEP()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
+      if (isSetEW()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eW, other.eW);
         if (lastComparison != 0) {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetEB()).compareTo(other.isSetEB());
+      lastComparison = Boolean.valueOf(isSetEDNE()).compareTo(other.isSetEDNE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetEB()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eB, other.eB);
+      if (isSetEDNE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eDNE, other.eDNE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIW()).compareTo(other.isSetIW());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIW()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.iW, other.iW);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEAE()).compareTo(other.isSetEAE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAE, other.eAE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetET()).compareTo(other.isSetET());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetET()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eT, other.eT);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -5279,19 +5675,43 @@ public class WorkerService {
       StringBuilder sb = new StringBuilder("cacheBlock_result(");
       boolean first = true;
 
-      sb.append("eP:");
-      if (this.eP == null) {
+      sb.append("eW:");
+      if (this.eW == null) {
         sb.append("null");
       } else {
-        sb.append(this.eP);
+        sb.append(this.eW);
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("eB:");
-      if (this.eB == null) {
+      sb.append("eDNE:");
+      if (this.eDNE == null) {
         sb.append("null");
       } else {
-        sb.append(this.eB);
+        sb.append(this.eDNE);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("iW:");
+      if (this.iW == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.iW);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAE:");
+      if (this.eAE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAE);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eT:");
+      if (this.eT == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eT);
       }
       first = false;
       sb.append(")");
@@ -5337,20 +5757,47 @@ public class WorkerService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // E_P
+            case 1: // E_W
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eP = new FileDoesNotExistException();
-                struct.eP.read(iprot);
-                struct.setEPIsSet(true);
+                struct.eW = new WorkerOutOfSpaceException();
+                struct.eW.read(iprot);
+                struct.setEWIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // E_B
+            case 2: // E_DNE
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eB = new BlockInfoException();
-                struct.eB.read(iprot);
-                struct.setEBIsSet(true);
+                struct.eDNE = new BlockDoesNotExistException();
+                struct.eDNE.read(iprot);
+                struct.setEDNEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // I_W
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.iW = new InvalidWorkerStateException();
+                struct.iW.read(iprot);
+                struct.setIWIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // E_AE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAE = new BlockAlreadyExistsException();
+                struct.eAE.read(iprot);
+                struct.setEAEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 5: // E_T
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eT = new ThriftIOException();
+                struct.eT.read(iprot);
+                struct.setETIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -5370,14 +5817,29 @@ public class WorkerService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.eP != null) {
-          oprot.writeFieldBegin(E_P_FIELD_DESC);
-          struct.eP.write(oprot);
+        if (struct.eW != null) {
+          oprot.writeFieldBegin(E_W_FIELD_DESC);
+          struct.eW.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.eB != null) {
-          oprot.writeFieldBegin(E_B_FIELD_DESC);
-          struct.eB.write(oprot);
+        if (struct.eDNE != null) {
+          oprot.writeFieldBegin(E_DNE_FIELD_DESC);
+          struct.eDNE.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.iW != null) {
+          oprot.writeFieldBegin(I_W_FIELD_DESC);
+          struct.iW.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eAE != null) {
+          oprot.writeFieldBegin(E_AE_FIELD_DESC);
+          struct.eAE.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eT != null) {
+          oprot.writeFieldBegin(E_T_FIELD_DESC);
+          struct.eT.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -5398,34 +5860,67 @@ public class WorkerService {
       public void write(org.apache.thrift.protocol.TProtocol prot, cacheBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetEP()) {
+        if (struct.isSetEW()) {
           optionals.set(0);
         }
-        if (struct.isSetEB()) {
+        if (struct.isSetEDNE()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetEP()) {
-          struct.eP.write(oprot);
+        if (struct.isSetIW()) {
+          optionals.set(2);
         }
-        if (struct.isSetEB()) {
-          struct.eB.write(oprot);
+        if (struct.isSetEAE()) {
+          optionals.set(3);
+        }
+        if (struct.isSetET()) {
+          optionals.set(4);
+        }
+        oprot.writeBitSet(optionals, 5);
+        if (struct.isSetEW()) {
+          struct.eW.write(oprot);
+        }
+        if (struct.isSetEDNE()) {
+          struct.eDNE.write(oprot);
+        }
+        if (struct.isSetIW()) {
+          struct.iW.write(oprot);
+        }
+        if (struct.isSetEAE()) {
+          struct.eAE.write(oprot);
+        }
+        if (struct.isSetET()) {
+          struct.eT.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, cacheBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
-          struct.eP = new FileDoesNotExistException();
-          struct.eP.read(iprot);
-          struct.setEPIsSet(true);
+          struct.eW = new WorkerOutOfSpaceException();
+          struct.eW.read(iprot);
+          struct.setEWIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.eB = new BlockInfoException();
-          struct.eB.read(iprot);
-          struct.setEBIsSet(true);
+          struct.eDNE = new BlockDoesNotExistException();
+          struct.eDNE.read(iprot);
+          struct.setEDNEIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.iW = new InvalidWorkerStateException();
+          struct.iW.read(iprot);
+          struct.setIWIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.eAE = new BlockAlreadyExistsException();
+          struct.eAE.read(iprot);
+          struct.setEAEIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.eT = new ThriftIOException();
+          struct.eT.read(iprot);
+          struct.setETIsSet(true);
         }
       }
     }
@@ -5893,6 +6388,10 @@ public class WorkerService {
   public static class cancelBlock_result implements org.apache.thrift.TBase<cancelBlock_result, cancelBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<cancelBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cancelBlock_result");
 
+    private static final org.apache.thrift.protocol.TField E_W_FIELD_DESC = new org.apache.thrift.protocol.TField("eW", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_AE_FIELD_DESC = new org.apache.thrift.protocol.TField("eAE", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_DNE_FIELD_DESC = new org.apache.thrift.protocol.TField("eDNE", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -5900,10 +6399,17 @@ public class WorkerService {
       schemes.put(TupleScheme.class, new cancelBlock_resultTupleSchemeFactory());
     }
 
+    public InvalidWorkerStateException eW; // required
+    public BlockAlreadyExistsException eAE; // required
+    public BlockDoesNotExistException eDNE; // required
+    public ThriftIOException eT; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      E_W((short)1, "eW"),
+      E_AE((short)2, "eAE"),
+      E_DNE((short)3, "eDNE"),
+      E_T((short)4, "eT");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -5918,6 +6424,14 @@ public class WorkerService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // E_W
+            return E_W;
+          case 2: // E_AE
+            return E_AE;
+          case 3: // E_DNE
+            return E_DNE;
+          case 4: // E_T
+            return E_T;
           default:
             return null;
         }
@@ -5956,9 +6470,19 @@ public class WorkerService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.E_W, new org.apache.thrift.meta_data.FieldMetaData("eW", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AE, new org.apache.thrift.meta_data.FieldMetaData("eAE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_DNE, new org.apache.thrift.meta_data.FieldMetaData("eDNE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelBlock_result.class, metaDataMap);
     }
@@ -5966,10 +6490,35 @@ public class WorkerService {
     public cancelBlock_result() {
     }
 
+    public cancelBlock_result(
+      InvalidWorkerStateException eW,
+      BlockAlreadyExistsException eAE,
+      BlockDoesNotExistException eDNE,
+      ThriftIOException eT)
+    {
+      this();
+      this.eW = eW;
+      this.eAE = eAE;
+      this.eDNE = eDNE;
+      this.eT = eT;
+    }
+
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public cancelBlock_result(cancelBlock_result other) {
+      if (other.isSetEW()) {
+        this.eW = new InvalidWorkerStateException(other.eW);
+      }
+      if (other.isSetEAE()) {
+        this.eAE = new BlockAlreadyExistsException(other.eAE);
+      }
+      if (other.isSetEDNE()) {
+        this.eDNE = new BlockDoesNotExistException(other.eDNE);
+      }
+      if (other.isSetET()) {
+        this.eT = new ThriftIOException(other.eT);
+      }
     }
 
     public cancelBlock_result deepCopy() {
@@ -5978,15 +6527,159 @@ public class WorkerService {
 
     @Override
     public void clear() {
+      this.eW = null;
+      this.eAE = null;
+      this.eDNE = null;
+      this.eT = null;
+    }
+
+    public InvalidWorkerStateException getEW() {
+      return this.eW;
+    }
+
+    public cancelBlock_result setEW(InvalidWorkerStateException eW) {
+      this.eW = eW;
+      return this;
+    }
+
+    public void unsetEW() {
+      this.eW = null;
+    }
+
+    /** Returns true if field eW is set (has been assigned a value) and false otherwise */
+    public boolean isSetEW() {
+      return this.eW != null;
+    }
+
+    public void setEWIsSet(boolean value) {
+      if (!value) {
+        this.eW = null;
+      }
+    }
+
+    public BlockAlreadyExistsException getEAE() {
+      return this.eAE;
+    }
+
+    public cancelBlock_result setEAE(BlockAlreadyExistsException eAE) {
+      this.eAE = eAE;
+      return this;
+    }
+
+    public void unsetEAE() {
+      this.eAE = null;
+    }
+
+    /** Returns true if field eAE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAE() {
+      return this.eAE != null;
+    }
+
+    public void setEAEIsSet(boolean value) {
+      if (!value) {
+        this.eAE = null;
+      }
+    }
+
+    public BlockDoesNotExistException getEDNE() {
+      return this.eDNE;
+    }
+
+    public cancelBlock_result setEDNE(BlockDoesNotExistException eDNE) {
+      this.eDNE = eDNE;
+      return this;
+    }
+
+    public void unsetEDNE() {
+      this.eDNE = null;
+    }
+
+    /** Returns true if field eDNE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEDNE() {
+      return this.eDNE != null;
+    }
+
+    public void setEDNEIsSet(boolean value) {
+      if (!value) {
+        this.eDNE = null;
+      }
+    }
+
+    public ThriftIOException getET() {
+      return this.eT;
+    }
+
+    public cancelBlock_result setET(ThriftIOException eT) {
+      this.eT = eT;
+      return this;
+    }
+
+    public void unsetET() {
+      this.eT = null;
+    }
+
+    /** Returns true if field eT is set (has been assigned a value) and false otherwise */
+    public boolean isSetET() {
+      return this.eT != null;
+    }
+
+    public void setETIsSet(boolean value) {
+      if (!value) {
+        this.eT = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case E_W:
+        if (value == null) {
+          unsetEW();
+        } else {
+          setEW((InvalidWorkerStateException)value);
+        }
+        break;
+
+      case E_AE:
+        if (value == null) {
+          unsetEAE();
+        } else {
+          setEAE((BlockAlreadyExistsException)value);
+        }
+        break;
+
+      case E_DNE:
+        if (value == null) {
+          unsetEDNE();
+        } else {
+          setEDNE((BlockDoesNotExistException)value);
+        }
+        break;
+
+      case E_T:
+        if (value == null) {
+          unsetET();
+        } else {
+          setET((ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case E_W:
+        return getEW();
+
+      case E_AE:
+        return getEAE();
+
+      case E_DNE:
+        return getEDNE();
+
+      case E_T:
+        return getET();
+
       }
       throw new IllegalStateException();
     }
@@ -5998,6 +6691,14 @@ public class WorkerService {
       }
 
       switch (field) {
+      case E_W:
+        return isSetEW();
+      case E_AE:
+        return isSetEAE();
+      case E_DNE:
+        return isSetEDNE();
+      case E_T:
+        return isSetET();
       }
       throw new IllegalStateException();
     }
@@ -6015,12 +6716,68 @@ public class WorkerService {
       if (that == null)
         return false;
 
+      boolean this_present_eW = true && this.isSetEW();
+      boolean that_present_eW = true && that.isSetEW();
+      if (this_present_eW || that_present_eW) {
+        if (!(this_present_eW && that_present_eW))
+          return false;
+        if (!this.eW.equals(that.eW))
+          return false;
+      }
+
+      boolean this_present_eAE = true && this.isSetEAE();
+      boolean that_present_eAE = true && that.isSetEAE();
+      if (this_present_eAE || that_present_eAE) {
+        if (!(this_present_eAE && that_present_eAE))
+          return false;
+        if (!this.eAE.equals(that.eAE))
+          return false;
+      }
+
+      boolean this_present_eDNE = true && this.isSetEDNE();
+      boolean that_present_eDNE = true && that.isSetEDNE();
+      if (this_present_eDNE || that_present_eDNE) {
+        if (!(this_present_eDNE && that_present_eDNE))
+          return false;
+        if (!this.eDNE.equals(that.eDNE))
+          return false;
+      }
+
+      boolean this_present_eT = true && this.isSetET();
+      boolean that_present_eT = true && that.isSetET();
+      if (this_present_eT || that_present_eT) {
+        if (!(this_present_eT && that_present_eT))
+          return false;
+        if (!this.eT.equals(that.eT))
+          return false;
+      }
+
       return true;
     }
 
     @Override
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
+
+      boolean present_eW = true && (isSetEW());
+      list.add(present_eW);
+      if (present_eW)
+        list.add(eW);
+
+      boolean present_eAE = true && (isSetEAE());
+      list.add(present_eAE);
+      if (present_eAE)
+        list.add(eAE);
+
+      boolean present_eDNE = true && (isSetEDNE());
+      list.add(present_eDNE);
+      if (present_eDNE)
+        list.add(eDNE);
+
+      boolean present_eT = true && (isSetET());
+      list.add(present_eT);
+      if (present_eT)
+        list.add(eT);
 
       return list.hashCode();
     }
@@ -6033,6 +6790,46 @@ public class WorkerService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetEW()).compareTo(other.isSetEW());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEW()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eW, other.eW);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEAE()).compareTo(other.isSetEAE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAE, other.eAE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEDNE()).compareTo(other.isSetEDNE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEDNE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eDNE, other.eDNE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetET()).compareTo(other.isSetET());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetET()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eT, other.eT);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -6053,6 +6850,37 @@ public class WorkerService {
       StringBuilder sb = new StringBuilder("cancelBlock_result(");
       boolean first = true;
 
+      sb.append("eW:");
+      if (this.eW == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eW);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAE:");
+      if (this.eAE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAE);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eDNE:");
+      if (this.eDNE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eDNE);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eT:");
+      if (this.eT == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eT);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -6096,6 +6924,42 @@ public class WorkerService {
             break;
           }
           switch (schemeField.id) {
+            case 1: // E_W
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eW = new InvalidWorkerStateException();
+                struct.eW.read(iprot);
+                struct.setEWIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_AE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAE = new BlockAlreadyExistsException();
+                struct.eAE.read(iprot);
+                struct.setEAEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // E_DNE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eDNE = new BlockDoesNotExistException();
+                struct.eDNE.read(iprot);
+                struct.setEDNEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // E_T
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eT = new ThriftIOException();
+                struct.eT.read(iprot);
+                struct.setETIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -6111,6 +6975,26 @@ public class WorkerService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.eW != null) {
+          oprot.writeFieldBegin(E_W_FIELD_DESC);
+          struct.eW.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eAE != null) {
+          oprot.writeFieldBegin(E_AE_FIELD_DESC);
+          struct.eAE.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eDNE != null) {
+          oprot.writeFieldBegin(E_DNE_FIELD_DESC);
+          struct.eDNE.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eT != null) {
+          oprot.writeFieldBegin(E_T_FIELD_DESC);
+          struct.eT.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -6128,11 +7012,58 @@ public class WorkerService {
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, cancelBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetEW()) {
+          optionals.set(0);
+        }
+        if (struct.isSetEAE()) {
+          optionals.set(1);
+        }
+        if (struct.isSetEDNE()) {
+          optionals.set(2);
+        }
+        if (struct.isSetET()) {
+          optionals.set(3);
+        }
+        oprot.writeBitSet(optionals, 4);
+        if (struct.isSetEW()) {
+          struct.eW.write(oprot);
+        }
+        if (struct.isSetEAE()) {
+          struct.eAE.write(oprot);
+        }
+        if (struct.isSetEDNE()) {
+          struct.eDNE.write(oprot);
+        }
+        if (struct.isSetET()) {
+          struct.eT.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, cancelBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(4);
+        if (incoming.get(0)) {
+          struct.eW = new InvalidWorkerStateException();
+          struct.eW.read(iprot);
+          struct.setEWIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eAE = new BlockAlreadyExistsException();
+          struct.eAE.read(iprot);
+          struct.setEAEIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eDNE = new BlockDoesNotExistException();
+          struct.eDNE.read(iprot);
+          struct.setEDNEIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.eT = new ThriftIOException();
+          struct.eT.read(iprot);
+          struct.setETIsSet(true);
+        }
       }
     }
 
@@ -7321,6 +8252,7 @@ public class WorkerService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
     private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_W_FIELD_DESC = new org.apache.thrift.protocol.TField("eW", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -7330,11 +8262,13 @@ public class WorkerService {
 
     public String success; // required
     public FileDoesNotExistException eP; // required
+    public InvalidWorkerStateException eW; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E_P((short)1, "eP");
+      E_P((short)1, "eP"),
+      E_W((short)2, "eW");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -7353,6 +8287,8 @@ public class WorkerService {
             return SUCCESS;
           case 1: // E_P
             return E_P;
+          case 2: // E_W
+            return E_W;
           default:
             return null;
         }
@@ -7400,6 +8336,8 @@ public class WorkerService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_W, new org.apache.thrift.meta_data.FieldMetaData("eW", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(lockBlock_result.class, metaDataMap);
     }
@@ -7409,11 +8347,13 @@ public class WorkerService {
 
     public lockBlock_result(
       String success,
-      FileDoesNotExistException eP)
+      FileDoesNotExistException eP,
+      InvalidWorkerStateException eW)
     {
       this();
       this.success = success;
       this.eP = eP;
+      this.eW = eW;
     }
 
     /**
@@ -7426,6 +8366,9 @@ public class WorkerService {
       if (other.isSetEP()) {
         this.eP = new FileDoesNotExistException(other.eP);
       }
+      if (other.isSetEW()) {
+        this.eW = new InvalidWorkerStateException(other.eW);
+      }
     }
 
     public lockBlock_result deepCopy() {
@@ -7436,6 +8379,7 @@ public class WorkerService {
     public void clear() {
       this.success = null;
       this.eP = null;
+      this.eW = null;
     }
 
     public String getSuccess() {
@@ -7486,6 +8430,30 @@ public class WorkerService {
       }
     }
 
+    public InvalidWorkerStateException getEW() {
+      return this.eW;
+    }
+
+    public lockBlock_result setEW(InvalidWorkerStateException eW) {
+      this.eW = eW;
+      return this;
+    }
+
+    public void unsetEW() {
+      this.eW = null;
+    }
+
+    /** Returns true if field eW is set (has been assigned a value) and false otherwise */
+    public boolean isSetEW() {
+      return this.eW != null;
+    }
+
+    public void setEWIsSet(boolean value) {
+      if (!value) {
+        this.eW = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -7504,6 +8472,14 @@ public class WorkerService {
         }
         break;
 
+      case E_W:
+        if (value == null) {
+          unsetEW();
+        } else {
+          setEW((InvalidWorkerStateException)value);
+        }
+        break;
+
       }
     }
 
@@ -7514,6 +8490,9 @@ public class WorkerService {
 
       case E_P:
         return getEP();
+
+      case E_W:
+        return getEW();
 
       }
       throw new IllegalStateException();
@@ -7530,6 +8509,8 @@ public class WorkerService {
         return isSetSuccess();
       case E_P:
         return isSetEP();
+      case E_W:
+        return isSetEW();
       }
       throw new IllegalStateException();
     }
@@ -7565,6 +8546,15 @@ public class WorkerService {
           return false;
       }
 
+      boolean this_present_eW = true && this.isSetEW();
+      boolean that_present_eW = true && that.isSetEW();
+      if (this_present_eW || that_present_eW) {
+        if (!(this_present_eW && that_present_eW))
+          return false;
+        if (!this.eW.equals(that.eW))
+          return false;
+      }
+
       return true;
     }
 
@@ -7581,6 +8571,11 @@ public class WorkerService {
       list.add(present_eP);
       if (present_eP)
         list.add(eP);
+
+      boolean present_eW = true && (isSetEW());
+      list.add(present_eW);
+      if (present_eW)
+        list.add(eW);
 
       return list.hashCode();
     }
@@ -7609,6 +8604,16 @@ public class WorkerService {
       }
       if (isSetEP()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEW()).compareTo(other.isSetEW());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEW()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eW, other.eW);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -7646,6 +8651,14 @@ public class WorkerService {
         sb.append("null");
       } else {
         sb.append(this.eP);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eW:");
+      if (this.eW == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eW);
       }
       first = false;
       sb.append(")");
@@ -7708,6 +8721,15 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // E_W
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eW = new InvalidWorkerStateException();
+                struct.eW.read(iprot);
+                struct.setEWIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -7731,6 +8753,11 @@ public class WorkerService {
         if (struct.eP != null) {
           oprot.writeFieldBegin(E_P_FIELD_DESC);
           struct.eP.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eW != null) {
+          oprot.writeFieldBegin(E_W_FIELD_DESC);
+          struct.eW.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -7757,19 +8784,25 @@ public class WorkerService {
         if (struct.isSetEP()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetEW()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           oprot.writeString(struct.success);
         }
         if (struct.isSetEP()) {
           struct.eP.write(oprot);
         }
+        if (struct.isSetEW()) {
+          struct.eW.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, lockBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = iprot.readString();
           struct.setSuccessIsSet(true);
@@ -7778,6 +8811,11 @@ public class WorkerService {
           struct.eP = new FileDoesNotExistException();
           struct.eP.read(iprot);
           struct.setEPIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eW = new InvalidWorkerStateException();
+          struct.eW.read(iprot);
+          struct.setEWIsSet(true);
         }
       }
     }
@@ -8147,6 +9185,11 @@ public class WorkerService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("promoteBlock_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField E_WSPACE_FIELD_DESC = new org.apache.thrift.protocol.TField("eWSpace", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_DNE_FIELD_DESC = new org.apache.thrift.protocol.TField("eDNE", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_WSTATE_FIELD_DESC = new org.apache.thrift.protocol.TField("eWState", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_AE_FIELD_DESC = new org.apache.thrift.protocol.TField("eAE", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+    private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -8155,10 +9198,20 @@ public class WorkerService {
     }
 
     public boolean success; // required
+    public WorkerOutOfSpaceException eWSpace; // required
+    public BlockDoesNotExistException eDNE; // required
+    public InvalidWorkerStateException eWState; // required
+    public BlockAlreadyExistsException eAE; // required
+    public ThriftIOException eT; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      E_WSPACE((short)1, "eWSpace"),
+      E_DNE((short)2, "eDNE"),
+      E_WSTATE((short)3, "eWState"),
+      E_AE((short)4, "eAE"),
+      E_T((short)5, "eT");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8175,6 +9228,16 @@ public class WorkerService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // E_WSPACE
+            return E_WSPACE;
+          case 2: // E_DNE
+            return E_DNE;
+          case 3: // E_WSTATE
+            return E_WSTATE;
+          case 4: // E_AE
+            return E_AE;
+          case 5: // E_T
+            return E_T;
           default:
             return null;
         }
@@ -8222,6 +9285,16 @@ public class WorkerService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.E_WSPACE, new org.apache.thrift.meta_data.FieldMetaData("eWSpace", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_DNE, new org.apache.thrift.meta_data.FieldMetaData("eDNE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_WSTATE, new org.apache.thrift.meta_data.FieldMetaData("eWState", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AE, new org.apache.thrift.meta_data.FieldMetaData("eAE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(promoteBlock_result.class, metaDataMap);
     }
@@ -8230,11 +9303,21 @@ public class WorkerService {
     }
 
     public promoteBlock_result(
-      boolean success)
+      boolean success,
+      WorkerOutOfSpaceException eWSpace,
+      BlockDoesNotExistException eDNE,
+      InvalidWorkerStateException eWState,
+      BlockAlreadyExistsException eAE,
+      ThriftIOException eT)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
+      this.eWSpace = eWSpace;
+      this.eDNE = eDNE;
+      this.eWState = eWState;
+      this.eAE = eAE;
+      this.eT = eT;
     }
 
     /**
@@ -8243,6 +9326,21 @@ public class WorkerService {
     public promoteBlock_result(promoteBlock_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      if (other.isSetEWSpace()) {
+        this.eWSpace = new WorkerOutOfSpaceException(other.eWSpace);
+      }
+      if (other.isSetEDNE()) {
+        this.eDNE = new BlockDoesNotExistException(other.eDNE);
+      }
+      if (other.isSetEWState()) {
+        this.eWState = new InvalidWorkerStateException(other.eWState);
+      }
+      if (other.isSetEAE()) {
+        this.eAE = new BlockAlreadyExistsException(other.eAE);
+      }
+      if (other.isSetET()) {
+        this.eT = new ThriftIOException(other.eT);
+      }
     }
 
     public promoteBlock_result deepCopy() {
@@ -8253,6 +9351,11 @@ public class WorkerService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
+      this.eWSpace = null;
+      this.eDNE = null;
+      this.eWState = null;
+      this.eAE = null;
+      this.eT = null;
     }
 
     public boolean isSuccess() {
@@ -8278,6 +9381,126 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
+    public WorkerOutOfSpaceException getEWSpace() {
+      return this.eWSpace;
+    }
+
+    public promoteBlock_result setEWSpace(WorkerOutOfSpaceException eWSpace) {
+      this.eWSpace = eWSpace;
+      return this;
+    }
+
+    public void unsetEWSpace() {
+      this.eWSpace = null;
+    }
+
+    /** Returns true if field eWSpace is set (has been assigned a value) and false otherwise */
+    public boolean isSetEWSpace() {
+      return this.eWSpace != null;
+    }
+
+    public void setEWSpaceIsSet(boolean value) {
+      if (!value) {
+        this.eWSpace = null;
+      }
+    }
+
+    public BlockDoesNotExistException getEDNE() {
+      return this.eDNE;
+    }
+
+    public promoteBlock_result setEDNE(BlockDoesNotExistException eDNE) {
+      this.eDNE = eDNE;
+      return this;
+    }
+
+    public void unsetEDNE() {
+      this.eDNE = null;
+    }
+
+    /** Returns true if field eDNE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEDNE() {
+      return this.eDNE != null;
+    }
+
+    public void setEDNEIsSet(boolean value) {
+      if (!value) {
+        this.eDNE = null;
+      }
+    }
+
+    public InvalidWorkerStateException getEWState() {
+      return this.eWState;
+    }
+
+    public promoteBlock_result setEWState(InvalidWorkerStateException eWState) {
+      this.eWState = eWState;
+      return this;
+    }
+
+    public void unsetEWState() {
+      this.eWState = null;
+    }
+
+    /** Returns true if field eWState is set (has been assigned a value) and false otherwise */
+    public boolean isSetEWState() {
+      return this.eWState != null;
+    }
+
+    public void setEWStateIsSet(boolean value) {
+      if (!value) {
+        this.eWState = null;
+      }
+    }
+
+    public BlockAlreadyExistsException getEAE() {
+      return this.eAE;
+    }
+
+    public promoteBlock_result setEAE(BlockAlreadyExistsException eAE) {
+      this.eAE = eAE;
+      return this;
+    }
+
+    public void unsetEAE() {
+      this.eAE = null;
+    }
+
+    /** Returns true if field eAE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAE() {
+      return this.eAE != null;
+    }
+
+    public void setEAEIsSet(boolean value) {
+      if (!value) {
+        this.eAE = null;
+      }
+    }
+
+    public ThriftIOException getET() {
+      return this.eT;
+    }
+
+    public promoteBlock_result setET(ThriftIOException eT) {
+      this.eT = eT;
+      return this;
+    }
+
+    public void unsetET() {
+      this.eT = null;
+    }
+
+    /** Returns true if field eT is set (has been assigned a value) and false otherwise */
+    public boolean isSetET() {
+      return this.eT != null;
+    }
+
+    public void setETIsSet(boolean value) {
+      if (!value) {
+        this.eT = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -8288,6 +9511,46 @@ public class WorkerService {
         }
         break;
 
+      case E_WSPACE:
+        if (value == null) {
+          unsetEWSpace();
+        } else {
+          setEWSpace((WorkerOutOfSpaceException)value);
+        }
+        break;
+
+      case E_DNE:
+        if (value == null) {
+          unsetEDNE();
+        } else {
+          setEDNE((BlockDoesNotExistException)value);
+        }
+        break;
+
+      case E_WSTATE:
+        if (value == null) {
+          unsetEWState();
+        } else {
+          setEWState((InvalidWorkerStateException)value);
+        }
+        break;
+
+      case E_AE:
+        if (value == null) {
+          unsetEAE();
+        } else {
+          setEAE((BlockAlreadyExistsException)value);
+        }
+        break;
+
+      case E_T:
+        if (value == null) {
+          unsetET();
+        } else {
+          setET((ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
@@ -8295,6 +9558,21 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
+
+      case E_WSPACE:
+        return getEWSpace();
+
+      case E_DNE:
+        return getEDNE();
+
+      case E_WSTATE:
+        return getEWState();
+
+      case E_AE:
+        return getEAE();
+
+      case E_T:
+        return getET();
 
       }
       throw new IllegalStateException();
@@ -8309,6 +9587,16 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case E_WSPACE:
+        return isSetEWSpace();
+      case E_DNE:
+        return isSetEDNE();
+      case E_WSTATE:
+        return isSetEWState();
+      case E_AE:
+        return isSetEAE();
+      case E_T:
+        return isSetET();
       }
       throw new IllegalStateException();
     }
@@ -8335,6 +9623,51 @@ public class WorkerService {
           return false;
       }
 
+      boolean this_present_eWSpace = true && this.isSetEWSpace();
+      boolean that_present_eWSpace = true && that.isSetEWSpace();
+      if (this_present_eWSpace || that_present_eWSpace) {
+        if (!(this_present_eWSpace && that_present_eWSpace))
+          return false;
+        if (!this.eWSpace.equals(that.eWSpace))
+          return false;
+      }
+
+      boolean this_present_eDNE = true && this.isSetEDNE();
+      boolean that_present_eDNE = true && that.isSetEDNE();
+      if (this_present_eDNE || that_present_eDNE) {
+        if (!(this_present_eDNE && that_present_eDNE))
+          return false;
+        if (!this.eDNE.equals(that.eDNE))
+          return false;
+      }
+
+      boolean this_present_eWState = true && this.isSetEWState();
+      boolean that_present_eWState = true && that.isSetEWState();
+      if (this_present_eWState || that_present_eWState) {
+        if (!(this_present_eWState && that_present_eWState))
+          return false;
+        if (!this.eWState.equals(that.eWState))
+          return false;
+      }
+
+      boolean this_present_eAE = true && this.isSetEAE();
+      boolean that_present_eAE = true && that.isSetEAE();
+      if (this_present_eAE || that_present_eAE) {
+        if (!(this_present_eAE && that_present_eAE))
+          return false;
+        if (!this.eAE.equals(that.eAE))
+          return false;
+      }
+
+      boolean this_present_eT = true && this.isSetET();
+      boolean that_present_eT = true && that.isSetET();
+      if (this_present_eT || that_present_eT) {
+        if (!(this_present_eT && that_present_eT))
+          return false;
+        if (!this.eT.equals(that.eT))
+          return false;
+      }
+
       return true;
     }
 
@@ -8346,6 +9679,31 @@ public class WorkerService {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_eWSpace = true && (isSetEWSpace());
+      list.add(present_eWSpace);
+      if (present_eWSpace)
+        list.add(eWSpace);
+
+      boolean present_eDNE = true && (isSetEDNE());
+      list.add(present_eDNE);
+      if (present_eDNE)
+        list.add(eDNE);
+
+      boolean present_eWState = true && (isSetEWState());
+      list.add(present_eWState);
+      if (present_eWState)
+        list.add(eWState);
+
+      boolean present_eAE = true && (isSetEAE());
+      list.add(present_eAE);
+      if (present_eAE)
+        list.add(eAE);
+
+      boolean present_eT = true && (isSetET());
+      list.add(present_eT);
+      if (present_eT)
+        list.add(eT);
 
       return list.hashCode();
     }
@@ -8364,6 +9722,56 @@ public class WorkerService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEWSpace()).compareTo(other.isSetEWSpace());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEWSpace()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eWSpace, other.eWSpace);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEDNE()).compareTo(other.isSetEDNE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEDNE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eDNE, other.eDNE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEWState()).compareTo(other.isSetEWState());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEWState()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eWState, other.eWState);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEAE()).compareTo(other.isSetEAE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAE, other.eAE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetET()).compareTo(other.isSetET());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetET()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eT, other.eT);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -8390,6 +9798,46 @@ public class WorkerService {
 
       sb.append("success:");
       sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eWSpace:");
+      if (this.eWSpace == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eWSpace);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eDNE:");
+      if (this.eDNE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eDNE);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eWState:");
+      if (this.eWState == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eWState);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAE:");
+      if (this.eAE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAE);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eT:");
+      if (this.eT == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eT);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -8444,6 +9892,51 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // E_WSPACE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eWSpace = new WorkerOutOfSpaceException();
+                struct.eWSpace.read(iprot);
+                struct.setEWSpaceIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_DNE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eDNE = new BlockDoesNotExistException();
+                struct.eDNE.read(iprot);
+                struct.setEDNEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // E_WSTATE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eWState = new InvalidWorkerStateException();
+                struct.eWState.read(iprot);
+                struct.setEWStateIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // E_AE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAE = new BlockAlreadyExistsException();
+                struct.eAE.read(iprot);
+                struct.setEAEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 5: // E_T
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eT = new ThriftIOException();
+                struct.eT.read(iprot);
+                struct.setETIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -8462,6 +9955,31 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeBool(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eWSpace != null) {
+          oprot.writeFieldBegin(E_WSPACE_FIELD_DESC);
+          struct.eWSpace.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eDNE != null) {
+          oprot.writeFieldBegin(E_DNE_FIELD_DESC);
+          struct.eDNE.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eWState != null) {
+          oprot.writeFieldBegin(E_WSTATE_FIELD_DESC);
+          struct.eWState.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eAE != null) {
+          oprot.writeFieldBegin(E_AE_FIELD_DESC);
+          struct.eAE.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eT != null) {
+          oprot.writeFieldBegin(E_T_FIELD_DESC);
+          struct.eT.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -8485,19 +10003,74 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetEWSpace()) {
+          optionals.set(1);
+        }
+        if (struct.isSetEDNE()) {
+          optionals.set(2);
+        }
+        if (struct.isSetEWState()) {
+          optionals.set(3);
+        }
+        if (struct.isSetEAE()) {
+          optionals.set(4);
+        }
+        if (struct.isSetET()) {
+          optionals.set(5);
+        }
+        oprot.writeBitSet(optionals, 6);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
+        }
+        if (struct.isSetEWSpace()) {
+          struct.eWSpace.write(oprot);
+        }
+        if (struct.isSetEDNE()) {
+          struct.eDNE.write(oprot);
+        }
+        if (struct.isSetEWState()) {
+          struct.eWState.write(oprot);
+        }
+        if (struct.isSetEAE()) {
+          struct.eAE.write(oprot);
+        }
+        if (struct.isSetET()) {
+          struct.eT.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, promoteBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(6);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eWSpace = new WorkerOutOfSpaceException();
+          struct.eWSpace.read(iprot);
+          struct.setEWSpaceIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eDNE = new BlockDoesNotExistException();
+          struct.eDNE.read(iprot);
+          struct.setEDNEIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.eWState = new InvalidWorkerStateException();
+          struct.eWState.read(iprot);
+          struct.setEWStateIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.eAE = new BlockAlreadyExistsException();
+          struct.eAE.read(iprot);
+          struct.setEAEIsSet(true);
+        }
+        if (incoming.get(5)) {
+          struct.eT = new ThriftIOException();
+          struct.eT.read(iprot);
+          struct.setETIsSet(true);
         }
       }
     }
@@ -9065,8 +10638,11 @@ public class WorkerService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestBlockLocation_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
-    private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_WSTATE_FIELD_DESC = new org.apache.thrift.protocol.TField("eWState", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_WSPACE_FIELD_DESC = new org.apache.thrift.protocol.TField("eWSpace", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_DNE_FIELD_DESC = new org.apache.thrift.protocol.TField("eDNE", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_AE_FIELD_DESC = new org.apache.thrift.protocol.TField("eAE", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+    private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -9075,14 +10651,20 @@ public class WorkerService {
     }
 
     public String success; // required
-    public OutOfSpaceException eP; // required
-    public FileAlreadyExistException eS; // required
+    public InvalidWorkerStateException eWState; // required
+    public WorkerOutOfSpaceException eWSpace; // required
+    public BlockDoesNotExistException eDNE; // required
+    public BlockAlreadyExistsException eAE; // required
+    public ThriftIOException eT; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E_P((short)1, "eP"),
-      E_S((short)2, "eS");
+      E_WSTATE((short)1, "eWState"),
+      E_WSPACE((short)2, "eWSpace"),
+      E_DNE((short)3, "eDNE"),
+      E_AE((short)4, "eAE"),
+      E_T((short)5, "eT");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -9099,10 +10681,16 @@ public class WorkerService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // E_P
-            return E_P;
-          case 2: // E_S
-            return E_S;
+          case 1: // E_WSTATE
+            return E_WSTATE;
+          case 2: // E_WSPACE
+            return E_WSPACE;
+          case 3: // E_DNE
+            return E_DNE;
+          case 4: // E_AE
+            return E_AE;
+          case 5: // E_T
+            return E_T;
           default:
             return null;
         }
@@ -9148,9 +10736,15 @@ public class WorkerService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E_WSTATE, new org.apache.thrift.meta_data.FieldMetaData("eWState", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E_WSPACE, new org.apache.thrift.meta_data.FieldMetaData("eWSpace", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_DNE, new org.apache.thrift.meta_data.FieldMetaData("eDNE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_AE, new org.apache.thrift.meta_data.FieldMetaData("eAE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestBlockLocation_result.class, metaDataMap);
@@ -9161,13 +10755,19 @@ public class WorkerService {
 
     public requestBlockLocation_result(
       String success,
-      OutOfSpaceException eP,
-      FileAlreadyExistException eS)
+      InvalidWorkerStateException eWState,
+      WorkerOutOfSpaceException eWSpace,
+      BlockDoesNotExistException eDNE,
+      BlockAlreadyExistsException eAE,
+      ThriftIOException eT)
     {
       this();
       this.success = success;
-      this.eP = eP;
-      this.eS = eS;
+      this.eWState = eWState;
+      this.eWSpace = eWSpace;
+      this.eDNE = eDNE;
+      this.eAE = eAE;
+      this.eT = eT;
     }
 
     /**
@@ -9177,11 +10777,20 @@ public class WorkerService {
       if (other.isSetSuccess()) {
         this.success = other.success;
       }
-      if (other.isSetEP()) {
-        this.eP = new OutOfSpaceException(other.eP);
+      if (other.isSetEWState()) {
+        this.eWState = new InvalidWorkerStateException(other.eWState);
       }
-      if (other.isSetES()) {
-        this.eS = new FileAlreadyExistException(other.eS);
+      if (other.isSetEWSpace()) {
+        this.eWSpace = new WorkerOutOfSpaceException(other.eWSpace);
+      }
+      if (other.isSetEDNE()) {
+        this.eDNE = new BlockDoesNotExistException(other.eDNE);
+      }
+      if (other.isSetEAE()) {
+        this.eAE = new BlockAlreadyExistsException(other.eAE);
+      }
+      if (other.isSetET()) {
+        this.eT = new ThriftIOException(other.eT);
       }
     }
 
@@ -9192,8 +10801,11 @@ public class WorkerService {
     @Override
     public void clear() {
       this.success = null;
-      this.eP = null;
-      this.eS = null;
+      this.eWState = null;
+      this.eWSpace = null;
+      this.eDNE = null;
+      this.eAE = null;
+      this.eT = null;
     }
 
     public String getSuccess() {
@@ -9220,51 +10832,123 @@ public class WorkerService {
       }
     }
 
-    public OutOfSpaceException getEP() {
-      return this.eP;
+    public InvalidWorkerStateException getEWState() {
+      return this.eWState;
     }
 
-    public requestBlockLocation_result setEP(OutOfSpaceException eP) {
-      this.eP = eP;
+    public requestBlockLocation_result setEWState(InvalidWorkerStateException eWState) {
+      this.eWState = eWState;
       return this;
     }
 
-    public void unsetEP() {
-      this.eP = null;
+    public void unsetEWState() {
+      this.eWState = null;
     }
 
-    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
-    public boolean isSetEP() {
-      return this.eP != null;
+    /** Returns true if field eWState is set (has been assigned a value) and false otherwise */
+    public boolean isSetEWState() {
+      return this.eWState != null;
     }
 
-    public void setEPIsSet(boolean value) {
+    public void setEWStateIsSet(boolean value) {
       if (!value) {
-        this.eP = null;
+        this.eWState = null;
       }
     }
 
-    public FileAlreadyExistException getES() {
-      return this.eS;
+    public WorkerOutOfSpaceException getEWSpace() {
+      return this.eWSpace;
     }
 
-    public requestBlockLocation_result setES(FileAlreadyExistException eS) {
-      this.eS = eS;
+    public requestBlockLocation_result setEWSpace(WorkerOutOfSpaceException eWSpace) {
+      this.eWSpace = eWSpace;
       return this;
     }
 
-    public void unsetES() {
-      this.eS = null;
+    public void unsetEWSpace() {
+      this.eWSpace = null;
     }
 
-    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
-    public boolean isSetES() {
-      return this.eS != null;
+    /** Returns true if field eWSpace is set (has been assigned a value) and false otherwise */
+    public boolean isSetEWSpace() {
+      return this.eWSpace != null;
     }
 
-    public void setESIsSet(boolean value) {
+    public void setEWSpaceIsSet(boolean value) {
       if (!value) {
-        this.eS = null;
+        this.eWSpace = null;
+      }
+    }
+
+    public BlockDoesNotExistException getEDNE() {
+      return this.eDNE;
+    }
+
+    public requestBlockLocation_result setEDNE(BlockDoesNotExistException eDNE) {
+      this.eDNE = eDNE;
+      return this;
+    }
+
+    public void unsetEDNE() {
+      this.eDNE = null;
+    }
+
+    /** Returns true if field eDNE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEDNE() {
+      return this.eDNE != null;
+    }
+
+    public void setEDNEIsSet(boolean value) {
+      if (!value) {
+        this.eDNE = null;
+      }
+    }
+
+    public BlockAlreadyExistsException getEAE() {
+      return this.eAE;
+    }
+
+    public requestBlockLocation_result setEAE(BlockAlreadyExistsException eAE) {
+      this.eAE = eAE;
+      return this;
+    }
+
+    public void unsetEAE() {
+      this.eAE = null;
+    }
+
+    /** Returns true if field eAE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEAE() {
+      return this.eAE != null;
+    }
+
+    public void setEAEIsSet(boolean value) {
+      if (!value) {
+        this.eAE = null;
+      }
+    }
+
+    public ThriftIOException getET() {
+      return this.eT;
+    }
+
+    public requestBlockLocation_result setET(ThriftIOException eT) {
+      this.eT = eT;
+      return this;
+    }
+
+    public void unsetET() {
+      this.eT = null;
+    }
+
+    /** Returns true if field eT is set (has been assigned a value) and false otherwise */
+    public boolean isSetET() {
+      return this.eT != null;
+    }
+
+    public void setETIsSet(boolean value) {
+      if (!value) {
+        this.eT = null;
       }
     }
 
@@ -9278,19 +10962,43 @@ public class WorkerService {
         }
         break;
 
-      case E_P:
+      case E_WSTATE:
         if (value == null) {
-          unsetEP();
+          unsetEWState();
         } else {
-          setEP((OutOfSpaceException)value);
+          setEWState((InvalidWorkerStateException)value);
         }
         break;
 
-      case E_S:
+      case E_WSPACE:
         if (value == null) {
-          unsetES();
+          unsetEWSpace();
         } else {
-          setES((FileAlreadyExistException)value);
+          setEWSpace((WorkerOutOfSpaceException)value);
+        }
+        break;
+
+      case E_DNE:
+        if (value == null) {
+          unsetEDNE();
+        } else {
+          setEDNE((BlockDoesNotExistException)value);
+        }
+        break;
+
+      case E_AE:
+        if (value == null) {
+          unsetEAE();
+        } else {
+          setEAE((BlockAlreadyExistsException)value);
+        }
+        break;
+
+      case E_T:
+        if (value == null) {
+          unsetET();
+        } else {
+          setET((ThriftIOException)value);
         }
         break;
 
@@ -9302,11 +11010,20 @@ public class WorkerService {
       case SUCCESS:
         return getSuccess();
 
-      case E_P:
-        return getEP();
+      case E_WSTATE:
+        return getEWState();
 
-      case E_S:
-        return getES();
+      case E_WSPACE:
+        return getEWSpace();
+
+      case E_DNE:
+        return getEDNE();
+
+      case E_AE:
+        return getEAE();
+
+      case E_T:
+        return getET();
 
       }
       throw new IllegalStateException();
@@ -9321,10 +11038,16 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case E_P:
-        return isSetEP();
-      case E_S:
-        return isSetES();
+      case E_WSTATE:
+        return isSetEWState();
+      case E_WSPACE:
+        return isSetEWSpace();
+      case E_DNE:
+        return isSetEDNE();
+      case E_AE:
+        return isSetEAE();
+      case E_T:
+        return isSetET();
       }
       throw new IllegalStateException();
     }
@@ -9351,21 +11074,48 @@ public class WorkerService {
           return false;
       }
 
-      boolean this_present_eP = true && this.isSetEP();
-      boolean that_present_eP = true && that.isSetEP();
-      if (this_present_eP || that_present_eP) {
-        if (!(this_present_eP && that_present_eP))
+      boolean this_present_eWState = true && this.isSetEWState();
+      boolean that_present_eWState = true && that.isSetEWState();
+      if (this_present_eWState || that_present_eWState) {
+        if (!(this_present_eWState && that_present_eWState))
           return false;
-        if (!this.eP.equals(that.eP))
+        if (!this.eWState.equals(that.eWState))
           return false;
       }
 
-      boolean this_present_eS = true && this.isSetES();
-      boolean that_present_eS = true && that.isSetES();
-      if (this_present_eS || that_present_eS) {
-        if (!(this_present_eS && that_present_eS))
+      boolean this_present_eWSpace = true && this.isSetEWSpace();
+      boolean that_present_eWSpace = true && that.isSetEWSpace();
+      if (this_present_eWSpace || that_present_eWSpace) {
+        if (!(this_present_eWSpace && that_present_eWSpace))
           return false;
-        if (!this.eS.equals(that.eS))
+        if (!this.eWSpace.equals(that.eWSpace))
+          return false;
+      }
+
+      boolean this_present_eDNE = true && this.isSetEDNE();
+      boolean that_present_eDNE = true && that.isSetEDNE();
+      if (this_present_eDNE || that_present_eDNE) {
+        if (!(this_present_eDNE && that_present_eDNE))
+          return false;
+        if (!this.eDNE.equals(that.eDNE))
+          return false;
+      }
+
+      boolean this_present_eAE = true && this.isSetEAE();
+      boolean that_present_eAE = true && that.isSetEAE();
+      if (this_present_eAE || that_present_eAE) {
+        if (!(this_present_eAE && that_present_eAE))
+          return false;
+        if (!this.eAE.equals(that.eAE))
+          return false;
+      }
+
+      boolean this_present_eT = true && this.isSetET();
+      boolean that_present_eT = true && that.isSetET();
+      if (this_present_eT || that_present_eT) {
+        if (!(this_present_eT && that_present_eT))
+          return false;
+        if (!this.eT.equals(that.eT))
           return false;
       }
 
@@ -9381,15 +11131,30 @@ public class WorkerService {
       if (present_success)
         list.add(success);
 
-      boolean present_eP = true && (isSetEP());
-      list.add(present_eP);
-      if (present_eP)
-        list.add(eP);
+      boolean present_eWState = true && (isSetEWState());
+      list.add(present_eWState);
+      if (present_eWState)
+        list.add(eWState);
 
-      boolean present_eS = true && (isSetES());
-      list.add(present_eS);
-      if (present_eS)
-        list.add(eS);
+      boolean present_eWSpace = true && (isSetEWSpace());
+      list.add(present_eWSpace);
+      if (present_eWSpace)
+        list.add(eWSpace);
+
+      boolean present_eDNE = true && (isSetEDNE());
+      list.add(present_eDNE);
+      if (present_eDNE)
+        list.add(eDNE);
+
+      boolean present_eAE = true && (isSetEAE());
+      list.add(present_eAE);
+      if (present_eAE)
+        list.add(eAE);
+
+      boolean present_eT = true && (isSetET());
+      list.add(present_eT);
+      if (present_eT)
+        list.add(eT);
 
       return list.hashCode();
     }
@@ -9412,22 +11177,52 @@ public class WorkerService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetEP()).compareTo(other.isSetEP());
+      lastComparison = Boolean.valueOf(isSetEWState()).compareTo(other.isSetEWState());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetEP()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
+      if (isSetEWState()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eWState, other.eWState);
         if (lastComparison != 0) {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
+      lastComparison = Boolean.valueOf(isSetEWSpace()).compareTo(other.isSetEWSpace());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetES()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
+      if (isSetEWSpace()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eWSpace, other.eWSpace);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEDNE()).compareTo(other.isSetEDNE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEDNE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eDNE, other.eDNE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEAE()).compareTo(other.isSetEAE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEAE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eAE, other.eAE);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetET()).compareTo(other.isSetET());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetET()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eT, other.eT);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -9460,19 +11255,43 @@ public class WorkerService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("eP:");
-      if (this.eP == null) {
+      sb.append("eWState:");
+      if (this.eWState == null) {
         sb.append("null");
       } else {
-        sb.append(this.eP);
+        sb.append(this.eWState);
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("eS:");
-      if (this.eS == null) {
+      sb.append("eWSpace:");
+      if (this.eWSpace == null) {
         sb.append("null");
       } else {
-        sb.append(this.eS);
+        sb.append(this.eWSpace);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eDNE:");
+      if (this.eDNE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eDNE);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eAE:");
+      if (this.eAE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eAE);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eT:");
+      if (this.eT == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eT);
       }
       first = false;
       sb.append(")");
@@ -9526,20 +11345,47 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // E_P
+            case 1: // E_WSTATE
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eP = new OutOfSpaceException();
-                struct.eP.read(iprot);
-                struct.setEPIsSet(true);
+                struct.eWState = new InvalidWorkerStateException();
+                struct.eWState.read(iprot);
+                struct.setEWStateIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // E_S
+            case 2: // E_WSPACE
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eS = new FileAlreadyExistException();
-                struct.eS.read(iprot);
-                struct.setESIsSet(true);
+                struct.eWSpace = new WorkerOutOfSpaceException();
+                struct.eWSpace.read(iprot);
+                struct.setEWSpaceIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // E_DNE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eDNE = new BlockDoesNotExistException();
+                struct.eDNE.read(iprot);
+                struct.setEDNEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // E_AE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eAE = new BlockAlreadyExistsException();
+                struct.eAE.read(iprot);
+                struct.setEAEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 5: // E_T
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eT = new ThriftIOException();
+                struct.eT.read(iprot);
+                struct.setETIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -9564,14 +11410,29 @@ public class WorkerService {
           oprot.writeString(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.eP != null) {
-          oprot.writeFieldBegin(E_P_FIELD_DESC);
-          struct.eP.write(oprot);
+        if (struct.eWState != null) {
+          oprot.writeFieldBegin(E_WSTATE_FIELD_DESC);
+          struct.eWState.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.eS != null) {
-          oprot.writeFieldBegin(E_S_FIELD_DESC);
-          struct.eS.write(oprot);
+        if (struct.eWSpace != null) {
+          oprot.writeFieldBegin(E_WSPACE_FIELD_DESC);
+          struct.eWSpace.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eDNE != null) {
+          oprot.writeFieldBegin(E_DNE_FIELD_DESC);
+          struct.eDNE.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eAE != null) {
+          oprot.writeFieldBegin(E_AE_FIELD_DESC);
+          struct.eAE.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eT != null) {
+          oprot.writeFieldBegin(E_T_FIELD_DESC);
+          struct.eT.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -9595,41 +11456,74 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetEP()) {
+        if (struct.isSetEWState()) {
           optionals.set(1);
         }
-        if (struct.isSetES()) {
+        if (struct.isSetEWSpace()) {
           optionals.set(2);
         }
-        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetEDNE()) {
+          optionals.set(3);
+        }
+        if (struct.isSetEAE()) {
+          optionals.set(4);
+        }
+        if (struct.isSetET()) {
+          optionals.set(5);
+        }
+        oprot.writeBitSet(optionals, 6);
         if (struct.isSetSuccess()) {
           oprot.writeString(struct.success);
         }
-        if (struct.isSetEP()) {
-          struct.eP.write(oprot);
+        if (struct.isSetEWState()) {
+          struct.eWState.write(oprot);
         }
-        if (struct.isSetES()) {
-          struct.eS.write(oprot);
+        if (struct.isSetEWSpace()) {
+          struct.eWSpace.write(oprot);
+        }
+        if (struct.isSetEDNE()) {
+          struct.eDNE.write(oprot);
+        }
+        if (struct.isSetEAE()) {
+          struct.eAE.write(oprot);
+        }
+        if (struct.isSetET()) {
+          struct.eT.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, requestBlockLocation_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(6);
         if (incoming.get(0)) {
           struct.success = iprot.readString();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.eP = new OutOfSpaceException();
-          struct.eP.read(iprot);
-          struct.setEPIsSet(true);
+          struct.eWState = new InvalidWorkerStateException();
+          struct.eWState.read(iprot);
+          struct.setEWStateIsSet(true);
         }
         if (incoming.get(2)) {
-          struct.eS = new FileAlreadyExistException();
-          struct.eS.read(iprot);
-          struct.setESIsSet(true);
+          struct.eWSpace = new WorkerOutOfSpaceException();
+          struct.eWSpace.read(iprot);
+          struct.setEWSpaceIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.eDNE = new BlockDoesNotExistException();
+          struct.eDNE.read(iprot);
+          struct.setEDNEIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.eAE = new BlockAlreadyExistsException();
+          struct.eAE.read(iprot);
+          struct.setEAEIsSet(true);
+        }
+        if (incoming.get(5)) {
+          struct.eT = new ThriftIOException();
+          struct.eT.read(iprot);
+          struct.setETIsSet(true);
         }
       }
     }
@@ -10197,7 +12091,6 @@ public class WorkerService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestSpace_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -10206,12 +12099,10 @@ public class WorkerService {
     }
 
     public boolean success; // required
-    public FileDoesNotExistException eP; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E_P((short)1, "eP");
+      SUCCESS((short)0, "success");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10228,8 +12119,6 @@ public class WorkerService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // E_P
-            return E_P;
           default:
             return null;
         }
@@ -10277,8 +12166,6 @@ public class WorkerService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpace_result.class, metaDataMap);
     }
@@ -10287,13 +12174,11 @@ public class WorkerService {
     }
 
     public requestSpace_result(
-      boolean success,
-      FileDoesNotExistException eP)
+      boolean success)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.eP = eP;
     }
 
     /**
@@ -10302,9 +12187,6 @@ public class WorkerService {
     public requestSpace_result(requestSpace_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetEP()) {
-        this.eP = new FileDoesNotExistException(other.eP);
-      }
     }
 
     public requestSpace_result deepCopy() {
@@ -10315,7 +12197,6 @@ public class WorkerService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.eP = null;
     }
 
     public boolean isSuccess() {
@@ -10341,30 +12222,6 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public FileDoesNotExistException getEP() {
-      return this.eP;
-    }
-
-    public requestSpace_result setEP(FileDoesNotExistException eP) {
-      this.eP = eP;
-      return this;
-    }
-
-    public void unsetEP() {
-      this.eP = null;
-    }
-
-    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
-    public boolean isSetEP() {
-      return this.eP != null;
-    }
-
-    public void setEPIsSet(boolean value) {
-      if (!value) {
-        this.eP = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -10375,14 +12232,6 @@ public class WorkerService {
         }
         break;
 
-      case E_P:
-        if (value == null) {
-          unsetEP();
-        } else {
-          setEP((FileDoesNotExistException)value);
-        }
-        break;
-
       }
     }
 
@@ -10390,9 +12239,6 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
-
-      case E_P:
-        return getEP();
 
       }
       throw new IllegalStateException();
@@ -10407,8 +12253,6 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case E_P:
-        return isSetEP();
       }
       throw new IllegalStateException();
     }
@@ -10435,15 +12279,6 @@ public class WorkerService {
           return false;
       }
 
-      boolean this_present_eP = true && this.isSetEP();
-      boolean that_present_eP = true && that.isSetEP();
-      if (this_present_eP || that_present_eP) {
-        if (!(this_present_eP && that_present_eP))
-          return false;
-        if (!this.eP.equals(that.eP))
-          return false;
-      }
-
       return true;
     }
 
@@ -10455,11 +12290,6 @@ public class WorkerService {
       list.add(present_success);
       if (present_success)
         list.add(success);
-
-      boolean present_eP = true && (isSetEP());
-      list.add(present_eP);
-      if (present_eP)
-        list.add(eP);
 
       return list.hashCode();
     }
@@ -10478,16 +12308,6 @@ public class WorkerService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEP()).compareTo(other.isSetEP());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEP()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -10514,14 +12334,6 @@ public class WorkerService {
 
       sb.append("success:");
       sb.append(this.success);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eP:");
-      if (this.eP == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eP);
-      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -10576,15 +12388,6 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // E_P
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eP = new FileDoesNotExistException();
-                struct.eP.read(iprot);
-                struct.setEPIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -10603,11 +12406,6 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeBool(struct.success);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eP != null) {
-          oprot.writeFieldBegin(E_P_FIELD_DESC);
-          struct.eP.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -10631,30 +12429,19 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetEP()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
+        oprot.writeBitSet(optionals, 1);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
-        }
-        if (struct.isSetEP()) {
-          struct.eP.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, requestSpace_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.eP = new FileDoesNotExistException();
-          struct.eP.read(iprot);
-          struct.setEPIsSet(true);
         }
       }
     }
@@ -11123,6 +12910,7 @@ public class WorkerService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("unlockBlock_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField E_DNE_FIELD_DESC = new org.apache.thrift.protocol.TField("eDNE", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -11131,10 +12919,12 @@ public class WorkerService {
     }
 
     public boolean success; // required
+    public BlockDoesNotExistException eDNE; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      E_DNE((short)1, "eDNE");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -11151,6 +12941,8 @@ public class WorkerService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // E_DNE
+            return E_DNE;
           default:
             return null;
         }
@@ -11198,6 +12990,8 @@ public class WorkerService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.E_DNE, new org.apache.thrift.meta_data.FieldMetaData("eDNE", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unlockBlock_result.class, metaDataMap);
     }
@@ -11206,11 +13000,13 @@ public class WorkerService {
     }
 
     public unlockBlock_result(
-      boolean success)
+      boolean success,
+      BlockDoesNotExistException eDNE)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
+      this.eDNE = eDNE;
     }
 
     /**
@@ -11219,6 +13015,9 @@ public class WorkerService {
     public unlockBlock_result(unlockBlock_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      if (other.isSetEDNE()) {
+        this.eDNE = new BlockDoesNotExistException(other.eDNE);
+      }
     }
 
     public unlockBlock_result deepCopy() {
@@ -11229,6 +13028,7 @@ public class WorkerService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
+      this.eDNE = null;
     }
 
     public boolean isSuccess() {
@@ -11254,6 +13054,30 @@ public class WorkerService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
+    public BlockDoesNotExistException getEDNE() {
+      return this.eDNE;
+    }
+
+    public unlockBlock_result setEDNE(BlockDoesNotExistException eDNE) {
+      this.eDNE = eDNE;
+      return this;
+    }
+
+    public void unsetEDNE() {
+      this.eDNE = null;
+    }
+
+    /** Returns true if field eDNE is set (has been assigned a value) and false otherwise */
+    public boolean isSetEDNE() {
+      return this.eDNE != null;
+    }
+
+    public void setEDNEIsSet(boolean value) {
+      if (!value) {
+        this.eDNE = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -11264,6 +13088,14 @@ public class WorkerService {
         }
         break;
 
+      case E_DNE:
+        if (value == null) {
+          unsetEDNE();
+        } else {
+          setEDNE((BlockDoesNotExistException)value);
+        }
+        break;
+
       }
     }
 
@@ -11271,6 +13103,9 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
+
+      case E_DNE:
+        return getEDNE();
 
       }
       throw new IllegalStateException();
@@ -11285,6 +13120,8 @@ public class WorkerService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case E_DNE:
+        return isSetEDNE();
       }
       throw new IllegalStateException();
     }
@@ -11311,6 +13148,15 @@ public class WorkerService {
           return false;
       }
 
+      boolean this_present_eDNE = true && this.isSetEDNE();
+      boolean that_present_eDNE = true && that.isSetEDNE();
+      if (this_present_eDNE || that_present_eDNE) {
+        if (!(this_present_eDNE && that_present_eDNE))
+          return false;
+        if (!this.eDNE.equals(that.eDNE))
+          return false;
+      }
+
       return true;
     }
 
@@ -11322,6 +13168,11 @@ public class WorkerService {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_eDNE = true && (isSetEDNE());
+      list.add(present_eDNE);
+      if (present_eDNE)
+        list.add(eDNE);
 
       return list.hashCode();
     }
@@ -11340,6 +13191,16 @@ public class WorkerService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEDNE()).compareTo(other.isSetEDNE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEDNE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eDNE, other.eDNE);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -11366,6 +13227,14 @@ public class WorkerService {
 
       sb.append("success:");
       sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eDNE:");
+      if (this.eDNE == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eDNE);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -11420,6 +13289,15 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // E_DNE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eDNE = new BlockDoesNotExistException();
+                struct.eDNE.read(iprot);
+                struct.setEDNEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -11438,6 +13316,11 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeBool(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eDNE != null) {
+          oprot.writeFieldBegin(E_DNE_FIELD_DESC);
+          struct.eDNE.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -11461,19 +13344,30 @@ public class WorkerService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetEDNE()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
+        }
+        if (struct.isSetEDNE()) {
+          struct.eDNE.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, unlockBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eDNE = new BlockDoesNotExistException();
+          struct.eDNE.read(iprot);
+          struct.setEDNEIsSet(true);
         }
       }
     }
