@@ -18,8 +18,8 @@ package tachyon.master.journal;
 import java.io.IOException;
 
 /**
- * This output stream write {@link JournalEntry} objects and writes it to the journal. This output
- * stream can write to both the journal checkpoint file, or the journal log files.
+ * This output stream writes {@link JournalEntry} objects to the journal. This output stream can
+ * write to both the journal checkpoint file, or the journal log files.
  */
 public interface JournalOutputStream {
   /**
