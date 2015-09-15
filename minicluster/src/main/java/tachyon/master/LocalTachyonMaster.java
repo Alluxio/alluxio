@@ -195,7 +195,7 @@ public final class LocalTachyonMaster {
   }
 
   public void cleanupUnderfs() throws IOException {
-    if (null != mUnderFSCluster) {
+    if (mUnderFSCluster != null) {
       mUnderFSCluster.cleanup();
     }
     System.clearProperty("tachyon.underfs.address");

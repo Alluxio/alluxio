@@ -42,7 +42,7 @@ public class TachyonBlockStore implements Closeable {
    * @return a new instance of Tachyon block store
    */
   public static synchronized TachyonBlockStore get() {
-    if (null == sClient) {
+    if (sClient == null) {
       sClient = new TachyonBlockStore();
     }
     return sClient;
@@ -124,7 +124,7 @@ public class TachyonBlockStore implements Closeable {
       }
     }
     // No specified location to write to.
-    if (null == location) {
+    if (location == null) {
       // Local client, attempt to do direct write to local storage.
       if (mContext.hasLocalWorker()) {
         return new LocalBlockOutStream(blockId, blockSize);

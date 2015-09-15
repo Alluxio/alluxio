@@ -53,7 +53,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @return a TachyonFileSystem instance, there is only one instance available at any time
    */
   public static synchronized TachyonFileSystem get() {
-    if (null == sClient) {
+    if (sClient == null) {
       sClient = new TachyonFileSystem();
     }
     return sClient;

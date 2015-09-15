@@ -89,7 +89,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       long blockId = it.next().getKey();
       try {
         BlockMeta block = mManagerView.getBlockMeta(blockId);
-        if (null != block) { // might not present in this view
+        if (block != null) { // might not present in this view
           if (block.getBlockLocation().belongTo(location)) {
             int tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
@@ -120,7 +120,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       for (Long blockId : candidateBlocks) {
         try {
           BlockMeta block = mManagerView.getBlockMeta(blockId);
-          if (null != block) {
+          if (block != null) {
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
                 candidateDirView.toBlockStoreLocation()));
@@ -133,7 +133,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       for (Long blockId : candidateBlocks) {
         try {
           BlockMeta block = mManagerView.getBlockMeta(blockId);
-          if (null == block) {
+          if (block == null) {
             continue;
           }
           StorageDirView nextDirView = mAllocator.allocateBlockWithView(
