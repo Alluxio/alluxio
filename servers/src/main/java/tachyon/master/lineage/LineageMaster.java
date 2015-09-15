@@ -35,6 +35,9 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.checkpoint.CheckpointExecutor;
 import tachyon.master.lineage.checkpoint.CheckpointThread;
 import tachyon.master.lineage.meta.LineageStore;
+import tachyon.master.lineage.recompute.RecomputeExecutor;
+import tachyon.master.lineage.recompute.RecomputePlanner;
+import tachyon.master.lineage.recompute.RecomputeThread;
 import tachyon.thrift.LineageMasterService;
 import tachyon.util.ThreadFactoryUtils;
 
@@ -48,6 +51,9 @@ public final class LineageMaster extends MasterBase {
 
   /** The service that checkpoints lineages. */
   private Future<?> mCheckpointExecutionService;
+  /** The service that recomputes lineages. */
+  private Future<?> mRecomputeExecutionService;
+
 
   public LineageMaster(TachyonConf conf, Journal journal) {
     super(journal,
@@ -80,7 +86,11 @@ public final class LineageMaster extends MasterBase {
       mCheckpointExecutionService =
           getExecutorService().submit(new CheckpointThread("Checkpoint execution service",
               new CheckpointExecutor(mTachyonConf, mLineageStore),
-              mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+              mTachyonConf.getInt(Constants.MASTER_CHECKPOINT_INTERVAL_MS)));
+      mRecomputeExecutionService = getExecutorService().submit(
+          new RecomputeThread("Recomupte execution service", new RecomputePlanner(mLineageStore),
+              new RecomputeExecutor(mTachyonConf, mLineageStore),
+              mTachyonConf.getInt(Constants.MASTER_RECOMPUTE_INTERVAL_MS)));
     }
   }
 
@@ -89,6 +99,9 @@ public final class LineageMaster extends MasterBase {
     super.stop();
     if (mCheckpointExecutionService != null) {
       mCheckpointExecutionService.cancel(true);
+    }
+    if (mRecomputeExecutionService != null) {
+      mRecomputeExecutionService.cancel(true);
     }
   }
 

@@ -155,6 +155,8 @@ public class Constants {
 
   public static final String MASTER_CHECKPOINT_STRATEGY_CLASS =
       "tachyon.master.checkpoint.strategy.class";
+  public static final String MASTER_CHECKPOINT_INTERVAL_MS = "tachyon.master.checkpoint.interval.ms";
+  public static final String MASTER_RECOMPUTE_INTERVAL_MS = "tachyon.master.recompute.interval.ms";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";

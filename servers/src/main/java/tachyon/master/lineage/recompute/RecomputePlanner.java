@@ -13,36 +13,25 @@
  * the License.
  */
 
-package tachyon.master.lineage.checkpoint;
+package tachyon.master.lineage.recompute;
 
-import java.util.List;
-
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
-import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageStore;
 
 /**
- * A plan for checkpointing lineage. It essentially contains a list of lineages to checkpoint in
- * order.
+ * Plans the recompute strategy. It takes a list of lost files as input and outputs a recompute
+ * plan.
  */
-public final class CheckpointPlan {
-  /** A list of lineages to checkpoint */
-  private final List<Lineage> mToCheckPoint;
+public class RecomputePlanner {
+  private final LineageStore mLineageStore;
 
-  public CheckpointPlan(List<Lineage> toCheckPoint) {
-    mToCheckPoint = Preconditions.checkNotNull(toCheckPoint);
+  public RecomputePlanner(LineageStore lineageStore) {
+    mLineageStore = Preconditions.checkNotNull(lineageStore);
   }
 
-  /**
-   * @return a list of lineages to check point in sequence.
-   */
-  public List<Lineage> toCheckpoint() {
-    return mToCheckPoint;
-  }
-
-  @Override
-  public String toString() {
-    return "toCheckpoint: " + Joiner.on(", ").join(mToCheckPoint);
+  public RecomputePlan plan() {
+    // TODO add planning
+    return null;
   }
 }

@@ -13,36 +13,23 @@
  * the License.
  */
 
-package tachyon.master.lineage.checkpoint;
+package tachyon.master.lineage.recompute;
 
-import java.util.List;
-
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
-import tachyon.master.lineage.meta.Lineage;
+import tachyon.conf.TachyonConf;
+import tachyon.master.lineage.meta.LineageStore;
 
-/**
- * A plan for checkpointing lineage. It essentially contains a list of lineages to checkpoint in
- * order.
- */
-public final class CheckpointPlan {
-  /** A list of lineages to checkpoint */
-  private final List<Lineage> mToCheckPoint;
+public final class RecomputeExecutor {
+  private final TachyonConf mTachyonConf;
+  private final LineageStore mLineageStore;
 
-  public CheckpointPlan(List<Lineage> toCheckPoint) {
-    mToCheckPoint = Preconditions.checkNotNull(toCheckPoint);
+  public RecomputeExecutor(TachyonConf conf, LineageStore lineageStore) {
+    mLineageStore = Preconditions.checkNotNull(lineageStore);
+    mTachyonConf = Preconditions.checkNotNull(conf);
   }
 
-  /**
-   * @return a list of lineages to check point in sequence.
-   */
-  public List<Lineage> toCheckpoint() {
-    return mToCheckPoint;
-  }
-
-  @Override
-  public String toString() {
-    return "toCheckpoint: " + Joiner.on(", ").join(mToCheckPoint);
+  public void recompute(RecomputePlan plan) {
+    // recompute the plan
   }
 }

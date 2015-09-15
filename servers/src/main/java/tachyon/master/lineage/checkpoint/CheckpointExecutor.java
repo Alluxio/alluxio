@@ -21,7 +21,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 
-public class CheckpointExecutor {
+public final class CheckpointExecutor {
   private final TachyonConf mTachyonConf;
   private final LineageStore mLineageStore;
   private final CheckpointScheduler mScheduler;
