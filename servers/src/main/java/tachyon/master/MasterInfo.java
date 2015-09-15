@@ -27,7 +27,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.meta.InodeFile;
-import tachyon.thrift.BlockInfo;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
@@ -67,19 +66,6 @@ public final class MasterInfo {
    */
   public long getCapacityBytes() {
     return mBlockMaster.getCapacityBytes();
-  }
-
-  /**
-   * Gets the list of block info of an InodeFile determined by path.
-   *
-   * @param path path to the file
-   * @return The list of the block info of the file
-   * @throws InvalidPathException when the path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
-   */
-  public List<BlockInfo> getBlockInfoList(TachyonURI path)
-      throws InvalidPathException, FileDoesNotExistException {
-    return mFileSystemMaster.getBlockInfoList(path);
   }
 
   /**

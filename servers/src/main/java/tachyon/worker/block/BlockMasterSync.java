@@ -34,7 +34,7 @@ import tachyon.util.CommonUtils;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
- * heartbeat. This class manages its own {@link tachyon.master.MasterClient}.
+ * heartbeat. This class manages its own {@link tachyon.client.BlockMasterClient}.
  *
  * When running, this task first requests a block report from the
  * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may

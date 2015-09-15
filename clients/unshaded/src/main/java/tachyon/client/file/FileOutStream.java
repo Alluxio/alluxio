@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,6 +155,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(mFileId);
+      } catch (TException e) {
+        throw new IOException(e);
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
@@ -244,6 +247,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getNewBlockIdForFile(mFileId);
+    } catch (TException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

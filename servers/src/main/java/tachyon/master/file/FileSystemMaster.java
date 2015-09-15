@@ -44,6 +44,7 @@ import tachyon.master.file.journal.DeleteFileEntry;
 import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
+import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
@@ -127,6 +128,14 @@ public final class FileSystemMaster extends MasterBase {
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry instanceof InodeEntry) {
       mInodeTree.addInodeFromJournal((InodeEntry) entry);
+    } else if (entry instanceof InodeLastModificationTimeEntry) {
+      InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) entry;
+      try {
+        Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
+        inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+      } catch (FileDoesNotExistException fdnee) {
+        throw new RuntimeException(fdnee);
+      }
     } else if (entry instanceof DependencyEntry) {
       DependencyEntry dependencyEntry = (DependencyEntry) entry;
       Dependency dependency = new Dependency(dependencyEntry.mId, dependencyEntry.mParentFiles,
@@ -303,30 +312,6 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Gets the list of block info of an InodeFile determined by path.
-   *
-   * TODO: get rid of this after FileBlockInfo contains MasterBlockInfo
-   *
-   * @param path path to the file
-   * @return The list of the block info of the file
-   * @throws InvalidPathException when the path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
-   */
-  public List<BlockInfo> getBlockInfoList(TachyonURI path)
-      throws InvalidPathException, FileDoesNotExistException {
-    long fileId = getFileId(path);
-    Inode inode = mInodeTree.getInodeById(fileId);
-    if (inode == null) {
-      throw new FileDoesNotExistException(path + " does not exist.");
-    }
-    if (!inode.isFile()) {
-      throw new FileDoesNotExistException(path + " is not a file.");
-    }
-    InodeFile inodeFile = (InodeFile) inode;
-    return mBlockMaster.getBlockInfoList(inodeFile.getBlockIds());
-  }
-
-  /**
    * Returns the file id for a given path. Called via RPC, as well as internal masters.
    *
    * @param path the path to get the file id for
@@ -356,7 +341,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException, InvalidPathException {
+  private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
     return fileInfo;
@@ -373,7 +358,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException
    */
   public List<FileInfo> getFileInfoList(long fileId)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
 
@@ -465,29 +450,29 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // TODO: metrics
     synchronized (mInodeTree) {
-      List<Inode> created =
+      InodeTree.CreatePathResult createResult =
           createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
+      List<Inode> created = createResult.getCreated();
 
-      // Journal all of the created inodes.
-      for (Inode inode : created) {
-        writeJournalEntry(inode.toJournalEntry());
-      }
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+      journalCreatePathResult(createResult);
       flushJournal();
-
       return created.get(created.size() - 1).getId();
     }
   }
 
-  List<Inode> createFileInternal(TachyonURI path, long blockSizeBytes, boolean recursive,
-      long opTimeMs) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    List<Inode> created = mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
+  InodeTree.CreatePathResult createFileInternal(TachyonURI path, long blockSizeBytes,
+      boolean recursive, long opTimeMs)
+          throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+    InodeTree.CreatePathResult createResult =
+        mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
     // If the create succeeded, the list of created inodes will not be empty.
+    List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
     if (mWhitelist.inList(path.toString())) {
       inode.setCache(true);
     }
-    return created;
+    return createResult;
   }
 
   /**
@@ -647,21 +632,30 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  /**
+   * Returns all the {@link FileBlockInfo} of the given file. Called by web UI.
+   *
+   * @param path the path to the file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the file.
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   */
+  public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
+      throws FileDoesNotExistException, InvalidPathException {
+    long fileId = getFileId(path);
+    return getFileBlockInfoList(fileId);
+  }
+
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
-    fileBlockInfo.blockId = blockInfo.blockId;
-    fileBlockInfo.length = blockInfo.length;
-    List<NetAddress> addressList = new ArrayList<NetAddress>();
-    for (BlockLocation blockLocation : blockInfo.locations) {
-      addressList.add(blockLocation.workerAddress);
-    }
-    fileBlockInfo.locations = addressList;
+    fileBlockInfo.blockInfo = blockInfo;
+    fileBlockInfo.ufsLocations = new ArrayList<NetAddress>();
 
     // The sequence number part of the block id is the block index.
     fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
 
-    if (fileBlockInfo.locations.isEmpty() && file.hasCheckpointed()) {
+    if (fileBlockInfo.blockInfo.locations.isEmpty() && file.hasCheckpointed()) {
       // No tachyon locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       UnderFileSystem ufs = UnderFileSystem.get(file.getUfsPath(), mTachyonConf);
@@ -685,7 +679,7 @@ public final class FileSystemMaster extends MasterBase {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.locations.add(new NetAddress(resolvedHost, -1, resolvedPort));
+          fileBlockInfo.ufsLocations.add(new NetAddress(resolvedHost, -1, resolvedPort));
         }
       }
     }
@@ -789,18 +783,32 @@ public final class FileSystemMaster extends MasterBase {
     // TODO: metrics
     synchronized (mInodeTree) {
       try {
-        List<Inode> created = mInodeTree.createPath(path, 0, recursive, true);
-        // Journal all of the created inodes.
-        for (Inode inode : created) {
-          writeJournalEntry(inode.toJournalEntry());
-        }
+        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, 0, recursive, true);
+
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+        journalCreatePathResult(createResult);
         flushJournal();
       } catch (BlockInfoException bie) {
         // Since we are creating a directory, the block size is ignored, no such exception should
         // happen.
         Throwables.propagate(bie);
       }
+    }
+  }
+
+  /**
+   * Journals the {@link InodeTree.CreatePathResult}. This does not flush the journal.
+   * Synchronization is required outside of this method.
+   *
+   * @param createResult the {@link InodeTree.CreatePathResult} to journal
+   */
+  private void journalCreatePathResult(InodeTree.CreatePathResult createResult) {
+    for (Inode inode : createResult.getModified()) {
+      writeJournalEntry(
+          new InodeLastModificationTimeEntry(inode.getId(), inode.getLastModificationTimeMs()));
+    }
+    for (Inode inode : createResult.getCreated()) {
+      writeJournalEntry(inode.toJournalEntry());
     }
   }
 
@@ -935,11 +943,10 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the file to free
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
-   * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
   public boolean free(long fileId, boolean recursive)
-      throws InvalidPathException, FileDoesNotExistException {
+      throws FileDoesNotExistException {
     // TODO: metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);

@@ -43,6 +43,16 @@ import tachyon.worker.block.BlockWorker;
 public class LocalTachyonClusterMultiMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // private access to the reinitializer of ClientContext
+  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
+      new ClientContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(ClientContext.PrivateReinitializer access) {
+          sReinitializer = access;
+        }
+      };
+  private static ClientContext.PrivateReinitializer sReinitializer;
+
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
@@ -115,7 +125,9 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       if (mMasters.get(k).isServing()) {
         try {
+          LOG.info("master " + k + " is the leader. killing it...");
           mMasters.get(k).stop();
+          LOG.info("master " + k + " killed.");
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -153,9 +165,6 @@ public class LocalTachyonClusterMultiMaster {
 
     mHostname = NetworkAddressUtils.getLocalHostName(100);
 
-    String masterDataFolder = mTachyonHome + "/data";
-    String masterLogFolder = mTachyonHome + "/logs";
-
     // TODO: Would be good to have a masterContext as well
     mMasterConf = new TachyonConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
@@ -179,27 +188,30 @@ public class LocalTachyonClusterMultiMaster {
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
-    mkdir(masterDataFolder);
-    mkdir(masterLogFolder);
-
-    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
 
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
       master.start();
-      LOG.info("master NO." + k + " started, isServing: " + master.isServing());
+      LOG.info("master NO." + k + " started, isServing: " + master.isServing() + ", address: "
+          + master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
       mMasterConf.set(Constants.MASTER_PORT, "0");
     }
+
+    // Create the directories for the data and workers after LocalTachyonMaster construction,
+    // because LocalTachyonMaster sets the UNDERFS_DATA_FOLDER and UNDERFS_WORKERS_FOLDER.
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+
     LOG.info("all " + mNumOfMasters + " masters started.");
     LOG.info("waiting for a leader.");
     boolean hasLeader = false;
     while (!hasLeader) {
       for (int i = 0; i < mMasters.size(); i++) {
         if (mMasters.get(i).isServing()) {
-          LOG.info("master NO." + i + " is selected as leader.");
+          LOG.info("master NO." + i + " is selected as leader. address: "
+              + mMasters.get(i).getAddress());
           hasLeader = true;
           break;
         }
@@ -266,6 +278,11 @@ public class LocalTachyonClusterMultiMaster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
+    // The client context should reflect the updates to the conf.
+    if (sReinitializer == null) {
+      ClientContext.accessReinitializer(sReinitializerAccesser);
+    }
+    sReinitializer.reinitializeWithConf(mWorkerConf);
   }
 
   public void stop() throws Exception {
