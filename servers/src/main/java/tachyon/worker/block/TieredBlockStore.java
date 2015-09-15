@@ -49,7 +49,6 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
@@ -929,11 +928,9 @@ public final class TieredBlockStore implements BlockStore {
     private final Timer mTimer;
     private final Semaphore mSemaphore = new Semaphore(1);
     private final Thread mEvictorThread;
-    private final TachyonConf mConf;
     private final ExecutorService mExecutorService;
     
     public AsyncEvictor(ExecutorService executorService) {
-      mConf = WorkerContext.getConf();
       List<StorageTier> tiers = mMetaManager.getTiers();
       long lastTierReservedBytes = 0;
       for (StorageTier tier : tiers) {
@@ -941,7 +938,8 @@ public final class TieredBlockStore implements BlockStore {
             String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT,
                 tier.getTierLevel());
         long reservedSpaceBytes =
-            (long)(tier.getCapacityBytes() * mConf.getDouble(tierReservedSpaceProp));
+            (long)(tier.getCapacityBytes() * WorkerContext.getConf()
+                .getDouble(tierReservedSpaceProp));
         mReservedBytesOnTiers.add(new Pair<Integer, Long>(tier.getTierAlias(),
             reservedSpaceBytes + lastTierReservedBytes));
         lastTierReservedBytes += reservedSpaceBytes;
@@ -972,7 +970,7 @@ public final class TieredBlockStore implements BlockStore {
       return plan;
     }
 
-    private boolean areMoversDoneOnTier(int tierAlias) {
+    private boolean isEvictionDone(int tierAlias) {
       boolean done = true;
       List<Future<Boolean>> moversDone = new ArrayList<Future<Boolean>>();
       for (Future<Boolean> res : mMoverResOnTiers.get(tierAlias)) {
@@ -992,7 +990,8 @@ public final class TieredBlockStore implements BlockStore {
         public void run() {
           mSemaphore.release();
         }
-      }, 0L, mConf.getLong(Constants.WORKER_TIERED_STORAGE_ASYNCEVICTION_PERIOD_MS_FORMAT));
+      }, 0L, WorkerContext.getConf().getLong(Constants
+          .WORKER_TIERED_STORAGE_EVICTION_ASYNC_PERIOD_MS_FORMAT));
     }
 
     @Override
@@ -1003,7 +1002,7 @@ public final class TieredBlockStore implements BlockStore {
           for (int tierIdx = mReservedBytesOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
             Pair<Integer, Long> bytesReservedOnTier = mReservedBytesOnTiers.get(tierIdx);
             int tierAlias = bytesReservedOnTier.getFirst();
-            if (!areMoversDoneOnTier(tierAlias)) {
+            if (!isEvictionDone(tierAlias)) {
               continue;
             }
             long bytesReserved = bytesReservedOnTier.getSecond();
@@ -1019,8 +1018,8 @@ public final class TieredBlockStore implements BlockStore {
               mMoverResOnTiers.put(tierAlias, res);
             }
             for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
-              Future<Boolean> res = mExecutorService.submit(new BlockMover(TieredBlockStore.this,
-                  Sessions.MIGRATE_DATA_SESSION_ID, evict.getFirst(), evict.getSecond(), null));
+              Future<Boolean> res = mExecutorService.submit(new BlockRemover(TieredBlockStore.this,
+                  Sessions.MIGRATE_DATA_SESSION_ID, evict.getFirst(), evict.getSecond()));
               mMoverResOnTiers.put(tierAlias, res);
             }
           }
