@@ -15,24 +15,29 @@
 
 package tachyon.worker.block;
 
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
+import tachyon.exception.OutOfSpaceException;
 
 public class BlockMover implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private final long mUserId;
+  private final long mSessionId;
   private final BlockStore mBlockStore;
   private final long mBlockId;
   private BlockStoreLocation mSrcLocation;
   private BlockStoreLocation mDstLocation;
 
-  public BlockMover(BlockStore blockStore, long userId, long blockId,
+  public BlockMover(BlockStore blockStore, long sessionId, long blockId,
       BlockStoreLocation srcLocation, BlockStoreLocation dstLocation) {
-    mUserId = userId;
+    mSessionId = sessionId;
     mBlockStore = blockStore;
     mBlockId = blockId;
     mSrcLocation = srcLocation;
@@ -40,21 +45,25 @@ public class BlockMover implements Callable<Boolean> {
   }
 
   public Boolean call() {
-    String errorInfo = null;
     try {
-      if (null == mDstLocation) {
-        mBlockStore.removeBlock(mUserId, mBlockId, mSrcLocation);
-        errorInfo = "Failed to remove block " + mBlockId + " at location: " + mSrcLocation;
+      if (null == mSrcLocation) {
+        mBlockStore.moveBlock(mSessionId, mBlockId, mDstLocation);
       } else {
-        mBlockStore.moveBlock(mUserId, mBlockId, mSrcLocation, mDstLocation);
-        errorInfo = "Failed to move block" + mBlockId + " from " + mSrcLocation + " to "
-            + mDstLocation;
+        mBlockStore.moveBlock(mSessionId, mBlockId, mSrcLocation, mDstLocation);
       }
       return true;
-    } catch (Exception e) {
-      LOG.error(errorInfo, e);
-      return false;
+    } catch (NotFoundException e) {
+      LOG.warn(e.getMessage());
+    } catch (AlreadyExistsException e) {
+      LOG.warn(e.getMessage());
+    } catch (InvalidStateException e) {
+      LOG.warn(e.getMessage());
+    } catch (OutOfSpaceException e) {
+      LOG.warn(e.getMessage());
+    } catch (IOException e) {
+      LOG.warn(e.getMessage());
     }
+    return false;
   }
 }
 
