@@ -17,15 +17,13 @@ package tachyon.worker.block.meta;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.Constants;
 import tachyon.StorageLevelAlias;
-import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public class TempBlockMetaTest {
@@ -35,19 +33,22 @@ public class TempBlockMetaTest {
   private static final int TEST_TIER_LEVEL = 0;
   private static final StorageLevelAlias TEST_TIER_ALIAS = StorageLevelAlias.MEM;
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
-  private String mTestDirPath;
+  private static String sTestDirPath;
   private TempBlockMeta mTempBlockMeta;
 
-  @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder sFolder = new TemporaryFolder();
+
+  @BeforeClass
+  public static void setupTieredStorage() throws Exception {
+    sTestDirPath = sFolder.newFolder().getAbsolutePath();
+    // Sets up tier with one storage dir under sTestDirPath with 100 bytes capacity.
+    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
+        TEST_TIER_ALIAS, new String[] {sTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
+  }
 
   @Before
   public void before() throws Exception {
-    mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
-    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
-        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
-
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     StorageDir dir = tier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
@@ -55,13 +56,13 @@ public class TempBlockMetaTest {
 
   @Test
   public void getPathTest() {
-    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_SESSION_ID, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(sTestDirPath, TEST_SESSION_ID, TEST_BLOCK_ID),
         mTempBlockMeta.getPath());
   }
 
   @Test
   public void getCommitPathTest() {
-    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(sTestDirPath, TEST_BLOCK_ID),
         mTempBlockMeta.getCommitPath());
   }
 

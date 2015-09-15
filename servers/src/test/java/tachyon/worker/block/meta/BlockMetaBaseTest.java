@@ -17,14 +17,12 @@ package tachyon.worker.block.meta;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.Constants;
 import tachyon.StorageLevelAlias;
-import tachyon.conf.TachyonConf;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
@@ -46,25 +44,27 @@ public class BlockMetaBaseTest {
     }
   }
 
-  @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
-
   private static final long TEST_BLOCK_ID = 9;
   private static final int TEST_TIER_LEVEL = 0;
   private static final StorageLevelAlias TEST_TIER_ALIAS = StorageLevelAlias.MEM;
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
-  private String mTestDirPath;
   private StorageTier mTier;
   private StorageDir mDir;
   private BlockMetaBaseForTest mBlockMeta;
 
-  @Before
-  public void before() throws Exception {
-    mTestDirPath = mFolder.newFolder().getAbsolutePath();
+  @ClassRule
+  public static TemporaryFolder sFolder = new TemporaryFolder();
+
+  @BeforeClass
+  public static void setupTieredStorage() throws Exception {
+    String testDirPath = sFolder.newFolder().getAbsolutePath();
     // Sets up tier with one storage dir under mTestDirPath with 100 bytes capacity.
     TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
-        TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
+        TEST_TIER_ALIAS, new String[] {testDirPath}, TEST_TIER_CAPACITY_BYTES, "");
+  }
 
+  @Before
+  public void before() throws Exception {
     mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     mDir = mTier.getDir(0);
     mBlockMeta = new BlockMetaBaseForTest(TEST_BLOCK_ID, mDir);

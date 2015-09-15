@@ -15,12 +15,12 @@
 
 package tachyon.worker.block.allocator;
 
-import java.io.File;
 import java.util.Collections;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -36,37 +36,44 @@ import tachyon.worker.block.TieredBlockStoreTestUtils;
  * names with tachyon conf and test if it generates the correct Allocator instance.
  */
 public class AllocatorFactoryTest {
-  private TachyonConf mTachyonConf;
+  private static TachyonConf sTachyonConf;
   private BlockMetadataManagerView mManagerView;
 
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder sTestFolder = new TemporaryFolder();
+
+  @BeforeClass
+  public static void setupTieredStorage() throws Exception {
+    String baseDir = sTestFolder.newFolder().getAbsolutePath();
+    TieredBlockStoreTestUtils.setupTachyonConfDefault(baseDir);
+    sTachyonConf = WorkerContext.getConf();
+  }
 
   @Before
-  public void before() throws Exception {
-    String baseDir = mTestFolder.newFolder().getAbsolutePath();
-    mManagerView = TieredBlockStoreTestUtils.defaultMetadataManagerView(baseDir);
-    mTachyonConf = WorkerContext.getConf();
+  public void before() {
+    BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();
+    mManagerView = new BlockMetadataManagerView(metaManager, Collections.<Long>emptySet(),
+        Collections.<Long>emptySet());
   }
 
   @Test
   public void createGreedyAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, GreedyAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
+    sTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, GreedyAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(sTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
 
   @Test
   public void createMaxFreeAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
+    sTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(sTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 
   @Test
   public void createRoundRobinAllocatorTest() {
-    mTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, RoundRobinAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.createAllocator(mTachyonConf, mManagerView);
+    sTachyonConf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, RoundRobinAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.createAllocator(sTachyonConf, mManagerView);
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
   }
 

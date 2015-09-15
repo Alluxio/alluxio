@@ -21,7 +21,8 @@ import java.util.List;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
@@ -40,20 +41,25 @@ public class StorageDirViewTest {
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_BLOCK_SIZE = 20;
+
   private StorageDir mTestDir;
   private StorageDirView mTestDirView;
   private StorageTier mTestTier;
   private StorageTierView mTestTierView;
   private BlockMetadataManagerView mMetaManagerView;
 
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder sTestFolder = new TemporaryFolder();
+
+  @BeforeClass
+  public static void setupTieredStorage() throws Exception {
+    File tempFolder = sTestFolder.newFolder();
+    TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
+  }
 
   @Before
   public void before() throws Exception {
-    File tempFolder = mTestFolder.newFolder();
-    BlockMetadataManager metaManager =
-        TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();
     mMetaManagerView =
         Mockito.spy(new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(), Sets
             .<Long>newHashSet()));
