@@ -41,18 +41,18 @@ import tachyon.master.journal.JournalWriter;
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** A handler to the journal for this master. */
-  private final Journal mJournal;
+  protected final TachyonConf mTachyonConf;
   /** The executor used for running maintenance threads for the master. */
   private final ExecutorService mExecutorService;
 
+  /** A handler to the journal for this master. */
+  private Journal mJournal;
   /** true if this master is in leader mode, and not standby mode. */
   private boolean mIsLeader = false;
   /** The thread that tails the journal when the master is in standby mode. */
   private JournalTailerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
-  protected final TachyonConf mTachyonConf;
 
   protected MasterBase(Journal journal, ExecutorService executorService, TachyonConf conf) {
     mJournal = Preconditions.checkNotNull(journal);
@@ -139,6 +139,11 @@ public abstract class MasterBase implements Master {
         mStandbyJournalTailer = null;
       }
     }
+  }
+
+  @Override
+  public void upgradeToWriteJournal(Journal journal) {
+    mJournal = Preconditions.checkNotNull(journal);
   }
 
   protected boolean isLeaderMode() {
