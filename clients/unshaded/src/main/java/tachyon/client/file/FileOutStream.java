@@ -260,7 +260,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
     }
 
-    LOG.warn("Failed to write into TachyonStore", ioe);
+    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", ioe);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();
