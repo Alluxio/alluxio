@@ -133,6 +133,14 @@ public class Constants {
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_HOSTNAME_LISTENING = "tachyon.master.hostname.listening";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";
+  public static final String MASTER_JOURNAL_FORMATTER_CLASS
+      = "tachyon.master.journal.formatter.class";
+  public static final String MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS
+      = "tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms";
+  public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS
+      = "tachyon.master.journal.tailer.sleep.time.ms";
+  public static final String MASTER_JOURNAL_MAX_LOG_SIZE_BYTES
+      = "tachyon.master.journal.max.log.size.bytes";
   public static final String MASTER_HOSTNAME = "tachyon.master.hostname";
   public static final String MASTER_BIND_HOST = "tachyon.master.bind.host";
   public static final String MASTER_PORT = "tachyon.master.port";
