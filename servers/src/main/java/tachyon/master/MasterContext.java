@@ -13,34 +13,29 @@
  * the License.
  */
 
-package tachyon.master.journal;
+package tachyon.master;
 
-import java.io.IOException;
+import tachyon.conf.TachyonConf;
 
 /**
- * This output stream writes {@link JournalEntry} objects to the journal. This output stream can
- * write to both the journal checkpoint file, or the journal log files.
+ * A MasterContext object stores TachyonConf.
  */
-public interface JournalOutputStream {
-  /**
-   * Writes a {@link JournalEntry} to the journal.
-   *
-   * @param entry The entry to write to the journal.
-   * @throws IOException
-   */
-  void writeEntry(JournalEntry entry) throws IOException;
+public final class MasterContext {
+  private MasterContext() {} // to prevent initialization
 
   /**
-   * Closes the stream.
-   *
-   * @throws IOException
+   * The static configuration object. There is only one TachyonConf object shared within the same
+   * master process.
    */
-  void close() throws IOException;
+  private static TachyonConf sTachyonConf = new TachyonConf();
 
   /**
-   * Flushes the stream.
+   * Returns the one and only static {@link tachyon.conf.TachyonConf} object which is shared among
+   * all classes within the master process.
    *
-   * @throws IOException
+   * @return the tachyonConf for the worker process
    */
-  void flush() throws IOException;
+  public static TachyonConf getConf() {
+    return sTachyonConf;
+  }
 }
