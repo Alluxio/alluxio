@@ -52,7 +52,7 @@ interface TachyonFileSystemCore {
   void free(TachyonFile file) throws FileDoesNotExistException, IOException;
 
   /**
-   * Gets the FileInfo object that represents the Tachyon file
+   * Gets the {@link FileInfo} object that represents the metadata of a Tachyon file.
    *
    * @param file the handler for the file.
    * @return the FileInfo of the file, null if the file does not exist.
@@ -62,7 +62,7 @@ interface TachyonFileSystemCore {
 
   /**
    * If the file is a folder, returns the {@link FileInfo} of all the direct entries in it.
-   * Otherwise returns the FileInfo for the file.
+   * Otherwise returns the {@link FileInfo} for the file.
    *
    * @param file the handler for the file
    * @return a list of FileInfos representing the files which are children of the given file
@@ -73,8 +73,7 @@ interface TachyonFileSystemCore {
 
   /**
    * Adds metadata about a file in the under storage system to Tachyon. Only metadata will be
-   * updated and no data will be transferred. The data can be added to Tachyon space by doing an
-   * operation with the cache option specified, for example reading.
+   * updated and no data will be transferred.
    *
    * @param path the path to create the file in Tachyon
    * @param ufsPath the under storage system path of the file that will back the Tachyon file
@@ -121,8 +120,7 @@ interface TachyonFileSystemCore {
   boolean rename(TachyonFile src, TachyonURI dst) throws FileDoesNotExistException, IOException;
 
   /**
-   * Sets the pin status of a file. A pinned file will never be evicted for any reason. The pin
-   * status is propagated asynchronously from this method call on the worker heartbeats.
+   * Sets the pin status of a file. A pinned file will never be evicted for any reason.
    *
    * @param file the file handler for the file to pin
    * @param pinned true to pin the file, false to unpin it

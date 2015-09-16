@@ -50,10 +50,13 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
   }
 
   /**
-   * {@inheritDoc} The delete will abort on a failure, but previous deletes that occurred will still
-   * be effective. The delete will only synchronously be propagated to the master. The file metadata
-   * will not be available after this call, but the data in Tachyon or under storage space may still
-   * reside until the delete is propagated.
+   * {@inheritDoc}
+   *
+   * The delete will abort on a failure, but previous deletes (if deleting more than
+   * one file) that occurred will still be effective. The delete will only synchronously be
+   * propagated to the master. The file metadata will not be available after this call, but the data
+   * in Tachyon or under storage space may still reside until the delete is propagated and all
+   * current readers have relinquished their locks.
    */
   @Override
   public void delete(TachyonFile file) throws FileDoesNotExistException, IOException {
@@ -68,8 +71,9 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
   }
 
   /**
-   * {@inheritDoc} This method is asynchronous and will be propagated to the workers through their
-   * heartbeats.
+   * {@inheritDoc}
+   *
+   * This method is asynchronous and will be propagated to the workers through their heartbeats.
    */
   @Override
   public void free(TachyonFile file) throws FileDoesNotExistException, IOException {
@@ -83,8 +87,10 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
   }
 
   /**
-   * {@inheritDoc} The file info is a snapshot of the file metadata, and the locations, last
-   * modified time, and path are possibly inconsistent.
+   * {@inheritDoc}
+   *
+   * The file info is a snapshot of the file metadata, and the locations, last modified time, and
+   * path are possibly inconsistent.
    */
   @Override
   public FileInfo getInfo(TachyonFile file) throws IOException {
@@ -99,8 +105,10 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
   }
 
   /**
-   * {@inheritDoc} The file infos are snapshots of the file metadata, and the locations, last
-   * modified time, and path are possibly inconsistent.
+   * {@inheritDoc}
+   *
+   * The file infos are snapshots of the file metadata, and the locations, last modified time, and
+   * path are possibly inconsistent.
    */
   @Override
   public List<FileInfo> listStatus(TachyonFile file) throws FileDoesNotExistException, IOException {
@@ -115,6 +123,9 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
 
   /**
    * {@inheritDoc}
+   *
+   * To add the data into Tachyon space perform an operation with the cache option specified, for
+   * example the load command of the Tachyon Shell.
    */
   @Override
   public long loadFileInfoFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive)
@@ -164,6 +175,8 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
 
   /**
    * {@inheritDoc}
+   *
+   * The pin status is propagated asynchronously from this method call on the worker heartbeats.
    */
   @Override
   public void setPin(TachyonFile file, boolean pinned) throws FileDoesNotExistException,
