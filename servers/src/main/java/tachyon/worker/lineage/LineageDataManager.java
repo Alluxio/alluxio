@@ -15,31 +15,31 @@
 
 package tachyon.worker.lineage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.Constants;
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * This class is responsible for managing all top level components of the lineage worker.
+ * Responsible for managing the lineage storing into under file system. This class is thread-safe.
  */
-public final class LineageWorker {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  /** Logic for managing lineage file persistence */
-  private final LineageDataManager mLineageDataManager;
-  /** Access to block datt */
+public final class LineageDataManager {
+  /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
-  /** Logic for handling RPC to lineage master */
-  private final LineageWorkerServiceHandler mServiceHandler;
 
-  public LineageWorker(BlockDataManager blockDataManager) {
+  public LineageDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+  }
 
-    mLineageDataManager= new LineageDataManager(blockDataManager);
-    mServiceHandler = new LineageWorkerServiceHandler(mLineageDataManager);
+  /**
+   * Persists the blocks of file into the under file system.
+   *
+   * @param fileId the id of the file
+   * @param blockIds the list of block ids.
+   * @param filePath the destination path in the under file system.
+   */
+  public void persistFile(long fileId, List<Long> blockIds, String filePath) {
+    // TODO perist
   }
 }

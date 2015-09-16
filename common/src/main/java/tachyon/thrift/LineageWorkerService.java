@@ -39,13 +39,13 @@ public class LineageWorkerService {
 
   public interface Iface {
 
-    public void addCheckpoint(List<Long> blockIds, long fileId, String filePath) throws org.apache.thrift.TException;
+    public void persistFile(List<Long> blockIds, long fileId, String filePath) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void addCheckpoint(List<Long> blockIds, long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void persistFile(List<Long> blockIds, long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -69,25 +69,25 @@ public class LineageWorkerService {
       super(iprot, oprot);
     }
 
-    public void addCheckpoint(List<Long> blockIds, long fileId, String filePath) throws org.apache.thrift.TException
+    public void persistFile(List<Long> blockIds, long fileId, String filePath) throws org.apache.thrift.TException
     {
-      send_addCheckpoint(blockIds, fileId, filePath);
-      recv_addCheckpoint();
+      send_persistFile(blockIds, fileId, filePath);
+      recv_persistFile();
     }
 
-    public void send_addCheckpoint(List<Long> blockIds, long fileId, String filePath) throws org.apache.thrift.TException
+    public void send_persistFile(List<Long> blockIds, long fileId, String filePath) throws org.apache.thrift.TException
     {
-      addCheckpoint_args args = new addCheckpoint_args();
+      persistFile_args args = new persistFile_args();
       args.setBlockIds(blockIds);
       args.setFileId(fileId);
       args.setFilePath(filePath);
-      sendBase("addCheckpoint", args);
+      sendBase("persistFile", args);
     }
 
-    public void recv_addCheckpoint() throws org.apache.thrift.TException
+    public void recv_persistFile() throws org.apache.thrift.TException
     {
-      addCheckpoint_result result = new addCheckpoint_result();
-      receiveBase(result, "addCheckpoint");
+      persistFile_result result = new persistFile_result();
+      receiveBase(result, "persistFile");
       return;
     }
 
@@ -109,18 +109,18 @@ public class LineageWorkerService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void addCheckpoint(List<Long> blockIds, long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void persistFile(List<Long> blockIds, long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      addCheckpoint_call method_call = new addCheckpoint_call(blockIds, fileId, filePath, resultHandler, this, ___protocolFactory, ___transport);
+      persistFile_call method_call = new persistFile_call(blockIds, fileId, filePath, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class addCheckpoint_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class persistFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private List<Long> blockIds;
       private long fileId;
       private String filePath;
-      public addCheckpoint_call(List<Long> blockIds, long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public persistFile_call(List<Long> blockIds, long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.blockIds = blockIds;
         this.fileId = fileId;
@@ -128,8 +128,8 @@ public class LineageWorkerService {
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("addCheckpoint", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        addCheckpoint_args args = new addCheckpoint_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("persistFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        persistFile_args args = new persistFile_args();
         args.setBlockIds(blockIds);
         args.setFileId(fileId);
         args.setFilePath(filePath);
@@ -143,7 +143,7 @@ public class LineageWorkerService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_addCheckpoint();
+        (new Client(prot)).recv_persistFile();
       }
     }
 
@@ -160,26 +160,26 @@ public class LineageWorkerService {
     }
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
-      processMap.put("addCheckpoint", new addCheckpoint());
+      processMap.put("persistFile", new persistFile());
       return processMap;
     }
 
-    public static class addCheckpoint<I extends Iface> extends org.apache.thrift.ProcessFunction<I, addCheckpoint_args> {
-      public addCheckpoint() {
-        super("addCheckpoint");
+    public static class persistFile<I extends Iface> extends org.apache.thrift.ProcessFunction<I, persistFile_args> {
+      public persistFile() {
+        super("persistFile");
       }
 
-      public addCheckpoint_args getEmptyArgsInstance() {
-        return new addCheckpoint_args();
+      public persistFile_args getEmptyArgsInstance() {
+        return new persistFile_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public addCheckpoint_result getResult(I iface, addCheckpoint_args args) throws org.apache.thrift.TException {
-        addCheckpoint_result result = new addCheckpoint_result();
-        iface.addCheckpoint(args.blockIds, args.fileId, args.filePath);
+      public persistFile_result getResult(I iface, persistFile_args args) throws org.apache.thrift.TException {
+        persistFile_result result = new persistFile_result();
+        iface.persistFile(args.blockIds, args.fileId, args.filePath);
         return result;
       }
     }
@@ -197,24 +197,24 @@ public class LineageWorkerService {
     }
 
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
-      processMap.put("addCheckpoint", new addCheckpoint());
+      processMap.put("persistFile", new persistFile());
       return processMap;
     }
 
-    public static class addCheckpoint<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, addCheckpoint_args, Void> {
-      public addCheckpoint() {
-        super("addCheckpoint");
+    public static class persistFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, persistFile_args, Void> {
+      public persistFile() {
+        super("persistFile");
       }
 
-      public addCheckpoint_args getEmptyArgsInstance() {
-        return new addCheckpoint_args();
+      public persistFile_args getEmptyArgsInstance() {
+        return new persistFile_args();
       }
 
       public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Void>() { 
           public void onComplete(Void o) {
-            addCheckpoint_result result = new addCheckpoint_result();
+            persistFile_result result = new persistFile_result();
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -226,7 +226,7 @@ public class LineageWorkerService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            addCheckpoint_result result = new addCheckpoint_result();
+            persistFile_result result = new persistFile_result();
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -246,15 +246,15 @@ public class LineageWorkerService {
         return false;
       }
 
-      public void start(I iface, addCheckpoint_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.addCheckpoint(args.blockIds, args.fileId, args.filePath,resultHandler);
+      public void start(I iface, persistFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.persistFile(args.blockIds, args.fileId, args.filePath,resultHandler);
       }
     }
 
   }
 
-  public static class addCheckpoint_args implements org.apache.thrift.TBase<addCheckpoint_args, addCheckpoint_args._Fields>, java.io.Serializable, Cloneable, Comparable<addCheckpoint_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addCheckpoint_args");
+  public static class persistFile_args implements org.apache.thrift.TBase<persistFile_args, persistFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<persistFile_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("persistFile_args");
 
     private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)1);
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)2);
@@ -262,8 +262,8 @@ public class LineageWorkerService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new addCheckpoint_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new addCheckpoint_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new persistFile_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new persistFile_argsTupleSchemeFactory());
     }
 
     public List<Long> blockIds; // required
@@ -348,13 +348,13 @@ public class LineageWorkerService {
       tmpMap.put(_Fields.FILE_PATH, new org.apache.thrift.meta_data.FieldMetaData("filePath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addCheckpoint_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(persistFile_args.class, metaDataMap);
     }
 
-    public addCheckpoint_args() {
+    public persistFile_args() {
     }
 
-    public addCheckpoint_args(
+    public persistFile_args(
       List<Long> blockIds,
       long fileId,
       String filePath)
@@ -369,7 +369,7 @@ public class LineageWorkerService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public addCheckpoint_args(addCheckpoint_args other) {
+    public persistFile_args(persistFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
       if (other.isSetBlockIds()) {
         List<Long> __this__blockIds = new ArrayList<Long>(other.blockIds);
@@ -381,8 +381,8 @@ public class LineageWorkerService {
       }
     }
 
-    public addCheckpoint_args deepCopy() {
-      return new addCheckpoint_args(this);
+    public persistFile_args deepCopy() {
+      return new persistFile_args(this);
     }
 
     @Override
@@ -412,7 +412,7 @@ public class LineageWorkerService {
       return this.blockIds;
     }
 
-    public addCheckpoint_args setBlockIds(List<Long> blockIds) {
+    public persistFile_args setBlockIds(List<Long> blockIds) {
       this.blockIds = blockIds;
       return this;
     }
@@ -436,7 +436,7 @@ public class LineageWorkerService {
       return this.fileId;
     }
 
-    public addCheckpoint_args setFileId(long fileId) {
+    public persistFile_args setFileId(long fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -459,7 +459,7 @@ public class LineageWorkerService {
       return this.filePath;
     }
 
-    public addCheckpoint_args setFilePath(String filePath) {
+    public persistFile_args setFilePath(String filePath) {
       this.filePath = filePath;
       return this;
     }
@@ -544,12 +544,12 @@ public class LineageWorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof addCheckpoint_args)
-        return this.equals((addCheckpoint_args)that);
+      if (that instanceof persistFile_args)
+        return this.equals((persistFile_args)that);
       return false;
     }
 
-    public boolean equals(addCheckpoint_args that) {
+    public boolean equals(persistFile_args that) {
       if (that == null)
         return false;
 
@@ -606,7 +606,7 @@ public class LineageWorkerService {
     }
 
     @Override
-    public int compareTo(addCheckpoint_args other) {
+    public int compareTo(persistFile_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -660,7 +660,7 @@ public class LineageWorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("addCheckpoint_args(");
+      StringBuilder sb = new StringBuilder("persistFile_args(");
       boolean first = true;
 
       sb.append("blockIds:");
@@ -709,15 +709,15 @@ public class LineageWorkerService {
       }
     }
 
-    private static class addCheckpoint_argsStandardSchemeFactory implements SchemeFactory {
-      public addCheckpoint_argsStandardScheme getScheme() {
-        return new addCheckpoint_argsStandardScheme();
+    private static class persistFile_argsStandardSchemeFactory implements SchemeFactory {
+      public persistFile_argsStandardScheme getScheme() {
+        return new persistFile_argsStandardScheme();
       }
     }
 
-    private static class addCheckpoint_argsStandardScheme extends StandardScheme<addCheckpoint_args> {
+    private static class persistFile_argsStandardScheme extends StandardScheme<persistFile_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, addCheckpoint_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, persistFile_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -772,7 +772,7 @@ public class LineageWorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, addCheckpoint_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, persistFile_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -802,16 +802,16 @@ public class LineageWorkerService {
 
     }
 
-    private static class addCheckpoint_argsTupleSchemeFactory implements SchemeFactory {
-      public addCheckpoint_argsTupleScheme getScheme() {
-        return new addCheckpoint_argsTupleScheme();
+    private static class persistFile_argsTupleSchemeFactory implements SchemeFactory {
+      public persistFile_argsTupleScheme getScheme() {
+        return new persistFile_argsTupleScheme();
       }
     }
 
-    private static class addCheckpoint_argsTupleScheme extends TupleScheme<addCheckpoint_args> {
+    private static class persistFile_argsTupleScheme extends TupleScheme<persistFile_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, addCheckpoint_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, persistFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetBlockIds()) {
@@ -842,7 +842,7 @@ public class LineageWorkerService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, addCheckpoint_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, persistFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
@@ -871,14 +871,14 @@ public class LineageWorkerService {
 
   }
 
-  public static class addCheckpoint_result implements org.apache.thrift.TBase<addCheckpoint_result, addCheckpoint_result._Fields>, java.io.Serializable, Cloneable, Comparable<addCheckpoint_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("addCheckpoint_result");
+  public static class persistFile_result implements org.apache.thrift.TBase<persistFile_result, persistFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<persistFile_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("persistFile_result");
 
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new addCheckpoint_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new addCheckpoint_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new persistFile_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new persistFile_resultTupleSchemeFactory());
     }
 
 
@@ -941,20 +941,20 @@ public class LineageWorkerService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addCheckpoint_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(persistFile_result.class, metaDataMap);
     }
 
-    public addCheckpoint_result() {
+    public persistFile_result() {
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public addCheckpoint_result(addCheckpoint_result other) {
+    public persistFile_result(persistFile_result other) {
     }
 
-    public addCheckpoint_result deepCopy() {
-      return new addCheckpoint_result(this);
+    public persistFile_result deepCopy() {
+      return new persistFile_result(this);
     }
 
     @Override
@@ -987,12 +987,12 @@ public class LineageWorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof addCheckpoint_result)
-        return this.equals((addCheckpoint_result)that);
+      if (that instanceof persistFile_result)
+        return this.equals((persistFile_result)that);
       return false;
     }
 
-    public boolean equals(addCheckpoint_result that) {
+    public boolean equals(persistFile_result that) {
       if (that == null)
         return false;
 
@@ -1007,7 +1007,7 @@ public class LineageWorkerService {
     }
 
     @Override
-    public int compareTo(addCheckpoint_result other) {
+    public int compareTo(persistFile_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -1031,7 +1031,7 @@ public class LineageWorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("addCheckpoint_result(");
+      StringBuilder sb = new StringBuilder("persistFile_result(");
       boolean first = true;
 
       sb.append(")");
@@ -1059,15 +1059,15 @@ public class LineageWorkerService {
       }
     }
 
-    private static class addCheckpoint_resultStandardSchemeFactory implements SchemeFactory {
-      public addCheckpoint_resultStandardScheme getScheme() {
-        return new addCheckpoint_resultStandardScheme();
+    private static class persistFile_resultStandardSchemeFactory implements SchemeFactory {
+      public persistFile_resultStandardScheme getScheme() {
+        return new persistFile_resultStandardScheme();
       }
     }
 
-    private static class addCheckpoint_resultStandardScheme extends StandardScheme<addCheckpoint_result> {
+    private static class persistFile_resultStandardScheme extends StandardScheme<persistFile_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, addCheckpoint_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, persistFile_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1088,7 +1088,7 @@ public class LineageWorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, addCheckpoint_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, persistFile_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1098,21 +1098,21 @@ public class LineageWorkerService {
 
     }
 
-    private static class addCheckpoint_resultTupleSchemeFactory implements SchemeFactory {
-      public addCheckpoint_resultTupleScheme getScheme() {
-        return new addCheckpoint_resultTupleScheme();
+    private static class persistFile_resultTupleSchemeFactory implements SchemeFactory {
+      public persistFile_resultTupleScheme getScheme() {
+        return new persistFile_resultTupleScheme();
       }
     }
 
-    private static class addCheckpoint_resultTupleScheme extends TupleScheme<addCheckpoint_result> {
+    private static class persistFile_resultTupleScheme extends TupleScheme<persistFile_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, addCheckpoint_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, persistFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, addCheckpoint_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, persistFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
       }
     }
