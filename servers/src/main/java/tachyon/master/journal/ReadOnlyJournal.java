@@ -18,7 +18,7 @@ package tachyon.master.journal;
 import tachyon.conf.TachyonConf;
 
 /**
- * The read-only version of {@link Journal}. It prevents access to a journal writer.
+ * The read-only version of {@link Journal}. It prevents access to a {@link JournalWriter}.
  */
 public class ReadOnlyJournal extends Journal {
   /**

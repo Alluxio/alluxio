@@ -84,6 +84,7 @@ public final class StorageTier {
   }
 
   /**
+   * Factory method to create {@link StorageTier}.
    *
    * @param tierLevel the tier level
    * @return a new storage tier

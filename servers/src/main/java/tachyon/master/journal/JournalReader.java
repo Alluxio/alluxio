@@ -29,7 +29,7 @@ import tachyon.underfs.UnderFileSystem;
 /**
  * This class manages reading from the journal. The reading must occur in two phases:
  *
- * 1. First the checkpoint file must be written.
+ * 1. First, the checkpoint file must be read.
  *
  * 2. Afterwards, completed entries are read in order. Only completed logs are read, so the last log
  * currently being written is not read until it is marked as complete.
@@ -39,7 +39,9 @@ public class JournalReader {
 
   private final Journal mJournal;
   private final TachyonConf mTachyonConf;
+  /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
+  /** Absolute path for the journal checkpoint file. */
   private final String mCheckpointPath;
 
   /** true if the checkpoint has already been read. */
@@ -47,7 +49,7 @@ public class JournalReader {
   /** The modified time (in ms) for the opened checkpoint file. */
   private long mCheckpointOpenedTime = -1;
   /** The modified time (in ms) for the latest checkpoint file. */
-  private long mLatestCheckpointModifiedTime = -1;
+  private long mCheckpointLastModifiedTime = -1;
   /** The log number for the completed log file. */
   private int mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
@@ -69,9 +71,16 @@ public class JournalReader {
    * @return true if the checkpoint file has not been modified.
    */
   public boolean isValid() {
-    return mCheckpointRead && (mCheckpointOpenedTime == mLatestCheckpointModifiedTime);
+    return mCheckpointRead && (mCheckpointOpenedTime == mCheckpointLastModifiedTime);
   }
 
+  /**
+   * Gets the {@link JournalInputStream} for the journal checkpoint file. This must be called before
+   * calling {@link #getNextInputStream()}.
+   *
+   * @return the {@link JournalInputStream} for the journal checkpoint file
+   * @throws IOException if the checkpoint file cannot be read, or was already read
+   */
   public JournalInputStream getCheckpointInputStream() throws IOException {
     if (mCheckpointRead) {
       throw new IOException("Checkpoint file has already been read.");
@@ -100,7 +109,7 @@ public class JournalReader {
     }
     String currentLogPath = mJournal.getCompletedLogFilePath(mCurrentLogNumber);
     if (!mUfs.exists(currentLogPath)) {
-      LOG.info("Journal log file: " + currentLogPath + " does not exist yet.");
+      LOG.debug("Journal log file: " + currentLogPath + " does not exist yet.");
       return null;
     }
     // Open input stream from the current log file.
@@ -121,7 +130,7 @@ public class JournalReader {
     if (!mUfs.exists(mCheckpointPath)) {
       throw new IOException("Checkpoint file " + mCheckpointPath + " does not exist.");
     }
-    mLatestCheckpointModifiedTime = mUfs.getModificationTimeMs(mCheckpointPath);
-    return mLatestCheckpointModifiedTime;
+    mCheckpointLastModifiedTime = mUfs.getModificationTimeMs(mCheckpointPath);
+    return mCheckpointLastModifiedTime;
   }
 }

@@ -23,8 +23,8 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.client.BlockMasterClient;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.client.WorkerBlockMasterClient;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
@@ -59,10 +59,10 @@ public final class BlockDataManager {
   /** Metrics reporter that listens on block events and increases metrics counters*/
   private final BlockMetricsReporter mMetricsReporter;
 
-  /** BlockMasterClient, only used to inform the master of a new block in commitBlock */
-  private BlockMasterClient mBlockMasterClient;
-  /** FileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
-  private FileSystemMasterClient mFileSystemMasterClient;
+  /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
+  private WorkerBlockMasterClient mBlockMasterClient;
+  /** WorkerFileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
+  private WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** UnderFileSystem Client */
   private UnderFileSystem mUfs;
   /** Session metadata, used to keep track of session heartbeats */
@@ -74,12 +74,12 @@ public final class BlockDataManager {
    * Creates a BlockDataManager based on the configuration values.
    *
    * @param workerSource object for collecting the worker metrics
-   * @param masterClient the Tachyon master client
+   * @param workerBlockMasterClient the Tachyon master client for worker
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
-                          FileSystemMasterClient fileSystemMasterClient)
-      throws IOException {
+  public BlockDataManager(WorkerSource workerSource,
+      WorkerBlockMasterClient workerBlockMasterClient,
+      WorkerFileSystemMasterClient workerFileSystemMasterClient) throws IOException {
     // TODO: We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -87,8 +87,8 @@ public final class BlockDataManager {
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
 
-    mBlockMasterClient = blockMasterClient;
-    mFileSystemMasterClient = fileSystemMasterClient;
+    mBlockMasterClient = workerBlockMasterClient;
+    mFileSystemMasterClient = workerFileSystemMasterClient;
 
     // Create Under FileSystem Client
     String ufsAddress =
@@ -181,7 +181,7 @@ public final class BlockDataManager {
   /**
    * Commits a block to Tachyon managed space. The block must be temporary. The block is
    * persisted after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible
-   * until {@link BlockMasterClient#workerCommitBlock} succeeds
+   * until {@link WorkerBlockMasterClient#commitBlock} succeeds
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to commit
@@ -205,7 +205,7 @@ public final class BlockDataManager {
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mBlockMasterClient.workerCommitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
+      mBlockMasterClient.commitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {

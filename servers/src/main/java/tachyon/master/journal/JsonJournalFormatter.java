@@ -50,6 +50,7 @@ import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
+import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
@@ -277,6 +278,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getBoolean("isPinned"),
                 entry.getLong("lastModificationTimeMs"),
                 entry.get("childrenIds", new TypeReference<Set<Long>>() {}));
+          }
+          case INODE_MTIME: {
+            return new InodeLastModificationTimeEntry(
+                entry.getLong("id"),
+                entry.getLong("lastModificationTimeMs"));
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(

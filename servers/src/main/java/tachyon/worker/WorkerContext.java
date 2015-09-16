@@ -18,9 +18,11 @@ package tachyon.worker;
 import tachyon.conf.TachyonConf;
 
 /**
- * A WorkerContext object stores TachyonConf
+ * A WorkerContext object stores TachyonConf.
  */
-public class WorkerContext {
+public final class WorkerContext {
+  private WorkerContext() {} // to prevent initialization
+
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
    * worker process.
@@ -29,7 +31,7 @@ public class WorkerContext {
 
   /**
    * Returns the one and only static {@link TachyonConf} object which is shared among all classes
-   * within the worker process
+   * within the worker process.
    *
    * @return the tachyonConf for the worker process
    */

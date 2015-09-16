@@ -47,6 +47,7 @@ public enum ExceptionMessage {
 
   // tieredBlockStore
   BLOCK_ID_FOR_DIFFERENT_SESSION("BlockId {0} is owned by sessionId {1} not {2}"),
+  BLOCK_NOT_FOUND_AT_LOCATION("Block {0} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted block {0}"),
   NO_BLOCK_ID_FOUND("BlockId {0} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
