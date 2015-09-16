@@ -48,7 +48,7 @@ public final class JournalTailer {
   public JournalTailer(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
     mJournal = Preconditions.checkNotNull(journal);
-    mReader = mJournal.getNewReader();
+    mReader = ((ReadOnlyJournal) mJournal).getNewReader();
   }
 
   /**

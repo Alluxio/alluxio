@@ -25,10 +25,10 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
-import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.journal.ReadOnlyJournal;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -86,9 +86,9 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
         stopMasters();
 
         // Transitioning from standby to master, replace readonly journal with writable journal.
-        mBlockMaster.upgradeToWriteJournal(mBlockMasterJournal);
-        mFileSystemMaster.upgradeToWriteJournal(mFileSystemMasterJournal);
-        mRawTableMaster.upgradeToWriteJournal(mRawTableMasterJournal);
+        mBlockMaster.upgradeToReadWriteJournal(mBlockMasterJournal);
+        mFileSystemMaster.upgradeToReadWriteJournal(mFileSystemMasterJournal);
+        mRawTableMaster.upgradeToReadWriteJournal(mRawTableMasterJournal);
 
         startMasters(true);
         started = true;
@@ -102,11 +102,11 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
 
           // When transitioning from master to standby, recreate the masters with a readonly
           // journal.
-          mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
-          mFileSystemMaster =
-              new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal.getReadOnlyJournal());
-          mRawTableMaster =
-              new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal.getReadOnlyJournal());
+          mBlockMaster = new BlockMaster(new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
+          mFileSystemMaster = new FileSystemMaster(mBlockMaster,
+              new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
+          mRawTableMaster = new RawTableMaster(mFileSystemMaster,
+              new ReadOnlyJournal(mRawTableMasterJournal.getDirectory()));
           startMasters(false);
           started = true;
         }

@@ -23,6 +23,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
+import tachyon.master.journal.ReadWriteJournal;
 
 public interface Master extends JournalCheckpointStreamable {
   /**
@@ -74,11 +75,11 @@ public interface Master extends JournalCheckpointStreamable {
   void stop() throws IOException;
 
   /**
-   * Provides the master with a {@link Journal} capable of writing, in preparation to starting as
-   * the leader. This enables transitioning from standby master to leader master without having to
-   * construct a new master object.
+   * Provides the master with a {@link ReadWriteJournal} capable of writing, in preparation to
+   * starting as the leader. This enables transitioning from standby master to leader master without
+   * having to construct a new master object.
    *
-   * @param journal the {@link Journal} capable of writing
+   * @param journal the {@link ReadWriteJournal} capable of writing
    */
-  void upgradeToWriteJournal(Journal journal);
+  void upgradeToReadWriteJournal(ReadWriteJournal journal);
 }
