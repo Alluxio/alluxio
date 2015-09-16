@@ -23,7 +23,6 @@ import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -101,8 +100,6 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO(cc): Resolve the issue with HDFS as UnderFS.
-  @Ignore
   @Test
   public void createFileFaultTest() throws Exception {
     int clients = 10;
@@ -120,8 +117,6 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO(cc): Resolve the issue with HDFS as UnderFS.
-  @Ignore
   @Test
   public void deleteFileFaultTest() throws Exception {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
@@ -155,8 +150,6 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO(cc): Resolve the issue with HDFS as UnderFS.
-  @Ignore
   @Test
   public void createFilesTest() throws Exception {
     int clients = 10;
@@ -174,8 +167,6 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO(cc): Resolve the issue with HDFS as UnderFS.
-  @Ignore
   @Test
   public void killStandbyTest() throws Exception {
     // If standby masters are killed(or node failure), current leader should not be affected and the

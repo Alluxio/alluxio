@@ -26,21 +26,17 @@ import tachyon.master.journal.JournalInputStream;
 
 public interface Master extends JournalCheckpointStreamable {
   /**
-   * Returns the thrift processor for this master.
-   *
-   * @return the {@link TProcessor} serving this master.
+   * @return the {@link TProcessor} serving RPC service for this master.
    */
   TProcessor getProcessor();
 
   /**
-   * Returns the service name for this master.
-   *
    * @return a {@link String} representing this master service name.
    */
   String getServiceName();
 
   /**
-   * Processes the journal checkpoint file.
+   * Processes the journal checkpoint file and applies the entries to the master.
    *
    * @param inputStream the input stream for the journal checkpoint file.
    * @throws IOException
@@ -48,7 +44,8 @@ public interface Master extends JournalCheckpointStreamable {
   void processJournalCheckpoint(JournalInputStream inputStream) throws IOException;
 
   /**
-   * Processes a journal entry. These entries follow the checkpoint entries.
+   * Processes a journal entry and applies it to the master. These entries follow the checkpoint
+   * entries.
    *
    * @param entry the entry to process to update the state of the master.
    * @throws IOException

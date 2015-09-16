@@ -26,6 +26,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
 import tachyon.Version;
+import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.rawtable.RawTableMaster;
@@ -39,20 +40,22 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 final class TachyonMasterFaultTolerant extends TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The zookeeper client that handles selecting the leader. */
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
   public TachyonMasterFaultTolerant() {
     super();
-    Preconditions.checkArgument(mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
+    TachyonConf conf = MasterContext.getConf();
+    Preconditions.checkArgument(conf.getBoolean(Constants.USE_ZOOKEEPER));
 
     // Set up zookeeper specific functionality.
     try {
       // InetSocketAddress.toString causes test issues, so build the string by hand
-      String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf) + ":"
+      String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf) + ":"
           + getMasterAddress().getPort();
-      String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH);
+      String zkAddress = conf.get(Constants.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = conf.get(Constants.ZOOKEEPER_ELECTION_PATH);
+      String zkLeaderPath = conf.get(Constants.ZOOKEEPER_LEADER_PATH);
       mLeaderSelectorClient =
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
     } catch (Exception e) {
@@ -99,11 +102,11 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
 
           // When transitioning from master to standby, recreate the masters with a readonly
           // journal.
-          mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal.getReadOnlyJournal());
-          mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
-              mFileSystemMasterJournal.getReadOnlyJournal());
-          mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
-              mRawTableMasterJournal.getReadOnlyJournal());
+          mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
+          mFileSystemMaster =
+              new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal.getReadOnlyJournal());
+          mRawTableMaster =
+              new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal.getReadOnlyJournal());
           startMasters(false);
           started = true;
         }
