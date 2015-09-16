@@ -162,20 +162,26 @@ public class JournalCrashTest {
 
   private static ClientOptions sClientOptions = null;
   private static List<ClientThread> sClientThreadList = null;
-  private static int sCrashTimes;
   private static int sCreateDeleteClientNum;
   private static int sCreateFileClientNum;
   private static int sCreateRenameClientNum;
+  /** The maximum time a master should ever be alive. */
+  private static long sMaxAliveTimeMs;
   private static String sTestDir;
   /** The Tachyon Client. This can be shared by all the threads. */
   private static TachyonFileSystem sTfs = null;
+  /** The total time to run this test. */
+  private static long sTotalTimeMs;
 
   private static boolean checkStatus() throws Exception {
     // Connect to Master and check if all the test operations are reproduced by Master successfully.
     for (ClientThread clientThread : sClientThreadList) {
       ClientOpType opType = clientThread.getOpType();
       String workDir = clientThread.getWorkDir();
-      for (int s = 0; s < clientThread.getSuccessNum(); s ++) {
+      int successNum = clientThread.getSuccessNum();
+      LOG.info("Expected Status: OpType[{}] WorkDir[{}] SuccessNum[{}].",
+          opType, workDir, successNum);
+      for (int s = 0; s < successNum; s ++) {
         TachyonURI checkURI = new TachyonURI(workDir + s);
         if (ClientOpType.CREATE_FILE == opType) {
           try {
@@ -242,75 +248,64 @@ public class JournalCrashTest {
     // Set NO_STORE and NO_PERSIST so that this test can work without TachyonWorker.
     sClientOptions = new ClientOptions.Builder(new TachyonConf())
         .setStorageTypes(TachyonStorageType.NO_STORE, UnderStorageType.NO_PERSIST).build();
-    sClientThreadList = new ArrayList<ClientThread>();
+    // Set the max retry to avoid long pending for client disconnect.
+    if (System.getProperty(Constants.MASTER_RETRY_COUNT) == null) {
+      System.setProperty(Constants.MASTER_RETRY_COUNT, "10");
+    }
 
-    // Start Tachyon Master and prepare for this test.
     System.out.println("Start Journal Crash Test...");
+    long startTimeMs = System.currentTimeMillis();
+    boolean ret = true;
     startMaster();
-    sTfs = TachyonFileSystem.get();
-    try {
-      sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
-    } catch (Exception ioe) {
-      // Test Directory not exist
-    }
 
-    // Setup and launch all the client threads.
-    for (int i = 0; i < sCreateFileClientNum; i ++) {
-      ClientThread thread = new ClientThread(sTestDir + "/createFile" + i + "/",
-          ClientOpType.CREATE_FILE);
-      sClientThreadList.add(thread);
-    }
-    for (int i = 0; i < sCreateDeleteClientNum; i ++) {
-      ClientThread thread = new ClientThread(sTestDir + "/createDelete" + i + "/",
-          ClientOpType.CREATE_DELETE_FILE);
-      sClientThreadList.add(thread);
-    }
-    for (int i = 0; i < sCreateRenameClientNum; i ++) {
-      ClientThread thread = new ClientThread(sTestDir + "/createRename" + i + "/",
-          ClientOpType.CREATE_RENAME_FILE);
-      sClientThreadList.add(thread);
-    }
-    for (Thread thread : sClientThreadList) {
-      thread.start();
-    }
+    int rounds = 0;
+    while (System.currentTimeMillis() - startTimeMs < sTotalTimeMs) {
+      rounds ++;
+      long aliveTimeMs = (long)(Math.random() * sMaxAliveTimeMs) + 100;
+      LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
-    // Kill/Restart master for several times.
-    System.out.println("Kill/Restart master for " + sCrashTimes + " times...");
-    CommonUtils.sleepMs(LOG, 1000);
-    for (int i = 0; i < sCrashTimes; i ++) {
-      System.out.println("\tTimes " + i);
-      killMaster();
-      startMaster();
-    }
-    killMaster();
-
-    // Wait all client threads stopped.
-    System.out.println("Wait all the Clients stopped...");
-    System.out.println("(This step may take a few seconds due to the retry policy)");
-    for (ClientThread clientThread : sClientThreadList) {
-      clientThread.setIsStopped(true);
-    }
-    for (Thread thread : sClientThreadList) {
+      System.out.println("Round " + rounds + " : Launch Clients...");
+      sTfs = TachyonFileSystem.get();
       try {
-        thread.join();
-      } catch (InterruptedException e) {
-        LOG.error("Error when waiting thread", e);
+        sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
+      } catch (Exception ioe) {
+        // Test Directory not exist
       }
+
+      // Launch all the client threads.
+      setupClientThreads();
+      for (Thread thread : sClientThreadList) {
+        thread.start();
+      }
+
+      CommonUtils.sleepMs(LOG, aliveTimeMs);
+      System.out.println("Round " + rounds + " : Crash Master...");
+      killMaster();
+      for (ClientThread clientThread : sClientThreadList) {
+        clientThread.setIsStopped(true);
+      }
+      for (Thread thread : sClientThreadList) {
+        try {
+          thread.join();
+        } catch (InterruptedException e) {
+          LOG.error("Error when waiting thread", e);
+        }
+      }
+
+      System.out.println("Round " + rounds + " : Check Status...");
+      startMaster();
+      boolean checkSuccess = false;
+      try {
+        checkSuccess = checkStatus();
+      } catch (Exception e) {
+        LOG.error("Failed to check status", e);
+      }
+      Utils.printPassInfo(checkSuccess);
+      ret &= checkSuccess;
     }
 
-    // Restart Tachyon Master. Check status and print pass info.
-    System.out.println("Check status...");
-    startMaster();
-    boolean checkSuccess = false;
-    try {
-      checkSuccess = checkStatus();
-    } catch (Exception e) {
-      LOG.error("Failed to check status", e);
-    } finally {
-      stopCluster();
-    }
-    Utils.printPassInfo(checkSuccess);
-    System.exit(checkSuccess ? EXIT_SUCCESS : EXIT_FAILED);
+    stopCluster();
+    System.exit(ret ? EXIT_SUCCESS : EXIT_FAILED);
   }
 
   /**
@@ -323,7 +318,10 @@ public class JournalCrashTest {
   private static boolean parseInputArgs(String[] args) {
     Options options = new Options();
     options.addOption("help", false, "Show help for this test");
-    options.addOption("crashes", true, "Repeat times to kill/restart Master");
+    options.addOption("maxAlive", true,
+        "The maximum time a master should ever be alive during the test, in seconds");
+    options.addOption("totalTime", true, "The total time to run this test, in seconds."
+        + " This value should be greater than [maxAlive]");
     options.addOption("creates", true, "Number of Client Threads to request create operations");
     options.addOption("deletes", true,
         "Number of Client Threads to request create/delete operations");
@@ -340,7 +338,8 @@ public class JournalCrashTest {
       ret = false;
     }
     if (ret && !cmd.hasOption("help")) {
-      sCrashTimes = Integer.parseInt(cmd.getOptionValue("crashes", "2"));
+      sMaxAliveTimeMs = 1000 * Long.parseLong(cmd.getOptionValue("maxAlive", "5"));
+      sTotalTimeMs = 1000 * Long.parseLong(cmd.getOptionValue("totalTime", "20"));
       sCreateFileClientNum = Integer.parseInt(cmd.getOptionValue("creates", "2"));
       sCreateDeleteClientNum = Integer.parseInt(cmd.getOptionValue("deletes", "2"));
       sCreateRenameClientNum = Integer.parseInt(cmd.getOptionValue("renames", "2"));
@@ -350,10 +349,33 @@ public class JournalCrashTest {
       new HelpFormatter().printHelp("java -cp tachyon-" + Version.VERSION
           + "-jar-with-dependencies.jar tachyon.examples.JournalCrashTest",
           "Test the Master Journal System in a crash scenario", options,
-          "e.g. options '-crashes 5 -creates 2 -deletes 2 -renames 2' will launch total 6 clients"
-          + " connecting to the Master and kill/restart the Master for 5 times", true);
+          "e.g. options '-maxAlive 5 -totalTime 20 -creates 2 -deletes 2 -renames 2'"
+          + "will launch total 6 clients connecting to the Master and the Master"
+          + "will crash randomly with the max alive time 5 seconds.", true);
     }
     return ret;
+  }
+
+  /**
+   * Setup all the client threads.
+   */
+  private static void setupClientThreads() {
+    sClientThreadList = new ArrayList<ClientThread>();
+    for (int i = 0; i < sCreateFileClientNum; i ++) {
+      ClientThread thread = new ClientThread(sTestDir + "/createFile" + i + "/",
+          ClientOpType.CREATE_FILE);
+      sClientThreadList.add(thread);
+    }
+    for (int i = 0; i < sCreateDeleteClientNum; i ++) {
+      ClientThread thread = new ClientThread(sTestDir + "/createDelete" + i + "/",
+          ClientOpType.CREATE_DELETE_FILE);
+      sClientThreadList.add(thread);
+    }
+    for (int i = 0; i < sCreateRenameClientNum; i ++) {
+      ClientThread thread = new ClientThread(sTestDir + "/createRename" + i + "/",
+          ClientOpType.CREATE_RENAME_FILE);
+      sClientThreadList.add(thread);
+    }
   }
 
   /**
