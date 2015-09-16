@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
@@ -59,9 +60,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   public S3UnderFileSystem(String bucketName, TachyonConf tachyonConf) throws ServiceException {
     super(tachyonConf);
+    Preconditions.checkArgument(tachyonConf.containsKey(Constants.S3_ACCESS_KEY),
+        "Property " + Constants.S3_ACCESS_KEY + " is required to connect to S3");
+    Preconditions.checkArgument(tachyonConf.containsKey(Constants.S3_SECRET_KEY),
+        "Property " + Constants.S3_SECRET_KEY + " is required to connect to S3");
     AWSCredentials awsCredentials =
         new AWSCredentials(tachyonConf.get(Constants.S3_ACCESS_KEY), tachyonConf.get(
-            Constants.S3_SECRET_KEY, null));
+            Constants.S3_SECRET_KEY));
     mBucketName = bucketName;
     mClient = new RestS3Service(awsCredentials);
     mBucketPrefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;

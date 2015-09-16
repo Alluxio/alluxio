@@ -233,15 +233,13 @@ public class TachyonConf {
     mProperties.put(key, value);
   }
 
-  public String get(String key, final String defaultValue) {
-    String raw = mProperties.getProperty(key, defaultValue);
-    String updated = lookup(raw);
-    LOG.debug("Get Tachyon property {} as {} with default {}", key, updated, defaultValue);
-    return updated;
-  }
-
   public String get(String key) {
-    return get(key, null);
+    if (!mProperties.containsKey(key)) {
+      // if key is not found among the default properties
+      throw new RuntimeException("Invalid configuration key " + key + ".");
+    }
+    String raw = mProperties.getProperty(key);
+    return lookup(raw);
   }
 
   public boolean containsKey(String key) {
