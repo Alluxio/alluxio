@@ -55,6 +55,7 @@ import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.rawtable.journal.UpdateMetadataEntry;
+import tachyon.security.authorization.PermissionStatus;
 
 public final class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
@@ -170,6 +171,18 @@ public final class JsonJournalFormatter implements JournalFormatter {
     }
 
     /**
+     * Deserializes a parameter as {@code Short}. Use of this function is necessary
+     * when dealing with shorts(such as short permission 0755),
+     * as they may have been deserialized as integers if they were sufficiently small.
+     *
+     * @param name the name of the parameter
+     * @return deserialized value of this parameter in {@code Short}
+     */
+    public Short getShort(String name) {
+      return get(name, Number.class).shortValue();
+    }
+
+    /**
      * Deserializes a parameter as {@code Long}. Use of this function is necessary when dealing with
      * longs, as they may have been deserialized as integers if they were sufficiently small.
      *
@@ -266,7 +279,9 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getBoolean("isComplete"),
                 entry.getBoolean("isCacheable"),
                 entry.getString("ufsPath"),
-                entry.get("blocks", new TypeReference<List<Long>>() {}));
+                entry.get("blocks", new TypeReference<List<Long>>() {}),
+                new PermissionStatus(entry.getString("username"),
+                    entry.getString("groupname"), entry.getShort("permission")));
           }
           case INODE_DIRECTORY: {
             return new InodeDirectoryEntry(
@@ -276,7 +291,9 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("parentId"),
                 entry.getBoolean("isPinned"),
                 entry.getLong("lastModificationTimeMs"),
-                entry.get("childrenIds", new TypeReference<Set<Long>>() {}));
+                entry.get("childrenIds", new TypeReference<Set<Long>>() {}),
+                new PermissionStatus(entry.getString("username"),
+                    entry.getString("groupname"), entry.getShort("permission")));
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(

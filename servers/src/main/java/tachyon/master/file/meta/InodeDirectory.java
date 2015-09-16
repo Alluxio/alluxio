@@ -27,6 +27,8 @@ import tachyon.Constants;
 import tachyon.master.IndexedSet;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.journal.JournalEntry;
+import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -59,7 +61,21 @@ public final class InodeDirectory extends Inode {
    * @param creationTimeMs The creation time of the folder, in milliseconds
    */
   public InodeDirectory(String name, long id, long parentId, long creationTimeMs) {
-    super(name, id, parentId, true, creationTimeMs);
+    this(name, id, parentId, creationTimeMs, PermissionStatus.getDirDefault());
+  }
+
+  /**
+   * Creates a new InodeFolder.
+   *
+   * @param name The name of the folder
+   * @param id The inode id of the folder
+   * @param parentId The inode id of the parent of the folder
+   * @param creationTimeMs The creation time of the folder, in milliseconds
+   * @param ps the directory permissionStatus information
+   */
+  public InodeDirectory(String name, long id, long parentId, long creationTimeMs,
+      PermissionStatus ps) {
+    super(name, id, parentId, true, creationTimeMs, ps);
   }
 
   /**
@@ -105,6 +121,9 @@ public final class InodeDirectory extends Inode {
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
+    ret.username = getUsername();
+    ret.groupname = getGroupname();
+    ret.permission = getPermission();
     return ret;
   }
 
@@ -179,6 +198,7 @@ public final class InodeDirectory extends Inode {
   @Override
   public synchronized JournalEntry toJournalEntry() {
     return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-        isPinned(), getLastModificationTimeMs(), getChildrenIds());
+        isPinned(), getLastModificationTimeMs(), getChildrenIds(),
+        new PermissionStatus(getUsername(), getGroupname(),getPermission()));
   }
 }

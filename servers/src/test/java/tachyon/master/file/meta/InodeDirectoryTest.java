@@ -183,4 +183,11 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
         System.currentTimeMillis() - start));
   }
 
+  @Test
+  public void permissionStatusTest() {
+    InodeDirectory inode2 = createInodeDirectory();
+    Assert.assertEquals("user1", inode2.getUsername());
+    Assert.assertEquals("group1", inode2.getGroupname());
+    Assert.assertEquals((short)0755, inode2.getPermission());
+  }
 }

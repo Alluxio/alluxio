@@ -60,6 +60,9 @@ struct FileInfo {
   13: i32 dependencyId
   14: i32 inMemoryPercentage
   15: i64 lastModificationTimeMs
+  16: string username
+  17: string groupname
+  18: i32 permission
 }
 
 // Information about lineage.

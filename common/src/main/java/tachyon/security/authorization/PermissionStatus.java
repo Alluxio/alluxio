@@ -26,6 +26,12 @@ public class PermissionStatus {
     mPermission = permission;
   }
 
+  public PermissionStatus(String username, String groupname, short permission) {
+    mUsername = username;
+    mGroupname = groupname;
+    mPermission = new FsPermission(permission);
+  }
+
   /** Return user name */
   public String getUserName() {
     return mUsername;
@@ -46,8 +52,13 @@ public class PermissionStatus {
    * @see FsPermission#applyUMask(FsPermission)
    */
   public PermissionStatus applyUMask(FsPermission umask) {
-    mPermission = mPermission.applyUMask(umask);
-    return this;
+    FsPermission newFsPermission = mPermission.applyUMask(umask);
+    return new PermissionStatus(mUsername, mGroupname, newFsPermission);
+  }
+
+  /** Get the Directory default PermissionStatus. */
+  public static PermissionStatus getDirDefault() {
+    return new PermissionStatus("", "", new FsPermission((short)0755));
   }
 
   /** {@inheritDoc} */
