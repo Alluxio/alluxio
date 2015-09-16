@@ -151,13 +151,13 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated port.
    *
-   * @param tachyonHome Tachyon home directory
+   * @param tachyonHome Tachyon home directory, if the directory already exists, this method will
+   *                    reuse any directory/file if possible, no deletion will be made
    * @return an instance of Tachyon master
    * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome) throws IOException {
     TachyonConf tachyonConf = MasterContext.getConf();
-    UnderFileSystemUtils.deleteDir(tachyonHome, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
 
     return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome));
