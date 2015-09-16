@@ -117,10 +117,10 @@ public final class InodeFile extends Inode {
    */
   public synchronized long getNewBlockId() {
     long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
-    // TODO: check for max block sequence number, and sanity check the sequence number.
-    // TODO: check isComplete?
-    // TODO: This will not work with existing lineage implementation, since a new writer will not be
-    // able to get the same block ids (to write the same block ids).
+    // TODO(gene): Check for max block sequence number, and sanity check the sequence number.
+    // TODO(gene): Check isComplete?
+    // TODO(gene): This will not work with existing lineage implementation, since a new writer will
+    // not be able to get the same block ids (to write the same block ids).
     mBlocks.add(blockId);
     return blockId;
   }

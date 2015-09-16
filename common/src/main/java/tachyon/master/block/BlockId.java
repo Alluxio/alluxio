@@ -41,7 +41,7 @@ public final class BlockId {
    * @return the block id constructed with the container id and sequence number
    */
   public static long createBlockId(long containerId, long sequenceNumber) {
-    // TODO: check for valid ids here?
+    // TODO(gene): Check for valid ids here?
     return ((containerId & CONTAINER_ID_MASK) << SEQUENCE_NUMBER_BITS)
         | (sequenceNumber & SEQUENCE_NUMBER_MASK);
   }
