@@ -72,7 +72,7 @@ public class AsyncEvictor implements Runnable {
         mSemaphore.release();
       }
     }, 0L, WorkerContext.getConf().getLong(Constants
-        .WORKER_TIERED_STORAGE_EVICTION_ASYNC_PERIOD_MS_FORMAT));
+        .WORKER_TIERED_STORAGE_EVICT_ASYNC_PERIOD_MS_FORMAT));
   }
 
   @Override

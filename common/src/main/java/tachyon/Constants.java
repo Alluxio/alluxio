@@ -230,7 +230,7 @@ public final class Constants {
   public static final String WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT =
       "tachyon.worker.tieredstore.level%d.reserved.ratio";
 
-  public static final String WORKER_TIERED_STORAGE_EVICTION_ASYNC_PERIOD_MS_FORMAT =
+  public static final String WORKER_TIERED_STORAGE_EVICT_ASYNC_PERIOD_MS_FORMAT =
       "tachyon.worker.tieredstore.evict.async.period.ms";
 
   public static final String WORKER_EVICT_ASYNC_ENABLE =

@@ -57,7 +57,7 @@ public final class BlockStoreMeta {
 
   public BlockStoreMeta(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager);
-    mAliasOnTiers = new ArrayList<Integer>(manager.getTiers().size());
+    mAliasOnTiers = new ArrayList<Integer>(Collections.nCopies(manager.getTiers().size(), 0));
     for (StorageTier tier : manager.getTiers()) {
       mAliasOnTiers.set(tier.getTierLevel(), tier.getTierAlias());
       int aliasIndex = tier.getTierAlias() - 1;
