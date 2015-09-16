@@ -65,7 +65,6 @@ public class TachyonMaster {
     }
   }
 
-  protected final TachyonConf mTachyonConf;
   /** Maximum number of threads to serve the rpc server */
   private final int mMaxWorkerThreads;
   /** Minimum number of threads to serve the rpc server */
@@ -121,10 +120,10 @@ public class TachyonMaster {
   }
 
   protected TachyonMaster() {
-    mTachyonConf = MasterContext.getConf();
+    TachyonConf conf = MasterContext.getConf();
 
-    mMinWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
-    mMaxWorkerThreads = mTachyonConf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
+    mMinWorkerThreads = conf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
+    mMaxWorkerThreads = conf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         Constants.MASTER_MAX_WORKER_THREADS + " can not be less than "
@@ -137,14 +136,14 @@ public class TachyonMaster {
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
       mTServerSocket = new TServerSocket(
-          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, mTachyonConf));
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master port
-      mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(mPort));
-      mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf);
+      conf.set(Constants.MASTER_PORT, Integer.toString(mPort));
+      mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
 
       // Check the journal directory
-      String journalDirectory = mTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
+      String journalDirectory = conf.get(Constants.MASTER_JOURNAL_FOLDER);
       if (!journalDirectory.endsWith(TachyonURI.SEPARATOR)) {
         journalDirectory += TachyonURI.SEPARATOR;
       }
@@ -152,30 +151,20 @@ public class TachyonMaster {
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
       // Create the journals.
-      mBlockMasterJournal = new Journal(BlockMaster.getJournalDirectory(journalDirectory),
-          mTachyonConf);
-      mFileSystemMasterJournal = new Journal(FileSystemMaster.getJournalDirectory(journalDirectory),
-          mTachyonConf);
-      mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory),
-          mTachyonConf);
+      mBlockMasterJournal = new Journal(BlockMaster.getJournalDirectory(journalDirectory));
+      mFileSystemMasterJournal =
+          new Journal(FileSystemMaster.getJournalDirectory(journalDirectory));
+      mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory));
 
-      mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal);
-      mFileSystemMaster =
-          new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
-      mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
+      mBlockMaster = new BlockMaster(mBlockMasterJournal);
+      mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
+      mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
 
       // TODO: implement metrics.
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
-  }
-
-  /**
-   * @return the underlying {@link TachyonConf} instance for the master.
-   */
-  public TachyonConf getTachyonConf() {
-    return mTachyonConf;
   }
 
   /**
@@ -303,8 +292,9 @@ public class TachyonMaster {
 
   protected void startServingWebServer() {
     // start web ui
+    TachyonConf conf = MasterContext.getConf();
     mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-        ServiceType.MASTER_WEB, mTachyonConf), this, mTachyonConf);
+        ServiceType.MASTER_WEB, conf), this, conf);
     mWebServer.startWebServer();
   }
 
@@ -348,7 +338,8 @@ public class TachyonMaster {
    * @throws IOException
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(journalDirectory, mTachyonConf);
+    TachyonConf conf = MasterContext.getConf();
+    UnderFileSystem ufs = UnderFileSystem.get(journalDirectory, conf);
     if (!ufs.providesStorage()) {
       // TODO: Should the journal really be allowed on a ufs without storage?
       // This ufs doesn't provide storage. Allow the master to use this ufs for the journal.
@@ -360,7 +351,7 @@ public class TachyonMaster {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = mTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = conf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
     for (String file : files) {
       if (file.startsWith(formatFilePrefix)) {
         return true;
@@ -370,9 +361,9 @@ public class TachyonMaster {
   }
 
   private void connectToUFS() throws IOException {
-    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-    ufs.connectFromMaster(mTachyonConf,
-        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf));
+    TachyonConf conf = MasterContext.getConf();
+    String ufsAddress = conf.get(Constants.UNDERFS_ADDRESS);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, conf);
+    ufs.connectFromMaster(conf, NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf));
   }
 }

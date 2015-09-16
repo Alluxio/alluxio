@@ -46,16 +46,15 @@ public final class MasterInfo {
   private final FileSystemMaster mFileSystemMaster;
   private final InetSocketAddress mMasterAddress;
   private final long mStartTimeMs;
-  private final TachyonConf mTachyonConf;
   private final String mUFSDataFolder;
 
   public MasterInfo(BlockMaster blockMaster, FileSystemMaster fileSystemMaster,
       InetSocketAddress address, TachyonConf tachyonConf) {
+    TachyonConf conf = MasterContext.getConf();
     mBlockMaster = Preconditions.checkNotNull(blockMaster);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mMasterAddress = Preconditions.checkNotNull(address);
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+    mUFSDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
     mStartTimeMs = System.currentTimeMillis();
   }
 
@@ -183,7 +182,7 @@ public final class MasterInfo {
    * @throws IOException when the operation fails
    */
   public long getUnderFsCapacityBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, MasterContext.getConf());
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_TOTAL);
   }
 
@@ -194,7 +193,7 @@ public final class MasterInfo {
    * @throws IOException when the operation fails
    */
   public long getUnderFsFreeBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, MasterContext.getConf());
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_FREE);
   }
 
@@ -205,7 +204,7 @@ public final class MasterInfo {
    * @throws IOException when the operation fails
    */
   public long getUnderFsUsedBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, MasterContext.getConf());
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_USED);
   }
 

@@ -71,7 +71,7 @@ public class TFsShellTest {
     mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mFsShell = new TFsShell(mLocalTachyonCluster.getMasterTachyonConf());
+    mFsShell = new TFsShell(new TachyonConf());
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
     mOldOutput = System.out;

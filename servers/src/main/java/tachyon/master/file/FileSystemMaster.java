@@ -36,6 +36,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -98,18 +99,17 @@ public final class FileSystemMaster extends MasterBase {
     return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME);
   }
 
-  public FileSystemMaster(TachyonConf tachyonConf, BlockMaster blockMaster,
-      Journal journal) {
+  public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)),
-        tachyonConf);
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator);
 
     // TODO: handle default config value for whitelist.
-    mWhitelist = new PrefixList(mTachyonConf.getList(Constants.MASTER_WHITELIST, ","));
+    TachyonConf conf = MasterContext.getConf();
+    mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
   }
 
   @Override
@@ -141,7 +141,7 @@ public final class FileSystemMaster extends MasterBase {
           dependencyEntry.mChildrenFiles, dependencyEntry.mCommandPrefix, dependencyEntry.mData,
           dependencyEntry.mComment, dependencyEntry.mFramework, dependencyEntry.mFrameworkVersion,
           dependencyEntry.mDependencyType, dependencyEntry.mParentDependencies,
-          dependencyEntry.mCreationTimeMs, mTachyonConf);
+          dependencyEntry.mCreationTimeMs);
       for (int childDependencyId : dependencyEntry.mChildrenDependencies) {
         dependency.addChildrenDependency(childDependencyId);
       }
@@ -286,10 +286,6 @@ public final class FileSystemMaster extends MasterBase {
     } catch (BlockInfoException bie) {
       throw new RuntimeException(bie);
     }
-  }
-
-  public TachyonConf getTachyonConf() {
-    return mTachyonConf;
   }
 
   /**
@@ -558,7 +554,7 @@ public final class FileSystemMaster extends MasterBase {
         // Delete the ufs checkpoint.
         String checkpointPath = ((InodeFile) delInode).getUfsPath();
         if (!checkpointPath.isEmpty()) {
-          UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mTachyonConf);
+          UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, MasterContext.getConf());
           try {
             if (!ufs.exists(checkpointPath)) {
               LOG.warn("File does not exist the underfs: " + checkpointPath);
@@ -657,7 +653,7 @@ public final class FileSystemMaster extends MasterBase {
     if (fileBlockInfo.blockInfo.locations.isEmpty() && file.hasCheckpointed()) {
       // No tachyon locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
-      UnderFileSystem ufs = UnderFileSystem.get(file.getUfsPath(), mTachyonConf);
+      UnderFileSystem ufs = UnderFileSystem.get(file.getUfsPath(), MasterContext.getConf());
       List<String> locs = null;
       try {
         locs = ufs.getFileLocations(file.getUfsPath(), fileBlockInfo.offset);
@@ -1000,7 +996,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the ufs address for this master.
    */
   public String getUfsAddress() {
-    return mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
+    return MasterContext.getConf().get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
   }
 
   /**
