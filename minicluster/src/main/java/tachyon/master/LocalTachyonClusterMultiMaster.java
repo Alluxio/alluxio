@@ -235,8 +235,8 @@ public class LocalTachyonClusterMultiMaster {
 
     // Create the directories for the data and workers after LocalTachyonMaster construction,
     // because LocalTachyonMaster sets the UNDERFS_DATA_FOLDER and UNDERFS_WORKERS_FOLDER.
-    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER));
 
     LOG.info("all " + mNumOfMasters + " masters started.");
     LOG.info("waiting for a leader.");
@@ -277,7 +277,7 @@ public class LocalTachyonClusterMultiMaster {
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       String newPath = "";
       for (String dirPath : dirPaths) {
         newPath += mTachyonHome + dirPath + ",";

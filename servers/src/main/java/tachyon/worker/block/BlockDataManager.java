@@ -149,8 +149,7 @@ public final class BlockDataManager {
   public void addCheckpoint(long sessionId, long fileId) throws TException, IOException {
     // TODO This part needs to be changed.
     String srcPath = PathUtils.concatPath(getSessionUfsTmpFolder(sessionId), fileId);
-    String ufsDataFolder =
-        mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
     String dstPath = PathUtils.concatPath(ufsDataFolder, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
