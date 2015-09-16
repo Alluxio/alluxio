@@ -19,6 +19,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +53,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @return a TachyonFileSystem instance, there is only one instance available at any time
    */
   public static synchronized TachyonFileSystem get() {
-    if (null == sClient) {
+    if (sClient == null) {
       sClient = new TachyonFileSystem();
     }
     return sClient;
@@ -144,9 +146,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       FileInfo info = masterClient.getFileInfo(file.getFileId());
-      if (info.isFolder) {
-        throw new IOException("Cannot get an instream to a folder.");
-      }
+      Preconditions.checkState(!info.isIsFolder(), "Cannot read from a folder");
       return new FileInStream(info, options);
     } finally {
       mContext.releaseMasterClient(masterClient);

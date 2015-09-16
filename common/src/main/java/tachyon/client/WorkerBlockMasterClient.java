@@ -18,6 +18,7 @@ package tachyon.client;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
@@ -27,33 +28,30 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockMasterService;
-import tachyon.thrift.WorkerInfo;
+import tachyon.thrift.Command;
+import tachyon.thrift.NetAddress;
+
+
 
 /**
- * A wrapper for the thrift client to interact with the block master, used by tachyon clients.
- *
- * TODO(jsimsa): The functions in this wrapper contain very similar boilerplate. It would make sense
- * to have a single "Retry" utility is used to to execute the while () { try ... catch ... } logic,
- * parametrized by the RPC to invoke.
- *
+ * A wrapper for the thrift client to interact with the block master, used by tachyon worker.
+ * <p/>
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-public final class BlockMasterClient extends MasterClientBase {
+public final class WorkerBlockMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private BlockMasterService.Client mClient = null;
 
   /**
-   * Creates a new block master client.
+   * Creates a new block master client for the worker.
    *
    * @param masterAddress the master address
    * @param executorService the executor service
    * @param tachyonConf the Tachyon configuration
    */
-  public BlockMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
+  public WorkerBlockMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
       TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
   }
@@ -69,17 +67,23 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Gets the info of a list of workers.
+   * Commits a block on a worker.
    *
-   * @return A list of worker info returned by master
+   * @param workerId the worker id committing the block
+   * @param usedBytesOnTier the amount of used bytes on the tier the block is committing to
+   * @param tier the tier the block is being committed to
+   * @param blockId the block id being committed
+   * @param length the length of the block being committed
    * @throws IOException if an I/O error occurs
    */
-  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
+  public synchronized void commitBlock(long workerId, long usedBytesOnTier, int tier, long blockId,
+      long length) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.getWorkerInfoList();
+        mClient.workerCommitBlock(workerId, usedBytesOnTier, tier, blockId, length);
+        return;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -89,18 +93,19 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Returns the BlockInfo for a block id.
+   * Returns a worker id for a workers net address.
    *
-   * @param blockId the block id to get the BlockInfo for
-   * @return the BlockInfo
+   * @param address the net address to get a worker id for
+   * @return a worker id
    * @throws IOException if an I/O error occurs
    */
-  public synchronized BlockInfo getBlockInfo(long blockId) throws IOException {
+  // TODO: rename to workerRegister?
+  public synchronized long getId(NetAddress address) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.getBlockInfo(blockId);
+        return mClient.workerGetWorkerId(address);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -110,17 +115,23 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Gets the total Tachyon capacity in bytes, on all the tiers of all the workers.
+   * The method the worker should periodically execute to heartbeat back to the master.
    *
-   * @return total capacity in bytes
+   * @param workerId the worker id
+   * @param usedBytesOnTiers a list of used bytes on each tier
+   * @param removedBlocks a list of block removed from this worker
+   * @param addedBlocks the added blocks for each storage dir. It maps storage dir id, to a list of
+   *        added block for that storage dir.
+   * @return an optional command for the worker to execute
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getCapacityBytes() throws IOException {
+  public synchronized Command heartbeat(long workerId, List<Long> usedBytesOnTiers,
+      List<Long> removedBlocks, Map<Long, List<Long>> addedBlocks) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.getCapacityBytes();
+        return mClient.workerHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -130,17 +141,25 @@ public final class BlockMasterClient extends MasterClientBase {
   }
 
   /**
-   * Gets the total amount of used space in bytes, on all the tiers of all the workers.
+   * The method the worker should execute to register with the block master.
    *
-   * @return amount of used space in bytes
+   * @param workerId the worker id of the worker registering
+   * @param totalBytesOnTiers list of total bytes on each tier
+   * @param usedBytesOnTiers list of the used byes on each tier
+   * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
+   *        dir
+   * @return the worker id
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getUsedBytes() throws IOException {
+  // TODO: rename to workerBlockReport or workerInitialize?
+  public synchronized long register(long workerId, List<Long> totalBytesOnTiers,
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.getUsedBytes();
+        return mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
+            currentBlocksOnTiers);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

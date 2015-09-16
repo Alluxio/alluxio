@@ -10,8 +10,8 @@
 
   <artifactId>tachyon-minicluster</artifactId>
   <packaging>jar</packaging>
-  <name>Mock Tachyon Cluster</name>
-  <description>Mock Tachyon Cluster for testing</description>
+  <name>Tachyon MiniCluster</name>
+  <description>Tachyon MiniCluster for testing</description>
 
   <properties>
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>

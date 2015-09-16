@@ -153,7 +153,7 @@ public class BlockMetadataManagerView {
    */
   public StorageTierView getTierView(int tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
-    if (null == tierView) {
+    if (tierView == null) {
       throw new IllegalArgumentException(
           ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierAlias));
     } else {

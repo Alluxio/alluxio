@@ -15,6 +15,9 @@
 
 package tachyon.master.journal;
 
+/**
+ * The types of entries that can be represented in the journal.
+ */
 public enum JournalEntryType {
   // Block master entries
   BLOCK_CONTAINER_ID_GENERATOR,

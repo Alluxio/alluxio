@@ -185,7 +185,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   @Override
   public String getUnderFilesystemAddress() {
-    if (null != mDfsClient) {
+    if (mDfsClient != null) {
       return mDfsClient.getUri().toString();
     }
     return null;

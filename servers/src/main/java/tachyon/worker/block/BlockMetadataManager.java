@@ -58,6 +58,11 @@ public class BlockMetadataManager {
 
   private BlockMetadataManager() {}
 
+  /**
+   * Factory method to create {@link BlockMetadataManager}.
+   *
+   * @return the new created BlockMetadataManager
+   */
   public static BlockMetadataManager newBlockMetadataManager() {
     BlockMetadataManager ret = new BlockMetadataManager();
     try {
