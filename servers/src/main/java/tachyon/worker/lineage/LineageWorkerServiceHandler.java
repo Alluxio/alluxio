@@ -15,31 +15,34 @@
 
 package tachyon.worker.lineage;
 
+import java.util.List;
+
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.worker.block.BlockDataManager;
+import tachyon.thrift.LineageWorkerService.Iface;
 
 /**
- * This class is responsible for managing all top level components of the lineage worker.
+ * Handles all thrift RPC calls to the lineage worker. This class is a thrift server implementation and is
+ * thread safe.
  */
-public final class LineageWorker {
+public final class LineageWorkerServiceHandler implements Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Logic for managing lineage file persistence */
-  private final LineageDataManager mLineageDataManager;
-  /** Access to block datt */
-  private final BlockDataManager mBlockDataManager;
-  /** Logic for handling RPC to lineage master */
-  private final LineageWorkerServiceHandler mServiceHandler;
+  /** Lineage data manager that carries out the actual operations */
+  private final LineageDataManager mManager;
 
-  public LineageWorker(BlockDataManager blockDataManager) {
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-
-    mLineageDataManager= new LineageDataManager(blockDataManager);
-    mServiceHandler = new LineageWorkerServiceHandler(mLineageDataManager);
+  public LineageWorkerServiceHandler(LineageDataManager manager) {
+    mManager = Preconditions.checkNotNull(manager);
   }
+
+  @Override
+  public void persistFile(List<Long> blockIds, long fileId, String filePath) throws TException {
+    mManager.persistFile(fileId, blockIds, filePath);
+  }
+
 }

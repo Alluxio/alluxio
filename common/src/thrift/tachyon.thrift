@@ -270,7 +270,7 @@ service RawTableMasterService {
 }
 
 service LineageWorkerService {
-	void addCheckpoint(1: list<i64> blockIds, 2: i64 fileId, 3: string filePath)
+	void persistFile(1: list<i64> blockIds, 2: i64 fileId, 3: string filePath)
 }
 
 service WorkerService {
