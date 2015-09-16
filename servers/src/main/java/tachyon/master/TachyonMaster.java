@@ -77,7 +77,7 @@ public class TachyonMaster {
   /** The address for the rpc server */
   private final InetSocketAddress mMasterAddress;
 
-  // The masters
+  // the masters
   /** The master managing all block metadata */
   protected BlockMaster mBlockMaster;
   /** The master managing all file system related metadata */
@@ -85,7 +85,7 @@ public class TachyonMaster {
   /** The master managing all raw table related metadata */
   protected RawTableMaster mRawTableMaster;
 
-  // The journals for the masters
+  // the journals for the masters
   /** The journal for the block master */
   protected final Journal mBlockMasterJournal;
   /** The journal for the file system master */
