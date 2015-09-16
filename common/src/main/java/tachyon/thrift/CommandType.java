@@ -20,7 +20,7 @@ public enum CommandType implements org.apache.thrift.TEnum {
 
   private final int value;
 
-  private CommandType(int value) {
+  CommandType(int value) {
     this.value = value;
   }
 
