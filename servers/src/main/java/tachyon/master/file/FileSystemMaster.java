@@ -76,6 +76,9 @@ import tachyon.util.FormatUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
+/**
+ * The master that handles all file system metadata management.
+ */
 public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -293,10 +296,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Whether the filesystem contains a directory with the id.
+   * Whether the filesystem contains a directory with the id. Called by internal masters.
    *
    * @param id id of the directory
-   * @return true if there is such a directory, otherwise false
+   * @return true if there is a directory with the id, false otherwise
    */
   public boolean isDirectory(long id) {
     synchronized (mInodeTree) {
@@ -645,6 +648,14 @@ public final class FileSystemMaster extends MasterBase {
     return getFileBlockInfoList(fileId);
   }
 
+  /**
+   * Generates a {@link FileBlockInfo} object from internal metadata. This adds file information to
+   * the block, such as the file offset, and additional UFS locations for the block.
+   *
+   * @param file the file the block is a part of
+   * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
+   * @return a new {@link FileBlockInfo} for the block
+   */
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
