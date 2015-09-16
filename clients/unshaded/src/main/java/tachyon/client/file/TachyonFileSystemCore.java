@@ -20,6 +20,7 @@ import java.util.List;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -31,6 +32,22 @@ import tachyon.thrift.InvalidPathException;
  */
 @PublicApi
 interface TachyonFileSystemCore {
+
+  /**
+   * Creates a file with the provided blocksize as the standard blocksize of the file. If the file's
+   * parent directories do not exist, they will be created if the recursive flag is set.
+   *
+   * @param path the path of the file to create in Tachyon space
+   * @param blockSize the block size in bytes, must be greater than 0
+   * @param recursive whether or not to create parent directories if required
+   * @return the file id that identifies the newly created file
+   * @throws BlockInfoException if the block size is less than 0
+   * @throws FileAlreadyExistException if the path already exists as a file in Tachyon
+   * @throws InvalidPathException if the path is not a valid Tachyon path
+   * @throws IOException if the master is unable to create the file
+   */
+  long create(TachyonURI path, long blockSize, boolean recursive) throws BlockInfoException,
+      FileAlreadyExistException, InvalidPathException, IOException;
 
   /**
    * Deletes a file. If the file is a folder, its contents will be deleted recursively if the

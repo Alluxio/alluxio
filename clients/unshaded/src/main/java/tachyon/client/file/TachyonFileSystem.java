@@ -25,6 +25,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.FileSystemMasterClient;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -45,8 +46,22 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
   /**
    * Constructor, currently TachyonFileSystem does not retain any state
    */
-  private TachyonFileSystem() {
+  protected TachyonFileSystem() {
     mContext = FileSystemContext.INSTANCE;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long create(TachyonURI path, long blockSize, boolean recursive) throws
+      BlockInfoException, FileAlreadyExistException, InvalidPathException, IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.createFile(path.getPath(), blockSize, recursive);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 
   /**
