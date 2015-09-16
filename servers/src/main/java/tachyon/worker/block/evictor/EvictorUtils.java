@@ -23,7 +23,7 @@ import tachyon.worker.block.meta.StorageTierView;
 /**
  * Utility functions for the evictor package.
  */
-// TODO: This could be moved into EvictorBase
+// TODO(calvin): This could be moved into EvictorBase.
 public final class EvictorUtils {
 
   /**

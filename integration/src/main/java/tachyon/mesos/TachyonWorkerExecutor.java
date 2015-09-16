@@ -47,7 +47,7 @@ public class TachyonWorkerExecutor implements Executor {
   @Override
   public void killTask(ExecutorDriver driver, Protos.TaskID taskId) {
     System.out.println("Killing task " + taskId.getValue() + ".");
-    // TODO(jsimsa): Implement.
+    // TODO(jiri): Implement.
   }
 
   @Override
@@ -66,7 +66,7 @@ public class TachyonWorkerExecutor implements Executor {
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
 
-          // TODO(jsimsa): Consider handling Format.main() failures gracefully.
+          // TODO(jiri): Consider handling Format.main() failures gracefully.
           Format.main(new String[] {"master"});
           TachyonWorker.main(new String[] {});
 
@@ -97,7 +97,7 @@ public class TachyonWorkerExecutor implements Executor {
   @Override
   public void shutdown(ExecutorDriver driver) {
     System.out.println("Shutting down.");
-    // TODO(jsimsa): Implement.
+    // TODO(jiri): Implement.
   }
 
   public static void main(String[] args) throws Exception {

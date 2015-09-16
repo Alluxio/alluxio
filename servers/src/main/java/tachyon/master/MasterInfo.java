@@ -54,7 +54,7 @@ public final class MasterInfo {
     mBlockMaster = Preconditions.checkNotNull(blockMaster);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mMasterAddress = Preconditions.checkNotNull(address);
-    mUFSDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+    mUFSDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER);
     mStartTimeMs = System.currentTimeMillis();
   }
 

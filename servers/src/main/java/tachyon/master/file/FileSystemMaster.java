@@ -77,6 +77,9 @@ import tachyon.util.FormatUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
+/**
+ * The master that handles all file system metadata management.
+ */
 public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -107,7 +110,7 @@ public final class FileSystemMaster extends MasterBase {
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator);
 
-    // TODO: handle default config value for whitelist.
+    // TODO(gene): Handle default config value for whitelist.
     TachyonConf conf = MasterContext.getConf();
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
   }
@@ -205,7 +208,7 @@ public final class FileSystemMaster extends MasterBase {
   public boolean completeFileCheckpoint(long workerId, long fileId, long length,
       TachyonURI checkpointPath)
           throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
-    // TODO: metrics
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       LOG.info(FormatUtils.parametersToString(workerId, fileId, length, checkpointPath));
@@ -271,7 +274,7 @@ public final class FileSystemMaster extends MasterBase {
     mDependencyMap.addFileCheckpoint(fileId);
     file.setLastModificationTimeMs(opTimeMs);
     file.setComplete(length);
-    // TODO: This probably should always be true since the last mod time is updated
+    // TODO(calvin): This probably should always be true since the last mod time is updated.
     return needLog;
   }
 
@@ -289,10 +292,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Whether the filesystem contains a directory with the id.
+   * Whether the filesystem contains a directory with the id. Called by internal masters.
    *
    * @param id id of the directory
-   * @return true if there is such a directory, otherwise false
+   * @return true if there is a directory with the id, false otherwise
    */
   public boolean isDirectory(long id) {
     synchronized (mInodeTree) {
@@ -329,7 +332,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException
    */
   public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
-    // TODO: metrics
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       return getFileInfo(inode);
@@ -377,7 +380,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws BlockInfoException
    */
   public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
-    // TODO: metrics
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -443,7 +446,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long createFile(TachyonURI path, long blockSizeBytes, boolean recursive)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    // TODO: metrics
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult =
           createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
@@ -500,7 +503,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public boolean deleteFile(long fileId, boolean recursive)
       throws TachyonException, FileDoesNotExistException {
-    // TODO: metrics
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, opTimeMs);
@@ -641,6 +644,14 @@ public final class FileSystemMaster extends MasterBase {
     return getFileBlockInfoList(fileId);
   }
 
+  /**
+   * Generates a {@link FileBlockInfo} object from internal metadata. This adds file information to
+   * the block, such as the file offset, and additional UFS locations for the block.
+   *
+   * @param file the file the block is a part of
+   * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
+   * @return a new {@link FileBlockInfo} for the block
+   */
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
@@ -702,7 +713,7 @@ public final class FileSystemMaster extends MasterBase {
     Queue<Pair<InodeDirectory, TachyonURI>> nodesQueue =
         new LinkedList<Pair<InodeDirectory, TachyonURI>>();
     synchronized (mInodeTree) {
-      // TODO: Verify we want to use absolute path.
+      // TODO(yupeng): Verify we want to use absolute path.
       nodesQueue.add(new Pair<InodeDirectory, TachyonURI>(mInodeTree.getRoot(),
           new TachyonURI(TachyonURI.SEPARATOR)));
       while (!nodesQueue.isEmpty()) {
@@ -775,7 +786,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public void mkdirs(TachyonURI path, boolean recursive) throws InvalidPathException,
       FileAlreadyExistException {
-    // TODO: metrics
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, 0, recursive, true);
@@ -818,7 +829,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public boolean rename(long fileId, TachyonURI dstPath)
       throws InvalidPathException, FileDoesNotExistException {
-    // TODO: metrics
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       Inode srcInode = mInodeTree.getInodeById(fileId);
       TachyonURI srcPath = mInodeTree.getPath(srcInode);
@@ -907,7 +918,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException
    */
   public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException {
-    // TODO: metrics
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       setPinnedInternal(fileId, pinned, opTimeMs);
@@ -940,9 +951,8 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the file was freed
    * @throws FileDoesNotExistException
    */
-  public boolean free(long fileId, boolean recursive)
-      throws FileDoesNotExistException {
-    // TODO: metrics
+  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException {
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
 
@@ -996,7 +1006,11 @@ public final class FileSystemMaster extends MasterBase {
    * @return the ufs address for this master.
    */
   public String getUfsAddress() {
+<<<<<<< HEAD
     return MasterContext.getConf().get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
+=======
+    return mTachyonConf.get(Constants.UNDERFS_ADDRESS);
+>>>>>>> upstream/master
   }
 
   /**
@@ -1006,10 +1020,9 @@ public final class FileSystemMaster extends MasterBase {
     return mWhitelist.getList();
   }
 
-  // TODO: the following methods are for lineage, which is not fully functional yet.
-
+  // TODO(gene): The following methods are for lineage, which is not fully functional yet.
   public void createDependency() {
-    // TODO: lineage
+    // TODO(gene): Implement lineage.
   }
 
   public DependencyInfo getClientDependencyInfo(int dependencyId)

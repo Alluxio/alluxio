@@ -40,7 +40,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  * Isolated is defined as having its own root directory, and port.
  */
 public final class LocalTachyonMaster {
-  // TODO should this be moved to TachyonURI? Prob after UFS supports it
+  // TODO(hy): Should this be moved to TachyonURI? Prob after UFS supports it.
 
   private final String mTachyonHome;
   private final String mHostname;
@@ -195,7 +195,7 @@ public final class LocalTachyonMaster {
   }
 
   public void cleanupUnderfs() throws IOException {
-    if (null != mUnderFSCluster) {
+    if (mUnderFSCluster != null) {
       mUnderFSCluster.cleanup();
     }
     System.clearProperty("tachyon.underfs.address");

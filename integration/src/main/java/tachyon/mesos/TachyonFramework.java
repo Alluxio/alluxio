@@ -194,7 +194,7 @@ public class TachyonFramework {
 
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID slaveId) {
-      // TODO(jsimsa): Handle lost Mesos slaves.
+      // TODO(jiri): Handle lost Mesos slaves.
       System.out.println("Executor " + slaveId.getValue() + " was lost.");
     }
 
@@ -203,7 +203,7 @@ public class TachyonFramework {
       String taskId = status.getTaskId().getValue();
       Protos.TaskState state = status.getState();
       System.out.printf("Task %s is in state %s\n", taskId, state);
-      // TODO(jsimsa): Handle the case when a Tachyon master and/or worker task fails.
+      // TODO(jiri): Handle the case when a Tachyon master and/or worker task fails.
       // In particular, we should enable support for the fault tolerant mode of Tachyon to account
       // for Tachyon master process failures and keep track of the running number of Tachyon
       // masters.

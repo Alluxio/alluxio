@@ -122,7 +122,7 @@ public final class StorageDir {
       if (!path.isFile()) {
         LOG.error("{} in StorageDir is not a file", path.getAbsolutePath());
         try {
-          // TODO: Resolve this conflict in class names
+          // TODO(calvin): Resolve this conflict in class names.
           org.apache.commons.io.FileUtils.deleteDirectory(path);
         } catch (IOException ioe) {
           LOG.error("can not delete directory {}: {}", path.getAbsolutePath(), ioe);
@@ -195,7 +195,7 @@ public final class StorageDir {
     return mDirIndex;
   }
 
-  // TODO: deprecate this method.
+  // TODO(bin): Deprecate this method.
   public long getStorageDirId() {
     int level = mTier.getTierLevel();
     int storageLevelAliasValue = mTier.getTierAlias();
