@@ -59,9 +59,9 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   /** Configuration values */
   private TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
-  private final WorkerSource mWorkerSource;
-  /** Metrics reporter that listens on block events and increases metrics counters*/
-  private final BlockMetricsReporter mMetricsReporter;
+  private WorkerSource mWorkerSource;
+  /** Metrics reporter that listens on block events and increases metrics counters */
+  private BlockMetricsReporter mMetricsReporter;
 
   /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
   private WorkerBlockMasterClient mBlockMasterClient;
@@ -84,7 +84,8 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    */
   public BlockDataManager(WorkerSource workerSource,
       WorkerBlockMasterClient workerBlockMasterClient,
-      WorkerFileSystemMasterClient workerFileSystemMasterClient) throws IOException {
+      WorkerFileSystemMasterClient workerFileSystemMasterClient, BlockStore blockStore)
+      throws IOException {
     // TODO(jiri): We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -219,9 +220,9 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   }
 
   /**
-   * Commits a block to Tachyon managed space. The block must be temporary. The block is
-   * persisted after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible
-   * until {@link WorkerBlockMasterClient#commitBlock} succeeds.
+   * Commits a block to Tachyon managed space. The block must be temporary. The block is persisted
+   * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
+   * {@link WorkerBlockMasterClient#commitBlock} succeeds.
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to commit
