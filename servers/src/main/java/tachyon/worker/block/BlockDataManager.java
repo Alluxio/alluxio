@@ -18,7 +18,6 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
 
@@ -74,6 +73,8 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   private Sessions mSessions;
   /** Id of this worker */
   private long mWorkerId;
+  /** Asynchronous evictor for the block store */
+  private AsyncEvictor mAsyncEvictor;
 
   /**
    * Creates a BlockDataManager based on the configuration values.
@@ -109,6 +110,14 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
+
+    // Check whether to start asynchronous evictor
+    if (mTachyonConf.getBoolean(Constants.WORKER_EVICT_ASYNC_ENABLE)) {
+      mAsyncEvictor = new AsyncEvictor(mBlockStore);
+      mAsyncEvictor.initialize();
+    } else {
+      mAsyncEvictor = null;
+    }
   }
 
   class PrivateAccess {
@@ -312,15 +321,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     FileUtils.createBlockPath(createdBlock.getPath());
-  }
-
-  /**
-   * Gets the block store which contains all blocks in the manager.
-   *
-   * @return the block store
-   */
-  public BlockStore getBlockStore() {
-    return mBlockStore;
   }
 
   /**

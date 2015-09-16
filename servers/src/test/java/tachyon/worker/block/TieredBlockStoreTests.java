@@ -17,8 +17,6 @@ package tachyon.worker.block;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,14 +28,12 @@ import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Sets;
 
-import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.meta.BlockMeta;
@@ -72,10 +68,7 @@ public final class TieredBlockStoreTests {
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
-    ExecutorService executorService = Executors.newFixedThreadPool(
-        WorkerContext.getConf().getInt(Constants.WORKER_SHARED_EXECUTOR_CORES),
-        ThreadFactoryUtils.build("Shared-executor-%d", false));
-    mBlockStore = new TieredBlockStore(executorService);
+    mBlockStore = new TieredBlockStore();
 
     // TODO(bin): Avoid using reflection to get private members.
     Field field = mBlockStore.getClass().getDeclaredField("mMetaManager");
