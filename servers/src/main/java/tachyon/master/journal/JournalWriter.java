@@ -168,7 +168,7 @@ public final class JournalWriter {
   private void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
-    // TODO: should the deletes start from the end?
+    // TODO(gene): Should the deletes start from the end?
     int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
@@ -260,7 +260,7 @@ public final class JournalWriter {
 
       LOG.info("Successfully created tmp checkpoint file: " + mTempCheckpointPath);
       mUfs.delete(mJournal.getCheckpointFilePath(), false);
-      // TODO: the real checkpoint should not be overwritten here, but after all operations.
+      // TODO(gene): The real checkpoint should not be overwritten here, but after all operations.
       mUfs.rename(mTempCheckpointPath, mJournal.getCheckpointFilePath());
       mUfs.delete(mTempCheckpointPath, false);
       LOG.info("Renamed checkpoint file " + mTempCheckpointPath + " to "

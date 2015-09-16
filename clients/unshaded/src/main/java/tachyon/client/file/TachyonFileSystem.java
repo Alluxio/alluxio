@@ -231,7 +231,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
       FileAlreadyExistException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      // TODO: Change this RPC's arguments
+      // TODO(calvin): Change this RPC's arguments.
       boolean result = masterClient.createDirectory(path.getPath(), true);
       if (result) {
         LOG.info("Created directory " + path.getPath());

@@ -52,7 +52,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
-  // TODO add sticky bit and narrow down the permission in hadoop 2
+  // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
@@ -136,7 +136,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
-    // TODO Fix this
+    // TODO(hy): Fix this.
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
     return create(path);
   }
@@ -144,7 +144,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataOutputStream create(String path, short replication, int blockSizeByte)
       throws IOException {
-    // TODO Fix this
+    // TODO(hy): Fix this.
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
     return create(path);
     // LOG.info(path + " " + replication + " " + blockSizeBytes);

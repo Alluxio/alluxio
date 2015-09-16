@@ -155,7 +155,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    // TODO: a better way to process entries besides a huge switch?
+    // TODO(gene): A better way to process entries besides a huge switch?
     if (entry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator
           .setNextContainerId(((BlockContainerIdGeneratorEntry) entry).getNextContainerId());
@@ -438,7 +438,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @return the worker id for this worker
    */
   public long getWorkerId(NetAddress workerNetAddress) {
-    // TODO: this NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
+    // TODO(gene): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
     NetAddress workerAddress = new NetAddress(workerNetAddress);
 
     synchronized (mWorkers) {
@@ -576,7 +576,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
         if (masterBlockInfo != null) {
           workerInfo.addBlock(blockId);
-          // TODO: change upper API so that this is tier level or type, not storage dir id.
+          // TODO(gene): Change upper API so that this is tier level or type, not storage dir id.
           int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
           masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
           mLostBlocks.remove(blockId);

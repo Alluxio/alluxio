@@ -168,7 +168,7 @@ public class Dependency implements JournalEntryRepresentable {
    * @return the command used for the recomputation
    */
   public synchronized String getCommand() {
-    // TODO We should support different types of command in the future.
+    // TODO(gene): We should support different types of command in the future.
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(parseCommandPrefix());
     sb.append(" ").append(mTachyonConf.get(Constants.MASTER_ADDRESS));

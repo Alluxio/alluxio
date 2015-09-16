@@ -37,7 +37,7 @@ public final class MasterBlockInfo {
   private final Map<Long, Integer> mWorkerIdToAlias;
 
   public MasterBlockInfo(long blockId, long length) {
-    // TODO: check valid length?
+    // TODO(gene): Check valid length?
     mBlockId = blockId;
     mLength = length;
 
