@@ -1091,16 +1091,13 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  public long loadFileFromUfs(String ufsPath, boolean recursive) throws TachyonException {
-    if (ufsPath == null || ufsPath.isEmpty()) {
-      throw new IllegalArgumentException("the underFS path is not provided");
-    }
+  public long loadFileFromUfs(TachyonURI tachyonPath, boolean recursive) throws TachyonException {
+    String ufsPath = mMountTable.lookup(tachyonPath).toString();
     UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
     try {
       long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
       long fileSizeByte = underfs.getFileSize(ufsPath);
-      String path = mMountTable.reverseLookup(ufsPath);
-      long fileId = createFile(new TachyonURI(path), ufsBlockSizeByte, recursive);
+      long fileId = createFile(tachyonPath, ufsBlockSizeByte, recursive);
       if (fileId != -1) {
         completeFileCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath));
       }
@@ -1115,22 +1112,25 @@ public final class FileSystemMaster extends MasterBase {
       throw new TachyonException(ipe.getMessage());
     } catch (IOException ioe) {
       throw new TachyonException(ioe.getMessage());
-    } catch (NotFoundException nfe) {
-      throw new TachyonException(nfe.getMessage());
     } catch (SuspectedFileSizeException sfse) {
       throw new TachyonException(sfse.getMessage());
     }
   }
 
-  public void mount(String tachyonPath, String ufsPath) throws AlreadyExistsException {
+  public void mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws AlreadyExistsException,
+      FileAlreadyExistException, InvalidPathException {
+    mkdirs(tachyonPath, true);
     mMountTable.add(tachyonPath, ufsPath);
     writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
     flushJournal();
   }
 
-  public void unmount(String tachyonPath) throws NotFoundException {
-    // TODO(jiri): Persist files nested under tachyonPath and then void its namespace.
+  // TODO(jiri): Account for asynchronously persisted files once lineage is implemented.
+  public void unmount(TachyonURI tachyonPath) throws FileDoesNotExistException,
+      InvalidPathException, NotFoundException {
     mMountTable.delete(tachyonPath);
+    long fileId = getFileId(tachyonPath);
+    // TODO(jiri): Delete the files here.
     writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
     flushJournal();
   }
