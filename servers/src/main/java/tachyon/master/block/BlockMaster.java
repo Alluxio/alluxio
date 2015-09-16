@@ -612,7 +612,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * Lost worker periodical check.
+   * Lost worker periodic check.
    */
   public final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
     @Override

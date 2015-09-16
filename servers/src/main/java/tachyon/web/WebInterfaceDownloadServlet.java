@@ -74,7 +74,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     try {
       long fileId = mFsMaster.getFileId(currentPath);
       FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-      if (null == fileInfo) {
+      if (fileInfo == null) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
       downloadFile(new TachyonURI(fileInfo.getPath()), request, response);

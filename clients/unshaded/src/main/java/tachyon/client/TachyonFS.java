@@ -426,7 +426,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean exist(TachyonURI path) throws IOException {
     try {
       FileInfo info = getFileStatus(-1, path, false);
-      return null != info;
+      return info != null;
     } catch (IOException ioe) {
       return false;
     }

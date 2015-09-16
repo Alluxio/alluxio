@@ -100,7 +100,7 @@ public class Journal {
   }
 
   /**
-   * @return the formatter for this journal
+   * @return the {@link JournalFormatter} for this journal
    */
   public JournalFormatter getJournalFormatter() {
     return mJournalFormatter;
@@ -114,14 +114,14 @@ public class Journal {
   }
 
   /**
-   * @return the writer for this journal
+   * @return the {@link JournalWriter} for this journal
    */
   public JournalWriter getNewWriter() {
     return new JournalWriter(this, mTachyonConf);
   }
 
   /**
-   * @return the reader for this journal
+   * @return the {@link JournalReader} for this journal
    */
   public JournalReader getNewReader() {
     return new JournalReader(this, mTachyonConf);

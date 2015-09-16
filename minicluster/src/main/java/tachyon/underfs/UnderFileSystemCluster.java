@@ -60,7 +60,7 @@ public abstract class UnderFileSystemCluster {
    */
   public static synchronized UnderFileSystemCluster get(String baseDir, TachyonConf tachyonConf)
       throws IOException {
-    if (null == sUnderFSCluster) {
+    if (sUnderFSCluster == null) {
       sUnderFSCluster = getUnderFilesystemCluster(baseDir, tachyonConf);
     }
 
@@ -107,7 +107,7 @@ public abstract class UnderFileSystemCluster {
    */
   public static boolean readEOFReturnsNegative() {
     // TODO(hy): Should be dynamically determined - may need additional method on UnderFileSystem.
-    return null != sUfsClz && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
+    return sUfsClz != null && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
 
   public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {

@@ -28,7 +28,9 @@ import tachyon.StorageLevelAlias;
  * The metadata for a Tachyon block, managed by the block master.
  */
 public final class MasterBlockInfo {
+  /** The id of the block. */
   private final long mBlockId;
+  /** The length of the block in bytes. */
   private final long mLength;
 
   /** Maps from the worker id to the alias the block is on. */

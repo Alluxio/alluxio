@@ -39,6 +39,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 final class TachyonMasterFaultTolerant extends TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The zookeeper client that handles selecting the leader. */
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
   public TachyonMasterFaultTolerant() {

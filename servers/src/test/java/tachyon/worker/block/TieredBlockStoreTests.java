@@ -50,11 +50,14 @@ public final class TieredBlockStoreTests {
   private static final long TEMP_BLOCK_ID = 1003;
   private static final long BLOCK_SIZE = 512;
   private static final StorageLevelAlias FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
+  private static final StorageLevelAlias SECOND_TIER_ALIAS =
+      TieredBlockStoreTestUtils.TIER_ALIAS[1];
   private TieredBlockStore mBlockStore;
   private BlockMetadataManager mMetaManager;
   private BlockLockManager mLockManager;
   private StorageDir mTestDir1;
   private StorageDir mTestDir2;
+  private StorageDir mTestDir3;
   private Evictor mEvictor;
 
   @Rule
@@ -82,6 +85,7 @@ public final class TieredBlockStoreTests {
 
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS.getValue()).getDir(0);
     mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS.getValue()).getDir(1);
+    mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS.getValue()).getDir(1);
   }
 
   // Different sessions can concurrently grab block locks on different blocks
@@ -176,6 +180,51 @@ public final class TieredBlockStoreTests {
     Assert.assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID1));
     Assert.assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
     Assert.assertTrue(FileUtils.exists(BlockMeta.commitPath(mTestDir2, BLOCK_ID1)));
+
+    // Move block from the specific Dir
+    TieredBlockStoreTestUtils.cache(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // Move block from wrong Dir
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION.getMessage(BLOCK_ID2,
+        mTestDir2.toBlockStoreLocation()));
+    mBlockStore.moveBlock(SESSION_ID2, BLOCK_ID2, mTestDir2.toBlockStoreLocation(),
+        mTestDir3.toBlockStoreLocation());
+    // Move block from right Dir
+    mBlockStore.moveBlock(SESSION_ID2, BLOCK_ID2, mTestDir1.toBlockStoreLocation(),
+        mTestDir3.toBlockStoreLocation());
+    Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID2));
+    Assert.assertTrue(mTestDir3.hasBlockMeta(BLOCK_ID2));
+    Assert.assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID2));
+    Assert.assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID2)));
+    Assert.assertTrue(FileUtils.exists(BlockMeta.commitPath(mTestDir3, BLOCK_ID2)));
+
+    // Move block from the specific tier
+    mBlockStore.moveBlock(SESSION_ID2, BLOCK_ID2,
+        BlockStoreLocation.anyDirInTier(mTestDir1.getParentTier().getTierAlias()),
+        mTestDir3.toBlockStoreLocation());
+    Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID2));
+    Assert.assertTrue(mTestDir3.hasBlockMeta(BLOCK_ID2));
+    Assert.assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID2));
+    Assert.assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID2)));
+    Assert.assertTrue(FileUtils.exists(BlockMeta.commitPath(mTestDir3, BLOCK_ID2)));
+  }
+
+  @Test
+  public void moveBlockToSameLocationTest() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // Move block to same location will simply do nothing, so the src block keeps where it was,
+    // and the available space should also remain unchanged.
+    long availableBytesBefore = mMetaManager.getAvailableBytes(mTestDir1.toBlockStoreLocation());
+    mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
+    long availableBytesAfter = mMetaManager.getAvailableBytes(mTestDir1.toBlockStoreLocation());
+
+    Assert.assertEquals(availableBytesBefore, availableBytesAfter);
+    Assert.assertTrue(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    Assert.assertFalse(mMetaManager.hasTempBlockMeta(BLOCK_ID1));
+    Assert.assertTrue(mBlockStore.hasBlockMeta(BLOCK_ID1));
+    Assert.assertTrue(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
   }
 
   @Test
@@ -186,6 +235,29 @@ public final class TieredBlockStoreTests {
     Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
     Assert.assertFalse(mBlockStore.hasBlockMeta(BLOCK_ID1));
     Assert.assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+
+    // Remove block from specific Dir
+    TieredBlockStoreTestUtils.cache(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // Remove block from wrong Dir
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION.getMessage(BLOCK_ID2,
+        mTestDir2.toBlockStoreLocation()));
+    mBlockStore.removeBlock(SESSION_ID2, BLOCK_ID2, mTestDir2.toBlockStoreLocation());
+    // Remove block from right Dir
+    mBlockStore.removeBlock(SESSION_ID2, BLOCK_ID2, mTestDir1.toBlockStoreLocation());
+    Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID2));
+    Assert.assertFalse(mBlockStore.hasBlockMeta(BLOCK_ID2));
+    Assert.assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID2)));
+
+    // Remove block from the specific tier
+    TieredBlockStoreTestUtils.cache(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    mBlockStore.removeBlock(SESSION_ID2, BLOCK_ID2,
+        BlockStoreLocation.anyDirInTier(mTestDir1.getParentTier().getTierAlias()));
+    Assert.assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID2));
+    Assert.assertFalse(mBlockStore.hasBlockMeta(BLOCK_ID2));
+    Assert.assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID2)));
   }
 
   @Test
