@@ -100,13 +100,24 @@ public abstract class MasterBase implements Master {
       mJournalWriter.completeAllLogs();
 
       // Phase 2: Replay all the state of the checkpoint and the completed log files.
-      // TODO: only do this if this is a fresh start, not if this master had already been tailing
-      // the journal.
-      LOG.info(getServiceName() + ": process completed logs before becoming master.");
-      JournalTailer catchupTailer = new JournalTailer(this, mJournal);
-      if (catchupTailer.checkpointExists()) {
-        catchupTailer.processJournalCheckpoint(true);
+      JournalTailer catchupTailer;
+      if (mStandbyJournalTailer != null && mStandbyJournalTailer.getLatestJournalTailer() != null
+          && mStandbyJournalTailer.getLatestJournalTailer().isValid()) {
+        // This master was previously in standby mode, and processed some of the journal. Re-use the
+        // same tailer (still valid) to continue processing any remaining journal entries.
+        LOG.info(getServiceName()
+            + ": finish processing remaining journal entries (standby -> master).");
+        catchupTailer = mStandbyJournalTailer.getLatestJournalTailer();
         catchupTailer.processNextJournalLogFiles();
+      } else {
+        // This master has not successfully processed any of the journal, so create a fresh tailer
+        // to process the entire journal.
+        LOG.info(getServiceName() + ": process entire journal before becoming leader master.");
+        catchupTailer = new JournalTailer(this, mJournal);
+        if (catchupTailer.checkpointExists()) {
+          catchupTailer.processJournalCheckpoint(true);
+          catchupTailer.processNextJournalLogFiles();
+        }
       }
       long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
 
@@ -125,7 +136,7 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info(getServiceName() + ":Stopping master. isLeader: " + mIsLeader);
+    LOG.info(getServiceName() + ": Stopping master. isLeader: " + mIsLeader);
     if (mIsLeader) {
       // Stop this leader master.
       if (mJournalWriter != null) {
@@ -136,7 +147,6 @@ public abstract class MasterBase implements Master {
       if (mStandbyJournalTailer != null) {
         // stop and wait for the journal tailer thread.
         mStandbyJournalTailer.shutdownAndJoin();
-        mStandbyJournalTailer = null;
       }
     }
   }
