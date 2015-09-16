@@ -54,7 +54,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * components that may care about the access times of the blocks (for example, Evictor, UI).
    *
    * @param blockId the id of the block to access
-   * @throws TException if the underlying worker RPC fails
+   * @throws BlockDoesNotExistException if the blockId is not found
    */
   @Override
   public void accessBlock(long blockId) throws BlockDoesNotExistException {
@@ -68,7 +68,9 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param sessionId the id of the client requesting the checkpoint
    * @param fileId the id of the file that was written to the under storage system
-   * @throws TException if the underlying worker RPC fails
+   * @throws FailedToCheckpointException if the checkpointing failed
+   * @throws FileDoesNotExistException if the file does not exist in Tachyon
+   * @throws ThriftIOException if the update to the master fails
    */
   @Override
   public void addCheckpoint(long sessionId, long fileId) throws FileDoesNotExistException,
@@ -93,7 +95,11 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param sessionId the id of the client requesting the commit
    * @param blockId the id of the block to commit
-   * @throws TException if the underlying worker RPC fails
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
+   * @throws BlockDoesNotExistException if the temporary block cannot be found
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws ThriftIOException if the block cannot be moved from temporary path to committed path
+   * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   // TODO(calvin): Reconsider this exception handling.
   @Override
@@ -113,7 +119,10 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param sessionId the id of the client requesting the abort
    * @param blockId the id of the block to be aborted
-   * @throws TException if the underlying worker RPC fails
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
+   * @throws BlockDoesNotExistException if the temporary block cannot be found
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws ThriftIOException if temporary block cannot be deleted
    */
   @Override
   public void cancelBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
@@ -143,8 +152,9 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param blockId the id of the block to be locked
    * @param sessionId the id of the session
-   * @throws FileDoesNotExistException if the underlying file is not found
-   * @throws TException if the underlying worker RPC fails
+   * @throws FileDoesNotExistException if blockId cannot be found, for example, evicted already.
+   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
+   *         LockRecord of lockId
    */
   @Override
   public String lockBlock(long blockId, long sessionId) throws FileDoesNotExistException,
@@ -164,7 +174,14 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * otherwise.
    *
    * @param blockId the id of the block to move to the top layer
-   * @throws TException if the underlying worker RPC fails
+   * @throws IllegalArgumentException if tierAlias is out of range of tiered storage
+   * @throws BlockDoesNotExistException if blockId cannot be found
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
+   *         newLocation
+   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
+   *         block
+   * @throws ThriftIOException if block cannot be moved from current location to newLocation
    */
   // TODO(calvin): This may be better as void.
   @Override
@@ -191,8 +208,14 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @param sessionId the id of the client requesting the create
    * @param blockId the id of the new block to create
    * @param initialBytes the initial number of bytes to allocate for this block
-   * @throws tachyon.thrift.WorkerOutOfSpaceException if there is no space available
-   * @throws TException if the underlying worker RPC fails
+   * @throws IllegalArgumentException if location does not belong to tiered storage
+   * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
+   *         or block in eviction plan already exists
+   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
+   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
+   * @throws ThriftIOException if blocks in eviction plan fail to be moved or deleted
+   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
+   *         uncommitted
    */
   @Override
   public String requestBlockLocation(long sessionId, long blockId, long initialBytes)
@@ -233,7 +256,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param blockId the id of the block to unlock
    * @param sessionId the id of the client requesting the unlock
-   * @throws TException if the block does not exist
+   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already.
    */
   @Override
   public boolean unlockBlock(long blockId, long sessionId) throws BlockDoesNotExistException {

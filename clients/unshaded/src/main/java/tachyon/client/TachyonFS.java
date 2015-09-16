@@ -208,7 +208,11 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized void accessLocalBlock(long blockId) throws IOException {
     if (mWorkerClient.isLocal()) {
-      mWorkerClient.accessBlock(blockId);
+      try {
+        mWorkerClient.accessBlock(blockId);
+      } catch (BlockDoesNotExistException e) {
+        throw new IOException(e.getMessage());
+      }
     }
   }
 

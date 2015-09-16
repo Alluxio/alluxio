@@ -99,13 +99,17 @@ public final class WorkerClient implements Closeable {
    * Updates the latest block access time on the worker.
    *
    * @param blockId The id of the block
-   * @throws IOException
+   * @throws BlockDoesNotExistException if the blockId is not found
+   * @throws IOException if an I/O error occurs
    */
-  public synchronized void accessBlock(long blockId) throws IOException {
+  public synchronized void accessBlock(long blockId) throws IOException,
+          BlockDoesNotExistException {
     mustConnect();
 
     try {
       mClient.accessBlock(blockId);
+    } catch (BlockDoesNotExistException e) {
+      throw e;
     } catch (TException e) {
       LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
       mConnected = false;
@@ -117,7 +121,9 @@ public final class WorkerClient implements Closeable {
    * Notifies the worker that the checkpoint file of the file has been added.
    *
    * @param fileId The id of the checkpointed file
-   * @throws IOException
+   * @throws FailedToCheckpointException if the checkpointing failed
+   * @throws FileDoesNotExistException if the file does not exist in Tachyon
+   * @throws IOException if an I/O error occurs
    */
   public synchronized void addCheckpoint(long fileId) throws IOException,
       FailedToCheckpointException, FileDoesNotExistException {
@@ -138,7 +144,7 @@ public final class WorkerClient implements Closeable {
    *
    * @param fileId The id of the file
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized boolean asyncCheckpoint(long fileId) throws IOException {
     mustConnect();
@@ -155,7 +161,11 @@ public final class WorkerClient implements Closeable {
    * Notifies the worker the block is cached.
    *
    * @param blockId The id of the block
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
+   * @throws BlockDoesNotExistException if the temporary block cannot be found
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
+   * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
   public synchronized void cacheBlock(long blockId) throws IOException, WorkerOutOfSpaceException,
       ThriftIOException, BlockAlreadyExistsException, InvalidWorkerStateException,
@@ -184,7 +194,10 @@ public final class WorkerClient implements Closeable {
    * Notifies worker that the block has been cancelled
    *
    * @param blockId The Id of the block to be cancelled
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
+   * @throws BlockDoesNotExistException if the temporary block cannot be found
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    */
   public synchronized void cancelBlock(long blockId) throws IOException,
       BlockAlreadyExistsException, BlockDoesNotExistException, ThriftIOException,
@@ -232,7 +245,7 @@ public final class WorkerClient implements Closeable {
    * Opens the connection to the worker. And start the heartbeat thread.
    *
    * @return true if succeed, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   private synchronized boolean connect() throws IOException {
     if (!mConnected) {
@@ -328,8 +341,10 @@ public final class WorkerClient implements Closeable {
    * unlocked.
    *
    * @param blockId The id of the block
-   * @return the path of the block file locked
-   * @throws IOException
+   * @return the path of the block file locked, or null if the block wasn't found
+   * @throws IOException if an I/O error occurs
+   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
+   *         LockRecord of lockId
    */
   public synchronized String lockBlock(long blockId) throws IOException,
       InvalidWorkerStateException {
@@ -367,7 +382,13 @@ public final class WorkerClient implements Closeable {
    *
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws BlockDoesNotExistException if blockId cannot be found
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
+   *         newLocation
+   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
+   *         block
    */
   public synchronized boolean promoteBlock(long blockId) throws IOException, ThriftIOException,
       WorkerOutOfSpaceException, BlockAlreadyExistsException, InvalidWorkerStateException,
@@ -398,7 +419,13 @@ public final class WorkerClient implements Closeable {
    * @param blockId The id of the block
    * @param initialBytes The initial size bytes allocated for the block
    * @return the temporary path of the block
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
+   *         or block in eviction plan already exists
+   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
+   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
+   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
+   *         uncommitted
    */
   public synchronized String requestBlockLocation(long blockId, long initialBytes)
       throws IOException, ThriftIOException, WorkerOutOfSpaceException,
@@ -429,7 +456,7 @@ public final class WorkerClient implements Closeable {
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
    */
   public synchronized boolean requestSpace(long blockId, long requestBytes) throws IOException {
     mustConnect();
@@ -447,7 +474,8 @@ public final class WorkerClient implements Closeable {
    *
    * @param blockId The id of the block
    * @return true if success, false otherwise
-   * @throws IOException
+   * @throws IOException if an I/O error occurs
+   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already.
    */
   public synchronized boolean unlockBlock(long blockId) throws IOException,
       BlockDoesNotExistException {

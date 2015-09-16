@@ -161,8 +161,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to access
-   * @throws BlockDoesNotExistException this exception is not thrown in the tiered block store
-   *         implementation
+   * @throws BlockDoesNotExistException if the blockId is not found
    */
   public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     mBlockStore.accessBlock(sessionId, blockId);
@@ -180,7 +179,8 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    *
    * @param sessionId The session id of the client who sends the notification
    * @param fileId The id of the checkpointed file
-   * @throws TException if the file does not exist or cannot be renamed
+   * @throws FailedToCheckpointException if the checkpointing failed
+   * @throws FileDoesNotExistException if the file does not exist in Tachyon
    * @throws IOException if the update to the master fails
    */
   public void addCheckpoint(long sessionId, long fileId) throws IOException,
