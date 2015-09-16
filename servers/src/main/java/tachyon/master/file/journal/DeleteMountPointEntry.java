@@ -13,33 +13,35 @@
  * the License.
  */
 
-package tachyon.master.journal;
+package tachyon.master.file.journal;
 
-/**
- * The types of entries that can be represented in the journal.
- */
-public enum JournalEntryType {
-  // Block master entries
-  BLOCK_CONTAINER_ID_GENERATOR,
-  BLOCK_INFO,
-  WORKER_ID_GENERATOR,
+import java.util.Map;
 
-  // File system master entries
-  INODE_FILE,
-  INODE_DIRECTORY,
-  INODE_MTIME,
-  ADD_MOUNTPOINT,
-  DELETE_MOUNTPOINT,
-  ADD_CHECKPOINT,
-  DEPENDENCY,
-  COMPLETE_FILE,
-  FREE,
-  SET_PINNED,
-  DELETE_FILE,
-  RENAME,
-  INODE_DIRECTORY_ID_GENERATOR,
+import com.google.common.collect.Maps;
 
-  // Raw table master entries
-  RAW_TABLE,
-  UPDATE_METADATA,
+import tachyon.master.journal.JournalEntry;
+import tachyon.master.journal.JournalEntryType;
+
+public class DeleteMountPointEntry implements JournalEntry {
+  private final String mTachyonPath;
+
+  public DeleteMountPointEntry(String tachyonPath) {
+    mTachyonPath = tachyonPath;
+  }
+
+  public String getTachyonPath() {
+    return mTachyonPath;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.ADD_MOUNTPOINT;
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
+    parameters.put("tachyonPath", mTachyonPath);
+    return parameters;
+  }
 }

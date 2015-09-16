@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.NotFoundException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
@@ -190,17 +192,25 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean load(String ufsPath) throws TachyonException {
-    return mFileSystemMaster.load(ufsPath);
+  public void load(String ufsPath) throws TachyonException {
+    mFileSystemMaster.load(ufsPath);
   }
 
   @Override
-  public boolean mount(String tachyonPath, String ufsPath) throws TachyonException {
-    return mFileSystemMaster.mount(tachyonPath, ufsPath);
+  public void mount(String tachyonPath, String ufsPath) throws TachyonException {
+    try {
+      mFileSystemMaster.mount(tachyonPath, ufsPath);
+    } catch (AlreadyExistsException aee) {
+      throw new TachyonException(aee.getMessage());
+    }
   }
 
   @Override
-  public boolean unmount(String tachyonPath) throws TachyonException {
-    return mFileSystemMaster.unmount(tachyonPath);
+  public void unmount(String tachyonPath) throws TachyonException {
+    try {
+      mFileSystemMaster.unmount(tachyonPath);
+    } catch (NotFoundException nfe) {
+      throw new TachyonException(nfe.getMessage());
+    }
   }
 }

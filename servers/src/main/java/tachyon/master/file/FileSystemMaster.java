@@ -35,12 +35,16 @@ import tachyon.PrefixList;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.NotFoundException;
 import tachyon.master.MasterBase;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.journal.AddCheckpointEntry;
+import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
+import tachyon.master.file.journal.DeleteMountPointEntry;
 import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
@@ -51,9 +55,10 @@ import tachyon.master.file.meta.Dependency;
 import tachyon.master.file.meta.DependencyMap;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
-import tachyon.master.file.meta.InodeDirectoryIdGenerator;
 import tachyon.master.file.meta.InodeFile;
+import tachyon.master.file.meta.InodeDirectoryIdGenerator;
 import tachyon.master.file.meta.InodeTree;
+import tachyon.master.file.meta.MountTable;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -83,14 +88,14 @@ public final class FileSystemMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlockMaster mBlockMaster;
-
   /** This manages the file system inode structure. This must be journaled. */
   private final InodeTree mInodeTree;
   /** This manages metadata for lineage. This must be journaled. */
   private final DependencyMap mDependencyMap = new DependencyMap();
   /** This generates unique directory ids. This must be journaled. */
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
-
+  /** This manages the file system mount points. */
+  private final MountTable mMountTable = new MountTable();
   private final PrefixList mWhitelist;
 
   /**
@@ -165,6 +170,20 @@ public final class FileSystemMaster extends MasterBase {
       renameFromEntry((RenameEntry) entry);
     } else if (entry instanceof InodeDirectoryIdGeneratorEntry) {
       mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
+    } else if (entry instanceof AddMountPointEntry) {
+      AddMountPointEntry typedEntry = (AddMountPointEntry) entry;
+      try {
+        mMountTable.add(typedEntry.getTachyonPath(), typedEntry.getUfsPath());
+      } catch (AlreadyExistsException aee) {
+        throw new IOException(aee.getMessage());
+      }
+    } else if (entry instanceof DeleteMountPointEntry) {
+      DeleteMountPointEntry typedEntry = (DeleteMountPointEntry) entry;
+      try {
+        mMountTable.delete(typedEntry.getTachyonPath());
+      } catch (NotFoundException nfe) {
+        throw new IOException(nfe.getMessage());
+      }
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
     }
@@ -1071,15 +1090,19 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  public boolean load(String ufsPath) throws TachyonException {
-    return true;
+  public void load(String ufsPath) throws TachyonException {
   }
 
-  public boolean mount(String tachyonPath, String ufsPath) throws TachyonException {
-    return true;
+  public void mount(String tachyonPath, String ufsPath) throws AlreadyExistsException {
+    mMountTable.add(tachyonPath, ufsPath);
+    writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
+    flushJournal();
   }
 
-  public boolean unmount(String tachyonPath) throws TachyonException {
-    return true;
+  public void unmount(String tachyonPath) throws NotFoundException {
+    // TODO(jiri): Persist files nested under tachyonPath and then void its namespace.
+    mMountTable.delete(tachyonPath);
+    writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
+    flushJournal();
   }
 }
