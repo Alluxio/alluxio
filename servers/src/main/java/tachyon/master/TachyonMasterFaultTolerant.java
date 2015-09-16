@@ -26,7 +26,6 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
 import tachyon.Version;
-import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.rawtable.RawTableMaster;
@@ -37,15 +36,15 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 /**
  * The fault tolerant version of TachyonMaster that uses zookeeper and standby masters.
  */
-public final class TachyonMasterFaultTolerant extends TachyonMaster {
+final class TachyonMasterFaultTolerant extends TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The zookeeper client that handles selecting the leader. */
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public TachyonMasterFaultTolerant(TachyonConf tachyonConf) {
-    super(tachyonConf);
-    Preconditions.checkArgument(tachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
+  public TachyonMasterFaultTolerant() {
+    super();
+    Preconditions.checkArgument(mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
 
     // Set up zookeeper specific functionality.
     try {

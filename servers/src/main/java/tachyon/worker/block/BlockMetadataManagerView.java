@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -150,7 +151,7 @@ public class BlockMetadataManagerView {
    */
   public StorageTierView getTierView(int tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
-    if (null == tierView) {
+    if (tierView == null) {
       throw new IllegalArgumentException(
           ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierAlias));
     } else {
@@ -164,7 +165,7 @@ public class BlockMetadataManagerView {
    * @return the list of StorageTierViews
    */
   public List<StorageTierView> getTierViews() {
-    return mTierViews;
+    return Collections.unmodifiableList(mTierViews);
   }
 
   /**
