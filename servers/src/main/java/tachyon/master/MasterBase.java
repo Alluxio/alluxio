@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
@@ -32,6 +31,7 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalTailer;
 import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
+import tachyon.master.journal.ReadWriteJournal;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
@@ -75,7 +75,8 @@ public abstract class MasterBase implements Master {
     mIsLeader = isLeader;
     LOG.info(getServiceName() + ": Starting " + (mIsLeader ? "leader" : "standby") + " master.");
     if (mIsLeader) {
-      mJournalWriter = mJournal.getNewWriter();
+      Preconditions.checkState(mJournal instanceof ReadWriteJournal);
+      mJournalWriter = ((ReadWriteJournal) mJournal).getNewWriter();
 
       /**
        * The sequence for dealing with the journal before starting as the leader:
@@ -157,7 +158,7 @@ public abstract class MasterBase implements Master {
   }
 
   @Override
-  public void upgradeToWriteJournal(Journal journal) {
+  public void upgradeToReadWriteJournal(ReadWriteJournal journal) {
     mJournal = Preconditions.checkNotNull(journal);
   }
 
