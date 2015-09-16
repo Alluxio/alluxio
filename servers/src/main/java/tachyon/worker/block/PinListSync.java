@@ -15,15 +15,13 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -47,7 +45,7 @@ public final class PinListSync implements Runnable {
   private final int mSyncTimeoutMs;
 
   /** Client for all master communication */
-  private FileSystemMasterClient mMasterClient;
+  private WorkerFileSystemMasterClient mMasterClient;
   /** Flag to indicate if the syncing should continue */
   private volatile boolean mRunning;
 
@@ -59,7 +57,7 @@ public final class PinListSync implements Runnable {
    * @param masterClient the Tachyon master client
    */
   public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      FileSystemMasterClient masterClient) {
+      WorkerFileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mMasterClient = masterClient;
