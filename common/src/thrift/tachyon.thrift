@@ -86,11 +86,18 @@ enum CommandType {
   Register = 2,   	// Ask the worker to re-register.
   Free = 3,		// Ask the worker to free files.
   Delete = 4,		// Ask the worker to delete files.
+  Persiste = 5,  // Ask the worker to persis a file for lineage
 }
 
 struct Command {
   1: CommandType mCommandType
   2: list<i64> mData
+}
+
+struct LineageCommand {
+  1: CommandType mCommandType
+  2: list<i64> mBlockIds
+  3: string mFilePath
 }
 
 exception BlockInfoException {
@@ -246,9 +253,13 @@ service FileSystemMasterService {
 }
 
 service LineageMasterService {
+  // for client
   i64 createLineage(1: list<i64> inputFiles, 2: list<i64> outputFiles, 3: binary job)
   
   bool deleteLineage(1: i64 lineageId)
+  
+  // for workers
+  LineageCommand lineageWorkerHeartbeat(1: i64 workerId)
 }
 
 service RawTableMasterService {
@@ -267,10 +278,6 @@ service RawTableMasterService {
 
   void updateRawTableMetadata(1: i64 tableId, 2: binary metadata)
     throws (1: TableDoesNotExistException tdnee, 2: TachyonException te)
-}
-
-service LineageWorkerService {
-	void persistFile(1: list<i64> blockIds, 2: i64 fileId, 3: string filePath)
 }
 
 service WorkerService {

@@ -23,6 +23,7 @@ import org.apache.thrift.TException;
 import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
+import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService.Iface;
 
 public final class LineageMasterServiceHandler implements Iface {
@@ -43,6 +44,11 @@ public final class LineageMasterServiceHandler implements Iface {
   @Override
   public boolean deleteLineage(long lineageId) throws TException {
     return mLineageMaster.deleteLineage(lineageId);
+  }
+
+  @Override
+  public LineageCommand lineageWorkerHeartbeat(long workerId) throws TException {
+    return mLineageMaster.lineageWorkerHeartbeat(workerId);
   }
 
 }
