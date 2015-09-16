@@ -37,6 +37,11 @@ public final class JournalTailerThread extends Thread {
   /** This become true when this class is instructed to shutdown. */
   private volatile boolean mInitiateShutdown = false;
 
+  /** The {@link JournalTailer} that this thread uses to continually tail the journal. */
+  private JournalTailer mJournalTailer = null;
+  /** True if this thread is no longer running. */
+  private boolean mStopped = false;
+
   /**
    * @param master the master to apply the journal entries to
    * @param journal the journal to tail
@@ -54,7 +59,7 @@ public final class JournalTailerThread extends Thread {
    * Initiate the shutdown of this tailer thread.
    */
   public void shutdown() {
-    LOG.info(mMaster.getServiceName() + " Journal tailer shutdown has been initiated.");
+    LOG.info(mMaster.getServiceName() + ": Journal tailer shutdown has been initiated.");
     mInitiateShutdown = true;
   }
 
@@ -71,9 +76,22 @@ public final class JournalTailerThread extends Thread {
     }
   }
 
+  /**
+   * @return the {@link JournalTailer} that this thread last used to tail the journal. This will
+   *         only return the {@link JournalTailer} if this thread is no longer running, to prevent
+   *         concurrent access to the {@link JournalTailer}. Returns null if this thread has not yet
+   *         used a {@link JournalTailer}, or if this thread is still running.
+   */
+  public JournalTailer getLatestJournalTailer() {
+    if (mStopped) {
+      return mJournalTailer;
+    }
+    return null;
+  }
+
   @Override
   public void run() {
-    LOG.info(mMaster.getServiceName() + " Journal tailer started.");
+    LOG.info(mMaster.getServiceName() + ": Journal tailer started.");
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
     while (!mInitiateShutdown) {
@@ -83,21 +101,22 @@ public final class JournalTailerThread extends Thread {
 
         // Load the checkpoint file.
         LOG.info("Waiting to load the checkpoint file.");
-        JournalTailer tailer = new JournalTailer(mMaster, mJournal);
-        while (!tailer.checkpointExists()) {
+        mJournalTailer = new JournalTailer(mMaster, mJournal);
+        while (!mJournalTailer.checkpointExists()) {
           CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           if (mInitiateShutdown) {
-            LOG.info("Journal tailer is shutdown when waiting to load the checkpoint file.");
+            LOG.info("Journal tailer has been shutdown while waiting to load the checkpoint file.");
+            mStopped = true;
             return;
           }
         }
         LOG.info("Start loading the checkpoint file.");
-        tailer.processJournalCheckpoint(true);
+        mJournalTailer.processJournalCheckpoint(true);
         LOG.info("Checkpoint file has been loaded.");
 
         // Continually process completed log files.
-        while (tailer.isValid()) {
-          if (tailer.processNextJournalLogFiles() > 0) {
+        while (mJournalTailer.isValid()) {
+          if (mJournalTailer.processNextJournalLogFiles() > 0) {
             // Reset the shutdown timer.
             waitForShutdownStart = -1;
           } else {
@@ -108,7 +127,8 @@ public final class JournalTailerThread extends Thread {
                   - waitForShutdownStart) > mShutdownQuietWaitTimeMs) {
                 // There have been no new logs for the quiet period. Shutdown now.
                 LOG.info(mMaster.getServiceName()
-                    + " Journal tailer has been shutdown. No new logs for the quiet period.");
+                    + ": Journal tailer has been shutdown. No new logs for the quiet period.");
+                mStopped = true;
                 return;
               }
             }
@@ -124,6 +144,7 @@ public final class JournalTailerThread extends Thread {
         LOG.error(ioe.getMessage());
       }
     }
-    LOG.info(mMaster.getServiceName() + " Journal tailer has been shutdown.");
+    LOG.info(mMaster.getServiceName() + ": Journal tailer has been shutdown.");
+    mStopped = true;
   }
 }
