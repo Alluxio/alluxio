@@ -111,29 +111,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws FileAlreadyExistException, BlockInfoException,
-      SuspectedFileSizeException, TachyonException, InvalidPathException {
-    if (ufsPath == null || ufsPath.isEmpty()) {
-      throw new IllegalArgumentException("the underFS path is not provided");
-    }
-    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mFileSystemMaster.getTachyonConf());
-    try {
-      long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
-      long fileSizeByte = underfs.getFileSize(ufsPath);
-      long fileId = mFileSystemMaster.createFile(new TachyonURI(path), ufsBlockSizeByte, recursive);
-      if (fileId != -1) {
-        mFileSystemMaster.completeFileCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath));
-      }
-      return fileId;
-    } catch (IOException e) {
-      throw new TachyonException(e.getMessage());
-    } catch (FileDoesNotExistException e) {
-      throw new TachyonException(e.getMessage());
-    }
-  }
-
-  @Override
   public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
     mFileSystemMaster.completeFile(fileId);
   }
@@ -192,8 +169,8 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void load(String ufsPath) throws TachyonException {
-    mFileSystemMaster.load(ufsPath);
+  public long loadFileFromUfs(String ufsPath, boolean recursive) throws TachyonException {
+    return mFileSystemMaster.loadFileFromUfs(ufsPath, recursive);
   }
 
   @Override
