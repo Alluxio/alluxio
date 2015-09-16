@@ -235,8 +235,6 @@ public final class Constants {
 
   public static final String WORKER_EVICT_ASYNC_ENABLE =
       "tachyon.worker.tieredstore.evict.async.enable";
-  public static final String WORKER_SHARED_EXECUTOR_CORES =
-      "tachyon.worker.sharedexecutor.threadpool.size";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
