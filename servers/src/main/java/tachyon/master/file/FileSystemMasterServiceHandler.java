@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
+import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
@@ -115,7 +116,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
     if (ufsPath == null || ufsPath.isEmpty()) {
       throw new IllegalArgumentException("the underFS path is not provided");
     }
-    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mFileSystemMaster.getTachyonConf());
+    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
     try {
       long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
       long fileSizeByte = underfs.getFileSize(ufsPath);
