@@ -39,7 +39,7 @@ interface TachyonFileSystemCore {
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws IOException if the master is unable to delete the file
    */
-  void delete(TachyonFile file) throws IOException, FileDoesNotExistException;
+  void delete(TachyonFile file) throws FileDoesNotExistException, IOException;
 
   /**
    * Removes the file from Tachyon Storage. The underlying under storage system file will not be
@@ -49,7 +49,7 @@ interface TachyonFileSystemCore {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if the master is unable to free the file for some other reason
    */
-  void free(TachyonFile file) throws IOException, FileDoesNotExistException;
+  void free(TachyonFile file) throws FileDoesNotExistException, IOException;
 
   /**
    * Gets the FileInfo object that represents the Tachyon file
@@ -69,19 +69,19 @@ interface TachyonFileSystemCore {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if the master cannot retrieve the file status for some other reason
    */
-  List<FileInfo> listStatus(TachyonFile file) throws IOException, FileDoesNotExistException;
+  List<FileInfo> listStatus(TachyonFile file) throws FileDoesNotExistException, IOException;
 
   /**
    * Creates a folder. If the parent folders do not exist, they will be created automatically.
    *
    * @param path the handler for the file
    * @return true if the folder is created successfully or already existing, false otherwise.
-   * @throws InvalidPathException if the provided path is invalid
    * @throws FileAlreadyExistException if there is already a file at the given path
+   * @throws InvalidPathException if the provided path is invalid
    * @throws IOException if the master cannot create the folder under the specified path
    */
-  boolean mkdirs(TachyonURI path) throws IOException, InvalidPathException,
-      FileAlreadyExistException;
+  boolean mkdirs(TachyonURI path) throws FileAlreadyExistException, InvalidPathException,
+      IOException;
 
   /**
    * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
@@ -92,7 +92,7 @@ interface TachyonFileSystemCore {
    * @throws InvalidPathException if the provided path is invalid
    * @throws IOException if the path does not exist in Tachyon space
    */
-  TachyonFile open(TachyonURI path) throws IOException, InvalidPathException;
+  TachyonFile open(TachyonURI path) throws InvalidPathException, IOException;
 
   /**
    * Renames an existing file in Tachyon space to another path in Tachyon space.
@@ -103,8 +103,7 @@ interface TachyonFileSystemCore {
    * @throws FileDoesNotExistException if the source file does not exist
    * @throws IOException if the destination already exists or is invalid
    */
-  boolean rename(TachyonFile src, TachyonURI dst) throws IOException, FileDoesNotExistException;
-
+  boolean rename(TachyonFile src, TachyonURI dst) throws FileDoesNotExistException, IOException;
 
   /**
    * Sets the pin status of a file. A pinned file will never be evicted for any reason. The pin
@@ -112,7 +111,8 @@ interface TachyonFileSystemCore {
    *
    * @param file the file handler for the file to pin
    * @param pinned true to pin the file, false to unpin it
+   * @throws FileDoesNotExistException if the file to be pinned does not exist
    * @throws IOException if an error occurs during the pin operation
    */
-  void setPin(TachyonFile file, boolean pinned) throws IOException, FileDoesNotExistException;
+  void setPin(TachyonFile file, boolean pinned) throws FileDoesNotExistException, IOException;
 }

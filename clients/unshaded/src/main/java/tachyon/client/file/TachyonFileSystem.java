@@ -56,7 +56,7 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * reside until the delete is propagated.
    */
   @Override
-  public void delete(TachyonFile file) throws IOException, FileDoesNotExistException {
+  public void delete(TachyonFile file) throws FileDoesNotExistException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.deleteFile(file.getFileId(), true);
@@ -72,7 +72,7 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * heartbeats.
    */
   @Override
-  public void free(TachyonFile file) throws IOException, FileDoesNotExistException {
+  public void free(TachyonFile file) throws FileDoesNotExistException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.free(file.getFileId(), true);
@@ -103,7 +103,7 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * modified time, and path are possibly inconsistent.
    */
   @Override
-  public List<FileInfo> listStatus(TachyonFile file) throws IOException, FileDoesNotExistException {
+  public List<FileInfo> listStatus(TachyonFile file) throws FileDoesNotExistException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getFileInfoList(file.getFileId());
@@ -125,7 +125,7 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * @throws IOException if the Tachyon path is invalid or the ufsPath does not exist
    */
   public long loadFileInfoFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive)
-      throws IOException, FileDoesNotExistException {
+      throws FileDoesNotExistException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
@@ -142,7 +142,7 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * {@inheritDoc}
    */
   @Override
-  public boolean mkdirs(TachyonURI path) throws IOException, InvalidPathException,
+  public boolean mkdirs(TachyonURI path) throws InvalidPathException, IOException,
       FileAlreadyExistException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
@@ -161,7 +161,7 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * {@inheritDoc}
    */
   @Override
-  public TachyonFile open(TachyonURI path) throws IOException, InvalidPathException {
+  public TachyonFile open(TachyonURI path) throws InvalidPathException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return new TachyonFile(masterClient.getFileId(path.getPath()));
@@ -174,8 +174,8 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * {@inheritDoc}
    */
   @Override
-  public void setPin(TachyonFile file, boolean pinned) throws IOException,
-      FileDoesNotExistException {
+  public void setPin(TachyonFile file, boolean pinned) throws FileDoesNotExistException,
+      IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setPinned(file.getFileId(), pinned);
@@ -189,8 +189,8 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * {@inheritDoc}
    */
   @Override
-  public boolean rename(TachyonFile src, TachyonURI dst) throws IOException,
-      FileDoesNotExistException {
+  public boolean rename(TachyonFile src, TachyonURI dst) throws FileDoesNotExistException,
+      IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       boolean result = masterClient.renameFile(src.getFileId(), dst.getPath());
