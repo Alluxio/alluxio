@@ -278,7 +278,7 @@ abstract class AbstractTFS extends FileSystem {
         TachyonURI ufsAddrPath =
             new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(), path.getPath());
         // Set the path as the TFS root path.
-        UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null), mTachyonConf);
+        UfsUtils.loadUfs(mTFS, path, ufsAddrPath, new PrefixList(null), mTachyonConf);
       }
     }
   }

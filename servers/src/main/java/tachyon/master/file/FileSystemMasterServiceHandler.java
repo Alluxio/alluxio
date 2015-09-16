@@ -22,7 +22,6 @@ import java.util.Set;
 import tachyon.TachyonURI;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.NotFoundException;
-import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
@@ -32,6 +31,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.MountOpts;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 
@@ -148,7 +148,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
       int dependencyType, long childrenBlockSizeByte) throws InvalidPathException,
       FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException {
-    // TODO(gene): Implement lineage.
+    mFileSystemMaster.createDependency();
     return 0;
   }
 
@@ -173,7 +173,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void mount(String tachyonPath, String ufsPath) throws TachyonException {
+  public void mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException {
     try {
       mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
     } catch (AlreadyExistsException aee) {

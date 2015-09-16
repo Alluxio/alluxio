@@ -32,6 +32,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.UnderFileSystemUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
@@ -62,7 +63,7 @@ public class UfsUtilsIntegrationTest {
   }
 
   @Test
-  public void loadUnderFsTest() throws IOException, TException {
+  public void loadUfsTest() throws IOException, TException {
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
@@ -79,15 +80,19 @@ public class UfsUtilsIntegrationTest {
           mLocalTachyonCluster.getMasterTachyonConf());
     }
 
-    UfsUtils.loadUnderFs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUnderfsAddress
-        + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
+    TachyonURI tachyonRoot = new TachyonURI("/mnt");
+    TachyonURI ufsRoot = new TachyonURI(mUnderfsAddress + TachyonURI.SEPARATOR);
+    mTfs.mount(tachyonRoot, ufsRoot);
+
+    UfsUtils.loadUfs(mTfs, tachyonRoot, ufsRoot, new PrefixList("tachyon;exclusions", ";"),
         mLocalTachyonCluster.getMasterTachyonConf());
 
     List<String> paths = null;
     for (String exclusion : exclusions) {
       try {
-        paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, exclusion);
-        Assert.fail("NO FileDoesNotExistException is expected here");
+        paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem,
+            PathUtils.concatPath(tachyonRoot, exclusion));
+        Assert.fail("FileDoesNotExistException is expected here");
       } catch (IOException ioe) {
         Assert.assertNotNull(ioe);
       }
@@ -95,7 +100,8 @@ public class UfsUtilsIntegrationTest {
     }
 
     for (String inclusion : inclusions) {
-      paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, inclusion);
+      paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem,
+          PathUtils.concatPath(tachyonRoot, inclusion));
       Assert.assertNotNull(paths);
     }
   }

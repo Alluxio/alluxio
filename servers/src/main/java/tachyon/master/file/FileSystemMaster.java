@@ -1112,6 +1112,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
+  // TODO(jiri): Fail when the UFS path does not exist.
   public void mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws AlreadyExistsException,
       FileAlreadyExistException, InvalidPathException {
     mkdirs(tachyonPath, true);
@@ -1125,7 +1126,7 @@ public final class FileSystemMaster extends MasterBase {
       InvalidPathException, NotFoundException {
     mMountTable.delete(tachyonPath);
     long fileId = getFileId(tachyonPath);
-    // TODO(jiri): Delete the files here.
+    // TODO(jiri): Delete metadata for the Tachyon namespace nested under tachyonPath.
     writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
     flushJournal();
   }
