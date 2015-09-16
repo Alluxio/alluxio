@@ -39,6 +39,7 @@ import tachyon.underfs.UnderFileSystem;
 public class MasterSource implements Source {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String MASTER_SOURCE_NAME = "master";
+  private boolean mGaugesRegistered = false;
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
   private final Counter mFilesCreated =
       mMetricRegistry.counter(MetricRegistry.name("FilesCreated"));
@@ -58,6 +59,9 @@ public class MasterSource implements Source {
       mMetricRegistry.counter(MetricRegistry.name("GetFileStatusOps"));
 
   public void registerGauges(final TachyonMaster tachyonMaster) {
+    if (mGaugesRegistered) {
+      return;
+    }
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
       @Override
       public Long getValue() {
@@ -151,6 +155,8 @@ public class MasterSource implements Source {
         return tachyonMaster.getFileSystemMaster().getNumberOfPinnedFiles();
       }
     });
+
+    mGaugesRegistered = true;
   }
 
   @Override

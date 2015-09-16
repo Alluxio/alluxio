@@ -34,7 +34,7 @@ public class MasterTestUtils {
 
     BlockMaster blockMaster = new BlockMaster(tachyonConf, blockJournal);
     FileSystemMaster fsMaster =
-        new FileSystemMaster(tachyonConf, blockMaster, fsJournal, new MasterSource());
+        new FileSystemMaster(tachyonConf, blockMaster, fsJournal);
     blockMaster.start(true);
     fsMaster.start(true);
     return fsMaster;

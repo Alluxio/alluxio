@@ -66,7 +66,7 @@ public final class FileSystemMasterTest {
 
     mBlockMaster = new BlockMaster(mTachyonConf, blockJournal);
     mFileSystemMaster =
-        new FileSystemMaster(mTachyonConf, mBlockMaster, fsJournal, new MasterSource());
+        new FileSystemMaster(mTachyonConf, mBlockMaster, fsJournal);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
