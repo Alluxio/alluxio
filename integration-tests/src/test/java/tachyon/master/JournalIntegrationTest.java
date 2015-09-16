@@ -79,7 +79,7 @@ public class JournalIntegrationTest {
   private void deleteFsMasterJournalLogs() throws IOException {
     String journalFolder = mLocalTachyonCluster.getMaster().getJournalFolder();
     Journal journal = new Journal(PathUtils.concatPath(journalFolder,
-        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME), mMasterTachyonConf);
+        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME));
     UnderFileSystem.get(journalFolder, mMasterTachyonConf).delete(journal.getCurrentLogFilePath(),
         true);
   }
@@ -173,7 +173,7 @@ public class JournalIntegrationTest {
 
     String journalFolder =
         FileSystemMaster.getJournalDirectory(mLocalTachyonCluster.getMaster().getJournalFolder());
-    Journal journal = new Journal(journalFolder, mMasterTachyonConf);
+    Journal journal = new Journal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
     Assert.assertTrue(UnderFileSystem.get(completedPath,
         mMasterTachyonConf).list(completedPath).length > 1);

@@ -22,6 +22,7 @@ import java.util.Set;
 import tachyon.TachyonURI;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.NotFoundException;
+import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
