@@ -189,4 +189,18 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
     mFileSystemMaster.requestFilesInDependency(depId);
   }
 
+  @Override
+  public boolean load(String ufsPath) throws TachyonException {
+    return mFileSystemMaster.load(ufsPath);
+  }
+
+  @Override
+  public boolean mount(String tachyonPath, String ufsPath) throws TachyonException {
+    return mFileSystemMaster.mount(tachyonPath, ufsPath);
+  }
+
+  @Override
+  public boolean unmount(String tachyonPath) throws TachyonException {
+    return mFileSystemMaster.unmount(tachyonPath);
+  }
 }
