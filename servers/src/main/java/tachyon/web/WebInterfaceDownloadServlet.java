@@ -116,7 +116,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      // TODO(jsimsa): Could this use MasterContext?
+      // TODO(jiri): Should we use MasterContext here instead?
       ClientOptions op = new ClientOptions.Builder(
           new TachyonConf()).setTachyonStoreType(TachyonStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);

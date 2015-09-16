@@ -1006,11 +1006,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the ufs address for this master.
    */
   public String getUfsAddress() {
-<<<<<<< HEAD
-    return MasterContext.getConf().get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
-=======
-    return mTachyonConf.get(Constants.UNDERFS_ADDRESS);
->>>>>>> upstream/master
+    return MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
   }
 
   /**
