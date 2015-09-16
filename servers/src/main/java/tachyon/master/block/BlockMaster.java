@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,6 +44,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.master.IndexedSet;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.block.journal.WorkerIdGeneratorEntry;
@@ -129,10 +131,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_SERVICE_NAME);
   }
 
-  public BlockMaster(TachyonConf tachyonConf, Journal journal) {
+  public BlockMaster(Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)),
-        tachyonConf);
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)));
   }
 
   @Override
@@ -155,7 +156,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    // TODO: a better way to process entries besides a huge switch?
+    // TODO(gene): A better way to process entries besides a huge switch?
     if (entry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator
           .setNextContainerId(((BlockContainerIdGeneratorEntry) entry).getNextContainerId());
@@ -186,7 +187,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       mLostWorkerDetectionService =
           getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
               new LostWorkerDetectionHeartbeatExecutor(),
-              mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+              MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -438,7 +439,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @return the worker id for this worker
    */
   public long getWorkerId(NetAddress workerNetAddress) {
-    // TODO: this NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
+    // TODO(gene): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
     NetAddress workerAddress = new NetAddress(workerNetAddress);
 
     synchronized (mWorkers) {
@@ -576,7 +577,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
         if (masterBlockInfo != null) {
           workerInfo.addBlock(blockId);
-          // TODO: change upper API so that this is tier level or type, not storage dir id.
+          // TODO(gene): Change upper API so that this is tier level or type, not storage dir id.
           int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
           masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
           mLostBlocks.remove(blockId);
@@ -612,20 +613,23 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
-   * Lost worker periodical check.
+   * Lost worker periodic check.
    */
   public final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
+      TachyonConf conf = MasterContext.getConf();
 
-      int masterWorkerTimeoutMs = mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
+      int masterWorkerTimeoutMs = conf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
       synchronized (mWorkers) {
-        for (MasterWorkerInfo worker : mWorkers) {
+        Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
+        while (iter.hasNext()) {
+          MasterWorkerInfo worker = iter.next();
           if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker + " got timed out!");
             mLostWorkers.add(worker);
-            mWorkers.remove(worker);
+            iter.remove();
           } else if (mLostWorkers.contains(worker)) {
             LOG.info("The lost worker " + worker + " is found.");
             mLostWorkers.remove(worker);
@@ -637,7 +641,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       if (mLostWorkers.size() != 0) {
         LOG.warn("Restarting failed workers.");
         try {
-          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
+          String tachyonHome = conf.get(Constants.TACHYON_HOME);
           java.lang.Runtime.getRuntime()
               .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
         } catch (IOException e) {

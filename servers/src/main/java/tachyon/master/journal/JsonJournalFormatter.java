@@ -61,8 +61,8 @@ public final class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
     /** Creates a JSON ObjectMapper configured not to close the underlying stream. */
     public static ObjectMapper createObjectMapper() {
-      // TODO: Could disable field name quoting, though this would produce technically invalid JSON
-      // See: JsonGenerator.QUOTE_FIELD_NAMES and JsonParser.ALLOW_UNQUOTED_FIELD_NAMES
+      // TODO(cc): Could disable field name quoting, though this would produce technically invalid
+      // JSON. See: JsonGenerator.QUOTE_FIELD_NAMES and JsonParser.ALLOW_UNQUOTED_FIELD_NAMES
       return new ObjectMapper().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false)
           .configure(SerializationFeature.CLOSE_CLOSEABLE, false);
     }

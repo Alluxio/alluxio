@@ -28,6 +28,7 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
 
@@ -83,6 +84,30 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
         return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  /**
+   * @param fileId the file id
+   * @return the file info for the given file id
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
+   */
+  // TODO(jiri): Factor this method out to a common client.
+  public synchronized FileInfo getFileInfo(long fileId) throws IOException,
+      FileDoesNotExistException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return mClient.getFileInfo(fileId);
+      } catch (FileDoesNotExistException e) {
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

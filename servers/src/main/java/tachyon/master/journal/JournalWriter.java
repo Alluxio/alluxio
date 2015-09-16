@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -44,13 +45,13 @@ public final class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Journal mJournal;
-  private final TachyonConf mTachyonConf;
   /** Absolute path to the directory storing all of the journal data. */
   private final String mJournalDirectory;
   /** Absolute path to the directory storing all completed logs. */
   private final String mCompletedDirectory;
   /** Absolute path to the temporary checkpoint file. */
   private final String mTempCheckpointPath;
+  /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
   private final long mMaxLogSize;
 
@@ -65,14 +66,14 @@ public final class JournalWriter {
   /** The sequence number for the next entry in the log. */
   private long mNextEntrySequenceNumber = 1;
 
-  JournalWriter(Journal journal, TachyonConf tachyonConf) {
+  JournalWriter(Journal journal) {
     mJournal = Preconditions.checkNotNull(journal);
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mJournalDirectory = mJournal.getDirectory();
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
-    mUfs = UnderFileSystem.get(mJournalDirectory, mTachyonConf);
-    mMaxLogSize = tachyonConf.getBytes(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES);
+    TachyonConf conf = MasterContext.getConf();
+    mUfs = UnderFileSystem.get(mJournalDirectory, conf);
+    mMaxLogSize = conf.getBytes(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES);
   }
 
   /**
