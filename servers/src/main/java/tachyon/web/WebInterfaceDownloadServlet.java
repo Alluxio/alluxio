@@ -36,6 +36,7 @@ import tachyon.client.ClientOptions;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -115,8 +116,9 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      ClientOptions op = new ClientOptions.Builder(mFsMaster.getTachyonConf()).setTachyonStoreType(
-          TachyonStorageType.NO_STORE).build();
+      // TODO(jiri): Should we use MasterContext here instead?
+      ClientOptions op = new ClientOptions.Builder(
+          new TachyonConf()).setTachyonStoreType(TachyonStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);

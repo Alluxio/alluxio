@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.master.Master;
+import tachyon.master.MasterContext;
 import tachyon.util.CommonUtils;
 
 /**
@@ -46,11 +47,11 @@ public final class JournalTailerThread extends Thread {
   /**
    * @param master the master to apply the journal entries to
    * @param journal the journal to tail
-   * @param conf the TachyonConf to get configurable parameters from
    */
-  public JournalTailerThread(Master master, Journal journal, TachyonConf conf) {
+  public JournalTailerThread(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
     mJournal = Preconditions.checkNotNull(journal);
+    TachyonConf conf = MasterContext.getConf();
     mShutdownQuietWaitTimeMs = conf.getInt(
         Constants.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
     mJournalTailerSleepTimeMs = conf.getInt(Constants.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
