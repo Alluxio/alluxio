@@ -30,7 +30,7 @@ import tachyon.thrift.InvalidPathException;
  * including folders. Clients should provide their own interface for reading/writing files.
  */
 @PublicApi
-interface TachyonFSCore {
+interface TachyonFileSystemCore {
 
   /**
    * Deletes a file. If the file is a folder, its contents will be deleted recursively.
