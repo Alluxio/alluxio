@@ -235,8 +235,8 @@ public class LocalTachyonClusterMultiMaster {
 
     // Create the directories for the data and workers after LocalTachyonMaster construction,
     // because LocalTachyonMaster sets the UNDERFS_DATA_FOLDER and UNDERFS_WORKERS_FOLDER.
-    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER));
 
     LOG.info("all " + mNumOfMasters + " masters started.");
     LOG.info("waiting for a leader.");
