@@ -16,6 +16,7 @@
 package tachyon.client.block;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -50,7 +51,13 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
 
   @Override
   public void close() {
-    // TODO(calvin): Consider collecting all the clients and shutting them down.
+    // Collecting all the clients and shutting them down.
+    ArrayList<BlockMasterClient> masterClients = new ArrayList<BlockMasterClient>();
+    if (this.mResources.drainTo(masterClients) > 0) {
+      for (BlockMasterClient masterClient : masterClients) {
+        masterClient.close();
+      }
+    }
     mExecutorService.shutdown();
   }
 

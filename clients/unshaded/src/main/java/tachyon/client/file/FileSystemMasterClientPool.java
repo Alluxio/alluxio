@@ -16,6 +16,8 @@
 package tachyon.client.file;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -45,7 +47,13 @@ class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
 
   @Override
   public void close() {
-    // TODO(calvin): Consider collecting all the clients and shutting them down
+    // Collecting all the clients and shutting them down
+    ArrayList<FileSystemMasterClient> masterClients = new ArrayList<FileSystemMasterClient>();
+    if (this.mResources.drainTo(masterClients) > 0) {
+      for (FileSystemMasterClient masterClient : masterClients) {
+        masterClient.close();
+      }
+    }
     mExecutorService.shutdown();
   }
 
