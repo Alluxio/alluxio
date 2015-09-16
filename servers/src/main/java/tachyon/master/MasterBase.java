@@ -74,8 +74,8 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void start(boolean isLeader) throws IOException {
-    LOG.info(getServiceName() + ": Starting master. isLeader: " + isLeader);
     mIsLeader = isLeader;
+    LOG.info(getServiceName() + ": Starting " + (mIsLeader ? "leader" : "standby") + " master.");
     if (mIsLeader) {
       mJournalWriter = mJournal.getNewWriter();
 
@@ -112,11 +112,13 @@ public abstract class MasterBase implements Master {
       } else {
         // This master has not successfully processed any of the journal, so create a fresh tailer
         // to process the entire journal.
-        LOG.info(getServiceName() + ": process entire journal before becoming leader master.");
         catchupTailer = new JournalTailer(this, mJournal);
         if (catchupTailer.checkpointExists()) {
+          LOG.info(getServiceName() + ": process entire journal before becoming leader master.");
           catchupTailer.processJournalCheckpoint(true);
           catchupTailer.processNextJournalLogFiles();
+        } else {
+          LOG.info(getServiceName() + ": journal checkpoint does not exist, nothing to process.");
         }
       }
       long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
@@ -136,7 +138,7 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void stop() throws IOException {
-    LOG.info(getServiceName() + ": Stopping master. isLeader: " + mIsLeader);
+    LOG.info(getServiceName() + ": Stopping " + (mIsLeader ? "leader" : "standby") + " master.");
     if (mIsLeader) {
       // Stop this leader master.
       if (mJournalWriter != null) {
