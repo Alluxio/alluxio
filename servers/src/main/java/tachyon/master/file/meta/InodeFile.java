@@ -23,6 +23,8 @@ import com.google.common.base.Preconditions;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
+import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -31,6 +33,9 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
+  /** The default permission for file is used the directory permission umasked 0111 */
+  private static final FsPermission SUMASK = new FsPermission((short) 0111);
+
   private final long mBlockContainerId;
   private final long mBlockSizeBytes;
 
@@ -56,8 +61,25 @@ public final class InodeFile extends Inode {
    */
   public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
       long creationTimeMs) {
+    this(name, blockContainerId, parentId, blockSizeBytes,
+        creationTimeMs, PermissionStatus.getDirDefault());
+  }
+
+  /**
+   * Create a new InodeFile.
+   *
+   * @param name The name of the file
+   * @param blockContainerId The block container id for this file. All blocks for this file will
+   *        belong to this block container.
+   * @param parentId The inode id of the parent of the file
+   * @param blockSizeByte The block size of the file, in bytes
+   * @param creationTimeMs The creation time of the file, in milliseconds
+   * @param ps the file permissionStatus information
+   */
+  public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
+      long creationTimeMs, PermissionStatus ps) {
     super(name, BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), parentId,
-        false, creationTimeMs);
+        false, creationTimeMs, ps.applyUMask(SUMASK));
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = blockContainerId;
     mBlockSizeBytes = blockSizeBytes;
@@ -81,6 +103,9 @@ public final class InodeFile extends Inode {
     ret.isCacheable = mCache;
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
+    ret.username = getUsername();
+    ret.groupname = getGroupname();
+    ret.permission = getPermission();
     return ret;
   }
 
@@ -229,6 +254,7 @@ public final class InodeFile extends Inode {
   public synchronized JournalEntry toJournalEntry() {
     return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPinned(),
         getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isComplete(), isCache(),
-        getUfsPath(), mBlocks);
+        getUfsPath(), mBlocks,
+        new PermissionStatus(getUsername(), getGroupname(),getPermission()));
   }
 }

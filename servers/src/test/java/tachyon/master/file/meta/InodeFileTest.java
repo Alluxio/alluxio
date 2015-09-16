@@ -86,4 +86,12 @@ public final class InodeFileTest extends AbstractInodeTest {
     inode1.setComplete(LENGTH);
     Assert.assertTrue(inode1.isComplete());
   }
+
+  @Test
+  public void permissionStatusTest() {
+    InodeFile inode1 = createInodeFile(1);
+    Assert.assertEquals("user1", inode1.getUsername());
+    Assert.assertEquals("group1", inode1.getGroupname());
+    Assert.assertEquals((short)0644, inode1.getPermission());
+  }
 }

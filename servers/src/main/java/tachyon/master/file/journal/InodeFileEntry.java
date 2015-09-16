@@ -23,6 +23,8 @@ import com.google.common.base.Preconditions;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.journal.JournalEntryType;
+import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.PermissionStatus;
 
 public class InodeFileEntry extends InodeEntry {
   private final long mBlockSizeBytes;
@@ -34,8 +36,8 @@ public class InodeFileEntry extends InodeEntry {
 
   public InodeFileEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
       long lastModificationTimeMs, long blockSizeBytes, long length, boolean isComplete,
-      boolean isCache, String ufsPath, List<Long> blocks) {
-    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
+      boolean isCache, String ufsPath, List<Long> blocks, PermissionStatus ps) {
+    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs, ps);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
     mIsComplete = isComplete;
@@ -46,7 +48,7 @@ public class InodeFileEntry extends InodeEntry {
 
   public InodeFile toInodeFile() {
     InodeFile inode = new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
-        mCreationTimeMs);
+        mCreationTimeMs, mPs);
 
     // Set flags.
     if (mIsComplete) {
