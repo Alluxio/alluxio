@@ -1,4 +1,4 @@
-# TODO: use leading '/' to specifically ignore top level directories
+# TODO(gene): Use leading '/' to specifically ignore top level directories.
 **/tachyon-site.properties
 *.iml
 *.swp

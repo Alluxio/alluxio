@@ -59,7 +59,7 @@ public enum BlockStoreContext {
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     // If the local worker is not available, do not initialize the local worker client pool.
-    if (null == localWorkerAddress) {
+    if (localWorkerAddress == null) {
       mLocalBlockWorkerClientPool = null;
     } else {
       mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
@@ -160,7 +160,7 @@ public enum BlockStoreContext {
     NetAddress workerAddress = getWorkerAddress(hostname);
 
     // If we couldn't find a worker, crash.
-    if (null == workerAddress) {
+    if (workerAddress == null) {
       // TODO(calvin): Better exception usage.
       throw new RuntimeException("No Tachyon worker available for host: " + hostname);
     }
@@ -194,7 +194,7 @@ public enum BlockStoreContext {
    * @return true if there was a local worker, false otherwise
    */
   // TODO(calvin): Handle the case when the local worker starts up after the client or shuts down
-  // TODO before the client does.
+  // before the client does.
   public boolean hasLocalWorker() {
     return mLocalBlockWorkerClientPool != null;
   }
@@ -218,7 +218,7 @@ public enum BlockStoreContext {
           getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
       // If the local worker is not available, do not initialize the local worker client pool.
-      if (null == localWorkerAddress) {
+      if (localWorkerAddress == null) {
         mLocalBlockWorkerClientPool = null;
       } else {
         mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
