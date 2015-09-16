@@ -256,11 +256,11 @@ public final class LocalTachyonMaster {
   }
 
   public TachyonFS getOldClient() throws IOException {
-    return mOldClientPool.getClient(mTachyonMaster.getTachyonConf());
+    return mOldClientPool.getClient(MasterContext.getConf());
   }
 
   public TachyonFileSystem getClient() throws IOException {
-    return mClientPool.getClient(mTachyonMaster.getTachyonConf());
+    return mClientPool.getClient(MasterContext.getConf());
   }
 
   private static String uniquePath() throws IOException {
@@ -269,10 +269,6 @@ public final class LocalTachyonMaster {
 
   private static String path(final String parent, final String child) {
     return parent + "/" + child;
-  }
-
-  public TachyonConf getTachyonConf() {
-    return mTachyonMaster.getTachyonConf();
   }
 
   public String getJournalFolder() {

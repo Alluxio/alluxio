@@ -54,10 +54,9 @@ public final class InodeTreeTest {
 
   @Before
   public void before() throws IOException {
-    TachyonConf conf = new TachyonConf();
-    Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), conf);
+    Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath());
 
-    BlockMaster blockMaster = new BlockMaster(conf, blockJournal);
+    BlockMaster blockMaster = new BlockMaster(blockJournal);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     mTree = new InodeTree(blockMaster, directoryIdGenerator);
 
