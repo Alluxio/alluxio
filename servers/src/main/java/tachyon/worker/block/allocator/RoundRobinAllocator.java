@@ -18,6 +18,8 @@ package tachyon.worker.block.allocator;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.StorageDirView;
@@ -29,14 +31,14 @@ import tachyon.worker.block.meta.StorageTierView;
  * next tier when there is no enough space. The allocator only considers non-specific writes in its
  * RR policy (the location is either AnyTier or AnyDirInTier).
  */
-public class RoundRobinAllocator implements Allocator {
+public final class RoundRobinAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   // We need to remember the last dir index for every storage tier
   private Map<StorageTierView, Integer> mTierToLastDirMap = new HashMap<StorageTierView, Integer>();
 
   public RoundRobinAllocator(BlockMetadataManagerView view) {
-    mManagerView = view;
+    mManagerView = Preconditions.checkNotNull(view);
     for (StorageTierView tierView : mManagerView.getTierViews()) {
       mTierToLastDirMap.put(tierView, -1);
     }
@@ -45,7 +47,7 @@ public class RoundRobinAllocator implements Allocator {
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = view;
+    mManagerView = Preconditions.checkNotNull(view);
     return allocateBlock(sessionId, blockSize, location);
   }
 
@@ -62,6 +64,7 @@ public class RoundRobinAllocator implements Allocator {
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
+    Preconditions.checkNotNull(location);
     if (location.equals(BlockStoreLocation.anyTier())) {
       int tierIndex = 0; // always starting from the first tier
       for (int i = 0; i < mManagerView.getTierViews().size(); i ++) {

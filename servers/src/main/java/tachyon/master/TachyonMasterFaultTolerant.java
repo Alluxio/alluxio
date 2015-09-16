@@ -26,7 +26,6 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
 import tachyon.Version;
-import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.rawtable.RawTableMaster;
@@ -37,14 +36,14 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 /**
  * The fault tolerant version of TachyonMaster that uses zookeeper and standby masters.
  */
-public final class TachyonMasterFaultTolerant extends TachyonMaster {
+final class TachyonMasterFaultTolerant extends TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public TachyonMasterFaultTolerant(TachyonConf tachyonConf) {
-    super(tachyonConf);
-    Preconditions.checkArgument(tachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
+  public TachyonMasterFaultTolerant() {
+    super();
+    Preconditions.checkArgument(mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
 
     // Set up zookeeper specific functionality.
     try {
@@ -84,7 +83,7 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
 
         if (started) {
           // Transitioning from standby to master, replace readonly journal with writable journal.
-          mBlockMaster = new BlockMaster(mBlockMasterJournal, mTachyonConf);
+          mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal);
           mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
               mFileSystemMasterJournal, mMasterSource);
           mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
@@ -102,7 +101,7 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
 
           // When transitioning from master to standby, recreate the masters with a readonly
           // journal.
-          mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal(), mTachyonConf);
+          mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal.getReadOnlyJournal());
           mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
               mFileSystemMasterJournal.getReadOnlyJournal(), new MasterSource());
           mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,

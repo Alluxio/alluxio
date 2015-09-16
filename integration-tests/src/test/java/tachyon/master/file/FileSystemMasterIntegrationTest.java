@@ -575,9 +575,6 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
 
-  // TODO: Should writing in a file in a directory update its last mod time? If so we need to log
-  // it in the journal
-  @Ignore
   @Test
   public void lastModificationTimeCreateFileTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {

@@ -19,10 +19,12 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Abstract implementation of {@link tachyon.client.TachyonFSCore} APIs.
+ * As of 0.8, merged into {@link TachyonFileSystem}
  */
 @Deprecated
 abstract class AbstractTachyonFS implements TachyonFSCore {
@@ -42,7 +44,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @return The unique file id. It returns -1 if the creation failed.
    * @throws IOException if the operation fails
    */
-  public synchronized int createFile(TachyonURI path) throws IOException {
+  public synchronized long createFile(TachyonURI path) throws IOException {
     long defaultBlockSize = mTachyonConf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
     return createFile(path, defaultBlockSize);
   }
@@ -57,7 +59,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @return The unique file id. It returns -1 if the creation failed.
    * @throws IOException if the operation fails
    */
-  public synchronized int createFile(TachyonURI path, long blockSizeByte) throws IOException {
+  public synchronized long createFile(TachyonURI path, long blockSizeByte) throws IOException {
     if (blockSizeByte > (long) Constants.GB * 2) {
       throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
     }
@@ -76,7 +78,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @return The unique file id. It returns -1 if the creation failed.
    * @throws IOException if the operation fails
    */
-  public synchronized int createFile(TachyonURI path, TachyonURI ufsPath) throws IOException {
+  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath) throws IOException {
     return createFile(path, ufsPath, -1, true);
   }
 
