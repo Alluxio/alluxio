@@ -59,10 +59,11 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * current readers have relinquished their locks.
    */
   @Override
-  public void delete(TachyonFile file) throws FileDoesNotExistException, IOException {
+  public void delete(TachyonFile file, boolean recursive) throws FileDoesNotExistException,
+      IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.deleteFile(file.getFileId(), true);
+      masterClient.deleteFile(file.getFileId(), recursive);
       LOG.info(
           "Deleted file " + file.getFileId() + " from both Tachyon Storage and under file system");
     } finally {
@@ -76,10 +77,11 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * This method is asynchronous and will be propagated to the workers through their heartbeats.
    */
   @Override
-  public void free(TachyonFile file) throws FileDoesNotExistException, IOException {
+  public void free(TachyonFile file, boolean recursive) throws FileDoesNotExistException,
+      IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      masterClient.free(file.getFileId(), true);
+      masterClient.free(file.getFileId(), recursive);
       LOG.info("Removed file " + file.getFileId() + " from Tachyon Storage");
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -145,8 +147,8 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
    * {@inheritDoc}
    */
   @Override
-  public boolean mkdirs(TachyonURI path) throws InvalidPathException, IOException,
-      FileAlreadyExistException {
+  public boolean mkdirs(TachyonURI path, boolean recursive) throws InvalidPathException,
+      IOException, FileAlreadyExistException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO: Change this RPC's arguments

@@ -33,23 +33,26 @@ import tachyon.thrift.InvalidPathException;
 interface TachyonFileSystemCore {
 
   /**
-   * Deletes a file. If the file is a folder, its contents will be deleted recursively.
+   * Deletes a file. If the file is a folder, its contents will be deleted recursively if the
+   * flag is set.
    *
    * @param file the handler of the file to delete.
+   * @param recursive whether or not to delete all contents in a non empty folder
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws IOException if the master is unable to delete the file
    */
-  void delete(TachyonFile file) throws FileDoesNotExistException, IOException;
+  void delete(TachyonFile file, boolean recursive) throws FileDoesNotExistException, IOException;
 
   /**
    * Removes the file from Tachyon Storage. The underlying under storage system file will not be
-   * removed. If the file is a folder, its contents will be freed recursively.
+   * removed. If the file is a folder, its contents will be freed recursively if the flag is set.
    *
    * @param file the handler for the file
+   * @param recursive whether or not to free all contents in a non empty folder
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if the master is unable to free the file for some other reason
    */
-  void free(TachyonFile file) throws FileDoesNotExistException, IOException;
+  void free(TachyonFile file, boolean recursive) throws FileDoesNotExistException, IOException;
 
   /**
    * Gets the {@link FileInfo} object that represents the metadata of a Tachyon file.
@@ -86,16 +89,18 @@ interface TachyonFileSystemCore {
       throws FileDoesNotExistException, IOException;
 
   /**
-   * Creates a folder. If the parent folders do not exist, they will be created automatically.
+   * Creates a folder. If the parent folders do not exist, they will be created automatically if
+   * the recursive flag is set.
    *
    * @param path the handler for the file
+   * @param recursive whether or not to create the parent folders that do not exist
    * @return true if the folder is created successfully or already existing, false otherwise.
    * @throws FileAlreadyExistException if there is already a file at the given path
    * @throws InvalidPathException if the provided path is invalid
    * @throws IOException if the master cannot create the folder under the specified path
    */
-  boolean mkdirs(TachyonURI path) throws FileAlreadyExistException, InvalidPathException,
-      IOException;
+  boolean mkdirs(TachyonURI path, boolean recursive) throws FileAlreadyExistException,
+      InvalidPathException, IOException;
 
   /**
    * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
