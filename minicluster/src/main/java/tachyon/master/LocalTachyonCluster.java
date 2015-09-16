@@ -252,6 +252,8 @@ public final class LocalTachyonCluster {
   public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+    // Delete the temp dir by ufs, otherwise, permission problem may be encountered.
+    UnderFileSystemUtils.deleteDir(mTachyonHome, conf);
     mWorkerDataFolder = "/datastore";
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
