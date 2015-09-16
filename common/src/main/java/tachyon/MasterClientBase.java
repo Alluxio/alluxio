@@ -196,9 +196,11 @@ public abstract class MasterClientBase implements Closeable {
       return mMasterAddress;
     }
 
+    Preconditions.checkState(mTachyonConf.containsKey(Constants.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(mTachyonConf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null),
-            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
+        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS),
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);

@@ -24,8 +24,8 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.TachyonURI;
-import tachyon.client.BlockMasterClient;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.client.WorkerBlockMasterClient;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
@@ -59,13 +59,14 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   /** Configuration values */
   private TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
-  private WorkerSource mWorkerSource;
-  /** Metrics reporter that listens on block events and increases metrics counters */
-  private BlockMetricsReporter mMetricsReporter;
-  /** BlockMasterClient, only used to inform the master of a new block in commitBlock */
-  private BlockMasterClient mBlockMasterClient;
-  /** FileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
-  private FileSystemMasterClient mFileSystemMasterClient;
+  private final WorkerSource mWorkerSource;
+  /** Metrics reporter that listens on block events and increases metrics counters*/
+  private final BlockMetricsReporter mMetricsReporter;
+
+  /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
+  private WorkerBlockMasterClient mBlockMasterClient;
+  /** WorkerFileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
+  private WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** UnderFileSystem Client */
   private UnderFileSystem mUfs;
   /** Session metadata, used to keep track of session heartbeats */
@@ -77,19 +78,22 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * Creates a BlockDataManager based on the configuration values.
    *
    * @param workerSource object for collecting the worker metrics
-   * @param blockMasterClient the Tachyon master client
+   * @param workerBlockMasterClient the block Tachyon master client for worker
+   * @param workerFileSystemMasterClient the file system Tachyon master client for worker
    * @throws IOException if fail to connect to under filesystem
    */
-  public BlockDataManager(WorkerSource workerSource, BlockMasterClient blockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient, BlockStore blockStore) throws IOException {
-    // TODO: We may not need to assign the conf to a variable
+  public BlockDataManager(WorkerSource workerSource,
+      WorkerBlockMasterClient workerBlockMasterClient,
+      WorkerFileSystemMasterClient workerFileSystemMasterClient) throws IOException {
+    // TODO(jiri): We may not need to assign the conf to a variable
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = blockStore;
     mWorkerSource = workerSource;
     mMetricsReporter = new BlockMetricsReporter(mWorkerSource);
-    mBlockMasterClient = blockMasterClient;
-    mFileSystemMasterClient = fileSystemMasterClient;
+
+    mBlockMasterClient = workerBlockMasterClient;
+    mFileSystemMasterClient = workerFileSystemMasterClient;
 
     // Create Under FileSystem Client
     String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
@@ -176,10 +180,9 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws IOException if the update to the master fails
    */
   public void addCheckpoint(long sessionId, long fileId) throws TException, IOException {
-    // TODO This part needs to be changed.
+    // TODO(calvin): This part needs to be changed.
     String srcPath = PathUtils.concatPath(getSessionUfsTmpFolder(sessionId), fileId);
-    String ufsDataFolder =
-        mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
     FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
@@ -216,9 +219,9 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   }
 
   /**
-   * Commits a block to Tachyon managed space. The block must be temporary. The block is persisted
-   * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
-   * {@link BlockMasterClient#workerCommitBlock} succeeds
+   * Commits a block to Tachyon managed space. The block must be temporary. The block is
+   * persisted after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible
+   * until {@link WorkerBlockMasterClient#commitBlock} succeeds.
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to commit
@@ -232,7 +235,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
       NotFoundException, InvalidStateException, IOException, OutOfSpaceException {
     mBlockStore.commitBlock(sessionId, blockId);
 
-    // TODO: Reconsider how to do this without heavy locking
+    // TODO)(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(sessionId, blockId);
     try {
@@ -242,7 +245,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mBlockMasterClient.workerCommitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
+      mBlockMasterClient.commitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {
@@ -266,10 +269,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
    */
-  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
-  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
-  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
-  // exception
+  // TODO(cc): Exceptions like NotFoundException, IOException and InvalidStateException here
+  // involves implementation details, also, AlreadyExistsException has two possible semantic now,
+  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
+  // more general exception.
   public String createBlock(long sessionId, long blockId, int tierAlias, long initialBytes)
       throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
       InvalidStateException {
@@ -296,10 +299,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
    */
-  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
-  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
-  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
-  // exception
+  // TODO(cc): Exceptions like NotFoundException, IOException and InvalidStateException here
+  // involves implementation details, also, AlreadyExistsException has two possible semantic now,
+  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
+  // more general exception.
   public void createBlockRemote(long sessionId, long blockId, int tierAlias, long initialBytes)
       throws AlreadyExistsException, OutOfSpaceException, NotFoundException, IOException,
       InvalidStateException {
@@ -477,9 +480,9 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws InvalidStateException if the space requested is less than current space or blocks to
    *         move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO: exceptions like IOException AlreadyExistsException and InvalidStateException here
+  // TODO(cc): Exceptions like IOException AlreadyExistsException and InvalidStateException here
   // involves implementation details, also, NotFoundException has two semantic now, revisit this
-  // with a more general exception
+  // with a more general exception.
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws NotFoundException, OutOfSpaceException, IOException, AlreadyExistsException,
       InvalidStateException {
@@ -520,7 +523,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     mBlockStore.unlockBlock(lockId);
   }
 
-  // TODO: Remove when lock and reads are separate operations
+  // TODO(calvin): Remove when lock and reads are separate operations.
   public void unlockBlock(long sessionId, long blockId) throws NotFoundException {
     mBlockStore.unlockBlock(sessionId, blockId);
   }

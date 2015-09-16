@@ -155,7 +155,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       long fileId = mMaster.getFileSystemMaster().getFileId(currentPath);
       FileInfo fileInfo = mMaster.getFileSystemMaster().getFileInfo(fileId);
       UiFileInfo currentFileInfo = new UiFileInfo(fileInfo);
-      if (null == currentFileInfo.getAbsolutePath()) {
+      if (currentFileInfo.getAbsolutePath() == null) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
       request.setAttribute("currentDirectory", currentFileInfo);

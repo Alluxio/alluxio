@@ -176,8 +176,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
 
-    String ufsDataFolder = mMaster.getTachyonConf().get(Constants.UNDERFS_DATA_FOLDER,
-        Constants.DEFAULT_DATA_FOLDER);
+    String ufsDataFolder = mMaster.getTachyonConf().get(Constants.UNDERFS_DATA_FOLDER);
     UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, mMaster.getTachyonConf());
 
     long sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);

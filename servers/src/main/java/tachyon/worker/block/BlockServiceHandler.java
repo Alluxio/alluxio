@@ -36,7 +36,7 @@ import tachyon.thrift.WorkerService;
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
  * thread safe.
  */
-// TODO: better exception handling than wrapping into TException
+// TODO(cc): Better exception handling than wrapping into TException.
 public final class BlockServiceHandler implements WorkerService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -81,7 +81,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
     }
   }
 
-  // TODO: Make this supported again
+  // TODO(calvin): Make this supported again.
   @Override
   public boolean asyncCheckpoint(long fileId) throws TException {
     return false;
@@ -96,7 +96,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId the id of the block to commit
    * @throws TException if the underlying worker RPC fails
    */
-  // TODO: Reconsider this exception handling
+  // TODO(calvin): Reconsider this exception handling.
   @Override
   public void cacheBlock(long sessionId, long blockId) throws TException {
     try {
@@ -165,7 +165,7 @@ public final class BlockServiceHandler implements WorkerService.Iface {
       long lockId = mWorker.lockBlock(sessionId, blockId);
       return mWorker.readBlock(sessionId, blockId, lockId);
     } catch (NotFoundException nfe) {
-      // TODO: reconsider this, maybe it is because lockId can not be found
+      // TODO(cc): Reconsider this, maybe it is because lockId can not be found.
       throw new FileDoesNotExistException(nfe.getMessage());
     } catch (InvalidStateException fpe) {
       throw new TException(fpe);
@@ -180,11 +180,11 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * @param blockId the id of the block to move to the top layer
    * @throws TException if the underlying worker RPC fails
    */
-  // TODO: This may be better as void
+  // TODO(calvin): This may be better as void.
   @Override
   public boolean promoteBlock(long blockId) throws TException {
     try {
-      // TODO: Make the top level configurable
+      // TODO(calvin): Make the top level configurable.
       mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId,
           StorageLevelAlias.MEM.getValue());
       return true;
