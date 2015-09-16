@@ -96,8 +96,6 @@ public final class BlockWorker {
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
-  /** Shared executor service */
-  private ExecutorService mSharedExecutor;
 
   /**
    * @return the worker service handler
@@ -170,11 +168,6 @@ public final class BlockWorker {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
         mMasterClientExecutorService, mTachyonConf);
 
-    // Set up ExecutorService
-    mSharedExecutor = Executors.newFixedThreadPool(
-        mTachyonConf.getInt(Constants.WORKER_SHARED_EXECUTOR_CORES),
-        ThreadFactoryUtils.build("shared-executor-%d", false));
-
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
     mBlockDataManager =
@@ -219,7 +212,7 @@ public final class BlockWorker {
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
-            mBlockMasterClient);
+        mBlockMasterClient);
     // Get the worker id
     // TODO(calvin): Do this at TachyonWorker.
     mBlockMasterSync.setWorkerId();

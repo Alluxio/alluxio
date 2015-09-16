@@ -24,11 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -37,12 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 
 import tachyon.Constants;
 import tachyon.Pair;
-import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
@@ -109,9 +101,8 @@ public final class TieredBlockStore implements BlockStore {
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
   /** WriteLock provided by {@link #mMetadataReadLock} to guard metadata write operations */
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
-  private final AsyncEvictor mAsyncEvictor;
 
-  public TieredBlockStore(ExecutorService executorService) {
+  public TieredBlockStore() {
     mTachyonConf = WorkerContext.getConf();
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
     mLockManager = new BlockLockManager();
@@ -128,14 +119,6 @@ public final class TieredBlockStore implements BlockStore {
     mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
-    }
-
-    if (mTachyonConf.getBoolean(Constants.WORKER_EVICT_ASYNC_ENABLE)) {
-      mAsyncEvictor = new AsyncEvictor(executorService);
-      mAsyncEvictor.initialize();
-      LOG.info("asynchronous evictor is started!");
-    } else {
-      mAsyncEvictor = null;
     }
   }
 
@@ -916,130 +899,6 @@ public final class TieredBlockStore implements BlockStore {
 
     BlockStoreLocation dstLocation() {
       return mDstLocation;
-    }
-  }
-
-  private class AsyncEvictor implements Runnable {
-    // Pairs of alias of the storage tier and space size reserved on it
-    private final List<Pair<Integer, Long>> mReservedBytesOnTiers =
-        new ArrayList<Pair<Integer, Long>>();
-    // Mapping from alias of the storage tier and running movers/removers
-    private final Multimap<Integer, Future<Boolean>> mMoverResOnTiers =
-        HashMultimap.<Integer, Future<Boolean>>create();
-    private final Timer mTimer;
-    private final Semaphore mSemaphore = new Semaphore(1);
-    private final Thread mEvictorThread;
-    private final ExecutorService mExecutorService;
-    
-    public AsyncEvictor(ExecutorService executorService) {
-      List<StorageTier> tiers = mMetaManager.getTiers();
-      long lastTierReservedBytes = 0;
-      for (StorageTier tier : tiers) {
-        String tierReservedSpaceProp =
-            String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT,
-                tier.getTierLevel());
-        long reservedSpaceBytes =
-            (long)(tier.getCapacityBytes() * WorkerContext.getConf()
-                .getDouble(tierReservedSpaceProp));
-        mReservedBytesOnTiers.add(new Pair<Integer, Long>(tier.getTierAlias(),
-            reservedSpaceBytes + lastTierReservedBytes));
-        lastTierReservedBytes += reservedSpaceBytes;
-      }
-      mEvictorThread = new Thread(this);
-      mEvictorThread.setDaemon(true);
-      mEvictorThread.setName("async-evictor");
-      mTimer = new Timer(true);
-      mExecutorService = executorService;
-    }
-
-    /**
-     * Get eviction plan on some tier to make enough space
-     * 
-     * @param reservedBytes space size to be reserved
-     * @param location the location on the BlockStore
-     * @return eviction plan
-     */
-    private EvictionPlan getEvictionPlanOnTier(long reservedBytes, BlockStoreLocation location) {
-      EvictionPlan plan = null;
-      mMetadataReadLock.lock();
-      try {
-        BlockMetadataManagerView updatedView = getUpdatedView();
-        long availableBytes = updatedView.getAvailableBytes(location);
-        if (availableBytes < reservedBytes) {
-          plan = mEvictor.freeSpaceWithView(reservedBytes - availableBytes, location, updatedView);
-          if (null == plan) {
-            LOG.error("Failed to free space: no eviction plan by evictor");
-          }
-        }
-      } finally {
-        mMetadataReadLock.unlock();
-      }
-      return plan;
-    }
-
-    /**
-     * Check whether the eviction on some tier is done
-     * 
-     * @param tierAlias the alias of the storage tier
-     * @return true if it is done, else false
-     */
-    private boolean isEvictionDone(int tierAlias) {
-      boolean done = true;
-      List<Future<Boolean>> moversDone = new ArrayList<Future<Boolean>>();
-      for (Future<Boolean> res : mMoverResOnTiers.get(tierAlias)) {
-        if (res.isCancelled() || res.isDone()) {
-          moversDone.add(res);
-        } else {
-          done = false;
-        }
-      }
-      mMoverResOnTiers.removeAll(moversDone);
-      return done;
-    }
-
-    public void initialize() {
-      mEvictorThread.start();
-      mTimer.schedule(new TimerTask() {
-        public void run() {
-          mSemaphore.release();
-        }
-      }, 0L, WorkerContext.getConf().getLong(Constants
-          .WORKER_TIERED_STORAGE_EVICTION_ASYNC_PERIOD_MS_FORMAT));
-    }
-
-    @Override
-    public void run() {
-      try {
-        while (true) {
-          mSemaphore.acquire();
-          for (int tierIdx = mReservedBytesOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
-            Pair<Integer, Long> bytesReservedOnTier = mReservedBytesOnTiers.get(tierIdx);
-            int tierAlias = bytesReservedOnTier.getFirst();
-            if (!isEvictionDone(tierAlias)) {
-              continue;
-            }
-            long bytesReserved = bytesReservedOnTier.getSecond();
-            BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-            EvictionPlan plan = getEvictionPlanOnTier(bytesReserved, location);
-            if (null == plan) {
-              continue;
-            }
-            for (BlockTransferInfo move : plan.toMove()) {
-              Future<Boolean> res = mExecutorService.submit(new BlockMover(TieredBlockStore.this,
-                  Sessions.MIGRATE_DATA_SESSION_ID, move.getBlockId(), move.getSrcLocation(),
-                  move.getDstLocation()));
-              mMoverResOnTiers.put(tierAlias, res);
-            }
-            for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
-              Future<Boolean> res = mExecutorService.submit(new BlockRemover(TieredBlockStore.this,
-                  Sessions.MIGRATE_DATA_SESSION_ID, evict.getFirst(), evict.getSecond()));
-              mMoverResOnTiers.put(tierAlias, res);
-            }
-          }
-        }
-      } catch (InterruptedException e) {
-        LOG.info("Asynchronous evictor exits!");
-      }
     }
   }
 }

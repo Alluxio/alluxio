@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,8 @@ import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -45,6 +48,7 @@ import tachyon.worker.WorkerContext;
  */
 public final class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
   /** The net address of the worker */
@@ -82,7 +86,6 @@ public final class BlockMasterSync implements Runnable {
 
     mRunning = true;
     mWorkerId = 0;
-    mExecutorService = executorService;
   }
 
   /**
@@ -210,5 +213,34 @@ public final class BlockMasterSync implements Runnable {
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);
     }
+  }
+
+  /**
+   * Thread to remove block from master
+   */
+  private class BlockRemover implements Runnable {
+    private BlockDataManager mBlockDataManager;
+    private long mSessionId;
+    private long mBlockId;
+
+    public BlockRemover(BlockDataManager blockDataManager, long sessionId, long blockId) {
+      mBlockDataManager = blockDataManager;
+      mSessionId = sessionId;
+      mBlockId = blockId;
+    }
+
+    @Override
+    public void run() {
+      try {
+        mBlockDataManager.removeBlock(mSessionId, mBlockId);
+      } catch (IOException ioe) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
+      } catch (InvalidStateException e) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted.");
+      } catch (NotFoundException e) {
+        LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
+      }
+    }
+
   }
 }
