@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -38,7 +39,6 @@ public class JournalReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Journal mJournal;
-  private final TachyonConf mTachyonConf;
   private final UnderFileSystem mUfs;
   private final String mCheckpointPath;
 
@@ -53,12 +53,11 @@ public class JournalReader {
 
   /**
    * @param journal the handle to the journal
-   * @param tachyonConf the tachyon conf
    */
-  JournalReader(Journal journal, TachyonConf tachyonConf) {
+  JournalReader(Journal journal) {
     mJournal = Preconditions.checkNotNull(journal);
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mUfs = UnderFileSystem.get(mJournal.getDirectory(), mTachyonConf);
+    TachyonConf conf = MasterContext.getConf();
+    mUfs = UnderFileSystem.get(mJournal.getDirectory(), conf);
     mCheckpointPath = mJournal.getCheckpointFilePath();
   }
 

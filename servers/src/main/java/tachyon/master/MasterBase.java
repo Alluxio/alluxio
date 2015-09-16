@@ -52,12 +52,10 @@ public abstract class MasterBase implements Master {
   private JournalTailerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
-  protected final TachyonConf mTachyonConf;
 
-  protected MasterBase(Journal journal, ExecutorService executorService, TachyonConf conf) {
+  protected MasterBase(Journal journal, ExecutorService executorService) {
     mJournal = Preconditions.checkNotNull(journal);
     mExecutorService = Preconditions.checkNotNull(executorService);
-    mTachyonConf = conf;
   }
 
   @Override
@@ -118,7 +116,7 @@ public abstract class MasterBase implements Master {
       checkpointStream.close();
     } else {
       // in standby mode. Start the journal tailer thread.
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal, mTachyonConf);
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
       mStandbyJournalTailer.start();
     }
   }

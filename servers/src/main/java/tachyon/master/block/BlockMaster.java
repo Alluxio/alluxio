@@ -43,6 +43,7 @@ import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
 import tachyon.master.IndexedSet;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.block.journal.WorkerIdGeneratorEntry;
@@ -129,10 +130,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     return PathUtils.concatPath(baseDirectory, Constants.BLOCK_MASTER_SERVICE_NAME);
   }
 
-  public BlockMaster(TachyonConf tachyonConf, Journal journal) {
+  public BlockMaster(Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)),
-        tachyonConf);
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("block-master-%d", true)));
   }
 
   @Override
@@ -186,7 +186,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       mLostWorkerDetectionService =
           getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
               new LostWorkerDetectionHeartbeatExecutor(),
-              mTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+              MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -618,8 +618,9 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
+      TachyonConf conf = MasterContext.getConf();
 
-      int masterWorkerTimeoutMs = mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
+      int masterWorkerTimeoutMs = conf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
       synchronized (mWorkers) {
         for (MasterWorkerInfo worker : mWorkers) {
           if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
@@ -637,7 +638,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       if (mLostWorkers.size() != 0) {
         LOG.warn("Restarting failed workers.");
         try {
-          String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
+          String tachyonHome = conf.get(Constants.TACHYON_HOME);
           java.lang.Runtime.getRuntime()
               .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
         } catch (IOException e) {
