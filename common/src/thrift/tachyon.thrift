@@ -269,6 +269,10 @@ service RawTableMasterService {
     throws (1: TableDoesNotExistException tdnee, 2: TachyonException te)
 }
 
+service LineageWorkerService {
+	void addCheckpoint(1: list<i64> blockIds, 2: i64 fileId, 3: string filePath)
+}
+
 service WorkerService {
   void accessBlock(1: i64 blockId)
 
