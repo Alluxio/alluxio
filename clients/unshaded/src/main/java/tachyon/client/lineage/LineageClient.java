@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.file.lineage;
+package tachyon.client.lineage;
 
 import java.util.List;
 
