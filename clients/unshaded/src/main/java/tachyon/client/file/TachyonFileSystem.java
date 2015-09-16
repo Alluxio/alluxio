@@ -112,24 +112,16 @@ public abstract class TachyonFileSystem implements TachyonFileSystemCore {
     }
   }
 
+
   /**
-   * Adds metadata about a file in the under storage system to Tachyon. Only metadata will be
-   * updated and no data will be transferred. The data can be added to Tachyon space by doing an
-   * operation with the cache option specified, for example reading.
-   *
-   * @param path the path to create the file in Tachyon
-   * @param ufsPath the under storage system path of the file that will back the Tachyon file
-   * @param recursive if true, the parent directories to the file in Tachyon will be created
-   * @return the file id of the resulting file in Tachyon
-   * @throws FileDoesNotExistException if there is no file at the given path
-   * @throws IOException if the Tachyon path is invalid or the ufsPath does not exist
+   * {@inheritDoc}
    */
+  @Override
   public long loadFileInfoFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive)
       throws FileDoesNotExistException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      long fileId =
-          masterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(), -1L, recursive);
+      long fileId = masterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(), recursive);
       LOG.info(
           "Loaded file " + path.getPath() + " from " + ufsPath + (recursive ? " recursively" : ""));
       return fileId;
