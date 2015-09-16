@@ -177,9 +177,9 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
 
-    // TODO(jsimsa): Could this use MasterContext?
+    // TODO(jiri): Should we use MasterContext here instead?
     TachyonConf conf = new TachyonConf();
-    String ufsDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+    String ufsDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER);
     UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, conf);
 
     long sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);

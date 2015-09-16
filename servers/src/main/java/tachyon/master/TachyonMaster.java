@@ -160,7 +160,7 @@ public class TachyonMaster {
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
 
-      // TODO: implement metrics.
+      // TODO(gene): Implement metrics.
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -341,7 +341,7 @@ public class TachyonMaster {
     TachyonConf conf = MasterContext.getConf();
     UnderFileSystem ufs = UnderFileSystem.get(journalDirectory, conf);
     if (!ufs.providesStorage()) {
-      // TODO: Should the journal really be allowed on a ufs without storage?
+      // TODO(gene): Should the journal really be allowed on a ufs without storage?
       // This ufs doesn't provide storage. Allow the master to use this ufs for the journal.
       LOG.info("Journal directory doesn't provide storage: " + journalDirectory);
       return true;

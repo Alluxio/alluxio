@@ -37,6 +37,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
@@ -176,31 +177,54 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(file2).getInMemoryPercentage() == 100);
   }
 
-  // TODO: Add this test back when CACHE_PROMOTE is enabled again
-  /*
-   * @Test public void promoteBlock() throws IOException, InterruptedException { int fileId1 =
-   * TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES
-   * / 6); int fileId2 = TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE,
-   * MEM_CAPACITY_BYTES / 2); int fileId3 = TachyonFSTestUtils.createByteFile(mTFS, "/root/test3",
-   * WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
-   *
-   * CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
-   *
-   * TachyonFile file1 = mTFS.getFile(fileId1); TachyonFile file2 = mTFS.getFile(fileId2);
-   * TachyonFile file3 = mTFS.getFile(fileId3);
-   *
-   * Assert.assertEquals(false, file1.isInMemory()); Assert.assertEquals(true, file2.isInMemory());
-   * Assert.assertEquals(true, file3.isInMemory()); Assert.assertEquals(MEM_CAPACITY_BYTES / 6 +
-   * MEM_CAPACITY_BYTES, mLocalTachyonCluster.getMasterInfo().getUsedBytes());
-   *
-   * InStream is = file1.getInStream(ReadType.CACHE_PROMOTE); byte[] buf = new
-   * byte[MEM_CAPACITY_BYTES / 6]; int len = is.read(buf); is.close();
-   *
-   * CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
-   *
-   * Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len); Assert.assertEquals(true,
-   * file1.isInMemory()); Assert.assertEquals(false, file2.isInMemory()); Assert.assertEquals(true,
-   * file3.isInMemory()); Assert.assertEquals(MEM_CAPACITY_BYTES / 6 + MEM_CAPACITY_BYTES,
-   * mLocalTachyonCluster.getMasterInfo().getUsedBytes()); }
-   */
+  @Test
+  public void promoteBlock() throws Exception {
+    TachyonFile file1 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", TachyonStorageType.STORE,
+            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 6);
+    TachyonFile file2 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", TachyonStorageType.STORE,
+            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
+    TachyonFile file3 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", TachyonStorageType.STORE,
+            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
+
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+
+    TachyonFile toPromote = null;
+    int toPromoteLen = 0;
+    FileInfo file1Info = mTFS.getInfo(file1);
+    FileInfo file2Info = mTFS.getInfo(file2);
+    FileInfo file3Info = mTFS.getInfo(file3);
+
+    // We know some file will not be in memory, but not which one since we do not want to make
+    // any assumptions on the eviction policy
+    if (file1Info.getInMemoryPercentage() < 100) {
+      toPromote = file1;
+      toPromoteLen = (int) file1Info.getLength();
+      Assert.assertEquals(100, file2Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file3Info.getInMemoryPercentage());
+    } else if (file2Info.getInMemoryPercentage() < 100) {
+      toPromote = file2;
+      toPromoteLen = (int) file2Info.getLength();
+      Assert.assertEquals(100, file1Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file3Info.getInMemoryPercentage());
+    } else {
+      toPromote = file3;
+      toPromoteLen = (int) file3Info.getLength();
+      Assert.assertEquals(100, file1Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file2Info.getInMemoryPercentage());
+    }
+
+    FileInStream is = mTFS.getInStream(toPromote, new ClientOptions.Builder(mWorkerConf)
+        .setTachyonStoreType(TachyonStorageType.PROMOTE).build());
+    byte[] buf = new byte[toPromoteLen];
+    int len = is.read(buf);
+    is.close();
+
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+
+    Assert.assertEquals(toPromoteLen, len);
+    Assert.assertEquals(100, mTFS.getInfo(toPromote).getInMemoryPercentage());
+  }
 }

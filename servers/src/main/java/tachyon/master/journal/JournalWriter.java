@@ -51,6 +51,7 @@ public final class JournalWriter {
   private final String mCompletedDirectory;
   /** Absolute path to the temporary checkpoint file. */
   private final String mTempCheckpointPath;
+  /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
   private final long mMaxLogSize;
 
@@ -62,7 +63,6 @@ public final class JournalWriter {
   /** The output stream singleton for the entry log files. */
   private EntryOutputStream mEntryOutputStream = null;
 
-  // TODO: start from the last known sequence number
   /** The sequence number for the next entry in the log. */
   private long mNextEntrySequenceNumber = 1;
 
@@ -168,7 +168,7 @@ public final class JournalWriter {
   private void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
-    // TODO: should the deletes start from the end?
+    // TODO(gene): Should the deletes start from the end?
     int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
@@ -260,7 +260,7 @@ public final class JournalWriter {
 
       LOG.info("Successfully created tmp checkpoint file: " + mTempCheckpointPath);
       mUfs.delete(mJournal.getCheckpointFilePath(), false);
-      // TODO: the real checkpoint should not be overwritten here, but after all operations.
+      // TODO(gene): The real checkpoint should not be overwritten here, but after all operations.
       mUfs.rename(mTempCheckpointPath, mJournal.getCheckpointFilePath());
       mUfs.delete(mTempCheckpointPath, false);
       LOG.info("Renamed checkpoint file " + mTempCheckpointPath + " to "

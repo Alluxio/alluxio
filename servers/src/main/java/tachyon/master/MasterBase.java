@@ -35,8 +35,8 @@ import tachyon.master.journal.JournalWriter;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
- * mostly consists of journal operations, like initializing it, tailing it when in standby mode, or
- * writing to it when the master is the leader.
+ * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
+ * or journal writing when the master is the leader.
  */
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -91,6 +91,9 @@ public abstract class MasterBase implements Master {
        * Phase 3. Write out the checkpoint file. Since this master is completely up-to-date, it
        * writes out the checkpoint file. When the checkpoint file is closed, it will then delete the
        * complete log files.
+       *
+       * Since this method is called before the master RPC server starts serving, there is no
+       * concurrent access to the master during these phases.
        */
 
       // Phase 1: Mark all logs as complete, including the current log. After this call, the current
@@ -98,8 +101,8 @@ public abstract class MasterBase implements Master {
       mJournalWriter.completeAllLogs();
 
       // Phase 2: Replay all the state of the checkpoint and the completed log files.
-      // TODO: only do this if this is a fresh start, not if this master had already been tailing
-      // the journal.
+      // TODO(gene): only do this if this is a fresh start, not if this master had already been
+      // tailing the journal.
       LOG.info(getServiceName() + ": process completed logs before becoming master.");
       JournalTailer catchupTailer = new JournalTailer(this, mJournal);
       if (catchupTailer.checkpointExists()) {
@@ -115,7 +118,9 @@ public abstract class MasterBase implements Master {
       streamToJournalCheckpoint(checkpointStream);
       checkpointStream.close();
     } else {
-      // in standby mode. Start the journal tailer thread.
+      // This master is in standby mode. Start the journal tailer thread. Since the master is in
+      // standby mode, its RPC server is NOT serving. Therefore, the only thread modifying the
+      // master is this journal tailer thread (no concurrent access).
       mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
       mStandbyJournalTailer.start();
     }
@@ -147,6 +152,11 @@ public abstract class MasterBase implements Master {
     return !mIsLeader;
   }
 
+  /**
+   * Writes a {@link JournalEntry} to the journal. Does NOT flush the journal.
+   *
+   * @param entry the {@link JournalEntry} to write to the journal
+   */
   protected void writeJournalEntry(JournalEntry entry) {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
@@ -156,6 +166,9 @@ public abstract class MasterBase implements Master {
     }
   }
 
+  /**
+   * Flushes the journal.
+   */
   protected void flushJournal() {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
