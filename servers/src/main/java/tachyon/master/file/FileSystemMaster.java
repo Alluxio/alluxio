@@ -38,6 +38,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.NotFoundException;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -1090,7 +1091,35 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  public void load(String ufsPath) throws TachyonException {
+  public long loadFileFromUfs(String ufsPath, boolean recursive) throws TachyonException {
+    if (ufsPath == null || ufsPath.isEmpty()) {
+      throw new IllegalArgumentException("the underFS path is not provided");
+    }
+    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+    try {
+      long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
+      long fileSizeByte = underfs.getFileSize(ufsPath);
+      String path = mMountTable.reverseLookup(ufsPath);
+      long fileId = createFile(new TachyonURI(path), ufsBlockSizeByte, recursive);
+      if (fileId != -1) {
+        completeFileCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath));
+      }
+      return fileId;
+    } catch (BlockInfoException bie) {
+      throw new TachyonException(bie.getMessage());
+    } catch (FileAlreadyExistException faee) {
+      throw new TachyonException(faee.getMessage());
+    } catch (FileDoesNotExistException fdnee) {
+      throw new TachyonException(fdnee.getMessage());
+    } catch (InvalidPathException ipe) {
+      throw new TachyonException(ipe.getMessage());
+    } catch (IOException ioe) {
+      throw new TachyonException(ioe.getMessage());
+    } catch (NotFoundException nfe) {
+      throw new TachyonException(nfe.getMessage());
+    } catch (SuspectedFileSizeException sfse) {
+      throw new TachyonException(sfse.getMessage());
+    }
   }
 
   public void mount(String tachyonPath, String ufsPath) throws AlreadyExistsException {

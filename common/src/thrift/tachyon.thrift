@@ -200,10 +200,6 @@ service FileSystemMasterService {
     throws (1: FileDoesNotExistException fdnee, 2: SuspectedFileSizeException sfse,
       3: BlockInfoException bie)
 
-  i64 loadFileInfoFromUfs(1: string path, 2: string ufsPath, 3: i64 blockSizeBytes,
-      4: bool recursive)
-    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
-      3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
   void completeFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
@@ -229,9 +225,9 @@ service FileSystemMasterService {
       3: BlockInfoException eB)
 
   /**
-   * Loads the subtree identifies by the given path from UFS into Tachyon.
+   * Loads the file identifies by the given path from UFS into Tachyon.
    */
-  void load(1: string ufsPath) throws (1: TachyonException te)
+  i64 loadFileFromUfs(1: string ufsPath, 2: bool recursive) throws (1: TachyonException te)
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
