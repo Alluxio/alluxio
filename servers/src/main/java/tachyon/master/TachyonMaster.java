@@ -79,7 +79,6 @@ public class TachyonMaster {
   private final InetSocketAddress mMasterAddress;
   /** The master metrics system */
   private final MetricsSystem mMasterMetricsSystem;
-  protected final MasterSource mMasterSource;
 
   // The masters
   /** The master managing all block metadata */
@@ -163,18 +162,15 @@ public class TachyonMaster {
       mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory),
           mTachyonConf);
 
-      mMasterSource = new MasterSource();
-
       mBlockMaster = new BlockMaster(mTachyonConf, mBlockMasterJournal);
       mFileSystemMaster =
-          new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal,
-              mMasterSource);
+          new FileSystemMaster(mTachyonConf, mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster =
           new RawTableMaster(mTachyonConf, mFileSystemMaster, mRawTableMasterJournal);
 
-      mMasterSource.registerGauges(this);
+      MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", mTachyonConf);
-      mMasterMetricsSystem.registerSource(mMasterSource);
+      mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
