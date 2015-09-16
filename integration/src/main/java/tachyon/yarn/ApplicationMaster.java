@@ -65,13 +65,15 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private NMClient mNMClient;
   /** Whether a container for Tachyon master is allocated */
   private boolean mMasterContainerAllocated;
+  /** Network address of the container allocated for Tachyon master */
+  private String mMasterContainerNetAddress;
   private final Supplier<Boolean> mMasterContainerSupplier = new Supplier<Boolean>() {
     @Override
     public Boolean get() {
       return mMasterContainerAllocated;
     }
   };
-  private String mMasterContainerNetAddress;
+
 
   public ApplicationMaster() {
     mMasterCpu = mTachyonConf.getInt(Constants.MASTER_RESOURCE_CPU);
@@ -86,7 +88,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   public static void main(String[] args) {
     try {
-      LOG.info("Starting AM with args " + args);
+      LOG.info("Starting AM with args " + args.toString());
       final int numWorkers = Integer.valueOf(args[0]);
       ApplicationMaster applicationMaster = new ApplicationMaster();
       applicationMaster.start();
@@ -101,9 +103,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   @Override
   public void onContainersAllocated(List<Container> containers) {
     if (!mMasterContainerAllocated) {
-      launchMasterContainers(containers);
+      launchTachyonMasterContainers(containers);
     } else {
-      launchWorkerContainers(containers);
+      launchTachyonWorkerContainers(containers);
     }
   }
 
@@ -177,20 +179,18 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     }
   }
 
-
   public void stop() {
     try {
       mRMClient.unregisterApplicationMaster(FinalApplicationStatus.SUCCEEDED, "", "");
-    } catch (YarnException ye) {
-      LOG.error("Failed to unregister application " + ye);
+    } catch (YarnException yex) {
+      LOG.error("Failed to unregister application " + yex);
     } catch (IOException ioe) {
       LOG.error("Failed to unregister application " + ioe);
     }
     mRMClient.stop();
   }
 
-  private void launchMasterContainers(List<Container> containers) {
-    // String command = "/bin/sh -c echo \" hello \"";
+  private void launchTachyonMasterContainers(List<Container> containers) {
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
     String command = PathUtils.concatPath(tachyonHome, "integration", "bin", "tachyon-master.sh");
 
@@ -204,6 +204,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         LOG.info("Launching container " + container.getId() + " for Tachyon master");
         mNMClient.startContainer(container, ctx);
         mMasterContainerNetAddress = container.getNodeHttpAddress();
+        mMasterContainerAllocated = true;
         return;
       } catch (Exception ex) {
         LOG.error("Error launching container " + container.getId() + " " + ex);
@@ -211,8 +212,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     }
   }
 
-  private void launchWorkerContainers(List<Container> containers) {
-    // String command = "/bin/sh -c echo \" hello \"";
+  private void launchTachyonWorkerContainers(List<Container> containers) {
     String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
     String command = PathUtils.concatPath(tachyonHome, "integration", "bin", "tachyon-worker.sh");
     Map<String, String> environmentMap = new HashMap<String, String>();

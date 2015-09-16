@@ -57,7 +57,19 @@ import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
 /**
- * Client to submit Tachyon application to Hadoop YARN ResourceManager (RM)..
+ * Client to submit Tachyon application to Hadoop YARN ResourceManager (RM).
+ *
+ * <p>Launch Tachyon on YARN:</p>
+ * <code>
+ * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -jar
+ * hdfs://HDFSMaster:port/path/to/tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar
+ * -num_workers NumTachyonWorkers
+ * </code>
+ *
+ * <p>Check help:</p>
+ * <code>
+ * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -help
+ * </code>
  */
 public final class Client {
   /** Main class to invoke application master */
