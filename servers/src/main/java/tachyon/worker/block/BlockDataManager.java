@@ -81,7 +81,7 @@ public final class BlockDataManager {
   public BlockDataManager(WorkerSource workerSource,
       WorkerBlockMasterClient workerBlockMasterClient,
       WorkerFileSystemMasterClient workerFileSystemMasterClient) throws IOException {
-    // TODO(jiri): We may not need to assign the conf to a variable
+    // TODO(jiri): We may not need to assign the conf to a variable.
     mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = new TieredBlockStore();
@@ -136,8 +136,8 @@ public final class BlockDataManager {
    * Add the checkpoint information of a file. The information is from the session
    * <code>sessionId</code>.
    *
-   * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and only
-   * if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
+   * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
+   * only if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
    * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a session temp
    * directory (temp directory is defined in the worker as {@link #getSessionUfsTmpFolder(long)}).

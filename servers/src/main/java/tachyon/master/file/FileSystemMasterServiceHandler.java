@@ -15,7 +15,6 @@
 
 package tachyon.master.file;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +33,6 @@ import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
-import tachyon.underfs.UnderFileSystem;
 
 public final class FileSystemMasterServiceHandler implements FileSystemMasterService.Iface {
   private final FileSystemMaster mFileSystemMaster;
@@ -170,22 +168,30 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   @Override
   public long loadFileFromUfs(String ufsPath, boolean recursive) throws TachyonException {
-    return mFileSystemMaster.loadFileFromUfs(ufsPath, recursive);
+    return mFileSystemMaster.loadFileFromUfs(new TachyonURI(ufsPath), recursive);
   }
 
   @Override
   public void mount(String tachyonPath, String ufsPath) throws TachyonException {
     try {
-      mFileSystemMaster.mount(tachyonPath, ufsPath);
+      mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
     } catch (AlreadyExistsException aee) {
       throw new TachyonException(aee.getMessage());
+    } catch (FileAlreadyExistException faee) {
+      throw new TachyonException(faee.getMessage());
+    } catch (InvalidPathException ipe) {
+      throw new TachyonException(ipe.getMessage());
     }
   }
 
   @Override
   public void unmount(String tachyonPath) throws TachyonException {
     try {
-      mFileSystemMaster.unmount(tachyonPath);
+      mFileSystemMaster.unmount(new TachyonURI(tachyonPath));
+    } catch (FileDoesNotExistException fdnee) {
+      throw new TachyonException(fdnee.getMessage());
+    } catch (InvalidPathException ipe) {
+      throw new TachyonException(ipe.getMessage());
     } catch (NotFoundException nfe) {
       throw new TachyonException(nfe.getMessage());
     }

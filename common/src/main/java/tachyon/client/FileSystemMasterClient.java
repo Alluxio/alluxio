@@ -270,20 +270,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * Loads a file from the under file system.
    *
-   * @param path the file path
-   * @param ufsPath the under file system path
+   * @param path the Tachyon path of the file
    * @param recursive whether parent directories should be loaded if not present yet
    * @return the file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, boolean recursive)
+  public synchronized long loadFileFromUfs(String path, boolean recursive)
       throws IOException, FileDoesNotExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.loadFileFromUfs(ufsPath, recursive);
+        return mClient.loadFileFromUfs(path, recursive);
       } catch (FileDoesNotExistException e) {
         throw e;
       } catch (TException e) {

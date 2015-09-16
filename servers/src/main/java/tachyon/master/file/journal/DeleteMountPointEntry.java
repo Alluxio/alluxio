@@ -19,18 +19,19 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
+import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 public class DeleteMountPointEntry implements JournalEntry {
   private final String mTachyonPath;
 
-  public DeleteMountPointEntry(String tachyonPath) {
-    mTachyonPath = tachyonPath;
+  public DeleteMountPointEntry(TachyonURI tachyonPath) {
+    mTachyonPath = tachyonPath.toString();
   }
 
-  public String getTachyonPath() {
-    return mTachyonPath;
+  public TachyonURI getTachyonPath() {
+    return new TachyonURI(mTachyonPath);
   }
 
   @Override

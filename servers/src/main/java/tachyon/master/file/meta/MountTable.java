@@ -18,20 +18,22 @@ package tachyon.master.file.meta;
 import java.util.HashMap;
 import java.util.Map;
 
+import tachyon.TachyonURI;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.NotFoundException;
 
 /** This class is used for keeping track of Tachyon mount points. It is thread safe. */
 public class MountTable {
-  private Map<String, String> mMountTable;
+  private Map<TachyonURI, TachyonURI> mMountTable;
 
   public MountTable() {
     final int INITIAL_CAPACITY = 10;
-    mMountTable = new HashMap<String, String>(INITIAL_CAPACITY);
+    mMountTable = new HashMap<TachyonURI, TachyonURI>(INITIAL_CAPACITY);
   }
 
-  public synchronized void add(String tachyonPath, String ufsPath) throws AlreadyExistsException {
-    for (Map.Entry<String, String> entry : mMountTable.entrySet()) {
+  public synchronized void add(TachyonURI tachyonPath, TachyonURI ufsPath)
+      throws AlreadyExistsException {
+    for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
         // Cannot mount a path under an existing mount point.
         throw new AlreadyExistsException("Tachyon path " + tachyonPath
@@ -41,7 +43,7 @@ public class MountTable {
     mMountTable.put(tachyonPath, ufsPath);
   }
 
-  public synchronized void delete(String tachyonPath) throws NotFoundException {
+  public synchronized void delete(TachyonURI tachyonPath) throws NotFoundException {
     if (mMountTable.containsKey(tachyonPath)) {
       mMountTable.remove(tachyonPath);
     }
@@ -49,28 +51,18 @@ public class MountTable {
     throw new NotFoundException("Tachyon path " + tachyonPath + " is not a valid mount point.");
   }
 
-  public synchronized String lookup(String tachyonPath) {
-    for (Map.Entry<String, String> entry : mMountTable.entrySet()) {
+  public synchronized TachyonURI lookup(TachyonURI tachyonPath) {
+    for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
-        return entry.getValue() + tachyonPath.substring(entry.getKey().length());
+        return new TachyonURI(entry.getValue()
+            + tachyonPath.toString().substring(entry.getKey().toString().length()));
       }
     }
     // If the given path is not found in the mount table, the lookup is an identity.
     return tachyonPath;
   }
 
-  public synchronized String reverseLookup(String ufsPath) throws NotFoundException {
-    for (Map.Entry<String, String> entry : mMountTable.entrySet()) {
-      if (hasPrefix(ufsPath, entry.getValue())) {
-        return entry.getKey() + ufsPath.substring(entry.getValue().length());
-      }
-    }
-    // If the given path is not found in the mount table, the reverse lookup fails.
-    throw new NotFoundException("UFS path " + ufsPath + " is not mounted in Tachyon namespace.");
-  }
-
-  private boolean hasPrefix(String path, String prefix) {
-    // TODO(jiri): Use canonical representation for UFS scheme and authority.
-    return path.startsWith(prefix);
+  private boolean hasPrefix(TachyonURI path, TachyonURI prefix) {
+    return path.toString().startsWith(prefix.toString());
   }
 }

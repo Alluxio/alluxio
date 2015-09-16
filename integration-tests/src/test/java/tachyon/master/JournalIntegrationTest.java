@@ -114,7 +114,7 @@ public class JournalIntegrationTest {
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     TachyonURI ckPath = new TachyonURI("/xyz_ck");
     // TODO(cc): What's the counterpart in the new client API for this?
-    mTfs.loadFileInfoFromUfs(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()), true);
+    mTfs.loadFileFromUfs(new TachyonURI("/xyz_ck"), true);
     FileInfo ckFileInfo = mTfs.getInfo(mTfs.open(ckPath));
     mLocalTachyonCluster.stopTFS();
     AddCheckpointTestUtil(fInfo, ckFileInfo);

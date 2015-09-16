@@ -19,6 +19,7 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
+import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
@@ -26,17 +27,17 @@ public class AddMountPointEntry implements JournalEntry {
   private final String mTachyonPath;
   private final String mUfsPath;
 
-  public AddMountPointEntry(String tachyonPath, String ufsPath) {
-    mTachyonPath = tachyonPath;
-    mUfsPath = ufsPath;
+  public AddMountPointEntry(TachyonURI tachyonPath, TachyonURI ufsPath) {
+    mTachyonPath = tachyonPath.toString();
+    mUfsPath = ufsPath.toString();
   }
 
-  public String getTachyonPath() {
-    return mTachyonPath;
+  public TachyonURI getTachyonPath() {
+    return new TachyonURI(mTachyonPath);
   }
 
-  public String getUfsPath() {
-    return mUfsPath;
+  public TachyonURI getUfsPath() {
+    return new TachyonURI(mUfsPath);
   }
 
   @Override
