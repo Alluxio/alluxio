@@ -72,7 +72,8 @@ public final class JournalTailerThread extends Thread {
       // Wait for the thread to finish.
       join();
     } catch (InterruptedException ie) {
-      LOG.warn("stopping the journal tailer caused exception: " + ie.getMessage());
+      LOG.warn(mMaster.getServiceName() + ": stopping the journal tailer caused exception: "
+          + ie.getMessage());
     }
   }
 
@@ -100,7 +101,7 @@ public final class JournalTailerThread extends Thread {
         long waitForShutdownStart = -1;
 
         // Load the checkpoint file.
-        LOG.info("Waiting to load the checkpoint file.");
+        LOG.info(mMaster.getServiceName() + ": Waiting to load the checkpoint file.");
         mJournalTailer = new JournalTailer(mMaster, mJournal);
         while (!mJournalTailer.checkpointExists()) {
           CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
@@ -110,9 +111,9 @@ public final class JournalTailerThread extends Thread {
             return;
           }
         }
-        LOG.info("Start loading the checkpoint file.");
+        LOG.info(mMaster.getServiceName() + ": Start loading the checkpoint file.");
         mJournalTailer.processJournalCheckpoint(true);
-        LOG.info("Checkpoint file has been loaded.");
+        LOG.info(mMaster.getServiceName() + ": Checkpoint file has been loaded.");
 
         // Continually process completed log files.
         while (mJournalTailer.isValid()) {
@@ -132,12 +133,13 @@ public final class JournalTailerThread extends Thread {
                 return;
               }
             }
-            LOG.debug(
-                "The next complete log file does not exist yet. Sleeping and checking again.");
+            LOG.debug(mMaster.getServiceName()
+                + ": The next complete log file does not exist yet. Sleeping and checking again.");
             CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           }
         }
-        LOG.info("The checkpoint is out of date. Will reload the checkpoint file.");
+        LOG.info(mMaster.getServiceName()
+            + ": The checkpoint is out of date. Will reload the checkpoint file.");
         CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
       } catch (IOException ioe) {
         // Log the error and continue the loop.

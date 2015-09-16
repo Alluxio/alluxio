@@ -86,7 +86,8 @@ public final class JournalTailer {
    */
   public void processJournalCheckpoint(boolean applyToMaster) throws IOException {
     // Load the checkpoint file.
-    LOG.info("Loading checkpoint file: " + mJournal.getCheckpointFilePath());
+    LOG.info(mMaster.getServiceName() + ": Loading checkpoint file: "
+        + mJournal.getCheckpointFilePath());
     // The checkpoint stream must be retrieved before retrieving any log file streams, because the
     // journal reader verifies that the checkpoint was read before the log files.
     JournalInputStream is = mReader.getCheckpointInputStream();
@@ -115,7 +116,7 @@ public final class JournalTailer {
       // Process the new completed log file, if it exists.
       JournalInputStream inputStream = mReader.getNextInputStream();
       if (inputStream != null) {
-        LOG.info("Processing a completed log file.");
+        LOG.info(mMaster.getServiceName() + ": Processing a completed log file.");
         JournalEntry entry;
         while ((entry = inputStream.getNextEntry()) != null) {
           mMaster.processJournalEntry(entry);
@@ -124,13 +125,14 @@ public final class JournalTailer {
         }
         inputStream.close();
         numFilesProcessed ++;
-        LOG.info("Finished processing the log file.");
+        LOG.info(mMaster.getServiceName() + ": Finished processing the log file.");
       } else {
         return numFilesProcessed;
       }
     }
-    LOG.info("The checkpoint is out of date. Must reload checkpoint file. "
-        + mJournal.getCheckpointFilePath());
+    LOG.info(
+        mMaster.getServiceName() + ": The checkpoint is out of date. Must reload checkpoint file. "
+            + mJournal.getCheckpointFilePath());
     return numFilesProcessed;
   }
 }
