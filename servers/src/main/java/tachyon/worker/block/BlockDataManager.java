@@ -80,6 +80,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @param workerSource object for collecting the worker metrics
    * @param workerBlockMasterClient the block Tachyon master client for worker
    * @param workerFileSystemMasterClient the file system Tachyon master client for worker
+   * @param blockStore the block store manager
    * @throws IOException if fail to connect to under filesystem
    */
   public BlockDataManager(WorkerSource workerSource,
