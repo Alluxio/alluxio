@@ -33,13 +33,10 @@ public final class LineageWorker {
   private final LineageDataManager mLineageDataManager;
   /** Access to block datt */
   private final BlockDataManager mBlockDataManager;
-  /** Logic for handling RPC to lineage master */
-  private final LineageWorkerServiceHandler mServiceHandler;
 
   public LineageWorker(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
 
-    mLineageDataManager= new LineageDataManager(blockDataManager);
-    mServiceHandler = new LineageWorkerServiceHandler(mLineageDataManager);
+    mLineageDataManager = new LineageDataManager(blockDataManager);
   }
 }

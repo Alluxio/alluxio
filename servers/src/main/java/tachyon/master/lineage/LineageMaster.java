@@ -38,6 +38,7 @@ import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputePlanner;
 import tachyon.master.lineage.recompute.RecomputeThread;
+import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService;
 import tachyon.util.ThreadFactoryUtils;
 
@@ -120,5 +121,15 @@ public final class LineageMaster extends MasterBase {
     return false;
   }
 
+  /**
+   * Instructs a worker to persist the files for checkpoint.
+   *
+   * @param workerId the id of the worker that heartbeats
+   * @return the command for checkpointing the blocks of a file.
+   */
+  public LineageCommand lineageWorkerHeartbeat(long workerId) {
+    // TODO
+    return null;
+  }
 
 }
