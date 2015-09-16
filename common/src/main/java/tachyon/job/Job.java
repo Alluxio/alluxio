@@ -15,12 +15,15 @@
 
 package tachyon.job;
 
+import java.io.Serializable;
+
 import com.google.common.base.Preconditions;
 
 /**
  * A Job that can run at Tachyon.
  */
-public abstract class Job {
+@SuppressWarnings("serial")
+public abstract class Job implements Serializable {
   private final JobConf mJobConf;
 
   public Job(JobConf jobConf) {
