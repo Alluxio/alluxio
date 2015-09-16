@@ -46,18 +46,17 @@ public class AsyncEvictor implements Runnable {
   public AsyncEvictor(BlockStore blockStore) {
     mBlockStore = blockStore;
     List<Long> capOnTiers = blockStore.getBlockStoreMeta().getCapacityBytesOnTiers();
+    List<Integer> aliasOnTiers = blockStore.getBlockStoreMeta().getAliasOnTiers();
     long lastTierReservedBytes = 0;
-    for (int idx = 0; idx < capOnTiers.size(); idx ++) {
-      if (capOnTiers.get(idx) == 0) {
-        // If this tier is empty, just skip it
-        break;
-      }
+    for (int idx = 0; idx < aliasOnTiers.size(); idx ++) {
       String tierReservedSpaceProp =
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, idx);
+      int tierAlias = aliasOnTiers.get(idx);
       long reservedSpaceBytes =
-          (long)(capOnTiers.get(idx) * WorkerContext.getConf().getDouble(tierReservedSpaceProp));
+          (long)(capOnTiers.get(tierAlias - 1)
+              * WorkerContext.getConf().getDouble(tierReservedSpaceProp));
       mReservedBytesOnTiers.add(new Pair<BlockStoreLocation, Long>(
-          BlockStoreLocation.anyDirInTier(idx + 1), reservedSpaceBytes + lastTierReservedBytes));
+          BlockStoreLocation.anyDirInTier(tierAlias), reservedSpaceBytes + lastTierReservedBytes));
       lastTierReservedBytes += reservedSpaceBytes;
     }
     mEvictorThread = new Thread(this);
