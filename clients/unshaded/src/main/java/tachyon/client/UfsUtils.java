@@ -77,7 +77,7 @@ public class UfsUtils {
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
 
-    loadUnderFs(tfs, tfsAddrRootPath, ufsAddrRootPath, excludePathPrefix, tachyonConf);
+    loadUfs(tfs, tfsAddrRootPath, ufsAddrRootPath, excludePathPrefix, tachyonConf);
   }
 
   /**
@@ -92,7 +92,7 @@ public class UfsUtils {
    * @param tachyonConf instance of TachyonConf
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
-  public static void loadUnderFs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
+  public static void loadUfs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
       PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException {
     LOG.info("Loading to " + tachyonPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
     try {

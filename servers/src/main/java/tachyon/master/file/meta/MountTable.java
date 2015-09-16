@@ -18,12 +18,18 @@ package tachyon.master.file.meta;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.NotFoundException;
 
 /** This class is used for keeping track of Tachyon mount points. It is thread safe. */
 public class MountTable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private Map<TachyonURI, TachyonURI> mMountTable;
 
   public MountTable() {
@@ -33,6 +39,7 @@ public class MountTable {
 
   public synchronized void add(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws AlreadyExistsException {
+    LOG.debug("Mounting " + ufsPath + " under " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
         // Cannot mount a path under an existing mount point.
@@ -44,6 +51,7 @@ public class MountTable {
   }
 
   public synchronized void delete(TachyonURI tachyonPath) throws NotFoundException {
+    LOG.debug("Unmounting " + tachyonPath);
     if (mMountTable.containsKey(tachyonPath)) {
       mMountTable.remove(tachyonPath);
     }
@@ -52,6 +60,7 @@ public class MountTable {
   }
 
   public synchronized TachyonURI lookup(TachyonURI tachyonPath) {
+    LOG.debug("Looking up " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
         return new TachyonURI(entry.getValue()
