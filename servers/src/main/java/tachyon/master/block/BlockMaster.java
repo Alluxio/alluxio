@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -621,11 +622,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
 
       int masterWorkerTimeoutMs = mTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
       synchronized (mWorkers) {
-        for (MasterWorkerInfo worker : mWorkers) {
+        Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
+        while (iter.hasNext()) {
+          MasterWorkerInfo worker = iter.next();
           if (CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs() > masterWorkerTimeoutMs) {
             LOG.error("The worker " + worker + " got timed out!");
             mLostWorkers.add(worker);
-            mWorkers.remove(worker);
+            iter.remove();
           } else if (mLostWorkers.contains(worker)) {
             LOG.info("The lost worker " + worker + " is found.");
             mLostWorkers.remove(worker);
