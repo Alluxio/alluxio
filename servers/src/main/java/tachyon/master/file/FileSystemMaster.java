@@ -1070,4 +1070,16 @@ public final class FileSystemMaster extends MasterBase {
       return mDependencyMap.getPriorityDependencyList();
     }
   }
+
+  public boolean load(String ufsPath) throws TachyonException {
+    return true;
+  }
+
+  public boolean mount(String tachyonPath, String ufsPath) throws TachyonException {
+    return true;
+  }
+
+  public boolean unmount(String tachyonPath) throws TachyonException {
+    return true;
+  }
 }

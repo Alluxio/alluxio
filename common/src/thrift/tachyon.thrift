@@ -228,6 +228,24 @@ service FileSystemMasterService {
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
+  /**
+   * Loads the subtree identifies by the given path from UFS into Tachyon.
+   */
+  bool load(1: string ufsPath) throws (1: TachyonException te)
+
+  /**
+   * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
+   * path. The path should not exist and should not be nested under any existing mount point.
+   */
+  bool mount(1: string tachyonPath, 2: string ufsPath) throws (1: TachyonException te)
+
+  /**
+   * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
+   * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
+   * will be persisted before they are removed from the Tachyon namespace.
+   */
+  bool unmount(1: string tachyonPath) throws (1: TachyonException te)
+
   // Lineage Features
   i32 createDependency(1: list<string> parents, 2: list<string> children,
       3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
