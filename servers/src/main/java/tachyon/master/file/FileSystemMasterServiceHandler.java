@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
+import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
@@ -110,13 +111,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   @Override
   public long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
-                                  boolean recursive)
-      throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
-      TachyonException, InvalidPathException {
+      boolean recursive) throws FileAlreadyExistException, BlockInfoException,
+      SuspectedFileSizeException, TachyonException, InvalidPathException {
     if (ufsPath == null || ufsPath.isEmpty()) {
       throw new IllegalArgumentException("the underFS path is not provided");
     }
-    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mFileSystemMaster.getTachyonConf());
+    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
     try {
       long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
       long fileSizeByte = underfs.getFileSize(ufsPath);
@@ -171,7 +171,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
       int dependencyType, long childrenBlockSizeByte) throws InvalidPathException,
       FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException {
-    // TODO
+    // TODO(gene): Implement lineage.
     return 0;
   }
 

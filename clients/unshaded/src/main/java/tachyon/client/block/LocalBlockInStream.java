@@ -55,7 +55,7 @@ public final class LocalBlockInStream extends BlockInStream {
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
     String blockPath = mWorkerClient.lockBlock(blockId);
 
-    if (null == blockPath) {
+    if (blockPath == null) {
       // TODO(calvin): Handle this error case better.
       mContext.releaseWorkerClient(mWorkerClient);
       throw new IOException("Block is not available on local machine");

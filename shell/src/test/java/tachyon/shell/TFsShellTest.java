@@ -71,7 +71,7 @@ public class TFsShellTest {
     mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mFsShell = new TFsShell(mLocalTachyonCluster.getMasterTachyonConf());
+    mFsShell = new TFsShell(new TachyonConf());
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
     mOldOutput = System.out;
@@ -224,7 +224,7 @@ public class TFsShellTest {
     Assert.assertEquals(new String(read), dataString);
   }
 
-  // TODO: Investigate why this takes a long time? Around 7min on my Mac!
+  // TODO(cc): Investigate why this takes a long time? Around 7min on my Mac!
   @Test
   public void copyToLocalLargeTest() throws IOException {
     copyToLocalWithBytes(SIZE_BYTES);
@@ -467,7 +467,7 @@ public class TFsShellTest {
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
     Assert
-        .assertEquals(getCommandOutput(new String[] {"mkdir", qualifiedPath}), mOutput.toString());
+        .assertEquals(getCommandOutput(new String[]{"mkdir", qualifiedPath}), mOutput.toString());
     Assert.assertTrue(fileInfo.isIsFolder());
   }
 
@@ -514,8 +514,8 @@ public class TFsShellTest {
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
     mFsShell.run(new String[] {"mkdir", "/testFolder1"});
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
-    Assert.assertEquals(-1,
-            mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"}));
+    Assert
+        .assertEquals(-1, mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"}));
   }
 
   @Test
