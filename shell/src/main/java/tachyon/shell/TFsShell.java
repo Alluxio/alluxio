@@ -44,7 +44,6 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -81,7 +80,6 @@ public class TFsShell implements Closeable {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
     mTfs = TachyonFileSystem.get();
-    mCloser.register(mTfs);
   }
 
   @Override
