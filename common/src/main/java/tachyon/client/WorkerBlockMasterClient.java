@@ -152,14 +152,13 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO: rename to workerBlockReport or workerInitialize?
-  // TODO(cc) return value should be void, throw exception when workerId doesn't exist.
-  public synchronized long register(long workerId, List<Long> totalBytesOnTiers,
+  public synchronized void register(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
+        mClient.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
