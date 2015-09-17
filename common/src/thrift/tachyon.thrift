@@ -86,7 +86,7 @@ enum CommandType {
   Register = 2,   	// Ask the worker to re-register.
   Free = 3,		// Ask the worker to free files.
   Delete = 4,		// Ask the worker to delete files.
-  Persiste = 5,  // Ask the worker to persis a file for lineage
+  Persiste = 5,  // Ask the worker to persist a file for lineage
 }
 
 struct Command {

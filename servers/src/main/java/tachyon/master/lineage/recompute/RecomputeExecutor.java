@@ -30,7 +30,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final RecomputePlanner mPlanner;
-  private final RecomputeLauncher mExecutor;
+  private final RecomputeLauncher mLauncher;
 
   /**
    * @param planner recompute planner
@@ -38,14 +38,14 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
    */
   public RecomputeExecutor(RecomputePlanner planner, RecomputeLauncher executor) {
     mPlanner = Preconditions.checkNotNull(planner);
-    mExecutor = Preconditions.checkNotNull(executor);
+    mLauncher = Preconditions.checkNotNull(executor);
   }
 
   @Override
   public void heartbeat() {
     RecomputePlan plan = mPlanner.plan();
     if (plan != null && plan.isEmpty()) {
-      mExecutor.recompute(plan);
+      mLauncher.recompute(plan);
     }
   }
 }
