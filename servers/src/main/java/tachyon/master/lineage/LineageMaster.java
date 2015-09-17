@@ -25,6 +25,7 @@ import org.apache.thrift.TProcessor;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.HeartbeatThread;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.job.Job;
@@ -32,8 +33,7 @@ import tachyon.master.MasterBase;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.lineage.checkpoint.CheckpointExecutor;
-import tachyon.master.lineage.checkpoint.CheckpointThread;
+import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputePlanner;
@@ -85,8 +85,8 @@ public final class LineageMaster extends MasterBase {
     super.start(isLeader);
     if (isLeader) {
       mCheckpointExecutionService =
-          getExecutorService().submit(new CheckpointThread("Checkpoint execution service",
-              new CheckpointExecutor(mTachyonConf, mLineageStore),
+          getExecutorService().submit(new HeartbeatThread("Checkpoint planning service",
+              new CheckpointPlanningExecutor(mTachyonConf, mLineageStore),
               mTachyonConf.getInt(Constants.MASTER_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService = getExecutorService().submit(
           new RecomputeThread("Recomupte execution service", new RecomputePlanner(mLineageStore),

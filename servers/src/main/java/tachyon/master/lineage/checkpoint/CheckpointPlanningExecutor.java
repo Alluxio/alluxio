@@ -15,28 +15,39 @@
 
 package tachyon.master.lineage.checkpoint;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
+import tachyon.HeartbeatExecutor;
 import tachyon.conf.TachyonConf;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 
-public final class CheckpointExecutor {
+/**
+ * Executes a checkpoint manager periodically.
+ */
+public final class CheckpointPlanningExecutor implements HeartbeatExecutor {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final TachyonConf mTachyonConf;
   private final LineageStore mLineageStore;
   private final CheckpointScheduler mScheduler;
 
-  public CheckpointExecutor(TachyonConf conf, LineageStore lineageStore) {
+  public CheckpointPlanningExecutor(TachyonConf conf, LineageStore lineageStore) {
     mLineageStore = Preconditions.checkNotNull(lineageStore);
     mTachyonConf = Preconditions.checkNotNull(conf);
     LineageStoreView view = new LineageStoreView(mLineageStore);
     mScheduler = CheckpointScheduler.Factory.createScheduler(mTachyonConf, view);
   }
 
-  public void checkpoint() {
+  @Override
+  public void heartbeat() {
     LineageStoreView view = new LineageStoreView(mLineageStore);
     CheckpointPlan plan = mScheduler.schedule(view);
 
-    // TODO talk to workers for checkpointing
+    // TODO managers the files to checkpoint
   }
 }
