@@ -42,7 +42,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
-@Ignore("TACHYON-987")
 public class MasterFaultToleranceIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
