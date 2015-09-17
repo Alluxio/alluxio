@@ -176,8 +176,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     // Make container requests for workers to ResourceManager
     for (int i = 0; i < mNumWorkers; i ++) {
       ContainerRequest containerAsk =
-          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
-              priority);
+          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */, priority);
       LOG.info("Making resource request for Tachyon worker " + i);
       mRMClient.addContainerRequest(containerAsk);
     }
@@ -214,8 +213,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         // Launch container by create ContainerLaunchContext
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
         ctx.setCommands(Collections.singletonList(command));
-        LOG.info("Launching container " + container.getId() + " for Tachyon master");
-        LOG.info("Master command: " + command);
+        LOG.info("Launching container {} for Tachyon master on {} ",
+            container.getId(), container.getNodeHttpAddress());
+        LOG.info("--------- with master command: " + command);
         mNMClient.startContainer(container, ctx);
         String containerUri = container.getNodeHttpAddress(); // in the form of 1.2.3.4:8042
         mMasterContainerNetAddress = containerUri.split(":")[0];
@@ -245,11 +245,14 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
         ctx.setCommands(Collections.singletonList(command));
         ctx.setEnvironment(environmentMap);
-        LOG.debug("environment " + environmentMap.toString());
-        LOG.info("Launching container " + container.getId() + " for Tachyon worker");
-        LOG.info("Worker command: " + command);
+        LOG.info("Launching container {} for Tachyon worker {} on {} ",
+            container.getId(), mNumAllocatedWorkerContainers, container.getNodeHttpAddress());
+        LOG.info("--------- with worker command: " + command);
         mNMClient.startContainer(container, ctx);
         mNumAllocatedWorkerContainers ++;
+        if (mNumAllocatedWorkerContainers >= mNumWorkers) {
+          return;
+        }
       } catch (Exception ex) {
         LOG.error("Error launching container " + container.getId() + " " + ex);
       }
