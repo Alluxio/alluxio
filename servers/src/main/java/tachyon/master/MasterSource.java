@@ -89,10 +89,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          TachyonConf tachyonConf = tachyonMaster.getTachyonConf();
-          String ufsDataFolder =
-              tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, tachyonConf);
+          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_DATA_FOLDER);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
@@ -106,10 +104,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          TachyonConf tachyonConf = tachyonMaster.getTachyonConf();
-          String ufsDataFolder =
-              tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, tachyonConf);
+          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_DATA_FOLDER);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
@@ -123,10 +119,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          TachyonConf tachyonConf = tachyonMaster.getTachyonConf();
-          String ufsDataFolder =
-              tachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, tachyonConf);
+          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_DATA_FOLDER);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
