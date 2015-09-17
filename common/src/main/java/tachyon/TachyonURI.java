@@ -19,8 +19,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Preconditions;
 
 import tachyon.util.OSUtils;
 
