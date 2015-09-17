@@ -360,7 +360,10 @@ public final class FileSystemMaster extends MasterBase {
   private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
-    fileInfo.ufsPath = mMountTable.lookup(new TachyonURI(fileInfo.getPath())).toString();
+    // TODO(jiri): This is a hack. Instead of this, we need to do a UFS rename upon rename.
+    if (fileInfo.ufsPath.equals("")) {
+      fileInfo.ufsPath = mMountTable.lookup(new TachyonURI(fileInfo.getPath())).toString();
+    }
     return fileInfo;
   }
 

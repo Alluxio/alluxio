@@ -36,11 +36,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.UfsUtils;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.DependencyInfo;
@@ -265,22 +263,28 @@ abstract class AbstractTFS extends FileSystem {
     return rtn;
   }
 
+  // TODO(jiri): Get rid of this.
   private void fromHdfsToTachyon(TachyonURI path) throws IOException {
-    if (!mTFS.exist(path)) {
-      Path hdfsPath = Utils.getHDFSPath(path, mUnderFSAddress);
-      Configuration conf = new Configuration(getConf());
-      if (conf.get("fs.defaultFS") == null) {
-        conf.set("fs.defaultFS", mUnderFSAddress);
-      }
-      FileSystem fs = hdfsPath.getFileSystem(conf);
-      if (fs.exists(hdfsPath)) {
-        TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
-        TachyonURI ufsAddrPath =
-            new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(), path.getPath());
-        // Set the path as the TFS root path.
-        UfsUtils.loadUfs(mTFS, path, ufsAddrPath, new PrefixList(null), mTachyonConf);
-      }
-    }
+    return;
+//    LOG.info("YYYYYY translating " + path);
+//    if (!mTFS.exist(path)) {
+//      // Path hdfsPath = Utils.getHDFSPath(path, mUnderFSAddress);
+//      Path hdfsPath = new Path(path.toString());
+//      Configuration conf = new Configuration(getConf());
+//      if (conf.get("fs.defaultFS") == null) {
+//        conf.set("fs.defaultFS", mUnderFSAddress);
+//      }
+//      LOG.info("YYYYYY got1 " + hdfsPath);
+//      FileSystem fs = hdfsPath.getFileSystem(conf);
+//      if (fs.exists(hdfsPath)) {
+//        TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
+//        TachyonURI ufsAddrPath =
+//            new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(), path.getPath());
+//        // Set the path as the TFS root path.
+//        LOG.info("YYYYYY got2 " + ufsAddrPath);
+//        UfsUtils.loadUfs(mTFS, path, ufsAddrPath, new PrefixList(null), mTachyonConf);
+//      }
+//    }
   }
 
   @Override
