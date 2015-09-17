@@ -101,9 +101,8 @@ understand an existing underlayer storage system.
 
 # Developer Documentation
 
-[Contributing to Tachyon](Contributing-to-Tachyon.html)
-
-[Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
+* [Contributing to Tachyon](Contributing-to-Tachyon.html)
+* [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
 # External resources
 

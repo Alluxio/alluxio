@@ -30,10 +30,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.Users;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.Sessions;
+import tachyon.client.WorkerBlockMasterClient;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.client.BlockMasterClient;
 import tachyon.metrics.MetricsSystem;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
@@ -64,8 +64,8 @@ public final class BlockWorker {
   private final BlockMasterSync mBlockMasterSync;
   /** Runnable responsible for fetching pinlist from master. */
   private final PinListSync mPinListSync;
-  /** Runnable responsible for clean up potential zombie users. */
-  private final UserCleaner mUserCleanerThread;
+  /** Runnable responsible for clean up potential zombie sessions. */
+  private final SessionCleaner mSessionCleanerThread;
   /** Logic for handling RPC requests. */
   private final BlockServiceHandler mServiceHandler;
   /** Logic for managing block store and under file system store. */
@@ -73,9 +73,9 @@ public final class BlockWorker {
   /** Server for data requests and responses. */
   private final DataServer mDataServer;
   /** Client for all block master communication */
-  private final BlockMasterClient mBlockMasterClient;
+  private final WorkerBlockMasterClient mBlockMasterClient;
   /** Client for all file system master communication */
-  private final FileSystemMasterClient mFileSystemMasterClient;
+  private final WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** The executor service for the master client thread */
   private final ExecutorService mMasterClientExecutorService;
   /** Threadpool for the master sync */
@@ -161,17 +161,18 @@ public final class BlockWorker {
         Executors.newFixedThreadPool(1,
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mBlockMasterClient =
-        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
+        new WorkerBlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
             mTachyonConf), mMasterClientExecutorService, mTachyonConf);
 
-    mFileSystemMasterClient =
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
+    mFileSystemMasterClient = new WorkerFileSystemMasterClient(
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
+        mMasterClientExecutorService, mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
     mBlockDataManager =
-        new BlockDataManager(workerSource, mBlockMasterClient, mFileSystemMasterClient);
+        new BlockDataManager(workerSource, mBlockMasterClient, mFileSystemMasterClient,
+            new TieredBlockStore());
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -206,31 +207,31 @@ public final class BlockWorker {
 
     // Setup Worker to Master Syncer
     // We create three threads for two syncers and one cleaner: mBlockMasterSync,
-    // mPinListSync and mUserCleanerThread
+    // mPinListSync and mSessionCleanerThread
     mSyncExecutorService =
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
-    mBlockMasterSync =
-        new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress, mBlockMasterClient);
+    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
+            mBlockMasterClient);
     // Get the worker id
-    // TODO: Do this at TachyonWorker
+    // TODO(calvin): Do this at TachyonWorker.
     mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
 
-    // Setup UserCleaner
-    mUserCleanerThread = new UserCleaner(mBlockDataManager, mTachyonConf);
+    // Setup session cleaner
+    mSessionCleanerThread = new SessionCleaner(mBlockDataManager, mTachyonConf);
 
-    // Setup user metadata mapping
-    // TODO: Have a top level register that gets the worker id.
+    // Setup session metadata mapping
+    // TODO(calvin): Have a top level register that gets the worker id.
     long workerId = mBlockMasterSync.getWorkerId();
     String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-    Users users = new Users(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
+    Sessions sessions = new Sessions(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
-    // Give BlockDataManager a pointer to the user metadata mapping
-    // TODO: Fix this hack when we have a top level register
-    mBlockDataManager.setUsers(users);
+    // Give BlockDataManager a pointer to the session metadata mapping
+    // TODO(calvin): Fix this hack when we have a top level register.
+    mBlockDataManager.setSessions(sessions);
     mBlockDataManager.setWorkerId(workerId);
   }
 
@@ -259,8 +260,8 @@ public final class BlockWorker {
     // Start the pinlist syncer to perform the periodical fetching
     mSyncExecutorService.submit(mPinListSync);
 
-    // Start the user cleanup checker to perform the periodical checking
-    mSyncExecutorService.submit(mUserCleanerThread);
+    // Start the session cleanup checker to perform the periodical checking
+    mSyncExecutorService.submit(mSessionCleanerThread);
 
     mWebServer.startWebServer();
     mThriftServer.serve();
@@ -277,8 +278,9 @@ public final class BlockWorker {
     mThriftServerSocket.close();
     mBlockMasterSync.stop();
     mPinListSync.stop();
-    mUserCleanerThread.stop();
+    mSessionCleanerThread.stop();
     mBlockMasterClient.close();
+    mFileSystemMasterClient.close();
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     try {
@@ -288,7 +290,7 @@ public final class BlockWorker {
     }
     mBlockDataManager.stop();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
-      // TODO: The reason to stop and close again is due to some issues in Thrift.
+      // TODO(calvin): The reason to stop and close again is due to some issues in Thrift.
       mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();

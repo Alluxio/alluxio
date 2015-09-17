@@ -35,7 +35,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.Users;
+import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.DataServer;
@@ -216,13 +216,14 @@ public final class NIODataServer implements Runnable, DataServer {
       final long blockId = tMessage.getBlockId();
       LOG.info("Get request for blockId: {}", blockId);
 
-      long lockId = mDataManager.lockBlock(Users.DATASERVER_USER_ID, blockId);
-      BlockReader reader = mDataManager.readBlockRemote(Users.DATASERVER_USER_ID, blockId, lockId);
+      long lockId = mDataManager.lockBlock(Sessions.DATASERVER_SESSION_ID, blockId);
+      BlockReader reader =
+          mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId, lockId);
       ByteBuffer data;
       int dataLen = 0;
       try {
         data = reader.read(tMessage.getOffset(), tMessage.getLength());
-        mDataManager.accessBlock(Users.DATASERVER_USER_ID, blockId);
+        mDataManager.accessBlock(Sessions.DATASERVER_SESSION_ID, blockId);
         dataLen = data.limit();
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
@@ -258,7 +259,7 @@ public final class NIODataServer implements Runnable, DataServer {
           }
 
           // Check what event is available and deal with it.
-          // TODO These should be multi-thread.
+          // TODO(dcapwell): These should be multi-thread.
           if (key.isAcceptable()) {
             accept(key);
           } else if (key.isReadable()) {
@@ -309,7 +310,7 @@ public final class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      // TODO: Reconsider how we handle this exception
+      // TODO(calvin): Reconsider how we handle this exception.
       try {
         mDataManager.unlockBlock(sendMessage.getLockId());
       } catch (NotFoundException ioe) {

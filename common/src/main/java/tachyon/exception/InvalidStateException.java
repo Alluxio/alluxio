@@ -20,8 +20,8 @@ package tachyon.exception;
  *
  * For example:
  * <ul>
- * <li>userId or blockId does not correspond to that in the record of lockId</li>
- * <li>user A wants to commit a temp block owned by user B</li>
+ * <li>sessionId or blockId does not correspond to that in the record of lockId</li>
+ * <li>session A wants to commit a temp block owned by session B</li>
  * </ul>
  */
 public final class InvalidStateException extends AbstractTachyonException {

@@ -23,8 +23,8 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
-import tachyon.client.TachyonFS;
 import tachyon.client.ClientContext;
+import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
@@ -52,6 +52,16 @@ public final class LocalTachyonCluster {
     cluster.stop();
     CommonUtils.sleepMs(Constants.SECOND_MS);
   }
+
+  // private access to the reinitializer of ClientContext
+  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
+      new ClientContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(ClientContext.PrivateReinitializer access) {
+          sReinitializer = access;
+        }
+      };
+  private static ClientContext.PrivateReinitializer sReinitializer;
 
   private BlockWorker mWorker = null;
 
@@ -111,7 +121,7 @@ public final class LocalTachyonCluster {
   }
 
   public String getTempFolderInUnderFs() {
-    return mMasterConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
+    return mMasterConf.get(Constants.UNDERFS_ADDRESS);
   }
 
   public BlockWorker getWorker() {
@@ -131,14 +141,12 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Configure and start master.
+   * Configures and starts master.
    *
-   * @param conf Tachyon configuration
    * @throws IOException when the operation fails
    */
-  public void startMaster(TachyonConf conf) throws IOException {
-    // TODO: Would be good to have a masterContext as well
-    mMasterConf = conf;
+  public void startMaster() throws IOException {
+    mMasterConf = MasterContext.getConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USER_QUOTA_UNIT_BYTES, Integer.toString(mQuotaUnitBytes));
@@ -149,7 +157,7 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.MASTER_PORT, Integer.toString(0));
     mMasterConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
 
-    mMaster = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
+    mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();
   }
 
@@ -191,7 +199,7 @@ public final class LocalTachyonCluster {
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath = String.format(
           Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
         String newPath = mTachyonHome + dirPath;
@@ -219,7 +227,10 @@ public final class LocalTachyonCluster {
     mWorkerThread.start();
     // waiting for worker web server startup
     CommonUtils.sleepMs(null, 100);
-    ClientContext.reinitializeWithConf(mWorkerConf);
+    if (sReinitializer == null) {
+      ClientContext.accessReinitializer(sReinitializerAccesser);
+    }
+    sReinitializer.reinitializeWithConf(mWorkerConf);
   }
 
   /**
@@ -237,21 +248,25 @@ public final class LocalTachyonCluster {
    * @param conf Tachyon configuration
    * @throws IOException when the operation fails
    */
+  // TODO(cc): Since we have MasterContext now, remove the parameter.
   public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+    // Delete the temp dir by ufs, otherwise, permission problem may be encountered.
+    UnderFileSystemUtils.deleteDir(mTachyonHome, conf);
     mWorkerDataFolder = "/datastore";
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
-    startMaster(conf);
+    MasterContext.getConf().merge(conf);
+    startMaster();
 
     UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"), mMasterConf);
+        mMasterConf.get(Constants.UNDERFS_DATA_FOLDER), mMasterConf);
     UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"), mMasterConf);
+        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER), mMasterConf);
     CommonUtils.sleepMs(null, 10);
 
     startWorker();

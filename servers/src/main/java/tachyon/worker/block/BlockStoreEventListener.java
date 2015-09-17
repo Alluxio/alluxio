@@ -27,64 +27,64 @@ public interface BlockStoreEventListener {
   /**
    * Actions when accessing a block.
    *
-   * @param userId the ID of the user to access this block
+   * @param sessionId the ID of the session to access this block
    * @param blockId the ID of the block to access
    */
-  void onAccessBlock(long userId, long blockId);
+  void onAccessBlock(long sessionId, long blockId);
 
   /**
    * Actions when aborting a temporary block.
    *
-   * @param userId the ID of the user to abort on this block
+   * @param sessionId the ID of the session to abort on this block
    * @param blockId the ID of the block where the mutation to abort
    */
-  void onAbortBlock(long userId, long blockId);
+  void onAbortBlock(long sessionId, long blockId);
 
   /**
    * Actions when committing a temporary block to a {@link BlockStoreLocation}.
    *
-   * @param userId the ID of the user to commit to this block
+   * @param sessionId the ID of the session to commit to this block
    * @param blockId the ID of the block to commit
    * @param location the location of the block to be committed
    */
-  void onCommitBlock(long userId, long blockId, BlockStoreLocation location);
+  void onCommitBlock(long sessionId, long blockId, BlockStoreLocation location);
 
   /**
    * Actions when moving a block by a client from a {@link BlockStoreLocation} to another.
    *
-   * @param userId the ID of the user to move this block
+   * @param sessionId the ID of the session to move this block
    * @param blockId the ID of the block to be moved
    * @param oldLocation the source location of the block to be moved
    * @param newLocation the destination location where the block is to be moved to
    */
-  void onMoveBlockByClient(long userId, long blockId, BlockStoreLocation oldLocation,
+  void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation);
 
   /**
    * Actions when moving a block by a worker from a {@link BlockStoreLocation} to another.
    *
-   * @param userId the ID of the user to move this block
+   * @param sessionId the ID of the session to move this block
    * @param blockId the ID of the block to be moved
    * @param oldLocation the source location of the block to be moved
    * @param newLocation the destination location where the block is to be moved to
    */
-  void onMoveBlockByWorker(long userId, long blockId, BlockStoreLocation oldLocation,
+  void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation);
 
   /**
    * Actions when removing an existing block.
    *
-   * @param userId the ID of the user to remove this block
+   * @param sessionId the ID of the session to remove this block
    * @param blockId the ID of the block to be removed
    */
-  void onRemoveBlockByClient(long userId, long blockId);
+  void onRemoveBlockByClient(long sessionId, long blockId);
 
   /**
    * Actions when removing an existing block by worker.
    *
-   * @param userId the ID of the user to remove this block
+   * @param sessionId the ID of the session to remove this block
    * @param blockId the ID of the block to be removed
    */
-  void onRemoveBlockByWorker(long userId, long blockId);
+  void onRemoveBlockByWorker(long sessionId, long blockId);
 
 }

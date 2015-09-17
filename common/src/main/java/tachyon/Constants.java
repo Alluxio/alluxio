@@ -35,6 +35,11 @@ public final class Constants {
   public static final String ANSI_CYAN = "\u001B[36m";
   public static final String ANSI_WHITE = "\u001B[37m";
 
+  public static final String MESOS_RESOURCE_CPUS = "cpus";
+  public static final String MESOS_RESOURCE_MEM = "mem";
+  public static final String MESOS_RESOURCE_DISK = "disk";
+  public static final String MESOS_RESOURCE_PORTS = "ports";
+
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
@@ -128,6 +133,14 @@ public final class Constants {
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_HOSTNAME_LISTENING = "tachyon.master.hostname.listening";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";
+  public static final String MASTER_JOURNAL_FORMATTER_CLASS
+      = "tachyon.master.journal.formatter.class";
+  public static final String MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS
+      = "tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms";
+  public static final String MASTER_JOURNAL_TAILER_SLEEP_TIME_MS
+      = "tachyon.master.journal.tailer.sleep.time.ms";
+  public static final String MASTER_JOURNAL_MAX_LOG_SIZE_BYTES
+      = "tachyon.master.journal.max.log.size.bytes";
   public static final String MASTER_HOSTNAME = "tachyon.master.hostname";
   public static final String MASTER_BIND_HOST = "tachyon.master.bind.host";
   public static final String MASTER_PORT = "tachyon.master.port";
@@ -144,6 +157,8 @@ public final class Constants {
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
+  public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
+  public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
@@ -159,7 +174,7 @@ public final class Constants {
   public static final String WORKER_HEARTBEAT_TIMEOUT_MS = "tachyon.worker.heartbeat.timeout.ms";
   public static final String WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.to.master.heartbeat.interval.ms";
-  public static final String WORKER_USER_TIMEOUT_MS = "tachyon.worker.user.timeout.ms";
+  public static final String WORKER_SESSION_TIMEOUT_MS = "tachyon.worker.session.timeout.ms";
   public static final String WORKER_MAX_WORKER_THREADS = "tachyon.worker.max.worker.threads";
   public static final String WORKER_MIN_WORKER_THREADS = "tachyon.worker.min.worker.threads";
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
@@ -215,6 +230,8 @@ public final class Constants {
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
+  public static final String WORKER_RESOURCE_CPU = "tachyon.worker.resource.cpu";
+  public static final String WORKER_RESOURCE_MEM = "tachyon.worker.resource.mem";
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";

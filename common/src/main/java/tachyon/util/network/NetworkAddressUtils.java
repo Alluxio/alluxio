@@ -222,16 +222,19 @@ public final class NetworkAddressUtils {
    *         service.
    */
   public static String getConnectHost(ServiceType service, TachyonConf conf) {
-    String connectHost = conf.get(service.mHostNameKey, "");
-    String bindHost = conf.get(service.mBindHostKey, "");
-
-    if (!connectHost.equals(WILDCARD_ADDRESS) && !connectHost.isEmpty()) {
-      return connectHost;
-    } else if (!bindHost.equals(WILDCARD_ADDRESS) && !bindHost.isEmpty()) {
-      return bindHost;
-    } else {
-      return getLocalHostName(conf);
+    if (conf.containsKey(service.mHostNameKey)) {
+      String connectHost = conf.get(service.mHostNameKey);
+      if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
+        return connectHost;
+      }
     }
+    if (conf.containsKey(service.mBindHostKey)) {
+      String bindHost = conf.get(service.mBindHostKey);
+      if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
+        return bindHost;
+      }
+    }
+    return getLocalHostName(conf);
   }
 
   /**
@@ -261,15 +264,16 @@ public final class NetworkAddressUtils {
    * @return the InetSocketAddress the service will bind to
    */
   public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
-    String host = conf.get(service.mBindHostKey, "");
     int port = getPort(service, conf);
     TachyonConf.assertValidPort(port, conf);
 
-    if (!host.isEmpty()) {
-      return new InetSocketAddress(host, port);
+    String host;
+    if (conf.containsKey(service.mBindHostKey) && !conf.get(service.mBindHostKey).isEmpty()) {
+      host = conf.get(service.mBindHostKey);
     } else {
-      return new InetSocketAddress(getLocalHostName(conf), port);
+      host = getLocalHostName(conf);
     }
+    return new InetSocketAddress(host, port);
   }
 
   /**

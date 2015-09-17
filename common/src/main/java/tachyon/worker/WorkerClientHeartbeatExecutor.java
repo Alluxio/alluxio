@@ -23,8 +23,8 @@ import com.google.common.base.Throwables;
 import tachyon.HeartbeatExecutor;
 
 /**
- * User client sends periodical heartbeats to the worker it is talking to. If it fails to do so, the
- * worker may withdraw the space granted to the particular user.
+ * Session client sends periodical heartbeats to the worker it is talking to. If it fails to do so,
+ * the worker may withdraw the space granted to the particular session.
  */
 final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   private final WorkerClient mWorkerClient;
@@ -36,7 +36,7 @@ final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   @Override
   public void heartbeat() {
     try {
-      mWorkerClient.userHeartbeat();
+      mWorkerClient.sessionHeartbeat();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
