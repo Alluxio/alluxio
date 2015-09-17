@@ -23,8 +23,8 @@ import org.apache.thrift.TException;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.thrift.FileInfo;
 
 public final class TachyonFSTestUtils {
@@ -38,7 +38,7 @@ public final class TachyonFSTestUtils {
    * @return the TachyonFile representation of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
-  public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
+  public static TachyonFile createByteFile(StreamingTachyonFileSystem tfs, String fileName,
       ClientOptions options, int len) throws IOException {
     return createByteFile(tfs, fileName, options.getTachyonStorageType(),
         options.getUnderStorageType(), len, options.getBlockSize());
@@ -55,7 +55,7 @@ public final class TachyonFSTestUtils {
    * @return the TachyonFile of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
-  public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
+  public static TachyonFile createByteFile(StreamingTachyonFileSystem tfs, String fileName,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
       throws IOException {
     return createByteFile(tfs, new TachyonURI(fileName), tachyonStorageType, underStorageType, len);
@@ -72,7 +72,7 @@ public final class TachyonFSTestUtils {
    * @return the TachyonFile of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
-  public static TachyonFile createByteFile(TachyonFileSystem tfs, TachyonURI fileURI,
+  public static TachyonFile createByteFile(StreamingTachyonFileSystem tfs, TachyonURI fileURI,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
       throws IOException {
     try {
@@ -106,7 +106,7 @@ public final class TachyonFSTestUtils {
    * @return the TachyonFile of the created file
    * @throws IOException if <code>path</code> is invalid (e.g., illegal URI)
    */
-  public static TachyonFile createByteFile(TachyonFileSystem tfs, String fileName,
+  public static TachyonFile createByteFile(StreamingTachyonFileSystem tfs, String fileName,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len,
       long blockCapacityByte) throws IOException {
     try {
@@ -134,7 +134,8 @@ public final class TachyonFSTestUtils {
    * @return a list of strings representing the file names under the given path
    * @throws IOException if <code>path</code> does not exist or is invalid
    */
-  public static List<String> listFiles(TachyonFileSystem tfs, String path) throws IOException {
+  public static List<String> listFiles(StreamingTachyonFileSystem tfs, String path)
+      throws IOException {
     try {
       List<FileInfo> infos = tfs.listStatus(tfs.open(new TachyonURI(path)));
       List<String> res = new ArrayList<String>();

@@ -25,7 +25,7 @@ import com.google.common.base.Joiner;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -92,7 +92,7 @@ public final class LocalTachyonCluster {
     return mMaster.getOldClient();
   }
 
-  public TachyonFileSystem getClient() throws IOException {
+  public StreamingTachyonFileSystem getClient() throws IOException {
     return mMaster.getClient();
   }
 

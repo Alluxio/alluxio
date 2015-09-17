@@ -35,8 +35,8 @@ import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
@@ -63,7 +63,7 @@ public class FileOutStreamIntegrationTest {
   private static ClientOptions sWriteTachyon;
   private static ClientOptions sWriteUnderStore;
 
-  private TachyonFileSystem mTfs = null;
+  private StreamingTachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   // If true, clients will write directly to the local file.
   private final boolean mEnableLocalWrite;

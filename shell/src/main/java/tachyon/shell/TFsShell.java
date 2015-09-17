@@ -43,7 +43,6 @@ import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -151,7 +150,8 @@ public class TFsShell implements Closeable {
     return ret;
   }
 
-  private int loadPath(TachyonFileSystem tachyonClient, TachyonURI filePath) throws IOException {
+  private int loadPath(StreamingTachyonFileSystem tachyonClient, TachyonURI filePath)
+      throws IOException {
     TachyonFile fd;
     FileInfo fInfo;
     try {
@@ -970,7 +970,7 @@ public class TFsShell implements Closeable {
    * @return total size of the specified path in byte.
    * @throws IOException
    */
-  private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
+  private long getFileOrFolderSize(StreamingTachyonFileSystem tachyonFS, TachyonURI path)
       throws IOException {
     long sizeInBytes = 0;
     List<FileInfo> files = null;

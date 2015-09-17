@@ -29,8 +29,8 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileAlreadyExistException;
@@ -46,7 +46,7 @@ public class TachyonFileSystemIntegrationTest {
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static String sHost = null;
   private static int sPort = -1;
-  private static TachyonFileSystem sTfs = null;
+  private static StreamingTachyonFileSystem sTfs = null;
   private static ClientOptions sReadCache;
   private static ClientOptions sWriteBoth;
   private TachyonConf mMasterTachyonConf;

@@ -29,8 +29,8 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.client.file.FileInStream;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.io.BufferUtils;
@@ -47,7 +47,7 @@ public class FileInStreamIntegrationTest {
   private static final int DELTA = BLOCK_SIZE / 2;
 
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static TachyonFileSystem sTfs = null;
+  private static StreamingTachyonFileSystem sTfs = null;
   private static TachyonConf sTachyonConf;
   private static ClientOptions sWriteBoth;
   private static ClientOptions sWriteTachyon;
