@@ -168,6 +168,21 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     return mkdirs(path, true);
   }
 
+  /**
+   * Sets the pin status of a file. The file's pin status will be true regardless of whether or
+   * not it was pinned previously. Pinning a file prevents any of its blocks from being evicted,
+   * but does not load the blocks into memory. The blocks must be loaded through another means,
+   * for example the load command in the shell. Calling this method is equivalent to calling
+   * setPin(file, true).
+   *
+   * @param file the file to pin
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if the master fails to pin the file
+   */
+  public void pin(TachyonFile file) throws FileDoesNotExistException, IOException {
+    setPin(file, true);
+  }
+
   // TODO: Move this to lineage client
   public void reportLostFile(TachyonFile file) throws IOException, FileDoesNotExistException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -187,5 +202,19 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  /**
+   * Unsets the pin status of a file. The file's pin status will be false regardless of
+   * whether or not it was pinned previously. Unpinning a file makes it eligible for eviction,
+   * but the file will not be evicted from Tachyon space until the eviction policy deems it
+   * necessary. Calling this method is equivalent to calling setPin(file, false).
+   *
+   * @param file the file to unpin
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if the master fails to unpin the file
+   */
+  public void unpin(TachyonFile file) throws FileDoesNotExistException, IOException {
+    setPin(file, false);
   }
 }
