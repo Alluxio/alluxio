@@ -83,7 +83,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     try {
       mLeaderSelector.close();
     } catch (IllegalStateException e) {
-      // TODO This should not happen in unit tests.
+      // TODO(hy): This should not happen in unit tests.
       if (!e.getMessage().equals("Already closed or has not been started")) {
         throw e;
       }
@@ -159,11 +159,12 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
       LOG.error(mName + " was interrupted.", e);
       Thread.currentThread().interrupt();
     } finally {
+      mIsLeader.set(false);
       mCurrentMasterThread = null;
       LOG.warn(mName + " relinquishing leadership.");
+      LOG.info("The current leader is " + mLeaderSelector.getLeader().getId());
+      LOG.info("All participants: " + mLeaderSelector.getParticipants());
+      client.delete().forPath(mLeaderFolder + mName);
     }
-    LOG.info("The current leader is " + mLeaderSelector.getLeader().getId());
-    LOG.info("All partitations: " + mLeaderSelector.getParticipants());
-    client.delete().forPath(mLeaderFolder + mName);
   }
 }

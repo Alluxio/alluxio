@@ -15,15 +15,13 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
@@ -47,7 +45,7 @@ public final class PinListSync implements Runnable {
   private final int mSyncTimeoutMs;
 
   /** Client for all master communication */
-  private FileSystemMasterClient mMasterClient;
+  private WorkerFileSystemMasterClient mMasterClient;
   /** Flag to indicate if the syncing should continue */
   private volatile boolean mRunning;
 
@@ -59,7 +57,7 @@ public final class PinListSync implements Runnable {
    * @param masterClient the Tachyon master client
    */
   public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      FileSystemMasterClient masterClient) {
+      WorkerFileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mTachyonConf = tachyonConf;
     mMasterClient = masterClient;
@@ -91,11 +89,11 @@ public final class PinListSync implements Runnable {
         Set<Long> pinList = mMasterClient.getPinList();
         mBlockDataManager.updatePinList(pinList);
         lastSyncMs = System.currentTimeMillis();
-      // TODO: Change this back to IOException when we have the correct pinlist RPC
+      // TODO(calvin): Change this back to IOException when we have the correct pinlist RPC.
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if sync timeout is reached
         LOG.error("Failed to receive pinlist.", ioe);
-        // TODO: Add this method to MasterClientBase
+        // TODO(gene): Add this method to MasterClientBase.
         // mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastSyncMs >= mSyncTimeoutMs) {

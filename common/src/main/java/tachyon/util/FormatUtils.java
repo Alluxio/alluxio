@@ -100,26 +100,26 @@ public final class FormatUtils {
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
-      return String.format("%.2f B", ret);
+      return String.format("%.2fB", ret);
     }
     ret /= 1024;
     if (ret <= 1024 * 5) {
-      return String.format("%.2f KB", ret);
+      return String.format("%.2fKB", ret);
     }
     ret /= 1024;
     if (ret <= 1024 * 5) {
-      return String.format("%.2f MB", ret);
+      return String.format("%.2fMB", ret);
     }
     ret /= 1024;
     if (ret <= 1024 * 5) {
-      return String.format("%.2f GB", ret);
+      return String.format("%.2fGB", ret);
     }
     ret /= 1024;
     if (ret <= 1024 * 5) {
-      return String.format("%.2f TB", ret);
+      return String.format("%.2fTB", ret);
     }
     ret /= 1024;
-    return String.format("%.2f PB", ret);
+    return String.format("%.2fPB", ret);
   }
 
   /**
@@ -132,16 +132,16 @@ public final class FormatUtils {
     double alpha = 0.0001;
     String ori = spaceSize;
     String end = "";
-    int tIndex = spaceSize.length() - 1;
-    while (tIndex >= 0) {
-      if (spaceSize.charAt(tIndex) > '9' || spaceSize.charAt(tIndex) < '0') {
-        end = spaceSize.charAt(tIndex) + end;
+    int index = spaceSize.length() - 1;
+    while (index >= 0) {
+      if (spaceSize.charAt(index) > '9' || spaceSize.charAt(index) < '0') {
+        end = spaceSize.charAt(index) + end;
       } else {
         break;
       }
-      tIndex --;
+      index --;
     }
-    spaceSize = spaceSize.substring(0, tIndex + 1);
+    spaceSize = spaceSize.substring(0, index + 1);
     double ret = Double.parseDouble(spaceSize);
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {

@@ -17,12 +17,16 @@ package tachyon.web;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 
 import tachyon.StorageLevelAlias;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
+import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.NetAddress;
 
 public final class UiBlockInfo {
   private final List<String> mLocations = new ArrayList<String>();
@@ -31,14 +35,13 @@ public final class UiBlockInfo {
   private final boolean mInMemory;
   private final long mLastAccessTimeMs;
 
-  public UiBlockInfo(BlockInfo blockInfo) {
-    Preconditions.checkNotNull(blockInfo);
-    mId = blockInfo.getBlockId();
-    mBlockLength = blockInfo.getLength();
-    // FIXME: compute this from FileBlockInfo when FileBlockInfo includes MasterBlockInfo
-    mInMemory = isInMemory(blockInfo);
+  public UiBlockInfo(FileBlockInfo fileBlockInfo) {
+    Preconditions.checkNotNull(fileBlockInfo);
+    mId = fileBlockInfo.getBlockInfo().getBlockId();
+    mBlockLength = fileBlockInfo.getBlockInfo().getLength();
+    mInMemory = isInMemory(fileBlockInfo.getBlockInfo());
     mLastAccessTimeMs = -1;
-    addLocations(blockInfo.getLocations());
+    addLocations(fileBlockInfo);
   }
 
   public UiBlockInfo(long blockId, long blockLength, long blockLastAccessTimeMs, boolean inMemory) {
@@ -48,10 +51,17 @@ public final class UiBlockInfo {
     mLastAccessTimeMs = blockLastAccessTimeMs;
   }
 
-  private void addLocations(List<BlockLocation> locations) {
-    for (BlockLocation location : locations) {
-      mLocations.add(location.getWorkerAddress().getHost());
+  private void addLocations(FileBlockInfo fileBlockInfo) {
+    Set<String> locations = Sets.newHashSet();
+    // add tachyon locations
+    for (BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
+      locations.add(location.getWorkerAddress().getHost());
     }
+    // add underFS locations
+    for (NetAddress address : fileBlockInfo.getUfsLocations()) {
+      locations.add(address.getHost());
+    }
+    mLocations.addAll(locations);
   }
 
   /**

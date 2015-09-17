@@ -168,6 +168,23 @@ number.
   <td>The folder to store master journal log.</td>
 </tr>
 <tr>
+  <td>tachyon.master.journal.formatter.class</td>
+  <td>tachyon.master.journal.JsonJournalFormatter</td>
+  <td>The class to serialize the journal in a specified format.</td>
+</tr>
+<tr>
+  <td>tachyon.master.journal.tailer.sleep.time.ms</td>
+  <td>1000</td>
+  <td>Time(in milliseconds) to sleep for standby master when it cannot find anything new from leader
+    master's journal.</td>
+</tr>
+<tr>
+  <td>tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms</td>
+  <td>5000</td>
+  <td>Before the standby master shuts down its tailer thread, there should be no update to the
+    leader master's journal in this specified time period(in milliseconds).</td>
+</tr>
+<tr>
   <td>tachyon.master.hostname</td>
   <td>localhost</td>
   <td>The externally resolvable hostname of Tachyon's master address.</td>
@@ -385,9 +402,9 @@ number.
   <td>Kerberos principal for Tachyon worker.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.user.timeout.ms</td>
+  <td>tachyon.worker.session.timeout.ms</td>
   <td>10000</td>
-  <td>Timeout between worker and user connection indicating a lost user connection.  Specified in milliseconds</td>
+  <td>Timeout between worker and client connection indicating a lost session connection.  Specified in milliseconds</td>
 </tr>
 </table>
 

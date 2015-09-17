@@ -178,6 +178,14 @@ public abstract class MasterClientBase implements Closeable {
   }
 
   /**
+   * Closes the connection, then query and set current master address.
+   */
+  public synchronized void resetConnection() {
+    disconnect();
+    mMasterAddress = getMasterAddress();
+  }
+
+  /**
    * Returns the {@link InetSocketAddress} of the master. If zookeeper is used, this will consult
    * the zookeeper instance for the master address.
    *
@@ -188,9 +196,11 @@ public abstract class MasterClientBase implements Closeable {
       return mMasterAddress;
     }
 
+    Preconditions.checkState(mTachyonConf.containsKey(Constants.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(mTachyonConf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS, null),
-            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH, null));
+        LeaderInquireClient.getClient(mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS),
+            mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);

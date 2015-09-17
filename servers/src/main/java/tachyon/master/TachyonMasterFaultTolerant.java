@@ -37,23 +37,25 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
 /**
  * The fault tolerant version of TachyonMaster that uses zookeeper and standby masters.
  */
-public final class TachyonMasterFaultTolerant extends TachyonMaster {
+final class TachyonMasterFaultTolerant extends TachyonMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** The zookeeper client that handles selecting the leader. */
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public TachyonMasterFaultTolerant(TachyonConf tachyonConf) {
-    super(tachyonConf);
-    Preconditions.checkArgument(tachyonConf.getBoolean(Constants.USE_ZOOKEEPER));
+  public TachyonMasterFaultTolerant() {
+    super();
+    TachyonConf conf = MasterContext.getConf();
+    Preconditions.checkArgument(conf.getBoolean(Constants.USE_ZOOKEEPER));
 
     // Set up zookeeper specific functionality.
     try {
       // InetSocketAddress.toString causes test issues, so build the string by hand
-      String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mTachyonConf) + ":"
+      String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf) + ":"
           + getMasterAddress().getPort();
-      String zkAddress = mTachyonConf.get(Constants.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = mTachyonConf.get(Constants.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = mTachyonConf.get(Constants.ZOOKEEPER_LEADER_PATH);
+      String zkAddress = conf.get(Constants.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = conf.get(Constants.ZOOKEEPER_ELECTION_PATH);
+      String zkLeaderPath = conf.get(Constants.ZOOKEEPER_LEADER_PATH);
       mLeaderSelectorClient =
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
     } catch (Exception e) {
@@ -81,6 +83,13 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
     while (true) {
       if (mLeaderSelectorClient.isLeader()) {
         stopMasters();
+
+        if (started) {
+          // Transitioning from standby to master, replace readonly journal with writable journal.
+          mBlockMaster = new BlockMaster(mBlockMasterJournal);
+          mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
+          mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
+        }
         startMasters(true);
         started = true;
         startServing();
@@ -93,11 +102,11 @@ public final class TachyonMasterFaultTolerant extends TachyonMaster {
 
           // When transitioning from master to standby, recreate the masters with a readonly
           // journal.
-          mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal(), mTachyonConf);
-          mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster,
-              mFileSystemMasterJournal.getReadOnlyJournal());
-          mRawTableMaster = new RawTableMaster(mTachyonConf, mFileSystemMaster,
-              mRawTableMasterJournal.getReadOnlyJournal());
+          mBlockMaster = new BlockMaster(mBlockMasterJournal.getReadOnlyJournal());
+          mFileSystemMaster =
+              new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal.getReadOnlyJournal());
+          mRawTableMaster =
+              new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal.getReadOnlyJournal());
           startMasters(false);
           started = true;
         }

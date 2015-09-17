@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -81,7 +82,7 @@ public class FileInStreamIntegrationTest {
    * Test <code>void read()</code> across block boundary.
    */
   @Test
-  public void readTest1() throws IOException {
+  public void readTest1() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -123,7 +124,7 @@ public class FileInStreamIntegrationTest {
    * Test <code>void read(byte[] b)</code>.
    */
   @Test
-  public void readTest2() throws IOException {
+  public void readTest2() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -149,7 +150,7 @@ public class FileInStreamIntegrationTest {
    * Test <code>void read(byte[] b, int off, int len)</code>.
    */
   @Test
-  public void readTest3() throws IOException {
+  public void readTest3() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -175,7 +176,7 @@ public class FileInStreamIntegrationTest {
    * Test <code>void read(byte[] b, int off, int len)</code> for end of file.
    */
   @Test
-  public void readEndOfFileTest() throws IOException {
+  public void readEndOfFileTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -203,9 +204,10 @@ public class FileInStreamIntegrationTest {
    * position.
    *
    * @throws IOException
+   * @throws TException
    */
   @Test
-  public void seekExceptionTest1() throws IOException {
+  public void seekExceptionTest1() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
@@ -230,7 +232,7 @@ public class FileInStreamIntegrationTest {
    * @throws IOException
    */
   @Test
-  public void seekExceptionTest2() throws IOException {
+  public void seekExceptionTest2() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
@@ -252,9 +254,10 @@ public class FileInStreamIntegrationTest {
    * Test <code>void seek(long pos)</code>.
    *
    * @throws IOException
+   * @throws TException
    */
   @Test
-  public void seekTest() throws IOException {
+  public void seekTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
@@ -279,7 +282,7 @@ public class FileInStreamIntegrationTest {
    * @throws IOException
    */
   @Test
-  public void eofSeekTest() throws IOException {
+  public void eofSeekTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     int length = BLOCK_SIZE * 3;
     for (ClientOptions op : getOptionSet()) {
@@ -300,7 +303,7 @@ public class FileInStreamIntegrationTest {
    * Test <code>long skip(long len)</code>.
    */
   @Test
-  public void skipTest() throws IOException {
+  public void skipTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {

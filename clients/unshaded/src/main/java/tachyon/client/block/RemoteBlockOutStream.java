@@ -17,8 +17,8 @@ package tachyon.client.block;
 
 import java.io.IOException;
 
-import tachyon.client.RemoteBlockWriter;
 import tachyon.client.ClientContext;
+import tachyon.client.RemoteBlockWriter;
 import tachyon.worker.WorkerClient;
 
 /**
@@ -41,7 +41,8 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     super(blockId, blockSize);
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
     mWorkerClient = mContext.acquireWorkerClient();
-    mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId, mWorkerClient.getUserId());
+    mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
+        mWorkerClient.getSessionId());
   }
 
   @Override

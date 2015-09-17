@@ -27,13 +27,10 @@ public class MasterTestUtils {
   public static FileSystemMaster createFileSystemMasterFromJournal(TachyonConf tachyonConf)
       throws IOException {
     String masterJournal = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
-    Journal blockJournal = new Journal(BlockMaster.getJournalDirectory(masterJournal),
-        tachyonConf);
-    Journal fsJournal = new Journal(FileSystemMaster.getJournalDirectory(masterJournal),
-        tachyonConf);
-
-    BlockMaster blockMaster = new BlockMaster(blockJournal, tachyonConf);
-    FileSystemMaster fsMaster = new FileSystemMaster(tachyonConf, blockMaster, fsJournal);
+    Journal blockJournal = new Journal(BlockMaster.getJournalDirectory(masterJournal));
+    Journal fsJournal = new Journal(FileSystemMaster.getJournalDirectory(masterJournal));
+    BlockMaster blockMaster = new BlockMaster(blockJournal);
+    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, fsJournal);
     blockMaster.start(true);
     fsMaster.start(true);
     return fsMaster;

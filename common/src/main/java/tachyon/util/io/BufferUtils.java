@@ -121,8 +121,8 @@ public final class BufferUtils {
    * @return ByteBuffer with data extracted from the Thrift RPC result
    */
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
-    // TODO this is a trick to fix the issue in thrift. Change the code to use
-    // metadata directly when thrift fixes the issue.
+    // TODO(cc): This is a trick to fix the issue in thrift. Change the code to use metadata
+    // directly when thrift fixes the issue.
     ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
     correctData.put(data);
     correctData.flip();

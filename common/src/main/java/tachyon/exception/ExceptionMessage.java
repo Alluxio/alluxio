@@ -29,8 +29,8 @@ public enum ExceptionMessage {
 
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0} is for block {1}, not {2}"),
-  LOCK_ID_FOR_DIFFERENT_USER("lockId {0} is owned by userId {1} not {2}"),
-  LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_USER("no lock is found for blockId {0} for userId {1}"),
+  LOCK_ID_FOR_DIFFERENT_SESSION("lockId {0} is owned by sessionId {1} not {2}"),
+  LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION("no lock is found for blockId {0} for sessionId {1}"),
   LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0} has no lock record"),
 
   // block metadata manager and view
@@ -42,11 +42,12 @@ public enum ExceptionMessage {
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),
-  BLOCK_NOT_FOUND_FOR_USER("blockId {0} in {1} not found for user {2}"),
+  BLOCK_NOT_FOUND_FOR_SESSION("blockId {0} in {1} not found for session {2}"),
   NO_SPACE_FOR_BLOCK_META("blockId {0} is {1} bytes, but only {2} bytes available in {3}"),
 
   // tieredBlockStore
-  BLOCK_ID_FOR_DIFFERENT_USER("BlockId {0} is owned by userId {1} not {2}"),
+  BLOCK_ID_FOR_DIFFERENT_SESSION("BlockId {0} is owned by sessionId {1} not {2}"),
+  BLOCK_NOT_FOUND_AT_LOCATION("Block {0} not found at location: {1}"),
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted block {0}"),
   NO_BLOCK_ID_FOUND("BlockId {0} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),

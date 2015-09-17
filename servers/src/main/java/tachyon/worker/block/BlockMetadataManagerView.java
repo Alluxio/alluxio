@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,9 +36,11 @@ import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
- * filtering out un-evictable blocks and un-allocatable space (TODO) internally, so that evictors
- * and allocators can be developed with much simpler logic, without worrying about various
- * constraints, e.g. pinned files, locked blocks, etc.
+ * filtering out un-evictable blocks and un-allocatable space internally, so that evictors and
+ * allocators can be developed with much simpler logic, without worrying about various constraints,
+ * e.g. pinned files, locked blocks, etc.
+ *
+ * TODO(cc): Filter un-allocatable space.
  */
 public class BlockMetadataManagerView {
 
@@ -54,7 +57,7 @@ public class BlockMetadataManagerView {
 
   /**
    * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
-   * TODO: incrementally update the view
+   * TODO(qifan): Incrementally update the view.
    *
    * @param manager which the view should be constructed from
    * @param pinnedInodes a set of pinned inodes
@@ -150,7 +153,7 @@ public class BlockMetadataManagerView {
    */
   public StorageTierView getTierView(int tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
-    if (null == tierView) {
+    if (tierView == null) {
       throw new IllegalArgumentException(
           ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierAlias));
     } else {
@@ -164,7 +167,7 @@ public class BlockMetadataManagerView {
    * @return the list of StorageTierViews
    */
   public List<StorageTierView> getTierViews() {
-    return mTierViews;
+    return Collections.unmodifiableList(mTierViews);
   }
 
   /**

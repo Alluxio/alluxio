@@ -28,14 +28,16 @@ import tachyon.StorageLevelAlias;
  * The metadata for a Tachyon block, managed by the block master.
  */
 public final class MasterBlockInfo {
+  /** The id of the block. */
   private final long mBlockId;
+  /** The length of the block in bytes. */
   private final long mLength;
 
   /** Maps from the worker id to the alias the block is on. */
   private final Map<Long, Integer> mWorkerIdToAlias;
 
   public MasterBlockInfo(long blockId, long length) {
-    // TODO: check valid length?
+    // TODO(gene): Check valid length?
     mBlockId = blockId;
     mLength = length;
 

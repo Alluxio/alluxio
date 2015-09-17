@@ -33,6 +33,8 @@ import org.apache.hadoop.util.Progressable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
@@ -203,8 +205,7 @@ abstract class AbstractTFS extends FileSystem {
    * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
    * create(), except fails if parent directory doesn't already exist.
    *
-   * TODO(haoyuan): We need to refactor this method after having a new internal API support
-   * TODO (TACHYON-46).
+   * TODO(hy): We need to refactor this method after having a new internal API support (TACHYON-46).
    *
    * @param cPath the file name to open
    * @param overwrite if a file with this name already exists, then if true, the file will be
@@ -309,20 +310,27 @@ abstract class AbstractTFS extends FileSystem {
     for (int k = 0; k < blocks.size(); k ++) {
       FileBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
-      long end = offset + info.getLength();
+      long end = offset + info.blockInfo.getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<String>();
         ArrayList<String> hosts = new ArrayList<String>();
-        for (NetAddress addr : info.getLocations()) {
+        List<NetAddress> addrs = Lists.newArrayList();
+        // add the existing in-memory block locations first
+        for (tachyon.thrift.BlockLocation location : info.getBlockInfo().getLocations()) {
+          addrs.add(location.getWorkerAddress());
+        }
+        // then add under file system location
+        addrs.addAll(info.getUfsLocations());
+        for (NetAddress addr : addrs) {
           // Name format is "hostname:data transfer port"
           String name = addr.host + ":" + addr.dataPort;
           LOG.debug("getFileBlockLocations : adding name : '" + name + "");
           names.add(name);
           hosts.add(addr.host);
         }
-        blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names), CommonUtils
-            .toStringArray(hosts), offset, info.getLength()));
+        blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
+            CommonUtils.toStringArray(hosts), offset, info.blockInfo.getLength()));
       }
     }
 
@@ -366,14 +374,14 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * Gets the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
-   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
+   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so cannot put
+   * @Override.
    *
    * @return schema hadoop should map to.
    *
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
-  // TODO(cc): @Override needs to be removed to pass compilation, why?
   public abstract String getScheme();
 
   /**
@@ -455,7 +463,7 @@ abstract class AbstractTFS extends FileSystem {
     FileStatus[] ret = new FileStatus[files.size()];
     for (int k = 0; k < files.size(); k ++) {
       FileInfo info = files.get(k);
-      // TODO(haoyuan): Replicate 3 with the number of disk replications.
+      // TODO(hy): Replicate 3 with the number of disk replications.
       ret[k] =
           new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeBytes(),
               info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null, new Path(

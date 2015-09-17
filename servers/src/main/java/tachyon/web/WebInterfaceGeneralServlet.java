@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.Version;
+import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
 import tachyon.master.file.meta.DependencyVariables;
 import tachyon.underfs.UnderFileSystem;
@@ -176,9 +177,10 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
 
-    String ufsDataFolder = mMaster.getTachyonConf().get(Constants.UNDERFS_DATA_FOLDER,
-        Constants.DEFAULT_DATA_FOLDER);
-    UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, mMaster.getTachyonConf());
+    // TODO(jiri): Should we use MasterContext here instead?
+    TachyonConf conf = new TachyonConf();
+    String ufsDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, conf);
 
     long sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
     if (sizeBytes >= 0) {

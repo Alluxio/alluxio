@@ -316,8 +316,8 @@ public class FileSystemMasterIntegrationTest {
     return MasterTestUtils.createFileSystemMasterFromJournal(mMasterTachyonConf);
   }
 
-  // TODO: This test currently relies on the fact the HDFS client is a cached instance to avoid
-  // TODO: invalid lease exception. This should be fixed.
+  // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
+  // avoid invalid lease exception. This should be fixed.
   @Ignore
   @Test
   public void concurrentCreateJournalTest() throws Exception {
@@ -575,9 +575,6 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
 
-  // TODO: Should writing in a file in a directory update its last mod time? If so we need to log
-  // it in the journal
-  @Ignore
   @Test
   public void lastModificationTimeCreateFileTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
@@ -635,7 +632,7 @@ public class FileSystemMasterIntegrationTest {
     HashSet<Long> listedDirIds = Sets.newHashSet();
     List<FileInfo> infoList = mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/")));
     for (FileInfo info : infoList) {
-      // TODO: After info.getFileId return long, remove this type cast
+      // TODO(Gene): After info.getFileId return long, remove this type cast.
       long id = new Long(info.getFileId());
       listedDirIds.add(id);
       for (FileInfo fileInfo : mFsMaster.getFileInfoList(id)) {
@@ -646,8 +643,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(dirIds, listedDirIds);
   }
 
-  // TODO: There is no longer `ls` method in FileSystemMaster, should this test be removed or should
-  // `ls` be added back?
+  // TODO(gene): There is no longer `ls` method in FileSystemMaster, should this test be removed or
+  // should `ls` be added back?
   //@Test
   //public void lsTest() throws FileAlreadyExistException, InvalidPathException, TachyonException,
   //    BlockInfoException, FileDoesNotExistException {
@@ -706,8 +703,8 @@ public class FileSystemMasterIntegrationTest {
         new TachyonURI("/testDir1/testDir2/testDir3/testDir4"));
   }
 
-  // TODO: Journal format has changed, maybe add Version to the format and add this test back
-  //       or remove this test when we have better tests against journal checkpoint
+  // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
+  // or remove this test when we have better tests against journal checkpoint.
   //@Test
   //public void writeImageTest() throws IOException {
   //  // initialize the MasterInfo

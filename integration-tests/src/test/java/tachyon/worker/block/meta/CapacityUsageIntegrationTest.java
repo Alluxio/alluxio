@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,7 +49,7 @@ public class CapacityUsageIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    // TODO Remove this once we are able to push tiered storage info to LocalTachyonCluster
+    // TODO(hy): Remove this once we are able to push tiered storage info to LocalTachyonCluster.
     System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1));
     System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1));
@@ -57,7 +58,7 @@ public class CapacityUsageIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    // TODO Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
+    // TODO(hy): Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
     System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
     System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
     System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
@@ -69,13 +70,14 @@ public class CapacityUsageIntegrationTest {
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
     mLocalTachyonCluster.start();
 
-    mLocalTachyonCluster.getWorkerTachyonConf()
-        .set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
+    mLocalTachyonCluster.getWorkerTachyonConf().set(
+        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
     mTFS = mLocalTachyonCluster.getClient();
   }
 
-  private TachyonFile createAndWriteFile(TachyonURI filePath, TachyonStorageType tachyonStorageType,
-      UnderStorageType underStorageType, int len) throws IOException {
+  private TachyonFile createAndWriteFile(TachyonURI filePath,
+      TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
+      throws IOException, TException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < len; k ++) {
@@ -91,26 +93,28 @@ public class CapacityUsageIntegrationTest {
     return mTFS.open(filePath);
   }
 
-  private void deleteDuringEviction(int i) throws IOException {
+  private void deleteDuringEviction(int i) throws IOException, TException {
     final String fileName1 = "/file" + i + "_1";
     final String fileName2 = "/file" + i + "_2";
-    TachyonFile file1 = createAndWriteFile(new TachyonURI(fileName1), TachyonStorageType.STORE,
-        UnderStorageType.PERSIST, MEM_CAPACITY_BYTES);
+    TachyonFile file1 =
+        createAndWriteFile(new TachyonURI(fileName1), TachyonStorageType.STORE,
+            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES);
     FileInfo fileInfo1 = mTFS.getInfo(file1);
     Assert.assertTrue(fileInfo1.getInMemoryPercentage() == 100);
     // Deleting file1, command will be sent by master to worker asynchronously
     mTFS.delete(file1);
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
-    TachyonFile file2 = createAndWriteFile(new TachyonURI(fileName2), TachyonStorageType.STORE,
-        UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 4);
+    TachyonFile file2 =
+        createAndWriteFile(new TachyonURI(fileName2), TachyonStorageType.STORE,
+            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 4);
     FileInfo fileInfo2 = mTFS.getInfo(file2);
     Assert.assertTrue(fileInfo2.getInMemoryPercentage() == 100);
     mTFS.delete(file2);
   }
 
-  // TODO: Rethink the approach of this test and what it should be testing
+  // TODO(calvin): Rethink the approach of this test and what it should be testing.
   // @Test
-  public void deleteDuringEvictionTest() throws IOException {
+  public void deleteDuringEvictionTest() throws IOException, TException {
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i ++) {
       deleteDuringEviction(i);

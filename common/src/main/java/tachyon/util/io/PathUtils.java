@@ -74,7 +74,7 @@ public final class PathUtils {
         CharMatcher.is(TachyonURI.SEPARATOR.charAt(0)).trimTrailingFrom(base.toString().trim());
     trimmedPathList.add(trimmedBase);
     for (Object path : paths) {
-      if (null == path) {
+      if (path == null) {
         continue;
       }
       String trimmedPath =

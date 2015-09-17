@@ -20,9 +20,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.thrift.TException;
-
 import tachyon.TachyonURI;
+import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
@@ -44,12 +43,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public Set<Long> workerGetPinIdList() throws TException {
+  public Set<Long> workerGetPinIdList() {
     return mFileSystemMaster.getPinIdList();
   }
 
   @Override
-  public List<Integer> workerGetPriorityDependencyList() throws TException {
+  public List<Integer> workerGetPriorityDependencyList() {
     return mFileSystemMaster.getPriorityDependencyList();
   }
 
@@ -61,66 +60,63 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long getFileId(String path) throws InvalidPathException, TException {
+  public long getFileId(String path) throws InvalidPathException {
     return mFileSystemMaster.getFileId(new TachyonURI(path));
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, TException {
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
     return mFileSystemMaster.getFileInfo(fileId);
   }
 
   @Override
-  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException, TException {
+  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
     return mFileSystemMaster.getFileInfoList(fileId);
   }
 
   @Override
   public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws FileDoesNotExistException, BlockInfoException, TException {
+      throws FileDoesNotExistException, BlockInfoException {
     return mFileSystemMaster.getFileBlockInfo(fileId, fileBlockIndex);
   }
 
   @Override
-  public List<FileBlockInfo> getFileBlockInfoList(long fileId)
-      throws FileDoesNotExistException, TException {
+  public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException {
     return mFileSystemMaster.getFileBlockInfoList(fileId);
   }
 
   @Override
-  public long getNewBlockIdForFile(long fileId)
-      throws FileDoesNotExistException, BlockInfoException, TException {
+  public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException {
     return mFileSystemMaster.getNewBlockIdForFile(fileId);
   }
 
   @Override
-  public String getUfsAddress() throws TException {
+  public String getUfsAddress() {
     return mFileSystemMaster.getUfsAddress();
   }
 
   @Override
   public long createFile(String path, long blockSizeBytes, boolean recursive)
-      throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
-      TachyonException, TException {
+      throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
     return mFileSystemMaster.createFile(new TachyonURI(path), blockSizeBytes, recursive);
   }
 
   @Override
   public boolean completeFileCheckpoint(long workerId, long fileId, long length,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
-          BlockInfoException, TException {
-    return mFileSystemMaster.completeFileCheckpoint(workerId, fileId, length,
-        new TachyonURI(checkpointPath));
+      BlockInfoException {
+    return mFileSystemMaster.completeFileCheckpoint(workerId, fileId, length, new TachyonURI(
+        checkpointPath));
   }
 
   @Override
   public long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws FileAlreadyExistException, BlockInfoException,
-          SuspectedFileSizeException, TachyonException, TException {
+      SuspectedFileSizeException, TachyonException, InvalidPathException {
     if (ufsPath == null || ufsPath.isEmpty()) {
       throw new IllegalArgumentException("the underFS path is not provided");
     }
-    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, mFileSystemMaster.getTachyonConf());
+    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
     try {
       long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
       long fileSizeByte = underfs.getFileSize(ufsPath);
@@ -131,67 +127,66 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       return fileId;
     } catch (IOException e) {
       throw new TachyonException(e.getMessage());
+    } catch (FileDoesNotExistException e) {
+      throw new TachyonException(e.getMessage());
     }
   }
 
   @Override
-  public void completeFile(long fileId)
-      throws FileDoesNotExistException, BlockInfoException, TException {
+  public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
     mFileSystemMaster.completeFile(fileId);
   }
 
   @Override
-  public boolean deleteFile(long fileId, boolean recursive) throws TachyonException, TException {
+  public boolean deleteFile(long fileId, boolean recursive) throws TachyonException,
+      FileDoesNotExistException {
     return mFileSystemMaster.deleteFile(fileId, recursive);
   }
 
   @Override
   public boolean renameFile(long fileId, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException, TException {
+      FileDoesNotExistException, InvalidPathException {
     return mFileSystemMaster.rename(fileId, new TachyonURI(dstPath));
   }
 
   @Override
-  public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException, TException {
+  public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException {
     mFileSystemMaster.setPinned(fileId, pinned);
   }
 
   @Override
-  public boolean createDirectory(String path, boolean recursive)
-      throws FileAlreadyExistException, InvalidPathException, TException {
+  public boolean createDirectory(String path, boolean recursive) throws FileAlreadyExistException,
+      InvalidPathException {
     mFileSystemMaster.mkdirs(new TachyonURI(path), recursive);
     return true;
   }
 
   @Override
-  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException, TException {
+  public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException {
     return mFileSystemMaster.free(fileId, recursive);
   }
 
   @Override
   public int createDependency(List<String> parents, List<String> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
-      int dependencyType, long childrenBlockSizeByte)
-          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
-          BlockInfoException, TachyonException, TException {
-    // TODO
+      int dependencyType, long childrenBlockSizeByte) throws InvalidPathException,
+      FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException {
+    // TODO(gene): Implement lineage.
     return 0;
   }
 
   @Override
-  public DependencyInfo getDependencyInfo(int dependencyId)
-      throws DependencyDoesNotExistException, TException {
+  public DependencyInfo getDependencyInfo(int dependencyId) throws DependencyDoesNotExistException {
     return mFileSystemMaster.getClientDependencyInfo(dependencyId);
   }
 
   @Override
-  public void reportLostFile(long fileId) throws FileDoesNotExistException, TException {
+  public void reportLostFile(long fileId) throws FileDoesNotExistException {
     mFileSystemMaster.reportLostFile(fileId);
   }
 
   @Override
-  public void requestFilesInDependency(int depId)
-      throws DependencyDoesNotExistException, TException {
+  public void requestFilesInDependency(int depId) throws DependencyDoesNotExistException {
     mFileSystemMaster.requestFilesInDependency(depId);
   }
 
