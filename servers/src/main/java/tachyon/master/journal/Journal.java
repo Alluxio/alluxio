@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 
 /**
  * This encapsulates the journal for a master. The journal is made up of 2 components:
@@ -40,8 +41,6 @@ public class Journal {
   private static final String CHECKPOINT_FILENAME = "checkpoint.data";
   /** The base of the entry log filenames, without the file extension. */
   private static final String ENTRY_LOG_FILENAME_BASE = "log";
-
-  private final TachyonConf mTachyonConf;
   /** The directory where this journal is stored. */
   private final String mDirectory;
   /** The formatter for this journal. */
@@ -49,17 +48,14 @@ public class Journal {
 
   /**
    * @param directory the base directory for this journal
-   * @param tachyonConf the tachyon conf
    */
-  public Journal(String directory, TachyonConf tachyonConf) {
+  public Journal(String directory) {
     if (!directory.endsWith(TachyonURI.SEPARATOR)) {
       // Ensure directory format.
       directory += TachyonURI.SEPARATOR;
     }
     mDirectory = directory;
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    // TODO: maybe this can be constructed, specified by a parameter in tachyonConf.
-    mJournalFormatter = new JsonJournalFormatter();
+    mJournalFormatter = JournalFormatter.Factory.createJournalFormatter(MasterContext.getConf());
   }
 
   /**
@@ -101,7 +97,7 @@ public class Journal {
   }
 
   /**
-   * @return the formatter for this journal
+   * @return the {@link JournalFormatter} for this journal
    */
   public JournalFormatter getJournalFormatter() {
     return mJournalFormatter;
@@ -111,20 +107,20 @@ public class Journal {
    * @return a readonly version of this journal
    */
   public ReadOnlyJournal getReadOnlyJournal() {
-    return new ReadOnlyJournal(mDirectory, mTachyonConf);
+    return new ReadOnlyJournal(mDirectory);
   }
 
   /**
-   * @return the writer for this journal
+   * @return the {@link JournalWriter} for this journal
    */
   public JournalWriter getNewWriter() {
-    return new JournalWriter(this, mTachyonConf);
+    return new JournalWriter(this);
   }
 
   /**
-   * @return the reader for this journal
+   * @return the {@link JournalReader} for this journal
    */
   public JournalReader getNewReader() {
-    return new JournalReader(this, mTachyonConf);
+    return new JournalReader(this);
   }
 }

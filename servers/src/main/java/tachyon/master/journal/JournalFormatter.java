@@ -19,10 +19,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com.google.common.base.Throwables;
+
+import tachyon.Constants;
+import tachyon.conf.TachyonConf;
+import tachyon.util.CommonUtils;
+
 /**
  * This describes the interface for serializing and deserializing entries in the journal.
  */
 public interface JournalFormatter {
+  class Factory {
+    /**
+     * @param conf TachyonConf to get the type of {@link JournalFormatter}
+     * @return the created formatter
+     */
+    public static JournalFormatter createJournalFormatter(TachyonConf conf) {
+      try {
+        return CommonUtils.createNewClassInstance(
+            conf.<JournalFormatter>getClass(Constants.MASTER_JOURNAL_FORMATTER_CLASS), null, null);
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
+    }
+  }
+
   /**
    * Serializes the given entry and writes it to the given output stream.
    *

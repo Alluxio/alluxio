@@ -166,7 +166,7 @@ public class DataServerMessage {
 
   private RPCResponse.Status mStatus;
 
-  // TODO: Investigate how to remove this since it is not transferred over the wire.
+  // TODO(calvin): Investigate how to remove this since it is not transferred over the wire.
   private long mLockId = -1L;
 
   private ByteBuffer mData = null;
@@ -354,7 +354,7 @@ public class DataServerMessage {
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
-        // TODO make this better to truncate the file.
+        // TODO(hy): Make this better to truncate the file.
         Preconditions.checkState(mLength < Integer.MAX_VALUE,
             "received length is too large: " + mLength);
         if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {

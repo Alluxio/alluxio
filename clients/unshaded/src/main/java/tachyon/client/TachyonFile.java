@@ -31,7 +31,9 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -136,7 +138,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the replication factor.
    */
   public int getDiskReplication() {
-    // TODO(haoyuan): Implement it.
+    // TODO(hy): Implement it.
     return 3;
   }
 
@@ -171,7 +173,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } else {
       optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
     }
-    return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
+    try {
+      return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
+    } catch (InvalidPathException e) {
+      throw new IOException(e.getMessage());
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -436,7 +444,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * TODO(haoyuan): Remove this method. Do streaming cache. This is not a right API.
+   * TODO(hy): Remove this method. Do streaming cache. This is not a right API.
    *
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
