@@ -59,14 +59,18 @@ import tachyon.util.CommonUtils;
 /**
  * Client to submit Tachyon application to Hadoop YARN ResourceManager (RM).
  *
- * <p>Launch Tachyon on YARN:</p>
+ * <p>
+ * Launch Tachyon on YARN:
+ * </p>
  * <code>
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -jar
  * hdfs://HDFSMaster:port/path/to/tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar
  * -num_workers NumTachyonWorkers
  * </code>
  *
- * <p>Check help:</p>
+ * <p>
+ * Check help:
+ * </p>
  * <code>
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -help
  * </code>
@@ -102,6 +106,7 @@ public final class Client {
   private long mClientTimeout;
   /** Number of tachyon workers. */
   private int mNumWorkers;
+  private String mTachyonHome;
   /** Id of the application */
   private ApplicationId mAppId;
   /** Command line options */
@@ -119,6 +124,7 @@ public final class Client {
     mOptions.addOption("master_vcores", true, "Amount of virtual cores to be requested to run the "
         + "application master");
     mOptions.addOption("jar", true, "Jar file containing the application master");
+    mOptions.addOption("tachyon_home", true, "Path to Tachyon home dir on YARN slave machines");
     mOptions.addOption("debug", false, "Dump out debug information");
     mOptions.addOption("help", false, "Print usage");
     mOptions.addOption("num_workers", true, "Number of tachyon workers to launch");
@@ -171,12 +177,13 @@ public final class Client {
       printUsage();
       return false;
     }
-    if (!cliParser.hasOption("jar")) {
+    if (!cliParser.hasOption("jar") || !cliParser.hasOption("tachyon_home")) {
       printUsage();
       return false;
     }
 
     mAppMasterJar = cliParser.getOptionValue("jar");
+    mTachyonHome = cliParser.getOptionValue("tachyon_home");
     mAppName = cliParser.getOptionValue("appname", "Tachyon");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
     mAmQueue = cliParser.getOptionValue("queue", "default");
@@ -259,8 +266,9 @@ public final class Client {
   private void setupContainerLaunchContext() throws IOException {
     String command =
         "$JAVA_HOME/bin/java" + " -Xmx256M " + mAppMasterMainClass + " "
-            + String.valueOf(mNumWorkers) + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
-            + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
+            + String.valueOf(mNumWorkers) + " " + mTachyonHome + " 1>"
+            + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
+            + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
     System.out.println("AM command: " + command);
     mAmContainer.setCommands(Collections.singletonList(command));
 
