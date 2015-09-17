@@ -43,7 +43,7 @@ public class LineageMasterService {
 
     public boolean deleteLineage(long lineageId) throws org.apache.thrift.TException;
 
-    public LineageCommand lineageWorkerHeartbeat(long workerId) throws org.apache.thrift.TException;
+    public LineageCommand workerLineageHeartbeat(long workerId) throws org.apache.thrift.TException;
 
   }
 
@@ -53,7 +53,7 @@ public class LineageMasterService {
 
     public void deleteLineage(long lineageId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void lineageWorkerHeartbeat(long workerId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void workerLineageHeartbeat(long workerId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -125,27 +125,27 @@ public class LineageMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "deleteLineage failed: unknown result");
     }
 
-    public LineageCommand lineageWorkerHeartbeat(long workerId) throws org.apache.thrift.TException
+    public LineageCommand workerLineageHeartbeat(long workerId) throws org.apache.thrift.TException
     {
-      send_lineageWorkerHeartbeat(workerId);
-      return recv_lineageWorkerHeartbeat();
+      send_workerLineageHeartbeat(workerId);
+      return recv_workerLineageHeartbeat();
     }
 
-    public void send_lineageWorkerHeartbeat(long workerId) throws org.apache.thrift.TException
+    public void send_workerLineageHeartbeat(long workerId) throws org.apache.thrift.TException
     {
-      lineageWorkerHeartbeat_args args = new lineageWorkerHeartbeat_args();
+      workerLineageHeartbeat_args args = new workerLineageHeartbeat_args();
       args.setWorkerId(workerId);
-      sendBase("lineageWorkerHeartbeat", args);
+      sendBase("workerLineageHeartbeat", args);
     }
 
-    public LineageCommand recv_lineageWorkerHeartbeat() throws org.apache.thrift.TException
+    public LineageCommand recv_workerLineageHeartbeat() throws org.apache.thrift.TException
     {
-      lineageWorkerHeartbeat_result result = new lineageWorkerHeartbeat_result();
-      receiveBase(result, "lineageWorkerHeartbeat");
+      workerLineageHeartbeat_result result = new workerLineageHeartbeat_result();
+      receiveBase(result, "workerLineageHeartbeat");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "lineageWorkerHeartbeat failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "workerLineageHeartbeat failed: unknown result");
     }
 
   }
@@ -236,23 +236,23 @@ public class LineageMasterService {
       }
     }
 
-    public void lineageWorkerHeartbeat(long workerId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void workerLineageHeartbeat(long workerId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      lineageWorkerHeartbeat_call method_call = new lineageWorkerHeartbeat_call(workerId, resultHandler, this, ___protocolFactory, ___transport);
+      workerLineageHeartbeat_call method_call = new workerLineageHeartbeat_call(workerId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class lineageWorkerHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class workerLineageHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long workerId;
-      public lineageWorkerHeartbeat_call(long workerId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public workerLineageHeartbeat_call(long workerId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.workerId = workerId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("lineageWorkerHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        lineageWorkerHeartbeat_args args = new lineageWorkerHeartbeat_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("workerLineageHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        workerLineageHeartbeat_args args = new workerLineageHeartbeat_args();
         args.setWorkerId(workerId);
         args.write(prot);
         prot.writeMessageEnd();
@@ -264,7 +264,7 @@ public class LineageMasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_lineageWorkerHeartbeat();
+        return (new Client(prot)).recv_workerLineageHeartbeat();
       }
     }
 
@@ -283,7 +283,7 @@ public class LineageMasterService {
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
       processMap.put("createLineage", new createLineage());
       processMap.put("deleteLineage", new deleteLineage());
-      processMap.put("lineageWorkerHeartbeat", new lineageWorkerHeartbeat());
+      processMap.put("workerLineageHeartbeat", new workerLineageHeartbeat());
       return processMap;
     }
 
@@ -329,22 +329,22 @@ public class LineageMasterService {
       }
     }
 
-    public static class lineageWorkerHeartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, lineageWorkerHeartbeat_args> {
-      public lineageWorkerHeartbeat() {
-        super("lineageWorkerHeartbeat");
+    public static class workerLineageHeartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, workerLineageHeartbeat_args> {
+      public workerLineageHeartbeat() {
+        super("workerLineageHeartbeat");
       }
 
-      public lineageWorkerHeartbeat_args getEmptyArgsInstance() {
-        return new lineageWorkerHeartbeat_args();
+      public workerLineageHeartbeat_args getEmptyArgsInstance() {
+        return new workerLineageHeartbeat_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public lineageWorkerHeartbeat_result getResult(I iface, lineageWorkerHeartbeat_args args) throws org.apache.thrift.TException {
-        lineageWorkerHeartbeat_result result = new lineageWorkerHeartbeat_result();
-        result.success = iface.lineageWorkerHeartbeat(args.workerId);
+      public workerLineageHeartbeat_result getResult(I iface, workerLineageHeartbeat_args args) throws org.apache.thrift.TException {
+        workerLineageHeartbeat_result result = new workerLineageHeartbeat_result();
+        result.success = iface.workerLineageHeartbeat(args.workerId);
         return result;
       }
     }
@@ -364,7 +364,7 @@ public class LineageMasterService {
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
       processMap.put("createLineage", new createLineage());
       processMap.put("deleteLineage", new deleteLineage());
-      processMap.put("lineageWorkerHeartbeat", new lineageWorkerHeartbeat());
+      processMap.put("workerLineageHeartbeat", new workerLineageHeartbeat());
       return processMap;
     }
 
@@ -472,20 +472,20 @@ public class LineageMasterService {
       }
     }
 
-    public static class lineageWorkerHeartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, lineageWorkerHeartbeat_args, LineageCommand> {
-      public lineageWorkerHeartbeat() {
-        super("lineageWorkerHeartbeat");
+    public static class workerLineageHeartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, workerLineageHeartbeat_args, LineageCommand> {
+      public workerLineageHeartbeat() {
+        super("workerLineageHeartbeat");
       }
 
-      public lineageWorkerHeartbeat_args getEmptyArgsInstance() {
-        return new lineageWorkerHeartbeat_args();
+      public workerLineageHeartbeat_args getEmptyArgsInstance() {
+        return new workerLineageHeartbeat_args();
       }
 
       public AsyncMethodCallback<LineageCommand> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<LineageCommand>() { 
           public void onComplete(LineageCommand o) {
-            lineageWorkerHeartbeat_result result = new lineageWorkerHeartbeat_result();
+            workerLineageHeartbeat_result result = new workerLineageHeartbeat_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -498,7 +498,7 @@ public class LineageMasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            lineageWorkerHeartbeat_result result = new lineageWorkerHeartbeat_result();
+            workerLineageHeartbeat_result result = new workerLineageHeartbeat_result();
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -518,8 +518,8 @@ public class LineageMasterService {
         return false;
       }
 
-      public void start(I iface, lineageWorkerHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<LineageCommand> resultHandler) throws TException {
-        iface.lineageWorkerHeartbeat(args.workerId,resultHandler);
+      public void start(I iface, workerLineageHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<LineageCommand> resultHandler) throws TException {
+        iface.workerLineageHeartbeat(args.workerId,resultHandler);
       }
     }
 
@@ -2285,15 +2285,15 @@ public class LineageMasterService {
 
   }
 
-  public static class lineageWorkerHeartbeat_args implements org.apache.thrift.TBase<lineageWorkerHeartbeat_args, lineageWorkerHeartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<lineageWorkerHeartbeat_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("lineageWorkerHeartbeat_args");
+  public static class workerLineageHeartbeat_args implements org.apache.thrift.TBase<workerLineageHeartbeat_args, workerLineageHeartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<workerLineageHeartbeat_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("workerLineageHeartbeat_args");
 
     private static final org.apache.thrift.protocol.TField WORKER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("workerId", org.apache.thrift.protocol.TType.I64, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new lineageWorkerHeartbeat_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new lineageWorkerHeartbeat_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new workerLineageHeartbeat_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new workerLineageHeartbeat_argsTupleSchemeFactory());
     }
 
     public long workerId; // required
@@ -2365,13 +2365,13 @@ public class LineageMasterService {
       tmpMap.put(_Fields.WORKER_ID, new org.apache.thrift.meta_data.FieldMetaData("workerId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(lineageWorkerHeartbeat_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(workerLineageHeartbeat_args.class, metaDataMap);
     }
 
-    public lineageWorkerHeartbeat_args() {
+    public workerLineageHeartbeat_args() {
     }
 
-    public lineageWorkerHeartbeat_args(
+    public workerLineageHeartbeat_args(
       long workerId)
     {
       this();
@@ -2382,13 +2382,13 @@ public class LineageMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public lineageWorkerHeartbeat_args(lineageWorkerHeartbeat_args other) {
+    public workerLineageHeartbeat_args(workerLineageHeartbeat_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.workerId = other.workerId;
     }
 
-    public lineageWorkerHeartbeat_args deepCopy() {
-      return new lineageWorkerHeartbeat_args(this);
+    public workerLineageHeartbeat_args deepCopy() {
+      return new workerLineageHeartbeat_args(this);
     }
 
     @Override
@@ -2401,7 +2401,7 @@ public class LineageMasterService {
       return this.workerId;
     }
 
-    public lineageWorkerHeartbeat_args setWorkerId(long workerId) {
+    public workerLineageHeartbeat_args setWorkerId(long workerId) {
       this.workerId = workerId;
       setWorkerIdIsSet(true);
       return this;
@@ -2459,12 +2459,12 @@ public class LineageMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof lineageWorkerHeartbeat_args)
-        return this.equals((lineageWorkerHeartbeat_args)that);
+      if (that instanceof workerLineageHeartbeat_args)
+        return this.equals((workerLineageHeartbeat_args)that);
       return false;
     }
 
-    public boolean equals(lineageWorkerHeartbeat_args that) {
+    public boolean equals(workerLineageHeartbeat_args that) {
       if (that == null)
         return false;
 
@@ -2493,7 +2493,7 @@ public class LineageMasterService {
     }
 
     @Override
-    public int compareTo(lineageWorkerHeartbeat_args other) {
+    public int compareTo(workerLineageHeartbeat_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -2527,7 +2527,7 @@ public class LineageMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("lineageWorkerHeartbeat_args(");
+      StringBuilder sb = new StringBuilder("workerLineageHeartbeat_args(");
       boolean first = true;
 
       sb.append("workerId:");
@@ -2560,15 +2560,15 @@ public class LineageMasterService {
       }
     }
 
-    private static class lineageWorkerHeartbeat_argsStandardSchemeFactory implements SchemeFactory {
-      public lineageWorkerHeartbeat_argsStandardScheme getScheme() {
-        return new lineageWorkerHeartbeat_argsStandardScheme();
+    private static class workerLineageHeartbeat_argsStandardSchemeFactory implements SchemeFactory {
+      public workerLineageHeartbeat_argsStandardScheme getScheme() {
+        return new workerLineageHeartbeat_argsStandardScheme();
       }
     }
 
-    private static class lineageWorkerHeartbeat_argsStandardScheme extends StandardScheme<lineageWorkerHeartbeat_args> {
+    private static class workerLineageHeartbeat_argsStandardScheme extends StandardScheme<workerLineageHeartbeat_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, lineageWorkerHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, workerLineageHeartbeat_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -2597,7 +2597,7 @@ public class LineageMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, lineageWorkerHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, workerLineageHeartbeat_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -2610,16 +2610,16 @@ public class LineageMasterService {
 
     }
 
-    private static class lineageWorkerHeartbeat_argsTupleSchemeFactory implements SchemeFactory {
-      public lineageWorkerHeartbeat_argsTupleScheme getScheme() {
-        return new lineageWorkerHeartbeat_argsTupleScheme();
+    private static class workerLineageHeartbeat_argsTupleSchemeFactory implements SchemeFactory {
+      public workerLineageHeartbeat_argsTupleScheme getScheme() {
+        return new workerLineageHeartbeat_argsTupleScheme();
       }
     }
 
-    private static class lineageWorkerHeartbeat_argsTupleScheme extends TupleScheme<lineageWorkerHeartbeat_args> {
+    private static class workerLineageHeartbeat_argsTupleScheme extends TupleScheme<workerLineageHeartbeat_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, lineageWorkerHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, workerLineageHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetWorkerId()) {
@@ -2632,7 +2632,7 @@ public class LineageMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, lineageWorkerHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, workerLineageHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
@@ -2644,15 +2644,15 @@ public class LineageMasterService {
 
   }
 
-  public static class lineageWorkerHeartbeat_result implements org.apache.thrift.TBase<lineageWorkerHeartbeat_result, lineageWorkerHeartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<lineageWorkerHeartbeat_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("lineageWorkerHeartbeat_result");
+  public static class workerLineageHeartbeat_result implements org.apache.thrift.TBase<workerLineageHeartbeat_result, workerLineageHeartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<workerLineageHeartbeat_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("workerLineageHeartbeat_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new lineageWorkerHeartbeat_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new lineageWorkerHeartbeat_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new workerLineageHeartbeat_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new workerLineageHeartbeat_resultTupleSchemeFactory());
     }
 
     public LineageCommand success; // required
@@ -2722,13 +2722,13 @@ public class LineageMasterService {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LineageCommand.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(lineageWorkerHeartbeat_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(workerLineageHeartbeat_result.class, metaDataMap);
     }
 
-    public lineageWorkerHeartbeat_result() {
+    public workerLineageHeartbeat_result() {
     }
 
-    public lineageWorkerHeartbeat_result(
+    public workerLineageHeartbeat_result(
       LineageCommand success)
     {
       this();
@@ -2738,14 +2738,14 @@ public class LineageMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public lineageWorkerHeartbeat_result(lineageWorkerHeartbeat_result other) {
+    public workerLineageHeartbeat_result(workerLineageHeartbeat_result other) {
       if (other.isSetSuccess()) {
         this.success = new LineageCommand(other.success);
       }
     }
 
-    public lineageWorkerHeartbeat_result deepCopy() {
-      return new lineageWorkerHeartbeat_result(this);
+    public workerLineageHeartbeat_result deepCopy() {
+      return new workerLineageHeartbeat_result(this);
     }
 
     @Override
@@ -2757,7 +2757,7 @@ public class LineageMasterService {
       return this.success;
     }
 
-    public lineageWorkerHeartbeat_result setSuccess(LineageCommand success) {
+    public workerLineageHeartbeat_result setSuccess(LineageCommand success) {
       this.success = success;
       return this;
     }
@@ -2816,12 +2816,12 @@ public class LineageMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof lineageWorkerHeartbeat_result)
-        return this.equals((lineageWorkerHeartbeat_result)that);
+      if (that instanceof workerLineageHeartbeat_result)
+        return this.equals((workerLineageHeartbeat_result)that);
       return false;
     }
 
-    public boolean equals(lineageWorkerHeartbeat_result that) {
+    public boolean equals(workerLineageHeartbeat_result that) {
       if (that == null)
         return false;
 
@@ -2850,7 +2850,7 @@ public class LineageMasterService {
     }
 
     @Override
-    public int compareTo(lineageWorkerHeartbeat_result other) {
+    public int compareTo(workerLineageHeartbeat_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -2884,7 +2884,7 @@ public class LineageMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("lineageWorkerHeartbeat_result(");
+      StringBuilder sb = new StringBuilder("workerLineageHeartbeat_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -2922,15 +2922,15 @@ public class LineageMasterService {
       }
     }
 
-    private static class lineageWorkerHeartbeat_resultStandardSchemeFactory implements SchemeFactory {
-      public lineageWorkerHeartbeat_resultStandardScheme getScheme() {
-        return new lineageWorkerHeartbeat_resultStandardScheme();
+    private static class workerLineageHeartbeat_resultStandardSchemeFactory implements SchemeFactory {
+      public workerLineageHeartbeat_resultStandardScheme getScheme() {
+        return new workerLineageHeartbeat_resultStandardScheme();
       }
     }
 
-    private static class lineageWorkerHeartbeat_resultStandardScheme extends StandardScheme<lineageWorkerHeartbeat_result> {
+    private static class workerLineageHeartbeat_resultStandardScheme extends StandardScheme<workerLineageHeartbeat_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, lineageWorkerHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, workerLineageHeartbeat_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -2960,7 +2960,7 @@ public class LineageMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, lineageWorkerHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, workerLineageHeartbeat_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -2975,16 +2975,16 @@ public class LineageMasterService {
 
     }
 
-    private static class lineageWorkerHeartbeat_resultTupleSchemeFactory implements SchemeFactory {
-      public lineageWorkerHeartbeat_resultTupleScheme getScheme() {
-        return new lineageWorkerHeartbeat_resultTupleScheme();
+    private static class workerLineageHeartbeat_resultTupleSchemeFactory implements SchemeFactory {
+      public workerLineageHeartbeat_resultTupleScheme getScheme() {
+        return new workerLineageHeartbeat_resultTupleScheme();
       }
     }
 
-    private static class lineageWorkerHeartbeat_resultTupleScheme extends TupleScheme<lineageWorkerHeartbeat_result> {
+    private static class workerLineageHeartbeat_resultTupleScheme extends TupleScheme<workerLineageHeartbeat_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, lineageWorkerHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, workerLineageHeartbeat_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -2997,7 +2997,7 @@ public class LineageMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, lineageWorkerHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, workerLineageHeartbeat_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {

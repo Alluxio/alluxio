@@ -57,7 +57,6 @@ public class TFSStatisticsTest {
     TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
     TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", TachyonStorageType.STORE,
         UnderStorageType.PERSIST, FILE_LEN);
-    tachyonFS.close();
 
     URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
     sTFS = FileSystem.get(uri, conf);

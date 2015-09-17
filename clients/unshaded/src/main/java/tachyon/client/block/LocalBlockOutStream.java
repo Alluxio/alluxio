@@ -20,10 +20,10 @@ import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-import com.google.common.io.Closer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
@@ -37,7 +37,7 @@ import tachyon.worker.WorkerClient;
  * input to a file in local Tachyon storage. The instances of this class should only be used by one
  * thread and are not thread safe.
  */
-public class LocalBlockOutStream extends BufferedBlockOutStream {
+public final class LocalBlockOutStream extends BufferedBlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
   private final WorkerClient mWorkerClient;
@@ -66,7 +66,6 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
       mLocalFileChannel = mCloser.register(localFile.getChannel());
       // Change the permission of the temporary file in order that the worker can move it.
-      FileUtils.changeLocalFileToFullPermission(blockPath);
       LOG.info("LocalBlockOutStream created new file block, block path: (" + blockPath + ")");
     } catch (IOException ioe) {
       mContext.releaseWorkerClient(mWorkerClient);
