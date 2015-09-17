@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
@@ -100,8 +101,8 @@ public final class Client {
   private int mAmMemory;
   /** Number of virtual core resource to request for to run the App Master */
   private int mAmVCores;
-  /** Application master jar file */
-  private String mAppMasterJar;
+  /** Application master jar file on HDFS */
+  private String mHDFSAppMasterJar;
   /** Timeout threshold for client. Kill app after time interval expires. */
   private long mClientTimeout;
   /** Number of tachyon workers. */
@@ -182,7 +183,7 @@ public final class Client {
       return false;
     }
 
-    mAppMasterJar = cliParser.getOptionValue("jar");
+    mHDFSAppMasterJar = cliParser.getOptionValue("jar");
     mTachyonHome = cliParser.getOptionValue("tachyon_home");
     mAppName = cliParser.getOptionValue("appname", "Tachyon");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
@@ -264,11 +265,22 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    String command =
-        "$JAVA_HOME/bin/java" + " -Xmx256M " + mAppMasterMainClass + " "
-            + String.valueOf(mNumWorkers) + " " + mTachyonHome + " 1>"
-            + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout" + " 2>"
-            + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
+    Vector<CharSequence> vargs = new Vector<CharSequence>(30);
+    vargs.add(Environment.JAVA_HOME.$$() + "/bin/java");
+    vargs.add("-Xmx256M");
+    vargs.add(mAppMasterMainClass);
+    vargs.add(String.valueOf(mNumWorkers));
+    vargs.add(mTachyonHome);
+    vargs.add("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout");
+    vargs.add("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr");
+
+    // Get final command
+    StringBuilder commandBuilder = new StringBuilder();
+    for (CharSequence str : vargs) {
+      commandBuilder.append(str).append(" ");
+    }
+    String command = commandBuilder.toString();
+
     System.out.println("AM command: " + command);
     mAmContainer.setCommands(Collections.singletonList(command));
 
@@ -284,7 +296,7 @@ public final class Client {
   }
 
   private void setupAppMasterJar(LocalResource appMasterJar) throws IOException {
-    Path jarPath = new Path(mAppMasterJar); // known path to jar file
+    Path jarPath = new Path(mHDFSAppMasterJar); // known path to jar file on HDFS
     FileStatus jarStat = FileSystem.get(mYarnConf).getFileStatus(jarPath);
     appMasterJar.setResource(ConverterUtils.getYarnUrlFromPath(jarPath));
     appMasterJar.setSize(jarStat.getLen());
@@ -297,10 +309,10 @@ public final class Client {
     for (String c : mYarnConf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
         YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
       Apps.addToEnvironment(appMasterEnv, ApplicationConstants.Environment.CLASSPATH.name(),
-          c.trim());
+          c.trim(), ApplicationConstants.CLASS_PATH_SEPARATOR);
     }
     Apps.addToEnvironment(appMasterEnv, ApplicationConstants.Environment.CLASSPATH.name(),
-        Environment.PWD.$() + File.separator + "*");
+        Environment.PWD.$() + File.separator + "*", ApplicationConstants.CLASS_PATH_SEPARATOR);
   }
 
   /**
