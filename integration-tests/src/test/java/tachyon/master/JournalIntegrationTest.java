@@ -31,7 +31,7 @@ import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
@@ -48,7 +48,7 @@ import tachyon.util.io.PathUtils;
  */
 public class JournalIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private StreamingTachyonFileSystem mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf =  null;

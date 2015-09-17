@@ -37,7 +37,7 @@ import tachyon.client.block.RemoteBlockInStream;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -55,7 +55,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private StreamingTachyonFileSystem mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private String mDataServerClass;
   private String mNettyTransferType;
   private String mRemoteReaderClass;

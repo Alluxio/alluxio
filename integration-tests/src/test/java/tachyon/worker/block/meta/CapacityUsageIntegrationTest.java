@@ -30,7 +30,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -44,7 +44,7 @@ public class CapacityUsageIntegrationTest {
   private static final int HEARTBEAT_INTERVAL_MS = 30;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private StreamingTachyonFileSystem mTFS = null;
+  private TachyonFileSystem mTFS = null;
 
   @After
   public final void after() throws Exception {
