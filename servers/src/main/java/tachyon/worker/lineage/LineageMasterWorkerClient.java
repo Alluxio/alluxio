@@ -15,10 +15,15 @@
 
 package tachyon.worker.lineage;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.ClientBase;
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService;
 
@@ -28,10 +33,25 @@ import tachyon.thrift.LineageMasterService;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-public class LineageMasterWorkerClient {
+public final class LineageMasterWorkerClient extends ClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private LineageMasterService.Client mClient = null;
+
+  /**
+   * @param masterAddress the master address
+   * @param executorService the executor service
+   * @param tachyonConf tachyonConf
+   */
+  public LineageMasterWorkerClient(InetSocketAddress masterAddress, ExecutorService executorService,
+      TachyonConf tachyonConf) {
+    super(masterAddress, executorService, tachyonConf, "lineage-worker");
+  }
+
+  @Override
+  protected String getServiceName() {
+    return Constants.LINEAGE_MASTER_SERVICE_NAME;
+  }
 
   /**
    * Instructs a worker to persist the files for checkpoint.
@@ -43,4 +63,5 @@ public class LineageMasterWorkerClient {
     // TODO
     return null;
   }
+
 }
