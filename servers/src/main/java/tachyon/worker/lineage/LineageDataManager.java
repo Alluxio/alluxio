@@ -33,13 +33,12 @@ public final class LineageDataManager {
   }
 
   /**
-   * Persists the blocks of file into the under file system.
+   * Persists the blocks of a file into the under file system.
    *
-   * @param fileId the id of the file
    * @param blockIds the list of block ids.
    * @param filePath the destination path in the under file system.
    */
-  public void persistFile(long fileId, List<Long> blockIds, String filePath) {
-    // TODO perist
+  public void persistFile(List<Long> blockIds, String filePath) {
+    // TODO persist
   }
 }
