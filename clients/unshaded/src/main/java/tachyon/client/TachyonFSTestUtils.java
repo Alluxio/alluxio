@@ -23,8 +23,8 @@ import org.apache.thrift.TException;
 
 import tachyon.TachyonURI;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.thrift.FileInfo;
 
 public final class TachyonFSTestUtils {
