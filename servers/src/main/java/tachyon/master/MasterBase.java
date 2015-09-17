@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
@@ -32,32 +31,31 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.JournalTailer;
 import tachyon.master.journal.JournalTailerThread;
 import tachyon.master.journal.JournalWriter;
+import tachyon.master.journal.ReadWriteJournal;
 
 /**
  * This is the base class for all masters, and contains common functionality. Common functionality
- * mostly consists of journal operations, like initializing it, tailing it when in standby mode, or
- * writing to it when the master is the leader.
+ * mostly consists of journal operations, like initialization, journal tailing when in standby mode,
+ * or journal writing when the master is the leader.
  */
 public abstract class MasterBase implements Master {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** A handler to the journal for this master. */
-  private final Journal mJournal;
   /** The executor used for running maintenance threads for the master. */
   private final ExecutorService mExecutorService;
 
+  /** A handler to the journal for this master. */
+  private Journal mJournal;
   /** true if this master is in leader mode, and not standby mode. */
   private boolean mIsLeader = false;
   /** The thread that tails the journal when the master is in standby mode. */
   private JournalTailerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
-  protected final TachyonConf mTachyonConf;
 
-  protected MasterBase(Journal journal, ExecutorService executorService, TachyonConf conf) {
+  protected MasterBase(Journal journal, ExecutorService executorService) {
     mJournal = Preconditions.checkNotNull(journal);
     mExecutorService = Preconditions.checkNotNull(executorService);
-    mTachyonConf = conf;
   }
 
   @Override
@@ -74,10 +72,11 @@ public abstract class MasterBase implements Master {
 
   @Override
   public void start(boolean isLeader) throws IOException {
-    LOG.info(getServiceName() + ": Starting master. isLeader: " + isLeader);
     mIsLeader = isLeader;
+    LOG.info(getServiceName() + ": Starting " + (mIsLeader ? "leader" : "standby") + " master.");
     if (mIsLeader) {
-      mJournalWriter = mJournal.getNewWriter();
+      Preconditions.checkState(mJournal instanceof ReadWriteJournal);
+      mJournalWriter = ((ReadWriteJournal) mJournal).getNewWriter();
 
       /**
        * The sequence for dealing with the journal before starting as the leader:
@@ -93,6 +92,9 @@ public abstract class MasterBase implements Master {
        * Phase 3. Write out the checkpoint file. Since this master is completely up-to-date, it
        * writes out the checkpoint file. When the checkpoint file is closed, it will then delete the
        * complete log files.
+       *
+       * Since this method is called before the master RPC server starts serving, there is no
+       * concurrent access to the master during these phases.
        */
 
       // Phase 1: Mark all logs as complete, including the current log. After this call, the current
@@ -100,13 +102,26 @@ public abstract class MasterBase implements Master {
       mJournalWriter.completeAllLogs();
 
       // Phase 2: Replay all the state of the checkpoint and the completed log files.
-      // TODO: only do this if this is a fresh start, not if this master had already been tailing
-      // the journal.
-      LOG.info(getServiceName() + ": process completed logs before becoming master.");
-      JournalTailer catchupTailer = new JournalTailer(this, mJournal);
-      if (catchupTailer.checkpointExists()) {
-        catchupTailer.processJournalCheckpoint(true);
+      JournalTailer catchupTailer;
+      if (mStandbyJournalTailer != null && mStandbyJournalTailer.getLatestJournalTailer() != null
+          && mStandbyJournalTailer.getLatestJournalTailer().isValid()) {
+        // This master was previously in standby mode, and processed some of the journal. Re-use the
+        // same tailer (still valid) to continue processing any remaining journal entries.
+        LOG.info(getServiceName()
+            + ": finish processing remaining journal entries (standby -> master).");
+        catchupTailer = mStandbyJournalTailer.getLatestJournalTailer();
         catchupTailer.processNextJournalLogFiles();
+      } else {
+        // This master has not successfully processed any of the journal, so create a fresh tailer
+        // to process the entire journal.
+        catchupTailer = new JournalTailer(this, mJournal);
+        if (catchupTailer.checkpointExists()) {
+          LOG.info(getServiceName() + ": process entire journal before becoming leader master.");
+          catchupTailer.processJournalCheckpoint(true);
+          catchupTailer.processNextJournalLogFiles();
+        } else {
+          LOG.info(getServiceName() + ": journal checkpoint does not exist, nothing to process.");
+        }
       }
       long latestSequenceNumber = catchupTailer.getLatestSequenceNumber();
 
@@ -117,15 +132,17 @@ public abstract class MasterBase implements Master {
       streamToJournalCheckpoint(checkpointStream);
       checkpointStream.close();
     } else {
-      // in standby mode. Start the journal tailer thread.
-      mStandbyJournalTailer = new JournalTailerThread(this, mJournal, mTachyonConf);
+      // This master is in standby mode. Start the journal tailer thread. Since the master is in
+      // standby mode, its RPC server is NOT serving. Therefore, the only thread modifying the
+      // master is this journal tailer thread (no concurrent access).
+      mStandbyJournalTailer = new JournalTailerThread(this, mJournal);
       mStandbyJournalTailer.start();
     }
   }
 
   @Override
   public void stop() throws IOException {
-    LOG.info(getServiceName() + ":Stopping master. isLeader: " + mIsLeader);
+    LOG.info(getServiceName() + ": Stopping " + (mIsLeader ? "leader" : "standby") + " master.");
     if (mIsLeader) {
       // Stop this leader master.
       if (mJournalWriter != null) {
@@ -136,9 +153,13 @@ public abstract class MasterBase implements Master {
       if (mStandbyJournalTailer != null) {
         // stop and wait for the journal tailer thread.
         mStandbyJournalTailer.shutdownAndJoin();
-        mStandbyJournalTailer = null;
       }
     }
+  }
+
+  @Override
+  public void upgradeToReadWriteJournal(ReadWriteJournal journal) {
+    mJournal = Preconditions.checkNotNull(journal);
   }
 
   protected boolean isLeaderMode() {
@@ -149,6 +170,11 @@ public abstract class MasterBase implements Master {
     return !mIsLeader;
   }
 
+  /**
+   * Writes a {@link JournalEntry} to the journal. Does NOT flush the journal.
+   *
+   * @param entry the {@link JournalEntry} to write to the journal
+   */
   protected void writeJournalEntry(JournalEntry entry) {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {
@@ -158,6 +184,9 @@ public abstract class MasterBase implements Master {
     }
   }
 
+  /**
+   * Flushes the journal.
+   */
   protected void flushJournal() {
     Preconditions.checkNotNull(mJournalWriter, "Cannot write entry: journal writer is null.");
     try {

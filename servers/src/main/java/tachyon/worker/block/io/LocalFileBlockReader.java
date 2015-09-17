@@ -80,7 +80,7 @@ public final class LocalFileBlockReader implements BlockReader {
   public ByteBuffer read(long offset, long length) throws IOException {
     Preconditions.checkArgument(offset + length <= mFileSize,
         "offset=%s, length=%s, exceeding fileSize=%s", offset, length, mFileSize);
-    // TODO: May need to make sure length is an int
+    // TODO(calvin): May need to make sure length is an int.
     if (length == -1L) {
       length = mFileSize - offset;
     }

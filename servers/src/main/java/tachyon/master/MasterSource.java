@@ -121,7 +121,7 @@ public class MasterSource implements Source {
       }
     });
 
-    // TODO: renable when metrics is fully implemented on the master.
+    // TODO(gene): Re-enable when metrics is fully implemented on the master.
     /*
     mMetricRegistry.register(MetricRegistry.name("FilesTotal"), new Gauge<Integer>() {
       @Override

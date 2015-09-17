@@ -138,7 +138,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the replication factor.
    */
   public int getDiskReplication() {
-    // TODO(haoyuan): Implement it.
+    // TODO(hy): Implement it.
     return 3;
   }
 
@@ -444,7 +444,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * TODO(haoyuan): Remove this method. Do streaming cache. This is not a right API.
+   * TODO(hy): Remove this method. Do streaming cache. This is not a right API.
    *
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
