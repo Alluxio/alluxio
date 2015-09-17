@@ -272,19 +272,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param path the file path
    * @param ufsPath the under file system path
-   * @param blockSizeByte the file size
    * @param recursive whether parent directories should be loaded if not present yet
    * @return the file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws IOException, FileDoesNotExistException {
+  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, boolean recursive)
+      throws IOException, FileDoesNotExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.loadFileInfoFromUfs(path, ufsPath, blockSizeByte, recursive);
+        return mClient.loadFileInfoFromUfs(path, ufsPath, recursive);
       } catch (FileDoesNotExistException e) {
         throw e;
       } catch (TException e) {
@@ -455,7 +454,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     }
     throw new IOException("Failed after " + retry + " retries.");
   }
-  
+
   /**
    * Reports a lost file.
    *
