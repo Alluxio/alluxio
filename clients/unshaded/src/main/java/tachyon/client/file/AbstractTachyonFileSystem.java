@@ -59,7 +59,9 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       BlockInfoException, FileAlreadyExistException, InvalidPathException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.createFile(path.getPath(), blockSize, recursive);
+      long fileId = masterClient.createFile(path.getPath(), blockSize, recursive);
+      LOG.info("Created file " + path + " with file ID: " + fileId);
+      return fileId;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
