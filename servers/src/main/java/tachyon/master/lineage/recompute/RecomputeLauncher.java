@@ -15,37 +15,21 @@
 
 package tachyon.master.lineage.recompute;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
 
-import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
+import tachyon.conf.TachyonConf;
+import tachyon.master.lineage.meta.LineageStore;
 
-/**
- * A periodical executor that detects lost files and launches recompute jobs.
- */
-public final class RecomputeExecutor implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+public final class RecomputeLauncher {
+  private final TachyonConf mTachyonConf;
+  private final LineageStore mLineageStore;
 
-  private final RecomputePlanner mPlanner;
-  private final RecomputeLauncher mExecutor;
-
-  /**
-   * @param planner recompute planner
-   * @param executor recompute executor
-   */
-  public RecomputeExecutor(RecomputePlanner planner, RecomputeLauncher executor) {
-    mPlanner = Preconditions.checkNotNull(planner);
-    mExecutor = Preconditions.checkNotNull(executor);
+  public RecomputeLauncher(TachyonConf conf, LineageStore lineageStore) {
+    mLineageStore = Preconditions.checkNotNull(lineageStore);
+    mTachyonConf = Preconditions.checkNotNull(conf);
   }
 
-  @Override
-  public void heartbeat() {
-    RecomputePlan plan = mPlanner.plan();
-    if (plan != null && plan.isEmpty()) {
-      mExecutor.recompute(plan);
-    }
+  public void recompute(RecomputePlan plan) {
+    // recompute the plan
   }
 }
