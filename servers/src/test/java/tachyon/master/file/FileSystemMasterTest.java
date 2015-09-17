@@ -29,10 +29,7 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
-import tachyon.master.MasterSource;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
