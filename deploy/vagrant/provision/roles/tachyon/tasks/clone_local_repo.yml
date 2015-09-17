@@ -11,12 +11,14 @@
     rsync_opts: >
       --exclude=.git,
       --exclude=.gitignore,
-      --exclude=core/target,
+      --exclude=clients/target,
+      --exclude=servers/target,
+      --exclude=integration-tests/target,
+      --exclude=integration/target,
       --exclude=assembly/target,
       --exclude=client/target,
       --exclude=deploy,
       --exclude=docs,
-      --exclude=journal,
       --exclude=logs,
       --exclude=underFSStorage
 
