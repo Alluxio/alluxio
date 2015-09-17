@@ -101,7 +101,7 @@ public final class GreedyEvictor implements Evictor {
     // 4. Make best effort to transfer victim blocks to lower tiers rather than evict them.
     Map<StorageDirView, Long> pendingBytesInDir = new HashMap<StorageDirView, Long>();
     for (BlockMeta block : victimBlocks) {
-      // TODO: should avoid calling getParentDir
+      // TODO(qifan): Should avoid calling getParentDir.
       int fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
       List<StorageTierView> candidateTiers = view.getTierViewsBelow(fromTierAlias);
       StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);

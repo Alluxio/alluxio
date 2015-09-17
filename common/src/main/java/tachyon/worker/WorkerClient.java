@@ -65,7 +65,7 @@ public final class WorkerClient implements Closeable {
   private InetSocketAddress mWorkerAddress;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
-  // TODO: This boolean indicates whether or not the client is connected to the worker. However,
+  // TODO(hy): This boolean indicates whether or not the client is connected to the worker. However,
   // since error exceptions are returned through thrift, all api errors look like fatal errors like
   // network/thrift problems. Maybe error codes/status should be returned for api errors, to be
   // independent from thrift exceptions.

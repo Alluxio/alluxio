@@ -47,7 +47,7 @@ public class RawColumn {
   /**
    * Creates a new column partition.
    *
-   * TODO(hy): creating file here should be based on id.
+   * TODO(hy): Creating file here should be based on id.
    *
    * @param pId the partition id
    * @return whether operation succeeded
@@ -63,7 +63,7 @@ public class RawColumn {
   /**
    * Gets an existing partition.
    *
-   * TODO(hy): creating file here should be based on id.
+   * TODO(hy): Creating file here should be based on id.
    *
    * @param pId the partition id
    * @return <code>TachyonFile</code> with the given partition
@@ -76,7 +76,7 @@ public class RawColumn {
   /**
    * Gets an existing partition.
    *
-   * TODO(hy): creating file here should be based on id.
+   * TODO(hy): Creating file here should be based on id.
    *
    * @param pId the partition id
    * @param cachedMetadata whether to use the file metadata cache
@@ -93,7 +93,7 @@ public class RawColumn {
   /**
    * Identifies the number of column partitions.
    *
-   * TODO(hy): creating file here should be based on id.
+   * TODO(hy): Creating file here should be based on id.
    *
    * @return the number of column partitions
    * @throws IOException when any of the partition paths is invalid or points to a non-existing

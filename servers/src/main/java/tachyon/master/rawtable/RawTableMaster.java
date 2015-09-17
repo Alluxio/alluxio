@@ -27,6 +27,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
@@ -49,7 +50,6 @@ import tachyon.util.io.PathUtils;
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonConf mTachyonConf;
   private final long mMaxTableMetadataBytes;
   private final int mMaxColumns;
 
@@ -60,13 +60,12 @@ public class RawTableMaster extends MasterBase {
     return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME);
   }
 
-  public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster,
-      Journal journal) {
+  public RawTableMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("raw-table-master-%d", true)));
-    mTachyonConf = tachyonConf;
-    mMaxTableMetadataBytes = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
-    mMaxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
+    TachyonConf conf = MasterContext.getConf();
+    mMaxTableMetadataBytes = conf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
+    mMaxColumns = conf.getInt(Constants.MAX_COLUMNS);
     mFileSystemMaster = fileSystemMaster;
   }
 
@@ -272,7 +271,7 @@ public class RawTableMaster extends MasterBase {
    * @param metadata the metadata to be validated
    * @throws TachyonException if the metadata is too large
    */
-  // TODO(cc) have a more explicit TableMetaException ?
+  // TODO(cc): Have a more explicit TableMetaException?
   private void validateMetadataSize(ByteBuffer metadata) throws TachyonException {
     if (metadata.limit() - metadata.position() >= mMaxTableMetadataBytes) {
       throw new TachyonException("Too big table metadata: " + metadata.toString());

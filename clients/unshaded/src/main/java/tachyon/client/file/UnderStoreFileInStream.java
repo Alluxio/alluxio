@@ -113,7 +113,7 @@ public final class UnderStoreFileInStream extends BlockInStream {
   }
 
   private void setUnderStoreStream(long pos) throws IOException {
-    if (null != mUnderStoreStream) {
+    if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
     UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
