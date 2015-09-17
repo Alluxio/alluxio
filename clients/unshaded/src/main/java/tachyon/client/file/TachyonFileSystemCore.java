@@ -34,14 +34,14 @@ import tachyon.thrift.InvalidPathException;
 interface TachyonFileSystemCore {
 
   /**
-   * Creates a file with the provided blocksize as the standard blocksize of the file. If the file's
-   * parent directories do not exist, they will be created if the recursive flag is set.
+   * Creates a file with the provided block size as the standard block size of the file. If the
+   * file's parent directories do not exist, they will be created if the recursive flag is set.
    *
    * @param path the path of the file to create in Tachyon space
    * @param blockSize the block size in bytes, must be greater than 0
    * @param recursive whether or not to create parent directories if required
    * @return the file id that identifies the newly created file
-   * @throws BlockInfoException if the block size is less than 0
+   * @throws BlockInfoException if the block size is less than or equal to 0
    * @throws FileAlreadyExistException if the path already exists as a file in Tachyon
    * @throws InvalidPathException if the path is not a valid Tachyon path
    * @throws IOException if the master is unable to create the file

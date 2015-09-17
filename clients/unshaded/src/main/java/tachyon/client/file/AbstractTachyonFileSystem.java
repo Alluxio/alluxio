@@ -51,9 +51,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     mContext = FileSystemContext.INSTANCE;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public long create(TachyonURI path, long blockSize, boolean recursive) throws
       BlockInfoException, FileAlreadyExistException, InvalidPathException, IOException {
@@ -161,9 +158,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean mkdirs(TachyonURI path, boolean recursive) throws InvalidPathException,
       IOException, FileAlreadyExistException {
@@ -180,9 +174,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public TachyonFile open(TachyonURI path) throws InvalidPathException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -210,9 +201,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean rename(TachyonFile src, TachyonURI dst) throws FileDoesNotExistException,
       IOException {
