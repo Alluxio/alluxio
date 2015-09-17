@@ -39,7 +39,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Supplier;
+import com.google.common.util.concurrent.Monitor;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -68,26 +68,27 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   /** Client to talk to Node Manager */
   private NMClient mNMClient;
   /** Whether a container for Tachyon master is allocated */
-  private boolean mMasterContainerAllocated;
+  private volatile boolean mMasterContainerAllocated;
   /** Num of allocated worker containers */
-  private int mNumAllocatedWorkerContainers;
+  private volatile int mNumAllocatedWorkerContainers;
   /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
-  /** A supplier that tells whether the Tachyon master has been allocated */
-  private final Supplier<Boolean> mMasterContainerSupplier = new Supplier<Boolean>() {
+  /** A monitor to synchronize request and allocation */
+  private final Monitor mMonitor = new Monitor();
+  /** Whether the Tachyon master has been allocated */
+  private final Monitor.Guard mMasterContainerDone = new Monitor.Guard(mMonitor) {
     @Override
-    public Boolean get() {
+    public boolean isSatisfied() {
       return mMasterContainerAllocated;
     }
   };
-  /** A supplier that tells whether all the Tachyon workers have been allocated */
-  private final Supplier<Boolean> mWorkerContainerSupplier = new Supplier<Boolean>() {
+  /** Whether all the Tachyon workers have been allocated */
+  private final Monitor.Guard mWorkerContainerDone = new Monitor.Guard(mMonitor) {
     @Override
-    public Boolean get() {
+    public boolean isSatisfied() {
       return mNumAllocatedWorkerContainers >= mNumWorkers;
     }
   };
-
 
   public ApplicationMaster(int numWorkers, String tachyonHome) {
     mMasterCpu = mTachyonConf.getInt(Constants.MASTER_RESOURCE_CPU);
@@ -101,7 +102,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   /**
-   * @param args Command line arguments
+   * @param args Command line arguments to launch application master
    */
   public static void main(String[] args) {
     try {
@@ -111,8 +112,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       ApplicationMaster applicationMaster = new ApplicationMaster(numWorkers, tachyonHome);
       applicationMaster.start();
       applicationMaster.requestContainers();
-      // Pause for 5 seconds
-      Thread.sleep(5000);
       applicationMaster.stop();
     } catch (Exception ex) {
       LOG.error("Error running Application Master " + ex);
@@ -183,25 +182,43 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mRMClient.addContainerRequest(masterContainerAsk);
 
     // Wait until Tachyon master container has been allocated
-    mRMClient.waitFor(mMasterContainerSupplier);
-    LOG.info("MasterContainer supplier returns " + mMasterContainerSupplier.get());
-
-    // Resource requirements for master containers
-    Resource workerResource = Records.newRecord(Resource.class);
-    workerResource.setMemory(mWorkerMem);
-    workerResource.setVirtualCores(mWorkerCpu);
-
-    // Make container requests for workers to ResourceManager
-    for (int i = 0; i < mNumWorkers; i ++) {
-      ContainerRequest containerAsk =
-          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
-              priority);
-      LOG.info("Making resource request for Tachyon worker " + i);
-      mRMClient.addContainerRequest(containerAsk);
+    // mMonitor.enterWhen(mMasterContainerDone);
+    while (!mMasterContainerAllocated) {
+      Thread.sleep(1000);
     }
 
+    try {
+      // Resource requirements for master containers
+      Resource workerResource = Records.newRecord(Resource.class);
+      workerResource.setMemory(mWorkerMem);
+      workerResource.setVirtualCores(mWorkerCpu);
+
+      // Make container requests for workers to ResourceManager
+      for (int i = 0; i < mNumWorkers; i ++) {
+        ContainerRequest containerAsk =
+            new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
+                priority);
+        LOG.info("Making resource request for Tachyon worker " + i);
+        mRMClient.addContainerRequest(containerAsk);
+      }
+    } finally {
+      // mMonitor.leave();
+    }
     // Wait until all Tachyon worker containers have been allocated
-    mRMClient.waitFor(mWorkerContainerSupplier);
+    // mMonitor.enterWhen(mWorkerContainerDone);
+    // try {
+    // LOG.info("Waiting for allocating containers for all workers");
+    // } finally {
+    // //mMonitor.leave();
+    // }
+
+    while (mNumAllocatedWorkerContainers < mNumWorkers) {
+      Thread.sleep(1000);
+    }
+
+    // Wait for 5 more seconds to avoid application unregistered before some container fully
+    // launched.
+    Thread.sleep(5000);
   }
 
   public void stop() {
@@ -267,5 +284,4 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       }
     }
   }
-
 }
