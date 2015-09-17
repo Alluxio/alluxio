@@ -35,6 +35,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
 import tachyon.client.ClientOptions;
 import tachyon.client.file.FileInStream;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.meta.DependencyType;
@@ -109,7 +110,8 @@ public class BasicCheckpoint implements Callable<Boolean> {
       buf.flip();
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
-      OutputStream os = TachyonFileSystem.get().getOutStream(filePath, ClientOptions.defaults());
+      OutputStream os =
+          StreamingTachyonFileSystem.get().getOutStream(filePath, ClientOptions.defaults());
       os.write(buf.array());
       os.close();
     }

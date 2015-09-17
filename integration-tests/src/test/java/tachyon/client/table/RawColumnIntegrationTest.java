@@ -19,7 +19,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import tachyon.Constants;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -27,7 +27,7 @@ import tachyon.master.LocalTachyonCluster;
  */
 public class RawColumnIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private StreamingTachyonFileSystem mTfs = null;
 
   @After
   public final void after() throws Exception {

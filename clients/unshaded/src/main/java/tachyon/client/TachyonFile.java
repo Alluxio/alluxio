@@ -27,7 +27,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
@@ -39,13 +39,13 @@ import tachyon.thrift.NetAddress;
 /**
  * Tachyon File.
  *
- * As of 0.8, replaced by {@link TachyonFileSystem}
+ * As of 0.8, replaced by {@link StreamingTachyonFileSystem}
  */
 @Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonFileSystem mTFS;
+  private final StreamingTachyonFileSystem mTFS;
 
   final TachyonFS mTachyonFS;
   final long mFileId;
@@ -63,7 +63,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonFile(TachyonFS tfs, long fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
-    mTFS = TachyonFileSystem.get();
+    mTFS = StreamingTachyonFileSystem.get();
     mFileId = fid;
     mTachyonConf = tachyonConf;
   }

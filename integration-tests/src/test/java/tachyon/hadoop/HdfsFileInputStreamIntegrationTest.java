@@ -33,7 +33,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
@@ -49,7 +49,7 @@ public class HdfsFileInputStreamIntegrationTest {
 
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static TachyonFS sTFS = null;
-  private static TachyonFileSystem sTachyonFileSystem = null;
+  private static StreamingTachyonFileSystem sTachyonFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
 

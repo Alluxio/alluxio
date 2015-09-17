@@ -23,7 +23,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.apache.thrift.TEnum;
 import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
@@ -37,8 +36,8 @@ import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
@@ -53,7 +52,7 @@ import tachyon.util.io.BufferUtils;
 public class TFsShellTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private StreamingTachyonFileSystem mTfs = null;
   private TFsShell mFsShell = null;
   private ByteArrayOutputStream mOutput = null;
   private PrintStream mNewOutput = null;
@@ -515,7 +514,7 @@ public class TFsShellTest {
     mFsShell.run(new String[] {"mkdir", "/testFolder1"});
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
     Assert
-        .assertEquals(-1, mFsShell.rename(new String[] {"rename", "/testFolder1", "/testFolder"}));
+        .assertEquals(-1, mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"}));
   }
 
   @Test

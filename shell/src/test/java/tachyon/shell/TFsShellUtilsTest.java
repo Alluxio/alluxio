@@ -34,8 +34,8 @@ import tachyon.TachyonURI;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFile;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.InvalidPathException;
@@ -49,7 +49,7 @@ import tachyon.thrift.InvalidPathException;
 public class TFsShellUtilsTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private StreamingTachyonFileSystem mTfs = null;
 
   @After
   public final void after() throws Exception {
@@ -101,7 +101,7 @@ public class TFsShellUtilsTest {
     return resetTachyonFileHierarchy(mTfs);
   }
 
-  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) throws IOException,
+  public static String resetTachyonFileHierarchy(StreamingTachyonFileSystem tfs) throws IOException,
       TException {
     /**
      * Generate such local structure /testWildCards

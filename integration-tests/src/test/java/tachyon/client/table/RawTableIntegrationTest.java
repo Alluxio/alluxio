@@ -21,7 +21,7 @@ import org.junit.Before;
 import tachyon.Constants;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -29,7 +29,7 @@ import tachyon.master.LocalTachyonCluster;
  */
 public class RawTableIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private StreamingTachyonFileSystem mTfs = null;
   private int mMaxCols = 1000;
 
   @After

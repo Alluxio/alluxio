@@ -15,9 +15,9 @@
 
 package tachyon.client.file;
 
-import com.google.common.base.Preconditions;
-
 import java.io.IOException;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.client.ClientOptions;
