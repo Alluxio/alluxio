@@ -27,7 +27,7 @@ import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 
 /**
- * Executes a checkpoint manager periodically.
+ * Executes a checkpoint manager.
  */
 public final class CheckpointPlanningExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

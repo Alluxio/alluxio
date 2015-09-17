@@ -59,7 +59,7 @@ public final class BlockMasterSync implements Runnable {
   /** Milliseconds between heartbeats before a timeout */
   private final int mHeartbeatTimeoutMs;
   /** Client for all master communication */
-  final private WorkerBlockMasterClient mMasterClient;
+  private final WorkerBlockMasterClient mMasterClient;
 
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
