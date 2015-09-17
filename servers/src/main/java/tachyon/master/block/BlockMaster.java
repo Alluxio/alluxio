@@ -464,6 +464,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
    * @return the worker id
    */
+  // TODO(cc) return value should be void, throw exception when workerId doesn't exist.
   public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) {
     synchronized (mBlocks) {
