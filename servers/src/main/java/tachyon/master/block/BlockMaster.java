@@ -47,7 +47,6 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterBlockLocation;
 import tachyon.master.block.meta.MasterWorkerInfo;
@@ -160,8 +159,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     if (entry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator
           .setNextContainerId(((BlockContainerIdGeneratorEntry) entry).getNextContainerId());
-    } else if (entry instanceof WorkerIdGeneratorEntry) {
-      mNextWorkerId.set(((WorkerIdGeneratorEntry) entry).getNextWorkerId());
     } else if (entry instanceof BlockInfoEntry) {
       BlockInfoEntry blockInfoEntry = (BlockInfoEntry) entry;
       mBlocks.put(blockInfoEntry.getBlockId(),
@@ -174,7 +171,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
-    outputStream.writeEntry(new WorkerIdGeneratorEntry(mNextWorkerId.get()));
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       outputStream.writeEntry(new BlockInfoEntry(blockInfo.getBlockId(), blockInfo.getLength()));
     }
@@ -453,10 +449,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       // Generate a new worker id.
       long workerId = mNextWorkerId.getAndIncrement();
       mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
-
-      // Write worker id to the journal.
-      writeJournalEntry(new WorkerIdGeneratorEntry(workerId));
-      flushJournal();
 
       LOG.info("getWorkerId(): WorkerNetAddress: " + workerAddress + " id: " + workerId);
       return workerId;
