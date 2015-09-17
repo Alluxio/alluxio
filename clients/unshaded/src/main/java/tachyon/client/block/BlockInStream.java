@@ -29,8 +29,8 @@ import tachyon.util.network.NetworkAddressUtils;
  * obtained by calling {@link TachyonBlockStore#getInStream}. Multiple BlockInStreams can be opened
  * for a block. This class is not thread safe and should only be used by one thread.
  *
- * This class provides the same methods as a Java {@link InputStream} with an additional seek
- * method.
+ * This class provides the same methods as a Java {@link InputStream} with additional methods from
+ * Tachyon Stream interfaces.
  */
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
   /**

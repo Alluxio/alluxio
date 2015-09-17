@@ -19,10 +19,12 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import com.google.common.base.Preconditions;
+
 /**
  * TachyonByteBuffer is a wrapper on Java ByteBuffer plus some information needed by Tachyon.
  */
-public class TachyonByteBuffer implements Closeable {
+public final class TachyonByteBuffer implements Closeable {
   // ByteBuffer contains data.
   public final ByteBuffer mData;
 
@@ -41,10 +43,10 @@ public class TachyonByteBuffer implements Closeable {
    * @param blockLockId the id of the block's lock
    */
   TachyonByteBuffer(TachyonFS tfs, ByteBuffer buf, long blockId, int blockLockId) {
-    mData = buf;
+    mTachyonFS = Preconditions.checkNotNull(tfs);
+    mData = Preconditions.checkNotNull(buf);
     mBlockId = blockId;
     mBlockLockId = blockLockId;
-    mTachyonFS = tfs;
   }
 
   /**
