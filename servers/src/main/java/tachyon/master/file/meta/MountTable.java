@@ -36,9 +36,10 @@ public class MountTable {
   }
 
   public synchronized boolean add(TachyonURI tachyonPath, TachyonURI ufsPath) {
-    LOG.debug("Mounting " + ufsPath + " under " + tachyonPath);
+    LOG.info("Mounting " + ufsPath + " under " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
-      if (hasPrefix(tachyonPath, entry.getKey())) {
+      TachyonURI path = entry.getKey();
+      if (hasPrefix(tachyonPath, path) || hasPrefix(path, tachyonPath)) {
         // Cannot mount a path under an existing mount point.
         return false;
       }
@@ -48,7 +49,7 @@ public class MountTable {
   }
 
   public synchronized boolean delete(TachyonURI tachyonPath) {
-    LOG.debug("Unmounting " + tachyonPath);
+    LOG.info("Unmounting " + tachyonPath);
     if (mMountTable.containsKey(tachyonPath)) {
       mMountTable.remove(tachyonPath);
       return true;
@@ -58,7 +59,7 @@ public class MountTable {
   }
 
   public synchronized TachyonURI lookup(TachyonURI tachyonPath) {
-    LOG.debug("Looking up " + tachyonPath);
+    LOG.info("Looking up " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
         return new TachyonURI(entry.getValue()

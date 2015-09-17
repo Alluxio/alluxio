@@ -316,8 +316,7 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   @SuppressWarnings("deprecation")
-  private void createControlFile(FileSystem fs, long nrBytes, // in bytes
-      int nrFiles) throws IOException {
+  private void createControlFile(FileSystem fs, long nrBytes, int nrFiles) throws IOException {
     LOG.info("creating control file: " + nrBytes + " bytes, " + nrFiles + " files");
 
     Path controlDir = getControlDir(mConfig);

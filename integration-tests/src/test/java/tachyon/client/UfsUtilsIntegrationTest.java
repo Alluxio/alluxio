@@ -39,9 +39,10 @@ import tachyon.util.io.PathUtils;
  */
 public class UfsUtilsIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
+  private String mMountPoint;
   private TachyonFS mTfs = null;
   private TachyonFileSystem mTachyonFileSystem = null;
-  private String mUnderfsAddress = null;
+  private String mUfsAddress = null;
   private UnderFileSystem mUfs = null;
 
   @After
@@ -54,12 +55,13 @@ public class UfsUtilsIntegrationTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
     mLocalTachyonCluster.start();
 
+    mMountPoint = mLocalTachyonCluster.getMountPoint();
     mTfs = mLocalTachyonCluster.getOldClient();
     mTachyonFileSystem = mLocalTachyonCluster.getClient();
 
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
+    mUfsAddress = mLocalTachyonCluster.getTachyonHome();
+    mUfs = UnderFileSystem.get(mUfsAddress + TachyonURI.SEPARATOR, masterConf);
   }
 
   @Test
@@ -68,21 +70,20 @@ public class UfsUtilsIntegrationTest {
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
-        mUfs.mkdirs(mUnderfsAddress + exclusion, true);
+        mUfs.mkdirs(mUfsAddress + exclusion, true);
       }
     }
 
     for (String inclusion : inclusions) {
       if (!mUfs.exists(inclusion)) {
-        mUfs.mkdirs(mUnderfsAddress + inclusion, true);
+        mUfs.mkdirs(mUfsAddress + inclusion, true);
       }
-      UnderFileSystemUtils.touch(mUnderfsAddress + inclusion + "/1",
+      UnderFileSystemUtils.touch(mUfsAddress + inclusion + "/1",
           mLocalTachyonCluster.getMasterTachyonConf());
     }
 
-    TachyonURI tachyonRoot = new TachyonURI("/mnt");
-    TachyonURI ufsRoot = new TachyonURI(mUnderfsAddress + TachyonURI.SEPARATOR);
-    mTfs.mount(tachyonRoot, ufsRoot);
+    TachyonURI tachyonRoot = new TachyonURI(mMountPoint);
+    TachyonURI ufsRoot = new TachyonURI(mUfsAddress + TachyonURI.SEPARATOR);
 
     UfsUtils.loadUfs(mTfs, tachyonRoot, ufsRoot, new PrefixList("tachyon;exclusions", ";"),
         mLocalTachyonCluster.getMasterTachyonConf());

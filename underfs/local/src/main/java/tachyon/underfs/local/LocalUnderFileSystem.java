@@ -25,6 +25,9 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import tachyon.conf.TachyonConf;
 import tachyon.Constants;
 import tachyon.underfs.UnderFileSystem;
@@ -43,6 +46,7 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  * </p>
  */
 public class LocalUnderFileSystem extends UnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public LocalUnderFileSystem(TachyonConf conf) {
     super(conf);
@@ -53,6 +57,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    LOG.info("creating " + path);
     FileOutputStream stream = new FileOutputStream(path);
     try {
       setPermission(path, "777");
@@ -99,6 +104,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
+    LOG.info("getting block size for: " + path);
     File file = new File(path);
     if (!file.exists()) {
       throw new FileNotFoundException(path);
