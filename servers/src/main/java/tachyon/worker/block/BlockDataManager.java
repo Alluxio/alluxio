@@ -184,11 +184,9 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   public void addCheckpoint(long sessionId, long fileId) throws TException, IOException {
     // TODO(calvin): This part needs to be changed.
     String srcPath = PathUtils.concatPath(getSessionUfsTmpFolder(sessionId), fileId);
-    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
     FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
-    TachyonURI uri = new TachyonURI(fileInfo.getPath());
-    String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
-    String parentPath = PathUtils.concatPath(ufsDataFolder, uri.getParent().getPath());
+    String dstPath = fileInfo.getUfsPath();
+    String parentPath = (new TachyonURI(dstPath)).getParent().getPath();
     try {
       if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
         throw new FailedToCheckpointException("Failed to create " + parentPath);
