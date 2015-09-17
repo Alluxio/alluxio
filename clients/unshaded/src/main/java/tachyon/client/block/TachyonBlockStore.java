@@ -34,7 +34,7 @@ import tachyon.worker.WorkerClient;
  * class are completely opaque to user input (such as {@link ClientOptions}). This class is thread
  * safe.
  */
-public class TachyonBlockStore implements Closeable {
+public final class TachyonBlockStore implements Closeable {
 
   private static TachyonBlockStore sClient = null;
 

@@ -19,10 +19,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -43,10 +43,10 @@ import tachyon.thrift.InvalidPathException;
  * input/output streams.
  */
 @PublicApi
-public class TachyonFileSystem implements Closeable, TachyonFSCore {
+public final class TachyonFileSystem implements Closeable, TachyonFSCore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** A cached instance of the TachyonFileSystem */
+  /** The single instance of the TachyonFileSystem */
   private static TachyonFileSystem sClient;
 
   /**
@@ -264,6 +264,7 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an error occurs during the pin operation
    */
+  @Override
   public void setPin(TachyonFile file, boolean pinned) throws IOException,
       FileDoesNotExistException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
