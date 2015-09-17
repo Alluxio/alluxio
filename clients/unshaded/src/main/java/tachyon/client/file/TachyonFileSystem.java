@@ -124,7 +124,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   /**
    * Alternative way to get a FileOutStream to a file that has already been created. This should
-   * not be used and will be removed in a later release.
+   * not be used. Deprecated in version v0.8 and will be removed in v0.9.
    *
    * @see #getOutStream(TachyonURI path, ClientOptions options)
    */
