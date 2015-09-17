@@ -111,6 +111,7 @@ public class DFSIOIntegrationTest implements Tool {
   private Configuration mConfig;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static URI sLocalTachyonClusterUri = null;
+  private static String sMountPoint;
 
   static {
     Configuration.addDefaultResource("hdfs-default.xml");
@@ -179,7 +180,7 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   private static String getBaseDir(Configuration conf) {
-    return conf.get("test.dfsio.build.data", "/benchmarks/DFSIOIntegrationTest");
+    return conf.get("test.dfsio.build.data", sMountPoint + "/benchmarks/DFSIOIntegrationTest");
   }
 
   private static Path getControlDir(Configuration conf) {
@@ -217,6 +218,7 @@ public class DFSIOIntegrationTest implements Tool {
     // Start local Tachyon cluster
     sLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
     sLocalTachyonCluster.start();
+    sMountPoint = sLocalTachyonCluster.getMountPoint();
 
     sLocalTachyonClusterUri = URI.create(sLocalTachyonCluster.getMasterUri());
     sBench.getConf().set("fs.defaultFS", sLocalTachyonClusterUri.toString());

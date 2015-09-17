@@ -32,6 +32,7 @@ import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for TFS getFileBlockLocations.
@@ -41,6 +42,7 @@ public class TFSBlockLocationIntegrationTest {
   private static final int BLOCK_SIZE = 1024;
   private static final int FILE_LEN = BLOCK_SIZE * 3;
   private static LocalTachyonCluster sLocalTachyonCluster;
+  private static String sMountPoint;
   private static FileSystem sTFS;
 
   @BeforeClass
@@ -51,10 +53,11 @@ public class TFSBlockLocationIntegrationTest {
     // Start local Tachyon cluster
     sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, BLOCK_SIZE);
     sLocalTachyonCluster.start();
+    sMountPoint = sLocalTachyonCluster.getMountPoint();
 
     TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", TachyonStorageType.STORE,
-        UnderStorageType.PERSIST, FILE_LEN);
+    TachyonFSTestUtils.createByteFile(tachyonFS, PathUtils.concatPath(sMountPoint, "testFile1"),
+        TachyonStorageType.STORE, UnderStorageType.PERSIST, FILE_LEN);
     tachyonFS.close();
 
     URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
@@ -74,7 +77,8 @@ public class TFSBlockLocationIntegrationTest {
   public void basicBlockLocationTest() throws Exception {
     long start = 0;
     long len = 0;
-    FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile1"));
+    FileStatus fStatus =
+        sTFS.getFileStatus(new Path(PathUtils.concatPath(sMountPoint, "testFile1")));
 
     // block0.offset = start < start+len < block1.offset
     start = 0;

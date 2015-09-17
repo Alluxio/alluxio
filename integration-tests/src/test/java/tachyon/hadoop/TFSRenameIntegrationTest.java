@@ -30,6 +30,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.master.LocalTachyonCluster;
+import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for TFS rename.
@@ -38,6 +39,7 @@ public class TFSRenameIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;
   private static LocalTachyonCluster sLocalTachyonCluster;
+  private static String sMountPoint;
   private static FileSystem sTFS;
 
   private static void create(FileSystem fs, Path path) throws IOException {
@@ -47,7 +49,7 @@ public class TFSRenameIntegrationTest {
   }
 
   public static void cleanup(FileSystem fs) throws IOException {
-    FileStatus[] statuses = fs.listStatus(new Path("/"));
+    FileStatus[] statuses = fs.listStatus(new Path(sMountPoint));
     for (FileStatus f : statuses) {
       fs.delete(f.getPath(), true);
     }
@@ -61,6 +63,7 @@ public class TFSRenameIntegrationTest {
     // Start local Tachyon cluster
     sLocalTachyonCluster = new LocalTachyonCluster(100000000, 100000, BLOCK_SIZE);
     sLocalTachyonCluster.start();
+    sMountPoint = sLocalTachyonCluster.getMountPoint();
     URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
 
     sTFS = FileSystem.get(uri, conf);
@@ -75,8 +78,8 @@ public class TFSRenameIntegrationTest {
   public void basicRenameTest() throws Exception {
     // Rename /fileA to /fileB
     {
-      Path fileA = new Path("/fileA");
-      Path fileB = new Path("/fileB");
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "fileA"));
+      Path fileB = new Path(PathUtils.concatPath(sMountPoint, "fileB"));
 
       create(sTFS, fileA);
 
@@ -88,9 +91,9 @@ public class TFSRenameIntegrationTest {
     }
     // Rename /fileA to /dirA/fileA
     {
-      Path fileA = new Path("/fileA");
-      Path dirA = new Path("/dirA");
-      Path finalDst = new Path("/dirA/fileA");
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "fileA"));
+      Path dirA = new Path(PathUtils.concatPath(sMountPoint, "dirA"));
+      Path finalDst = new Path(PathUtils.concatPath(sMountPoint, "dirA", "fileA"));
 
       create(sTFS, fileA);
       sTFS.mkdirs(dirA);
@@ -104,9 +107,9 @@ public class TFSRenameIntegrationTest {
     }
     // Rename /fileA to /dirA/fileA without specifying the full path
     {
-      Path fileA = new Path("/fileA");
-      Path dirA = new Path("/dirA");
-      Path finalDst = new Path("/dirA/fileA");
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "fileA"));
+      Path dirA = new Path(PathUtils.concatPath(sMountPoint, "dirA"));
+      Path finalDst = new Path(PathUtils.concatPath(sMountPoint, "dirA", "fileA"));
 
       create(sTFS, fileA);
       sTFS.mkdirs(dirA);
@@ -120,7 +123,7 @@ public class TFSRenameIntegrationTest {
     }
     // Rename /fileA to /fileA
     {
-      Path fileA = new Path("/fileA");
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "fileA"));
 
       create(sTFS, fileA);
 
@@ -131,8 +134,8 @@ public class TFSRenameIntegrationTest {
     }
     // Rename /fileA to /fileAfileA
     {
-      Path fileA = new Path("/fileA");
-      Path finalDst = new Path("/fileAfileA");
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "fileA"));
+      Path finalDst = new Path(PathUtils.concatPath(sMountPoint, "fileAfileA"));
 
       create(sTFS, fileA);
 
@@ -143,10 +146,10 @@ public class TFSRenameIntegrationTest {
     }
     // Rename /dirA to /dirB, /dirA/fileA should become /dirB/fileA
     {
-      Path dirA = new Path("/dirA");
-      Path dirB = new Path("/dirB");
-      Path fileA = new Path("/dirA/fileA");
-      Path finalDst = new Path("/dirB/fileA");
+      Path dirA = new Path(PathUtils.concatPath(sMountPoint, "dirA"));
+      Path dirB = new Path(PathUtils.concatPath(sMountPoint, "dirB"));
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "dirA", "fileA"));
+      Path finalDst = new Path(PathUtils.concatPath(sMountPoint, "dirB", "fileA"));
 
       sTFS.mkdirs(dirA);
       create(sTFS, fileA);
@@ -161,10 +164,10 @@ public class TFSRenameIntegrationTest {
     }
     // Rename /dirA to /dirB, /dirA/fileA should become /dirB/fileA even if it was not closed
     {
-      Path dirA = new Path("/dirA");
-      Path dirB = new Path("/dirB");
-      Path fileA = new Path("/dirA/fileA");
-      Path finalDst = new Path("/dirB/fileA");
+      Path dirA = new Path(PathUtils.concatPath(sMountPoint, "dirA"));
+      Path dirB = new Path(PathUtils.concatPath(sMountPoint, "dirB"));
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "dirA", "fileA"));
+      Path finalDst = new Path(PathUtils.concatPath(sMountPoint, "dirB", "fileA"));
 
       sTFS.mkdirs(dirA);
       FSDataOutputStream o = sTFS.create(fileA);
@@ -193,8 +196,8 @@ public class TFSRenameIntegrationTest {
   public void errorRenameTest() throws Exception {
     // Rename /dirA to /dirA/dirB should fail
     {
-      Path dirA = new Path("/dirA");
-      Path finalDst = new Path("/dirA/dirB");
+      Path dirA = new Path(PathUtils.concatPath(sMountPoint, "dirA"));
+      Path finalDst = new Path(PathUtils.concatPath(sMountPoint, "dirA", "dirB"));
 
       sTFS.mkdirs(dirA);
 
@@ -206,8 +209,8 @@ public class TFSRenameIntegrationTest {
     }
     // Rename /fileA to /fileB should fail if /fileB exists
     {
-      Path fileA = new Path("/fileA");
-      Path fileB = new Path("/fileB");
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "fileA"));
+      Path fileB = new Path(PathUtils.concatPath(sMountPoint, "fileB"));
 
       create(sTFS, fileA);
       create(sTFS, fileB);
@@ -220,9 +223,9 @@ public class TFSRenameIntegrationTest {
     }
     // Rename /fileA to /dirA/fileA should fail if /dirA/fileA exists
     {
-      Path fileA = new Path("/fileA");
-      Path dirA = new Path("/dirA");
-      Path finalDst = new Path("/dirA/fileA");
+      Path fileA = new Path(PathUtils.concatPath(sMountPoint, "fileA"));
+      Path dirA = new Path(PathUtils.concatPath(sMountPoint, "dirA"));
+      Path finalDst = new Path(PathUtils.concatPath(sMountPoint, "dirA", "fileA"));
 
       create(sTFS, fileA);
       create(sTFS, finalDst);
