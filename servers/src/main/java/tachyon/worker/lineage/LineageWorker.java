@@ -26,11 +26,8 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
-import tachyon.client.lineage.LineageMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
 
@@ -50,7 +47,7 @@ public final class LineageWorker {
   /** The executor service for the master sync */
   private final ExecutorService mSyncExecutorService;
   /** Client for lineage master communication. */
-  private final LineageMasterClient mLineageMasterClient;
+  private final LineageMasterWorkerClient mLineageMasterClient;
   /** Configuration object */
   private final TachyonConf mTachyonConf;
 
@@ -65,9 +62,10 @@ public final class LineageWorker {
     // Setup MasterClientBase along with its heartbeat ExecutorService
     mMasterClientExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("lineage-worker-client-heartbeat-%d", true));
-    mLineageMasterClient = new LineageMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+    mLineageMasterClient = null;
+//    mLineageMasterClient = new LineageMasterClient(
+//        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
+//        mMasterClientExecutorService, mTachyonConf);
 
     mSyncExecutorService = Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("lineage-worker-heartbeat-%d", true));

@@ -45,13 +45,13 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
   /** Client for communicating to lineage master */
-  private final LineageMasterClient mMasterClient;
+  private final LineageMasterWorkerClient mMasterClient;
 
   /** The id of the worker */
   private long mWorkerId;
 
   public LineageWorkerMasterSyncExecutor(LineageDataManager lineageDataManager,
-      LineageMasterClient masterClient) {
+      LineageMasterWorkerClient masterClient) {
     mLineageDataManager = Preconditions.checkNotNull(lineageDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
     mWorkerId = 0;
