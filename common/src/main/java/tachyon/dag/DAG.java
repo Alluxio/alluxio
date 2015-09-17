@@ -18,6 +18,7 @@ package tachyon.dag;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -35,4 +36,71 @@ public class DAG<T> {
     mIndex = Maps.newHashMap();
   }
 
+  public void add(T payload, List<T> parents) {
+    Preconditions.checkState(!contains(payload), "the payload already exists in the DAG");
+
+    // construct the new node
+    DAGNode<T> newNode = new DAGNode<T>(payload);
+    mIndex.put(payload, newNode);
+
+    // find parent nodes
+    for (T parent : parents) {
+      Preconditions.checkState(contains(parent),
+          "the parent payload " + parent + " does not exist in the DAG");
+      DAGNode<T> parentNode = mIndex.get(parent);
+      parentNode.addChild(newNode);
+      newNode.addParent(parentNode);
+    }
+  }
+
+  public void delete(T payload) {
+    // TODO
+  }
+
+  /**
+   * @return true if there a node in the DAG contains the given value as payload, false otherwise.
+   */
+  public boolean contains(T payload) {
+    return mIndex.containsKey(payload);
+  }
+
+  /**
+   * @return the children's payloads, null if the given payload doesn't exist in the DAG.
+   */
+  public List<T> getChildren(T payload) {
+    if (!mIndex.containsKey(payload)) {
+      return null;
+    }
+    DAGNode<T> node = mIndex.get(payload);
+    List<T> children = Lists.newArrayList();
+    for (DAGNode<T> child : node.getChildren()) {
+      children.add(child.getPayload());
+    }
+    return children;
+  }
+
+  /**
+   * @return the parents' payloads, null if the given payload doesn't exist in the DAG.
+   */
+  public List<T> getParents(T payload) {
+    if (!mIndex.containsKey(payload)) {
+      return null;
+    }
+    DAGNode<T> node = mIndex.get(payload);
+    List<T> parents = Lists.newArrayList();
+    for (DAGNode<T> parent : node.getParents()) {
+      parents.add(parent.getPayload());
+    }
+    return parents;
+  }
+
+  /**
+   * @return true if the payload is in the root of the DAG, false otherwise.
+   */
+  public boolean isRoot(T payload) {
+    if (!contains(payload)) {
+      return false;
+    }
+    return mRoots.contains(mIndex.get(payload));
+  }
 }

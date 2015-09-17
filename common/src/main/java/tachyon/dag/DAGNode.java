@@ -18,6 +18,7 @@ package tachyon.dag;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * A DAG node.
@@ -26,16 +27,36 @@ import com.google.common.base.Preconditions;
  */
 public class DAGNode<T> {
   private final T mPayload;
-  private final List<DAGNode<T>> mInput;
-  private final List<DAGNode<T>> mOutput;
+  private final List<DAGNode<T>> mParents;
+  private final List<DAGNode<T>> mChildren;
 
-  public DAGNode(T payload, List<DAGNode<T>> input, List<DAGNode<T>> output) {
+  public DAGNode(T payload, List<DAGNode<T>> parents, List<DAGNode<T>> children) {
     mPayload = Preconditions.checkNotNull(payload);
-    mInput = Preconditions.checkNotNull(input);
-    mOutput = Preconditions.checkNotNull(output);
+    mParents = Preconditions.checkNotNull(parents);
+    mChildren = Preconditions.checkNotNull(children);
+  }
+
+  public DAGNode(T payload) {
+    this(payload, Lists.<DAGNode<T>>newArrayList(), Lists.<DAGNode<T>>newArrayList());
   }
 
   public T getPayload() {
     return mPayload;
+  }
+
+  public List<DAGNode<T>> getParents() {
+    return mParents;
+  }
+
+  public List<DAGNode<T>> getChildren() {
+    return mChildren;
+  }
+
+  public void addParent(DAGNode<T> parent) {
+    mParents.add(parent);
+  }
+
+  public void addChild(DAGNode<T> child) {
+    mChildren.add(child);
   }
 }
