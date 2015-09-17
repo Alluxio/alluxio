@@ -25,7 +25,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -96,7 +96,7 @@ public class TFsShellUtils {
    * @return A list of TachyonURIs that matches the inputURI
    * @throws IOException
    */
-  public static List<TachyonURI> getTachyonURIs(StreamingTachyonFileSystem tachyonClient,
+  public static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
       TachyonURI inputURI) throws IOException {
     if (!inputURI.getPath().contains(TachyonURI.WILDCARD)) {
       return Lists.newArrayList(inputURI);
@@ -121,7 +121,7 @@ public class TFsShellUtils {
    * @return A list of TachyonURIs of the files that match the inputURI in parentDir
    * @throws IOException
    */
-  private static List<TachyonURI> getTachyonURIs(StreamingTachyonFileSystem tachyonClient,
+  private static List<TachyonURI> getTachyonURIs(TachyonFileSystem tachyonClient,
       TachyonURI inputURI, TachyonURI parentDir) throws IOException {
     List<TachyonURI> res = new LinkedList<TachyonURI>();
     List<FileInfo> files = null;

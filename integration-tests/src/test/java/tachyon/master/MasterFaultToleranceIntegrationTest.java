@@ -34,7 +34,7 @@ import tachyon.TachyonURI;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.FileInfo;
@@ -47,7 +47,7 @@ public class MasterFaultToleranceIntegrationTest {
   private static final int MASTERS = 5;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
-  private StreamingTachyonFileSystem mTfs = null;
+  private TachyonFileSystem mTfs = null;
 
   @After
   public final void after() throws Exception {
@@ -163,7 +163,7 @@ public class MasterFaultToleranceIntegrationTest {
     ClientOptions option = new ClientOptions.Builder(new TachyonConf()).setBlockSize(1024)
         .setUnderStorageType(UnderStorageType.PERSIST).build();
     for (int k = 0; k < clients; k ++) {
-      StreamingTachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
+      TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);

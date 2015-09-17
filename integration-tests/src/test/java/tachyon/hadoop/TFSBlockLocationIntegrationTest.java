@@ -30,7 +30,7 @@ import tachyon.Constants;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -52,7 +52,7 @@ public class TFSBlockLocationIntegrationTest {
     sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, BLOCK_SIZE);
     sLocalTachyonCluster.start();
 
-    StreamingTachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
+    TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
     TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile1", TachyonStorageType.STORE,
         UnderStorageType.PERSIST, FILE_LEN);
 

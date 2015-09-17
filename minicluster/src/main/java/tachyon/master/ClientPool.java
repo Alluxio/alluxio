@@ -23,7 +23,7 @@ import java.util.List;
 
 import com.google.common.base.Supplier;
 
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -33,8 +33,8 @@ import tachyon.conf.TachyonConf;
 public final class ClientPool implements Closeable {
   private final Supplier<String> mUriSuppliers;
 
-  private final List<StreamingTachyonFileSystem> mClients = Collections
-      .synchronizedList(new ArrayList<StreamingTachyonFileSystem>());
+  private final List<TachyonFileSystem> mClients = Collections
+      .synchronizedList(new ArrayList<TachyonFileSystem>());
 
   ClientPool(Supplier<String> uriSupplier) {
     mUriSuppliers = uriSupplier;
@@ -48,8 +48,8 @@ public final class ClientPool implements Closeable {
    * @return a TachyonFS client
    * @throws IOException when the operation fails
    */
-  public StreamingTachyonFileSystem getClient(TachyonConf tachyonConf) throws IOException {
-    final StreamingTachyonFileSystem fs = StreamingTachyonFileSystem.get();
+  public TachyonFileSystem getClient(TachyonConf tachyonConf) throws IOException {
+    final TachyonFileSystem fs = TachyonFileSystem.get();
     mClients.add(fs);
     return fs;
   }

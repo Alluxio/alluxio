@@ -27,7 +27,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.TachyonURI;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
@@ -39,7 +39,7 @@ import tachyon.util.UnderFileSystemUtils;
 public class UfsUtilsIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
-  private StreamingTachyonFileSystem mTachyonFileSystem = null;
+  private TachyonFileSystem mTachyonFileSystem = null;
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 

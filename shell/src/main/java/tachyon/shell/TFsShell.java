@@ -41,7 +41,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockLocation;
@@ -74,12 +74,12 @@ public class TFsShell implements Closeable {
 
   private final Closer mCloser;
   private final TachyonConf mTachyonConf;
-  private final StreamingTachyonFileSystem mTfs;
+  private final TachyonFileSystem mTfs;
 
   public TFsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
-    mTfs = StreamingTachyonFileSystem.get();
+    mTfs = TachyonFileSystem.get();
   }
 
   @Override
@@ -150,7 +150,7 @@ public class TFsShell implements Closeable {
     return ret;
   }
 
-  private int loadPath(StreamingTachyonFileSystem tachyonClient, TachyonURI filePath)
+  private int loadPath(TachyonFileSystem tachyonClient, TachyonURI filePath)
       throws IOException {
     TachyonFile fd;
     FileInfo fInfo;
@@ -219,7 +219,7 @@ public class TFsShell implements Closeable {
     return ret;
   }
 
-  private int copyPath(File src, StreamingTachyonFileSystem tachyonClient, TachyonURI dstPath)
+  private int copyPath(File src, TachyonFileSystem tachyonClient, TachyonURI dstPath)
       throws IOException {
     if (!src.isDirectory()) {
       try {
@@ -792,7 +792,7 @@ public class TFsShell implements Closeable {
         }
 
         List<TachyonURI> paths = null;
-        paths = TFsShellUtils.getTachyonURIs(StreamingTachyonFileSystem.get(), inputPath);
+        paths = TFsShellUtils.getTachyonURIs(TachyonFileSystem.get(), inputPath);
         if (paths.size() == 0) { // A unified sanity check on the paths
           System.out.println(inputPath + " does not exist.");
           return -1;
@@ -970,7 +970,7 @@ public class TFsShell implements Closeable {
    * @return total size of the specified path in byte.
    * @throws IOException
    */
-  private long getFileOrFolderSize(StreamingTachyonFileSystem tachyonFS, TachyonURI path)
+  private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
       throws IOException {
     long sizeInBytes = 0;
     List<FileInfo> files = null;

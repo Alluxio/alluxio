@@ -28,7 +28,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -43,7 +43,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private StreamingTachyonFileSystem mTfs = null;
+  private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
   private int mWorkerToMasterHeartbeatIntervalMs;

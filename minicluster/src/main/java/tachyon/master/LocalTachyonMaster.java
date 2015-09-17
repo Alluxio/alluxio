@@ -24,7 +24,7 @@ import com.google.common.base.Supplier;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.UnderFileSystemUtils;
@@ -259,7 +259,7 @@ public final class LocalTachyonMaster {
     return mOldClientPool.getClient(mTachyonMaster.getTachyonConf());
   }
 
-  public StreamingTachyonFileSystem getClient() throws IOException {
+  public TachyonFileSystem getClient() throws IOException {
     return mClientPool.getClient(mTachyonMaster.getTachyonConf());
   }
 

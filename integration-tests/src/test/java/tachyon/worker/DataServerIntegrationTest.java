@@ -41,7 +41,7 @@ import tachyon.client.RemoteBlockReader;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -88,7 +88,7 @@ public class DataServerIntegrationTest {
       ThreadFactoryUtils.build("test-executor-%d", true));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private StreamingTachyonFileSystem mTFS = null;
+  private TachyonFileSystem mTFS = null;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
 

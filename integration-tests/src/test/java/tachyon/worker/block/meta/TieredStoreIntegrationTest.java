@@ -33,7 +33,7 @@ import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.StreamingTachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
@@ -52,7 +52,7 @@ public class TieredStoreIntegrationTest {
 
   private LocalTachyonCluster mLocalTachyonCluster;
   private TachyonConf mWorkerConf;
-  private StreamingTachyonFileSystem mTFS;
+  private TachyonFileSystem mTFS;
   private int mWorkerToMasterHeartbeatIntervalMs;
 
   @Rule
