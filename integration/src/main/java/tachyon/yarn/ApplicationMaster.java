@@ -39,8 +39,6 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.util.concurrent.Monitor;
-
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.FormatUtils;
@@ -73,22 +71,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private volatile int mNumAllocatedWorkerContainers;
   /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
-  /** A monitor to synchronize request and allocation */
-  private final Monitor mMonitor = new Monitor();
-  /** Whether the Tachyon master has been allocated */
-  private final Monitor.Guard mMasterContainerDone = new Monitor.Guard(mMonitor) {
-    @Override
-    public boolean isSatisfied() {
-      return mMasterContainerAllocated;
-    }
-  };
-  /** Whether all the Tachyon workers have been allocated */
-  private final Monitor.Guard mWorkerContainerDone = new Monitor.Guard(mMonitor) {
-    @Override
-    public boolean isSatisfied() {
-      return mNumAllocatedWorkerContainers >= mNumWorkers;
-    }
-  };
 
   public ApplicationMaster(int numWorkers, String tachyonHome) {
     mMasterCpu = mTachyonConf.getInt(Constants.MASTER_RESOURCE_CPU);
@@ -182,36 +164,25 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mRMClient.addContainerRequest(masterContainerAsk);
 
     // Wait until Tachyon master container has been allocated
-    // mMonitor.enterWhen(mMasterContainerDone);
     while (!mMasterContainerAllocated) {
       Thread.sleep(1000);
     }
 
-    try {
-      // Resource requirements for master containers
-      Resource workerResource = Records.newRecord(Resource.class);
-      workerResource.setMemory(mWorkerMem);
-      workerResource.setVirtualCores(mWorkerCpu);
+    // Resource requirements for master containers
+    Resource workerResource = Records.newRecord(Resource.class);
+    workerResource.setMemory(mWorkerMem);
+    workerResource.setVirtualCores(mWorkerCpu);
 
-      // Make container requests for workers to ResourceManager
-      for (int i = 0; i < mNumWorkers; i ++) {
-        ContainerRequest containerAsk =
-            new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
-                priority);
-        LOG.info("Making resource request for Tachyon worker " + i);
-        mRMClient.addContainerRequest(containerAsk);
-      }
-    } finally {
-      // mMonitor.leave();
+    // Make container requests for workers to ResourceManager
+    for (int i = 0; i < mNumWorkers; i ++) {
+      ContainerRequest containerAsk =
+          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
+              priority);
+      LOG.info("Making resource request for Tachyon worker " + i);
+      mRMClient.addContainerRequest(containerAsk);
     }
-    // Wait until all Tachyon worker containers have been allocated
-    // mMonitor.enterWhen(mWorkerContainerDone);
-    // try {
-    // LOG.info("Waiting for allocating containers for all workers");
-    // } finally {
-    // //mMonitor.leave();
-    // }
 
+    // Wait until all Tachyon worker containers have been allocated
     while (mNumAllocatedWorkerContainers < mNumWorkers) {
       Thread.sleep(1000);
     }
