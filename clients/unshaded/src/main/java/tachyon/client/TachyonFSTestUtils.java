@@ -134,8 +134,7 @@ public final class TachyonFSTestUtils {
    * @return a list of strings representing the file names under the given path
    * @throws IOException if <code>path</code> does not exist or is invalid
    */
-  public static List<String> listFiles(TachyonFileSystem tfs, String path)
-      throws IOException {
+  public static List<String> listFiles(TachyonFileSystem tfs, String path) throws IOException {
     try {
       List<FileInfo> infos = tfs.listStatus(tfs.open(new TachyonURI(path)));
       List<String> res = new ArrayList<String>();
