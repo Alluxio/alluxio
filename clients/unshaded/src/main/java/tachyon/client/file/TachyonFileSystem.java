@@ -32,9 +32,10 @@ import tachyon.thrift.InvalidPathException;
 
 /**
  * A TachyonFileSystem implementation including convenience methods as well as a streaming API to
- * read and write files. Creating files is not supported by this TachyonFileSystem because the
- * files should only be written once, thus getOutStream is sufficient for creating and writing to
- * a file.
+ * read and write files. This class does not access the master client directly but goes through the
+ * implementations provided in {@link AbstractTachyonFileSystem}. The create api for creating files
+ * is not supported by this TachyonFileSystem because the files should only be written once, thus
+ * getOutStream is sufficient for creating and writing to a file.
  */
 @PublicApi
 public class TachyonFileSystem extends AbstractTachyonFileSystem {
