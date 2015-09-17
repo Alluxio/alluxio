@@ -270,7 +270,7 @@ public class DataServerIntegrationTest {
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
   }
 
-  // TODO: Make this work with the new BlockReader
+  // TODO(calvin): Make this work with the new BlockReader.
   // @Test
   public void readThroughClientNonExistentTest() throws IOException, TException {
     final int length = 10;

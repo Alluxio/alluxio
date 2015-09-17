@@ -46,7 +46,7 @@ public class FileUtils {
    * @throws IOException when fails to change permission
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    // TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
+    // TODO(cc): Switch to java's Files.setPosixFilePermissions() when Java 6 support is dropped.
     List<String> commands = new ArrayList<String>();
     commands.add("/bin/chmod");
     commands.add(perms);
@@ -81,8 +81,9 @@ public class FileUtils {
     /*
      * Because chmod doesn't have a lot of error or output messages, it is safe to process the
      * output after the process is done. As of java 7, you can have the process redirect to
-     * System.out and System.err without forking a process. TODO when java 6 support is dropped,
-     * switch to http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+     * System.out and System.err without forking a process.
+     *
+     * TODO(cc): When java 6 support is dropped switch to ProcessBuilder.html#inheritIO().
      */
     Closer closer = Closer.create();
     try {

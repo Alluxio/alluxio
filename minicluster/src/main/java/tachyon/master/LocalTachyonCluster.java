@@ -121,7 +121,7 @@ public final class LocalTachyonCluster {
   }
 
   public String getTempFolderInUnderFs() {
-    return mMasterConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
+    return mMasterConf.get(Constants.UNDERFS_ADDRESS);
   }
 
   public BlockWorker getWorker() {
@@ -199,7 +199,7 @@ public final class LocalTachyonCluster {
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath = String.format(
           Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
         String newPath = mTachyonHome + dirPath;
@@ -252,6 +252,8 @@ public final class LocalTachyonCluster {
   public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
+    // Delete the temp dir by ufs, otherwise, permission problem may be encountered.
+    UnderFileSystemUtils.deleteDir(mTachyonHome, conf);
     mWorkerDataFolder = "/datastore";
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
@@ -262,9 +264,9 @@ public final class LocalTachyonCluster {
     startMaster();
 
     UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"), mMasterConf);
+        mMasterConf.get(Constants.UNDERFS_DATA_FOLDER), mMasterConf);
     UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"), mMasterConf);
+        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER), mMasterConf);
     CommonUtils.sleepMs(null, 10);
 
     startWorker();

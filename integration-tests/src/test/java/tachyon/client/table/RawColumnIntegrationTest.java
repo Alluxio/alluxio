@@ -34,7 +34,7 @@ public class RawColumnIntegrationTest {
     mLocalTachyonCluster.stop();
   }
 
-  // TODO: renable when there is a raw table client.
+  // TODO(gene): Renable when there is a raw table client.
 /*
   @Test
   public void basicTest() throws IOException, TException {

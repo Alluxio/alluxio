@@ -188,7 +188,7 @@ service FileSystemMasterService {
   i64 getNewBlockIdForFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
 
-  // TODO: is this necessary?
+  // TODO(gene): Is this necessary?
   string getUfsAddress()
 
   i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive)

@@ -33,6 +33,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
+import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
@@ -47,7 +48,6 @@ public final class FileSystemMasterTest {
   private static final TachyonURI ROOT_FILE_URI = new TachyonURI("/file");
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
 
-  private final TachyonConf mTachyonConf = new TachyonConf();
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
   private long mWorkerId;
@@ -60,11 +60,11 @@ public final class FileSystemMasterTest {
 
   @Before
   public void before() throws Exception {
-    Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), mTachyonConf);
-    Journal fsJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), mTachyonConf);
+    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
+    Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
-    mBlockMaster = new BlockMaster(mTachyonConf, blockJournal);
-    mFileSystemMaster = new FileSystemMaster(mTachyonConf, mBlockMaster, fsJournal);
+    mBlockMaster = new BlockMaster(blockJournal);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);

@@ -23,7 +23,6 @@ import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -34,6 +33,7 @@ import tachyon.TachyonURI;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
+import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
@@ -101,8 +101,6 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO(cc): Resolve the issue with HDFS as UnderFS.
-  @Ignore
   @Test
   public void createFileFaultTest() throws Exception {
     int clients = 10;
@@ -120,8 +118,6 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO(cc): Resolve the issue with HDFS as UnderFS.
-  @Ignore
   @Test
   public void deleteFileFaultTest() throws Exception {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
@@ -155,8 +151,6 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO(cc): Resolve the issue with HDFS as UnderFS.
-  @Ignore
   @Test
   public void createFilesTest() throws Exception {
     int clients = 10;
@@ -174,8 +168,6 @@ public class MasterFaultToleranceIntegrationTest {
     }
   }
 
-  // TODO(cc): Resolve the issue with HDFS as UnderFS.
-  @Ignore
   @Test
   public void killStandbyTest() throws Exception {
     // If standby masters are killed(or node failure), current leader should not be affected and the
@@ -199,6 +191,23 @@ public class MasterFaultToleranceIntegrationTest {
       // Cluster should still work.
       faultTestDataCheck(answer);
       faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
+    }
+  }
+
+  @Test
+  public void workerReRegisterTest() throws Exception {
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
+
+    List<Pair<Long, TachyonURI>> emptyAnswer = Lists.newArrayList();
+    for (int kills = 0; kills < MASTERS - 1; kills++) {
+      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+
+      // TODO(cc) Why this test fail without this line? [TACHYON-970]
+      faultTestDataCheck(emptyAnswer);
+
+      // If worker is successfully re-registered, the capacity bytes should not change.
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
     }
   }
 }

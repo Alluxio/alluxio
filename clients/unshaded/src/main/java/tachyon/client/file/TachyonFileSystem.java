@@ -20,6 +20,7 @@ import java.io.IOException;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.thrift.BlockInfoException;
@@ -35,6 +36,7 @@ import tachyon.thrift.InvalidPathException;
  * files should only be written once, thus getOutStream is sufficient for creating and writing to
  * a file.
  */
+@PublicApi
 public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   private static TachyonFileSystem sTachyonFileSystem;

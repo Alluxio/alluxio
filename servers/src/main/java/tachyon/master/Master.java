@@ -19,27 +19,25 @@ import java.io.IOException;
 
 import org.apache.thrift.TProcessor;
 
+import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
+import tachyon.master.journal.ReadWriteJournal;
 
 public interface Master extends JournalCheckpointStreamable {
   /**
-   * Returns the thrift processor for this master.
-   *
-   * @return the {@link TProcessor} serving this master.
+   * @return the {@link TProcessor} serving RPC service for this master.
    */
   TProcessor getProcessor();
 
   /**
-   * Returns the service name for this master.
-   *
    * @return a {@link String} representing this master service name.
    */
   String getServiceName();
 
   /**
-   * Processes the journal checkpoint file.
+   * Processes the journal checkpoint file and applies the entries to the master.
    *
    * @param inputStream the input stream for the journal checkpoint file.
    * @throws IOException
@@ -47,7 +45,8 @@ public interface Master extends JournalCheckpointStreamable {
   void processJournalCheckpoint(JournalInputStream inputStream) throws IOException;
 
   /**
-   * Processes a journal entry. These entries follow the checkpoint entries.
+   * Processes a journal entry and applies it to the master. These entries follow the checkpoint
+   * entries.
    *
    * @param entry the entry to process to update the state of the master.
    * @throws IOException
@@ -74,4 +73,13 @@ public interface Master extends JournalCheckpointStreamable {
    * @throws IOException
    */
   void stop() throws IOException;
+
+  /**
+   * Provides the master with a {@link ReadWriteJournal} capable of writing, in preparation to
+   * starting as the leader. This enables transitioning from standby master to leader master without
+   * having to construct a new master object.
+   *
+   * @param journal the {@link ReadWriteJournal} capable of writing
+   */
+  void upgradeToReadWriteJournal(ReadWriteJournal journal);
 }

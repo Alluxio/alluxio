@@ -15,32 +15,21 @@
 
 package tachyon.master.journal;
 
-import java.io.IOException;
-
 /**
- * This output stream writes {@link JournalEntry} objects to the journal. This output stream can
- * write to both the journal checkpoint file, or the journal log files.
+ * The read-write journal. This allows both reads and writes to the journal.
  */
-public interface JournalOutputStream {
+public class ReadWriteJournal extends ReadOnlyJournal {
   /**
-   * Writes a {@link JournalEntry} to the journal.
-   *
-   * @param entry The entry to write to the journal.
-   * @throws IOException
+   * @param directory the base directory for the journal
    */
-  void writeEntry(JournalEntry entry) throws IOException;
+  public ReadWriteJournal(String directory) {
+    super(directory);
+  }
 
   /**
-   * Closes the stream.
-   *
-   * @throws IOException
+   * @return the {@link JournalWriter} for this journal
    */
-  void close() throws IOException;
-
-  /**
-   * Flushes the stream.
-   *
-   * @throws IOException
-   */
-  void flush() throws IOException;
+  public JournalWriter getNewWriter() {
+    return new JournalWriter(this);
+  }
 }

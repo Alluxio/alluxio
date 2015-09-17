@@ -45,7 +45,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-// TODO: figure out a retry utility to make all the retry logic in this file better.
+// TODO(gene): Figure out a retry utility to make all the retry logic in this file better.
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -149,7 +149,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws BlockInfoException if the block index is invalid
    * @throws IOException if an I/O error occurs
    */
-  // TODO: Not sure if this is necessary
+  // TODO(calvin): Not sure if this is necessary.
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException, FileDoesNotExistException, BlockInfoException {
     int retry = 0;
@@ -175,7 +175,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  // TODO: Not sure if this is necessary
+  // TODO(calvin): Not sure if this is necessary.
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException,
       FileDoesNotExistException {
     int retry = 0;
