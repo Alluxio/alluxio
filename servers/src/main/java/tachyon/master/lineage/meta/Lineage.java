@@ -65,4 +65,8 @@ public final class Lineage {
   public void setState(LineageState newState) {
     mState = newState;
   }
+
+  public long getId() {
+    return mId;
+  }
 }

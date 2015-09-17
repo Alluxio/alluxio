@@ -113,8 +113,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   public long createLineage(List<TachyonFile> inputFiles, List<TachyonFile> outputFiles, Job job) {
-    // TODO create lineage
-    return -1;
+    return mLineageStore.addLineage(inputFiles, outputFiles, job);
   }
 
   public boolean deleteLineage(long lineageId) {
