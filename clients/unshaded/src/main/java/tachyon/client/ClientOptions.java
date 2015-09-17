@@ -23,7 +23,7 @@ import tachyon.thrift.NetAddress;
  * Represents the set of operation specific configuration options a user can pass into a Tachyon
  * client. Not all options will be valid for all operations.
  */
-public class ClientOptions {
+public final class ClientOptions {
 
   /**
    * Builder for the <code>ClientOptions<</code>.
