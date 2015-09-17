@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
@@ -34,7 +35,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  */
 public final class InodeFile extends Inode {
   /** The default permission for file is used the directory permission umasked 0111 */
-  private static final FsPermission SUMASK = new FsPermission((short) 0111);
+  private static final FsPermission SUMASK = new FsPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
   private final long mBlockContainerId;
   private final long mBlockSizeBytes;
