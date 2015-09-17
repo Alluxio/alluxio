@@ -23,6 +23,7 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
@@ -64,23 +65,17 @@ public final class LocalTachyonCluster {
   private static ClientContext.PrivateReinitializer sReinitializer;
 
   private BlockWorker mWorker = null;
-
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
   private int mQuotaUnitBytes;
-
   private String mTachyonHome;
-
   private String mWorkerDataFolder;
-
   private Thread mWorkerThread = null;
   private String mLocalhostName = null;
-
   private LocalTachyonMaster mMaster;
-
   private TachyonConf mMasterConf;
-
   private TachyonConf mWorkerConf;
+  private String mMountPoint = "/mnt/minicluster";
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
@@ -114,6 +109,10 @@ public final class LocalTachyonCluster {
 
   public int getMasterPort() {
     return mMaster.getRPCLocalPort();
+  }
+
+  public String getMountPoint() {
+    return mMountPoint;
   }
 
   public String getTachyonHome() {
@@ -197,8 +196,8 @@ public final class LocalTachyonCluster {
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     for (int level = 1; level < maxLevel; level ++) {
-      String tierLevelDirPath = String.format(
-          Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
@@ -263,13 +262,15 @@ public final class LocalTachyonCluster {
     MasterContext.getConf().merge(conf);
     startMaster();
 
-    UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_DATA_FOLDER), mMasterConf);
-    UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER), mMasterConf);
+    UnderFileSystemUtils.mkdirIfNotExists(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER),
+        mMasterConf);
+    UnderFileSystemUtils.mkdirIfNotExists(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER),
+        mMasterConf);
     CommonUtils.sleepMs(null, 10);
 
     startWorker();
+
+    mMaster.getClient().mount(new TachyonURI(mMountPoint), new TachyonURI(mTachyonHome));
   }
 
   /**
