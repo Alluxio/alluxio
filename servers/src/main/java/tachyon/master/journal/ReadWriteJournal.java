@@ -16,27 +16,20 @@
 package tachyon.master.journal;
 
 /**
- * The types of entries that can be represented in the journal.
+ * The read-write journal. This allows both reads and writes to the journal.
  */
-public enum JournalEntryType {
-  // Block master entries
-  BLOCK_CONTAINER_ID_GENERATOR,
-  BLOCK_INFO,
+public class ReadWriteJournal extends ReadOnlyJournal {
+  /**
+   * @param directory the base directory for the journal
+   */
+  public ReadWriteJournal(String directory) {
+    super(directory);
+  }
 
-  // File system master entries
-  INODE_FILE,
-  INODE_DIRECTORY,
-  INODE_MTIME,
-  ADD_CHECKPOINT,
-  DEPENDENCY,
-  COMPLETE_FILE,
-  FREE,
-  SET_PINNED,
-  DELETE_FILE,
-  RENAME,
-  INODE_DIRECTORY_ID_GENERATOR,
-
-  // Raw table master entries
-  RAW_TABLE,
-  UPDATE_METADATA,
+  /**
+   * @return the {@link JournalWriter} for this journal
+   */
+  public JournalWriter getNewWriter() {
+    return new JournalWriter(this);
+  }
 }

@@ -39,6 +39,11 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
     return mBlockMaster.getWorkerId(workerNetAddress);
   }
 
+  // TODO(cc) Change signature. This method should be there to register info of a worker with
+  // existing workerId, so it should not return an id, currently, if workerId exists, it will still
+  // be returned, otherwise, -1 will be returned. It would be better to throw an exception when
+  // workerId cannot be found. Methods related to this RPC should also change signature
+  // accordingly.
   @Override
   public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)

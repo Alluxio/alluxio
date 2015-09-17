@@ -109,9 +109,8 @@ public final class BlockMasterSync implements Runnable {
   public void registerWithMaster() {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
-      mWorkerId =
-          mMasterClient.register(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
-              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+      mMasterClient.register(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
+          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to register with master.", ioe);
     }
@@ -200,6 +199,7 @@ public final class BlockMasterSync implements Runnable {
         break;
       // Master requests re-registration
       case Register:
+        setWorkerId();
         registerWithMaster();
         break;
       // Unknown request

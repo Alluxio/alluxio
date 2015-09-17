@@ -23,6 +23,7 @@ import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -33,6 +34,7 @@ import tachyon.TachyonURI;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
+import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -40,6 +42,7 @@ import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
+@Ignore("TACHYON-987")
 public class MasterFaultToleranceIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
@@ -190,6 +193,23 @@ public class MasterFaultToleranceIntegrationTest {
       // Cluster should still work.
       faultTestDataCheck(answer);
       faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
+    }
+  }
+
+  @Test
+  public void workerReRegisterTest() throws Exception {
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
+
+    List<Pair<Long, TachyonURI>> emptyAnswer = Lists.newArrayList();
+    for (int kills = 0; kills < MASTERS - 1; kills++) {
+      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+
+      // TODO(cc) Why this test fail without this line? [TACHYON-970]
+      faultTestDataCheck(emptyAnswer);
+
+      // If worker is successfully re-registered, the capacity bytes should not change.
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
     }
   }
 }
