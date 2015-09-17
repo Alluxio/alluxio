@@ -47,6 +47,7 @@ public class FileInStreamIntegrationTest {
   private static final int DELTA = BLOCK_SIZE / 2;
 
   private static LocalTachyonCluster sLocalTachyonCluster = null;
+  private static String sMountPoint;
   private static TachyonFileSystem sTfs = null;
   private static TachyonConf sTachyonConf;
   private static ClientOptions sWriteBoth;
@@ -65,6 +66,7 @@ public class FileInStreamIntegrationTest {
   public static final void beforeClass() throws Exception {
     sLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, BLOCK_SIZE);
     sLocalTachyonCluster.start();
+    sMountPoint = sLocalTachyonCluster.getMountPoint();
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
@@ -83,7 +85,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException, TException {
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -125,7 +127,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void readTest2() throws IOException, TException {
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -151,7 +153,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void readTest3() throws IOException, TException {
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -177,7 +179,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void readEndOfFileTest() throws IOException, TException {
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -209,7 +211,7 @@ public class FileInStreamIntegrationTest {
   @Test
   public void seekExceptionTest1() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -234,7 +236,7 @@ public class FileInStreamIntegrationTest {
   @Test
   public void seekExceptionTest2() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -258,7 +260,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void seekTest() throws IOException, TException {
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -283,7 +285,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void eofSeekTest() throws IOException, TException {
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     int length = BLOCK_SIZE * 3;
     for (ClientOptions op : getOptionSet()) {
       TachyonFile f =
@@ -304,7 +306,7 @@ public class FileInStreamIntegrationTest {
    */
   @Test
   public void skipTest() throws IOException, TException {
-    String uniqPath = PathUtils.uniqPath();
+    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =

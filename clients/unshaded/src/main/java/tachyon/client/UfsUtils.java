@@ -157,7 +157,7 @@ public class UfsUtils {
       LOG.info("Loading: " + ufsPath);
       if (ufs.isFile(ufsPath.toString())) { // TODO(hy): Fix path matching issue.
         TachyonURI tfsPath = buildTFSPath(directoryName, ufsAddrRootPath, ufsPath);
-        LOG.debug("Loading ufs. tfs path = " + tfsPath + ".");
+        LOG.info("Loading ufs. tfs path = " + tfsPath + ".");
         if (tfs.exist(tfsPath)) {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
@@ -170,7 +170,7 @@ public class UfsUtils {
               + "checkpoint location " + ufsPath);
         }
       } else { // ufsPath is a directory
-        LOG.debug("Loading ufs. ufs path is a directory.");
+        LOG.info("Loading ufs. ufs path is a directory.");
         String[] files = ufs.list(ufsPath.toString()); // ufs.list() returns relative path
         if (files != null) {
           for (String filePath : files) {
