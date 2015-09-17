@@ -65,7 +65,7 @@ public final class WorkerClient implements Closeable {
   private InetSocketAddress mWorkerAddress;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
-  // TODO: This boolean indicates whether or not the client is connected to the worker. However,
+  // TODO(hy): This boolean indicates whether or not the client is connected to the worker. However,
   // since error exceptions are returned through thrift, all api errors look like fatal errors like
   // network/thrift problems. Maybe error codes/status should be returned for api errors, to be
   // independent from thrift exceptions.
@@ -83,7 +83,6 @@ public final class WorkerClient implements Closeable {
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
    * @param conf Tachyon configuration
-   * @param sessionId the id of the session
    * @param clientMetrics metrics of the lcient.
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,

@@ -43,6 +43,16 @@ import tachyon.worker.block.BlockWorker;
 public class LocalTachyonClusterMultiMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // private access to the reinitializer of ClientContext
+  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
+      new ClientContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(ClientContext.PrivateReinitializer access) {
+          sReinitializer = access;
+        }
+      };
+  private static ClientContext.PrivateReinitializer sReinitializer;
+
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100, 8 * Constants.MB, Constants.GB);
     cluster.start();
@@ -99,6 +109,7 @@ public class LocalTachyonClusterMultiMaster {
     return mClientPool.getClient(mMasterConf);
   }
 
+  // TODO(cc): Since we have MasterContext now, remove this.
   public TachyonConf getMasterTachyonConf() {
     return mMasterConf;
   }
@@ -109,6 +120,40 @@ public class LocalTachyonClusterMultiMaster {
 
   public int getMasterPort() {
     return mMasters.get(0).getRPCLocalPort();
+  }
+
+  /**
+   * @return index of leader master in {@link #mMasters}, or -1 if there is no leader temporarily
+   */
+  public int getLeaderIndex() {
+    for (int i = 0; i < mNumOfMasters; i ++) {
+      if (mMasters.get(i).isServing()) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Iterate over the masters in the order of master creation, kill the first standby master.
+   *
+   * @return true if a standby master is successfully killed, otherwise, false
+   */
+  public boolean killStandby() {
+    for (int k = 0; k < mNumOfMasters; k ++) {
+      if (!mMasters.get(k).isServing()) {
+        try {
+          LOG.info("master " + k + " is a standby. killing it...");
+          mMasters.get(k).stop();
+          LOG.info("master " + k + " killed.");
+        } catch (Exception e) {
+          LOG.error(e.getMessage(), e);
+          return false;
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   public boolean killLeader() {
@@ -155,8 +200,7 @@ public class LocalTachyonClusterMultiMaster {
 
     mHostname = NetworkAddressUtils.getLocalHostName(100);
 
-    // TODO: Would be good to have a masterContext as well
-    mMasterConf = new TachyonConf();
+    mMasterConf = MasterContext.getConf();
     mMasterConf.set(Constants.IN_TEST_MODE, "true");
     mMasterConf.set(Constants.TACHYON_HOME, mTachyonHome);
     mMasterConf.set(Constants.USE_ZOOKEEPER, "true");
@@ -175,12 +219,15 @@ public class LocalTachyonClusterMultiMaster {
     // people running with strange network configurations will see very slow tests
     mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
 
     for (int k = 0; k < mNumOfMasters; k ++) {
-      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome, mMasterConf);
+      final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
       master.start();
       LOG.info("master NO." + k + " started, isServing: " + master.isServing() + ", address: "
           + master.getAddress());
@@ -191,8 +238,8 @@ public class LocalTachyonClusterMultiMaster {
 
     // Create the directories for the data and workers after LocalTachyonMaster construction,
     // because LocalTachyonMaster sets the UNDERFS_DATA_FOLDER and UNDERFS_WORKERS_FOLDER.
-    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER));
 
     LOG.info("all " + mNumOfMasters + " masters started.");
     LOG.info("waiting for a leader.");
@@ -233,7 +280,7 @@ public class LocalTachyonClusterMultiMaster {
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       String newPath = "";
       for (String dirPath : dirPaths) {
         newPath += mTachyonHome + dirPath + ",";
@@ -269,12 +316,18 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
     // The client context should reflect the updates to the conf.
-    ClientContext.reinitializeWithConf(mWorkerConf);
+    if (sReinitializer == null) {
+      ClientContext.accessReinitializer(sReinitializerAccesser);
+    }
+    sReinitializer.reinitializeWithConf(mWorkerConf);
   }
 
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
+
+    // clear HDFS client caching
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   public void stopTFS() throws Exception {

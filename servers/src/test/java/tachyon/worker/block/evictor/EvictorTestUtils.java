@@ -101,7 +101,7 @@ public class EvictorTestUtils {
    * @return true if the above requirements are satisfied, otherwise false
    * @throws NotFoundException if a block for which metadata cannot be found is encountered
    */
-  // TODO: unit test this method
+  // TODO(bin): Add a unit test for this method.
   public static boolean validCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
       BlockMetadataManager metaManager) throws NotFoundException {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough

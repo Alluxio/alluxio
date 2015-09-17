@@ -80,7 +80,7 @@ public class JournalShutdownIntegrationTest {
               break;
             }
           } else if (mOpType == 1) {
-            // TODO Add this back when there is new RawTable client API
+            // TODO(gene): Add this back when there is new RawTable client API.
             // if (mTfs.createRawTable(new TachyonURI(TEST_TABLE_DIR + mSuccessNum), 1) == -1) {
             // break;
             // }
@@ -140,7 +140,7 @@ public class JournalShutdownIntegrationTest {
       Assert.assertTrue(fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR + f)) != -1);
     }
 
-    // TODO Add this back when there is new RawTable client API
+    // TODO(gene): Add this back when there is new RawTable client API.
 //    int actualTables = fsMaster.getFileInfoList(fsMaster.getFileId(
 //        new TachyonURI(TEST_TABLE_DIR))).size();
 //    Assert.assertTrue((successTables == actualTables) || (successTables + 1 == actualTables));
