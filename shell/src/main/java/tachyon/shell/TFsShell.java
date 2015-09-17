@@ -41,8 +41,8 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -150,8 +150,7 @@ public class TFsShell implements Closeable {
     return ret;
   }
 
-  private int loadPath(TachyonFileSystem tachyonClient, TachyonURI filePath)
-      throws IOException {
+  private int loadPath(TachyonFileSystem tachyonClient, TachyonURI filePath) throws IOException {
     TachyonFile fd;
     FileInfo fInfo;
     try {
