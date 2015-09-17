@@ -23,19 +23,19 @@ import tachyon.job.Job;
 
 /**
  * Tachyon lineage client. This class is the entry point for all lineage related operations. An
- * instance of this class can be obtained via {@link LineageClient#get}.This class is thread safe.
+ * instance of this class can be obtained via {@link TachyonLineage#get}.This class is thread safe.
  */
 @PublicApi
-public class LineageClient {
+public class TachyonLineage {
   /** the singleton */
-  private static LineageClient sClient;
+  private static TachyonLineage sClient;
 
   /**
    * @return the only instance of lineage client.
    */
-  public static synchronized LineageClient get() {
+  public static synchronized TachyonLineage get() {
     if (sClient == null) {
-      sClient = new LineageClient();
+      sClient = new TachyonLineage();
     }
     return sClient;
   }

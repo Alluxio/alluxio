@@ -13,20 +13,13 @@
  * the License.
  */
 
-package tachyon.client.lineage;
-
-import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
+package tachyon.worker.lineage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.MasterClientBase;
-import tachyon.client.file.TachyonFile;
-import tachyon.conf.TachyonConf;
-import tachyon.job.Job;
+import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService;
 
 /**
@@ -35,36 +28,19 @@ import tachyon.thrift.LineageMasterService;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-public final class LineageMasterClient extends MasterClientBase {
+public class LineageMasterWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private LineageMasterService.Client mClient = null;
 
   /**
-   * Creates a new lineage master client.
+   * Instructs a worker to persist the files for checkpoint.
    *
-   * @param masterAddress the master address
-   * @param executorService the executor service
-   * @param tachyonConf the Tachyon configuration
+   * @param workerId the id of the worker that heartbeats
+   * @return the command for checkpointing the blocks of a file.
    */
-  public LineageMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
-      TachyonConf tachyonConf) {
-    super(masterAddress, executorService, tachyonConf);
-  }
-
-  @Override
-  protected String getServiceName() {
-    return Constants.LINEAGE_MASTER_SERVICE_NAME;
-  }
-
-  public synchronized long addLineage(List<TachyonFile> inputFiles, List<TachyonFile> outputFiles,
-      Job job) {
-    // TODO add lineage
-    return -1;
-  }
-
-  public synchronized boolean deleteLineage(long lineageId) {
-    // TODO delete lineage
-    return false;
+  public synchronized LineageCommand lineageWorkerHeartbeat(long workerId) {
+    // TODO
+    return null;
   }
 }
