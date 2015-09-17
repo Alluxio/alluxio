@@ -25,7 +25,7 @@ public class Version {
 
   static {
     TachyonConf tachyonConf = new TachyonConf();
-    VERSION = tachyonConf.get(Constants.TACHYON_VERSION, "UNDEFINED");
+    VERSION = tachyonConf.get(Constants.TACHYON_VERSION);
   }
 
   public static void main(String[] args) {

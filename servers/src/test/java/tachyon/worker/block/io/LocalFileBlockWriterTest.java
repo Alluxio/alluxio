@@ -65,7 +65,8 @@ public class LocalFileBlockWriterTest {
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     mWriter.close();
     Assert.assertEquals(2 * TEST_BLOCK_SIZE, new File(mTestFilePath).length());
-    // TODO: read data and assert it is really what we expected using equalIncreasingByteBuffer
+    // TODO(bin): Read data and assert it is really what we expected using
+    // equalIncreasingByteBuffer.
   }
 
   @Test

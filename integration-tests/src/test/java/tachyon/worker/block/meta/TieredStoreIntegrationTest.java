@@ -227,5 +227,4 @@ public class TieredStoreIntegrationTest {
     Assert.assertEquals(toPromoteLen, len);
     Assert.assertEquals(100, mTFS.getInfo(toPromote).getInMemoryPercentage());
   }
-
 }

@@ -46,7 +46,7 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * This class is NOT thread-safe. All operations on block metadata such as StorageTier, StorageDir
  * should go through this class.
  */
-// TODO: consider how to better expose information to Evictor and Allocator.
+// TODO(bin): consider how to better expose information to Evictor and Allocator.
 public class BlockMetadataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -169,7 +169,7 @@ public class BlockMetadataManager {
 
     int tierAlias = location.tierAlias();
     StorageTier tier = getTier(tierAlias);
-    // TODO: This should probably be max of the capacity bytes in the dirs?
+    // TODO(calvin): This should probably be max of the capacity bytes in the dirs?
     if (location.equals(BlockStoreLocation.anyDirInTier(tierAlias))) {
       return tier.getAvailableBytes();
     }

@@ -44,7 +44,7 @@ public class DependencyIntegrationTest {
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 /*
-  // TODO: re-enable when lineage is implemented.
+  // TODO(gene): Re-enable when lineage is implemented.
   @Test
   public void ParseCommandPrefixTest() {
     String cmd = "java test.jar $master:$port";
