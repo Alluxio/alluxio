@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import org.apache.thrift.TEnum;
 import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
