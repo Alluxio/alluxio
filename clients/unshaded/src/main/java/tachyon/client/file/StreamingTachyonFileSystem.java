@@ -21,7 +21,9 @@ import java.io.IOException;
 
 import tachyon.TachyonURI;
 import tachyon.client.ClientOptions;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -34,6 +36,16 @@ import tachyon.thrift.InvalidPathException;
  * a file.
  */
 public class StreamingTachyonFileSystem extends TachyonFileSystem {
+
+  private static StreamingTachyonFileSystem sTachyonFileSystem;
+
+  public static synchronized StreamingTachyonFileSystem get() {
+    if (sTachyonFileSystem == null) {
+      sTachyonFileSystem = new StreamingTachyonFileSystem();
+    }
+    return sTachyonFileSystem;
+  }
+
   private StreamingTachyonFileSystem() {
     super();
   }
@@ -45,6 +57,29 @@ public class StreamingTachyonFileSystem extends TachyonFileSystem {
   @Override
   public long create(TachyonURI path, long blockSize, boolean recursive) {
     throw new UnsupportedOperationException("Create is not supported, use getOutStream instead.");
+  }
+
+  /**
+   * Convenience function for delete recursively. This is the same as calling delete(file, true).
+   *
+   * @param file the TachyonFile to delete recursively
+   * @throws FileDoesNotExistException if the file does not exist in Tachyon space
+   * @throws IOException if the master cannot delete the file
+   */
+  public void delete(TachyonFile file) throws FileDoesNotExistException, IOException {
+    delete(file, true);
+  }
+
+  /**
+   * Convenience function for free recursively. This is the same as calling free(file, true).
+   *
+   * @param file the TachyonFile to free recursively
+   * @throws FileDoesNotExistException if the file does not exist in Tachyon space
+   * @throws IOException if the master cannot delete the file
+   */
+  public void free(TachyonFile file) throws FileDoesNotExistException,
+      IOException {
+    free(file, true);
   }
 
   /**
@@ -95,5 +130,40 @@ public class StreamingTachyonFileSystem extends TachyonFileSystem {
   @Deprecated
   public FileOutStream getOutStream(long fileId, ClientOptions options) throws IOException {
     return new FileOutStream(fileId, options);
+  }
+
+  /**
+   * Convenience method to mkdirs recursively.
+   *
+   * @param path the Tachyon path of the folder to create recursively
+   * @return true if the directory is created
+   * @throws FileAlreadyExistException if the path already exists or a parent is a file
+   * @throws InvalidPathException if the path is invalid
+   * @throws IOException if the master cannot create the folder
+   */
+  public boolean mkdirs(TachyonURI path) throws FileAlreadyExistException, InvalidPathException,
+      IOException {
+    return mkdirs(path, true);
+  }
+
+  // TODO: Move this to lineage client
+  public void reportLostFile(TachyonFile file) throws IOException, FileDoesNotExistException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.reportLostFile(file.getFileId());
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  // TODO: Move this to lineage client
+  public void requestFilesInDependency(int depId) throws IOException,
+      DependencyDoesNotExistException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      masterClient.requestFilesInDependency(depId);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 }

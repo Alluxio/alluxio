@@ -41,10 +41,10 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.StreamingTachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -75,13 +75,12 @@ public class TFsShell implements Closeable {
 
   private final Closer mCloser;
   private final TachyonConf mTachyonConf;
-  private final TachyonFileSystem mTfs;
+  private final StreamingTachyonFileSystem mTfs;
 
   public TFsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
-    mTfs = TachyonFileSystem.get();
-    mCloser.register(mTfs);
+    mTfs = StreamingTachyonFileSystem.get();
   }
 
   @Override
@@ -220,7 +219,7 @@ public class TFsShell implements Closeable {
     return ret;
   }
 
-  private int copyPath(File src, TachyonFileSystem tachyonClient, TachyonURI dstPath)
+  private int copyPath(File src, StreamingTachyonFileSystem tachyonClient, TachyonURI dstPath)
       throws IOException {
     if (!src.isDirectory()) {
       try {
@@ -793,7 +792,7 @@ public class TFsShell implements Closeable {
         }
 
         List<TachyonURI> paths = null;
-        paths = TFsShellUtils.getTachyonURIs(TachyonFileSystem.get(), inputPath);
+        paths = TFsShellUtils.getTachyonURIs(StreamingTachyonFileSystem.get(), inputPath);
         if (paths.size() == 0) { // A unified sanity check on the paths
           System.out.println(inputPath + " does not exist.");
           return -1;
