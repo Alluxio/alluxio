@@ -273,9 +273,6 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean rename(TachyonFile src, TachyonURI dst) throws IOException,
       FileDoesNotExistException {
@@ -305,6 +302,24 @@ public class TachyonFileSystem implements Closeable, TachyonFSCore {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.requestFilesInDependency(depId);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.mount(tachyonPath, ufsPath);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  public synchronized boolean unmount(TachyonURI tachyonPath) throws IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.unmount(tachyonPath);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

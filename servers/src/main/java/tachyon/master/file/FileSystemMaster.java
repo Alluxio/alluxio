@@ -35,8 +35,6 @@ import tachyon.PrefixList;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.NotFoundException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
@@ -172,17 +170,16 @@ public final class FileSystemMaster extends MasterBase {
       mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
     } else if (entry instanceof AddMountPointEntry) {
       AddMountPointEntry typedEntry = (AddMountPointEntry) entry;
-      try {
-        mMountTable.add(typedEntry.getTachyonPath(), typedEntry.getUfsPath());
-      } catch (AlreadyExistsException aee) {
-        throw new IOException(aee.getMessage());
+      TachyonURI tachyonPath = typedEntry.getTachyonPath();
+      TachyonURI ufsPath = typedEntry.getTachyonPath();
+      if (!mMountTable.add(tachyonPath, ufsPath)) {
+        throw new IOException("failed to mount " + ufsPath + " at " + tachyonPath);
       }
     } else if (entry instanceof DeleteMountPointEntry) {
       DeleteMountPointEntry typedEntry = (DeleteMountPointEntry) entry;
-      try {
-        mMountTable.delete(typedEntry.getTachyonPath());
-      } catch (NotFoundException nfe) {
-        throw new IOException(nfe.getMessage());
+      TachyonURI tachyonPath = typedEntry.getTachyonPath();
+      if (!mMountTable.delete(typedEntry.getTachyonPath())) {
+        throw new IOException("failed to unmount " + tachyonPath);
       }
     } else {
       throw new IOException("unexpected entry in journal: " + entry);
@@ -361,6 +358,7 @@ public final class FileSystemMaster extends MasterBase {
   private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
+    fileInfo.ufsPath = mMountTable.lookup(new TachyonURI(fileInfo.getPath())).toString();
     return fileInfo;
   }
 
@@ -1112,22 +1110,26 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // TODO(jiri): Fail when the UFS path does not exist.
-  public void mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws AlreadyExistsException,
-      FileAlreadyExistException, InvalidPathException {
+  public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
+      throws FileAlreadyExistException, InvalidPathException {
     mkdirs(tachyonPath, true);
-    mMountTable.add(tachyonPath, ufsPath);
-    writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
-    flushJournal();
+    if (mMountTable.add(tachyonPath, ufsPath)) {
+      writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
+      flushJournal();
+      return true;
+    }
+    return false;
   }
 
   // TODO(jiri): Account for asynchronously persisted files once lineage is implemented.
-  public void unmount(TachyonURI tachyonPath) throws FileDoesNotExistException,
-      InvalidPathException, NotFoundException {
-    mMountTable.delete(tachyonPath);
-    long fileId = getFileId(tachyonPath);
-    // TODO(jiri): Delete metadata for the Tachyon namespace nested under tachyonPath.
-    writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
-    flushJournal();
+  public boolean unmount(TachyonURI tachyonPath)
+      throws FileDoesNotExistException, InvalidPathException  {
+    if (mMountTable.delete(tachyonPath)) {
+      // TODO(jiri): Delete metadata for the Tachyon namespace nested under tachyonPath.
+      writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
+      flushJournal();
+      return true;
+    }
+    return false;
   }
 }

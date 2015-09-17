@@ -122,14 +122,13 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     long fileId = mHarness.mRandom.nextLong();
     long fileSize = mHarness.mRandom.nextLong();
     long sessionId = mHarness.mRandom.nextLong();
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.setPath("/foo/bar");
     String srcPath = "/tmp/" + fileId;
     String parentPath = "/tmp/foo";
     String dstPath = "/tmp/foo/bar";
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.setUfsPath(dstPath);
 
     // TODO(jsimsa): Add test cases for error cases.
-    Mockito.when(mHarness.mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER)).thenReturn("/tmp");
     Mockito.when(mHarness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
     Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
     Mockito.when(mHarness.mUfs.exists(parentPath)).thenReturn(true);

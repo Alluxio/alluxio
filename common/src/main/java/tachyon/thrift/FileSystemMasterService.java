@@ -91,7 +91,7 @@ public class FileSystemMasterService {
      * @param ufsPath
      * @param opts
      */
-    public void mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException, org.apache.thrift.TException;
+    public boolean mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException, org.apache.thrift.TException;
 
     /**
      * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
@@ -100,7 +100,7 @@ public class FileSystemMasterService {
      * 
      * @param tachyonPath
      */
-    public void unmount(String tachyonPath) throws TachyonException, org.apache.thrift.TException;
+    public boolean unmount(String tachyonPath) throws TachyonException, org.apache.thrift.TException;
 
     public int createDependency(List<String> parents, List<String> children, String commandPrefix, List<ByteBuffer> data, String comment, String framework, String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException, org.apache.thrift.TException;
 
@@ -716,10 +716,10 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "loadFileFromUfs failed: unknown result");
     }
 
-    public void mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException, org.apache.thrift.TException
+    public boolean mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException, org.apache.thrift.TException
     {
       send_mount(tachyonPath, ufsPath, opts);
-      recv_mount();
+      return recv_mount();
     }
 
     public void send_mount(String tachyonPath, String ufsPath, MountOpts opts) throws org.apache.thrift.TException
@@ -731,20 +731,23 @@ public class FileSystemMasterService {
       sendBase("mount", args);
     }
 
-    public void recv_mount() throws TachyonException, org.apache.thrift.TException
+    public boolean recv_mount() throws TachyonException, org.apache.thrift.TException
     {
       mount_result result = new mount_result();
       receiveBase(result, "mount");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.te != null) {
         throw result.te;
       }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "mount failed: unknown result");
     }
 
-    public void unmount(String tachyonPath) throws TachyonException, org.apache.thrift.TException
+    public boolean unmount(String tachyonPath) throws TachyonException, org.apache.thrift.TException
     {
       send_unmount(tachyonPath);
-      recv_unmount();
+      return recv_unmount();
     }
 
     public void send_unmount(String tachyonPath) throws org.apache.thrift.TException
@@ -754,14 +757,17 @@ public class FileSystemMasterService {
       sendBase("unmount", args);
     }
 
-    public void recv_unmount() throws TachyonException, org.apache.thrift.TException
+    public boolean recv_unmount() throws TachyonException, org.apache.thrift.TException
     {
       unmount_result result = new unmount_result();
       receiveBase(result, "unmount");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.te != null) {
         throw result.te;
       }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "unmount failed: unknown result");
     }
 
     public int createDependency(List<String> parents, List<String> children, String commandPrefix, List<ByteBuffer> data, String comment, String framework, String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException, org.apache.thrift.TException
@@ -1572,13 +1578,13 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws TachyonException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_mount();
+        return (new Client(prot)).recv_mount();
       }
     }
 
@@ -1604,13 +1610,13 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws TachyonException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_unmount();
+        return (new Client(prot)).recv_unmount();
       }
     }
 
@@ -2303,7 +2309,8 @@ public class FileSystemMasterService {
       public mount_result getResult(I iface, mount_args args) throws org.apache.thrift.TException {
         mount_result result = new mount_result();
         try {
-          iface.mount(args.tachyonPath, args.ufsPath, args.opts);
+          result.success = iface.mount(args.tachyonPath, args.ufsPath, args.opts);
+          result.setSuccessIsSet(true);
         } catch (TachyonException te) {
           result.te = te;
         }
@@ -2327,7 +2334,8 @@ public class FileSystemMasterService {
       public unmount_result getResult(I iface, unmount_args args) throws org.apache.thrift.TException {
         unmount_result result = new unmount_result();
         try {
-          iface.unmount(args.tachyonPath);
+          result.success = iface.unmount(args.tachyonPath);
+          result.setSuccessIsSet(true);
         } catch (TachyonException te) {
           result.te = te;
         }
@@ -3619,7 +3627,7 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class mount<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, mount_args, Void> {
+    public static class mount<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, mount_args, Boolean> {
       public mount() {
         super("mount");
       }
@@ -3628,11 +3636,13 @@ public class FileSystemMasterService {
         return new mount_args();
       }
 
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
+        return new AsyncMethodCallback<Boolean>() { 
+          public void onComplete(Boolean o) {
             mount_result result = new mount_result();
+            result.success = o;
+            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -3670,12 +3680,12 @@ public class FileSystemMasterService {
         return false;
       }
 
-      public void start(I iface, mount_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+      public void start(I iface, mount_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
         iface.mount(args.tachyonPath, args.ufsPath, args.opts,resultHandler);
       }
     }
 
-    public static class unmount<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, unmount_args, Void> {
+    public static class unmount<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, unmount_args, Boolean> {
       public unmount() {
         super("unmount");
       }
@@ -3684,11 +3694,13 @@ public class FileSystemMasterService {
         return new unmount_args();
       }
 
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
+        return new AsyncMethodCallback<Boolean>() { 
+          public void onComplete(Boolean o) {
             unmount_result result = new unmount_result();
+            result.success = o;
+            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -3726,7 +3738,7 @@ public class FileSystemMasterService {
         return false;
       }
 
-      public void start(I iface, unmount_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+      public void start(I iface, unmount_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
         iface.unmount(args.tachyonPath,resultHandler);
       }
     }
@@ -22538,6 +22550,7 @@ public class FileSystemMasterService {
   public static class mount_result implements org.apache.thrift.TBase<mount_result, mount_result._Fields>, java.io.Serializable, Cloneable, Comparable<mount_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("mount_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -22546,10 +22559,12 @@ public class FileSystemMasterService {
       schemes.put(TupleScheme.class, new mount_resultTupleSchemeFactory());
     }
 
+    public boolean success; // required
     public TachyonException te; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
       TE((short)1, "te");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -22565,6 +22580,8 @@ public class FileSystemMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // TE
             return TE;
           default:
@@ -22607,9 +22624,13 @@ public class FileSystemMasterService {
     }
 
     // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -22620,9 +22641,12 @@ public class FileSystemMasterService {
     }
 
     public mount_result(
+      boolean success,
       TachyonException te)
     {
       this();
+      this.success = success;
+      setSuccessIsSet(true);
       this.te = te;
     }
 
@@ -22630,6 +22654,8 @@ public class FileSystemMasterService {
      * Performs a deep copy on <i>other</i>.
      */
     public mount_result(mount_result other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.success = other.success;
       if (other.isSetTe()) {
         this.te = new TachyonException(other.te);
       }
@@ -22641,7 +22667,32 @@ public class FileSystemMasterService {
 
     @Override
     public void clear() {
+      setSuccessIsSet(false);
+      this.success = false;
       this.te = null;
+    }
+
+    public boolean isSuccess() {
+      return this.success;
+    }
+
+    public mount_result setSuccess(boolean success) {
+      this.success = success;
+      setSuccessIsSet(true);
+      return this;
+    }
+
+    public void unsetSuccess() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
     public TachyonException getTe() {
@@ -22670,6 +22721,14 @@ public class FileSystemMasterService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Boolean)value);
+        }
+        break;
+
       case TE:
         if (value == null) {
           unsetTe();
@@ -22683,6 +22742,9 @@ public class FileSystemMasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return Boolean.valueOf(isSuccess());
+
       case TE:
         return getTe();
 
@@ -22697,6 +22759,8 @@ public class FileSystemMasterService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case TE:
         return isSetTe();
       }
@@ -22716,6 +22780,15 @@ public class FileSystemMasterService {
       if (that == null)
         return false;
 
+      boolean this_present_success = true;
+      boolean that_present_success = true;
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (this.success != that.success)
+          return false;
+      }
+
       boolean this_present_te = true && this.isSetTe();
       boolean that_present_te = true && that.isSetTe();
       if (this_present_te || that_present_te) {
@@ -22731,6 +22804,11 @@ public class FileSystemMasterService {
     @Override
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true;
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
 
       boolean present_te = true && (isSetTe());
       list.add(present_te);
@@ -22748,6 +22826,16 @@ public class FileSystemMasterService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
       if (lastComparison != 0) {
         return lastComparison;
@@ -22778,6 +22866,10 @@ public class FileSystemMasterService {
       StringBuilder sb = new StringBuilder("mount_result(");
       boolean first = true;
 
+      sb.append("success:");
+      sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("te:");
       if (this.te == null) {
         sb.append("null");
@@ -22804,6 +22896,8 @@ public class FileSystemMasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -22828,6 +22922,14 @@ public class FileSystemMasterService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.success = iprot.readBool();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // TE
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.te = new TachyonException();
@@ -22852,6 +22954,11 @@ public class FileSystemMasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.isSetSuccess()) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeBool(struct.success);
+          oprot.writeFieldEnd();
+        }
         if (struct.te != null) {
           oprot.writeFieldBegin(TE_FIELD_DESC);
           struct.te.write(oprot);
@@ -22875,10 +22982,16 @@ public class FileSystemMasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, mount_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetTe()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetTe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          oprot.writeBool(struct.success);
+        }
         if (struct.isSetTe()) {
           struct.te.write(oprot);
         }
@@ -22887,8 +23000,12 @@ public class FileSystemMasterService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, mount_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.success = iprot.readBool();
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.te = new TachyonException();
           struct.te.read(iprot);
           struct.setTeIsSet(true);
@@ -23262,6 +23379,7 @@ public class FileSystemMasterService {
   public static class unmount_result implements org.apache.thrift.TBase<unmount_result, unmount_result._Fields>, java.io.Serializable, Cloneable, Comparable<unmount_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("unmount_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -23270,10 +23388,12 @@ public class FileSystemMasterService {
       schemes.put(TupleScheme.class, new unmount_resultTupleSchemeFactory());
     }
 
+    public boolean success; // required
     public TachyonException te; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
       TE((short)1, "te");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -23289,6 +23409,8 @@ public class FileSystemMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // TE
             return TE;
           default:
@@ -23331,9 +23453,13 @@ public class FileSystemMasterService {
     }
 
     // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -23344,9 +23470,12 @@ public class FileSystemMasterService {
     }
 
     public unmount_result(
+      boolean success,
       TachyonException te)
     {
       this();
+      this.success = success;
+      setSuccessIsSet(true);
       this.te = te;
     }
 
@@ -23354,6 +23483,8 @@ public class FileSystemMasterService {
      * Performs a deep copy on <i>other</i>.
      */
     public unmount_result(unmount_result other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.success = other.success;
       if (other.isSetTe()) {
         this.te = new TachyonException(other.te);
       }
@@ -23365,7 +23496,32 @@ public class FileSystemMasterService {
 
     @Override
     public void clear() {
+      setSuccessIsSet(false);
+      this.success = false;
       this.te = null;
+    }
+
+    public boolean isSuccess() {
+      return this.success;
+    }
+
+    public unmount_result setSuccess(boolean success) {
+      this.success = success;
+      setSuccessIsSet(true);
+      return this;
+    }
+
+    public void unsetSuccess() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
     public TachyonException getTe() {
@@ -23394,6 +23550,14 @@ public class FileSystemMasterService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Boolean)value);
+        }
+        break;
+
       case TE:
         if (value == null) {
           unsetTe();
@@ -23407,6 +23571,9 @@ public class FileSystemMasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return Boolean.valueOf(isSuccess());
+
       case TE:
         return getTe();
 
@@ -23421,6 +23588,8 @@ public class FileSystemMasterService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case TE:
         return isSetTe();
       }
@@ -23440,6 +23609,15 @@ public class FileSystemMasterService {
       if (that == null)
         return false;
 
+      boolean this_present_success = true;
+      boolean that_present_success = true;
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (this.success != that.success)
+          return false;
+      }
+
       boolean this_present_te = true && this.isSetTe();
       boolean that_present_te = true && that.isSetTe();
       if (this_present_te || that_present_te) {
@@ -23455,6 +23633,11 @@ public class FileSystemMasterService {
     @Override
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true;
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
 
       boolean present_te = true && (isSetTe());
       list.add(present_te);
@@ -23472,6 +23655,16 @@ public class FileSystemMasterService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
       if (lastComparison != 0) {
         return lastComparison;
@@ -23502,6 +23695,10 @@ public class FileSystemMasterService {
       StringBuilder sb = new StringBuilder("unmount_result(");
       boolean first = true;
 
+      sb.append("success:");
+      sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("te:");
       if (this.te == null) {
         sb.append("null");
@@ -23528,6 +23725,8 @@ public class FileSystemMasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -23552,6 +23751,14 @@ public class FileSystemMasterService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.success = iprot.readBool();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // TE
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.te = new TachyonException();
@@ -23576,6 +23783,11 @@ public class FileSystemMasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.isSetSuccess()) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeBool(struct.success);
+          oprot.writeFieldEnd();
+        }
         if (struct.te != null) {
           oprot.writeFieldBegin(TE_FIELD_DESC);
           struct.te.write(oprot);
@@ -23599,10 +23811,16 @@ public class FileSystemMasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, unmount_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetTe()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetTe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          oprot.writeBool(struct.success);
+        }
         if (struct.isSetTe()) {
           struct.te.write(oprot);
         }
@@ -23611,8 +23829,12 @@ public class FileSystemMasterService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, unmount_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.success = iprot.readBool();
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.te = new TachyonException();
           struct.te.read(iprot);
           struct.setTeIsSet(true);

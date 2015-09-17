@@ -23,8 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.NotFoundException;
 
 /** This class is used for keeping track of Tachyon mount points. It is thread safe. */
 public class MountTable {
@@ -37,26 +35,26 @@ public class MountTable {
     mMountTable = new HashMap<TachyonURI, TachyonURI>(INITIAL_CAPACITY);
   }
 
-  public synchronized void add(TachyonURI tachyonPath, TachyonURI ufsPath)
-      throws AlreadyExistsException {
+  public synchronized boolean add(TachyonURI tachyonPath, TachyonURI ufsPath) {
     LOG.debug("Mounting " + ufsPath + " under " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
         // Cannot mount a path under an existing mount point.
-        throw new AlreadyExistsException("Tachyon path " + tachyonPath
-            + " cannot be mounted under an existing mount point " + entry.getValue());
+        return false;
       }
     }
     mMountTable.put(tachyonPath, ufsPath);
+    return true;
   }
 
-  public synchronized void delete(TachyonURI tachyonPath) throws NotFoundException {
+  public synchronized boolean delete(TachyonURI tachyonPath) {
     LOG.debug("Unmounting " + tachyonPath);
     if (mMountTable.containsKey(tachyonPath)) {
       mMountTable.remove(tachyonPath);
+      return true;
     }
     // Cannot mount a path under an existing mount point.
-    throw new NotFoundException("Tachyon path " + tachyonPath + " is not a valid mount point.");
+    return false;
   }
 
   public synchronized TachyonURI lookup(TachyonURI tachyonPath) {

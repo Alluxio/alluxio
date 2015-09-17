@@ -546,13 +546,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param ufsPath the UFS path
    * @throws IOException an I/O error occurs
    */
-  public synchronized void mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
+  public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
     int retry = 0;
     while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        mClient.mount(tachyonPath.toString(), ufsPath.toString(), new MountOpts());
-        return;
+        return mClient.mount(tachyonPath.toString(), ufsPath.toString(), new MountOpts());
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -567,13 +566,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param tachyonPath the Tachyon path
    * @throws IOException an I/O error occurs
    */
-  public synchronized void unmount(TachyonURI tachyonPath) throws IOException {
+  public synchronized boolean unmount(TachyonURI tachyonPath) throws IOException {
     int retry = 0;
     while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        mClient.unmount(tachyonPath.toString());
-        return;
+        return mClient.unmount(tachyonPath.toString());
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

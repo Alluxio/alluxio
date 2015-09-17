@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
-import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.NotFoundException;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
@@ -173,11 +171,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException {
+  public boolean mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException {
     try {
-      mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
-    } catch (AlreadyExistsException aee) {
-      throw new TachyonException(aee.getMessage());
+      return mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
     } catch (FileAlreadyExistException faee) {
       throw new TachyonException(faee.getMessage());
     } catch (InvalidPathException ipe) {
@@ -186,15 +182,13 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void unmount(String tachyonPath) throws TachyonException {
+  public boolean unmount(String tachyonPath) throws TachyonException {
     try {
-      mFileSystemMaster.unmount(new TachyonURI(tachyonPath));
+      return mFileSystemMaster.unmount(new TachyonURI(tachyonPath));
     } catch (FileDoesNotExistException fdnee) {
       throw new TachyonException(fdnee.getMessage());
     } catch (InvalidPathException ipe) {
       throw new TachyonException(ipe.getMessage());
-    } catch (NotFoundException nfe) {
-      throw new TachyonException(nfe.getMessage());
     }
   }
 }

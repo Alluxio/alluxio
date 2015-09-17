@@ -235,7 +235,7 @@ service FileSystemMasterService {
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
    * path. The path should not exist and should not be nested under any existing mount point.
    */
-  void mount(1: string tachyonPath, 2: string ufsPath, 3: MountOpts opts)
+  bool mount(1: string tachyonPath, 2: string ufsPath, 3: MountOpts opts)
     throws (1: TachyonException te)
 
   /**
@@ -243,7 +243,7 @@ service FileSystemMasterService {
    * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
    * will be persisted before they are removed from the Tachyon namespace.
    */
-  void unmount(1: string tachyonPath) throws (1: TachyonException te)
+  bool unmount(1: string tachyonPath) throws (1: TachyonException te)
 
   // Lineage Features
   i32 createDependency(1: list<string> parents, 2: list<string> children,
