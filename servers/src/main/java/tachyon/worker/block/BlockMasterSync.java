@@ -109,9 +109,6 @@ public final class BlockMasterSync implements Runnable {
   public void registerWithMaster() {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
-      // Request a new worker ID.
-      setWorkerId();
-      // Re-register worker meta data to BlockMaster.
       mMasterClient.register(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
@@ -202,6 +199,7 @@ public final class BlockMasterSync implements Runnable {
         break;
       // Master requests re-registration
       case Register:
+        setWorkerId();
         registerWithMaster();
         break;
       // Unknown request
