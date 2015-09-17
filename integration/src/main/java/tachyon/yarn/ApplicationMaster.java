@@ -172,13 +172,13 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     priority.setPriority(0);
 
     // Resource requirements for master containers
-    Resource masterCapability = Records.newRecord(Resource.class);
-    masterCapability.setMemory(mMasterMem);
-    masterCapability.setVirtualCores(mMasterCpu);
+    Resource masterResource = Records.newRecord(Resource.class);
+    masterResource.setMemory(mMasterMem);
+    masterResource.setVirtualCores(mMasterCpu);
 
     // Make container request for Tachyon master to ResourceManager
     ContainerRequest masterContainerAsk =
-        new ContainerRequest(masterCapability, null /* any hosts */, null /* any racks */, priority);
+        new ContainerRequest(masterResource, null /* any hosts */, null /* any racks */, priority);
     LOG.info("Making resource request for Tachyon master");
     mRMClient.addContainerRequest(masterContainerAsk);
 
@@ -187,14 +187,14 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     LOG.info("MasterContainer supplier returns " + mMasterContainerSupplier.get());
 
     // Resource requirements for master containers
-    Resource workerCapability = Records.newRecord(Resource.class);
-    workerCapability.setMemory(mWorkerMem);
-    workerCapability.setVirtualCores(mWorkerCpu);
+    Resource workerResource = Records.newRecord(Resource.class);
+    workerResource.setMemory(mWorkerMem);
+    workerResource.setVirtualCores(mWorkerCpu);
 
     // Make container requests for workers to ResourceManager
     for (int i = 0; i < mNumWorkers; i ++) {
       ContainerRequest containerAsk =
-          new ContainerRequest(workerCapability, null /* any hosts */, null /* any racks */,
+          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */,
               priority);
       LOG.info("Making resource request for Tachyon worker " + i);
       mRMClient.addContainerRequest(containerAsk);
@@ -218,8 +218,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private void launchTachyonMasterContainers(List<Container> containers) {
     String startScript = PathUtils.concatPath(mTachyonHome, "bin", "tachyon-start.sh");
     String command =
-        startScript + " master"
-            + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout"
+        startScript + " master" + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout"
             + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
 
     for (Container container : containers) {
@@ -244,9 +243,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private void launchTachyonWorkerContainers(List<Container> containers) {
     String startScript = PathUtils.concatPath(mTachyonHome, "bin", "tachyon-start.sh");
     String command =
-        startScript + " worker SudoMount"
-            + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout"
-            + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
+        startScript + " worker SudoMount" + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
+            + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
 
     Map<String, String> environmentMap = new HashMap<String, String>();
     environmentMap.put("TACHYON_MASTER_ADDRESS", mMasterContainerNetAddress);
