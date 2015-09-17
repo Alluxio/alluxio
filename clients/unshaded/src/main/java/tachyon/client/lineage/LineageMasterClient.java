@@ -27,6 +27,7 @@ import tachyon.MasterClientBase;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.job.Job;
+import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService;
 
 /**
@@ -66,5 +67,17 @@ public final class LineageMasterClient extends MasterClientBase {
   public synchronized boolean deleteLineage(long lineageId) {
     // TODO delete lineage
     return false;
+  }
+
+
+  /**
+   * Instructs a worker to persist the files for checkpoint.
+   *
+   * @param workerId the id of the worker that heartbeats
+   * @return the command for checkpointing the blocks of a file.
+   */
+  public synchronized LineageCommand lineageWorkerHeartbeat(long workerId) {
+    // TODO
+    return null;
   }
 }

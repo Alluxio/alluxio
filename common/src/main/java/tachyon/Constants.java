@@ -154,9 +154,11 @@ public class Constants {
   public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
   public static final String MASTER_CHECKPOINT_STRATEGY_CLASS =
-      "tachyon.master.checkpoint.strategy.class";
-  public static final String MASTER_CHECKPOINT_INTERVAL_MS = "tachyon.master.checkpoint.interval.ms";
-  public static final String MASTER_RECOMPUTE_INTERVAL_MS = "tachyon.master.recompute.interval.ms";
+      "tachyon.master.lineage.checkpoint.strategy.class";
+  public static final String MASTER_CHECKPOINT_INTERVAL_MS =
+      "tachyon.master.lineage.checkpoint.interval.ms";
+  public static final String MASTER_RECOMPUTE_INTERVAL_MS =
+      "tachyon.master.lineage.recompute.interval.ms";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
@@ -206,6 +208,10 @@ public class Constants {
       "tachyon.worker.evict.strategy.lrfu.attenuation.factor";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
+
+  public static final String MASTER_WORKER_LINEAGE_SYNC_INTERVAL_MS =
+      "tachyon.worker.lineage.interval.ms";
+
   /**
    * This format is used as a template to generate the property name for a given level.
    * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level)}
