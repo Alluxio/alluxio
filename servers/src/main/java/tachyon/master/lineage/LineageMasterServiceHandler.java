@@ -47,7 +47,7 @@ public final class LineageMasterServiceHandler implements Iface {
   }
 
   @Override
-  public LineageCommand lineageWorkerHeartbeat(long workerId) throws TException {
+  public LineageCommand workerLineageHeartbeat(long workerId) throws TException {
     return mLineageMaster.lineageWorkerHeartbeat(workerId);
   }
 
