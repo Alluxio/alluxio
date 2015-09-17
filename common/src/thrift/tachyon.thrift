@@ -259,7 +259,7 @@ service LineageMasterService {
   bool deleteLineage(1: i64 lineageId)
   
   // for workers
-  LineageCommand lineageWorkerHeartbeat(1: i64 workerId)
+  LineageCommand workerLineageHeartbeat(1: i64 workerId)
 }
 
 service RawTableMasterService {
