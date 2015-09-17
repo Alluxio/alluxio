@@ -63,6 +63,25 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
+   * Creates a zero byte file in Tachyon with the specified options. This is the same as calling
+   * {@link #getOutStream} and then immediately closing the stream.
+   *
+   * @param path the Tachyon path of the file
+   * @param options the set of options specific to this operation
+   * @return the fileId of the created file
+   * @throws InvalidPathException if the provided path is invalid
+   * @throws FileAlreadyExistException if the file being written to already exists
+   * @throws BlockInfoException if the provided block size is invalid
+   * @throws IOException if the master cannot create the file.
+   */
+  public long createEmptyFile(TachyonURI path, ClientOptions options) throws IOException,
+      InvalidPathException, FileAlreadyExistException, BlockInfoException {
+    long fileId = super.create(path, options.getBlockSize(), true);
+    new FileOutStream(fileId, options).close();
+    return fileId;
+  }
+
+  /**
    * Convenience function for delete recursively. This is the same as calling delete(file, true).
    *
    * @param file the TachyonFile to delete recursively
