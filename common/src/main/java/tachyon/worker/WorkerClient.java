@@ -383,6 +383,7 @@ public final class WorkerClient implements Closeable {
    * @param blockId The id of the block that will be promoted
    * @return true if succeed, false otherwise
    * @throws IOException if an I/O error occurs
+   * @throws ThriftIOException if block cannot be moved from current location to newLocation
    * @throws BlockDoesNotExistException if blockId cannot be found
    * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
    *         newLocation
@@ -420,6 +421,7 @@ public final class WorkerClient implements Closeable {
    * @param initialBytes The initial size bytes allocated for the block
    * @return the temporary path of the block
    * @throws IOException if an I/O error occurs
+   * @throws ThriftIOException if blocks in eviction plan fail to be moved or deleted
    * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
    *         or block in eviction plan already exists
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
