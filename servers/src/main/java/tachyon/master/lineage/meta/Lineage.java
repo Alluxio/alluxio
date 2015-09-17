@@ -15,6 +15,7 @@
 
 package tachyon.master.lineage.meta;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
@@ -27,13 +28,41 @@ import tachyon.job.Job;
  * and the output files the job generates.
  */
 public final class Lineage {
+  private final long mId;
   private final List<TachyonFile> mInputFiles;
   private final List<TachyonFile> mOutputFiles;
   private final Job mJob;
 
+  private LineageState mState;
+
+  /**
+   * Creates a new lineage. The state will be initialized to ADDED.
+   *
+   * @param inputFiles the input files.
+   * @param outputFiles the output files.
+   * @param job the job
+   */
   public Lineage(List<TachyonFile> inputFiles, List<TachyonFile> outputFiles, Job job) {
     mInputFiles = Preconditions.checkNotNull(inputFiles);
     mOutputFiles = Preconditions.checkNotNull(outputFiles);
     mJob = Preconditions.checkNotNull(job);
+    mState = LineageState.ADDED;
+    mId = LineageIdGenerator.generateId();
+  }
+
+  public List<TachyonFile> getInputFiles() {
+    return Collections.unmodifiableList(mInputFiles);
+  }
+
+  public List<TachyonFile> getOutputFiles() {
+    return Collections.unmodifiableList(mOutputFiles);
+  }
+
+  public LineageState getState() {
+    return mState;
+  }
+
+  public void setState(LineageState newState) {
+    mState = newState;
   }
 }
