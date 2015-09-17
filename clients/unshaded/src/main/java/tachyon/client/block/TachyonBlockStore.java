@@ -20,6 +20,8 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
+import org.apache.thrift.TException;
+
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
@@ -192,6 +194,8 @@ public final class TachyonBlockStore implements Closeable {
       WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
       try {
         workerClient.promoteBlock(blockId);
+      } catch (TException e) {
+        throw new IOException(e);
       } finally {
         mContext.releaseWorkerClient(workerClient);
       }

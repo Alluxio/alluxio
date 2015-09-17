@@ -204,7 +204,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
-      TachyonURI filePath) throws FileDoesNotExistException, BlockDoesNotExistException, IOException {
+      TachyonURI filePath) throws FileDoesNotExistException, BlockDoesNotExistException,
+      IOException {
     TachyonFile file = null;
     if (fileId == -1) {
       file = new TachyonFile(fileId);
