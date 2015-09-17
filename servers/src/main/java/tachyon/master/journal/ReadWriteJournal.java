@@ -16,20 +16,20 @@
 package tachyon.master.journal;
 
 /**
- * The read-only journal. It prevents access to a {@link JournalWriter}.
+ * The read-write journal. This allows both reads and writes to the journal.
  */
-public class ReadOnlyJournal extends Journal {
+public class ReadWriteJournal extends ReadOnlyJournal {
   /**
    * @param directory the base directory for the journal
    */
-  public ReadOnlyJournal(String directory) {
+  public ReadWriteJournal(String directory) {
     super(directory);
   }
 
   /**
-   * @return the {@link JournalReader} for this journal
+   * @return the {@link JournalWriter} for this journal
    */
-  public JournalReader getNewReader() {
-    return new JournalReader(this);
+  public JournalWriter getNewWriter() {
+    return new JournalWriter(this);
   }
 }

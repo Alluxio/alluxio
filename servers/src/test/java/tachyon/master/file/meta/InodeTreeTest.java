@@ -30,6 +30,7 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.journal.Journal;
+import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -54,7 +55,7 @@ public final class InodeTreeTest {
 
   @Before
   public void before() throws IOException {
-    Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath());
+    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
     BlockMaster blockMaster = new BlockMaster(blockJournal);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
