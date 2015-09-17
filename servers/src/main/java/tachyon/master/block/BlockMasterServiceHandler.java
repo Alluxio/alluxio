@@ -25,6 +25,7 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerDoesNotExistException;
 import tachyon.thrift.WorkerInfo;
 
 public class BlockMasterServiceHandler implements BlockMasterService.Iface {
