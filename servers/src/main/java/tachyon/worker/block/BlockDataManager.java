@@ -73,8 +73,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   private Sessions mSessions;
   /** Id of this worker */
   private long mWorkerId;
-  /** Asynchronous evictor for the block store */
-  private AsyncEvictor mAsyncEvictor;
 
   /**
    * Creates a BlockDataManager based on the configuration values.
@@ -110,14 +108,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-
-    // Check whether to start asynchronous evictor
-    if (mTachyonConf.getBoolean(Constants.WORKER_EVICT_ASYNC_ENABLE)) {
-      mAsyncEvictor = new AsyncEvictor(mBlockStore);
-      mAsyncEvictor.initialize();
-    } else {
-      mAsyncEvictor = null;
-    }
   }
 
   class PrivateAccess {
@@ -321,6 +311,25 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
     FileUtils.createBlockPath(createdBlock.getPath());
+  }
+
+  /**
+   * Frees space to make a specific amount of bytes available in the tier.
+   *
+   * @param sessionId the session ID
+   * @param availableBytes the amount of free space in bytes
+   * @param tierAlias the alias of the tier to free space
+   * @throws OutOfSpaceException if there is not enough space
+   * @throws NotFoundException if blocks can not be found
+   * @throws IOException if blocks fail to be moved or deleted on file system
+   * @throws AlreadyExistsException if blocks to move already exists in destination location
+   * @throws InvalidStateException if blocks to move/evict is uncommitted
+   */
+  void freeSpace(long sessionId, long availableBytes, int tierAlias)
+      throws OutOfSpaceException, NotFoundException, IOException, AlreadyExistsException,
+      InvalidStateException {
+    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
+    mBlockStore.freeSpace(sessionId, availableBytes, location);
   }
 
   /**
