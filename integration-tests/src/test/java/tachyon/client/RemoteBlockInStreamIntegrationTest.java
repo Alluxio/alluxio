@@ -44,6 +44,7 @@ import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.BlockInfo;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * Integration tests for <code>tachyon.client.RemoteBlockInStream</code>.
@@ -98,20 +99,19 @@ public class RemoteBlockInStreamIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    System.clearProperty(Constants.WORKER_DATA_SERVER);
-    System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
-    System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   @Before
   public final void before() throws Exception {
+    TachyonConf conf = WorkerContext.getConf();
+    conf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    conf.set(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    conf.set(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
+    conf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "100");
+
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, Constants.KB, Constants.GB);
-    System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
     mLocalTachyonCluster.start();
-    mLocalTachyonCluster.getWorkerTachyonConf().set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE,
-        "100");
+
     mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mTfs = mLocalTachyonCluster.getClient();
     mWriteTachyon =
