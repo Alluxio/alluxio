@@ -24,6 +24,7 @@ import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,6 +43,8 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -64,6 +67,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private ClientOptions mWriteUnderStore;
   private ClientOptions mReadNoCache;
   private ClientOptions mReadCache;
+  private int mWorkerToMasterHeartbeatIntervalMs;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -126,6 +130,8 @@ public class RemoteBlockInStreamIntegrationTest {
     mReadNoCache =
         new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
             .build();
+    mWorkerToMasterHeartbeatIntervalMs =
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
   }
 
   /**
@@ -550,4 +556,32 @@ public class RemoteBlockInStreamIntegrationTest {
     Assert.assertEquals(99, is.read());
     is.close();
   }
+
+  /**
+   * Test remote read stream lock in <code>RemoteBlockInStream</code>.
+   */
+  @Test
+  public void remoteReadLockTest()
+      throws IOException, InterruptedException, FileDoesNotExistException {
+    String uniqPath = PathUtils.uniqPath();
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      TachyonFile f =
+          TachyonFSTestUtils.createByteFile(mTfs, uniqPath + "/file_" + k, mWriteTachyon, k);
+
+      long blockId = mTfs.getInfo(f).getBlockIds().get(0);
+      BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      RemoteBlockInStream is =
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
+              .getWorkerAddress());
+      byte[] ret = new byte[k / 2];
+      Assert.assertEquals(0, is.read());
+      mTfs.delete(f);
+      CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
+      Assert.assertNull(mTfs.getInfo(f));
+      Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
+      is.close();
+      Assert.assertNull(mTfs.getInfo(f));
+    }
+  }
+
 }

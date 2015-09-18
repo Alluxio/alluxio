@@ -99,25 +99,12 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     final long blockId = req.getBlockId();
     final long offset = req.getOffset();
     final long len = req.getLength();
-    long lockId;
-    try {
-      lockId = mDataManager.lockBlock(Sessions.DATASERVER_SESSION_ID, blockId);
-    } catch (NotFoundException ioe) {
-      LOG.error("Failed to lock block: " + blockId, ioe);
-      RPCBlockReadResponse resp =
-          RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
-      ChannelFuture future = ctx.writeAndFlush(resp);
-      future.addListener(ChannelFutureListener.CLOSE);
-      return;
-    }
 
     BlockReader reader;
     try {
-      reader = mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId, lockId);
+      reader = mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId);
     } catch (NotFoundException nfe) {
       throw new IOException(nfe);
-    } catch (InvalidStateException fpe) {
-      throw new IOException(fpe);
     }
     try {
       req.validate();
@@ -139,12 +126,6 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       future.addListener(ChannelFutureListener.CLOSE);
       if (reader != null) {
         reader.close();
-      }
-    } finally {
-      try {
-        mDataManager.unlockBlock(lockId);
-      } catch (NotFoundException nfe) {
-        throw new IOException(nfe);
       }
     }
   }

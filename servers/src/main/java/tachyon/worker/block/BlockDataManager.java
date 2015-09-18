@@ -438,16 +438,13 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to read
-   * @param lockId The id of the lock on this block
    * @return the block reader for the block
-   * @throws NotFoundException if lockId is not found
-   * @throws InvalidStateException if sessionId or blockId is not the same as that in the LockRecord
-   *         of lockId
+   * @throws NotFoundException if block cannot be found
    * @throws IOException if block cannot be read
    */
-  public BlockReader readBlockRemote(long sessionId, long blockId, long lockId)
-      throws NotFoundException, InvalidStateException, IOException {
-    return mBlockStore.getBlockReader(sessionId, blockId, lockId);
+  public BlockReader readBlockRemote(long sessionId, long blockId) throws NotFoundException,
+      IOException {
+    return mBlockStore.getBlockReader(sessionId, blockId);
   }
 
   /**

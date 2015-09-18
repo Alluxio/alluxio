@@ -216,9 +216,8 @@ public final class NIODataServer implements Runnable, DataServer {
       final long blockId = tMessage.getBlockId();
       LOG.info("Get request for blockId: {}", blockId);
 
-      long lockId = mDataManager.lockBlock(Sessions.DATASERVER_SESSION_ID, blockId);
       BlockReader reader =
-          mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId, lockId);
+          mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId);
       ByteBuffer data;
       int dataLen = 0;
       try {
@@ -233,7 +232,6 @@ public final class NIODataServer implements Runnable, DataServer {
       }
       DataServerMessage tResponseMessage = DataServerMessage.createBlockResponseMessage(true,
           blockId, tMessage.getOffset(), dataLen, data);
-      tResponseMessage.setLockId(lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }
   }
@@ -310,12 +308,6 @@ public final class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      // TODO(calvin): Reconsider how we handle this exception.
-      try {
-        mDataManager.unlockBlock(sendMessage.getLockId());
-      } catch (NotFoundException ioe) {
-        LOG.error("Failed to unlock block: " + sendMessage.getBlockId(), ioe);
-      }
     }
   }
 }

@@ -166,9 +166,6 @@ public class DataServerMessage {
 
   private RPCResponse.Status mStatus;
 
-  // TODO(calvin): Investigate how to remove this since it is not transferred over the wire.
-  private long mLockId = -1L;
-
   private ByteBuffer mData = null;
 
   /**
@@ -250,15 +247,6 @@ public class DataServerMessage {
   public long getLength() {
     checkReady();
     return mLength;
-  }
-
-  /**
-   * Get the id of the block's locker.
-   *
-   * @return The id of the block's locker
-   */
-  public long getLockId() {
-    return mLockId;
   }
 
   /**
@@ -399,14 +387,5 @@ public class DataServerMessage {
     if (mHeader.remaining() == 0) {
       socketChannel.write(mData);
     }
-  }
-
-  /**
-   * Set the id of the block's locker.
-   *
-   * @param lockId The id of the block's locker
-   */
-  public void setLockId(long lockId) {
-    mLockId = lockId;
   }
 }

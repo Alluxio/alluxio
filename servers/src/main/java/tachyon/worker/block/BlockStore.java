@@ -192,15 +192,11 @@ interface BlockStore {
    *
    * @param sessionId the ID of the session to get the reader
    * @param blockId the ID of an existing block
-   * @param lockId the ID of the lock returned by {@link #lockBlock}
    * @return a {@link BlockReader} instance on this block
-   * @throws NotFoundException if lockId is not found
-   * @throws InvalidStateException if sessionId or blockId is not the same as that in the LockRecord
-   *         of lockId
+   * @throws NotFoundException if block cannot be found
    * @throws IOException if block can not be read
    */
-  BlockReader getBlockReader(long sessionId, long blockId, long lockId)
-      throws NotFoundException, InvalidStateException, IOException;
+  BlockReader getBlockReader(long sessionId, long blockId) throws NotFoundException, IOException;
 
   /**
    * Moves an existing block to a new location.
