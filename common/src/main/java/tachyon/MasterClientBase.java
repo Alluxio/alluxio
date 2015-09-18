@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -208,5 +209,104 @@ public abstract class MasterClientBase implements Closeable {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * The RPC to be executed in {@link #retryRPC(RpcCallable)}.
+   *
+   * @param <V> the return value of {@link #call()}
+   */
+  protected interface RpcCallable<V> {
+    /**
+     * The task where RPC happens.
+     *
+     * @return RPC result
+     * @throws TException when any exception defined in thrift happens
+     */
+    V call() throws TException;
+  }
+
+
+  /**
+   * The RPC to be executed in
+   * {@link #retryRPC(RpcCallableWithPropagateTException)}.
+   *
+   * @param <V> the return value of {@link #call()}
+   */
+  protected interface RpcCallableWithPropagateTException<V> {
+    /**
+     * Wrapper around {@link TException} to be thrown by {@link #call} when it wants to be
+     * propagated outside {@link #retryRPC(RpcCallableWithPropagateTException)}.
+     */
+    public static class PropagateTException extends Exception {
+      private TException mTException;
+
+      public PropagateTException(TException te) {
+        mTException = te;
+      }
+
+      public TException getWrappedTException() {
+        return mTException;
+      }
+    }
+
+    /**
+     * The task where RPC happens.
+     *
+     * @return RPC result
+     * @throws PropagateTException when the TException should be propagated out {@link #retryRPC}
+     * @throws TException when any exception defined in thrift happens
+     */
+    V call() throws PropagateTException, TException;
+  }
+
+
+  /**
+   * Tries to execute a RPC defined as a {@link RpcCallableWithPropagateTException}, if error
+   * happens in one execution, a reconnection will be tried through {@link #connect()} and the
+   * action will be re-executed.
+   *
+   * @param rpc the {@link RpcCallable} to be executed
+   * @param <V> type of return value of the RPC call
+   * @return the return value of action
+   * @throws RpcCallableWithPropagateTException.PropagateTException when there are TExceptions that
+   *                                                                need to be propagated
+   * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
+   *                     been called before calling this method or during the retry
+   */
+  protected <V> V retryRPC(RpcCallableWithPropagateTException<V> rpc)
+      throws RpcCallableWithPropagateTException.PropagateTException, IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return rpc.call();
+      } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+        throw e;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  /**
+   * The same as {@link #retryRPC(tachyon.MasterClientBase.RpcCallableWithPropagateTException)}
+   * except that the rpc is defined as {@link RpcCallable} and there are no TExceptions to be
+   * propagated outside.
+   */
+  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return rpc.call();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
   }
 }
