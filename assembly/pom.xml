@@ -84,6 +84,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <shadeTestJar>true</shadeTestJar>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
@@ -101,6 +102,19 @@
                   </excludes>
                 </filter>
               </filters>
+              <artifactSet>
+                <includes>
+                  <include>org.eclipse.jetty:jetty-io</include>
+                  <include>org.eclipse.jetty:jetty-http</include>
+                  <include>org.eclipse.jetty:jetty-continuation</include>
+                  <include>org.eclipse.jetty:jetty-servlet</include>
+                  <include>org.eclipse.jetty:jetty-plus</include>
+                  <include>org.eclipse.jetty:jetty-security</include>
+                  <include>org.eclipse.jetty:jetty-util</include>
+                  <include>org.eclipse.jetty:jetty-server</include>
+                  <include>com.google.guava:guava</include>
+                </includes>
+              </artifactSet>
             </configuration>
           </execution>
         </executions>
