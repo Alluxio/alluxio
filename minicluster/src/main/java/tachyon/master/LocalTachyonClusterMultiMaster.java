@@ -338,17 +338,6 @@ public class LocalTachyonClusterMultiMaster {
       mMasters.get(k).stop();
     }
     mCuratorServer.stop();
-
-    System.clearProperty(Constants.TACHYON_HOME);
-    System.clearProperty(Constants.USE_ZOOKEEPER);
-    System.clearProperty(Constants.ZOOKEEPER_ADDRESS);
-    System.clearProperty(Constants.ZOOKEEPER_ELECTION_PATH);
-    System.clearProperty(Constants.ZOOKEEPER_LEADER_PATH);
-    System.clearProperty(Constants.WORKER_PORT);
-    System.clearProperty(Constants.WORKER_DATA_PORT);
-    System.clearProperty(Constants.WORKER_DATA_FOLDER);
-    System.clearProperty(Constants.WORKER_MEMORY_SIZE);
-    System.clearProperty(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
   }
 
   public void stopUFS() throws Exception {
