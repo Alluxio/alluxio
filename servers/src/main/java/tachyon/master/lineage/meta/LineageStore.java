@@ -16,9 +16,12 @@ package tachyon.master.lineage.meta;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.dag.DAG;
@@ -33,7 +36,7 @@ public final class LineageStore {
   /** Indices for lineages */
   /** Index of the output files of lineage to lineage */
   private Map<TachyonFile, Lineage> mOutputFileIndex;
-  private Map<LineageState, Lineage> mStateIndex;
+  private Map<LineageState, Set<Lineage>> mStateIndex;
   private Map<Long, Lineage> mIdIndex;
 
   public LineageStore() {
@@ -44,11 +47,11 @@ public final class LineageStore {
   }
 
   public long addLineage(List<TachyonFile> inputFiles, List<TachyonFile> outputFiles, Job job) {
-    Lineage lineage  = new Lineage(inputFiles, outputFiles, job);
+    Lineage lineage = new Lineage(inputFiles, outputFiles, job);
 
     List<Lineage> parentLineages = Lists.newArrayList();
-    for(TachyonFile inputFile:inputFiles) {
-      if(mOutputFileIndex.containsKey(inputFile)) {
+    for (TachyonFile inputFile : inputFiles) {
+      if (mOutputFileIndex.containsKey(inputFile)) {
         parentLineages.add(mOutputFileIndex.get(inputFile));
       }
     }
@@ -59,14 +62,47 @@ public final class LineageStore {
     for (TachyonFile outputFile : outputFiles) {
       mOutputFileIndex.put(outputFile, lineage);
     }
-    mStateIndex.put(lineage.getState(), lineage);
+    updateState(lineage, lineage.getState());
     mIdIndex.put(lineage.getId(), lineage);
 
     return lineage.getId();
   }
 
+  public void deleteLineage(long lineageId) {
+    Preconditions.checkState(mIdIndex.containsKey(lineageId),
+        "lineage id " + lineageId + " does not exist");
+    Lineage toDelete = mIdIndex.get(lineageId);
+
+    // delete children first
+    for (Lineage childLineage : mLineageDAG.getChildren(toDelete)) {
+      deleteLineage(childLineage.getId());
+    }
+
+    // delete the given node
+    mLineageDAG.deleteLeaf(toDelete);
+    mIdIndex.remove(lineageId);
+    for (TachyonFile outputFile : toDelete.getOutputFiles()) {
+      mOutputFileIndex.remove(outputFile);
+    }
+    mStateIndex.get(toDelete.getState()).remove(toDelete);
+  }
+
+  public Lineage getLineage(long lineageId) {
+    return mIdIndex.get(lineageId);
+  }
+
+  public List<Lineage> getChildren(Lineage lineage) {
+    Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
+        "lineage id " + lineage.getId() + " does not exist");
+
+    return mLineageDAG.getChildren(lineage);
+  }
+
   private void updateState(Lineage lineage, LineageState newState) {
     lineage.setState(newState);
-    mStateIndex.put(newState, lineage);
+    if (!mStateIndex.containsKey(newState)) {
+      mStateIndex.put(newState, Sets.<Lineage>newHashSet());
+    }
+    mStateIndex.get(newState).add(lineage);
   }
 }

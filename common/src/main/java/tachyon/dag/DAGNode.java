@@ -59,4 +59,9 @@ public class DAGNode<T> {
   public void addChild(DAGNode<T> child) {
     mChildren.add(child);
   }
+
+  public void removeChild(DAGNode<T> child) {
+    Preconditions.checkState(mChildren.contains(child));
+    mChildren.remove(child);
+  }
 }
