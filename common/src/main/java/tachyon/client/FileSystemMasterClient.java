@@ -37,7 +37,6 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.
@@ -45,7 +44,6 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-// TODO(gene): Figure out a retry utility to make all the retry logic in this file better.
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -79,20 +77,21 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws InvalidPathException if the given path is invalid
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long getFileId(String path) throws IOException, InvalidPathException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.getFileId(path);
-      } catch (InvalidPathException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized long getFileId(final String path) throws IOException, InvalidPathException {
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Long>() {
+        @Override
+        public Long call() throws PropagateTException, TException {
+          try {
+            return mClient.getFileId(path);
+          } catch (InvalidPathException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (InvalidPathException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -101,21 +100,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized FileInfo getFileInfo(long fileId) throws IOException,
+  public synchronized FileInfo getFileInfo(final long fileId) throws IOException,
       FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.getFileInfo(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<FileInfo>() {
+        @Override
+        public FileInfo call() throws PropagateTException, TException {
+          try {
+            return mClient.getFileInfo(fileId);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -124,21 +124,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException,
+  public synchronized List<FileInfo> getFileInfoList(final long fileId) throws IOException,
       FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.getFileInfoList(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<List<FileInfo>>() {
+        @Override
+        public List<FileInfo> call() throws PropagateTException, TException {
+          try {
+            return mClient.getFileInfoList(fileId);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -150,23 +151,28 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO(calvin): Not sure if this is necessary.
-  public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
+  public synchronized FileBlockInfo getFileBlockInfo(final long fileId, final int fileBlockIndex)
       throws IOException, FileDoesNotExistException, BlockInfoException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.getFileBlockInfo(fileId, fileBlockIndex);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (BlockInfoException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<FileBlockInfo>() {
+        @Override
+        public FileBlockInfo call() throws PropagateTException, TException {
+          try {
+            return mClient.getFileBlockInfo(fileId, fileBlockIndex);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          } catch (BlockInfoException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      TException te = e.getWrappedTException();
+      if (te instanceof FileDoesNotExistException) {
+        throw (FileDoesNotExistException) te;
       }
+      throw (BlockInfoException) te;
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -176,21 +182,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO(calvin): Not sure if this is necessary.
-  public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException,
-      FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.getFileBlockInfoList(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized List<FileBlockInfo> getFileBlockInfoList(final long fileId)
+      throws IOException, FileDoesNotExistException {
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<List<FileBlockInfo>>() {
+        @Override
+        public List<FileBlockInfo> call() throws PropagateTException, TException {
+          try {
+            return mClient.getFileBlockInfoList(fileId);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -199,21 +206,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs.
    */
-  public synchronized long getNewBlockIdForFile(long fileId) throws IOException,
+  public synchronized long getNewBlockIdForFile(final long fileId) throws IOException,
       FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.getNewBlockIdForFile(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Long>() {
+        @Override
+        public Long call() throws PropagateTException, TException {
+          try {
+            return mClient.getNewBlockIdForFile(fileId);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -221,17 +229,12 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized String getUfsAddress() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+    return retryRPC(new RpcCallable<String>() {
+      @Override
+      public String call() throws TException {
         return mClient.getUfsAddress();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 
   /**
@@ -246,25 +249,33 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
-      throws IOException, BlockInfoException, InvalidPathException, FileAlreadyExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.createFile(path, blockSizeBytes, recursive);
-      } catch (BlockInfoException e) {
-        throw e;
-      } catch (InvalidPathException e) {
-        throw e;
-      } catch (FileAlreadyExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+  public synchronized long createFile(final String path, final long blockSizeBytes,
+      final boolean recursive) throws IOException, BlockInfoException, InvalidPathException,
+        FileAlreadyExistException {
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Long>() {
+        @Override
+        public Long call() throws PropagateTException, TException {
+          try {
+            return mClient.createFile(path, blockSizeBytes, recursive);
+          } catch (BlockInfoException e) {
+            throw new PropagateTException(e);
+          } catch (InvalidPathException e) {
+            throw new PropagateTException(e);
+          } catch (FileAlreadyExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      TException te = e.getWrappedTException();
+      if (te instanceof BlockInfoException) {
+        throw (BlockInfoException) te;
+      } else if (te instanceof InvalidPathException) {
+        throw (InvalidPathException) te;
       }
+      throw (FileAlreadyExistException) te;
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -277,21 +288,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, boolean recursive)
-      throws IOException, FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.loadFileInfoFromUfs(path, ufsPath, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized long loadFileInfoFromUfs(final String path, final String ufsPath,
+      final boolean recursive) throws IOException, FileDoesNotExistException {
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Long>() {
+        @Override
+        public Long call() throws PropagateTException, TException {
+          try {
+            return mClient.loadFileInfoFromUfs(path, ufsPath, recursive);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -302,24 +314,29 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws BlockInfoException if the block index is invalid
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void completeFile(long fileId) throws IOException, FileDoesNotExistException,
-      BlockInfoException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.completeFile(fileId);
-        return;
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (BlockInfoException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+  public synchronized void completeFile(final long fileId) throws IOException,
+      FileDoesNotExistException, BlockInfoException {
+    try {
+      retryRPC(new RpcCallableWithPropagateTException<Void>() {
+        @Override
+        public Void call() throws PropagateTException, TException {
+          try {
+            mClient.completeFile(fileId);
+            return null;
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          } catch (BlockInfoException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      TException te = e.getWrappedTException();
+      if (te instanceof FileDoesNotExistException) {
+        throw (FileDoesNotExistException) te;
       }
+      throw (BlockInfoException) te;
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -331,21 +348,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException,
-      FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.deleteFile(fileId, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized boolean deleteFile(final long fileId, final boolean recursive)
+      throws IOException, FileDoesNotExistException {
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Boolean>() {
+        @Override
+        public Boolean call() throws PropagateTException, TException {
+          try {
+            return mClient.deleteFile(fileId, recursive);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -357,21 +375,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean renameFile(long fileId, String dstPath) throws IOException,
-      FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.renameFile(fileId, dstPath);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized boolean renameFile(final long fileId, final String dstPath)
+      throws IOException, FileDoesNotExistException {
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Boolean>() {
+        @Override
+        public Boolean call() throws PropagateTException, TException {
+          try {
+            return mClient.renameFile(fileId, dstPath);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -382,22 +401,23 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void setPinned(long fileId, boolean pinned) throws IOException,
+  public synchronized void setPinned(final long fileId, final boolean pinned) throws IOException,
       FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.setPinned(fileId, pinned);
-        return;
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      retryRPC(new RpcCallableWithPropagateTException<Void>() {
+        @Override
+        public Void call() throws PropagateTException, TException {
+          try {
+            mClient.setPinned(fileId, pinned);
+            return null;
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -410,23 +430,28 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException,
-      FileAlreadyExistException, InvalidPathException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.createDirectory(path, recursive);
-      } catch (InvalidPathException e) {
-        throw e;
-      } catch (FileAlreadyExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
+  public synchronized boolean createDirectory(final String path, final boolean recursive)
+      throws IOException, FileAlreadyExistException, InvalidPathException {
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Boolean>() {
+        @Override
+        public Boolean call() throws PropagateTException, TException {
+          try {
+            return mClient.createDirectory(path, recursive);
+          } catch (InvalidPathException e) {
+            throw new PropagateTException(e);
+          } catch (FileAlreadyExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      TException te = e.getWrappedTException();
+      if (te instanceof InvalidPathException) {
+        throw (InvalidPathException) te;
       }
+      throw (FileAlreadyExistException) te;
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -438,21 +463,22 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean free(long fileId, boolean recursive) throws IOException,
+  public synchronized boolean free(final long fileId, final boolean recursive) throws IOException,
       FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.free(fileId, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Boolean>() {
+        @Override
+        public Boolean call() throws PropagateTException, TException {
+          try {
+            return mClient.free(fileId, recursive);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -462,21 +488,23 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void reportLostFile(long fileId) throws IOException,
+  public synchronized void reportLostFile(final long fileId) throws IOException,
       FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.reportLostFile(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      retryRPC(new RpcCallableWithPropagateTException<Void>() {
+        @Override
+        public Void call() throws PropagateTException, TException {
+          try {
+            mClient.reportLostFile(fileId);
+            return null;
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -486,21 +514,23 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws DependencyDoesNotExistException if the dependency does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void requestFilesInDependency(int depId) throws IOException,
+  public synchronized void requestFilesInDependency(final int depId) throws IOException,
       DependencyDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.requestFilesInDependency(depId);
-      } catch (DependencyDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      retryRPC(new RpcCallableWithPropagateTException<Void>() {
+        @Override
+        public Void call() throws PropagateTException, TException {
+          try {
+            mClient.requestFilesInDependency(depId);
+            return null;
+          } catch (DependencyDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (DependencyDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
