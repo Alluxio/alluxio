@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
@@ -107,7 +106,10 @@ public final class Client {
   private long mClientTimeout;
   /** Number of tachyon workers. */
   private int mNumWorkers;
+  /** Tachyon home path on YARN containers. */
   private String mTachyonHome;
+  /** Address to run Tachyon master. */
+  private String mMasterAddress;
   /** Id of the application */
   private ApplicationId mAppId;
   /** Command line options */
@@ -126,6 +128,7 @@ public final class Client {
         + "application master");
     mOptions.addOption("jar", true, "Jar file containing the application master");
     mOptions.addOption("tachyon_home", true, "Path to Tachyon home dir on YARN slave machines");
+    mOptions.addOption("master_address", true, "Address to run Tachyon master");
     mOptions.addOption("debug", false, "Dump out debug information");
     mOptions.addOption("help", false, "Print usage");
     mOptions.addOption("num_workers", true, "Number of tachyon workers to launch");
@@ -178,13 +181,16 @@ public final class Client {
       printUsage();
       return false;
     }
-    if (!cliParser.hasOption("jar") || !cliParser.hasOption("tachyon_home")) {
+    if (!cliParser.hasOption("jar") || !cliParser.hasOption("tachyon_home")
+        || !cliParser.hasOption("master_address")) {
       printUsage();
       return false;
     }
 
     mHDFSAppMasterJar = cliParser.getOptionValue("jar");
     mTachyonHome = cliParser.getOptionValue("tachyon_home");
+    mMasterAddress = cliParser.getOptionValue("master_address");
+
     mAppName = cliParser.getOptionValue("appname", "Tachyon");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
     mAmQueue = cliParser.getOptionValue("queue", "default");
@@ -265,24 +271,15 @@ public final class Client {
   }
 
   private void setupContainerLaunchContext() throws IOException {
-    Vector<CharSequence> vargs = new Vector<CharSequence>(30);
-    vargs.add(Environment.JAVA_HOME.$$() + "/bin/java");
-    vargs.add("-Xmx256M");
-    vargs.add(mAppMasterMainClass);
-    vargs.add(String.valueOf(mNumWorkers));
-    vargs.add(mTachyonHome);
-    vargs.add("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout");
-    vargs.add("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr");
+    final String amCommand =
+        new CommandBuilder(Environment.JAVA_HOME.$$() + "/bin/java").addArg("-Xmx256M")
+            .addArg(mAppMasterMainClass).addArg(mNumWorkers).addArg(mTachyonHome)
+            .addArg(mMasterAddress)
+            .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
+            .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
-    // Get final command
-    StringBuilder commandBuilder = new StringBuilder();
-    for (CharSequence str : vargs) {
-      commandBuilder.append(str).append(" ");
-    }
-    String command = commandBuilder.toString();
-
-    System.out.println("AM command: " + command);
-    mAmContainer.setCommands(Collections.singletonList(command));
+    System.out.println("AM command: " + amCommand);
+    mAmContainer.setCommands(Collections.singletonList(amCommand));
 
     // Setup jar for ApplicationMaster
     LocalResource appMasterJar = Records.newRecord(LocalResource.class);
