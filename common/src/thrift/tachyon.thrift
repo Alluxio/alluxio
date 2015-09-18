@@ -257,6 +257,10 @@ service LineageMasterService {
   
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
   
+  i64 recreateFile(1: string path, 2: i64 blockSizeBytes)
+  
+  void asyncCompleteFile(1: i64 fileId, 2: string filePath)
+  
   // for workers
   LineageCommand workerLineageHeartbeat(1: i64 workerId)
 }

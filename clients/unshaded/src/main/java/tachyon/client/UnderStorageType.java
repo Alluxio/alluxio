@@ -22,10 +22,14 @@ package tachyon.client;
  */
 public enum UnderStorageType {
   /** Persist data to Under Storage synchronously. */
-  PERSIST(1),
+  SYNC_PERSIST(1),
 
   /** Do not persist data to Under Storage. */
-  NO_PERSIST(2);
+  NO_PERSIST(2),
+
+
+  /** Persist data to Under Storage asynchronously via lineage */
+  ASYNC_PERSIST(3);
 
   private final int mValue;
 
@@ -34,9 +38,16 @@ public enum UnderStorageType {
   }
 
   /**
-   * @return whether the data should be persisted to Under Storage
+   * @return whether the data should be persisted to Under Storage synchronously
    */
-  public boolean isPersist() {
-    return mValue == PERSIST.mValue;
+  public boolean isSyncPersist() {
+    return mValue == SYNC_PERSIST.mValue;
+  }
+
+  /**
+   * @return whether the data should be persisted to Under Storage asynchronously
+   */
+  public boolean isAsyncPersist() {
+    return mValue == ASYNC_PERSIST.mValue;
   }
 }

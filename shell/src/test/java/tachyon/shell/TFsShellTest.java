@@ -134,7 +134,7 @@ public class TFsShellTest {
   public void loadFileTest() throws IOException, TException {
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.NO_STORE,
-            UnderStorageType.PERSIST, 10);
+            UnderStorageType.SYNC_PERSIST, 10);
     FileInfo fileInfo = mTfs.getInfo(file);
     Assert.assertFalse(fileInfo.getInMemoryPercentage() == 100);
     // Testing loading of a single file
@@ -146,7 +146,7 @@ public class TFsShellTest {
   @Test
   public void loadDirTest() throws IOException, TException {
     TachyonFile fileA = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileA",
-        TachyonStorageType.NO_STORE, UnderStorageType.PERSIST, 10);
+        TachyonStorageType.NO_STORE, UnderStorageType.SYNC_PERSIST, 10);
     TachyonFile fileB = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileB",
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
     FileInfo fileInfoA = mTfs.getInfo(fileA);
@@ -374,7 +374,7 @@ public class TFsShellTest {
     files[1] = mTfs.getInfo(mTfs.open(new TachyonURI("/testRoot/testDir")));
     files[2] = mTfs.getInfo(mTfs.open(new TachyonURI("/testRoot/testDir/testFileB")));
     TachyonFile fileC = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC",
-        TachyonStorageType.NO_STORE, UnderStorageType.PERSIST, 30);
+        TachyonStorageType.NO_STORE, UnderStorageType.SYNC_PERSIST, 30);
     files[3] = mTfs.getInfo(fileC);
     mFsShell.run(new String[] {"lsr", "/testRoot"});
     String expected = "";
@@ -408,7 +408,7 @@ public class TFsShellTest {
         UnderStorageType.NO_PERSIST, 20);
     files[1] = mTfs.getInfo(mTfs.open(new TachyonURI("/testRoot/testDir")));
     TachyonFile fileC = TachyonFSTestUtils.createByteFile(mTfs, "/testRoot/testFileC",
-        TachyonStorageType.NO_STORE, UnderStorageType.PERSIST, 30);
+        TachyonStorageType.NO_STORE, UnderStorageType.SYNC_PERSIST, 30);
     files[2] = mTfs.getInfo(fileC);
     mFsShell.run(new String[] {"ls", "/testRoot"});
     String expected = "";

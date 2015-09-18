@@ -48,7 +48,7 @@ import tachyon.worker.WorkerClient;
  * under storage system.
  */
 @PublicApi
-public final class FileOutStream extends OutputStream implements Cancelable {
+public class FileOutStream extends OutputStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mFileId;
@@ -80,7 +80,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
       String sessionUnderStorageFolder = mWorkerClient.getSessionUfsTempFolder();
       mUnderStorageFile = PathUtils.concatPath(sessionUnderStorageFolder, mFileId);
@@ -96,6 +96,10 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+  }
+
+  protected boolean isClosed() {
+    return mClosed;
   }
 
   @Override
@@ -114,7 +118,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     }
 
     Boolean canComplete = false;
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
@@ -167,7 +171,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
   @Override
   public void flush() throws IOException {
     // TODO(yupeng): Handle flush for Tachyon storage stream as well.
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.flush();
     }
   }
@@ -185,7 +189,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       }
     }
 
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b);
     }
   }
@@ -224,7 +228,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       }
     }
 
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
     }
   }
@@ -255,7 +259,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
   }
 
   private void handleCacheWriteException(IOException ioe) throws IOException {
-    if (!mUnderStorageType.isPersist()) {
+    if (!mUnderStorageType.isSyncPersist()) {
       // TODO(yupeng): Handle this exception better.
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
     }

@@ -119,7 +119,7 @@ public class RemoteBlockInStreamIntegrationTest {
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     mWriteUnderStore =
         new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     mReadCache =
         new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
             .build();

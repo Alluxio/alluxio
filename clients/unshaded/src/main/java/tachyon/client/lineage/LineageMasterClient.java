@@ -112,4 +112,33 @@ public final class LineageMasterClient extends MasterClientBase {
     }
     throw new IOException("Failed after " + retry + " retries.");
   }
+
+  public synchronized long recreateFile(String path, long blockSizeBytes)
+      throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        mClient.recreateFile(path, blockSizeBytes);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  public synchronized void asyncCompleteFile(long fileId, String filePath) throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        mClient.asyncCompleteFile(fileId, filePath);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
 }

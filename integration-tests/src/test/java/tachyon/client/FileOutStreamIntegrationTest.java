@@ -99,13 +99,13 @@ public class FileOutStreamIntegrationTest {
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
         new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType.STORE,
-            UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+            UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
     sWriteTachyon =
         new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType.STORE,
             UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
     sWriteUnderStore =
         new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType
-            .NO_STORE, UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+            .NO_STORE, UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
   }
 
   @BeforeClass
@@ -136,7 +136,7 @@ public class FileOutStreamIntegrationTest {
       is.close();
     }
 
-    if (underStorageType.isPersist()) {
+    if (underStorageType.isSyncPersist()) {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
       String checkpointPath = info.getUfsPath();

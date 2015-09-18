@@ -913,7 +913,7 @@ public class TFsShell implements Closeable {
     try {
       mTfs.getOutStream(
           path,
-          new ClientOptions.Builder(mTachyonConf).setUnderStorageType(UnderStorageType.PERSIST)
+          new ClientOptions.Builder(mTachyonConf).setUnderStorageType(UnderStorageType.SYNC_PERSIST)
               .build()).close();
     } catch (TException e) {
       throw new IOException(e.getMessage());

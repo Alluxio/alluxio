@@ -167,6 +167,13 @@ public final class LineageMaster extends MasterBase {
     return true;
   }
 
+  public long recreateFile(String path, long blockSizeBytes) {
+    return -1;
+  }
+
+  public void asyncCompleteFile(long fileId, String filePath) {
+    // TODO
+  }
   /**
    * Instructs a worker to persist the files for checkpoint.
    *

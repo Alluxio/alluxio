@@ -51,5 +51,4 @@ public class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
   protected LineageMasterClient createNewResource() {
     return new LineageMasterClient(mMasterAddress, mExecutorService, ClientContext.getConf());
   }
-
 }

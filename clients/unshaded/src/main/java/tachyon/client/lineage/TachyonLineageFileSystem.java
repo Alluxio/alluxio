@@ -24,34 +24,28 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientOptions;
+import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.job.Job;
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 
 /**
  * Tachyon lineage client. This class is the entry point for all lineage related operations. An
- * instance of this class can be obtained via {@link TachyonLineage#get}.This class is thread safe.
+ * instance of this class can be obtained via {@link TachyonLineageFileSystem#get}.This class is thread safe.
  */
 @PublicApi
-public class TachyonLineage {
+public class TachyonLineageFileSystem extends TachyonFileSystem{
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  /** the singleton */
-  private static TachyonLineage sClient;
 
   protected LineageContext mContext;
 
-  protected TachyonLineage() {
+  protected TachyonLineageFileSystem() {
+    super();
     mContext = LineageContext.INSTANCE;
-  }
-
-  /**
-   * @return the only instance of lineage client.
-   */
-  public static synchronized TachyonLineage get() {
-    if (sClient == null) {
-      sClient = new TachyonLineage();
-    }
-    return sClient;
   }
 
   /**
@@ -100,5 +94,35 @@ public class TachyonLineage {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  /**
+   * All the files are already created when lineage was added. This method reconfigures the created
+   * file.
+   *
+   * @throws IOException
+   */
+  @Override
+  public long create(TachyonURI path, long blockSize, boolean recursive) {
+    LineageMasterClient masterClient = mContext.acquireMasterClient();
+
+    try {
+      long fileId = masterClient.recreateFile(path.getPath(), blockSize);
+      LOG.info("Recreated file " + path + " with blockSize: " + blockSize);
+      return fileId;
+    } catch (IOException e) {
+      // TODO(yupeng): error handling.
+      throw new RuntimeException("recreation failed", e);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public FileOutStream getOutStream(TachyonURI path, ClientOptions options) throws IOException,
+      InvalidPathException, FileAlreadyExistException, BlockInfoException {
+    // TODO recreate file
+    long fileId = create(path, options.getBlockSize(), true);
+    return new LineageFileOutStream(fileId, options);
   }
 }
