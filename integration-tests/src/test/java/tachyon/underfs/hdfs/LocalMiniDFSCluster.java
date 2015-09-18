@@ -185,7 +185,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   @Override
   public String getUnderFilesystemAddress() {
-    if (null != mDfsClient) {
+    if (mDfsClient != null) {
       return mDfsClient.getUri().toString();
     }
     return null;
@@ -224,9 +224,9 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
         throw new IOException("Failed to make folder: " + mBaseDir);
       }
 
-      // TODO For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused by
-      // "umask 002"(should be 022) see [HDFS-2556]. So the following codes only work for
-      // hadoop 2.x or "umask 022"
+      // TODO(hy): For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused
+      // by "umask 002" (should be 022) see [HDFS-2556]. So the following code only works for
+      // hadoop 2.x or "umask 022".
       System.setProperty("test.build.data", mBaseDir);
       mDfsCluster = new MiniDFSCluster(mNamenodePort, mConf, mNumDataNode, true, true, null, null);
       mDfsCluster.waitClusterUp();

@@ -47,9 +47,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
@@ -103,7 +101,6 @@ public class DataServerIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    mTFS.close();
     mBlockMasterClient.close();
     mLocalTachyonCluster.stop();
     System.clearProperty(Constants.WORKER_DATA_SERVER);
@@ -273,7 +270,7 @@ public class DataServerIntegrationTest {
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
   }
 
-  // TODO: Make this work with the new BlockReader
+  // TODO(calvin): Make this work with the new BlockReader.
   // @Test
   public void readThroughClientNonExistentTest() throws IOException, TException {
     final int length = 10;

@@ -171,7 +171,8 @@ public final class BlockWorker {
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
     mBlockDataManager =
-        new BlockDataManager(workerSource, mBlockMasterClient, mFileSystemMasterClient);
+        new BlockDataManager(workerSource, mBlockMasterClient, mFileSystemMasterClient,
+            new TieredBlockStore());
 
     // Setup metrics collection
     mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
@@ -213,7 +214,7 @@ public final class BlockWorker {
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
             mBlockMasterClient);
     // Get the worker id
-    // TODO: Do this at TachyonWorker
+    // TODO(calvin): Do this at TachyonWorker.
     mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
@@ -223,13 +224,13 @@ public final class BlockWorker {
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager, mTachyonConf);
 
     // Setup session metadata mapping
-    // TODO: Have a top level register that gets the worker id.
+    // TODO(calvin): Have a top level register that gets the worker id.
     long workerId = mBlockMasterSync.getWorkerId();
     String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
     Sessions sessions = new Sessions(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
 
     // Give BlockDataManager a pointer to the session metadata mapping
-    // TODO: Fix this hack when we have a top level register
+    // TODO(calvin): Fix this hack when we have a top level register.
     mBlockDataManager.setSessions(sessions);
     mBlockDataManager.setWorkerId(workerId);
   }
@@ -289,7 +290,7 @@ public final class BlockWorker {
     }
     mBlockDataManager.stop();
     while (!mDataServer.isClosed() || mThriftServer.isServing()) {
-      // TODO: The reason to stop and close again is due to some issues in Thrift.
+      // TODO(calvin): The reason to stop and close again is due to some issues in Thrift.
       mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();

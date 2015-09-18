@@ -19,12 +19,11 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Abstract implementation of {@link tachyon.client.TachyonFSCore} APIs.
- * As of 0.8, merged into {@link TachyonFileSystem}
+ * As of 0.8, merged into {@link tachyon.client.file.AbstractTachyonFileSystem}
  */
 @Deprecated
 abstract class AbstractTachyonFS implements TachyonFSCore {
@@ -38,7 +37,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Creates a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path.
    *
-   * TODO(haoyuan): It should not create necessary path.
+   * TODO(hy): It should not create necessary path.
    *
    * @param path the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
@@ -52,7 +51,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   /**
    * Creates a file in the system. It also creates necessary folders along the path.
    *
-   * TODO(haoyuan): It should not create necessary path.
+   * TODO(hy): It should not create necessary path.
    *
    * @param path the path of the file
    * @param blockSizeByte the block size of the file
@@ -71,7 +70,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * Creates a file in the system with a pre-defined underfsPath. It also creates necessary folders
    * along the path.
    *
-   * TODO(haoyuan): It should not create necessary path.
+   * TODO(hy): It should not create necessary path.
    *
    * @param path the path of the file in Tachyon
    * @param ufsPath the path of the file in the underfs

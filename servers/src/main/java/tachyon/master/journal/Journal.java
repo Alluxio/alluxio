@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 
 /**
  * This encapsulates the journal for a master. The journal is made up of 2 components:
@@ -29,7 +30,7 @@ import tachyon.conf.TachyonConf;
  * order. The entry file most recently being written to is in the base journal folder, where the
  * completed entry files are in the "completed/" sub-directory.
  */
-public class Journal {
+public abstract class Journal {
   /** The log number for the first completed log file. */
   public static final int FIRST_COMPLETED_LOG_NUMBER = 1;
   /** The directory for completed log files, relative to the base journal directory. */
@@ -40,8 +41,6 @@ public class Journal {
   private static final String CHECKPOINT_FILENAME = "checkpoint.data";
   /** The base of the entry log filenames, without the file extension. */
   private static final String ENTRY_LOG_FILENAME_BASE = "log";
-
-  private final TachyonConf mTachyonConf;
   /** The directory where this journal is stored. */
   private final String mDirectory;
   /** The formatter for this journal. */
@@ -49,16 +48,14 @@ public class Journal {
 
   /**
    * @param directory the base directory for this journal
-   * @param tachyonConf the tachyon conf
    */
-  public Journal(String directory, TachyonConf tachyonConf) {
+  public Journal(String directory) {
     if (!directory.endsWith(TachyonURI.SEPARATOR)) {
       // Ensure directory format.
       directory += TachyonURI.SEPARATOR;
     }
     mDirectory = directory;
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mJournalFormatter = JournalFormatter.Factory.createJournalFormatter(tachyonConf);
+    mJournalFormatter = JournalFormatter.Factory.createJournalFormatter(MasterContext.getConf());
   }
 
   /**
@@ -100,30 +97,9 @@ public class Journal {
   }
 
   /**
-   * @return the formatter for this journal
+   * @return the {@link JournalFormatter} for this journal
    */
   public JournalFormatter getJournalFormatter() {
     return mJournalFormatter;
-  }
-
-  /**
-   * @return a readonly version of this journal
-   */
-  public ReadOnlyJournal getReadOnlyJournal() {
-    return new ReadOnlyJournal(mDirectory, mTachyonConf);
-  }
-
-  /**
-   * @return the writer for this journal
-   */
-  public JournalWriter getNewWriter() {
-    return new JournalWriter(this, mTachyonConf);
-  }
-
-  /**
-   * @return the reader for this journal
-   */
-  public JournalReader getNewReader() {
-    return new JournalReader(this, mTachyonConf);
   }
 }

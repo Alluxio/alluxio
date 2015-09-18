@@ -219,6 +219,9 @@ public class LocalTachyonClusterMultiMaster {
     // people running with strange network configurations will see very slow tests
     mMasterConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
 
+    // Disable hdfs client caching to avoid file system close() affecting other clients
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+
     // re-build the dir to set permission to 777
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
@@ -235,8 +238,8 @@ public class LocalTachyonClusterMultiMaster {
 
     // Create the directories for the data and workers after LocalTachyonMaster construction,
     // because LocalTachyonMaster sets the UNDERFS_DATA_FOLDER and UNDERFS_WORKERS_FOLDER.
-    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data"));
-    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER, "/tachyon/workers"));
+    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER));
+    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER));
 
     LOG.info("all " + mNumOfMasters + " masters started.");
     LOG.info("waiting for a leader.");
@@ -277,7 +280,7 @@ public class LocalTachyonClusterMultiMaster {
     for (int level = 1; level < maxLevel; level ++) {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-      String[] dirPaths = mWorkerConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+      String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       String newPath = "";
       for (String dirPath : dirPaths) {
         newPath += mTachyonHome + dirPath + ",";
@@ -322,6 +325,9 @@ public class LocalTachyonClusterMultiMaster {
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
+
+    // clear HDFS client caching
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   public void stopTFS() throws Exception {
@@ -332,17 +338,6 @@ public class LocalTachyonClusterMultiMaster {
       mMasters.get(k).stop();
     }
     mCuratorServer.stop();
-
-    System.clearProperty(Constants.TACHYON_HOME);
-    System.clearProperty(Constants.USE_ZOOKEEPER);
-    System.clearProperty(Constants.ZOOKEEPER_ADDRESS);
-    System.clearProperty(Constants.ZOOKEEPER_ELECTION_PATH);
-    System.clearProperty(Constants.ZOOKEEPER_LEADER_PATH);
-    System.clearProperty(Constants.WORKER_PORT);
-    System.clearProperty(Constants.WORKER_DATA_PORT);
-    System.clearProperty(Constants.WORKER_DATA_FOLDER);
-    System.clearProperty(Constants.WORKER_MEMORY_SIZE);
-    System.clearProperty(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
   }
 
   public void stopUFS() throws Exception {

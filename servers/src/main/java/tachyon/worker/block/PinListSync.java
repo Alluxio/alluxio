@@ -89,11 +89,11 @@ public final class PinListSync implements Runnable {
         Set<Long> pinList = mMasterClient.getPinList();
         mBlockDataManager.updatePinList(pinList);
         lastSyncMs = System.currentTimeMillis();
-      // TODO: Change this back to IOException when we have the correct pinlist RPC
+      // TODO(calvin): Change this back to IOException when we have the correct pinlist RPC.
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if sync timeout is reached
         LOG.error("Failed to receive pinlist.", ioe);
-        // TODO: Add this method to MasterClientBase
+        // TODO(gene): Add this method to MasterClientBase.
         // mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastSyncMs >= mSyncTimeoutMs) {

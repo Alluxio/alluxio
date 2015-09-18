@@ -30,7 +30,7 @@ import tachyon.conf.TachyonConf;
  * configuration and master address. All members of this class are immutable. This class is
  * thread safe.
  */
-public class ClientContext {
+public final class ClientContext {
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
    * client.

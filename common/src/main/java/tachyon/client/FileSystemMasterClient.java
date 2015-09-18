@@ -45,7 +45,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Since thrift clients are not thread safe, this class is a wrapper to provide thread safety, and
  * to provide retries.
  */
-// TODO: figure out a retry utility to make all the retry logic in this file better.
+// TODO(gene): Figure out a retry utility to make all the retry logic in this file better.
 public final class FileSystemMasterClient extends MasterClientBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -149,7 +149,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws BlockInfoException if the block index is invalid
    * @throws IOException if an I/O error occurs
    */
-  // TODO: Not sure if this is necessary
+  // TODO(calvin): Not sure if this is necessary.
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
       throws IOException, FileDoesNotExistException, BlockInfoException {
     int retry = 0;
@@ -175,7 +175,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  // TODO: Not sure if this is necessary
+  // TODO(calvin): Not sure if this is necessary.
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException,
       FileDoesNotExistException {
     int retry = 0;
@@ -272,19 +272,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param path the file path
    * @param ufsPath the under file system path
-   * @param blockSizeByte the file size
    * @param recursive whether parent directories should be loaded if not present yet
    * @return the file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws IOException, FileDoesNotExistException {
+  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, boolean recursive)
+      throws IOException, FileDoesNotExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.loadFileInfoFromUfs(path, ufsPath, blockSizeByte, recursive);
+        return mClient.loadFileInfoFromUfs(path, ufsPath, recursive);
       } catch (FileDoesNotExistException e) {
         throw e;
       } catch (TException e) {
@@ -455,7 +454,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     }
     throw new IOException("Failed after " + retry + " retries.");
   }
-  
+
   /**
    * Reports a lost file.
    *

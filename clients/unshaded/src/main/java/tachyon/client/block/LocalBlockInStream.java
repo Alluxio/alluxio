@@ -33,7 +33,7 @@ import tachyon.worker.WorkerClient;
  * from the local machine's storage. The instances of this class should only be used by one
  * thread and are not thread safe.
  */
-public class LocalBlockInStream extends BlockInStream {
+public final class LocalBlockInStream extends BlockInStream {
   private final long mBlockId;
   private final BlockStoreContext mContext;
   private final WorkerClient mWorkerClient;
@@ -55,7 +55,7 @@ public class LocalBlockInStream extends BlockInStream {
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
     String blockPath = mWorkerClient.lockBlock(blockId);
 
-    if (null == blockPath) {
+    if (blockPath == null) {
       // TODO(calvin): Handle this error case better.
       mContext.releaseWorkerClient(mWorkerClient);
       throw new IOException("Block is not available on local machine");
