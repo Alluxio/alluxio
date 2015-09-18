@@ -32,7 +32,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  */
 public final class InodeFile extends Inode {
   private final long mBlockContainerId;
-  private final long mBlockSizeBytes;
+  private long mBlockSizeBytes;
 
   // list of block ids.
   private List<Long> mBlocks;
@@ -82,6 +82,14 @@ public final class InodeFile extends Inode {
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     return ret;
+  }
+
+  /**
+   * Resets the block size
+   */
+  public void resetBlockSize(long blockSizeBytes) {
+    // TODO(yupeng): add validation
+    mBlockSizeBytes = blockSizeBytes;
   }
 
   /**

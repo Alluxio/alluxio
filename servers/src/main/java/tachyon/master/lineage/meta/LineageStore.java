@@ -46,7 +46,7 @@ public final class LineageStore {
     mIdIndex = Maps.newHashMap();
   }
 
-  public long addLineage(List<TachyonFile> inputFiles, List<TachyonFile> outputFiles, Job job) {
+  public long addLineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job) {
     Lineage lineage = new Lineage(inputFiles, outputFiles, job);
 
     List<Lineage> parentLineages = Lists.newArrayList();

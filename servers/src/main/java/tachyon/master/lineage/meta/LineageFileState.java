@@ -13,27 +13,11 @@
  * the License.
  */
 
-package tachyon.client.file;
+package tachyon.master.lineage.meta;
 
 /**
- * A file handler for a file in Tachyon. It is a wrapper around the file ID for now.
+ * The state of a lineage file.
  */
-public class TachyonFile {
-  private final long mFileId;
-
-  /**
-   * Creates a new Tachyon file.
-   *
-   * @param fileId the file id
-   */
-  public TachyonFile(long fileId) {
-    mFileId = fileId;
-  }
-
-  /**
-   * @return the file id
-   */
-  public long getFileId() {
-    return mFileId;
-  }
+public enum LineageFileState {
+  ADDED, RECORDED, CHECKPOINTED, LOST
 }
