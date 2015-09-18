@@ -52,7 +52,7 @@ public class StorageDirViewTest {
   public static TemporaryFolder sTestFolder = new TemporaryFolder();
 
   @BeforeClass
-  public static void setupTieredStorage() throws Exception {
+  public static void beforeClass() throws Exception {
     File tempFolder = sTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
   }

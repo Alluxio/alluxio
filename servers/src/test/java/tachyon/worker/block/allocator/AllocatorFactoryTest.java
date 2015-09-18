@@ -43,7 +43,7 @@ public class AllocatorFactoryTest {
   public static TemporaryFolder sTestFolder = new TemporaryFolder();
 
   @BeforeClass
-  public static void setupTieredStorage() throws Exception {
+  public static void beforeClass() throws Exception {
     String baseDir = sTestFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfDefault(baseDir);
     sTachyonConf = WorkerContext.getConf();

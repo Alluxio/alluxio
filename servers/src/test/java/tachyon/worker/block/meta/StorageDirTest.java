@@ -66,7 +66,7 @@ public final class StorageDirTest {
   public static TemporaryFolder sFolder = new TemporaryFolder();
 
   @BeforeClass
-  public static void setupTieredStorage() throws Exception {
+  public static void beforeClass() throws Exception {
     // Creates a dummy test dir under sTestDirPath with 1 byte space so initialization can occur
     sTestDirPath = sFolder.newFolder().getAbsolutePath();
     String[] testDirPaths = {sTestDirPath};

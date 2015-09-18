@@ -55,7 +55,7 @@ public final class BlockMetadataManagerViewTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @BeforeClass
-  public static void setupTieredStorage() throws Exception {
+  public static void beforeClass() throws Exception {
     File tempFolder = sTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
   }

@@ -54,7 +54,7 @@ public class StorageTierTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @BeforeClass
-  public static void setupTieredStorage() throws Exception {
+  public static void beforeClass() throws Exception {
     sTestDirPath1 = sFolder.newFolder().getAbsolutePath();
     sTestDirPath2 = sFolder.newFolder().getAbsolutePath();
     String[] tierPath = {sTestDirPath1, sTestDirPath2};
