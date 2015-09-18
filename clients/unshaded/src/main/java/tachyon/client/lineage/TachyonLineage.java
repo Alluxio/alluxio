@@ -88,9 +88,17 @@ public class TachyonLineage {
    * @param lineageId the id of the lineage
    * @param cascade whether to delete all the downstream lineages recursively
    * @return true if the lineage deletion is successful, false otherwise
+   * @throws IOException
    */
-  public boolean deleteLineage(long lineageId, boolean cascade) {
-    // TODO delete lineage on master
-    return false;
+  public boolean deleteLineage(long lineageId, boolean cascade) throws IOException {
+    LineageMasterClient masterClient = mContext.acquireMasterClient();
+
+    try {
+      boolean result = masterClient.deleteLineage(lineageId, cascade);
+      LOG.info(result ? "Succeeded to " : "Failed to" + "add lineage " + lineageId);
+      return result;
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 }

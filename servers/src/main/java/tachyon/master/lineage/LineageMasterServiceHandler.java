@@ -52,8 +52,8 @@ public final class LineageMasterServiceHandler implements Iface {
   }
 
   @Override
-  public boolean deleteLineage(long lineageId) throws TException {
-    return mLineageMaster.deleteLineage(lineageId);
+  public boolean deleteLineage(long lineageId, boolean cascade) throws TException {
+    return mLineageMaster.deleteLineage(lineageId, cascade);
   }
 
   @Override
