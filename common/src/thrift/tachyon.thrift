@@ -200,8 +200,7 @@ service FileSystemMasterService {
     throws (1: FileDoesNotExistException fdnee, 2: SuspectedFileSizeException sfse,
       3: BlockInfoException bie)
 
-  i64 loadFileInfoFromUfs(1: string path, 2: string ufsPath, 3: i64 blockSizeBytes,
-      4: bool recursive)
+  i64 loadFileInfoFromUfs(1: string path, 2: string ufsPath, 3: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
