@@ -37,6 +37,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
+import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputeLauncher;
@@ -123,7 +124,7 @@ public final class LineageMaster extends MasterBase {
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job) {
     // validate input files exist
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
-    for(TachyonURI inputFile:inputFiles) {
+    for (TachyonURI inputFile : inputFiles) {
       long fileId;
       try {
         fileId = mFileSystemMaster.getFileId(inputFile);
@@ -134,7 +135,7 @@ public final class LineageMaster extends MasterBase {
     }
     // create output files
     List<TachyonFile> outputTachyonFiles = Lists.newArrayList();
-    for(TachyonURI outputFile:outputFiles) {
+    for (TachyonURI outputFile : outputFiles) {
       long fileId;
       try {
         fileId = mFileSystemMaster.createFile(outputFile, 0, true);
@@ -151,9 +152,19 @@ public final class LineageMaster extends MasterBase {
     return mLineageStore.addLineage(inputTachyonFiles, outputTachyonFiles, job);
   }
 
-  public boolean deleteLineage(long lineageId) {
-    // TODO delete lineage
-    return false;
+  public boolean deleteLineage(long lineageId, boolean cascade) {
+    Lineage lineage = mLineageStore.getLineage(lineageId);
+    if (lineage == null) {
+      // TODO error handling
+    }
+
+    // there should not be child lineage if cascade
+    if (!cascade && !mLineageStore.getChildren(lineage).isEmpty()) {
+      // TODO error handling
+    }
+
+    mLineageStore.deleteLineage(lineageId);
+    return true;
   }
 
   /**

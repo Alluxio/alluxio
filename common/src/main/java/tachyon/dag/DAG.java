@@ -53,8 +53,18 @@ public class DAG<T> {
     }
   }
 
-  public void delete(T payload) {
-    // TODO
+  public void deleteLeaf(T payload) {
+    Preconditions.checkState(contains(payload), "the node does not exist");
+    DAGNode<T> node = mIndex.get(payload);
+    Preconditions.checkState(node.getChildren().isEmpty(), "the node is not a leaf");
+
+    // delete from parent
+    for (DAGNode<T> parent : node.getParents()) {
+      parent.removeChild(node);
+    }
+
+    // remove from index
+    mIndex.remove(payload);
   }
 
   /**
