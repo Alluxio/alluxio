@@ -141,10 +141,9 @@ public class FileOutStreamIntegrationTest {
     if (underStorageType.isPersist()) {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
-      String checkpointPath = info.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mMasterTachyonConf);
+      UnderFileSystem ufs = UnderFileSystem.get(info.getUfsPath(), mMasterTachyonConf);
 
-      InputStream is = ufs.open(checkpointPath);
+      InputStream is = ufs.open(info.getUfsPath());
       byte[] res = new byte[(int) info.getLength()];
       if (UnderFileSystemCluster.readEOFReturnsNegative() && 0 == res.length) {
         // Returns -1 for zero-sized byte array to indicate no more bytes available here.

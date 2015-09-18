@@ -113,7 +113,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     // No space should be used in Tachyon, but the file should be complete
     Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
-    Assert.assertTrue(mTfs.getInfo(file).isComplete);
+    Assert.assertTrue(mTfs.getInfo(file).isCompleted);
   }
 
   // Tests that caching a block successfully persists the block if the block exists

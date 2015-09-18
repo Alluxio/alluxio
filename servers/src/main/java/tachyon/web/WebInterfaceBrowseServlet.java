@@ -84,7 +84,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     if (tFile == null) {
       throw new FileDoesNotExistException(path.toString());
     }
-    if (tFile.isComplete()) {
+    if (tFile.isCompleted()) {
       FileInStream is = tFile.getInStream(ReadType.NO_CACHE);
       try {
         int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);

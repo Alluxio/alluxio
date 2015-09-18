@@ -137,8 +137,7 @@ public abstract class JournalFormatterTestBase {
       blocks.add(TEST_BLOCK_ID + i);
     }
     entryTest(new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
-        TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, TEST_FILE_NAME,
-        blocks));
+        TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, true, blocks));
   }
 
   @Test

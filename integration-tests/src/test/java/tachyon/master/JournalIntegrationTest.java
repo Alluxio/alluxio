@@ -340,8 +340,6 @@ public class JournalIntegrationTest {
 
     PinTestUtil(folderInfo, file0Info, file1Info);
     deleteFsMasterJournalLogs();
-    // Mount table information has been inadvertently lost.
-    folderInfo.setUfsPath(PathUtils.concatPath(mMountPoint, "myFolder"));
     PinTestUtil(folderInfo, file0Info, file1Info);
   }
 
@@ -380,8 +378,6 @@ public class JournalIntegrationTest {
     mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
     deleteFsMasterJournalLogs();
-    // Mount table information has been inadvertently lost.
-    fInfo.setUfsPath(PathUtils.concatPath(mMountPoint, "xyz"));
     FolderTest(fInfo);
   }
 

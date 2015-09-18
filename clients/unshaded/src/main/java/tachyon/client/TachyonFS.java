@@ -1124,11 +1124,11 @@ public class TachyonFS extends AbstractTachyonFS {
             + mRootUri.getAuthority() + ", unless it doesn't have an authority.");
   }
 
-  public synchronized void mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
-    mFSMasterClient.mount(tachyonPath, ufsPath);
+  public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
+    return mFSMasterClient.mount(tachyonPath, ufsPath);
   }
 
-  public synchronized void unmount(TachyonURI tachyonPath) throws IOException {
-    mFSMasterClient.unmount(tachyonPath);
+  public synchronized boolean unmount(TachyonURI tachyonPath) throws IOException {
+    return mFSMasterClient.unmount(tachyonPath);
   }
 }

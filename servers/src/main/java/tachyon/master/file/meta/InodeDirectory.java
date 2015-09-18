@@ -94,14 +94,14 @@ public final class InodeDirectory extends Inode {
     ret.fileId = getId();
     ret.name = getName();
     ret.path = path;
-    ret.ufsPath = "";
     ret.length = 0;
     ret.blockSizeBytes = 0;
     ret.creationTimeMs = getCreationTimeMs();
-    ret.isComplete = true;
+    ret.isCompleted = true;
     ret.isFolder = true;
     ret.isPinned = isPinned();
     ret.isCacheable = false;
+    ret.isPersisted = false;
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();

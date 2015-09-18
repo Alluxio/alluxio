@@ -261,9 +261,9 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("lastModificationTimeMs"),
                 entry.getLong("blockSizeBytes"),
                 entry.getLong("length"),
-                entry.getBoolean("isComplete"),
+                entry.getBoolean("isCompleted"),
                 entry.getBoolean("isCacheable"),
-                entry.getString("ufsPath"),
+                entry.getBoolean("isPersisted"),
                 entry.get("blocks", new TypeReference<List<Long>>() {}));
           }
           case INODE_DIRECTORY: {

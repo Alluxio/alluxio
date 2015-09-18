@@ -53,14 +53,15 @@ struct FileInfo {
   5: i64 length
   6: i64 blockSizeBytes
   7: i64 creationTimeMs
-  8: bool isComplete
+  8: bool isCompleted
   9: bool isFolder
   10: bool isPinned
   11: bool isCacheable
-  12: list<i64> blockIds
-  13: i32 dependencyId
-  14: i32 inMemoryPercentage
-  15: i64 lastModificationTimeMs
+  12: bool isPersisted
+  13: list<i64> blockIds
+  14: i32 dependencyId
+  15: i32 inMemoryPercentage
+  16: i64 lastModificationTimeMs
 }
 
 // Information about lineage.
@@ -244,6 +245,12 @@ service FileSystemMasterService {
    * will be persisted before they are removed from the Tachyon namespace.
    */
   bool unmount(1: string tachyonPath) throws (1: TachyonException te)
+
+  /**
+   * Resolves the given path. In particular, if its prefix is a mount point, it replaces it with
+   * its UFS counterpart.
+   * */
+  // string resolve(1: string tachyonPath) throws (1: TachyonException te)
 
   // Lineage Features
   i32 createDependency(1: list<string> parents, 2: list<string> children,

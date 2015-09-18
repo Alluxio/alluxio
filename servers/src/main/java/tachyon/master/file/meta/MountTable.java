@@ -58,7 +58,16 @@ public class MountTable {
     return false;
   }
 
-  public synchronized TachyonURI lookup(TachyonURI tachyonPath) {
+  public synchronized TachyonURI getMountPoint(TachyonURI tachyonPath) {
+    for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
+      if (hasPrefix(tachyonPath, entry.getKey())) {
+        return entry.getKey();
+      }
+    }
+    return new TachyonURI("");
+  }
+
+  public synchronized TachyonURI resolve(TachyonURI tachyonPath) {
     LOG.info("Looking up " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {

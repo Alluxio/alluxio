@@ -256,7 +256,7 @@ public final class FileSystemMaster extends MasterBase {
     InodeFile file = (InodeFile) inode;
     boolean needLog = false;
 
-    if (file.isComplete()) {
+    if (file.isCompleted()) {
       if (file.getLength() != length) {
         throw new SuspectedFileSizeException(fileId + ". Original Size: " + file.getLength()
             + ". New Size: " + length);
@@ -274,8 +274,7 @@ public final class FileSystemMaster extends MasterBase {
       needLog = true;
     }
 
-    if (!file.hasCheckpointed()) {
-      file.setUfsPath(checkpointPath.toString());
+    if (!file.isPersisted()) {
       needLog = true;
 
       synchronized (mDependencyMap) {
@@ -291,7 +290,7 @@ public final class FileSystemMaster extends MasterBase {
     }
     mDependencyMap.addFileCheckpoint(fileId);
     file.setLastModificationTimeMs(opTimeMs);
-    file.setComplete(length);
+    file.setCompleted(length);
     // TODO(calvin): This probably should always be true since the last mod time is updated.
     return needLog;
   }
@@ -360,9 +359,11 @@ public final class FileSystemMaster extends MasterBase {
   private FileInfo getFileInfo(Inode inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
-    // TODO(jiri): This is a hack. Instead of this, we need to do a UFS rename upon rename.
-    if (fileInfo.ufsPath.equals("")) {
-      fileInfo.ufsPath = mMountTable.lookup(new TachyonURI(fileInfo.getPath())).toString();
+    TachyonURI path = mInodeTree.getPath(inode);
+    TachyonURI resolvedPath = mMountTable.resolve(path);
+    // Only set the UFS path if the path is nested under a mount point.
+    if (!path.equals(resolvedPath)) {
+      fileInfo.setUfsPath(resolvedPath.toString());
     }
     return fileInfo;
   }
@@ -441,7 +442,7 @@ public final class FileSystemMaster extends MasterBase {
     mDependencyMap.addFileCheckpoint(fileId);
     InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
     inodeFile.setBlockIds(blockIds);
-    inodeFile.setComplete(fileLength);
+    inodeFile.setCompleted(fileLength);
     inodeFile.setLastModificationTimeMs(opTimeMs);
   }
 
@@ -490,7 +491,7 @@ public final class FileSystemMaster extends MasterBase {
     List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
     if (mWhitelist.inList(path.toString())) {
-      inode.setCache(true);
+      inode.setCacheable(true);
     }
     return createResult;
   }
@@ -576,14 +577,15 @@ public final class FileSystemMaster extends MasterBase {
       Inode delInode = delInodes.get(i);
 
       if (delInode.isFile()) {
-        // Delete the ufs checkpoint.
-        String checkpointPath = ((InodeFile) delInode).getUfsPath();
-        if (!checkpointPath.isEmpty()) {
-          UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, MasterContext.getConf());
+        // Delete the ufs file.
+        String ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
+        boolean isPersisted = ((InodeFile) delInode).isPersisted();
+        if (isPersisted) {
+          UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
           try {
-            if (!ufs.exists(checkpointPath)) {
-              LOG.warn("File does not exist the underfs: " + checkpointPath);
-            } else if (!ufs.delete(checkpointPath, true)) {
+            if (!ufs.exists(ufsPath)) {
+              LOG.warn("File does not exist the underfs: " + ufsPath);
+            } else if (!ufs.delete(ufsPath, true)) {
               return false;
             }
           } catch (IOException e) {
@@ -683,13 +685,14 @@ public final class FileSystemMaster extends MasterBase {
     // The sequence number part of the block id is the block index.
     fileBlockInfo.offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.blockId);
 
-    if (fileBlockInfo.blockInfo.locations.isEmpty() && file.hasCheckpointed()) {
+    if (fileBlockInfo.blockInfo.locations.isEmpty() && file.isPersisted()) {
       // No tachyon locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
-      UnderFileSystem ufs = UnderFileSystem.get(file.getUfsPath(), MasterContext.getConf());
+      String ufsPath = mMountTable.resolve(mInodeTree.getPath(file)).toString();
+      UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
       List<String> locs = null;
       try {
-        locs = ufs.getFileLocations(file.getUfsPath(), fileBlockInfo.offset);
+        locs = ufs.getFileLocations(ufsPath, fileBlockInfo.offset);
       } catch (IOException e) {
         return fileBlockInfo;
       }
@@ -850,21 +853,30 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException
    */
   public boolean rename(long fileId, TachyonURI dstPath) throws InvalidPathException,
-      FileDoesNotExistException {
+      FileDoesNotExistException, IOException {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       Inode srcInode = mInodeTree.getInodeById(fileId);
       TachyonURI srcPath = mInodeTree.getPath(srcInode);
+      // Renaming path to itself is a no-op.
       if (srcPath.equals(dstPath)) {
         return true;
       }
+      // Renaming the root is not allowed.
       if (srcPath.isRoot() || dstPath.isRoot()) {
         return false;
       }
+      // Renaming across mount table partitions is not allowed.
+      TachyonURI srcPathMountPoint = mMountTable.getMountPoint(srcPath);
+      TachyonURI dstPathMountPoint = mMountTable.getMountPoint(dstPath);
+      if (!srcPathMountPoint.equals(dstPathMountPoint)) {
+        return false;
+      }
+
+      // Rename a path to one of its subpaths is not allowed. Check for that, by making sure
+      // srcComponents isn't a prefix of dstComponents.
       String[] srcComponents = PathUtils.getPathComponents(srcPath.toString());
       String[] dstComponents = PathUtils.getPathComponents(dstPath.toString());
-      // We can't rename a path to one of its subpaths, so we check for that, by making sure
-      // srcComponents isn't a prefix of dstComponents.
       if (srcComponents.length < dstComponents.length) {
         boolean isPrefix = true;
         for (int prefixInd = 0; prefixInd < srcComponents.length; prefixInd ++) {
@@ -905,6 +917,18 @@ public final class FileSystemMaster extends MasterBase {
       writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
       flushJournal();
 
+      // If the source file is persisted, rename it in the UFS.
+
+      FileInfo fileInfo = getFileInfo(srcInode);
+      if (fileInfo.isPersisted) {
+        TachyonURI ufsSrcPath = mMountTable.resolve(srcPath);
+        TachyonURI ufsDstPath = mMountTable.resolve(dstPath);
+        UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath.getPath(), MasterContext.getConf());
+        if (!ufs.rename(ufsSrcPath.getPath(), ufsDstPath.getPath())) {
+          LOG.error("Failed to rename " + ufsSrcPath + " to " + ufsDstPath);
+          return false;
+        }
+      }
       return true;
     }
   }
@@ -1090,8 +1114,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   public long loadFileFromUfs(TachyonURI tachyonPath, boolean recursive) throws TachyonException {
-    String ufsPath = mMountTable.lookup(tachyonPath).toString();
-    LOG.info("Looked up " + tachyonPath.toString() + " as " + ufsPath);
+    String ufsPath = mMountTable.resolve(tachyonPath).toString();
     UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
     try {
       long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
@@ -1100,7 +1123,6 @@ public final class FileSystemMaster extends MasterBase {
       if (fileId != -1) {
         completeFileCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath));
       }
-      LOG.info("7");
       return fileId;
     } catch (BlockInfoException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
