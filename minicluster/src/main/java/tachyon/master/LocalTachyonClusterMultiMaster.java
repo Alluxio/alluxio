@@ -109,7 +109,6 @@ public class LocalTachyonClusterMultiMaster {
     return mClientPool.getClient(mMasterConf);
   }
 
-  // TODO(cc): Since we have MasterContext now, remove this.
   public TachyonConf getMasterTachyonConf() {
     return mMasterConf;
   }
