@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
+import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.client.Seekable;
 import tachyon.client.block.BlockInStream;
@@ -30,6 +31,8 @@ import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.NetAddress;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides
@@ -58,6 +61,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
 
   /** If the stream is closed, this can only go from false to true */
   private boolean mClosed;
+  /** The netaddress of the location that the file should write to, specified by client option */
+  private NetAddress mLocation;
   /** Whether or not the current block should be cached. */
   private boolean mShouldCacheCurrentBlock;
   /** Current position of the stream */
@@ -81,6 +86,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     mContext = FileSystemContext.INSTANCE;
     mShouldCache = options.getTachyonStorageType().isStore();
     mShouldCacheCurrentBlock = mShouldCache;
+    mLocation = options.getLocation();
     mClosed = false;
   }
 
@@ -215,7 +221,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           // TODO(calvin): Specify the location to be local.
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, mLocation.getHost());
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
@@ -273,7 +279,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, mLocation.getHost());
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
