@@ -15,11 +15,17 @@
 
 package tachyon.client.lineage;
 
+import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.job.Job;
+import tachyon.thrift.FileDoesNotExistException;
 
 /**
  * Tachyon lineage client. This class is the entry point for all lineage related operations. An
@@ -27,8 +33,16 @@ import tachyon.job.Job;
  */
 @PublicApi
 public class TachyonLineage {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** the singleton */
   private static TachyonLineage sClient;
+
+  protected LineageContext mContext;
+
+  protected TachyonLineage() {
+    mContext = LineageContext.INSTANCE;
+  }
 
   /**
    * @return the only instance of lineage client.
@@ -49,10 +63,20 @@ public class TachyonLineage {
    * @param outputFiles the files that the job outputs
    * @param job the job to track
    * @return the dependency id
+   * @throws IOException
+   * @throws FileDoesNotExistException
    */
-  public long addLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job) {
-    // TODO add lineage to master
-    return -1L;
+  public long addLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
+      throws FileDoesNotExistException, IOException {
+    LineageMasterClient masterClient = mContext.acquireMasterClient();
+
+    try {
+      long lineageId = masterClient.addLineage(inputFiles, outputFiles, job);
+      LOG.info("Added lineage "+lineageId);
+      return lineageId;
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 
   /**

@@ -15,19 +15,26 @@
 
 package tachyon.client.lineage;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.MasterClientBase;
-import tachyon.client.file.TachyonFile;
+import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.job.Job;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.LineageMasterService;
+import tachyon.util.io.SerDeUtils;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by tachyon clients.
@@ -57,14 +64,52 @@ public final class LineageMasterClient extends MasterClientBase {
     return Constants.LINEAGE_MASTER_SERVICE_NAME;
   }
 
-  public synchronized long addLineage(List<TachyonFile> inputFiles, List<TachyonFile> outputFiles,
-      Job job) {
-    // TODO add lineage
-    return -1;
+  @Override
+  protected void afterConnect() {
+    mClient = new LineageMasterService.Client(mProtocol);
   }
 
-  public synchronized boolean deleteLineage(long lineageId) {
-    // TODO delete lineage
-    return false;
+
+  public synchronized long addLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
+      Job job) throws IOException, FileDoesNotExistException {
+    // prepare for RPC
+    List<String> inputFileStrings = Lists.newArrayList();
+    for (TachyonURI inputFile : inputFiles) {
+      inputFileStrings.add(inputFile.toString());
+    }
+    List<String> outputFileStrings = Lists.newArrayList();
+    for (TachyonURI outputFile : outputFiles) {
+      outputFileStrings.add(outputFile.toString());
+    }
+    byte[] jobByteArray = SerDeUtils.objectToByteArray(job);
+
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return mClient.createLineage(inputFileStrings, outputFileStrings,
+            ByteBuffer.wrap(jobByteArray));
+      } catch (FileDoesNotExistException e) {
+        throw e;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  public synchronized boolean deleteLineage(long lineageId) throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return mClient.deleteLineage(lineageId);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
   }
 }

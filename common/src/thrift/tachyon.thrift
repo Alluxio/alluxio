@@ -253,7 +253,7 @@ service FileSystemMasterService {
 
 service LineageMasterService {
   // for client
-  i64 createLineage(1: list<i64> inputFiles, 2: list<i64> outputFiles, 3: binary job)
+  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: binary job)
   
   bool deleteLineage(1: i64 lineageId)
   

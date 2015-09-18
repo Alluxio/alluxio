@@ -34,7 +34,7 @@ public final class LineageMasterServiceHandler implements Iface {
   }
 
   @Override
-  public long createLineage(List<Long> inputFiles, List<Long> outputFiles, ByteBuffer job)
+  public long createLineage(List<String> inputFiles, List<String> outputFiles, ByteBuffer job)
       throws TException {
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     List<TachyonFile> outputTachyonFiles = Lists.newArrayList();

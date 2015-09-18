@@ -15,10 +15,39 @@
 
 package tachyon.client.lineage;
 
+import tachyon.client.ClientContext;
+
 /**
  * A shared context in each client JVM for common lineage functionality such as a pool of lineage
  * master clients.
  */
 public enum LineageContext {
+  INSTANCE;
 
+  private LineageMasterClientPool mLineageMasterClientPool;
+
+  /**
+   * Creates a new lineage context
+   */
+  LineageContext() {
+    mLineageMasterClientPool = new LineageMasterClientPool(ClientContext.getMasterAddress());
+  }
+
+  /**
+   * Acquires a lineage master client from the lineage master client pool.
+   *
+   * @return the acquired lineage master client
+   */
+  public LineageMasterClient acquireMasterClient() {
+    return mLineageMasterClientPool.acquire();
+  }
+
+  /**
+   * Releases a lineage master client into the lineage master client pool.
+   *
+   * @param masterClient a lineage master client to release
+   */
+  public void releaseMasterClient(LineageMasterClient masterClient) {
+    mLineageMasterClientPool.release(masterClient);
+  }
 }
