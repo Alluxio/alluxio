@@ -23,9 +23,11 @@ import java.util.concurrent.Future;
 import org.apache.thrift.TProcessor;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
+import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.job.Job;
@@ -39,6 +41,9 @@ import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputeLauncher;
 import tachyon.master.lineage.recompute.RecomputePlanner;
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService;
 import tachyon.util.ThreadFactoryUtils;
@@ -115,8 +120,35 @@ public final class LineageMaster extends MasterBase {
     // TODO add journal support
   }
 
-  public long createLineage(List<TachyonFile> inputFiles, List<TachyonFile> outputFiles, Job job) {
-    return mLineageStore.addLineage(inputFiles, outputFiles, job);
+  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job) {
+    // validate input files exist
+    List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
+    for(TachyonURI inputFile:inputFiles) {
+      long fileId;
+      try {
+        fileId = mFileSystemMaster.getFileId(inputFile);
+        inputTachyonFiles.add(new TachyonFile(fileId));
+      } catch (InvalidPathException e) {
+        // TODO error handling
+      }
+    }
+    // create output files
+    List<TachyonFile> outputTachyonFiles = Lists.newArrayList();
+    for(TachyonURI outputFile:outputFiles) {
+      long fileId;
+      try {
+        fileId = mFileSystemMaster.createFile(outputFile, 0, true);
+        outputTachyonFiles.add(new TachyonFile(fileId));
+      } catch (InvalidPathException e) {
+        // TODO error handling
+      } catch (FileAlreadyExistException e) {
+        // TODO error handling
+      } catch (BlockInfoException e) {
+        // TODO error handling
+      }
+    }
+
+    return mLineageStore.addLineage(inputTachyonFiles, outputTachyonFiles, job);
   }
 
   public boolean deleteLineage(long lineageId) {

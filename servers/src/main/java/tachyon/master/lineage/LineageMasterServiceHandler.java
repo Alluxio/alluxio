@@ -22,9 +22,11 @@ import org.apache.thrift.TException;
 
 import com.google.common.collect.Lists;
 
-import tachyon.client.file.TachyonFile;
+import tachyon.TachyonURI;
+import tachyon.job.Job;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService.Iface;
+import tachyon.util.io.SerDeUtils;
 
 public final class LineageMasterServiceHandler implements Iface {
   private final LineageMaster mLineageMaster;
@@ -36,9 +38,17 @@ public final class LineageMasterServiceHandler implements Iface {
   @Override
   public long createLineage(List<String> inputFiles, List<String> outputFiles, ByteBuffer job)
       throws TException {
-    List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
-    List<TachyonFile> outputTachyonFiles = Lists.newArrayList();
-    return mLineageMaster.createLineage(inputTachyonFiles, outputTachyonFiles, null);
+    // deserialization
+    List<TachyonURI> inputFilesUri = Lists.newArrayList();
+    for (String inputFile : inputFiles) {
+      inputFilesUri.add(new TachyonURI(inputFile));
+    }
+    List<TachyonURI> outputFilesUri = Lists.newArrayList();
+    for (String output : outputFiles) {
+      outputFilesUri.add(new TachyonURI(output));
+    }
+    return mLineageMaster.createLineage(inputFilesUri, outputFilesUri,
+        (Job) SerDeUtils.byteArrayToObject(job.array()));
   }
 
   @Override
