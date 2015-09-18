@@ -55,18 +55,18 @@ public final class RemoteBlockInStream extends BlockInStream {
     mClosed = false;
     // TODO(calvin): Validate these fields.
     mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
-    mWorkerClient = mContext.acquireWorkerClient(location.getHost());
+    mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient(location.getHost());
     String blockPath = null;
     try {
       blockPath = mWorkerClient.lockBlock(blockId);
     } catch (IOException ioe) {
-      mContext.releaseWorkerClient(mWorkerClient);
+      BlockStoreContext.INSTANCE.releaseWorkerClient(mWorkerClient);
       throw ioe;
     }
 
     if (blockPath == null) {
       // TODO(calvin): Handle this error case better.
-      mContext.releaseWorkerClient(mWorkerClient);
+      BlockStoreContext.INSTANCE.releaseWorkerClient(mWorkerClient);
       throw new IOException("Block is not available on remote machine: " + location.getHost());
     }
   }
@@ -77,7 +77,7 @@ public final class RemoteBlockInStream extends BlockInStream {
       return;
     }
     mWorkerClient.unlockBlock(mBlockId);
-    mContext.releaseWorkerClient(mWorkerClient);
+    BlockStoreContext.INSTANCE.releaseWorkerClient(mWorkerClient);
     mClosed = true;
   }
 

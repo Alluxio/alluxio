@@ -44,6 +44,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 
@@ -66,6 +67,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private ClientOptions mWriteUnderStore;
   private ClientOptions mReadNoCache;
   private ClientOptions mReadCache;
+  private int mWorkerToMasterHeartbeatIntervalMs;
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
@@ -128,6 +130,8 @@ public class RemoteBlockInStreamIntegrationTest {
     mReadNoCache =
         new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
             .build();
+    mWorkerToMasterHeartbeatIntervalMs =
+        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
   }
 
   /**
@@ -556,7 +560,6 @@ public class RemoteBlockInStreamIntegrationTest {
   /**
    * Test remote read stream lock in <code>RemoteBlockInStream</code>.
    */
-  // TODO: figure out why this test fails
   @Test
   public void remoteReadLockTest()
       throws IOException, InterruptedException, FileDoesNotExistException {
@@ -570,11 +573,12 @@ public class RemoteBlockInStreamIntegrationTest {
       RemoteBlockInStream is =
           new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
               .getWorkerAddress());
+      byte[] ret = new byte[k / 2];
       Assert.assertEquals(0, is.read());
       mTfs.delete(f);
-      Thread.sleep(1000);
+      CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
       Assert.assertNull(mTfs.getInfo(f));
-      Assert.assertEquals(1, is.read());
+      Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
       is.close();
       Assert.assertNull(mTfs.getInfo(f));
     }
