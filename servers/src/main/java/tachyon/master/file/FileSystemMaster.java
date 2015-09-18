@@ -474,6 +474,17 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
+   * Resets the block size of an existing open file.
+   * @param path the path to the file
+   * @param blockSizeBytes the new block size
+   * @return the file id
+   * @throws InvalidPathException
+   */
+  public long resetBlockSize(TachyonURI path, long blockSizeBytes) throws InvalidPathException {
+    // TODO(yupeng): add validation
+    return mInodeTree.resetBlockSize(path, blockSizeBytes);
+  }
+  /**
    * Returns the next block id for a given file id. Called via RPC.
    *
    * @param fileId the file id to get the next block id for

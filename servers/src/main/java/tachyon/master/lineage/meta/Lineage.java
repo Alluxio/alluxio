@@ -17,10 +17,8 @@ package tachyon.master.lineage.meta;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.job.Job;
@@ -30,14 +28,9 @@ import tachyon.job.Job;
  * and the output files the job generates.
  */
 public final class Lineage {
-  enum FileState {
-    CREATED, ADDED, CHECKPOINTED, LOST
-  }
-
   private final long mId;
   private final List<TachyonFile> mInputFiles;
-  private final List<TachyonFile> mOutputFiles;
-  private final Map<TachyonFile, FileState> mOutputFilesState;
+  private final List<LineageFile> mOutputFiles;
   private final Job mJob;
 
   private LineageState mState;
@@ -49,13 +42,9 @@ public final class Lineage {
    * @param outputFiles the output files.
    * @param job the job
    */
-  public Lineage(List<TachyonFile> inputFiles, List<TachyonFile> outputFiles, Job job) {
+  public Lineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job) {
     mInputFiles = Preconditions.checkNotNull(inputFiles);
     mOutputFiles = Preconditions.checkNotNull(outputFiles);
-    mOutputFilesState = Maps.newHashMap();
-    for (TachyonFile tachyonFile : outputFiles) {
-      mOutputFilesState.put(tachyonFile, FileState.CREATED);
-    }
     mJob = Preconditions.checkNotNull(job);
     mState = LineageState.ADDED;
     mId = LineageIdGenerator.generateId();
@@ -65,7 +54,7 @@ public final class Lineage {
     return Collections.unmodifiableList(mInputFiles);
   }
 
-  public List<TachyonFile> getOutputFiles() {
+  public List<LineageFile> getOutputFiles() {
     return Collections.unmodifiableList(mOutputFiles);
   }
 

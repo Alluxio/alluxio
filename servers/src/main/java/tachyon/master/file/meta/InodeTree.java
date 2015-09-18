@@ -287,6 +287,20 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
+   * Resets the block size of an existing open file.
+   * @param path the path to the file
+   * @param blockSizeBytes the new block size
+   * @return the file id
+   * @throws InvalidPathException
+   */
+  public long resetBlockSize(TachyonURI path, long blockSizeBytes) throws InvalidPathException {
+    // TODO(yupeng): add validation
+    InodeFile file = (InodeFile)getInodeByPath(path);
+    file.resetBlockSize(blockSizeBytes);
+    return file.getId();
+  }
+
+  /**
    * Returns a list of all descendants of a particular {@link InodeDirectory}. Any directory inode
    * precedes its descendants in the list.
    *

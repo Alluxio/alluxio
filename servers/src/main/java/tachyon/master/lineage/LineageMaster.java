@@ -38,6 +38,7 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
 import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputeLauncher;
@@ -134,12 +135,12 @@ public final class LineageMaster extends MasterBase {
       }
     }
     // create output files
-    List<TachyonFile> outputTachyonFiles = Lists.newArrayList();
+    List<LineageFile> outputTachyonFiles = Lists.newArrayList();
     for (TachyonURI outputFile : outputFiles) {
       long fileId;
       try {
         fileId = mFileSystemMaster.createFile(outputFile, 0, true);
-        outputTachyonFiles.add(new TachyonFile(fileId));
+        outputTachyonFiles.add(new LineageFile(fileId));
       } catch (InvalidPathException e) {
         // TODO error handling
       } catch (FileAlreadyExistException e) {
@@ -168,7 +169,12 @@ public final class LineageMaster extends MasterBase {
   }
 
   public long recreateFile(String path, long blockSizeBytes) {
-    return -1;
+    try {
+      return mFileSystemMaster.resetBlockSize(new TachyonURI(path), blockSizeBytes);
+    } catch (InvalidPathException e) {
+      // TODO(yupeng): error handling
+      return -1;
+    }
   }
 
   public void asyncCompleteFile(long fileId, String filePath) {
