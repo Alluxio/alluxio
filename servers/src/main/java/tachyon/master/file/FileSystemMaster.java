@@ -173,7 +173,7 @@ public final class FileSystemMaster extends MasterBase {
     } else if (entry instanceof AddMountPointEntry) {
       AddMountPointEntry typedEntry = (AddMountPointEntry) entry;
       TachyonURI tachyonPath = typedEntry.getTachyonPath();
-      TachyonURI ufsPath = typedEntry.getTachyonPath();
+      TachyonURI ufsPath = typedEntry.getUfsPath();
       if (!mMountTable.add(tachyonPath, ufsPath)) {
         throw new IOException("failed to mount " + ufsPath + " at " + tachyonPath);
       }
@@ -1094,17 +1094,11 @@ public final class FileSystemMaster extends MasterBase {
     LOG.info("Looked up " + tachyonPath.toString() + " as " + ufsPath);
     UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
     try {
-      LOG.info("1");
       long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
-      LOG.info("2");
       long fileSizeByte = underfs.getFileSize(ufsPath);
-      LOG.info("3");
       long fileId = createFile(tachyonPath, ufsBlockSizeByte, recursive);
-      LOG.info("4");
       if (fileId != -1) {
-        LOG.info("5");
         completeFileCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath));
-        LOG.info("6");
       }
       LOG.info("7");
       return fileId;

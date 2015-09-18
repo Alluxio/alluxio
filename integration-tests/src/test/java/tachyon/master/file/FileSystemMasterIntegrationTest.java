@@ -49,6 +49,8 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
+import tachyon.util.io.PathUtils;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -167,16 +169,16 @@ public class FileSystemMasterIntegrationTest {
   class ConcurrentRenamer implements Callable<Void> {
     private int mDepth;
     private int mConcurrencyDepth;
-    private TachyonURI mRootPath;
-    private TachyonURI mRootPath2;
+    private TachyonURI mRoot;
+    private TachyonURI mRoot2;
     private TachyonURI mInitPath;
 
     ConcurrentRenamer(int depth, int concurrencyDepth, TachyonURI rootPath, TachyonURI rootPath2,
         TachyonURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
-      mRootPath = rootPath;
-      mRootPath2 = rootPath2;
+      mRoot = rootPath;
+      mRoot2 = rootPath2;
       mInitPath = initPath;
     }
 
@@ -194,8 +196,8 @@ public class FileSystemMasterIntegrationTest {
         // the second condition is for. We have to create the path in the destination up till what
         // we're renaming. This might already exist, so createFile could throw a
         // FileAlreadyExistException, which we silently handle.
-        TachyonURI srcPath = mRootPath.join(path);
-        TachyonURI dstPath = mRootPath2.join(path);
+        TachyonURI srcPath = mRoot.join(path);
+        TachyonURI dstPath = mRoot2.join(path);
         long fileId = mFsMaster.getFileId(srcPath);
         try {
           mFsMaster.mkdirs(dstPath.getParent(), true);
@@ -212,7 +214,7 @@ public class FileSystemMasterIntegrationTest {
         ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
-              (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath, mRootPath2,
+              (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRoot, mRoot2,
                   path.join(Integer.toString(i))));
           futures.add(executor.submit(call));
         }
@@ -229,6 +231,9 @@ public class FileSystemMasterIntegrationTest {
   }
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
+  private String mMountPoint;
+  private TachyonURI mRoot;
+  private TachyonURI mRoot2;
   private FileSystemMaster mFsMaster;
 
   private static final int DEPTH = 6;
@@ -236,10 +241,6 @@ public class FileSystemMasterIntegrationTest {
   private static final int FILES_PER_NODE = 4;
 
   private static final int CONCURRENCY_DEPTH = 3;
-
-  private static final TachyonURI ROOT_PATH = new TachyonURI("/root");
-
-  private static final TachyonURI ROOT_PATH2 = new TachyonURI("/root2");
 
   private ExecutorService mExecutorService = null;
 
@@ -251,17 +252,16 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, FileNotFoundException,
-      TachyonException {
+      TachyonException, IOException {
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
+        mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
+            Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals("", fileInfo.getUfsPath());
-    mFsMaster.completeFileCheckpoint(-1, fileId, 1, new TachyonURI("/testPath"));
-    fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals("/testPath", fileInfo.getUfsPath());
-    mFsMaster.completeFileCheckpoint(-1, fileId, 1, new TachyonURI("/testPath"));
-    fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals("/testPath", fileInfo.getUfsPath());
+    Assert.assertEquals(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), "testFile"),
+        fileInfo.getUfsPath());
+    mFsMaster.completeFileCheckpoint(-1, fileId, 1,
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testPath")));
+    // TODO(jiri): Check the file exists in UFS.
   }
 
   @After
@@ -274,6 +274,9 @@ public class FileSystemMasterIntegrationTest {
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
+    mMountPoint = mLocalTachyonCluster.getMountPoint();
+    mRoot = new TachyonURI(PathUtils.concatPath(mMountPoint, "root"));
+    mRoot2 = new TachyonURI(PathUtils.concatPath(mMountPoint, "root2"));
     mExecutorService = Executors.newFixedThreadPool(2);
     mFsMaster = mLocalTachyonCluster.getMaster().getInternalMaster().getFileSystemMaster();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
@@ -282,14 +285,14 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void clientFileInfoDirectoryTest() throws InvalidPathException, FileDoesNotExistException,
       FileAlreadyExistException, TachyonException {
-    TachyonURI path = new TachyonURI("/testFolder");
+    TachyonURI path = new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder"));
     mFsMaster.mkdirs(path, true);
     long fileId = mFsMaster.getFileId(path);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals("testFolder", fileInfo.getName());
-    Assert.assertEquals(1, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertEquals("", fileInfo.getUfsPath());
+    Assert.assertEquals(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), "testFolder"),
+        fileInfo.getUfsPath());
     Assert.assertTrue(fileInfo.isFolder);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertFalse(fileInfo.isCacheable);
@@ -300,12 +303,14 @@ public class FileSystemMasterIntegrationTest {
   public void clientFileInfoEmptyFileTest() throws InvalidPathException, FileDoesNotExistException,
       FileAlreadyExistException, BlockInfoException, TachyonException {
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
+        mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
+            Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertEquals("", fileInfo.getUfsPath());
+    Assert.assertEquals(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), "testFile"),
+        fileInfo.getUfsPath());
     Assert.assertFalse(fileInfo.isFolder);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertTrue(fileInfo.isCacheable);
@@ -323,12 +328,12 @@ public class FileSystemMasterIntegrationTest {
   public void concurrentCreateJournalTest() throws Exception {
     // Makes sure the file id's are the same between a master info and the journal it creates
     for (int i = 0; i < 5; i ++) {
-      ConcurrentCreator concurrentCreator =
-          new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+      ConcurrentCreator concurrentCreator = new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, mRoot);
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/")))) {
+      TachyonURI mntPath = new TachyonURI(mMountPoint);
+      for (FileInfo info : mFsMaster.getFileInfoList(mFsMaster.getFileId(mntPath))) {
         TachyonURI path = new TachyonURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -339,55 +344,52 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void concurrentCreateTest() throws Exception {
-    ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    ConcurrentCreator concurrentCreator = new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, mRoot);
     concurrentCreator.call();
   }
 
   @Test
   public void concurrentDeleteTest() throws Exception {
-    ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    ConcurrentCreator concurrentCreator = new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, mRoot);
     concurrentCreator.call();
 
-    ConcurrentDeleter concurrentDeleter =
-        new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    ConcurrentDeleter concurrentDeleter = new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, mRoot);
     concurrentDeleter.call();
 
-    Assert.assertEquals(0,
-        mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/"))).size());
+    TachyonURI mntPath = new TachyonURI(mMountPoint);
+    Assert.assertEquals(0, mFsMaster.getFileInfoList(mFsMaster.getFileId(mntPath)).size());
   }
 
   @Test
   public void concurrentRenameTest() throws Exception {
-    ConcurrentCreator concurrentCreator =
-        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    ConcurrentCreator concurrentCreator = new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, mRoot);
     concurrentCreator.call();
 
-    int numFiles = mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH)).size();
+    int numFiles = mFsMaster.getFileInfoList(mFsMaster.getFileId(mRoot)).size();
 
     ConcurrentRenamer concurrentRenamer =
-        new ConcurrentRenamer(
-            DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
+        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, mRoot, mRoot2, TachyonURI.EMPTY_URI);
     concurrentRenamer.call();
 
-    Assert.assertEquals(numFiles,
-        mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH2)).size());
+    Assert.assertEquals(numFiles, mFsMaster.getFileInfoList(mFsMaster.getFileId(mRoot2)).size());
   }
 
   @Test
   public void createAlreadyExistFileTest() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
     mThrown.expect(FileAlreadyExistException.class);
-    mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
-    mFsMaster.mkdirs(new TachyonURI("/testFile"), true);
+    mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")), true);
   }
 
   @Test
   public void createDirectoryTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException {
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
-    FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
+    FileInfo fileInfo =
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint,
+            "testFolder"))));
     Assert.assertTrue(fileInfo.isFolder);
   }
 
@@ -402,16 +404,18 @@ public class FileSystemMasterIntegrationTest {
   public void createFileInvalidPathTest2() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
     mThrown.expect(FileAlreadyExistException.class);
-    mFsMaster.createFile(new TachyonURI("/"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    mFsMaster.createFile(new TachyonURI(mMountPoint), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
   }
 
   @Test
   public void createFileInvalidPathTest3() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
     mThrown.expect(InvalidPathException.class);
-    mFsMaster.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    mFsMaster.createFile(new TachyonURI("/testFile1/testFile2"), Constants.DEFAULT_BLOCK_SIZE_BYTE,
-        true);
+    mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile1")),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    mFsMaster.createFile(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile1", "testFile2")),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
   }
 
   @Test
@@ -419,14 +423,15 @@ public class FileSystemMasterIntegrationTest {
       FileDoesNotExistException, TachyonException {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mFsMaster.mkdirs(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
-          .join("0"), true);
+      mFsMaster.mkdirs(
+          new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")).join(
+              Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"), true);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile").join(
-          Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
+      mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint,
+          "testFile")).join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }
@@ -434,107 +439,134 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void createFileTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, BlockInfoException, TachyonException {
-    mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertFalse(
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile"))).isFolder);
+    mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    Assert.assertFalse(mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI(PathUtils
+        .concatPath(mMountPoint, "testFile")))).isFolder);
   }
 
   @Test
   public void deleteDirectoryWithDirectoriesTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /testFolder/testFolder2/testFile2");
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
-    mFsMaster.mkdirs(new TachyonURI("/testFolder/testFolder2"), true);
+    mThrown.expectMessage("Could not find path: "
+        + PathUtils.concatPath(mMountPoint, "testFolder", "testFolder2", "testFile2"));
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
+    mFsMaster.mkdirs(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFolder2")), true);
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFolder/testFile"),
+        mFsMaster.createFile(
+            new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile")),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long fileId2 =
-        mFsMaster.createFile(new TachyonURI("/testFolder/testFolder2/testFile2"),
-            Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertEquals(fileId2,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+        mFsMaster.createFile(
+            new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFolder2",
+                "testFile2")), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFile"))));
+    Assert.assertEquals(fileId2, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFolder2", "testFile2"))));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2"));
+    mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder",
+        "testFolder2", "testFile2")));
   }
 
   @Test
   public void deleteDirectoryWithDirectoriesTest2() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
-    mFsMaster.mkdirs(new TachyonURI("/testFolder/testFolder2"), true);
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
+    mFsMaster.mkdirs(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFolder2")), true);
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFolder/testFile"),
+        mFsMaster.createFile(
+            new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile")),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long fileId2 =
-        mFsMaster.createFile(new TachyonURI("/testFolder/testFolder2/testFile2"),
-            Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertEquals(fileId2,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+        mFsMaster.createFile(
+            new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFolder2",
+                "testFile2")), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    Assert.assertEquals(3,
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder"))));
+    Assert.assertEquals(4, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint,
+        "testFolder", "testFolder2"))));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFile"))));
+    Assert.assertEquals(fileId2, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFolder2", "testFile2"))));
     Assert.assertFalse(mFsMaster.deleteFile(2, false));
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
-    Assert.assertEquals(fileId2,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+    Assert.assertEquals(3,
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder"))));
+    Assert.assertEquals(4, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint,
+        "testFolder", "testFolder2"))));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFile"))));
+    Assert.assertEquals(fileId2, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFolder2", "testFile2"))));
   }
 
   @Test
   public void deleteDirectoryWithFilesTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /testFolder");
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
+    mThrown
+        .expectMessage("Could not find path: " + PathUtils.concatPath(mMountPoint, "testFolder"));
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFolder/testFile"),
+        mFsMaster.createFile(
+            new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile")),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(3,
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder"))));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFile"))));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    mFsMaster.getFileId(new TachyonURI("/testFolder"));
+    mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")));
   }
 
   @Test
   public void deleteDirectoryWithFilesTest2() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFolder/testFile"),
+        mFsMaster.createFile(
+            new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile")),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(3,
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder"))));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFile"))));
     Assert.assertFalse(mFsMaster.deleteFile(1, false));
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(3,
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder"))));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFile"))));
   }
 
   @Test
   public void deleteEmptyDirectoryTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /testFolder");
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
-    Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    mThrown
+        .expectMessage("Could not find path: " + PathUtils.concatPath(mMountPoint, "testFolder"));
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
+    Assert.assertEquals(3,
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder"))));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    mFsMaster.getFileId(new TachyonURI("/testFolder"));
+    mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")));
   }
 
   @Test
   public void deleteFileTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /testFile");
+    mThrown.expectMessage("Could not find path: " + PathUtils.concatPath(mMountPoint, "testFile"));
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFile")));
+        mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
+            Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    Assert.assertEquals(fileId,
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile"))));
     Assert.assertTrue(mFsMaster.deleteFile(fileId, true));
-    mFsMaster.getFileId(new TachyonURI("/testFile"));
+    mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")));
   }
 
   @Test
@@ -556,9 +588,11 @@ public class FileSystemMasterIntegrationTest {
       SuspectedFileSizeException, FileAlreadyExistException, InvalidPathException,
       BlockInfoException, FileNotFoundException, TachyonException {
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+        mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
+            Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long opTimeMs = System.currentTimeMillis();
-    mFsMaster.completeFileCheckpointInternal(-1, fileId, 1, new TachyonURI("/testPath"), opTimeMs);
+    mFsMaster.completeFileCheckpointInternal(-1, fileId, 1,
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testPath")), opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
@@ -568,7 +602,8 @@ public class FileSystemMasterIntegrationTest {
       SuspectedFileSizeException, FileAlreadyExistException, InvalidPathException,
       BlockInfoException, FileNotFoundException, TachyonException {
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+        mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
+            Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long opTimeMs = System.currentTimeMillis();
     mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
@@ -578,24 +613,29 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeCreateFileTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
     long opTimeMs = System.currentTimeMillis();
-    mFsMaster.createFileInternal(new TachyonURI("/testFolder/testFile"),
+    mFsMaster.createFileInternal(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile")),
         Constants.DEFAULT_BLOCK_SIZE_BYTE, true, opTimeMs);
-    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    FileInfo folderInfo =
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint,
+            "testFolder"))));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
 
   @Test
   public void lastModificationTimeDeleteTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFolder/testFile"),
+        mFsMaster.createFile(
+            new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile")),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    long folderId = mFsMaster.getFileId(new TachyonURI("/testFolder"));
-    Assert.assertEquals(1, folderId);
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    long folderId =
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")));
+    Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
+        mMountPoint, "testFolder", "testFile"))));
     long opTimeMs = System.currentTimeMillis();
     Assert.assertTrue(mFsMaster.deleteFileInternal(fileId, true, opTimeMs));
     FileInfo folderInfo = mFsMaster.getFileInfo(folderId);
@@ -605,13 +645,17 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void lastModificationTimeRenameTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
-    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
     long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFolder/testFile1"),
+        mFsMaster.createFile(
+            new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile1")),
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long opTimeMs = System.currentTimeMillis();
-    mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), opTimeMs);
-    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    mFsMaster.renameInternal(fileId,
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile2")), opTimeMs);
+    FileInfo folderInfo =
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint,
+            "testFolder"))));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
 
@@ -621,7 +665,7 @@ public class FileSystemMasterIntegrationTest {
     HashSet<Long> ids = new HashSet<Long>();
     HashSet<Long> dirIds = new HashSet<Long>();
     for (int i = 0; i < 10; i ++) {
-      TachyonURI dir = new TachyonURI("/i" + i);
+      TachyonURI dir = new TachyonURI(PathUtils.concatPath(mMountPoint, "i" + i));
       mFsMaster.mkdirs(dir, true);
       dirIds.add(mFsMaster.getFileId(dir));
       for (int j = 0; j < 10; j ++) {
@@ -630,7 +674,8 @@ public class FileSystemMasterIntegrationTest {
     }
     HashSet<Long> listedIds = Sets.newHashSet();
     HashSet<Long> listedDirIds = Sets.newHashSet();
-    List<FileInfo> infoList = mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/")));
+    List<FileInfo> infoList =
+        mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI(mMountPoint)));
     for (FileInfo info : infoList) {
       // TODO(Gene): After info.getFileId return long, remove this type cast.
       long id = new Long(info.getFileId());
@@ -645,109 +690,120 @@ public class FileSystemMasterIntegrationTest {
 
   // TODO(gene): There is no longer `ls` method in FileSystemMaster, should this test be removed or
   // should `ls` be added back?
-  //@Test
-  //public void lsTest() throws FileAlreadyExistException, InvalidPathException, TachyonException,
-  //    BlockInfoException, FileDoesNotExistException {
-  //  for (int i = 0; i < 10; i ++) {
-  //    mMasterInfo.mkdirs(new TachyonURI("/i" + i), true);
-  //    for (int j = 0; j < 10; j ++) {
-  //      mMasterInfo.createFile(new TachyonURI("/i" + i + "/j" + j), 64);
-  //    }
-  //  }
+  // @Test
+  // public void lsTest() throws FileAlreadyExistException, InvalidPathException, TachyonException,
+  // BlockInfoException, FileDoesNotExistException {
+  // for (int i = 0; i < 10; i ++) {
+  // mMasterInfo.mkdirs(new TachyonURI("/i" + i), true);
+  // for (int j = 0; j < 10; j ++) {
+  // mMasterInfo.createFile(new TachyonURI("/i" + i + "/j" + j), 64);
+  // }
+  // }
 
-  //  Assert.assertEquals(1, mMasterInfo.ls(new TachyonURI("/i0/j0"), false).size());
-  //  Assert.assertEquals(1, mMasterInfo.ls(new TachyonURI("/i0/j0"), true).size());
-  //  for (int i = 0; i < 10; i ++) {
-  //    Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI("/i" + i), false).size());
-  //    Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI("/i" + i), true).size());
-  //  }
-  //  Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI(TachyonURI.SEPARATOR), false).size());
-  //  Assert.assertEquals(111, mMasterInfo.ls(new TachyonURI(TachyonURI.SEPARATOR), true).size());
-  //}
+  // Assert.assertEquals(1, mMasterInfo.ls(new TachyonURI("/i0/j0"), false).size());
+  // Assert.assertEquals(1, mMasterInfo.ls(new TachyonURI("/i0/j0"), true).size());
+  // for (int i = 0; i < 10; i ++) {
+  // Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI("/i" + i), false).size());
+  // Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI("/i" + i), true).size());
+  // }
+  // Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI(TachyonURI.SEPARATOR), false).size());
+  // Assert.assertEquals(111, mMasterInfo.ls(new TachyonURI(TachyonURI.SEPARATOR), true).size());
+  // }
 
   @Test
   public void notFileCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     mThrown.expect(FileDoesNotExistException.class);
-    mFsMaster.mkdirs(new TachyonURI("/testFile"), true);
-    mFsMaster.completeFileCheckpoint(-1, mFsMaster.getFileId(new TachyonURI("/testFile")), 0,
-        new TachyonURI("/testPath"));
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")), true);
+    mFsMaster.completeFileCheckpoint(-1,
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile"))), 0,
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testPath")));
   }
 
   @Test
   public void renameExistingDstTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
-    mFsMaster.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    mFsMaster.createFile(new TachyonURI("/testFile2"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertFalse(mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testFile1")),
-        new TachyonURI("/testFile2")));
+    mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile1")),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile2")),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    Assert.assertFalse(mFsMaster.rename(
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile1"))),
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile2"))));
   }
 
   @Test
   public void renameNonexistentTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
     mThrown.expect(InvalidPathException.class);
-    mFsMaster.createFile(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testFile2")),
-        new TachyonURI("/testFile3"));
+    mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile1")),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    mFsMaster.rename(
+        mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile2"))),
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile3")));
   }
 
   @Test
   public void renameToDeeper() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
     mThrown.expect(InvalidPathException.class);
-    mFsMaster.mkdirs(new TachyonURI("/testDir1/testDir2"), true);
-    mFsMaster.createFile(new TachyonURI("/testDir1/testDir2/testDir3/testFile3"),
-        Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testDir1/testDir2")),
-        new TachyonURI("/testDir1/testDir2/testDir3/testDir4"));
+    mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir1", "testDir2")),
+        true);
+    mFsMaster.createFile(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir1", "testDir2", "testDir3",
+            "testFile3")), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    mFsMaster.rename(
+        mFsMaster.getFileId(new TachyonURI(PathUtils
+            .concatPath(mMountPoint, "testDir1", "testDir2"))),
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir1", "testDir2", "testDir3",
+            "testDir4")));
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
   // or remove this test when we have better tests against journal checkpoint.
-  //@Test
-  //public void writeImageTest() throws IOException {
-  //  // initialize the MasterInfo
-  //  Journal journal =
-  //      new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data",
-  //          mMasterTachyonConf);
-  //  Journal
-  //  MasterInfo info =
-  //     new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
+  // @Test
+  // public void writeImageTest() throws IOException {
+  // // initialize the MasterInfo
+  // Journal journal =
+  // new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data",
+  // mMasterTachyonConf);
+  // Journal
+  // MasterInfo info =
+  // new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
 
-  //  // create the output streams
-  //  ByteArrayOutputStream os = new ByteArrayOutputStream();
-  //  DataOutputStream dos = new DataOutputStream(os);
-  //  ObjectMapper mapper = JsonObject.createObjectMapper();
-  //  ObjectWriter writer = mapper.writer();
-  //  ImageElement version = null;
-  //  ImageElement checkpoint = null;
+  // // create the output streams
+  // ByteArrayOutputStream os = new ByteArrayOutputStream();
+  // DataOutputStream dos = new DataOutputStream(os);
+  // ObjectMapper mapper = JsonObject.createObjectMapper();
+  // ObjectWriter writer = mapper.writer();
+  // ImageElement version = null;
+  // ImageElement checkpoint = null;
 
-  //  // write the image
-  //  info.writeImage(writer, dos);
+  // // write the image
+  // info.writeImage(writer, dos);
 
-  //  // parse the written bytes and look for the Checkpoint and Version ImageElements
-  //  String[] splits = new String(os.toByteArray()).split("\n");
-  //  for (String split : splits) {
-  //    byte[] bytes = split.getBytes();
-  //    JsonParser parser = mapper.getFactory().createParser(bytes);
-  //    ImageElement ele = parser.readValueAs(ImageElement.class);
+  // // parse the written bytes and look for the Checkpoint and Version ImageElements
+  // String[] splits = new String(os.toByteArray()).split("\n");
+  // for (String split : splits) {
+  // byte[] bytes = split.getBytes();
+  // JsonParser parser = mapper.getFactory().createParser(bytes);
+  // ImageElement ele = parser.readValueAs(ImageElement.class);
 
-  //    if (ele.mType.equals(ImageElementType.Checkpoint)) {
-  //      checkpoint = ele;
-  //    }
+  // if (ele.mType.equals(ImageElementType.Checkpoint)) {
+  // checkpoint = ele;
+  // }
 
-  //    if (ele.mType.equals(ImageElementType.Version)) {
-  //      version = ele;
-  //    }
-  //  }
+  // if (ele.mType.equals(ImageElementType.Version)) {
+  // version = ele;
+  // }
+  // }
 
-  //  // test the elements
-  //  Assert.assertNotNull(checkpoint);
-  //  Assert.assertEquals(checkpoint.mType, ImageElementType.Checkpoint);
-  //  Assert.assertEquals(Constants.JOURNAL_VERSION, version.getInt("version").intValue());
-  //  Assert.assertEquals(1, checkpoint.getInt("inodeCounter").intValue());
-  //  Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
-  //  Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
-  //}
+  // // test the elements
+  // Assert.assertNotNull(checkpoint);
+  // Assert.assertEquals(checkpoint.mType, ImageElementType.Checkpoint);
+  // Assert.assertEquals(Constants.JOURNAL_VERSION, version.getInt("version").intValue());
+  // Assert.assertEquals(1, checkpoint.getInt("inodeCounter").intValue());
+  // Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
+  // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
+  // }
 }

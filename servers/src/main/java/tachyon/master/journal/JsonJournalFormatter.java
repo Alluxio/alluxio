@@ -43,8 +43,10 @@ import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
+import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
+import tachyon.master.file.journal.DeleteMountPointEntry;
 import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
@@ -286,6 +288,15 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
                 entry.getLong("operationTimeMs"));
+          }
+          case ADD_MOUNTPOINT: {
+            return new AddMountPointEntry(
+                new TachyonURI(entry.getString("tachyonPath")),
+                new TachyonURI(entry.getString("ufsPath")));
+          }
+          case DELETE_MOUNTPOINT: {
+            return new DeleteMountPointEntry(
+                new TachyonURI(entry.getString("tachyonPath")));
           }
           case DEPENDENCY: {
             return new DependencyEntry(
