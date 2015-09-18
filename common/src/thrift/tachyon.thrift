@@ -144,9 +144,9 @@ exception DependencyDoesNotExistException {
 service BlockMasterService {
   i64 workerGetWorkerId(1: NetAddress workerNetAddress)
 
-  i64 workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers, 3: list<i64> usedBytesOnTiers,
-      4: map<i64, list<i64>> currentBlocksOnTiers)
-    throws (1: BlockInfoException bie)
+  void workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers,
+      3: list<i64> usedBytesOnTiers, 4: map<i64, list<i64>> currentBlocksOnTiers)
+    throws (1: TachyonException bie)
 
   Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,
       3: list<i64> removedBlockIds, 4: map<i64, list<i64>> addedBlocksOnTiers)
