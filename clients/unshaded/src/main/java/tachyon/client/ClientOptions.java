@@ -55,7 +55,8 @@ public class ClientOptions {
      * @return the builder
      */
     public Builder setLocation(NetAddress location) {
-      throw new UnsupportedOperationException("Set location is currently unsupported.");
+      mLocation = location;
+      return this;
     }
 
     /**
