@@ -15,6 +15,7 @@
 
 package tachyon.client.block;
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -54,7 +55,13 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
 
   @Override
   public void close() {
-    // TODO(calvin): Consider collecting all the clients and shutting them down.
+    // Collecting all the clients and shutting them down.
+    ArrayList<WorkerClient> workerClients = new ArrayList<WorkerClient>();
+    if (this.mResources.drainTo(workerClients) > 0) {
+      for (WorkerClient workerClient : workerClients) {
+        workerClient.close();
+      }
+    }
     mExecutorService.shutdown();
   }
 
