@@ -29,7 +29,7 @@ import tachyon.util.ThreadFactoryUtils;
  * {@link ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
  * using the client.
  */
-public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
+public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private static final int CAPACITY = 10;
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
