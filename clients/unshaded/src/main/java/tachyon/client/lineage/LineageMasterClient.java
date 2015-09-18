@@ -99,12 +99,12 @@ public final class LineageMasterClient extends MasterClientBase {
     throw new IOException("Failed after " + retry + " retries.");
   }
 
-  public synchronized boolean deleteLineage(long lineageId) throws IOException {
+  public synchronized boolean deleteLineage(long lineageId, boolean cascade) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.deleteLineage(lineageId);
+        return mClient.deleteLineage(lineageId, cascade);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

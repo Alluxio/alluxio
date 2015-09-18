@@ -255,7 +255,7 @@ service LineageMasterService {
   // for client
   i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: binary job)
   
-  bool deleteLineage(1: i64 lineageId)
+  bool deleteLineage(1: i64 lineageId, 2: bool cascade)
   
   // for workers
   LineageCommand workerLineageHeartbeat(1: i64 workerId)
