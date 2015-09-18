@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -355,7 +356,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getByteBuffer("metadata"));
           }
           default:
-            throw new IOException("Unknown entry type: " + entry.mType);
+            throw new IOException(ExceptionMessage.UNKNOWN_ENTRY_TYPE.getMessage(entry.mType));
         }
       }
 

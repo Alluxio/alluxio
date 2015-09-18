@@ -39,10 +39,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
+import tachyon.IndexedSet;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.IndexedSet;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
@@ -164,7 +165,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       mBlocks.put(blockInfoEntry.getBlockId(),
           new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
     } else {
-      throw new IOException("unexpected entry in journal: " + entry);
+      throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 

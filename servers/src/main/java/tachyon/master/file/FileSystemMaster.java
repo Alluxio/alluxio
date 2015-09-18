@@ -35,6 +35,7 @@ import tachyon.PrefixList;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
@@ -166,7 +167,7 @@ public final class FileSystemMaster extends MasterBase {
     } else if (entry instanceof InodeDirectoryIdGeneratorEntry) {
       mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
     } else {
-      throw new IOException("unexpected entry in journal: " + entry);
+      throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 
@@ -232,7 +233,7 @@ public final class FileSystemMaster extends MasterBase {
 
     Inode inode = mInodeTree.getInodeById(fileId);
     if (inode.isDirectory()) {
-      throw new FileDoesNotExistException("File id " + fileId + " is a directory, not a file.");
+      throw new FileDoesNotExistException(ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
     }
 
     InodeFile file = (InodeFile) inode;
@@ -329,9 +330,8 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException
-   * @throws InvalidPathException
    */
-  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -385,7 +385,8 @@ public final class FileSystemMaster extends MasterBase {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
       if (!inode.isFile()) {
-        throw new FileDoesNotExistException("File id " + fileId + " is not a file.");
+        throw new FileDoesNotExistException(
+                ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
       }
 
       InodeFile fileInode = (InodeFile) inode;
@@ -486,7 +487,7 @@ public final class FileSystemMaster extends MasterBase {
       inode = mInodeTree.getInodeById(fileId);
     }
     if (!inode.isFile()) {
-      throw new FileDoesNotExistException("File id " + fileId + " is not a file.");
+      throw new FileDoesNotExistException(ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
     }
 
     return ((InodeFile) inode).getNewBlockId();
@@ -592,7 +593,8 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("FileId " + fileId + " is not a file.");
+        throw new FileDoesNotExistException(
+                ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
       }
       InodeFile file = (InodeFile) inode;
       List<Long> blockIdList = new ArrayList<Long>(1);
@@ -617,7 +619,8 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("FileId " + fileId + " is not a file.");
+        throw new FileDoesNotExistException(
+                ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
       }
       InodeFile file = (InodeFile) inode;
       List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
