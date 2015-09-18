@@ -30,6 +30,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
+import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -49,6 +50,7 @@ import tachyon.util.ThreadFactoryUtils;
 public final class LineageMaster extends MasterBase {
   private final TachyonConf mTachyonConf;
   private final LineageStore mLineageStore;
+  private final FileSystemMaster mFileSystemMaster;
 
   /** The service that checkpoints lineages. */
   private Future<?> mCheckpointExecutionService;
@@ -56,11 +58,12 @@ public final class LineageMaster extends MasterBase {
   private Future<?> mRecomputeExecutionService;
 
 
-  public LineageMaster(TachyonConf conf, Journal journal) {
+  public LineageMaster(TachyonConf conf, Journal journal, FileSystemMaster fileSystemMaster) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
 
     mTachyonConf = Preconditions.checkNotNull(conf);
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageStore = new LineageStore();
   }
 

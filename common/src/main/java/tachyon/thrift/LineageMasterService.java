@@ -39,7 +39,7 @@ public class LineageMasterService {
 
   public interface Iface {
 
-    public long createLineage(List<Long> inputFiles, List<Long> outputFiles, ByteBuffer job) throws org.apache.thrift.TException;
+    public long createLineage(List<String> inputFiles, List<String> outputFiles, ByteBuffer job) throws org.apache.thrift.TException;
 
     public boolean deleteLineage(long lineageId) throws org.apache.thrift.TException;
 
@@ -49,7 +49,7 @@ public class LineageMasterService {
 
   public interface AsyncIface {
 
-    public void createLineage(List<Long> inputFiles, List<Long> outputFiles, ByteBuffer job, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void createLineage(List<String> inputFiles, List<String> outputFiles, ByteBuffer job, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void deleteLineage(long lineageId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -77,13 +77,13 @@ public class LineageMasterService {
       super(iprot, oprot);
     }
 
-    public long createLineage(List<Long> inputFiles, List<Long> outputFiles, ByteBuffer job) throws org.apache.thrift.TException
+    public long createLineage(List<String> inputFiles, List<String> outputFiles, ByteBuffer job) throws org.apache.thrift.TException
     {
       send_createLineage(inputFiles, outputFiles, job);
       return recv_createLineage();
     }
 
-    public void send_createLineage(List<Long> inputFiles, List<Long> outputFiles, ByteBuffer job) throws org.apache.thrift.TException
+    public void send_createLineage(List<String> inputFiles, List<String> outputFiles, ByteBuffer job) throws org.apache.thrift.TException
     {
       createLineage_args args = new createLineage_args();
       args.setInputFiles(inputFiles);
@@ -166,7 +166,7 @@ public class LineageMasterService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void createLineage(List<Long> inputFiles, List<Long> outputFiles, ByteBuffer job, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void createLineage(List<String> inputFiles, List<String> outputFiles, ByteBuffer job, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       createLineage_call method_call = new createLineage_call(inputFiles, outputFiles, job, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -174,10 +174,10 @@ public class LineageMasterService {
     }
 
     public static class createLineage_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private List<Long> inputFiles;
-      private List<Long> outputFiles;
+      private List<String> inputFiles;
+      private List<String> outputFiles;
       private ByteBuffer job;
-      public createLineage_call(List<Long> inputFiles, List<Long> outputFiles, ByteBuffer job, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public createLineage_call(List<String> inputFiles, List<String> outputFiles, ByteBuffer job, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.inputFiles = inputFiles;
         this.outputFiles = outputFiles;
@@ -538,8 +538,8 @@ public class LineageMasterService {
       schemes.put(TupleScheme.class, new createLineage_argsTupleSchemeFactory());
     }
 
-    public List<Long> inputFiles; // required
-    public List<Long> outputFiles; // required
+    public List<String> inputFiles; // required
+    public List<String> outputFiles; // required
     public ByteBuffer job; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -612,10 +612,10 @@ public class LineageMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.INPUT_FILES, new org.apache.thrift.meta_data.FieldMetaData("inputFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
       tmpMap.put(_Fields.OUTPUT_FILES, new org.apache.thrift.meta_data.FieldMetaData("outputFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
       tmpMap.put(_Fields.JOB, new org.apache.thrift.meta_data.FieldMetaData("job", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING          , true)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -626,8 +626,8 @@ public class LineageMasterService {
     }
 
     public createLineage_args(
-      List<Long> inputFiles,
-      List<Long> outputFiles,
+      List<String> inputFiles,
+      List<String> outputFiles,
       ByteBuffer job)
     {
       this();
@@ -641,11 +641,11 @@ public class LineageMasterService {
      */
     public createLineage_args(createLineage_args other) {
       if (other.isSetInputFiles()) {
-        List<Long> __this__inputFiles = new ArrayList<Long>(other.inputFiles);
+        List<String> __this__inputFiles = new ArrayList<String>(other.inputFiles);
         this.inputFiles = __this__inputFiles;
       }
       if (other.isSetOutputFiles()) {
-        List<Long> __this__outputFiles = new ArrayList<Long>(other.outputFiles);
+        List<String> __this__outputFiles = new ArrayList<String>(other.outputFiles);
         this.outputFiles = __this__outputFiles;
       }
       if (other.isSetJob()) {
@@ -668,22 +668,22 @@ public class LineageMasterService {
       return (this.inputFiles == null) ? 0 : this.inputFiles.size();
     }
 
-    public java.util.Iterator<Long> getInputFilesIterator() {
+    public java.util.Iterator<String> getInputFilesIterator() {
       return (this.inputFiles == null) ? null : this.inputFiles.iterator();
     }
 
-    public void addToInputFiles(long elem) {
+    public void addToInputFiles(String elem) {
       if (this.inputFiles == null) {
-        this.inputFiles = new ArrayList<Long>();
+        this.inputFiles = new ArrayList<String>();
       }
       this.inputFiles.add(elem);
     }
 
-    public List<Long> getInputFiles() {
+    public List<String> getInputFiles() {
       return this.inputFiles;
     }
 
-    public createLineage_args setInputFiles(List<Long> inputFiles) {
+    public createLineage_args setInputFiles(List<String> inputFiles) {
       this.inputFiles = inputFiles;
       return this;
     }
@@ -707,22 +707,22 @@ public class LineageMasterService {
       return (this.outputFiles == null) ? 0 : this.outputFiles.size();
     }
 
-    public java.util.Iterator<Long> getOutputFilesIterator() {
+    public java.util.Iterator<String> getOutputFilesIterator() {
       return (this.outputFiles == null) ? null : this.outputFiles.iterator();
     }
 
-    public void addToOutputFiles(long elem) {
+    public void addToOutputFiles(String elem) {
       if (this.outputFiles == null) {
-        this.outputFiles = new ArrayList<Long>();
+        this.outputFiles = new ArrayList<String>();
       }
       this.outputFiles.add(elem);
     }
 
-    public List<Long> getOutputFiles() {
+    public List<String> getOutputFiles() {
       return this.outputFiles;
     }
 
-    public createLineage_args setOutputFiles(List<Long> outputFiles) {
+    public createLineage_args setOutputFiles(List<String> outputFiles) {
       this.outputFiles = outputFiles;
       return this;
     }
@@ -782,7 +782,7 @@ public class LineageMasterService {
         if (value == null) {
           unsetInputFiles();
         } else {
-          setInputFiles((List<Long>)value);
+          setInputFiles((List<String>)value);
         }
         break;
 
@@ -790,7 +790,7 @@ public class LineageMasterService {
         if (value == null) {
           unsetOutputFiles();
         } else {
-          setOutputFiles((List<Long>)value);
+          setOutputFiles((List<String>)value);
         }
         break;
 
@@ -1030,11 +1030,11 @@ public class LineageMasterService {
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
                   org.apache.thrift.protocol.TList _list196 = iprot.readListBegin();
-                  struct.inputFiles = new ArrayList<Long>(_list196.size);
-                  long _elem197;
+                  struct.inputFiles = new ArrayList<String>(_list196.size);
+                  String _elem197;
                   for (int _i198 = 0; _i198 < _list196.size; ++_i198)
                   {
-                    _elem197 = iprot.readI64();
+                    _elem197 = iprot.readString();
                     struct.inputFiles.add(_elem197);
                   }
                   iprot.readListEnd();
@@ -1048,11 +1048,11 @@ public class LineageMasterService {
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
                   org.apache.thrift.protocol.TList _list199 = iprot.readListBegin();
-                  struct.outputFiles = new ArrayList<Long>(_list199.size);
-                  long _elem200;
+                  struct.outputFiles = new ArrayList<String>(_list199.size);
+                  String _elem200;
                   for (int _i201 = 0; _i201 < _list199.size; ++_i201)
                   {
-                    _elem200 = iprot.readI64();
+                    _elem200 = iprot.readString();
                     struct.outputFiles.add(_elem200);
                   }
                   iprot.readListEnd();
@@ -1088,10 +1088,10 @@ public class LineageMasterService {
         if (struct.inputFiles != null) {
           oprot.writeFieldBegin(INPUT_FILES_FIELD_DESC);
           {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.inputFiles.size()));
-            for (long _iter202 : struct.inputFiles)
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.inputFiles.size()));
+            for (String _iter202 : struct.inputFiles)
             {
-              oprot.writeI64(_iter202);
+              oprot.writeString(_iter202);
             }
             oprot.writeListEnd();
           }
@@ -1100,10 +1100,10 @@ public class LineageMasterService {
         if (struct.outputFiles != null) {
           oprot.writeFieldBegin(OUTPUT_FILES_FIELD_DESC);
           {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.outputFiles.size()));
-            for (long _iter203 : struct.outputFiles)
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.outputFiles.size()));
+            for (String _iter203 : struct.outputFiles)
             {
-              oprot.writeI64(_iter203);
+              oprot.writeString(_iter203);
             }
             oprot.writeListEnd();
           }
@@ -1145,18 +1145,18 @@ public class LineageMasterService {
         if (struct.isSetInputFiles()) {
           {
             oprot.writeI32(struct.inputFiles.size());
-            for (long _iter204 : struct.inputFiles)
+            for (String _iter204 : struct.inputFiles)
             {
-              oprot.writeI64(_iter204);
+              oprot.writeString(_iter204);
             }
           }
         }
         if (struct.isSetOutputFiles()) {
           {
             oprot.writeI32(struct.outputFiles.size());
-            for (long _iter205 : struct.outputFiles)
+            for (String _iter205 : struct.outputFiles)
             {
-              oprot.writeI64(_iter205);
+              oprot.writeString(_iter205);
             }
           }
         }
@@ -1171,12 +1171,12 @@ public class LineageMasterService {
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list206 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.inputFiles = new ArrayList<Long>(_list206.size);
-            long _elem207;
+            org.apache.thrift.protocol.TList _list206 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.inputFiles = new ArrayList<String>(_list206.size);
+            String _elem207;
             for (int _i208 = 0; _i208 < _list206.size; ++_i208)
             {
-              _elem207 = iprot.readI64();
+              _elem207 = iprot.readString();
               struct.inputFiles.add(_elem207);
             }
           }
@@ -1184,12 +1184,12 @@ public class LineageMasterService {
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list209 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.outputFiles = new ArrayList<Long>(_list209.size);
-            long _elem210;
+            org.apache.thrift.protocol.TList _list209 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.outputFiles = new ArrayList<String>(_list209.size);
+            String _elem210;
             for (int _i211 = 0; _i211 < _list209.size; ++_i211)
             {
-              _elem210 = iprot.readI64();
+              _elem210 = iprot.readString();
               struct.outputFiles.add(_elem210);
             }
           }
