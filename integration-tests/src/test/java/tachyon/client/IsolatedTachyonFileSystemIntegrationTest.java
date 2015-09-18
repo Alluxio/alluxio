@@ -69,10 +69,10 @@ public class IsolatedTachyonFileSystemIntegrationTest {
         mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mWriteBoth =
         new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.STORE,
-            UnderStorageType.PERSIST).build();
+            UnderStorageType.SYNC_PERSIST).build();
     mWriteUnderStorage =
         new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.NO_STORE,
-            UnderStorageType.PERSIST).build();
+            UnderStorageType.SYNC_PERSIST).build();
   }
 
   @Test

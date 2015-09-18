@@ -69,13 +69,13 @@ public class FileInStreamIntegrationTest {
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
         new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     sWriteTachyon =
         new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sWriteUnderStore =
         new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 
   /**

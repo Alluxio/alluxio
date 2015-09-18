@@ -110,7 +110,7 @@ public class JournalIntegrationTest {
   public void AddCheckpointTest() throws Exception {
     ClientOptions options =
         new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType
-            .NO_STORE, UnderStorageType.PERSIST).build();
+            .NO_STORE, UnderStorageType.SYNC_PERSIST).build();
     TachyonFSTestUtils.createByteFile(mTfs, "/xyz", options, 10);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     TachyonURI ckPath = new TachyonURI("/xyz_ck");

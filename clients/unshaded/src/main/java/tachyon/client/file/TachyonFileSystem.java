@@ -49,7 +49,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     return sTachyonFileSystem;
   }
 
-  private TachyonFileSystem() {
+  protected TachyonFileSystem() {
     super();
   }
 

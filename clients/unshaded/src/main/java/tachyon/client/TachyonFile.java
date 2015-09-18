@@ -268,7 +268,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
     }
     if (writeType.isThrough()) {
-      optionsBuilder.setUnderStorageType(UnderStorageType.PERSIST);
+      optionsBuilder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);
     } else {
       optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
     }

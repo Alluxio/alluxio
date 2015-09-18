@@ -61,4 +61,14 @@ public final class LineageMasterServiceHandler implements Iface {
     return mLineageMaster.lineageWorkerHeartbeat(workerId);
   }
 
+  @Override
+  public void asyncCompleteFile(long fileId, String filePath) throws TException {
+    mLineageMaster.asyncCompleteFile(fileId, filePath);
+  }
+
+  @Override
+  public long recreateFile(String path, long blockSizeBytes) throws TException {
+    return mLineageMaster.recreateFile(path, blockSizeBytes);
+  }
+
 }
