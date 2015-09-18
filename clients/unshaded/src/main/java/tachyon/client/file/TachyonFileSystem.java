@@ -107,7 +107,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws IOException if the master cannot delete the file
    */
   public void delete(TachyonFile file) throws FileDoesNotExistException, IOException {
-    delete(file, true);
+    delete(file, false);
   }
 
   /**
@@ -119,7 +119,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public void free(TachyonFile file) throws FileDoesNotExistException,
       IOException {
-    free(file, true);
+    free(file, false);
   }
 
   /**
@@ -213,7 +213,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public boolean mkdirs(TachyonURI path) throws FileAlreadyExistException, InvalidPathException,
       IOException {
-    return mkdirs(path, true);
+    return mkdirs(path, false);
   }
 
   /**
@@ -228,7 +228,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws IOException if the master fails to pin the file
    */
   public void pin(TachyonFile file) throws FileDoesNotExistException, IOException {
-    setPin(file, true);
+    setPin(file, false);
   }
 
   // TODO: Move this to lineage client
