@@ -96,6 +96,8 @@ public final class BlockWorker {
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
+  /** Asynchronous evictor for the block data manager */
+  private AsyncEvictor mAsyncEvictor = null;
 
   /**
    * @return the worker service handler
@@ -206,10 +208,10 @@ public final class BlockWorker {
             mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
-    // We create three threads for two syncers and one cleaner: mBlockMasterSync,
-    // mPinListSync and mSessionCleanerThread
+    // We create four threads for two syncers, one cleaner and one asynchronous evictor:
+    // mBlockMasterSync, mPinListSync, mSessionCleanerThread, mAsyncEvictor
     mSyncExecutorService =
-        Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
+        Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
         mBlockMasterClient);
@@ -222,6 +224,11 @@ public final class BlockWorker {
 
     // Setup session cleaner
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
+
+    // Set up asynchronous evictor
+    if (mTachyonConf.getBoolean(Constants.WORKER_EVICT_ASYNC_ENABLE)) {
+      mAsyncEvictor = new AsyncEvictor(mBlockDataManager, mTachyonConf);
+    }
 
     // Setup session metadata mapping
     // TODO(calvin): Have a top level register that gets the worker id.
@@ -263,6 +270,10 @@ public final class BlockWorker {
     // Start the session cleanup checker to perform the periodical checking
     mSyncExecutorService.submit(mSessionCleanerThread);
 
+    if (mAsyncEvictor != null) {
+      mSyncExecutorService.submit(mAsyncEvictor);
+    }
+
     mWebServer.startWebServer();
     mThriftServer.serve();
   }
@@ -284,6 +295,9 @@ public final class BlockWorker {
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     mWorkerMetricsSystem.stop();
+    if (mAsyncEvictor != null) {
+      mAsyncEvictor.stop();
+    }
     try {
       mWebServer.shutdownWebServer();
     } catch (Exception e) {
