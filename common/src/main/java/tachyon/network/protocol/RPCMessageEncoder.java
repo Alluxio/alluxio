@@ -32,7 +32,7 @@ import tachyon.network.protocol.databuffer.DataBuffer;
  * Simple Netty encoder for RPCMessages.
  */
 @ChannelHandler.Sharable
-public class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage> {
+public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage> {
 
   @Override
   protected void encode(ChannelHandlerContext ctx, RPCMessage in, List<Object> out)

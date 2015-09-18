@@ -45,11 +45,12 @@ import tachyon.worker.block.meta.TempBlockMeta;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({WorkerBlockMasterClient.class, WorkerFileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class})
+    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class})
 public class BlockDataManagerTest implements Tester<BlockDataManager> {
   private TestHarness mHarness;
   private BlockDataManager.PrivateAccess mPrivateAccess;
 
+  @Override
   public void receiveAccess(Object access) {
     mPrivateAccess = (BlockDataManager.PrivateAccess) access;
   }
