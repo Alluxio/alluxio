@@ -15,6 +15,7 @@
 
 package tachyon.master.file;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
@@ -120,8 +121,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   @Override
   public boolean renameFile(long fileId, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException {
-    return mFileSystemMaster.rename(fileId, new TachyonURI(dstPath));
+      FileDoesNotExistException, InvalidPathException, TachyonException  {
+    try {
+      return mFileSystemMaster.rename(fileId, new TachyonURI(dstPath));
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
+    }
   }
 
   @Override

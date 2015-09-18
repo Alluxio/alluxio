@@ -27,20 +27,20 @@ import tachyon.master.journal.JournalEntryType;
 public class InodeFileEntry extends InodeEntry {
   private final long mBlockSizeBytes;
   private final long mLength;
-  private final boolean mIsComplete;
-  private final boolean mIsCache;
-  private final String mUfsPath;
+  private final boolean mCompleted;
+  private final boolean mCacheable;
+  private final boolean mPersisted;
   private final List<Long> mBlocks;
 
   public InodeFileEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
-      long lastModificationTimeMs, long blockSizeBytes, long length, boolean isComplete,
-      boolean isCache, String ufsPath, List<Long> blocks) {
+      long lastModificationTimeMs, long blockSizeBytes, long length, boolean isCompleted,
+      boolean isCacheable, boolean isPersisted, List<Long> blocks) {
     super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
-    mIsComplete = isComplete;
-    mIsCache = isCache;
-    mUfsPath = ufsPath;
+    mCompleted = isCompleted;
+    mCacheable = isCacheable;
+    mPersisted = isPersisted;
     mBlocks = Preconditions.checkNotNull(blocks);
   }
 
@@ -49,16 +49,16 @@ public class InodeFileEntry extends InodeEntry {
         mCreationTimeMs);
 
     // Set flags.
-    if (mIsComplete) {
-      inode.setComplete(mLength);
+    if (mCompleted) {
+      inode.setCompleted(mLength);
     }
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
     inode.setPinned(mIsPinned);
-    inode.setCache(mIsCache);
+    inode.setCacheable(mCacheable);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);
-    inode.setUfsPath(mUfsPath);
+    inode.setPersisted(mPersisted);
 
     return inode;
   }
@@ -73,9 +73,9 @@ public class InodeFileEntry extends InodeEntry {
     Map<String, Object> parameters = super.getParameters();
     parameters.put("blockSizeBytes", mBlockSizeBytes);
     parameters.put("length", mLength);
-    parameters.put("isComplete", mIsComplete);
-    parameters.put("isCacheable", mIsCache);
-    parameters.put("ufsPath", mUfsPath);
+    parameters.put("isCompleted", mCompleted);
+    parameters.put("isCacheable", mCacheable);
+    parameters.put("isPersisted", mPersisted);
     parameters.put("blocks", mBlocks);
     return parameters;
   }

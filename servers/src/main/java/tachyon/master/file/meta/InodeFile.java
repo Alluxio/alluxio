@@ -40,9 +40,9 @@ public final class InodeFile extends Inode {
   // length of inode file in bytes.
   private long mLength = 0;
 
-  private boolean mIsComplete = false;
-  private boolean mCache = false;
-  private String mUfsPath = "";
+  private boolean mCompleted = false;
+  private boolean mCacheable = false;
+  private boolean mPersisted = false;
 
   /**
    * Creates a new InodeFile.
@@ -71,14 +71,14 @@ public final class InodeFile extends Inode {
     ret.fileId = getId();
     ret.name = getName();
     ret.path = path;
-    ret.ufsPath = mUfsPath;
     ret.length = mLength;
     ret.blockSizeBytes = mBlockSizeBytes;
     ret.creationTimeMs = getCreationTimeMs();
-    ret.isComplete = isComplete();
+    ret.isCacheable = mCompleted;
     ret.isFolder = false;
     ret.isPinned = isPinned();
-    ret.isCacheable = mCache;
+    ret.isCacheable = mCacheable;
+    ret.isPersisted = mPersisted;
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     return ret;
@@ -96,13 +96,6 @@ public final class InodeFile extends Inode {
    */
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
-  }
-
-  /**
-   * @return the path of the file in under file system
-   */
-  public synchronized String getUfsPath() {
-    return mUfsPath;
   }
 
   /**
@@ -134,27 +127,26 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Returns whether the file has checkpointed or not. Note that the file has checkpointed only if
-   * the under file system path is not empty.
+   * Returns whether the file has been persisted or not.
    *
    * @return true if the file has checkpointed, false otherwise
    */
-  public synchronized boolean hasCheckpointed() {
-    return !mUfsPath.equals("");
+  public synchronized boolean isPersisted() {
+    return mPersisted;
   }
 
   /**
    * @return true if the file is cacheable, false otherwise
    */
-  public synchronized boolean isCache() {
-    return mCache;
+  public synchronized boolean isCacheable() {
+    return mCacheable;
   }
 
   /**
    * @return true if the file is complete, false otherwise
    */
-  public synchronized boolean isComplete() {
-    return mIsComplete;
+  public synchronized boolean isCompleted() {
+    return mCompleted;
   }
 
   public synchronized void setBlockIds(List<Long> blockIds) {
@@ -164,11 +156,11 @@ public final class InodeFile extends Inode {
   /**
    * Sets whether the file is cacheable or not.
    *
-   * @param cache If true, the file is cacheable
+   * @param cacheable If true, the file is cacheable
    */
-  public synchronized void setCache(boolean cache) {
+  public synchronized void setCacheable(boolean cacheable) {
     // TODO this related logic is not complete right. fix this.
-    mCache = cache;
+    mCacheable = cacheable;
   }
 
   /**
@@ -176,18 +168,18 @@ public final class InodeFile extends Inode {
    *
    * @param length the length of the complete file
    */
-  public synchronized void setComplete(long length) {
-    mIsComplete = true;
+  public synchronized void setCompleted(long length) {
+    mCompleted = true;
     mLength = length;
   }
 
   /**
-   * Sets the path of the file in under file system.
+   * Sets the persisted flag for the file.
    *
-   * @param ufsPath The new path of the file in under file system
+   * @param persisted if true, the file is persisted
    */
-  public synchronized void setUfsPath(String ufsPath) {
-    mUfsPath = ufsPath;
+  public synchronized void setPersisted(boolean persisted) {
+    mPersisted = persisted;
   }
 
   /**
@@ -200,8 +192,8 @@ public final class InodeFile extends Inode {
    */
   public synchronized void setLength(long length)
       throws SuspectedFileSizeException, BlockInfoException {
-    if (isComplete()) {
-      throw new SuspectedFileSizeException("InodeFile length was set previously.");
+    if (mCompleted) {
+      throw new SuspectedFileSizeException("InodeFile has been completed.");
     }
     if (length < 0) {
       throw new SuspectedFileSizeException("InodeFile new length " + length + " is negative.");
@@ -213,14 +205,17 @@ public final class InodeFile extends Inode {
       getNewBlockId();
       length -= blockSize;
     }
-    setComplete(mLength);
+    setCompleted(mLength);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFile(");
     sb.append(super.toString()).append(", LENGTH: ").append(mLength);
-    sb.append(", UfsPath: ").append(mUfsPath);
+    sb.append(", Cacheable: ").append(mCacheable);
+    sb.append(", Completed: ").append(mCompleted);
+    sb.append(", Persisted: ").append(mPersisted);
+    sb.append(", Cacheable: ").append(mCacheable);
     sb.append(", mBlocks: ").append(mBlocks);
     return sb.toString();
   }
@@ -228,7 +223,7 @@ public final class InodeFile extends Inode {
   @Override
   public synchronized JournalEntry toJournalEntry() {
     return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPinned(),
-        getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isComplete(), isCache(),
-        getUfsPath(), mBlocks);
+        getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(), isCacheable(),
+        isPersisted(), mBlocks);
   }
 }

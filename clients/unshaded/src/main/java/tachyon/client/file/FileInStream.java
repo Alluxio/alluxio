@@ -17,7 +17,6 @@ package tachyon.client.file;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +24,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
 import tachyon.client.ClientOptions;
+import tachyon.client.FileSystemMasterClient;
 import tachyon.client.Seekable;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.block.BlockInStream;
@@ -60,9 +61,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   /** File System context containing the FileSystemMasterClient pool */
   private final FileSystemContext mContext;
   /** Block ids associated with this file */
-  private final List<Long> mBlockIds;
-  /** Path to the under storage system file that backs this Tachyon file */
-  private final String mUfsPath;
+  private final FileInfo mFileInfo;
 
   /** If the stream is closed, this can only go from false to true */
   private boolean mClosed;
@@ -82,14 +81,14 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @param options the client options
    */
   public FileInStream(FileInfo info, ClientOptions options) {
+    mFileInfo = info;
     mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
-    mBlockIds = info.getBlockIds();
-    mUfsPath = info.getUfsPath();
     mContext = FileSystemContext.INSTANCE;
     mTachyonStorageType = options.getTachyonStorageType();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     mClosed = false;
+    LOG.info("Will store " + info.getPath() + " in memory " + mTachyonStorageType.isStore());
   }
 
   @Override
@@ -182,8 +181,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return;
     }
     Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos <= mFileLength,
-        "Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
+    Preconditions.checkArgument(pos <= mFileLength, "Seek position is past EOF: " + pos
+        + ", fileSize = " + mFileLength);
 
     seekBlockInStream(pos);
     checkAndAdvanceBlockInStream();
@@ -261,8 +260,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return -1;
     }
     int index = (int) (mPos / mBlockSize);
-    Preconditions.checkState(index < mBlockIds.size(), "Current block index exceeds max index.");
-    return mBlockIds.get(index);
+    Preconditions.checkState(index < mFileInfo.blockIds.size(),
+        "Current block index exceeds max index.");
+    return mFileInfo.blockIds.get(index);
   }
 
   /**
@@ -321,14 +321,21 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
     } catch (IOException ioe) {
       LOG.debug("Failed to get BlockInStream for " + blockId + ", using ufs instead", ioe);
-      if (mUfsPath == null || mUfsPath.isEmpty()) {
-        LOG.error("Could not obtain data for " + blockId + " from Tachyon and no checkpoint is"
-            + " available in under storage.");
-        throw ioe;
+//      TODO(jiri): Understand what happens here.
+//      if (!mFileInfo.isPersisted) {
+//        LOG.error("Could not obtain data for " + blockId
+//            + " from Tachyon and data is not persisted" + " in under storage.");
+//        throw ioe;
+//      }
+      FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+      try {
+        long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
+        mCurrentBlockInStream =
+            new UnderStoreFileInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
+        mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
+      } finally {
+        mContext.releaseMasterClient(masterClient);
       }
-      long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
-      mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
-      mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     }
   }
 }

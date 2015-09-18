@@ -251,11 +251,10 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,
-      FileAlreadyExistException, InvalidPathException, BlockInfoException, FileNotFoundException,
-      TachyonException, IOException {
-    long fileId =
-        mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
-            Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
+      FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException,
+      IOException {
+    TachyonURI uri = new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile"));
+    long fileId = mFsMaster.createFile(uri, Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), "testFile"),
         fileInfo.getUfsPath());
@@ -285,26 +284,25 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void clientFileInfoDirectoryTest() throws InvalidPathException, FileDoesNotExistException,
       FileAlreadyExistException, TachyonException {
-    TachyonURI path = new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder"));
-    mFsMaster.mkdirs(path, true);
-    long fileId = mFsMaster.getFileId(path);
+    TachyonURI uri = new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir"));
+    mFsMaster.mkdirs(uri, true);
+    long fileId = mFsMaster.getFileId(uri);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals("testFolder", fileInfo.getName());
+    Assert.assertEquals("testDir", fileInfo.getName());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertEquals(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), "testFolder"),
+    Assert.assertEquals(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), "testDir"),
         fileInfo.getUfsPath());
     Assert.assertTrue(fileInfo.isFolder);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertFalse(fileInfo.isCacheable);
-    Assert.assertTrue(fileInfo.isComplete);
+    Assert.assertTrue(fileInfo.isCompleted);
   }
 
   @Test
   public void clientFileInfoEmptyFileTest() throws InvalidPathException, FileDoesNotExistException,
       FileAlreadyExistException, BlockInfoException, TachyonException {
-    long fileId =
-        mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")),
-            Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
+    TachyonURI uri = new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile"));
+    long fileId = mFsMaster.createFile(uri, Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getFileId());
@@ -314,7 +312,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isFolder);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertTrue(fileInfo.isCacheable);
-    Assert.assertFalse(fileInfo.isComplete);
+    Assert.assertFalse(fileInfo.isCompleted);
   }
 
   private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
