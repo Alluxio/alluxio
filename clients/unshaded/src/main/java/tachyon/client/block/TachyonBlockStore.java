@@ -112,7 +112,7 @@ public class TachyonBlockStore implements Closeable {
    * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, NetAddress location)
+  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, String location)
       throws IOException {
     if (blockSize == -1) {
       BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
@@ -132,12 +132,12 @@ public class TachyonBlockStore implements Closeable {
       return new RemoteBlockOutStream(blockId, blockSize);
     }
     // Location is local.
-    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location.getHost())) {
+    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location)) {
       Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
       return new LocalBlockOutStream(blockId, blockSize);
     }
     // Location is specified and it is remote.
-    return new RemoteBlockOutStream(blockId, blockSize, location.getHost());
+    return new RemoteBlockOutStream(blockId, blockSize, location);
   }
 
   /**
