@@ -20,6 +20,7 @@ import java.util.List;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -30,29 +31,48 @@ import tachyon.thrift.InvalidPathException;
  * including folders. Clients should provide their own interface for reading/writing files.
  */
 @PublicApi
-interface TachyonFSCore {
+interface TachyonFileSystemCore {
 
   /**
-   * Deletes a file. If the file is a folder, its contents will be deleted recursively.
+   * Creates a file with the provided block size as the standard block size of the file. If the
+   * file's parent directories do not exist, they will be created if the recursive flag is set.
+   *
+   * @param path the path of the file to create in Tachyon space
+   * @param blockSize the block size in bytes, must be greater than 0
+   * @param recursive whether or not to create parent directories if required
+   * @return the file id that identifies the newly created file
+   * @throws BlockInfoException if the block size is less than or equal to 0
+   * @throws FileAlreadyExistException if the path already exists as a file in Tachyon
+   * @throws InvalidPathException if the path is not a valid Tachyon path
+   * @throws IOException if the master is unable to create the file
+   */
+  long create(TachyonURI path, long blockSize, boolean recursive) throws BlockInfoException,
+      FileAlreadyExistException, InvalidPathException, IOException;
+
+  /**
+   * Deletes a file. If the file is a folder, its contents will be deleted recursively if the
+   * flag is set.
    *
    * @param file the handler of the file to delete.
+   * @param recursive whether or not to delete all contents in a non empty folder
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws IOException if the master is unable to delete the file
    */
-  void delete(TachyonFile file) throws IOException, FileDoesNotExistException;
+  void delete(TachyonFile file, boolean recursive) throws FileDoesNotExistException, IOException;
 
   /**
    * Removes the file from Tachyon Storage. The underlying under storage system file will not be
-   * removed. If the file is a folder, its contents will be freed recursively.
+   * removed. If the file is a folder, its contents will be freed recursively if the flag is set.
    *
    * @param file the handler for the file
+   * @param recursive whether or not to free all contents in a non empty folder
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if the master is unable to free the file for some other reason
    */
-  void free(TachyonFile file) throws IOException, FileDoesNotExistException;
+  void free(TachyonFile file, boolean recursive) throws FileDoesNotExistException, IOException;
 
   /**
-   * Gets the FileInfo object that represents the Tachyon file
+   * Gets the {@link FileInfo} object that represents the metadata of a Tachyon file.
    *
    * @param file the handler for the file.
    * @return the FileInfo of the file, null if the file does not exist.
@@ -62,26 +82,42 @@ interface TachyonFSCore {
 
   /**
    * If the file is a folder, returns the {@link FileInfo} of all the direct entries in it.
-   * Otherwise returns the FileInfo for the file.
+   * Otherwise returns the {@link FileInfo} for the file.
    *
    * @param file the handler for the file
    * @return a list of FileInfos representing the files which are children of the given file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if the master cannot retrieve the file status for some other reason
    */
-  List<FileInfo> listStatus(TachyonFile file) throws IOException, FileDoesNotExistException;
+  List<FileInfo> listStatus(TachyonFile file) throws FileDoesNotExistException, IOException;
 
   /**
-   * Creates a folder. If the parent folders do not exist, they will be created automatically.
+   * Adds metadata about a file in the under storage system to Tachyon. Only metadata will be
+   * updated and no data will be transferred.
+   *
+   * @param path the path to create the file in Tachyon
+   * @param ufsPath the under storage system path of the file that will back the Tachyon file
+   * @param recursive if true, the parent directories to the file in Tachyon will be created
+   * @return the file id of the resulting file in Tachyon
+   * @throws FileDoesNotExistException if there is no file at the given path
+   * @throws IOException if the Tachyon path is invalid or the ufsPath does not exist
+   */
+  long loadFileInfoFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive)
+      throws FileDoesNotExistException, IOException;
+
+  /**
+   * Creates a folder. If the parent folders do not exist, they will be created automatically if
+   * the recursive flag is set.
    *
    * @param path the handler for the file
+   * @param recursive whether or not to create the parent folders that do not exist
    * @return true if the folder is created successfully or already existing, false otherwise.
-   * @throws InvalidPathException if the provided path is invalid
    * @throws FileAlreadyExistException if there is already a file at the given path
+   * @throws InvalidPathException if the provided path is invalid
    * @throws IOException if the master cannot create the folder under the specified path
    */
-  boolean mkdirs(TachyonURI path) throws IOException, InvalidPathException,
-      FileAlreadyExistException;
+  boolean mkdirs(TachyonURI path, boolean recursive) throws FileAlreadyExistException,
+      InvalidPathException, IOException;
 
   /**
    * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
@@ -92,7 +128,7 @@ interface TachyonFSCore {
    * @throws InvalidPathException if the provided path is invalid
    * @throws IOException if the path does not exist in Tachyon space
    */
-  TachyonFile open(TachyonURI path) throws IOException, InvalidPathException;
+  TachyonFile open(TachyonURI path) throws InvalidPathException, IOException;
 
   /**
    * Renames an existing file in Tachyon space to another path in Tachyon space.
@@ -103,16 +139,15 @@ interface TachyonFSCore {
    * @throws FileDoesNotExistException if the source file does not exist
    * @throws IOException if the destination already exists or is invalid
    */
-  boolean rename(TachyonFile src, TachyonURI dst) throws IOException, FileDoesNotExistException;
-
+  boolean rename(TachyonFile src, TachyonURI dst) throws FileDoesNotExistException, IOException;
 
   /**
-   * Sets the pin status of a file. A pinned file will never be evicted for any reason. The pin
-   * status is propagated asynchronously from this method call on the worker heartbeats.
+   * Sets the pin status of a file. A pinned file will never be evicted for any reason.
    *
    * @param file the file handler for the file to pin
    * @param pinned true to pin the file, false to unpin it
+   * @throws FileDoesNotExistException if the file to be pinned does not exist
    * @throws IOException if an error occurs during the pin operation
    */
-  void setPin(TachyonFile file, boolean pinned) throws IOException, FileDoesNotExistException;
+  void setPin(TachyonFile file, boolean pinned) throws FileDoesNotExistException, IOException;
 }

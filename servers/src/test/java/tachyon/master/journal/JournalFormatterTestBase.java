@@ -39,7 +39,6 @@ import com.google.common.collect.Sets;
 import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -127,11 +126,6 @@ public abstract class JournalFormatterTestBase {
   @Test
   public void blockInfoEntryTest() throws IOException {
     entryTest(new BlockInfoEntry(TEST_BLOCK_ID, TEST_LENGTH_BYTES));
-  }
-
-  @Test
-  public void workerIdGeneratorEntryTest() throws IOException {
-    entryTest(new WorkerIdGeneratorEntry(TEST_WORKER_ID));
   }
 
   // FileSystem

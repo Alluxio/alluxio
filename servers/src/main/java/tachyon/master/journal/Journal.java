@@ -30,7 +30,7 @@ import tachyon.master.MasterContext;
  * order. The entry file most recently being written to is in the base journal folder, where the
  * completed entry files are in the "completed/" sub-directory.
  */
-public class Journal {
+public abstract class Journal {
   /** The log number for the first completed log file. */
   public static final int FIRST_COMPLETED_LOG_NUMBER = 1;
   /** The directory for completed log files, relative to the base journal directory. */
@@ -101,26 +101,5 @@ public class Journal {
    */
   public JournalFormatter getJournalFormatter() {
     return mJournalFormatter;
-  }
-
-  /**
-   * @return a readonly version of this journal
-   */
-  public ReadOnlyJournal getReadOnlyJournal() {
-    return new ReadOnlyJournal(mDirectory);
-  }
-
-  /**
-   * @return the {@link JournalWriter} for this journal
-   */
-  public JournalWriter getNewWriter() {
-    return new JournalWriter(this);
-  }
-
-  /**
-   * @return the {@link JournalReader} for this journal
-   */
-  public JournalReader getNewReader() {
-    return new JournalReader(this);
   }
 }
