@@ -15,7 +15,6 @@
 
 package tachyon.web;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +32,6 @@ import com.google.common.base.Preconditions;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -89,8 +87,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
             response);
         return;
       } catch (IOException ie) {
-        request.setAttribute("invalidPathError", "Error: File " + filePath + " is not available "
-            + ie.getMessage());
+        request.setAttribute("invalidPathError",
+            "Error: File " + filePath + " is not available " + ie.getMessage());
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
@@ -125,8 +123,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       request.setAttribute("fileInfos", uiFileInfos);
     } catch (FileDoesNotExistException fdne) {
       request.setAttribute("fatalError", "Error: Invalid FileId " + fdne.getMessage());
-      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
-          response);
+      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
     } catch (NumberFormatException nfe) {
       request.setAttribute("fatalError",
@@ -134,8 +131,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
     } catch (IndexOutOfBoundsException iobe) {
-      request.setAttribute("fatalError", "Error: offset or offset + limit is out of bound, "
-          + iobe.getLocalizedMessage());
+      request.setAttribute("fatalError",
+          "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
     } catch (IllegalArgumentException iae) {
@@ -197,7 +194,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, TachyonURI filePath)
-      throws FileDoesNotExistException, NotFoundException, IOException{
+      throws FileDoesNotExistException, NotFoundException, IOException {
     return getUiFileInfo(tachyonFileSystem, -1, filePath);
   }
 
@@ -211,10 +208,10 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
-  private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId, TachyonURI filePath)
-          throws FileDoesNotExistException, NotFoundException, IOException {
+  private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
+      TachyonURI filePath) throws FileDoesNotExistException, NotFoundException, IOException {
     TachyonFile file = null;
-    if(fileId == -1){
+    if (fileId == -1) {
       file = new TachyonFile(fileId);
     } else {
       try {
@@ -225,8 +222,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     }
     FileInfo fileInfo = tachyonFileSystem.getInfo(file);
     if (fileInfo == null) {
-      throw new FileDoesNotExistException(fileId != -1 ? Long.toString(fileId)
-          : filePath.toString());
+      throw new FileDoesNotExistException(
+          fileId != -1 ? Long.toString(fileId) : filePath.toString());
     }
     UiFileInfo uiFileInfo = new UiFileInfo(fileInfo);
     boolean blockExistOnWorker = false;
@@ -236,7 +233,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         BlockMeta blockMeta = mBlockDataManager.getVolatileBlockMeta(blockId);
         long blockSize = blockMeta.getBlockSize();
         StorageLevelAlias storageLevelAlias =
-                StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
+            StorageDirId.getStorageLevelAlias(blockMeta.getParentDir().getStorageDirId());
         // The block last access time is not available. Use -1 for now.
         // It's not necessary to show location information here since
         // we are viewing at the context of this worker.
@@ -244,8 +241,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       }
     }
     if (!blockExistOnWorker) {
-      throw new FileDoesNotExistException(fileId != -1 ? Long.toString(fileId)
-          : filePath.toString());
+      throw new FileDoesNotExistException(
+          fileId != -1 ? Long.toString(fileId) : filePath.toString());
     }
     return uiFileInfo;
   }
