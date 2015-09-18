@@ -97,8 +97,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
-      } finally {
-        tFS.close();
       }
     }
 
@@ -108,7 +106,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-      tFS.close();
       return;
     }
 
@@ -143,8 +140,6 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       request.setAttribute("fatalError", nfe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } finally {
-      tFS.close();
     }
 
     getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);

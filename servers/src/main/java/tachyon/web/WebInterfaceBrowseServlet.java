@@ -25,9 +25,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
@@ -53,8 +50,6 @@ import tachyon.util.io.PathUtils;
 public final class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final long serialVersionUID = 6121623049981468871L;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final transient TachyonMaster mMaster;
   private final transient TachyonConf mTachyonConf;
@@ -113,7 +108,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     } else {
       fileData = "The requested file is not complete yet.";
     }
-    tFS.close();
     List<UiBlockInfo> uiBlockInfo = new ArrayList<UiBlockInfo>();
     for (FileBlockInfo fileBlockInfo : mMaster.getFileSystemMaster().getFileBlockInfoList(path)) {
       uiBlockInfo.add(new UiBlockInfo(fileBlockInfo));
