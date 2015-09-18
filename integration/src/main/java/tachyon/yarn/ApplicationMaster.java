@@ -167,7 +167,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     // Make container request for Tachyon master to ResourceManager
     ContainerRequest masterContainerAsk =
         new ContainerRequest(masterResource, nodes, null /* any racks */, priority);
-    LOG.info("Making resource request for Tachyon master");
+    LOG.info("Making resource request for Tachyon master on node " + mMasterAddress);
     mRMClient.addContainerRequest(masterContainerAsk);
 
     // Wait until Tachyon master container has been allocated
@@ -184,7 +184,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     for (int i = 0; i < mNumWorkers; i ++) {
       ContainerRequest containerAsk =
           new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */, priority);
-      LOG.info("Making resource request for Tachyon worker " + i);
+      LOG.info("Making resource request for Tachyon worker " + i + " on any nodes");
       mRMClient.addContainerRequest(containerAsk);
     }
 
