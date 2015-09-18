@@ -225,7 +225,7 @@ public final class BlockWorker {
     // Setup session cleaner
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
 
-    // Set up asynchronous evictor
+    // Setup asynchronous evictor
     if (mTachyonConf.getBoolean(Constants.WORKER_EVICT_ASYNC_ENABLE)) {
       mAsyncEvictor = new AsyncEvictor(mBlockDataManager, mTachyonConf);
     }
@@ -270,6 +270,7 @@ public final class BlockWorker {
     // Start the session cleanup checker to perform the periodical checking
     mSyncExecutorService.submit(mSessionCleanerThread);
 
+    // Start the asynchronous evictor 
     if (mAsyncEvictor != null) {
       mSyncExecutorService.submit(mAsyncEvictor);
     }
