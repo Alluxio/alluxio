@@ -45,6 +45,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileInfo;
@@ -138,7 +139,7 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = MasterContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
@@ -147,7 +148,7 @@ public class DataServerIntegrationTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
 
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mTFS = mLocalTachyonCluster.getClient();
 
