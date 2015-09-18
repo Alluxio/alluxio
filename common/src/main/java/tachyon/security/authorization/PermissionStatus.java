@@ -15,6 +15,8 @@
 
 package tachyon.security.authorization;
 
+import tachyon.Constants;
+
 public class PermissionStatus {
   private String mUsername;
   private String mGroupname;
@@ -58,7 +60,8 @@ public class PermissionStatus {
 
   /** Get the Directory default PermissionStatus. */
   public static PermissionStatus getDirDefault() {
-    return new PermissionStatus("", "", new FsPermission((short)0755));
+    return new PermissionStatus("", "",
+        new FsPermission(Constants.DEFAULT_TFS_DIR_PERMISSION));
   }
 
   /** {@inheritDoc} */
