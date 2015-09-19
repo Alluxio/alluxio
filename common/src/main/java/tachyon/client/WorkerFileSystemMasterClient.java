@@ -75,21 +75,22 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
-      String checkpointPath) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized boolean addCheckpoint(final long workerId, final long fileId,
+      final long length, final String checkpointPath) throws IOException {
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Boolean>() {
+        @Override
+        public Boolean call() throws PropagateTException, TException {
+          try {
+            return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw new IOException(e.getWrappedTException());
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -99,21 +100,22 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Factor this method out to a common client.
-  public synchronized FileInfo getFileInfo(long fileId) throws IOException,
+  public synchronized FileInfo getFileInfo(final long fileId) throws IOException,
       FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.getFileInfo(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<FileInfo>() {
+        @Override
+        public FileInfo call() throws PropagateTException, TException {
+          try {
+            return mClient.getFileInfo(fileId);
+          } catch (FileDoesNotExistException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw (FileDoesNotExistException) e.getWrappedTException();
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 
   /**
@@ -121,18 +123,19 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    */
   public synchronized Set<Long> getPinList() throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.workerGetPinIdList();
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+    try {
+      return retryRPC(new RpcCallableWithPropagateTException<Set<Long>>() {
+        @Override
+        public Set<Long> call() throws PropagateTException, TException {
+          try {
+            return mClient.workerGetPinIdList();
+          } catch (InvalidPathException e) {
+            throw new PropagateTException(e);
+          }
+        }
+      });
+    } catch (RpcCallableWithPropagateTException.PropagateTException e) {
+      throw new IOException(e.getWrappedTException());
     }
-    throw new IOException("Failed after " + retry + " retries.");
   }
 }
