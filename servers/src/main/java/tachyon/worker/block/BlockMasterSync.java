@@ -35,39 +35,57 @@ import tachyon.util.CommonUtils;
 /**
  * Task that carries out the necessary block worker to master communications, including register and
  * heartbeat. This class manages its own {@link tachyon.client.WorkerBlockMasterClient}.
- *
+ * <p/>
  * When running, this task first requests a block report from the
  * {@link tachyon.worker.block.BlockDataManager}, then sends it to the master. The master may
  * respond to the heartbeat with a command which will be executed. After which, the task will wait
  * for the elapsed time since its last heartbeat has reached the heartbeat interval. Then the cycle
  * will continue.
- *
+ * <p/>
  * If the task fails to heartbeat to the master, it will destroy its old master client and recreate
  * it before retrying.
  */
 public final class BlockMasterSync implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int DEFAULT_BLOCK_REMOVER_POOL_SIZE = 10;
-  /** Block data manager responsible for interacting with Tachyon and UFS storage */
+  /**
+   * Block data manager responsible for interacting with Tachyon and UFS storage
+   */
   private final BlockDataManager mBlockDataManager;
-  /** The net address of the worker */
+  /**
+   * The net address of the worker
+   */
   private final NetAddress mWorkerAddress;
-  /** The configuration values */
+  /**
+   * The configuration values
+   */
   private final TachyonConf mTachyonConf;
-  /** Milliseconds between each heartbeat */
+  /**
+   * Milliseconds between each heartbeat
+   */
   private final int mHeartbeatIntervalMs;
-  /** Milliseconds between heartbeats before a timeout */
+  /**
+   * Milliseconds between heartbeats before a timeout
+   */
   private final int mHeartbeatTimeoutMs;
 
-  /** Client for all master communication */
+  /**
+   * Client for all master communication
+   */
   private WorkerBlockMasterClient mMasterClient;
-  /** Flag to indicate if the sync should continue */
+  /**
+   * Flag to indicate if the sync should continue
+   */
   private volatile boolean mRunning;
-  /** The id of the worker */
+  /**
+   * The id of the worker
+   */
   private long mWorkerId;
-  /** The thread pool to remove block */
+  /**
+   * The thread pool to remove block
+   */
   private final ExecutorService mFixedExecutionService =
-          Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
+      Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress, WorkerBlockMasterClient masterClient) {
@@ -75,10 +93,8 @@ public final class BlockMasterSync implements Runnable {
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
     mMasterClient = masterClient;
-    mHeartbeatIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mHeartbeatTimeoutMs =
-        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    mHeartbeatTimeoutMs = mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
     mWorkerId = 0;
@@ -120,8 +136,7 @@ public final class BlockMasterSync implements Runnable {
    * Main loop for the sync, continuously heartbeats to the master node about the change in the
    * worker's managed space.
    */
-  @Override
-  public void run() {
+  @Override public void run() {
     long lastHeartbeatMs = System.currentTimeMillis();
     registerWithMaster();
     while (mRunning) {
@@ -141,9 +156,9 @@ public final class BlockMasterSync implements Runnable {
       // Send the heartbeat and execute the response
       Command cmdFromMaster = null;
       try {
-        cmdFromMaster =
-            mMasterClient.heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
-                blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+        cmdFromMaster = mMasterClient
+            .heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
+                blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
       } catch (Exception e) {
@@ -184,14 +199,14 @@ public final class BlockMasterSync implements Runnable {
       return;
     }
     switch (cmd.mCommandType) {
-    // Currently unused
+      // Currently unused
       case Delete:
         break;
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
           mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
-                  Sessions.MASTER_COMMAND_SESSION_ID, block));
+              Sessions.MASTER_COMMAND_SESSION_ID, block));
         }
         break;
       // No action required
@@ -225,8 +240,7 @@ public final class BlockMasterSync implements Runnable {
       mBlockId = blockId;
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
       try {
         mBlockDataManager.removeBlock(mSessionId, mBlockId);
       } catch (IOException ioe) {
