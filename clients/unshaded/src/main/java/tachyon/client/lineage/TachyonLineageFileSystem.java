@@ -121,7 +121,6 @@ public class TachyonLineageFileSystem extends TachyonFileSystem{
   @Override
   public FileOutStream getOutStream(TachyonURI path, ClientOptions options) throws IOException,
       InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    // TODO recreate file
     long fileId = create(path, options.getBlockSize(), true);
     return new LineageFileOutStream(fileId, options);
   }
