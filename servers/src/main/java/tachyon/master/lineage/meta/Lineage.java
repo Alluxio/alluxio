@@ -73,4 +73,21 @@ public final class Lineage {
   public long getId() {
     return mId;
   }
+
+  public void recordOutputFile(long fileId) {
+    boolean allRecorded = true;
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getFileId() == fileId) {
+        outputFile.setState(LineageFileState.RECORDED);
+      }
+
+      if (outputFile.getState() != LineageFileState.RECORDED) {
+        allRecorded = false;
+      }
+    }
+
+    if (allRecorded) {
+      mState = LineageState.RECORDED;
+    }
+  }
 }

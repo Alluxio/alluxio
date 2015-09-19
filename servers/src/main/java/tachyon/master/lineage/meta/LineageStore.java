@@ -16,12 +16,10 @@ package tachyon.master.lineage.meta;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.dag.DAG;
@@ -35,14 +33,12 @@ public final class LineageStore {
 
   /** Indices for lineages */
   /** Index of the output files of lineage to lineage */
-  private Map<TachyonFile, Lineage> mOutputFileIndex;
-  private Map<LineageState, Set<Lineage>> mStateIndex;
+  private Map<Long, Lineage> mOutputFileIndex;
   private Map<Long, Lineage> mIdIndex;
 
   public LineageStore() {
     mLineageDAG = new DAG<Lineage>();
     mOutputFileIndex = Maps.newHashMap();
-    mStateIndex = Maps.newHashMap();
     mIdIndex = Maps.newHashMap();
   }
 
@@ -60,12 +56,17 @@ public final class LineageStore {
 
     // update index
     for (TachyonFile outputFile : outputFiles) {
-      mOutputFileIndex.put(outputFile, lineage);
+      mOutputFileIndex.put(outputFile.getFileId(), lineage);
     }
-    updateState(lineage, lineage.getState());
     mIdIndex.put(lineage.getId(), lineage);
 
     return lineage.getId();
+  }
+
+  public void recordFileForAsyncWrite(long fileId, String underFsPath) {
+    Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
+    Lineage lineage = mOutputFileIndex.get(fileId);
+    lineage.recordOutputFile(fileId);
   }
 
   public void deleteLineage(long lineageId) {
@@ -84,7 +85,6 @@ public final class LineageStore {
     for (TachyonFile outputFile : toDelete.getOutputFiles()) {
       mOutputFileIndex.remove(outputFile);
     }
-    mStateIndex.get(toDelete.getState()).remove(toDelete);
   }
 
   public Lineage getLineage(long lineageId) {
@@ -96,13 +96,5 @@ public final class LineageStore {
         "lineage id " + lineage.getId() + " does not exist");
 
     return mLineageDAG.getChildren(lineage);
-  }
-
-  private void updateState(Lineage lineage, LineageState newState) {
-    lineage.setState(newState);
-    if (!mStateIndex.containsKey(newState)) {
-      mStateIndex.put(newState, Sets.<Lineage>newHashSet());
-    }
-    mStateIndex.get(newState).add(lineage);
   }
 }
