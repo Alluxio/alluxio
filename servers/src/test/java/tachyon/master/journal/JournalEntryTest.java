@@ -15,27 +15,6 @@
 
 package tachyon.master.journal;
 
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.codec.binary.Base64;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.type.TypeReference;
-
-import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
-import tachyon.master.file.meta.DependencyType;
-
 /**
  * Unit Test for journal entries. Test the read/write correctness of each operation.
  */

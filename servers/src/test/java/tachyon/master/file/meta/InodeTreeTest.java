@@ -27,7 +27,6 @@ import org.junit.rules.TemporaryFolder;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;

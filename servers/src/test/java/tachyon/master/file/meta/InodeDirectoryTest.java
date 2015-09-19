@@ -23,9 +23,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.master.file.meta.Inode;
-import tachyon.master.file.meta.InodeDirectory;
-import tachyon.master.file.meta.InodeFile;
 
 /**
  * Unit tests for tachyon.InodeDirectory.

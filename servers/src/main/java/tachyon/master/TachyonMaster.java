@@ -36,7 +36,6 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.underfs.UnderFileSystem;
