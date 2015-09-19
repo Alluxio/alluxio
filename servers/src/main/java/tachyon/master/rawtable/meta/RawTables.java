@@ -18,7 +18,7 @@ package tachyon.master.rawtable.meta;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import tachyon.master.IndexedSet;
+import tachyon.IndexedSet;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.thrift.TableDoesNotExistException;
