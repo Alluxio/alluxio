@@ -33,6 +33,7 @@ import tachyon.Constants;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
+import tachyon.worker.WorkerContext;
 
 /**
  * Handle all block locks.
@@ -42,8 +43,7 @@ import tachyon.exception.NotFoundException;
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
-  // TODO(bin): Make this configurable.
-  private static final int NUM_LOCKS = 1000;
+  private static int sNumLocks = WorkerContext.getConf().getInt(Constants.WORKER_LOCK_COUNT);
 
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
@@ -51,7 +51,7 @@ public final class BlockLockManager {
   private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
 
   /** A map from a block ID to its lock */
-  private final ClientRWLock[] mLockArray = new ClientRWLock[NUM_LOCKS];
+  private final ClientRWLock[] mLockArray = new ClientRWLock[sNumLocks];
   /** A map from a session ID to all the locks hold by this session */
   private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<Long, Set<Long>>();
   /** A map from a lock ID to the lock record of it */
@@ -60,7 +60,7 @@ public final class BlockLockManager {
   private final Object mSharedMapsLock = new Object();
 
   public BlockLockManager() {
-    for (int i = 0; i < NUM_LOCKS; i ++) {
+    for (int i = 0; i < sNumLocks; i ++) {
       mLockArray[i] = new ClientRWLock();
     }
   }
@@ -72,7 +72,7 @@ public final class BlockLockManager {
    * @return hash index of the lock
    */
   public static int blockHashIndex(long blockId) {
-    return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % NUM_LOCKS;
+    return Math.abs(HASH_FUNC.hashLong(blockId).asInt()) % sNumLocks;
   }
 
   /**
@@ -85,7 +85,7 @@ public final class BlockLockManager {
    * @return lock ID
    */
   public long lockBlock(long sessionId, long blockId, BlockLockType blockLockType) {
-    // hashing blockId into the range of [0, NUM_LOCKS-1]
+    // hashing blockId into the range of [0, sNumLocks - 1]
     int index = blockHashIndex(blockId);
     ClientRWLock blockLock = mLockArray[index];
     Lock lock;
