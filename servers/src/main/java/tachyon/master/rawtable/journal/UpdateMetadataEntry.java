@@ -23,10 +23,17 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * The JournalEntry to represent the update of metadata in RawTable.
+ */
 public class UpdateMetadataEntry implements JournalEntry {
   public final long mId;
   public final ByteBuffer mMetadata;
 
+  /**
+   * @param id table id
+   * @param metadata the metadata to be set for the table
+   */
   public UpdateMetadataEntry(long id, ByteBuffer metadata) {
     mId = id;
     mMetadata = metadata;
