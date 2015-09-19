@@ -94,11 +94,6 @@ public final class Constants {
   // specific configuration properties. It will be used as key in the MR Configuration.
   public static final String TACHYON_CONF_SITE = "tachyon.conf.site";
 
-  public static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
-  public static final String DEFAULT_DATA_FOLDER = "/tachyon/data";
-  public static final String DEFAULT_JOURNAL_FOLDER = DEFAULT_HOME + "/journal/";
-  public static final String[] DEFAULT_STORAGE_TIER_DIR_QUOTA = "512MB,64GB,1TB".split(",");
-
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String TACHYON_DEBUG = "tachyon.debug";
   public static final String TACHYON_LOGGER_TYPE = "tachyon.logger.type";
