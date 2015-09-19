@@ -381,7 +381,7 @@ public final class WorkerClient implements Closeable {
     try {
       return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
     } catch (OutOfSpaceException e) {
-      throw new IOException(e);
+      throw new IOException("Fail to request " + initialBytes, e);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (TException e) {
