@@ -61,7 +61,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
 
   /** If the stream is closed, this can only go from false to true */
   private boolean mClosed;
-  /** The netaddress of the location that the file should write to, specified by client option */
+  /** The netaddress of the location that the file should read from, specified by client option */
   private NetAddress mLocation;
   /** Whether or not the current block should be cached. */
   private boolean mShouldCacheCurrentBlock;
@@ -221,7 +221,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           // TODO(calvin): Specify the location to be local.
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, mLocation.getHost());
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, 
+            		  NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
@@ -279,7 +280,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, mLocation.getHost());
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, 
+            		  NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           // TODO(yupeng): Maybe debug log here.
           mShouldCacheCurrentBlock = false;
