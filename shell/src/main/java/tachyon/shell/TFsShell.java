@@ -932,7 +932,7 @@ public class TFsShell implements Closeable {
    */
   public int unpin(TachyonURI path) throws IOException {
     try {
-      mTfs.setPin(mTfs.open(path), true);
+      mTfs.unpin(mTfs.open(path));
       System.out.println("File '" + path + "' was successfully unpinned.");
       return 0;
     } catch (Exception e) {
