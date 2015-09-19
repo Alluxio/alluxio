@@ -406,6 +406,12 @@ number.
   <td>10000</td>
   <td>Timeout between worker and client connection indicating a lost session connection.  Specified in milliseconds</td>
 </tr>
+<tr>
+  <td>tachyon.worker.block.lock.count</td>
+  <td>1000</td>
+  <td>Total number of locks for a Tachyon block worker.</td>
+</tr>
+
 </table>
 
 ## User Configuration

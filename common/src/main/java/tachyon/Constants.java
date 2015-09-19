@@ -204,7 +204,7 @@ public final class Constants {
       "tachyon.worker.evict.strategy.lrfu.attenuation.factor";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
-  public static final String WORKER_LOCK_COUNT = "tachyon.worker.lock.count";
+  public static final String WORKER_BLOCK_LOCK_COUNT = "tachyon.worker.block.lock.count";
   /**
    * This format is used as a template to generate the property name for a given level.
    * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level)}
