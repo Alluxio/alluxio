@@ -24,7 +24,7 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * The JournalEntry to represent the update of metadata in RawTable.
+ * The <code>JournalEntry</code> to represent the update of metadata in RawTable.
  */
 public class UpdateMetadataEntry implements JournalEntry {
   public final long mId;
