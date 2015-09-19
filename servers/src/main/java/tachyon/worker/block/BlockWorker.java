@@ -294,7 +294,7 @@ public final class BlockWorker {
       mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();
-      CommonUtils.sleepMs(null, 100);
+      CommonUtils.sleepMs(100);
     }
   }
 

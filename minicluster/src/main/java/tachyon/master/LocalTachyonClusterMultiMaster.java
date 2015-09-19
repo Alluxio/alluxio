@@ -257,7 +257,7 @@ public class LocalTachyonClusterMultiMaster {
     // Use first master port
     mMasterConf.set(Constants.MASTER_PORT, getMasterPort() + "");
 
-    CommonUtils.sleepMs(null, 10);
+    CommonUtils.sleepMs(10);
 
     mWorkerConf = WorkerContext.getConf();
     mWorkerConf.merge(mMasterConf);
