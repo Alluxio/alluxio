@@ -129,7 +129,7 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     FileInfo fileInfo = new FileInfo();
     fileInfo.setUfsPath(dstPath);
 
-    // TODO(jsimsa): Add test cases for error cases.
+    // TODO(jiri): Add test cases for error cases.
     Mockito.when(mHarness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
     Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
     Mockito.when(mHarness.mUfs.exists(parentPath)).thenReturn(true);
@@ -199,5 +199,5 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
         mHarness.mManager.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
-  // TODO(jsimsa): Write unit tests for untested public methods.
+  // TODO(jiri): Write unit tests for untested public methods.
 }

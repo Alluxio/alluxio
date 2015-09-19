@@ -99,21 +99,21 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
       return;
     }
 
+    // Write the non-empty buffer if the new write will overflow it.
     if (mBuffer.position() > 0 && mBuffer.position() + len > mBuffer.limit()) {
-      // Write the non-empty buffer if the new write will overflow it.
       flush();
     }
 
+    // If this write is larger than half of buffer limit, then write it out directly
+    // to the remote block. Before committing the new writes, need to make sure
+    // all bytes in the buffer are written out first, to prevent out-of-order writes.
+    // Otherwise, when the write is small, write the data to the buffer.
     if (len > mBuffer.limit() / 2) {
-      // This write is "large", so do not write it to the buffer, but write it out directly to the
-      // remote block.
       if (mBuffer.position() > 0) {
-        // Make sure all bytes in the buffer are written out first, to prevent out-of-order writes.
         flush();
       }
       unBufferedWrite(b, off, len);
     } else {
-      // Write the data to the buffer, and not directly to the remote block.
       mBuffer.put(b, off, len);
     }
 
