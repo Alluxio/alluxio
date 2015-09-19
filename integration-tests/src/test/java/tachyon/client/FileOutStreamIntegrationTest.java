@@ -232,12 +232,12 @@ public class FileOutStreamIntegrationTest {
   @Test
   public void writeSpecifyLocalTest() throws IOException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
-    final int len = 2;
+    final int LENGTH = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteLocal);
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
-    checkWrite(filePath, sWriteLocal.getUnderStorageType(), len, len);
+    checkWrite(filePath, sWriteLocal.getUnderStorageType(), LENGTH, LENGTH);
   }
 
   /**
@@ -250,13 +250,13 @@ public class FileOutStreamIntegrationTest {
   @Test
   public void longWriteChangesSessionId() throws IOException, InterruptedException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
-    final int len = 2;
+    final int LENGTH = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteUnderStore);
     os.write((byte) 0);
     Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
     os.write((byte) 1);
     os.close();
-    checkWrite(filePath, sWriteUnderStore.getUnderStorageType(), len, len);
+    checkWrite(filePath, sWriteUnderStore.getUnderStorageType(), LENGTH, LENGTH);
   }
 
   /**
