@@ -36,6 +36,7 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.lineage.checkpoint.CheckpointManager;
 import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
@@ -58,6 +59,7 @@ public final class LineageMaster extends MasterBase {
   private final TachyonConf mTachyonConf;
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
+  private final CheckpointManager mCheckpointManager;
 
   /** The service that checkpoints lineages. */
   private Future<?> mCheckpointExecutionService;
@@ -72,6 +74,7 @@ public final class LineageMaster extends MasterBase {
     mTachyonConf = Preconditions.checkNotNull(conf);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageStore = new LineageStore();
+    mCheckpointManager = new CheckpointManager(mLineageStore);
   }
 
   @Override
@@ -96,7 +99,7 @@ public final class LineageMaster extends MasterBase {
     if (isLeader) {
       mCheckpointExecutionService =
           getExecutorService().submit(new HeartbeatThread("Checkpoint planning service",
-              new CheckpointPlanningExecutor(mTachyonConf, mLineageStore),
+              new CheckpointPlanningExecutor(mTachyonConf, mCheckpointManager),
               mTachyonConf.getInt(Constants.MASTER_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
           getExecutorService().submit(new HeartbeatThread("Recomupte service",

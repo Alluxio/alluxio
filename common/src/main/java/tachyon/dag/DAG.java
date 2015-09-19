@@ -113,4 +113,15 @@ public class DAG<T> {
     }
     return mRoots.contains(mIndex.get(payload));
   }
+
+  /**
+   * @return all the root payloads.
+   */
+  public List<T> getRoots() {
+    List<T> roots = Lists.newArrayList();
+    for (DAGNode<T> root : mRoots) {
+      roots.add(root.getPayload());
+    }
+    return roots;
+  }
 }

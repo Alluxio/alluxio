@@ -23,8 +23,6 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.conf.TachyonConf;
-import tachyon.master.lineage.meta.LineageStore;
-import tachyon.master.lineage.meta.LineageStoreView;
 
 /**
  * Executes a checkpoint manager.
@@ -33,21 +31,19 @@ public final class CheckpointPlanningExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
-  private final LineageStore mLineageStore;
+  private final CheckpointManager mCheckpointManager;
   private final CheckpointScheduler mScheduler;
 
-  public CheckpointPlanningExecutor(TachyonConf conf, LineageStore lineageStore) {
-    mLineageStore = Preconditions.checkNotNull(lineageStore);
+  public CheckpointPlanningExecutor(TachyonConf conf, CheckpointManager checkpointManager) {
+    mCheckpointManager = Preconditions.checkNotNull(checkpointManager);
     mTachyonConf = Preconditions.checkNotNull(conf);
-    LineageStoreView view = new LineageStoreView(mLineageStore);
-    mScheduler = CheckpointScheduler.Factory.createScheduler(mTachyonConf, view);
+    mScheduler = CheckpointScheduler.Factory.createScheduler(mTachyonConf,
+        mCheckpointManager.getLineageStoreView());
   }
 
   @Override
   public void heartbeat() {
-    LineageStoreView view = new LineageStoreView(mLineageStore);
-    CheckpointPlan plan = mScheduler.schedule(view);
-
-    // TODO managers the files to checkpoint
+    CheckpointPlan plan = mScheduler.schedule(mCheckpointManager.getLineageStoreView());
+    mCheckpointManager.acceptPlan(plan);
   }
 }
