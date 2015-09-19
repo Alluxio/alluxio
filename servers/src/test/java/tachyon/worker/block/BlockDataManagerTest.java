@@ -92,7 +92,6 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       mManager.grantAccess(BlockDataManagerTest.this); // initializes mPrivateAccess
       mPrivateAccess.setHeartbeatReporter(mHeartbeatReporter);
       mPrivateAccess.setMetricsReporter(mMetricsReporter);
-      mPrivateAccess.setTachyonConf(mTachyonConf);
       mPrivateAccess.setUnderFileSystem(mUfs);
     }
   }

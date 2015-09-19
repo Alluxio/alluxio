@@ -82,8 +82,6 @@ public final class BlockWorker {
   private final ExecutorService mSyncExecutorService;
   /** Net address of this worker */
   private final NetAddress mWorkerNetAddress;
-  /** Configuration object */
-  private final TachyonConf mTachyonConf;
   /** Server socket for thrift */
   private final TServerSocket mThriftServerSocket;
   /** RPC local port for thrift */
@@ -153,7 +151,6 @@ public final class BlockWorker {
    * @throws IOException for other exceptions
    */
   public BlockWorker() throws IOException {
-    mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 
     // Setup MasterClientBase along with its heartbeat ExecutorService
@@ -162,11 +159,11 @@ public final class BlockWorker {
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mBlockMasterClient =
         new WorkerBlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
+          WorkerContext.getConf()), mMasterClientExecutorService, WorkerContext.getConf());
 
     mFileSystemMasterClient = new WorkerFileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, WorkerContext.getConf()),
+        mMasterClientExecutorService, WorkerContext.getConf());
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
@@ -175,35 +172,35 @@ public final class BlockWorker {
             new TieredBlockStore());
 
     // Setup metrics collection
-    mWorkerMetricsSystem = new MetricsSystem("worker", mTachyonConf);
+    mWorkerMetricsSystem = new MetricsSystem("worker", WorkerContext.getConf());
     workerSource.registerGauges(mBlockDataManager);
     mWorkerMetricsSystem.registerSource(workerSource);
 
     // Set up DataServer
     mDataServer =
         DataServer.Factory.createDataServer(
-            NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mTachyonConf),
-            mBlockDataManager, mTachyonConf);
+            NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, WorkerContext.getConf()),
+            mBlockDataManager, WorkerContext.getConf());
     // reset data server port
-    mTachyonConf.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
+    WorkerContext.getConf().set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
     mThriftServerSocket = createThriftServerSocket();
     mPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
     // reset worker RPC port
-    mTachyonConf.set(Constants.WORKER_PORT, Integer.toString(mPort));
+    WorkerContext.getConf().set(Constants.WORKER_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
+        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, WorkerContext.getConf()),
             mPort, mDataServer.getPort());
 
     // Set up web server
     mWebServer =
         new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
-            ServiceType.WORKER_WEB, mTachyonConf), mBlockDataManager,
-            NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mTachyonConf),
-            mStartTimeMs, mTachyonConf);
+            ServiceType.WORKER_WEB, WorkerContext.getConf()), mBlockDataManager,
+            NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, WorkerContext.getConf()),
+            mStartTimeMs, WorkerContext.getConf());
 
     // Setup Worker to Master Syncer
     // We create three threads for two syncers and one cleaner: mBlockMasterSync,
@@ -211,23 +208,23 @@ public final class BlockWorker {
     mSyncExecutorService =
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
-    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
+    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, WorkerContext.getConf(), mWorkerNetAddress,
             mBlockMasterClient);
     // Get the worker id
     // TODO(calvin): Do this at TachyonWorker.
     mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
+    mPinListSync = new PinListSync(mBlockDataManager, WorkerContext.getConf(), mFileSystemMasterClient);
 
     // Setup session cleaner
-    mSessionCleanerThread = new SessionCleaner(mBlockDataManager, mTachyonConf);
+    mSessionCleanerThread = new SessionCleaner(mBlockDataManager, WorkerContext.getConf());
 
     // Setup session metadata mapping
     // TODO(calvin): Have a top level register that gets the worker id.
     long workerId = mBlockMasterSync.getWorkerId();
-    String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-    Sessions sessions = new Sessions(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
+    String ufsWorkerFolder = WorkerContext.getConf().get(Constants.UNDERFS_WORKERS_FOLDER);
+    Sessions sessions = new Sessions(PathUtils.concatPath(ufsWorkerFolder, workerId), WorkerContext.getConf());
 
     // Give BlockDataManager a pointer to the session metadata mapping
     // TODO(calvin): Fix this hack when we have a top level register.
@@ -305,8 +302,8 @@ public final class BlockWorker {
    * @return a thrift server
    */
   private TThreadPoolServer createThriftServer() {
-    int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
-    int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
+    int minWorkerThreads = WorkerContext.getConf().getInt(Constants.WORKER_MIN_WORKER_THREADS);
+    int maxWorkerThreads = WorkerContext.getConf().getInt(Constants.WORKER_MAX_WORKER_THREADS);
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
     return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)
@@ -323,7 +320,7 @@ public final class BlockWorker {
   private TServerSocket createThriftServerSocket() {
     try {
       return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
-          mTachyonConf));
+        WorkerContext.getConf()));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
