@@ -175,24 +175,25 @@ public final class Constants {
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
   public static final String WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
       "tachyon.worker.per.thread.checkpoint.cap.mb.sec";
-  public static final String WORKER_NETTY_BOSS_THREADS =
+  public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
       "tachyon.worker.network.netty.boss.threads";
-  public static final String WORKER_NETTY_WORKER_THREADS =
+  public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
       "tachyon.worker.network.netty.worker.threads";
   public static final String WORKER_NETWORK_NETTY_CHANNEL = "tachyon.worker.network.netty.channel";
-  public static final String WORKER_NETTY_FILE_TRANSFER_TYPE =
+  public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       "tachyon.worker.network.netty.file.transfer";
-  public static final String WORKER_NETTY_WATERMARK_HIGH =
+  public static final String WORKER_NETWORK_NETTY_WATERMARK_HIGH =
       "tachyon.worker.network.netty.watermark.high";
-  public static final String WORKER_NETTY_WATERMARK_LOW =
+  public static final String WORKER_NETWORK_NETTY_WATERMARK_LOW =
       "tachyon.worker.network.netty.watermark.low";
-  public static final String WORKER_NETTY_BACKLOG = "tachyon.worker.network.netty.backlog";
-  public static final String WORKER_NETTY_SEND_BUFFER = "tachyon.worker.network.netty.buffer.send";
-  public static final String WORKER_NETTY_RECEIVE_BUFFER =
+  public static final String WORKER_NETWORK_NETTY_BACKLOG = "tachyon.worker.network.netty.backlog";
+  public static final String WORKER_NETWORK_NETTY_SEND_BUFFER =
+      "tachyon.worker.network.netty.buffer.send";
+  public static final String WORKER_NETWORK_NETTY_RECEIVE_BUFFER =
       "tachyon.worker.network.netty.buffer.receive";
-  public static final String WORKER_NETTY_SHUTDOWN_QUIET_PERIOD =
+  public static final String WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
       "tachyon.worker.network.netty.shutdown.quiet.period";
-  public static final String WORKER_NETTY_SHUTDOWN_TIMEOUT =
+  public static final String WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
       "tachyon.worker.network.netty.shutdown.timeout";
   public static final String WORKER_ALLOCATE_STRATEGY_CLASS =
       "tachyon.worker.allocate.strategy.class";
