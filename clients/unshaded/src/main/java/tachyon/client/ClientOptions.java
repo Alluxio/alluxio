@@ -17,7 +17,6 @@ package tachyon.client;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.NetAddress;
 
 /**
  * Represents the set of operation specific configuration options a user can pass into a Tachyon
@@ -36,7 +35,7 @@ public class ClientOptions {
     /** How this operation should interact with the under storage */
     private UnderStorageType mUnderStorageType;
     /** Worker location to write data, if not possible, the operation will fail */
-    private NetAddress mLocation;
+    private String mHostname;
 
     /**
      * @param conf Tachyon configuration
@@ -47,15 +46,15 @@ public class ClientOptions {
           conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.class);
       mUnderStorageType =
           conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
-      mLocation = null;
+      mHostname = null;
     }
 
     /**
-     * @param location the location to use
+     * @param hostname the hostname to use
      * @return the builder
      */
-    public Builder setLocation(NetAddress location) {
-      mLocation = location;
+    public Builder setLocation(String hostname) {
+      mHostname = hostname;
       return this;
     }
 
@@ -111,7 +110,7 @@ public class ClientOptions {
   private final long mBlockSize;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
-  private final NetAddress mLocation;
+  private final String mHostname;
 
   /**
    * @return the default <code>ClientOptions</code>
@@ -124,7 +123,7 @@ public class ClientOptions {
     mBlockSize = builder.mBlockSize;
     mTachyonStorageType = builder.mTachyonStorageType;
     mUnderStorageType = builder.mUnderStorageType;
-    mLocation = builder.mLocation;
+    mHostname = builder.mHostname;
   }
 
   /**
@@ -149,9 +148,9 @@ public class ClientOptions {
   }
 
   /**
-   * @return the location
+   * @return the Hostname
    */
-  public NetAddress getLocation() {
-    return mLocation;
+  public String getHostname() {
+    return mHostname;
   }
 }

@@ -31,7 +31,6 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
-import tachyon.thrift.NetAddress;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerClient;
@@ -56,7 +55,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
   private boolean mCanceled;
   private boolean mClosed;
-  private NetAddress mLocation;
+  private String mHostname;
   private boolean mShouldCacheCurrentBlock;
   private BufferedBlockOutStream mCurrentBlockOutStream;
   private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
@@ -90,7 +89,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     }
     mClosed = false;
     mCanceled = false;
-    mLocation = options.getLocation();
+    mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
   }
 
@@ -231,12 +230,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     }
 
     if (mTachyonStorageType.isStore()) {
-      String hostname = null;
-      if (null != mLocation) {
-        hostname = mLocation.getHost();
-      }
       mCurrentBlockOutStream =
-          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
+          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, mHostname);
       mShouldCacheCurrentBlock = true;
     }
   }
