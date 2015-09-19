@@ -105,9 +105,8 @@ public final class UnderFileSystemRegistry {
   public static UnderFileSystem create(String path, TachyonConf tachyonConf, Object ufsConf) {
     // Try to obtain the appropriate factory
     List<UnderFileSystemFactory> factories = findAll(path, tachyonConf);
-    if (factories.isEmpty()) {
-      throw new IllegalArgumentException("No Under File System Factory found for: " + path);
-    }
+    Preconditions.checkArgument(!factories.isEmpty(), "No Under File System Factory found for: "
+        + path);
 
     List<Throwable> errors = new ArrayList<Throwable>();
     for (UnderFileSystemFactory factory : factories) {

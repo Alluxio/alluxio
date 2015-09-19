@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
+import com.google.common.base.Preconditions;
 
 import tachyon.util.OSUtils;
 
@@ -47,9 +48,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @param pathStr path to construct the TachyonURI from
    */
   public TachyonURI(String pathStr) {
-    if (pathStr == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
-    }
+    Preconditions.checkArgument(pathStr != null, "Can not create a uri with a null path.");
 
     // add a slash in front of paths with Windows drive letters
     if (hasWindowsDrive(pathStr, false)) {
@@ -92,9 +91,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public TachyonURI(String scheme, String authority, String path) {
-    if (path == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
-    }
+    Preconditions.checkArgument(path != null, "Can not create a uri with a null path.");
     mUri = createURI(scheme, authority, path);
   }
 

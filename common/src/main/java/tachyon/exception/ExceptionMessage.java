@@ -39,6 +39,8 @@ public enum ExceptionMessage {
   TEMP_BLOCK_META_NOT_FOUND("TempBlockMeta not found for blockId {0}"),
   TIER_ALIAS_NOT_FOUND("Tier with alias {0} not found"),
   TIER_VIEW_ALIAS_NOT_FOUND("Tier view with alias {0} not found"),
+  FAIL_TO_MOVE_META("Failed to move BlockMeta: newLocation {0} does not have enough space for "
+      + "{1} bytes"),
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),

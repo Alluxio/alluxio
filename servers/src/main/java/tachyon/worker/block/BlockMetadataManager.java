@@ -32,6 +32,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.TachyonPreconditions;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.BlockMetaBase;
@@ -228,11 +229,9 @@ public class BlockMetadataManager {
    * @throws IllegalArgumentException if location is not a specific dir or the location is invalid
    */
   public StorageDir getDir(BlockStoreLocation location) {
-    if (location.equals(BlockStoreLocation.anyTier())
-        || location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias()))) {
-      throw new IllegalArgumentException(
-          ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
-    }
+    Preconditions.checkArgument(!location.equals(BlockStoreLocation.anyTier())
+        && !location.equals(BlockStoreLocation.anyDirInTier(location.tierAlias())),
+        ExceptionMessage.GET_DIR_FROM_NON_SPECIFIC_LOCATION.getMessage(location));
     return getTier(location.tierAlias()).getDir(location.dir());
   }
 
@@ -263,10 +262,8 @@ public class BlockMetadataManager {
    */
   public StorageTier getTier(int tierAlias) {
     StorageTier tier = mAliasToTiers.get(tierAlias);
-    if (tier == null) {
-      throw new IllegalArgumentException(
-          ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(tierAlias));
-    }
+    Preconditions.checkArgument(tier != null,
+        ExceptionMessage.TIER_ALIAS_NOT_FOUND.getMessage(tierAlias));
     return tier;
   }
 
@@ -403,10 +400,8 @@ public class BlockMetadataManager {
       }
     }
 
-    if (newDir == null) {
-      throw new OutOfSpaceException("Failed to move BlockMeta: newLocation " + newLocation
-          + " does not have enough space for " + blockSize + " bytes");
-    }
+    TachyonPreconditions.checkSpace(newDir != null, ExceptionMessage.FAIL_TO_MOVE_META,
+        newLocation, blockSize);
     StorageDir oldDir = blockMeta.getParentDir();
     oldDir.removeBlockMeta(blockMeta);
     BlockMeta newBlockMeta = new BlockMeta(blockMeta.getBlockId(), blockSize, newDir);
