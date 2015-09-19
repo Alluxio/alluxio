@@ -35,7 +35,7 @@ public class ClientOptions {
     private TachyonStorageType mTachyonStorageType;
     /** How this operation should interact with the under storage */
     private UnderStorageType mUnderStorageType;
-    /** Worker location to execute this operation, if not possible, the operation will fail */
+    /** Worker location to write data, if not possible, the operation will fail */
     private NetAddress mLocation;
 
     /**
