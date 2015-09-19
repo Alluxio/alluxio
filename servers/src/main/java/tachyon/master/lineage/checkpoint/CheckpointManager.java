@@ -13,35 +13,28 @@
  * the License.
  */
 
-package tachyon.master.lineage.meta;
-
-import java.util.List;
+package tachyon.master.lineage.checkpoint;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.master.lineage.meta.LineageStore;
+import tachyon.master.lineage.meta.LineageStoreView;
+
 /**
- * This class exposes a readonly view of {@link LineageStore} to checkpoint schedulers and recompute
- * planners.
+ * Manages checkpointing.
  */
-public final class LineageStoreView {
-  /** The LineageStore this view is derived from */
+public final class CheckpointManager {
   private final LineageStore mLineageStore;
 
-  public LineageStoreView(LineageStore lineageStore) {
+  public CheckpointManager(LineageStore lineageStore) {
     mLineageStore = Preconditions.checkNotNull(lineageStore);
   }
 
-  /**
-   * Gets all the root lineages in the lineage store.
-   */
-  public List<Lineage> getRootLineage() {
-    return mLineageStore.getRootLineage();
+  public LineageStoreView getLineageStoreView() {
+    return new LineageStoreView(mLineageStore);
   }
 
-  /**
-   * @return the children lineages of a given lineage in the store.
-   */
-  public List<Lineage> getChildren(Lineage lineage) {
-    return mLineageStore.getChildren(lineage);
+  public void acceptPlan(CheckpointPlan plan) {
+    // TODO(yupeng): validation
   }
 }

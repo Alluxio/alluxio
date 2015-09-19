@@ -97,4 +97,11 @@ public final class LineageStore {
 
     return mLineageDAG.getChildren(lineage);
   }
+
+  /**
+   * Gets all the root lineages.
+   */
+  public List<Lineage> getRootLineage() {
+    return mLineageDAG.getRoots();
+  }
 }
