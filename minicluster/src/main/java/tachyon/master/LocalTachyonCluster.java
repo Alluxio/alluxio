@@ -226,7 +226,7 @@ public final class LocalTachyonCluster {
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
     // waiting for worker web server startup
-    CommonUtils.sleepMs(null, 100);
+    CommonUtils.sleepMs(100);
     if (sReinitializer == null) {
       ClientContext.accessReinitializer(sReinitializerAccesser);
     }
@@ -267,7 +267,7 @@ public final class LocalTachyonCluster {
         mMasterConf.get(Constants.UNDERFS_DATA_FOLDER), mMasterConf);
     UnderFileSystemUtils.mkdirIfNotExists(
         mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER), mMasterConf);
-    CommonUtils.sleepMs(null, 10);
+    CommonUtils.sleepMs(10);
 
     startWorker();
   }
