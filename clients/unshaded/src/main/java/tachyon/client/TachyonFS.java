@@ -342,7 +342,7 @@ public class TachyonFS extends AbstractTachyonFS {
       if (blockSizeByte > 0) {
         return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
       } else {
-        return mFSMasterClient.loadFileFromUfs(path.getPath(), recursive);
+        return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), recursive);
       }
     } catch (TException e) {
       throw new IOException(e);

@@ -522,13 +522,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileFromUfs(String path, boolean recursive)
+  public synchronized long loadFileInfoFromUfs(String path, boolean recursive)
       throws IOException, FileDoesNotExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.loadFileFromUfs(path, recursive);
+        return mClient.loadFileInfoFromUfs(path, recursive);
       } catch (FileDoesNotExistException e) {
         throw e;
       } catch (TException e) {

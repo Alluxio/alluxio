@@ -74,10 +74,10 @@ public final class InodeFile extends Inode {
     ret.length = mLength;
     ret.blockSizeBytes = mBlockSizeBytes;
     ret.creationTimeMs = getCreationTimeMs();
-    ret.isCacheable = mCompleted;
+    ret.isCacheable = mCacheable;
     ret.isFolder = false;
     ret.isPinned = isPinned();
-    ret.isCacheable = mCacheable;
+    ret.isCompleted = mCompleted;
     ret.isPersisted = mPersisted;
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();

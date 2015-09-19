@@ -64,6 +64,7 @@ public class BlockServiceHandlerIntegrationTest {
       Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("test-executor-%d", true));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
+  private String mMountPoint;
   private BlockServiceHandler mWorkerServiceHandler = null;
   private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
@@ -84,6 +85,7 @@ public class BlockServiceHandlerIntegrationTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start(tachyonConf);
+    mMountPoint = mLocalTachyonCluster.getMountPoint();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
@@ -98,8 +100,8 @@ public class BlockServiceHandlerIntegrationTest {
   @Test
   public void addCheckpointTest() throws Exception {
     ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
+    mTfs.getOutStream(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")), options);
+    TachyonFile file = mTfs.open(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")));
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
 
     String tmpFolder = mWorkerServiceHandler.getSessionUfsTempFolder(SESSION_ID);
@@ -174,8 +176,9 @@ public class BlockServiceHandlerIntegrationTest {
 
     ClientOptions options = new ClientOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
         .setTachyonStoreType(TachyonStorageType.STORE).build();
-    FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
+    FileOutStream out = mTfs.getOutStream(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")), options);
+    TachyonFile file = mTfs.open(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile")));
 
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 

@@ -275,6 +275,7 @@ public final class FileSystemMaster extends MasterBase {
     }
 
     if (!file.isPersisted()) {
+      file.setPersisted(true);
       needLog = true;
 
       synchronized (mDependencyMap) {
@@ -914,21 +915,27 @@ public final class FileSystemMaster extends MasterBase {
       long opTimeMs = System.currentTimeMillis();
       renameInternal(fileId, dstPath, opTimeMs);
 
-      writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
-      flushJournal();
-
       // If the source file is persisted, rename it in the UFS.
-
       FileInfo fileInfo = getFileInfo(srcInode);
       if (fileInfo.isPersisted) {
         TachyonURI ufsSrcPath = mMountTable.resolve(srcPath);
         TachyonURI ufsDstPath = mMountTable.resolve(dstPath);
         UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath.getPath(), MasterContext.getConf());
+        String ufsParentPath = ufsDstPath.getParent().toString();
+        if (!ufs.exists(ufsParentPath) && !ufs.mkdirs(ufsParentPath, true)) {
+          LOG.error("Failed to create " + ufsParentPath);
+          return false;
+        }
         if (!ufs.rename(ufsSrcPath.getPath(), ufsDstPath.getPath())) {
           LOG.error("Failed to rename " + ufsSrcPath + " to " + ufsDstPath);
           return false;
         }
       }
+
+      writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
+      flushJournal();
+
+      LOG.info("Renamed " + srcPath + " to " + dstPath);
       return true;
     }
   }
@@ -1113,15 +1120,15 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  public long loadFileFromUfs(TachyonURI tachyonPath, boolean recursive) throws TachyonException {
-    String ufsPath = mMountTable.resolve(tachyonPath).toString();
-    UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+  public long loadFileInfoFromUfs(TachyonURI path, boolean recursive) throws TachyonException {
+    TachyonURI ufsPath = mMountTable.resolve(path);
+    UnderFileSystem underfs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
     try {
-      long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
-      long fileSizeByte = underfs.getFileSize(ufsPath);
-      long fileId = createFile(tachyonPath, ufsBlockSizeByte, recursive);
+      long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath.toString());
+      long fileSizeByte = underfs.getFileSize(ufsPath.toString());
+      long fileId = createFile(path, ufsBlockSizeByte, recursive);
       if (fileId != -1) {
-        completeFileCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath));
+        completeFileCheckpoint(-1, fileId, fileSizeByte, ufsPath);
       }
       return fileId;
     } catch (BlockInfoException e) {

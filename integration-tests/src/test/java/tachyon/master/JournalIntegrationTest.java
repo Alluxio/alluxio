@@ -41,6 +41,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.UnderFileSystemUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -109,39 +110,31 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void AddCheckpointTest() throws Exception {
-    ClientOptions options =
-        new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType.NO_STORE,
-            UnderStorageType.PERSIST).build();
-    TachyonFSTestUtils.createByteFile(mTfs, PathUtils.concatPath(mMountPoint, "xyz"), options, 10);
-    FileInfo fInfo = mTfs.getInfo(mTfs.open(
-        new TachyonURI(PathUtils.concatPath(mMountPoint, "xyz"))));
-    TachyonURI ckPath = new TachyonURI(PathUtils.concatPath(mMountPoint, "xyz_ck"));
-    // TODO(cc): What's the counterpart in the new client API for this?
-    mTfs.loadFileFromUfs(new TachyonURI(PathUtils.concatPath(mMountPoint, "xyz_ck")), true);
-    FileInfo ckFileInfo = mTfs.getInfo(mTfs.open(ckPath));
+  public void LoadFileInfoFromUFSTest() throws Exception {
+    String path = PathUtils.concatPath(mMountPoint, "xyz");
+    String ufsPath = PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), "xyz");
+    UnderFileSystemUtils.create(ufsPath, 10, mMasterTachyonConf);
+    mTfs.loadFileInfoFromUfs(new TachyonURI(path), true);
+    FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI(path)));
     mLocalTachyonCluster.stopTFS();
-    AddCheckpointTestUtil(fInfo, ckFileInfo);
+    LoadFileInfoFromUFSTestUtil(fInfo);
     deleteFsMasterJournalLogs();
-    AddCheckpointTestUtil(fInfo, ckFileInfo);
+    // Mount point information is lost and UFS path won't be set.
+    fInfo.ufsPath = null;
+    LoadFileInfoFromUFSTestUtil(fInfo);
   }
 
-  private void AddCheckpointTestUtil(FileInfo fileInfo, FileInfo ckFileInfo) throws IOException,
-      InvalidPathException, FileDoesNotExistException {
+  private void LoadFileInfoFromUFSTestUtil(FileInfo fileInfo)
+      throws IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != -1);
-    Assert.assertEquals(2, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(rootId).size());
     Assert.assertTrue(fsMaster.getFileId(
         new TachyonURI(PathUtils.concatPath(mMountPoint, "xyz"))) != -1);
-    Assert.assertTrue(fsMaster.getFileId(
-        new TachyonURI(PathUtils.concatPath(mMountPoint, "xyz_ck"))) != -1);
     Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fsMaster.getFileId(
         new TachyonURI(PathUtils.concatPath(mMountPoint, "xyz")))));
-    Assert.assertEquals(ckFileInfo,
-        fsMaster.getFileInfo(fsMaster.getFileId(
-            new TachyonURI(PathUtils.concatPath(mMountPoint, "xyz_ck")))));
     fsMaster.stop();
   }
 
@@ -299,6 +292,8 @@ public class JournalIntegrationTest {
     mLocalTachyonCluster.stopTFS();
     FileTestUtil(fInfo);
     deleteFsMasterJournalLogs();
+    // Mount point information is lost and UFS path won't be set.
+    fInfo.ufsPath = null;
     FileTestUtil(fInfo);
   }
 
@@ -340,6 +335,10 @@ public class JournalIntegrationTest {
 
     PinTestUtil(folderInfo, file0Info, file1Info);
     deleteFsMasterJournalLogs();
+    // Mount point information is lost and UFS path won't be set.
+    folderInfo.ufsPath = null;
+    file0Info.ufsPath = null;
+    file1Info.ufsPath = null;
     PinTestUtil(folderInfo, file0Info, file1Info);
   }
 
@@ -378,6 +377,8 @@ public class JournalIntegrationTest {
     mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
     deleteFsMasterJournalLogs();
+    // Mount point information is lost and UFS path won't be set.
+    fInfo.ufsPath = null;
     FolderTest(fInfo);
   }
 
