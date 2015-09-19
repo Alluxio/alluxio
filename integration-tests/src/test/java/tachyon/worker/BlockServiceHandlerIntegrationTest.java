@@ -73,7 +73,6 @@ public class BlockServiceHandlerIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    mTfs.close();
     mBlockMasterClient.close();
     mLocalTachyonCluster.stop();
   }

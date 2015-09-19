@@ -20,7 +20,10 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.TachyonURI;
+import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
@@ -33,6 +36,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.MountOpts;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
+import tachyon.underfs.UnderFileSystem;
 
 public final class FileSystemMasterServiceHandler implements FileSystemMasterService.Iface {
   private final FileSystemMaster mFileSystemMaster;

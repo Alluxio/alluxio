@@ -58,7 +58,6 @@ public class TFSBlockLocationIntegrationTest {
     TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
     TachyonFSTestUtils.createByteFile(tachyonFS, PathUtils.concatPath(sMountPoint, "testFile1"),
         TachyonStorageType.STORE, UnderStorageType.PERSIST, FILE_LEN);
-    tachyonFS.close();
 
     URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
     sTFS = FileSystem.get(uri, conf);

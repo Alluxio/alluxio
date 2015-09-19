@@ -18,7 +18,7 @@ package tachyon;
 /**
  * System wide constants
  */
-public class Constants {
+public final class Constants {
   public static final int KB = 1024;
   public static final int MB = KB * 1024;
   public static final int GB = MB * 1024;
@@ -278,4 +278,6 @@ public class Constants {
   public static final int BYTES_WRITTEN_LOCAL_INDEX = 8;
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
+
+  private Constants() {} // prevent instantiation
 }

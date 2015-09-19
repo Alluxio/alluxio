@@ -203,7 +203,6 @@ service FileSystemMasterService {
     throws (1: FileDoesNotExistException fdnee, 2: SuspectedFileSizeException sfse,
       3: BlockInfoException bie)
 
-
   void completeFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
 
