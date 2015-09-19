@@ -208,12 +208,12 @@ public final class TachyonFileSystem implements Closeable, TachyonFSCore {
    * @throws FileDoesNotExistException if there is no file at the given path
    * @throws IOException if the Tachyon path is invalid or the ufsPath does not exist
    */
-  public long loadFileFromUfs(TachyonURI path, boolean recursive)
+  public long loadFileInfoFromUfs(TachyonURI path, boolean recursive)
       throws IOException, FileDoesNotExistException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
-          masterClient.loadFileFromUfs(path.getPath(), recursive);
+          masterClient.loadFileInfoFromUfs(path.getPath(), recursive);
       LOG.info("Loaded file " + path.getPath() + (recursive ? " recursively" : ""));
       return fileId;
     } finally {

@@ -171,8 +171,8 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long loadFileFromUfs(String ufsPath, boolean recursive) throws TachyonException {
-    return mFileSystemMaster.loadFileFromUfs(new TachyonURI(ufsPath), recursive);
+  public long loadFileInfoFromUfs(String tachyonPath, boolean recursive) throws TachyonException {
+    return mFileSystemMaster.loadFileInfoFromUfs(new TachyonURI(tachyonPath), recursive);
   }
 
   @Override

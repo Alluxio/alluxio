@@ -720,7 +720,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void renameExistingDstTest() throws InvalidPathException, FileAlreadyExistException,
-      FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileDoesNotExistException, TachyonException, BlockInfoException, IOException {
     mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile1")),
         Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile2")),
@@ -732,7 +732,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void renameNonexistentTest() throws InvalidPathException, FileAlreadyExistException,
-      FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileDoesNotExistException, TachyonException, BlockInfoException, IOException {
     mThrown.expect(InvalidPathException.class);
     mFsMaster.createFile(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile1")),
         Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
@@ -743,7 +743,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void renameToDeeper() throws InvalidPathException, FileAlreadyExistException,
-      FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileDoesNotExistException, TachyonException, BlockInfoException, IOException {
     mThrown.expect(InvalidPathException.class);
     mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir1", "testDir2")),
         true);

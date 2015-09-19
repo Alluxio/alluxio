@@ -73,4 +73,25 @@ public final class UnderFileSystemUtils {
     OutputStream os = ufs.create(path);
     os.close();
   }
+
+  /**
+   * Create a non-empty file.
+   *
+   * @param path path to the file
+   * @param size the file size
+   * @param tachyonConf Tachyon Configuration
+   * @throws IOException if the file cannot be created
+   */
+  public static void create(final String path, int size, TachyonConf tachyonConf)
+      throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
+    OutputStream os = ufs.create(path);
+    byte[] arr = new byte[size];
+    for (int k = 0; k < size; k ++) {
+      arr[k] = (byte) k;
+    }
+    os.write(arr);
+    os.close();
+
+  }
 }

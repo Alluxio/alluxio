@@ -228,9 +228,9 @@ service FileSystemMasterService {
       3: BlockInfoException eB)
 
   /**
-   * Loads the file identifies by the given path from UFS into Tachyon.
+   * Loads metadata for the file identified by the given Tachyon path from UFS into Tachyon.
    */
-  i64 loadFileFromUfs(1: string ufsPath, 2: bool recursive) throws (1: TachyonException te)
+  i64 loadFileInfoFromUfs(1: string ufsPath, 2: bool recursive) throws (1: TachyonException te)
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given

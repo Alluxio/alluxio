@@ -68,14 +68,14 @@ public class MountTable {
   }
 
   public synchronized TachyonURI resolve(TachyonURI tachyonPath) {
-    LOG.info("Looking up " + tachyonPath);
+    LOG.info("Resolving " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
         return new TachyonURI(entry.getValue()
             + tachyonPath.toString().substring(entry.getKey().toString().length()));
       }
     }
-    // If the given path is not found in the mount table, the lookup is an identity.
+    // If the given path is not found in the mount table, return the original URI.
     return tachyonPath;
   }
 
