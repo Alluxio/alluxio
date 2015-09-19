@@ -18,6 +18,8 @@ package tachyon.master.file.journal;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Objects;
+
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.journal.JournalEntryType;
 
@@ -48,5 +50,22 @@ public class InodeDirectoryEntry extends InodeEntry {
     Map<String, Object> parameters = super.getParameters();
     parameters.put("childrenIds", mChildrenIds);
     return parameters;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(super.hashCode(), mChildrenIds);
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object instanceof InodeDirectoryEntry) {
+      if (!super.equals(object)) {
+        return false;
+      }
+      InodeDirectoryEntry that = (InodeDirectoryEntry) object;
+      return Objects.equal(this.mChildrenIds, that.mChildrenIds);
+    }
+    return false;
   }
 }

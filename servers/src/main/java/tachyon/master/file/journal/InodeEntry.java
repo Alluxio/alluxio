@@ -17,6 +17,7 @@ package tachyon.master.file.journal;
 
 import java.util.Map;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 
 import tachyon.master.journal.JournalEntry;
@@ -53,5 +54,23 @@ public abstract class InodeEntry implements JournalEntry {
     parameters.put("creationTimeMs", mCreationTimeMs);
     parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
     return parameters;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mId, mParentId, mName, mIsPinned, mCreationTimeMs,
+        mLastModificationTimeMs);
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object instanceof InodeEntry) {
+      InodeEntry that = (InodeEntry) object;
+      return Objects.equal(this.mId, that.mId) && Objects.equal(this.mParentId, that.mParentId)
+          && Objects.equal(this.mName, that.mName) && Objects.equal(this.mIsPinned, that.mIsPinned)
+          && Objects.equal(this.mCreationTimeMs, that.mCreationTimeMs)
+          && Objects.equal(this.mLastModificationTimeMs, that.mLastModificationTimeMs);
+    }
+    return false;
   }
 }
