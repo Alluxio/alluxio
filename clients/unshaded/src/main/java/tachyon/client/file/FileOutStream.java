@@ -231,8 +231,12 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     }
 
     if (mTachyonStorageType.isStore()) {
+      String hostname = null;
+      if (null != mLocation) {
+        hostname = mLocation.getHost();
+      }
       mCurrentBlockOutStream =
-          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, mLocation.getHost());
+          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, hostname);
       mShouldCacheCurrentBlock = true;
     }
   }
