@@ -111,7 +111,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
-   * Convenience method for free without recursive set. This is the same as calling free(file, false).
+   * Convenience method for free without recursive set. This is the same as calling free(file, 
+   * false).
    *
    * @param file the handler for the file to free recursively
    * @throws FileDoesNotExistException if the file does not exist in Tachyon space
