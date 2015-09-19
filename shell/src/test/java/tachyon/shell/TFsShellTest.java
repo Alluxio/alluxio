@@ -230,7 +230,6 @@ public class TfsShellTest {
     Assert.assertEquals(new String(read), dataString);
   }
 
-  // TODO(cc): Investigate why this takes a long time? Around 7min on my Mac!
   @Test
   public void copyToLocalLargeTest() throws IOException {
     copyToLocalWithBytes(SIZE_BYTES);

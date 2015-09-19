@@ -80,7 +80,6 @@ public class TfsShell implements Closeable {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
     mTfs = TachyonFileSystem.get();
-    mCloser.register(mTfs);
   }
 
   @Override

@@ -131,6 +131,5 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
         is.close();
       }
     }
-    tachyonClient.close();
   }
 }

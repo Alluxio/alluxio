@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 /**
  * This represents the response to a {@link RPCBlockWriteRequest}.
  */
-public class RPCBlockWriteResponse extends RPCResponse {
+public final class RPCBlockWriteResponse extends RPCResponse {
   private final long mSessionId;
   private final long mBlockId;
   private final long mOffset;
@@ -63,7 +63,7 @@ public class RPCBlockWriteResponse extends RPCResponse {
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCBlockWriteResponse} object and return it.
+   * Decodes the input {@link ByteBuf} into a {@link RPCBlockWriteResponse} object and returns it.
    *
    * @param in the input {@link ByteBuf}
    * @return The decoded RPCBlockWriteResponse object

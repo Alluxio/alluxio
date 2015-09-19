@@ -26,7 +26,6 @@ import tachyon.underfs.UnderFileSystem;
  *
  */
 public final class UnderFileSystemUtils {
-  private UnderFileSystemUtils() {}
 
   /**
    * Deletes the directory at the given path.
@@ -62,7 +61,7 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Create an empty file.
+   * Creates an empty file.
    *
    * @param path path to the file
    * @param tachyonConf Tachyon Configuration
@@ -75,7 +74,7 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Create a non-empty file.
+   * Creates a non-empty file.
    *
    * @param path path to the file
    * @param size the file size
@@ -94,4 +93,6 @@ public final class UnderFileSystemUtils {
     os.close();
 
   }
+
+  private UnderFileSystemUtils() {} // prevent instantiation
 }
