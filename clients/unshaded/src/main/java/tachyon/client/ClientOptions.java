@@ -148,7 +148,7 @@ public class ClientOptions {
   }
 
   /**
-   * @return the Hostname
+   * @return the hostname
    */
   public String getHostname() {
     return mHostname;

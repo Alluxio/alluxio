@@ -227,13 +227,12 @@ public class FileOutStreamIntegrationTest {
   /**
    * Test writing to a file and specify the location to be localhost.
    *
-   * @throws IOException
-   * @throws InterruptedException
+   * @throws IOException if file can not be opened successfully.
    */
   @Test
-  public void writeSpecifyLocalTest() throws IOException, InterruptedException {
+  public void writeSpecifyLocalTest() throws IOException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
-    int len = 2;
+    final int len = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteLocal);
     os.write((byte) 0);
     os.write((byte) 1);
@@ -251,7 +250,7 @@ public class FileOutStreamIntegrationTest {
   @Test
   public void longWriteChangesSessionId() throws IOException, InterruptedException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
-    int len = 2;
+    final int len = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteUnderStore);
     os.write((byte) 0);
     Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
