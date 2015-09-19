@@ -199,10 +199,9 @@ public final class InodeFile extends Inode {
    *
    * @param length The new length of the file, cannot be negative
    * @throws SuspectedFileSizeException
-   * @throws BlockInfoException
    */
   public synchronized void setLength(long length)
-      throws SuspectedFileSizeException, BlockInfoException {
+      throws SuspectedFileSizeException {
     if (mCompleted) {
       throw new SuspectedFileSizeException("InodeFile has been completed.");
     }

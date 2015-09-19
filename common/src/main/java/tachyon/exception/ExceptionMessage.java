@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
  */
 public enum ExceptionMessage {
   // general
+  PATH_DOES_NOT_EXIST("Path {0} does not exist"),
 
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0} is for block {1}, not {2}"),

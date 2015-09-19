@@ -46,6 +46,7 @@ import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
+import tachyon.util.IdUtils;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -120,13 +121,7 @@ public class FileSystemMasterIntegrationTest {
 
     private void doDelete(TachyonURI path) throws Exception {
       mFsMaster.deleteFile(mFsMaster.getFileId(path), true);
-      boolean exception = false;
-      try {
-        mFsMaster.getFileId(path);
-      } catch (InvalidPathException ipe) {
-        exception = true;
-      }
-      Assert.assertTrue(exception);
+      Assert.assertEquals(-1, mFsMaster.getFileId(path));
     }
 
     public void exec(int depth, int concurrencyDepth, TachyonURI path) throws Exception {
@@ -410,8 +405,6 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void deleteDirectoryWithDirectoriesTest() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /testFolder/testFolder2/testFile2");
     mFsMaster.mkdir(new TachyonURI("/testFolder"), true);
     mFsMaster.mkdir(new TachyonURI("/testFolder/testFolder2"), true);
     long fileId =
@@ -424,9 +417,10 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+            mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2"));
+    Assert.assertEquals(-1,
+        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
   }
 
   @Test
@@ -454,8 +448,6 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void deleteDirectoryWithFilesTest() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /testFolder");
     mFsMaster.mkdir(new TachyonURI("/testFolder"), true);
     long fileId =
         mFsMaster.create(new TachyonURI("/testFolder/testFile"),
@@ -463,7 +455,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    mFsMaster.getFileId(new TachyonURI("/testFolder"));
+    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
   }
 
   @Test
@@ -481,23 +473,19 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void deleteEmptyDirectoryTest() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /testFolder");
     mFsMaster.mkdir(new TachyonURI("/testFolder"), true);
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    mFsMaster.getFileId(new TachyonURI("/testFolder"));
+    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
   }
 
   @Test
   public void deleteFileTest() throws Exception {
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /testFile");
     long fileId =
         mFsMaster.create(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFile")));
     Assert.assertTrue(mFsMaster.deleteFile(fileId, true));
-    mFsMaster.getFileId(new TachyonURI("/testFile"));
+    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFile")));
   }
 
   @Test
@@ -644,10 +632,8 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void renameNonexistentTest() throws Exception {
-    mThrown.expect(InvalidPathException.class);
     mFsMaster.create(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    mFsMaster.rename(mFsMaster.getFileId(new TachyonURI("/testFile2")),
-        new TachyonURI("/testFile3"));
+    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFile2")));
   }
 
   @Test

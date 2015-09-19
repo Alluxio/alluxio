@@ -41,6 +41,7 @@ import tachyon.client.file.FileSystemContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
@@ -375,13 +376,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean delete(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
+    fileId = getValidFileId(fileId, path.getPath());
     try {
       return mFSMasterClient.deleteFile(fileId, recursive);
     } catch (TachyonException e) {
@@ -538,6 +533,23 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * If the given file id is -1, tries to fetch the file id for the given path
+   * @param fileId
+   * @param path the path to search for if fileId is -1
+   * @return the original fileId if it wasn't -1, or a new fileId corresponding to the given path
+   * @throws IOException if the given fileId is -1 and no fileId was found for the given path
+   */
+  private long getValidFileId(long fileId, String path) throws IOException {
+    if (fileId == -1) {
+      fileId = mFSMasterClient.getFileId(path);
+      if (fileId == -1) {
+        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
+    }
+    return fileId;
+  }
+
+  /**
    * Gets all the blocks' info of the file.
    *
    * @param fid the file id
@@ -590,17 +602,7 @@ public class TachyonFS extends AbstractTachyonFS {
       }
     }
 
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(path);
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
-    if (fileId == -1) {
-      cache.remove(key);
-      return null;
-    }
+    fileId = getValidFileId(fileId, path);
     try {
       info = mFSMasterClient.getFileInfo(fileId);
     } catch (TachyonException e) {
@@ -628,13 +630,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
+    fileId = getValidFileId(fileId, path.getPath());
     return getFileStatus(mIdToClientFileInfo, fileId, fileId, TachyonURI.EMPTY_URI.getPath(),
         useCachedMetadata);
   }
@@ -882,13 +878,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean freepath(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
+    fileId = getValidFileId(fileId, path.getPath());
     try {
       return mFSMasterClient.free(fileId, recursive);
     } catch (TachyonException e) {
@@ -925,13 +915,7 @@ public class TachyonFS extends AbstractTachyonFS {
       throws IOException {
     validateUri(srcPath);
     validateUri(dstPath);
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(srcPath.getPath());
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
+    fileId = getValidFileId(fileId, srcPath.getPath());
     try {
       return mFSMasterClient.renameFile(fileId, dstPath.getPath());
     } catch (TachyonException e) {

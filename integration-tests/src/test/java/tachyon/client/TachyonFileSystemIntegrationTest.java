@@ -35,6 +35,7 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
@@ -144,7 +145,8 @@ public class TachyonFileSystemIntegrationTest {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
       TachyonFile f = sTfs.open(fileURI);
       sTfs.delete(f);
-      Assert.assertNull(sTfs.getInfo(f));
+      mThrown.expect(FileDoesNotExistException.class);
+      sTfs.getInfo(f);
     }
   }
 
