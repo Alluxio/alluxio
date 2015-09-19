@@ -95,9 +95,6 @@ public class Constants {
   // specific configuration properties. It will be used as key in the MR Configuration.
   public static final String TACHYON_CONF_SITE = "tachyon.conf.site";
 
-  // choose between default file system or lineage file system
-  public static final String TACHYON_FILE_SYSTEM_CLASS = "tachyon.filesystem.type.class";
-
   public static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
   public static final String DEFAULT_DATA_FOLDER = "/tachyon/data";
   public static final String DEFAULT_JOURNAL_FOLDER = DEFAULT_HOME + "/journal/";
@@ -164,6 +161,8 @@ public class Constants {
   public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
   public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
+  // choose between default file system or lineage file system
+  public static final String CLIENT_ENABLE_LINEAGE = "tachyon.client.enable.lineage";
   public static final String MASTER_CHECKPOINT_STRATEGY_CLASS =
       "tachyon.master.lineage.checkpoint.strategy.class";
   public static final String MASTER_CHECKPOINT_INTERVAL_MS =

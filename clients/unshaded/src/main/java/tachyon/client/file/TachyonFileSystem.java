@@ -18,7 +18,6 @@ package tachyon.client.file;
 import java.io.IOException;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -26,13 +25,13 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
+import tachyon.client.lineage.TachyonLineageFileSystem;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
-import tachyon.util.CommonUtils;
 
 /**
  * A TachyonFileSystem implementation including convenience methods as well as a streaming API to
@@ -48,12 +47,11 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   public static synchronized TachyonFileSystem get() {
     if (sTachyonFileSystem == null) {
-      try {
-        return CommonUtils.createNewClassInstance(ClientContext.getConf()
-            .<TachyonFileSystem>getClass(Constants.TACHYON_FILE_SYSTEM_CLASS), new Class[] {},
-            new Object[] {});
-      } catch (Exception e) {
-        throw Throwables.propagate(e);
+      boolean enableLineage = ClientContext.getConf().getBoolean(Constants.CLIENT_ENABLE_LINEAGE);
+      if(enableLineage) {
+        return TachyonLineageFileSystem.get();
+      } else {
+        return sTachyonFileSystem;
       }
     }
     return sTachyonFileSystem;
