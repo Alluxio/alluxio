@@ -468,22 +468,22 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.remote.block.worker.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for remote block worker client.</td>
+  <td>How many threads to use for remote block worker client to read from remote block workers.</td>
 </tr>
 <tr>
   <td>tachyon.user.local.block.worker.client.threads</td>
   <td>10000</td>
-  <td>How many threads to use for block worker client pool.</td>
+  <td>How many threads to use for block worker client pool to read from a local block worker.</td>
 </tr>
 <tr>
   <td>tachyon.user.block.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for block master client pool.</td>
+  <td>How many threads to use for block master client to talk to block master.</td>
 </tr>
 <tr>
   <td>tachyon.user.file.master.client.threads</td>
   <td>10</td>
-  <td>How many threads to use for file system master client pool.</td>
+  <td>How many threads to use for file system master client to talk to block master.</td>
 </tr>
 </table>
 
