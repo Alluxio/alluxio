@@ -15,6 +15,7 @@
 
 package tachyon.master.file;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -256,7 +257,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return true if the operation should be written to the journal
    */
   boolean persistFileInternal(long fileId, long length, long opTimeMs)
-      throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
+      throws SuspectedFileSizeException, FileDoesNotExistException {
 
     Inode inode = mInodeTree.getInodeById(fileId);
     if (inode.isDirectory()) {
@@ -268,8 +269,8 @@ public final class FileSystemMaster extends MasterBase {
 
     if (file.isCompleted()) {
       if (file.getLength() != length) {
-        throw new SuspectedFileSizeException(
-            fileId + ". Original Size: " + file.getLength() + ". New Size: " + length);
+        throw new SuspectedFileSizeException(fileId + ". Original Size: " + file.getLength()
+            + ". New Size: " + length);
       }
     } else {
       file.setLength(length);
@@ -302,8 +303,6 @@ public final class FileSystemMaster extends MasterBase {
       throw new RuntimeException(fdnee);
     } catch (SuspectedFileSizeException sfse) {
       throw new RuntimeException(sfse);
-    } catch (BlockInfoException bie) {
-      throw new RuntimeException(bie);
     }
   }
 
@@ -329,12 +328,17 @@ public final class FileSystemMaster extends MasterBase {
    * Returns the file id for a given path. Called via RPC, as well as internal masters.
    *
    * @param path the path to get the file id for
-   * @return the file id for a given path
-   * @throws InvalidPathException
+   * @return the file id for a given path, or -1 if there is no file at that path
    */
-  public long getFileId(TachyonURI path) throws InvalidPathException {
+  public long getFileId(TachyonURI path) {
+    // TODO(manugoyal) make sure client and master agree that -1 is an invalid file id
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(path);
+      Inode inode;
+      try {
+        inode = mInodeTree.getInodeByPath(path);
+      } catch (InvalidPathException e) {
+        return -1;
+      }
       return inode.getId();
     }
   }
@@ -344,10 +348,11 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the file id to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given file id
-   * @throws FileDoesNotExistException
+   * @throws FileDoesNotExistException if the file does not exist
    */
   public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
     MasterContext.getMasterSource().incGetFileStatusOps();
+    // TODO(gene): metrics
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       return getFileInfoInternal(inode);
@@ -381,10 +386,8 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId
    * @return
    * @throws FileDoesNotExistException
-   * @throws InvalidPathException
    */
-  public List<FileInfo> getFileInfoList(long fileId)
-      throws FileDoesNotExistException, InvalidPathException {
+  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
 

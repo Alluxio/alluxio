@@ -181,7 +181,6 @@ service FileSystemMasterService {
     throws (1: TachyonTException e)
 
   i64 getFileId(1: string path)
-    throws (1: TachyonTException e)
 
   FileInfo getFileInfo(1: i64 fileId)
     throws (1: TachyonTException e)

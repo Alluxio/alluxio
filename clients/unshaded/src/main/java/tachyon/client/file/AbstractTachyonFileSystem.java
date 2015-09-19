@@ -137,14 +137,12 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
    */
   @Override
   public FileInfo getInfo(TachyonFile file, GetInfoOptions options) throws IOException,
-      TachyonException {
+    FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getFileInfo(file.getFileId());
     } catch (TachyonException e) {
-      if (e.getType() == TachyonExceptionType.FILE_DOES_NOT_EXIST) {
-        return null;
-      }
+      TachyonException.unwrap(e, FileDoesNotExistException.class);
       throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -219,14 +217,14 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   }
 
   @Override
-  public TachyonFile open(TachyonURI path, OpenOptions openOptions) throws IOException,
-      InvalidPathException, TachyonException {
+  public TachyonFile open(TachyonURI path, OpenOptions openOptions) throws IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return new TachyonFile(masterClient.getFileId(path.getPath()));
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, InvalidPathException.class);
-      throw e;
+      long fileId = masterClient.getFileId(path.getPath());
+      if (fileId == -1) {
+        return null;
+      }
+      return new TachyonFile(fileId);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

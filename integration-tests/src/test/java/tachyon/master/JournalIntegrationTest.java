@@ -115,12 +115,7 @@ public class JournalIntegrationTest {
             Constants.UNDERFS_DATA_FOLDER));
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
     ufs.create(ufsRoot + "/xyz");
-    try {
-      mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
-      Assert.fail("File /xyz should not exist.");
-    } catch (InvalidPathException e) {
-      // This is to expected.
-    }
+    Assert.assertNull(mTfs.open(new TachyonURI("/xyz")));
     LoadMetadataOptions recursive =
         new LoadMetadataOptions.Builder(new TachyonConf()).setRecursive(true).build();
     mTfs.loadMetadata(new TachyonURI("/xyz"), recursive);
