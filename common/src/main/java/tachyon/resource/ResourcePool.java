@@ -48,6 +48,20 @@ public abstract class ResourcePool<T> {
   }
 
   /**
+   * Test only constructor, used to mock out mResources.
+   *
+   * @param maxCapacity the maximum of resources in this pool
+   * @param resources the mocked instance of blocking queue.
+   */
+  protected ResourcePool(int maxCapacity, BlockingQueue<T> resources) {
+    Preconditions.checkArgument(maxCapacity > 0, "Capacity must be non-negative");
+    mCapacityLock = new Object();
+    mMaxCapacity = maxCapacity;
+    mCurrentCapacity = 0;
+    mResources = resources;
+  }
+
+  /**
    * Acquires an object of type {@code T} from the pool. This operation is blocking if no resource
    * is available. Each call of {@link #acquire} should be paired with another call of
    * {@link #release} after the use of this resource completes to return this resource to the pool.
