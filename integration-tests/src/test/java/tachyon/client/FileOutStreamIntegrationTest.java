@@ -43,6 +43,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
 
 /**
@@ -61,6 +62,7 @@ public class FileOutStreamIntegrationTest {
   private static ClientOptions sWriteBoth;
   private static ClientOptions sWriteTachyon;
   private static ClientOptions sWriteUnderStore;
+  private static ClientOptions sWriteLocal;
 
   private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
@@ -105,6 +107,10 @@ public class FileOutStreamIntegrationTest {
     sWriteUnderStore =
         new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType
             .NO_STORE, UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+    sWriteLocal = 
+        new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType.STORE,
+            UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
+            .setLocation(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
   }
 
   @BeforeClass
@@ -216,6 +222,23 @@ public class FileOutStreamIntegrationTest {
     os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
     os.close();
     checkWrite(filePath, op.getUnderStorageType(), len, len / 2 * 2);
+  }
+
+  /**
+   * Test writing to a file and specify the location to be localhost.
+   *
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  @Test
+  public void writeSpecifyLocalTest() throws IOException, InterruptedException {
+    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
+    int len = 2;
+    FileOutStream os = mTfs.getOutStream(filePath, sWriteLocal);
+    os.write((byte) 0);
+    os.write((byte) 1);
+    os.close();
+    checkWrite(filePath, sWriteLocal.getUnderStorageType(), len, len);
   }
 
   /**
