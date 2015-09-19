@@ -409,7 +409,7 @@ number.
 <tr>
   <td>tachyon.worker.block.lock.count</td>
   <td>1000</td>
-  <td>Total number of locks for a Tachyon block worker.</td>
+  <td>Total number of block locks for a Tachyon block worker. Larger value leads to finer locking granularity, but more space</td>
 </tr>
 
 </table>
