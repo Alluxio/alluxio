@@ -42,7 +42,7 @@ import tachyon.HeartbeatThread;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.master.IndexedSet;
+import tachyon.IndexedSet;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
