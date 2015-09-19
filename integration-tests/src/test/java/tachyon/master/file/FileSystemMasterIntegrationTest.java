@@ -633,10 +633,10 @@ public class FileSystemMasterIntegrationTest {
     List<FileInfo> infoList = mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/")));
     for (FileInfo info : infoList) {
       // TODO(Gene): After info.getFileId return long, remove this type cast.
-      long id = new Long(info.getFileId());
+      long id = info.getFileId();
       listedDirIds.add(id);
       for (FileInfo fileInfo : mFsMaster.getFileInfoList(id)) {
-        listedIds.add((long) fileInfo.getFileId());
+        listedIds.add(fileInfo.getFileId());
       }
     }
     Assert.assertEquals(ids, listedIds);
