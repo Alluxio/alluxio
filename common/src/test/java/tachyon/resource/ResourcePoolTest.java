@@ -27,7 +27,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Unit test for <code>ResourcePool</code> class
+ * Unit test for <code>ResourcePool</code> class.
  */
 public class ResourcePoolTest {
   @Rule

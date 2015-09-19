@@ -40,18 +40,14 @@ public abstract class ResourcePool<T> {
    * @param maxCapacity the maximum of resources in this pool
    */
   public ResourcePool(int maxCapacity) {
-    Preconditions.checkArgument(maxCapacity > 0, "Capacity must be non-negative");
-    mCapacityLock = new Object();
-    mMaxCapacity = maxCapacity;
-    mCurrentCapacity = 0;
-    mResources = new LinkedBlockingQueue<T>(maxCapacity);
+    this(maxCapacity, new LinkedBlockingQueue<T>(maxCapacity));
   }
 
   /**
-   * Test only constructor, used to mock out mResources.
+   * Internal constructor that can provide an object to be used for the internal queue.
    *
-   * @param maxCapacity the maximum of resources in this pool
-   * @param resources the mocked instance of blocking queue.
+   * @param maxCapacity the maximum of resources in this pool.
+   * @param resources blocking queue to use.
    */
   protected ResourcePool(int maxCapacity, BlockingQueue<T> resources) {
     Preconditions.checkArgument(maxCapacity > 0, "Capacity must be non-negative");
