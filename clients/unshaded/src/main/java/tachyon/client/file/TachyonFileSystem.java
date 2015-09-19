@@ -99,8 +99,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
-   * Convenience method for delete with recursive set. This is the same as calling delete(file,
-   * true).
+   * Convenience method for delete without recursive set. This is the same as calling delete(file,
+   * false).
    *
    * @param file the handler for the file to delete recursively
    * @throws FileDoesNotExistException if the file does not exist in Tachyon space
@@ -111,7 +111,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
-   * Convenience method for free with recursive set. This is the same as calling free(file, true).
+   * Convenience method for free without recursive set. This is the same as calling free(file, false).
    *
    * @param file the handler for the file to free recursively
    * @throws FileDoesNotExistException if the file does not exist in Tachyon space
@@ -228,7 +228,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws IOException if the master fails to pin the file
    */
   public void pin(TachyonFile file) throws FileDoesNotExistException, IOException {
-    setPin(file, false);
+    setPin(file, true);
   }
 
   // TODO: Move this to lineage client
