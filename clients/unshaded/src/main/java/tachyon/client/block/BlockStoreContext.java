@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
+import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.thrift.NetAddress;
@@ -49,11 +50,10 @@ public enum BlockStoreContext {
    */
   BlockStoreContext() {
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    // TODO(calvin): Get the capacity from configuration.
-    final int CAPACITY = 10;
-    mRemoteBlockWorkerExecutor =
-        Executors.newFixedThreadPool(CAPACITY,
-            ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
+    int capacity = ClientContext.getConf()
+        .getInt(Constants.USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS);
+    mRemoteBlockWorkerExecutor = Executors.newFixedThreadPool(capacity,
+        ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
 
     NetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
