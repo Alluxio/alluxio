@@ -113,7 +113,7 @@ public class PathUtilsTest {
     Assert.assertEquals("/", PathUtils.cleanPath("/foo/bar/../.."));
 
     // the following seems strange
-    // TODO(jsimsa): Instead of returning null, throw InvalidPathException.
+    // TODO(jiri): Instead of returning null, throw InvalidPathException.
     Assert.assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
   }
 

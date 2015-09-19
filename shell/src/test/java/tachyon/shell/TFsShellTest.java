@@ -31,9 +31,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
