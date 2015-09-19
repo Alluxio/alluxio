@@ -31,8 +31,8 @@ import com.google.common.hash.Hashing;
 
 import tachyon.Constants;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
+import tachyon.thrift.BlockDoesNotExistException;
+import tachyon.thrift.InvalidWorkerStateException;
 
 /**
  * Handle all block locks.
@@ -109,17 +109,18 @@ public final class BlockLockManager {
   }
 
   /**
-   * Releases a lock by its lockId or throws NotFoundException.
+   * Releases a lock by its lockId or throws BlockDoesNotExistException.
    *
    * @param lockId the ID of the lock
-   * @throws NotFoundException if no lock is associated with this lock id
+   * @throws BlockDoesNotExistException if no lock is associated with this lock id
    */
-  public void unlockBlock(long lockId) throws NotFoundException {
+  public void unlockBlock(long lockId) throws BlockDoesNotExistException {
     Lock lock;
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
+        throw new BlockDoesNotExistException(
+            ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
       }
       long sessionId = record.sessionId();
       lock = record.lock();
@@ -133,14 +134,15 @@ public final class BlockLockManager {
     lock.unlock();
   }
 
-  // TODO(bin): Temporary, remove me later.
-  public void unlockBlock(long sessionId, long blockId) throws NotFoundException {
+  // TODO(bin): temporary, remove me later.
+  public void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     synchronized (mSharedMapsLock) {
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       for (long lockId : sessionLockIds) {
         LockRecord record = mLockIdToRecordMap.get(lockId);
         if (record == null) {
-          throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
+          throw new BlockDoesNotExistException(
+              ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
         }
         if (blockId == record.blockId()) {
           mLockIdToRecordMap.remove(lockId);
@@ -153,8 +155,9 @@ public final class BlockLockManager {
           return;
         }
       }
-      throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION,
-          blockId, sessionId);
+      throw new BlockDoesNotExistException(
+          ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION.getMessage(blockId,
+              sessionId));
     }
   }
 
@@ -164,24 +167,27 @@ public final class BlockLockManager {
    * @param sessionId The ID of the session
    * @param blockId The ID of the block
    * @param lockId The ID of the lock
-   * @throws NotFoundException when no lock record can be found for lockId
-   * @throws InvalidStateException when sessionId or blockId is not consistent with that in the lock
-   *         record for lockId
+   * @throws BlockDoesNotExistException when no lock record can be found for lockId
+   * @throws InvalidWorkerStateException when sessionId or blockId is not consistent with that in
+   *         the lock record for lockId
    */
   public void validateLock(long sessionId, long blockId, long lockId)
-      throws NotFoundException, InvalidStateException {
+      throws BlockDoesNotExistException, InvalidWorkerStateException {
     synchronized (mSharedMapsLock) {
       LockRecord record = mLockIdToRecordMap.get(lockId);
       if (record == null) {
-        throw new NotFoundException(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID, lockId);
+        throw new BlockDoesNotExistException(
+            ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(lockId));
       }
       if (sessionId != record.sessionId()) {
-        throw new InvalidStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION, lockId,
-            record.sessionId(), sessionId);
+        throw new InvalidWorkerStateException(
+            ExceptionMessage.LOCK_ID_FOR_DIFFERENT_SESSION.getMessage(lockId, record.sessionId(),
+                sessionId));
       }
       if (blockId != record.blockId()) {
-        throw new InvalidStateException(ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK, lockId,
-            record.blockId(), blockId);
+        throw new InvalidWorkerStateException(
+            ExceptionMessage.LOCK_ID_FOR_DIFFERENT_BLOCK.getMessage(lockId, record.blockId(),
+                blockId));
       }
     }
   }

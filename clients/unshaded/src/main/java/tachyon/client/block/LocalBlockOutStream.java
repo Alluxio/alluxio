@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Closer;
 
+import org.apache.thrift.TException;
+
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.util.io.BufferUtils;
@@ -60,7 +62,12 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
 
     try {
       long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
-      String blockPath = mWorkerClient.requestBlockLocation(mBlockId, initialSize);
+      String blockPath = null;
+      try {
+        blockPath = mWorkerClient.requestBlockLocation(mBlockId, initialSize);
+      } catch (TException e) {
+        throw new IOException(e);
+      }
       mReservedBytes += initialSize;
       FileUtils.createBlockPath(blockPath);
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
@@ -79,7 +86,11 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       return;
     }
     mCloser.close();
-    mWorkerClient.cancelBlock(mBlockId);
+    try {
+      mWorkerClient.cancelBlock(mBlockId);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
   }
@@ -92,7 +103,11 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     flush();
     mCloser.close();
     if (mWrittenBytes > 0) {
-      mWorkerClient.cacheBlock(mBlockId);
+      try {
+        mWorkerClient.cacheBlock(mBlockId);
+      } catch (TException e) {
+        throw new IOException(e);
+      }
     }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;

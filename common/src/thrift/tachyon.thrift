@@ -109,7 +109,15 @@ exception FileAlreadyExistException {
   1: string message
 }
 
+exception BlockAlreadyExistsException {
+   1: string message
+}
+
 exception FileDoesNotExistException {
+  1: string message
+}
+
+exception BlockDoesNotExistException {
   1: string message
 }
 
@@ -137,7 +145,19 @@ exception TachyonException {
   1: string message
 }
 
+exception ThriftIOException {
+  1: string message
+}
+
 exception DependencyDoesNotExistException {
+  1: string message
+}
+
+exception InvalidWorkerStateException {
+  1: string message
+}
+
+exception WorkerOutOfSpaceException {
   1: string message
 }
 
@@ -263,28 +283,29 @@ service RawTableMasterService {
 }
 
 service WorkerService {
-  void accessBlock(1: i64 blockId)
+  void accessBlock(1: i64 blockId) throws (1: BlockDoesNotExistException bE)
 
   void addCheckpoint(1: i64 sessionId, 2: i64 fileId)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
-      3: FailedToCheckpointException eF, 4: BlockInfoException eB)
+    throws (1: FileDoesNotExistException eP, 2: FailedToCheckpointException eF)
 
   bool asyncCheckpoint(1: i64 fileId)
-    throws (1: TachyonException e)
 
   /**
    * Used to cache a block into Tachyon space, worker will move the temporary block file from session
    * folder to data folder, and update the space usage information related. then update the block
    * information to master.
    */
-  void cacheBlock(1: i64 sessionId, 2: i64 blockId)
-    throws (1: FileDoesNotExistException eP, 2: BlockInfoException eB)
+  void cacheBlock(1: i64 sessionId, 2: i64 blockId) throws (1: WorkerOutOfSpaceException eW, 2:
+    BlockDoesNotExistException eDNE, 3: InvalidWorkerStateException iW,
+    4: BlockAlreadyExistsException eAE, 5: ThriftIOException eT)
 
   /**
    * Used to cancel a block which is being written. worker will delete the temporary block file and
    * the location and space information related, then reclaim space allocated to the block.
    */
-  void cancelBlock(1: i64 sessionId, 2: i64 blockId)
+  void cancelBlock(1: i64 sessionId, 2: i64 blockId) throws (1: InvalidWorkerStateException eW,
+     2: BlockAlreadyExistsException eAE, 3: BlockDoesNotExistException eDNE,
+     4: ThriftIOException eT)
 
   /**
    * Used to get session's temporary folder on under file system, and the path of the session's temporary
@@ -298,14 +319,16 @@ service WorkerService {
    * thrown.
    */
   string lockBlock(1: i64 blockId, 2: i64 sessionId)
-    throws (1: FileDoesNotExistException eP)
+    throws (1: FileDoesNotExistException eP, 2: InvalidWorkerStateException eW)
 
   /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
    * storage layers in Tachyon's space. return true if the block is successfully promoted, false
    * otherwise.
    */
-  bool promoteBlock(1: i64 blockId)
+  bool promoteBlock(1: i64 blockId) throws (1: WorkerOutOfSpaceException eWSpace,
+    2: BlockDoesNotExistException eDNE, 3: InvalidWorkerStateException eWState,
+    4: BlockAlreadyExistsException eAE, 5: ThriftIOException eT)
 
   /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
@@ -315,22 +338,22 @@ service WorkerService {
    * FileAlreadyExistException will be thrown.
    */
   string requestBlockLocation(1: i64 sessionId, 2: i64 blockId, 3: i64 initialBytes)
-    throws (1: OutOfSpaceException eP, 2: FileAlreadyExistException eS)
-
+    throws (1: InvalidWorkerStateException eWState, 2: WorkerOutOfSpaceException eWSpace,
+      3: BlockDoesNotExistException eDNE, 4: BlockAlreadyExistsException eAE,
+      5: ThriftIOException eT)
   /**
    * Used to request space for some block file. return true if the worker successfully allocates
    * space for the block on block’s location, false if there is no enough space, if there is no
    * information of the block on worker, FileDoesNotExistException will be thrown.
    */
   bool requestSpace(1: i64 sessionId, 2: i64 blockId, 3: i64 requestBytes)
-    throws (1: FileDoesNotExistException eP)
 
   /**
    * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
    * block file. return true if successfully unlock the block, return false if the block is not
    * found or failed to delete the block.
    */
-  bool unlockBlock(1: i64 blockId, 2: i64 sessionId)
+  bool unlockBlock(1: i64 blockId, 2: i64 sessionId) throws (1: BlockDoesNotExistException eDNE)
 
   /**
    * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
