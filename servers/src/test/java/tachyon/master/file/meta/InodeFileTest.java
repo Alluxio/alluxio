@@ -98,13 +98,15 @@ public final class InodeFileTest extends AbstractInodeTest {
       inodeFile.getBlockIdByIndex(-1);
       Assert.fail();
     } catch (BlockInfoException e) {
-      Assert.assertEquals(String.format("blockIndex -1 is out of range. File blocks: %d", NUM_BLOCKS), e.getMessage());
+      Assert.assertEquals(String.format("blockIndex -1 is out of range. File blocks: %d",
+          NUM_BLOCKS), e.getMessage());
     }
     try {
       inodeFile.getBlockIdByIndex(NUM_BLOCKS);
       Assert.fail();
     } catch (BlockInfoException e) {
-      Assert.assertEquals(String.format("blockIndex %d is out of range. File blocks: %d", NUM_BLOCKS, NUM_BLOCKS), e.getMessage());
+      Assert.assertEquals(String.format("blockIndex %d is out of range. File blocks: %d",
+          NUM_BLOCKS, NUM_BLOCKS), e.getMessage());
     }
   }
 
