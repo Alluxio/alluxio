@@ -136,7 +136,8 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     String parentPath = "/tmp/foo";
     String dstPath = "/tmp/foo/bar";
 
-    // TODO(jsimsa): Add test cases for error cases.
+    // TODO(jiri): Add test cases for error cases.
+    Mockito.when(mHarness.mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER)).thenReturn("/tmp");
     Mockito.when(mHarness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
     Mockito.when(mHarness.mUfs.exists(parentPath)).thenReturn(true);
     Mockito.when(mHarness.mUfs.mkdirs(parentPath, true)).thenReturn(true);
@@ -206,5 +207,5 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
         mHarness.mManager.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
-  // TODO(jsimsa): Write unit tests for untested public methods.
+  // TODO(jiri): Write unit tests for untested public methods.
 }
