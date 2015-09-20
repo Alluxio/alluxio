@@ -95,7 +95,7 @@ public class RawTableMaster extends MasterBase {
         throw new IOException(tdnee);
       }
     } else {
-      throw new IOException(ExceptionMessage.UNKNOWN_ENTRY_TYPE.getMessage(entry.getType()));
+      throw new IOException("Unknown raw table entry type: " + entry.getType());
     }
   }
 

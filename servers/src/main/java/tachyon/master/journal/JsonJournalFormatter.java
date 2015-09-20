@@ -356,7 +356,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getByteBuffer("metadata"));
           }
           default:
-            throw new IOException(ExceptionMessage.UNKNOWN_ENTRY_TYPE.getMessage(entry.mType));
+            throw new IOException("Unknown journal entry type: " + entry.mType);
         }
       }
 
