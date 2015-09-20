@@ -28,6 +28,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import org.powermock.reflect.Whitebox;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
@@ -37,6 +38,7 @@ import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
@@ -45,7 +47,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({WorkerBlockMasterClient.class, WorkerFileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class})
+    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
+    WorkerContext.class})
 public class BlockDataManagerTest implements Tester<BlockDataManager> {
   private TestHarness mHarness;
   private BlockDataManager.PrivateAccess mPrivateAccess;
@@ -82,6 +85,11 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       mUfs = PowerMockito.mock(UnderFileSystem.class);
       mWorkerId = mRandom.nextLong();
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
+
+      TachyonConf conf = PowerMockito.mock(TachyonConf.class);
+      Mockito.when(conf.get(Constants.UNDERFS_ADDRESS)).thenReturn("/tmp");
+      Mockito.when(conf.get(Constants.UNDERFS_DATA_FOLDER)).thenReturn("/tmp");
+      Whitebox.setInternalState(WorkerContext.class, "sTachyonConf", conf);
 
       mManager =
           new BlockDataManager(mWorkerSource, mBlockMasterClient, mFileSystemMasterClient,
@@ -129,13 +137,12 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     String dstPath = "/tmp/foo/bar";
 
     // TODO(jsimsa): Add test cases for error cases.
-    Mockito.when(mHarness.mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER)).thenReturn("/tmp");
     Mockito.when(mHarness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
-    Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
     Mockito.when(mHarness.mUfs.exists(parentPath)).thenReturn(true);
     Mockito.when(mHarness.mUfs.mkdirs(parentPath, true)).thenReturn(true);
     Mockito.when(mHarness.mUfs.rename(srcPath, dstPath)).thenReturn(true);
     Mockito.when(mHarness.mUfs.getFileSize(dstPath)).thenReturn(fileSize);
+    Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
     mHarness.mManager.addCheckpoint(sessionId, fileId);
     Mockito.verify(mHarness.mFileSystemMasterClient).addCheckpoint(mHarness.mWorkerId, fileId,
         fileSize, dstPath);
