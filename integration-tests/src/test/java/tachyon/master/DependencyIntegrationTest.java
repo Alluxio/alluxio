@@ -20,7 +20,6 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.master.file.meta.DependencyVariables;
 
 public class DependencyIntegrationTest {
