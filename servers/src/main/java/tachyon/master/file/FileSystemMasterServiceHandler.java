@@ -22,6 +22,7 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
@@ -98,9 +99,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long createFile(String path, long blockSizeBytes, boolean recursive)
+  public long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
       throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
-    return mFileSystemMaster.createFile(new TachyonURI(path), blockSizeBytes, recursive);
+    return mFileSystemMaster.createFile(new TachyonURI(path), blockSizeBytes, recursive, ttl);
   }
 
   @Override
@@ -113,7 +114,8 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
     try {
       long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
       long fileSizeByte = underfs.getFileSize(ufsPath);
-      long fileId = mFileSystemMaster.createFile(new TachyonURI(path), ufsBlockSizeByte, recursive);
+      long fileId = mFileSystemMaster.createFile(new TachyonURI(path), ufsBlockSizeByte, recursive,
+          Constants.NO_TTL);
       if (fileId != -1) {
         mFileSystemMaster.completeFileCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath));
       }

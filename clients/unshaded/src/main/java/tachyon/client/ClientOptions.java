@@ -36,6 +36,8 @@ public final class ClientOptions {
     private UnderStorageType mUnderStorageType;
     /** Worker location to write data, if not possible, the operation will fail */
     private String mHostname;
+    /** TTL value for file in Seconds, file will auto-deleted after ttl is expired */
+    private long mTTL;
 
     /**
      * @param conf Tachyon configuration
@@ -47,6 +49,7 @@ public final class ClientOptions {
       mUnderStorageType =
           conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
       mHostname = null;
+      mTTL = Constants.NO_TTL;
     }
 
     /**
@@ -98,6 +101,15 @@ public final class ClientOptions {
     }
 
     /**
+     * @param ttl time to live in seconds
+     * @return the builder
+     */
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
+      return this;
+    }
+
+    /**
      * Builds a new instance of <code>ClientOptions</code>
      *
      * @return a <code>ClientOptions</code> instance
@@ -111,6 +123,7 @@ public final class ClientOptions {
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final String mHostname;
+  private final long mTTL;
 
   /**
    * @return the default <code>ClientOptions</code>
@@ -124,6 +137,7 @@ public final class ClientOptions {
     mTachyonStorageType = builder.mTachyonStorageType;
     mUnderStorageType = builder.mUnderStorageType;
     mHostname = builder.mHostname;
+    mTTL = builder.mTTL;
   }
 
   /**
@@ -152,5 +166,12 @@ public final class ClientOptions {
    */
   public String getHostname() {
     return mHostname;
+  }
+
+  /**
+   * @return the ttl
+   */
+  public long getTTL() {
+    return mTTL;
   }
 }

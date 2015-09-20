@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -30,6 +31,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.HeartbeatExecutor;
+import tachyon.HeartbeatThread;
 import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.StorageLevelAlias;
@@ -95,6 +98,8 @@ public final class FileSystemMaster extends MasterBase {
 
   private final PrefixList mWhitelist;
 
+  /** The service that tries to check inodefiles with ttl set */
+  private Future<?> mInodeFileTTLService;
   /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
@@ -185,6 +190,12 @@ public final class FileSystemMaster extends MasterBase {
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       mInodeTree.initializeRoot();
+      if (isLeader) {
+        mInodeFileTTLService =
+            getExecutorService().submit(new HeartbeatThread("InodeFile TTL Check",
+                new MasterInodeTTLCheckExecutor(),
+                    MasterContext.getConf().getInt(Constants.MASTER_TTL_INTERVAL_MS)));
+      }
     }
     super.start(isLeader);
   }
@@ -432,7 +443,6 @@ public final class FileSystemMaster extends MasterBase {
       throw new RuntimeException(fdnee);
     }
   }
-
   /**
    * Creates a file (not a directory) for a given path. Called via RPC.
    *
@@ -446,10 +456,26 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long createFile(TachyonURI path, long blockSizeBytes, boolean recursive)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+    return this.createFile(path, blockSizeBytes, recursive, Constants.NO_TTL);
+  }
+  /**
+   * Creates a file (not a directory) for a given path. Called via RPC.
+   *
+   * @param path the file to create
+   * @param blockSizeBytes the block size of the file
+   * @param recursive if true, will recursively create all the missing directories along the path.
+   * @param ttl time to live for file
+   * @return the file id of the create file
+   * @throws InvalidPathException
+   * @throws FileAlreadyExistException
+   * @throws BlockInfoException
+   */
+  public long createFile(TachyonURI path, long blockSizeBytes, boolean recursive, long ttl)
+      throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     MasterContext.getMasterSource().incCreateFileOps();
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult =
-          createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis());
+          createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis(), ttl);
       List<Inode> created = createResult.getCreated();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -460,10 +486,10 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   InodeTree.CreatePathResult createFileInternal(TachyonURI path, long blockSizeBytes,
-      boolean recursive, long opTimeMs)
+      boolean recursive, long opTimeMs, long ttl)
           throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     InodeTree.CreatePathResult createResult =
-        mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs);
+        mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs, ttl);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
@@ -1092,6 +1118,32 @@ public final class FileSystemMaster extends MasterBase {
   public List<Integer> getPriorityDependencyList() {
     synchronized (mDependencyMap) {
       return mDependencyMap.getPriorityDependencyList();
+    }
+  }
+
+  /**
+   * MasterInodeTTL periodic check.
+   */
+  public final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
+    @Override
+    public void heartbeat()  {
+      synchronized (mInodeTree) {
+        List<Inode> inodes = mInodeTree.getInodeChildrenRecursive(mInodeTree.getRoot());
+        for (Inode inode : inodes) {
+          if (inode.isFile() && !inode.isPinned()) {
+            InodeFile iFile = (InodeFile) inode;
+            long ttl = iFile.getTTL();
+            if (ttl > 0
+                && System.currentTimeMillis() - iFile.getCreationTimeMs() > ttl * 1000) {
+              try {
+                mInodeTree.deleteInode(iFile);
+              } catch (FileDoesNotExistException e) {
+                LOG.error("file does not exit " + iFile.toString());
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
