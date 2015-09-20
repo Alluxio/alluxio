@@ -65,6 +65,28 @@ public final class CheckpointManager {
     }
   }
 
+  /**
+   * Finds the files to send to the given worker for checkpoint
+   *
+   * @param workerId the worker id
+   * @return the list of files.
+   */
+  public List<Long> getFilesToCheckpoint(long workerId) {
+    List<Long> fileIds = Lists.newArrayList();
+    if (!mWorkerToCheckpointFile.containsKey(workerId)) {
+      return fileIds;
+    }
+
+    for (CheckpointFile file : mWorkerToCheckpointFile.get(workerId)) {
+      if (!file.mSentToWorker) {
+        file.mSentToWorker = true;
+        fileIds.add(file.mFile.getFileId());
+      }
+    }
+
+    return fileIds;
+  }
+
   private long findStoringWorker(LineageFile file) {
     List<Long> workers = Lists.newArrayList();
     try {
