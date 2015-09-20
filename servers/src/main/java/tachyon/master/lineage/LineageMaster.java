@@ -66,7 +66,6 @@ public final class LineageMaster extends MasterBase {
   /** The service that recomputes lineages. */
   private Future<?> mRecomputeExecutionService;
 
-
   public LineageMaster(TachyonConf conf, Journal journal, FileSystemMaster fileSystemMaster) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
