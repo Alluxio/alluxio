@@ -50,14 +50,18 @@ public final class LineageWorker {
   private final LineageMasterWorkerClient mLineageMasterClient;
   /** Configuration object */
   private final TachyonConf mTachyonConf;
+  private final long mWorkerId;
 
   /** The service that persists files for lineage checkpointing */
   private Future<?> mFilePersistenceService;
 
-  public LineageWorker(BlockDataManager blockDataManager) {
+  public LineageWorker(BlockDataManager blockDataManager, long workerId) {
+    Preconditions.checkState(workerId != 0, "Failed to register worker");
+
     mTachyonConf = WorkerContext.getConf();
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
     mLineageDataManager = new LineageDataManager(blockDataManager);
+    mWorkerId = workerId;
 
     // Setup MasterClientBase along with its heartbeat ExecutorService
     mMasterClientExecutorService = Executors.newFixedThreadPool(1,
@@ -73,8 +77,9 @@ public final class LineageWorker {
 
   public void start() {
     mFilePersistenceService =
-        mSyncExecutorService.submit(new HeartbeatThread("Lineage worker master sync",
-            new LineageWorkerMasterSyncExecutor(mLineageDataManager, mLineageMasterClient),
+        mSyncExecutorService.submit(new HeartbeatThread(
+            "Lineage worker master sync", new LineageWorkerMasterSyncExecutor(mLineageDataManager,
+                mLineageMasterClient, mWorkerId),
             mTachyonConf.getInt(Constants.MASTER_WORKER_LINEAGE_SYNC_INTERVAL_MS)));
   }
 

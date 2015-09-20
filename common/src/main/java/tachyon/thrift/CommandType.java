@@ -17,7 +17,7 @@ public enum CommandType implements org.apache.thrift.TEnum {
   Register(2),
   Free(3),
   Delete(4),
-  Persiste(5);
+  Persist(5);
 
   private final int value;
 
@@ -49,7 +49,7 @@ public enum CommandType implements org.apache.thrift.TEnum {
       case 4:
         return Delete;
       case 5:
-        return Persiste;
+        return Persist;
       default:
         return null;
     }

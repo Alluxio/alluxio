@@ -86,7 +86,7 @@ enum CommandType {
   Register = 2,   	// Ask the worker to re-register.
   Free = 3,		// Ask the worker to free files.
   Delete = 4,		// Ask the worker to delete files.
-  Persiste = 5,  // Ask the worker to persist a file for lineage
+  Persist = 5,  // Ask the worker to persist a file for lineage
 }
 
 struct Command {
@@ -96,8 +96,13 @@ struct Command {
 
 struct LineageCommand {
   1: CommandType mCommandType
+  2: list<CheckpointFile> mCheckpointFiles 
+}
+
+struct CheckpointFile {
+  1: i64 mFileId
   2: list<i64> mBlockIds
-  3: string mFilePath
+  3: string mUnderFsPath 
 }
 
 exception BlockInfoException {
