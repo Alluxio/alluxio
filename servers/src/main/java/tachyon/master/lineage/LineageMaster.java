@@ -74,7 +74,7 @@ public final class LineageMaster extends MasterBase {
     mTachyonConf = Preconditions.checkNotNull(conf);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageStore = new LineageStore();
-    mCheckpointManager = new CheckpointManager(mLineageStore);
+    mCheckpointManager = new CheckpointManager(mLineageStore, mFileSystemMaster);
   }
 
   @Override
