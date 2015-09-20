@@ -15,19 +15,36 @@
 
 package tachyon.master.lineage.checkpoint;
 
-import com.google.common.base.Preconditions;
+import java.util.List;
+import java.util.Map;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import tachyon.master.file.FileSystemMaster;
+import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
+import tachyon.thrift.BlockLocation;
+import tachyon.thrift.FileBlockInfo;
+import tachyon.thrift.FileDoesNotExistException;
 
 /**
- * Manages checkpointing.
+ * Manages checkpointing. This class is thread-safe
+ *
+ * TODO(yupeng): relax the locking
  */
 public final class CheckpointManager {
   private final LineageStore mLineageStore;
+  private final FileSystemMaster mFileSystemMaster;
+  private Map<Long, List<CheckpointFile>> mWorkerToCheckpointFile;
 
-  public CheckpointManager(LineageStore lineageStore) {
+  public CheckpointManager(LineageStore lineageStore, FileSystemMaster fileSystemMaster) {
     mLineageStore = Preconditions.checkNotNull(lineageStore);
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
+    mWorkerToCheckpointFile = Maps.newHashMap();
   }
 
   public LineageStoreView getLineageStoreView() {
@@ -35,6 +52,42 @@ public final class CheckpointManager {
   }
 
   public void acceptPlan(CheckpointPlan plan) {
-    // TODO(yupeng): validation
+    for (Lineage lineage : plan.getLineagesToCheckpoint()) {
+      // register the lineage file to checkpoint
+      for (LineageFile file : lineage.getOutputFiles()) {
+        // find the worker
+        long workerId = findStoringWorker(file);
+        if (!mWorkerToCheckpointFile.containsKey(workerId)) {
+          mWorkerToCheckpointFile.put(workerId, Lists.<CheckpointFile>newArrayList());
+        }
+        mWorkerToCheckpointFile.get(workerId).add(new CheckpointFile(file));
+      }
+    }
+  }
+
+  private long findStoringWorker(LineageFile file) {
+    List<Long> workers = Lists.newArrayList();
+    try {
+      for (FileBlockInfo fileBlockInfo : mFileSystemMaster.getFileBlockInfoList(file.getFileId())) {
+        for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {
+          workers.add(blockLocation.workerId);
+        }
+      }
+    } catch (FileDoesNotExistException e) {
+      // should not happen
+      throw new RuntimeException(e);
+    }
+
+    Preconditions.checkState(workers.size() == 1, "the file is stored at more than one worker");
+    return workers.get(0);
+  }
+
+  class CheckpointFile {
+    LineageFile mFile;
+    boolean mSentToWorker;
+
+    public CheckpointFile(LineageFile file) {
+      mFile = Preconditions.checkNotNull(file);
+    }
   }
 }
