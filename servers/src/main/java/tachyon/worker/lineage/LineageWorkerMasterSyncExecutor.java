@@ -15,6 +15,10 @@
 
 package tachyon.worker.lineage;
 
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +27,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.client.lineage.LineageMasterClient;
+import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.LineageCommand;
 import tachyon.worker.block.BlockMasterSync;
@@ -42,27 +47,58 @@ import tachyon.worker.block.BlockMasterSync;
 final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static final int DEFAULT_FILE_PERSISTER_POOL_SIZE = 10;
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
   /** Client for communicating to lineage master */
   private final LineageMasterWorkerClient mMasterClient;
+  /** The thread pool to persist file */
+  private final ExecutorService mFixedExecutionService =
+      Executors.newFixedThreadPool(DEFAULT_FILE_PERSISTER_POOL_SIZE);
 
   /** The id of the worker */
-  private long mWorkerId;
+  private final long mWorkerId;
 
   public LineageWorkerMasterSyncExecutor(LineageDataManager lineageDataManager,
-      LineageMasterWorkerClient masterClient) {
+      LineageMasterWorkerClient masterClient, long workerId) {
+    mWorkerId = workerId;
     mLineageDataManager = Preconditions.checkNotNull(lineageDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
-    mWorkerId = 0;
   }
 
   @Override
   public void heartbeat() {
-    // TODO: get worker id
+    // TODO send commit info
+    // TODO error handling of heartbeat
     LineageCommand command = mMasterClient.lineageWorkerHeartbeat(mWorkerId);
-    Preconditions.checkState(command.mCommandType == CommandType.Persiste);
-    mLineageDataManager.persistFile(command.mBlockIds, command.mFilePath);
+    Preconditions.checkState(command.mCommandType == CommandType.Persist);
+
+    for (CheckpointFile checkpointFile : command.mCheckpointFiles) {
+      mFixedExecutionService.execute(new FilePersister(mLineageDataManager, checkpointFile.mFileId,
+          checkpointFile.mBlockIds, checkpointFile.mUnderFsPath));
+    }
   }
 
+  /**
+   * Thread to persist a file into under file system.
+   */
+  class FilePersister implements Runnable {
+    private LineageDataManager mLineageDataManager;
+    private long mFileId;
+    private List<Long> mBlockIds;
+    private String mUnderFsPath;
+
+    public FilePersister(LineageDataManager lineageDataManager, long fileId, List<Long> blockIds,
+        String underFsPath) {
+      mLineageDataManager = lineageDataManager;
+      mFileId = fileId;
+      mBlockIds = blockIds;
+      mUnderFsPath = underFsPath;
+    }
+
+    @Override
+    public void run() {
+      mLineageDataManager.persistFile(mBlockIds, mUnderFsPath);
+    }
+  }
 }

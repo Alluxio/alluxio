@@ -47,6 +47,7 @@ import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.lineage.LineageWorker;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
@@ -96,6 +97,8 @@ public final class BlockWorker {
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
+  /** Lineage worker */
+  private LineageWorker mLineageWorker;
 
   /**
    * @return the worker service handler
@@ -233,6 +236,9 @@ public final class BlockWorker {
     // TODO(calvin): Fix this hack when we have a top level register.
     mBlockDataManager.setSessions(sessions);
     mBlockDataManager.setWorkerId(workerId);
+
+    // Setup the lineage worker
+    mLineageWorker = new LineageWorker(mBlockDataManager, workerId);
   }
 
   /**
@@ -265,6 +271,8 @@ public final class BlockWorker {
 
     mWebServer.startWebServer();
     mThriftServer.serve();
+
+    mLineageWorker.start();
   }
 
   /**
@@ -273,6 +281,7 @@ public final class BlockWorker {
    * @throws IOException if the data server fails to close.
    */
   public void stop() throws IOException {
+    mLineageWorker.stop();
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
