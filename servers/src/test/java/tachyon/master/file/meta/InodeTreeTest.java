@@ -334,20 +334,20 @@ public final class InodeTreeTest {
     InodeDirectory root = mTree.getRoot();
 
     // test root
-    verifyStreamToJournalCheckpoint(mTree, Lists.<Inode>newArrayList(root));
+    verifyJournal(mTree, Lists.<Inode>newArrayList(root));
 
     // test nested URI
     mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
     InodeDirectory nested = (InodeDirectory) root.getChild("nested");
     InodeDirectory test = (InodeDirectory) nested.getChild("test");
     Inode file = test.getChild("file");
-    verifyStreamToJournalCheckpoint(mTree, Lists.<Inode>newArrayList(root, nested,test, file));
+    verifyJournal(mTree, Lists.newArrayList(root, nested, test, file));
 
     // add a sibling of test and verify journaling is in correct order (breadth first)
     mTree.createPath(new TachyonURI("/nested/test1/file1"), Constants.KB, true, false);
     InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
     Inode file1 = test1.getChild("file1");
-    verifyStreamToJournalCheckpoint(mTree, Lists.<Inode>newArrayList(root, nested,test, test1, file, file1));
+    verifyJournal(mTree, Lists.newArrayList(root, nested, test, test1, file, file1));
   }
 
   @Test
@@ -385,20 +385,21 @@ public final class InodeTreeTest {
   }
 
   // helper for verifying that correct objects were journaled to the output stream
-  private static void verifyStreamToJournalCheckpoint(InodeTree root, List<Inode> journaled) throws Exception {
+  private static void verifyJournal(InodeTree root, List<Inode> journaled) throws Exception {
     JournalOutputStream mockOutputStream = Mockito.mock(JournalOutputStream.class);
     root.streamToJournalCheckpoint(mockOutputStream);
-    for(Inode node : journaled) {
+    for (Inode node : journaled) {
       Mockito.verify(mockOutputStream).writeEntry(node.toJournalEntry());
     }
     Mockito.verifyNoMoreInteractions(mockOutputStream);
   }
 
   // verify that the tree has the given children
-  private static void verifyChildrenNames(InodeTree tree,InodeDirectory root, Set<String> childNames) throws Exception {
+  private static void verifyChildrenNames(InodeTree tree, InodeDirectory root,
+      Set<String> childNames) throws Exception {
     List<Inode> children = tree.getInodeChildrenRecursive(root);
     Assert.assertEquals(childNames.size(), children.size());
-    for(Inode child: children) {
+    for (Inode child : children) {
       Assert.assertTrue(childNames.contains(child.getName()));
     }
   }

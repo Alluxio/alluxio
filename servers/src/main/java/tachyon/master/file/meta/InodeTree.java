@@ -456,12 +456,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public boolean equals(Object object) {
     if (object instanceof InodeTree) {
       InodeTree that = (InodeTree) object;
-      return Objects.equal(this.mRoot, that.mRoot) && Objects.equal(this.mIdIndex, that.mIdIndex)
-          && Objects.equal(this.mInodes, that.mInodes)
-          && Objects.equal(this.mPinnedInodeFileIds, that.mPinnedInodeFileIds)
-          && Objects.equal(this.mContainerIdGenerator, that.mContainerIdGenerator)
-          && Objects.equal(this.mDirectoryIdGenerator, that.mDirectoryIdGenerator)
-          && Objects.equal(this.mCachedInode, that.mCachedInode);
+      return Objects.equal(mRoot, that.mRoot) && Objects.equal(mIdIndex, that.mIdIndex)
+          && Objects.equal(mInodes, that.mInodes)
+          && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
+          && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
+          && Objects.equal(mDirectoryIdGenerator, that.mDirectoryIdGenerator)
+          && Objects.equal(mCachedInode, that.mCachedInode);
     }
     return false;
   }

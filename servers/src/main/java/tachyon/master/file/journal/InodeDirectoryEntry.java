@@ -64,7 +64,7 @@ public class InodeDirectoryEntry extends InodeEntry {
         return false;
       }
       InodeDirectoryEntry that = (InodeDirectoryEntry) object;
-      return Objects.equal(this.mChildrenIds, that.mChildrenIds);
+      return Objects.equal(mChildrenIds, that.mChildrenIds);
     }
     return false;
   }
