@@ -66,10 +66,10 @@ public abstract class InodeEntry implements JournalEntry {
   public boolean equals(Object object) {
     if (object instanceof InodeEntry) {
       InodeEntry that = (InodeEntry) object;
-      return Objects.equal(this.mId, that.mId) && Objects.equal(this.mParentId, that.mParentId)
-          && Objects.equal(this.mName, that.mName) && Objects.equal(this.mIsPinned, that.mIsPinned)
-          && Objects.equal(this.mCreationTimeMs, that.mCreationTimeMs)
-          && Objects.equal(this.mLastModificationTimeMs, that.mLastModificationTimeMs);
+      return Objects.equal(mId, that.mId) && Objects.equal(mParentId, that.mParentId)
+          && Objects.equal(mName, that.mName) && Objects.equal(mIsPinned, that.mIsPinned)
+          && Objects.equal(mCreationTimeMs, that.mCreationTimeMs)
+          && Objects.equal(mLastModificationTimeMs, that.mLastModificationTimeMs);
     }
     return false;
   }
