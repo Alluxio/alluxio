@@ -15,6 +15,7 @@
 
 package tachyon.worker.lineage;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,9 +69,14 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    // TODO send commit info
-    // TODO error handling of heartbeat
-    LineageCommand command = mMasterClient.lineageWorkerHeartbeat(mWorkerId);
+     List<Long> persistedFiles = mLineageDataManager.fetchPersistedFiles();
+
+    LineageCommand command=null;
+    try {
+      command = mMasterClient.workerLineageHeartbeat(mWorkerId, persistedFiles);
+    } catch (IOException e) {
+      // TODO error handling
+    }
     Preconditions.checkState(command.mCommandType == CommandType.Persist);
 
     for (CheckpointFile checkpointFile : command.mCheckpointFiles) {
@@ -98,7 +104,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     @Override
     public void run() {
-      mLineageDataManager.persistFile(mBlockIds, mUnderFsPath);
+      mLineageDataManager.persistFile(mFileId, mBlockIds, mUnderFsPath);
     }
   }
 }

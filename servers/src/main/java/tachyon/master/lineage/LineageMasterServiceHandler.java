@@ -57,11 +57,6 @@ public final class LineageMasterServiceHandler implements Iface {
   }
 
   @Override
-  public LineageCommand workerLineageHeartbeat(long workerId) throws TException {
-    return mLineageMaster.lineageWorkerHeartbeat(workerId);
-  }
-
-  @Override
   public void asyncCompleteFile(long fileId, String filePath) throws TException {
     mLineageMaster.asyncCompleteFile(fileId, filePath);
   }
@@ -71,4 +66,9 @@ public final class LineageMasterServiceHandler implements Iface {
     return mLineageMaster.recreateFile(path, blockSizeBytes);
   }
 
+  @Override
+  public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles)
+      throws TException {
+    return mLineageMaster.lineageWorkerHeartbeat(workerId, persistedFiles);
+  }
 }

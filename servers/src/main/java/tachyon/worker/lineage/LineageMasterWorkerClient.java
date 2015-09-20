@@ -15,9 +15,12 @@
 
 package tachyon.worker.lineage;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,15 +56,31 @@ public final class LineageMasterWorkerClient extends ClientBase {
     return Constants.LINEAGE_MASTER_SERVICE_NAME;
   }
 
+  @Override
+  protected void afterConnect() {
+    mClient = new LineageMasterService.Client(mProtocol);
+  }
+
   /**
    * Instructs a worker to persist the files for checkpoint.
    *
    * @param workerId the id of the worker that heartbeats
+   * @param persistedFiles the persisted files
    * @return the command for checkpointing the blocks of a file.
+   * @throws IOException
    */
-  public synchronized LineageCommand lineageWorkerHeartbeat(long workerId) {
-    // TODO
-    return null;
+  public synchronized LineageCommand workerLineageHeartbeat(long workerId,
+      List<Long> persistedFiles) throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return mClient.workerLineageHeartbeat(workerId, persistedFiles);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
   }
-
 }

@@ -18,27 +18,44 @@ package tachyon.worker.lineage;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import tachyon.worker.block.BlockDataManager;
 
 /**
- * Responsible for managing the lineage storing into under file system. This class is thread-safe.
+ * Responsible for managing the lineage storing into under file system.
  */
 public final class LineageDataManager {
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
+  private final List<Long> mPersistedFiles;
 
   public LineageDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
+    mPersistedFiles = Lists.newArrayList();
   }
 
   /**
    * Persists the blocks of a file into the under file system.
    *
+   *@param fileId the id of the file.
    * @param blockIds the list of block ids.
    * @param filePath the destination path in the under file system.
    */
-  public void persistFile(List<Long> blockIds, String filePath) {
+  public void persistFile(long fileId, List<Long> blockIds, String filePath) {
     // TODO persist
+
+    synchronized (mPersistedFiles) {
+      mPersistedFiles.add(fileId);
+    }
+  }
+
+  public List<Long> fetchPersistedFiles() {
+    List<Long> toReturn = Lists.newArrayList();
+    synchronized (mPersistedFiles) {
+      toReturn.addAll(mPersistedFiles);
+      mPersistedFiles.clear();
+      return toReturn;
+    }
   }
 }

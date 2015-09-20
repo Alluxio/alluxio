@@ -267,7 +267,7 @@ service LineageMasterService {
   void asyncCompleteFile(1: i64 fileId, 2: string filePath)
   
   // for workers
-  LineageCommand workerLineageHeartbeat(1: i64 workerId)
+  LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
 }
 
 service RawTableMasterService {
