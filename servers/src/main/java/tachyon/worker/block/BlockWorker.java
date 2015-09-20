@@ -221,7 +221,7 @@ public final class BlockWorker {
     mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
 
     // Setup session cleaner
-    mSessionCleanerThread = new SessionCleaner(mBlockDataManager, mTachyonConf);
+    mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
 
     // Setup session metadata mapping
     // TODO(calvin): Have a top level register that gets the worker id.
@@ -294,7 +294,7 @@ public final class BlockWorker {
       mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();
-      CommonUtils.sleepMs(null, 100);
+      CommonUtils.sleepMs(100);
     }
   }
 
