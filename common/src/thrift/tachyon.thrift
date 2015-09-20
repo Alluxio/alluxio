@@ -198,11 +198,6 @@ service FileSystemMasterService {
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
-  bool completeFileCheckpoint(1: i64 workerId, 2: i64 fileId, 3: i64 length,
-      4: string checkpointPath)
-    throws (1: FileDoesNotExistException fdnee, 2: SuspectedFileSizeException sfse,
-      3: BlockInfoException bie)
-
   void completeFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
 
