@@ -42,6 +42,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   private static TachyonFileSystem sTachyonFileSystem;
 
+  public static final boolean RECURSIVE = true;
+
   public static synchronized TachyonFileSystem get() {
     if (sTachyonFileSystem == null) {
       sTachyonFileSystem = new TachyonFileSystem();
