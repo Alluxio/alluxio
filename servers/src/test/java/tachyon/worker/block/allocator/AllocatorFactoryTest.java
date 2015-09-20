@@ -15,9 +15,6 @@
 
 package tachyon.worker.block.allocator;
 
-import java.io.File;
-import java.util.Collections;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,7 +24,6 @@ import org.junit.rules.TemporaryFolder;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.WorkerContext;
-import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
