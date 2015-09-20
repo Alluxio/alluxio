@@ -497,7 +497,7 @@ public class TFsShell implements Closeable {
    */
   public int mkdir(TachyonURI path) {
     try {
-      mTfs.mkdirs(path, true);
+      mTfs.mkdirs(path, TachyonFileSystem.RECURSIVE);
       System.out.println("Successfully created directory " + path);
       return 0;
     } catch (IOException ioe) {
@@ -717,7 +717,7 @@ public class TFsShell implements Closeable {
    */
   public int rmr(TachyonURI path) {
     try {
-      mTfs.delete(mTfs.open(path), true);
+      mTfs.delete(mTfs.open(path), TachyonFileSystem.RECURSIVE);
       System.out.println(path + " has been removed");
       return 0;
     } catch (IOException ioe) {
@@ -952,7 +952,7 @@ public class TFsShell implements Closeable {
    */
   public int free(TachyonURI path) throws IOException {
     try {
-      mTfs.free(mTfs.open(path), true);
+      mTfs.free(mTfs.open(path), TachyonFileSystem.RECURSIVE);
       System.out.println(path + " was successfully freed from memory.");
       return 0;
     } catch (InvalidPathException ioe) {

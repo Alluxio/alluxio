@@ -153,8 +153,8 @@ public class TachyonFileSystemIntegrationTest {
   public void mkdirTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = 0; k < 10; k ++) {
-      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), true));
-      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), true));
+      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), TachyonFileSystem.RECURSIVE));
+      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), TachyonFileSystem.RECURSIVE));
     }
   }
 
