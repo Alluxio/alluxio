@@ -105,14 +105,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean completeFileCheckpoint(long workerId, long fileId, long length,
-      String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException {
-    return mFileSystemMaster.completeFileCheckpoint(workerId, fileId, length, new TachyonURI(
-        checkpointPath));
-  }
-
-  @Override
   public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
     mFileSystemMaster.completeFile(fileId);
   }
