@@ -26,7 +26,9 @@ import tachyon.dag.DAG;
 import tachyon.job.Job;
 
 /**
- * A store of lineages.
+ * A store of lineages. This class is thread-safe.
+ *
+ * TODO(yupeng): relax locking
  */
 public final class LineageStore {
   private DAG<Lineage> mLineageDAG;
@@ -42,7 +44,8 @@ public final class LineageStore {
     mIdIndex = Maps.newHashMap();
   }
 
-  public long addLineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job) {
+  public synchronized long addLineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles,
+      Job job) {
     Lineage lineage = new Lineage(inputFiles, outputFiles, job);
 
     List<Lineage> parentLineages = Lists.newArrayList();
@@ -63,13 +66,13 @@ public final class LineageStore {
     return lineage.getId();
   }
 
-  public void recordFileForAsyncWrite(long fileId, String underFsPath) {
+  public synchronized void recordFileForAsyncWrite(long fileId, String underFsPath) {
     Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.recordOutputFile(fileId);
   }
 
-  public void deleteLineage(long lineageId) {
+  public synchronized void deleteLineage(long lineageId) {
     Preconditions.checkState(mIdIndex.containsKey(lineageId),
         "lineage id " + lineageId + " does not exist");
     Lineage toDelete = mIdIndex.get(lineageId);
@@ -87,11 +90,11 @@ public final class LineageStore {
     }
   }
 
-  public Lineage getLineage(long lineageId) {
+  public synchronized Lineage getLineage(long lineageId) {
     return mIdIndex.get(lineageId);
   }
 
-  public List<Lineage> getChildren(Lineage lineage) {
+  public synchronized List<Lineage> getChildren(Lineage lineage) {
     Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
         "lineage id " + lineage.getId() + " does not exist");
 
@@ -101,7 +104,13 @@ public final class LineageStore {
   /**
    * Gets all the root lineages.
    */
-  public List<Lineage> getRootLineage() {
+  public synchronized List<Lineage> getRootLineage() {
     return mLineageDAG.getRoots();
+  }
+
+
+  public synchronized void commitCheckpointFile(Long fileId) {
+    Lineage lineage = mOutputFileIndex.get(fileId);
+    lineage.commitOutputFile(fileId);
   }
 }

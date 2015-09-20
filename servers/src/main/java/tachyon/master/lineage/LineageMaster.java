@@ -45,7 +45,10 @@ import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputeLauncher;
 import tachyon.master.lineage.recompute.RecomputePlanner;
 import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.CheckpointFile;
+import tachyon.thrift.CommandType;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService;
@@ -179,18 +182,30 @@ public final class LineageMaster extends MasterBase {
     }
   }
 
-  public void asyncCompleteFile(long fileId, String filePath) {
-    // TODO
+  public void asyncCompleteFile(long fileId, String underFsPath) {
+    mLineageStore.recordFileForAsyncWrite(fileId, underFsPath);
   }
+
   /**
    * Instructs a worker to persist the files for checkpoint.
+   *
+   * TODO(yupeng) run the heartbeat in a thread?
    *
    * @param workerId the id of the worker that heartbeats
    * @return the command for checkpointing the blocks of a file.
    */
-  public LineageCommand lineageWorkerHeartbeat(long workerId) {
-    // TODO
-    return null;
+  public LineageCommand lineageWorkerHeartbeat(long workerId, List<Long> persistedFiles) {
+    // notify checkpoitn manager the persisted files
+    mCheckpointManager.commitCheckpointFiles(workerId, persistedFiles);
+
+    // get the files for the given worker to checkpoitn
+    List<CheckpointFile> filesToCheckpoint = null;
+    try {
+      filesToCheckpoint = mCheckpointManager.getFilesToCheckpoint(workerId);
+    } catch (FileDoesNotExistException e) {
+      // TODO error handling
+    }
+    return new LineageCommand(CommandType.Persist, filesToCheckpoint);
   }
 
 }

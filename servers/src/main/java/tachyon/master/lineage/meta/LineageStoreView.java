@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 /**
  * This class exposes a readonly view of {@link LineageStore} to checkpoint schedulers and recompute
  * planners.
+ *
+ * TODO(yupeng): return a view a lineage for protection
  */
 public final class LineageStoreView {
   /** The LineageStore this view is derived from */

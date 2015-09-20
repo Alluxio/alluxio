@@ -75,6 +75,11 @@ public final class Lineage {
   }
 
   public void recordOutputFile(long fileId) {
+    // TODO validate lineage state
+    if(mState!=LineageState.IN_RECORD) {
+      mState = LineageState.IN_RECORD;
+    }
+
     boolean allRecorded = true;
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
@@ -88,6 +93,28 @@ public final class Lineage {
 
     if (allRecorded) {
       mState = LineageState.RECORDED;
+    }
+  }
+
+  public void commitOutputFile(long fileId) {
+    // TODO validate lineage state
+    if(mState!=LineageState.IN_CHECKPOINT) {
+      mState = LineageState.IN_CHECKPOINT;
+    }
+
+    boolean allCheckpointed = true;
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getFileId() == fileId) {
+        outputFile.setState(LineageFileState.CHECKPOINTED);
+      }
+
+      if (outputFile.getState() != LineageFileState.CHECKPOINTED) {
+        allCheckpointed = false;
+      }
+    }
+
+    if (allCheckpointed) {
+      mState = LineageState.CHECKPOINTED;
     }
   }
 }
