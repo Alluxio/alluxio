@@ -21,6 +21,7 @@ import java.util.List;
 import com.google.common.collect.Lists;
 
 import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageState;
 import tachyon.master.lineage.meta.LineageStoreView;
 
 /**
@@ -37,7 +38,16 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
     while (!deque.isEmpty()) {
       Lineage lineage = deque.pollFirst();
       List<Lineage> children = store.getChildren(lineage);
-      if (children.isEmpty()) {
+      // TODO(yupeng): rewrite this in switch statement
+      if (lineage.getState() == LineageState.ADDED
+          || lineage.getState() == LineageState.IN_RECORD) {
+        // the lineage and its descendants are not ready for checkpoint
+        // TODO(yupeng): what about LOST state?
+        continue;
+      } else if (lineage.getState() == LineageState.IN_CHECKPOINT) {
+        // the lineage is being recorded, do thing
+        continue;
+      } else if (children.isEmpty() && lineage.getState() == LineageState.RECORDED) {
         toCheckpoint.add(lineage);
       } else {
         for (Lineage child : children) {
@@ -47,5 +57,4 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
     }
     return new CheckpointPlan(toCheckpoint);
   }
-
 }
