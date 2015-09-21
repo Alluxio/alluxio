@@ -19,5 +19,5 @@ package tachyon.master.lineage.meta;
  * The state of a lineage file.
  */
 public enum LineageFileState {
-  ADDED, RECORDED, CHECKPOINTED, LOST
+  CREATED, COMPLETED, PERSISTED, PERSISENCE_REQUESTED,LOST
 }

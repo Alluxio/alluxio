@@ -25,6 +25,7 @@ import com.google.common.collect.Maps;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
+import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.thrift.BlockLocation;
@@ -40,9 +41,9 @@ import tachyon.thrift.FileDoesNotExistException;
 public final class CheckpointManager {
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
-  private Map<Long, List<CheckpointFileRecord>> mWorkerToCheckpointFile;
+  private Map<Long, List<LineageFile>> mWorkerToCheckpointFile;
   /** Index from file id to checkpoint file */
-  private Map<Long, CheckpointFileRecord> mFileIdToCheckpoitnFile;
+  private Map<Long, LineageFile> mFileIdToCheckpoitnFile;
 
   public CheckpointManager(LineageStore lineageStore, FileSystemMaster fileSystemMaster) {
     mLineageStore = Preconditions.checkNotNull(lineageStore);
@@ -62,11 +63,10 @@ public final class CheckpointManager {
         // find the worker
         long workerId = findStoringWorker(file);
         if (!mWorkerToCheckpointFile.containsKey(workerId)) {
-          mWorkerToCheckpointFile.put(workerId, Lists.<CheckpointFileRecord>newArrayList());
+          mWorkerToCheckpointFile.put(workerId, Lists.<LineageFile>newArrayList());
         }
-        CheckpointFileRecord checkpointFile = new CheckpointFileRecord(file);
-        mWorkerToCheckpointFile.get(workerId).add(checkpointFile);
-        mFileIdToCheckpoitnFile.put(file.getFileId(), checkpointFile);
+        mWorkerToCheckpointFile.get(workerId).add(file);
+        mFileIdToCheckpoitnFile.put(file.getFileId(), file);
       }
     }
   }
@@ -85,15 +85,15 @@ public final class CheckpointManager {
       return files;
     }
 
-    for (CheckpointFileRecord file : mWorkerToCheckpointFile.get(workerId)) {
-      if (!file.mSentToWorker) {
-        file.mSentToWorker = true;
-        long fileId = file.mFile.getFileId();
+    for (LineageFile file : mWorkerToCheckpointFile.get(workerId)) {
+      if (file.getState() == LineageFileState.COMPLETED) {
+        file.setState(LineageFileState.PERSISENCE_REQUESTED);
+        long fileId = file.getFileId();
         List<Long> blockIds = Lists.newArrayList();
         for (FileBlockInfo fileBlockInfo : mFileSystemMaster.getFileBlockInfoList(fileId)) {
           blockIds.add(fileBlockInfo.blockInfo.blockId);
         }
-        String underFsPath = file.mFile.getUnderFilePath();
+        String underFsPath = file.getUnderFilePath();
 
         CheckpointFile toCheckpoint = new CheckpointFile(fileId, blockIds, underFsPath);
         files.add(toCheckpoint);
@@ -106,18 +106,18 @@ public final class CheckpointManager {
   public synchronized void commitCheckpointFiles(long workerId, List<Long> persistedFiles) {
     Preconditions.checkNotNull(persistedFiles);
 
-    List<CheckpointFileRecord> checkpointFilesOnWorker = mWorkerToCheckpointFile.get(workerId);
+    List<LineageFile> checkpointFilesOnWorker = mWorkerToCheckpointFile.get(workerId);
 
     List<Long> filesLeft = Lists.newArrayList(persistedFiles);
     for (Long fileId : persistedFiles) {
       Preconditions.checkState(mFileIdToCheckpoitnFile.containsKey(fileId),
           "the persisted file not found in checkpoint manager");
-      CheckpointFileRecord checkpointFile = mFileIdToCheckpoitnFile.get(fileId);
+      LineageFile lineageFile = mFileIdToCheckpoitnFile.get(fileId);
 
-      Preconditions.checkState(checkpointFile.mSentToWorker,
+      Preconditions.checkState(lineageFile.getState() == LineageFileState.PERSISENCE_REQUESTED,
           "the persisted file was not requested by checkpoint manager");
       // checkpointed, remove from checkpoint manager
-      checkpointFilesOnWorker.remove(checkpointFile);
+      checkpointFilesOnWorker.remove(lineageFile);
       mFileIdToCheckpoitnFile.remove(fileId);
 
       // update lineage
@@ -145,14 +145,5 @@ public final class CheckpointManager {
 
     Preconditions.checkState(workers.size() == 1, "the file is stored at more than one worker");
     return workers.get(0);
-  }
-
-  class CheckpointFileRecord {
-    LineageFile mFile;
-    boolean mSentToWorker;
-
-    public CheckpointFileRecord(LineageFile file) {
-      mFile = Preconditions.checkNotNull(file);
-    }
   }
 }

@@ -34,14 +34,10 @@ public final class CheckpointPlan {
     mToCheckPoint = Preconditions.checkNotNull(toCheckPoint);
   }
 
-  public List<Lineage> getLineagesToCheckpoint() {
-    return mToCheckPoint;
-  }
-
   /**
    * @return a list of lineages to check point in sequence.
    */
-  public List<Lineage> toCheckpoint() {
+  public List<Lineage> getLineagesToCheckpoint() {
     return mToCheckPoint;
   }
 

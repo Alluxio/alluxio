@@ -153,7 +153,7 @@ public final class LineageMaster extends MasterBase {
       }
     }
 
-    return mLineageStore.addLineage(inputTachyonFiles, outputTachyonFiles, job);
+    return mLineageStore.createLineage(inputTachyonFiles, outputTachyonFiles, job);
   }
 
   public boolean deleteLineage(long lineageId, boolean cascade) {
@@ -181,7 +181,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   public void asyncCompleteFile(long fileId, String underFsPath) {
-    mLineageStore.recordFileForAsyncWrite(fileId, underFsPath);
+    mLineageStore.completeFileForAsyncWrite(fileId, underFsPath);
   }
 
   /**

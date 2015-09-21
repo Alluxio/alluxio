@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.master.lineage.meta.Lineage;
-import tachyon.master.lineage.meta.LineageState;
 
 /**
  * A periodical executor that detects lost files and launches recompute jobs.
@@ -68,7 +67,6 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
     @Override
     public void run() {
       for (Lineage lineage : mPlan.getLineageToRecompute()) {
-        lineage.setState(LineageState.IN_RECOMPUTE);
         boolean success = lineage.getJob().run();
         if (!success) {
           // error handling
