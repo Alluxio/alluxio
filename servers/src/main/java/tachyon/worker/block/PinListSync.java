@@ -38,8 +38,6 @@ public final class PinListSync implements Runnable {
 
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** The configuration values */
-  private final TachyonConf mTachyonConf;
   /** Milliseconds between each sync */
   private final int mSyncIntervalMs;
   /** Milliseconds between syncs before a timeout */
@@ -58,11 +56,11 @@ public final class PinListSync implements Runnable {
    */
   public PinListSync(BlockDataManager blockDataManager, WorkerFileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
-    mTachyonConf = WorkerContext.getConf();
+    TachyonConf conf = WorkerContext.getConf();
     
     mMasterClient = masterClient;
-    mSyncIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mSyncTimeoutMs = mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    mSyncIntervalMs = conf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    mSyncTimeoutMs = conf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
   }
