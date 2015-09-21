@@ -27,6 +27,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -443,6 +444,26 @@ public final class InodeTree implements JournalCheckpointStreamable {
     if (inode.isFile() && inode.isPinned()) {
       mPinnedInodeFileIds.add(inode.getId());
     }
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mRoot, mIdIndex, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
+        mDirectoryIdGenerator, mCachedInode);
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object instanceof InodeTree) {
+      InodeTree that = (InodeTree) object;
+      return Objects.equal(mRoot, that.mRoot) && Objects.equal(mIdIndex, that.mIdIndex)
+          && Objects.equal(mInodes, that.mInodes)
+          && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
+          && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
+          && Objects.equal(mDirectoryIdGenerator, that.mDirectoryIdGenerator)
+          && Objects.equal(mCachedInode, that.mCachedInode);
+    }
+    return false;
   }
 
   private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {
