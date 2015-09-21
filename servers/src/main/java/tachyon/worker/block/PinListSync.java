@@ -24,6 +24,7 @@ import tachyon.Constants;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,
@@ -53,13 +54,12 @@ public final class PinListSync implements Runnable {
    * Constructor for PinListSync
    *
    * @param blockDataManager the blockDataManager this syncer is updating to
-   * @param tachyonConf the configuration values to be used
    * @param masterClient the Tachyon master client
    */
-  public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      WorkerFileSystemMasterClient masterClient) {
+  public PinListSync(BlockDataManager blockDataManager, WorkerFileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
-    mTachyonConf = tachyonConf;
+    mTachyonConf = WorkerContext.getConf();
+    
     mMasterClient = masterClient;
     mSyncIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mSyncTimeoutMs = mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
