@@ -147,7 +147,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
       int dependencyType, long childrenBlockSizeByte) throws InvalidPathException,
       FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException {
-    mFileSystemMaster.createDependency();
+    // TODO(gene): Implement lineage.
     return 0;
   }
 
@@ -167,7 +167,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long loadFileInfoFromUfs(String tachyonPath, boolean recursive) throws TachyonException {
+  public long loadFileInfoFromUfs(String tachyonPath, boolean recursive)
+      throws BlockInfoException, FileAlreadyExistException, FileDoesNotExistException,
+    InvalidPathException, SuspectedFileSizeException, TachyonException {
     return mFileSystemMaster.loadFileInfoFromUfs(new TachyonURI(tachyonPath), recursive);
   }
 

@@ -30,11 +30,22 @@ public class MountTable {
 
   private Map<TachyonURI, TachyonURI> mMountTable;
 
+  /**
+   * Creates a new instance of <code>MountTable</code>.
+   */
   public MountTable() {
     final int INITIAL_CAPACITY = 10;
     mMountTable = new HashMap<TachyonURI, TachyonURI>(INITIAL_CAPACITY);
   }
 
+  /**
+   * Mounts the given UFS path at the given Tachyon path. The Tachyon path should not be nested
+   * under an existing mount point.
+   *
+   * @param tachyonPath a Tachyon path
+   * @param ufsPath a UFS path
+   * @return whether the operation succeeded or not
+   */
   public synchronized boolean add(TachyonURI tachyonPath, TachyonURI ufsPath) {
     LOG.info("Mounting " + ufsPath + " under " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
@@ -48,16 +59,28 @@ public class MountTable {
     return true;
   }
 
+  /**
+   * Unmounts the given Tachyon path. The path should match an existing mount point.
+   *
+   * @param tachyonPath a Tachyon path
+   * @return whether the operation succeeded or not
+   */
   public synchronized boolean delete(TachyonURI tachyonPath) {
     LOG.info("Unmounting " + tachyonPath);
     if (mMountTable.containsKey(tachyonPath)) {
       mMountTable.remove(tachyonPath);
       return true;
     }
-    // Cannot mount a path under an existing mount point.
+    // Cannot unmount a path that does not correspond to a mount point.
     return false;
   }
 
+  /**
+   * Returns the mount point the given path is nested under.
+   *
+   * @param tachyonPath a Tachyon path
+   * @return mount point the given Tachyon path is nested under
+   */
   public synchronized TachyonURI getMountPoint(TachyonURI tachyonPath) {
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
@@ -67,6 +90,14 @@ public class MountTable {
     return new TachyonURI("");
   }
 
+  /**
+   * Resolves the given Tachyon path. If the given Tachyon path is nested under a mount point, the
+   * resolution maps the Tachyon path to the corresponding UFS path. Otherwise, the resolution is a
+   * no-op.
+   *
+   * @param tachyonPath a Tachyon path
+   * @return the resolved path
+   */
   public synchronized TachyonURI resolve(TachyonURI tachyonPath) {
     LOG.info("Resolving " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
@@ -79,6 +110,11 @@ public class MountTable {
     return tachyonPath;
   }
 
+  /**
+   * @param path a path
+   * @param prefix a prefix
+   * @return whether the given path has the given prefix
+   */
   private boolean hasPrefix(TachyonURI path, TachyonURI prefix) {
     return path.toString().startsWith(prefix.toString());
   }

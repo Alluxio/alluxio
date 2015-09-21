@@ -43,7 +43,7 @@ import tachyon.util.network.NetworkAddressUtils;
 public abstract class MasterClientBase implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of times to retry a particular RPC. */
-  protected static final int RPC_MAX_NUM_RETRY = 2;
+  protected static final int RPC_MAX_NUM_RETRY = 30;
 
   protected final boolean mUseZookeeper;
   protected final ExecutorService mExecutorService;

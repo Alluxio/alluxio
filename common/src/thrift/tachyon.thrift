@@ -224,7 +224,10 @@ service FileSystemMasterService {
   /**
    * Loads metadata for the file identified by the given Tachyon path from UFS into Tachyon.
    */
-  i64 loadFileInfoFromUfs(1: string ufsPath, 2: bool recursive) throws (1: TachyonException te)
+  i64 loadFileInfoFromUfs(1: string ufsPath, 2: bool recursive)
+    throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
+    3: FileAlreadyExistException faee, 4: InvalidPathException ipe,
+    5: SuspectedFileSizeException sfse, 6: TachyonException te)
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
@@ -239,12 +242,6 @@ service FileSystemMasterService {
    * will be persisted before they are removed from the Tachyon namespace.
    */
   bool unmount(1: string tachyonPath) throws (1: TachyonException te)
-
-  /**
-   * Resolves the given path. In particular, if its prefix is a mount point, it replaces it with
-   * its UFS counterpart.
-   * */
-  // string resolve(1: string tachyonPath) throws (1: TachyonException te)
 
   // Lineage Features
   i32 createDependency(1: list<string> parents, 2: list<string> children,

@@ -23,19 +23,34 @@ import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for recording the addition of a new mount point.
+ */
 public class AddMountPointEntry implements JournalEntry {
   private final String mTachyonPath;
   private final String mUfsPath;
 
+  /**
+   * Creates a new instance of <code>AddMountPointEntry</code>.
+   *
+   * @param tachyonPath the Tachyon path
+   * @param ufsPath the UFS path
+   */
   public AddMountPointEntry(TachyonURI tachyonPath, TachyonURI ufsPath) {
     mTachyonPath = tachyonPath.toString();
     mUfsPath = ufsPath.toString();
   }
 
+  /**
+   * @return the Tachyon path
+   */
   public TachyonURI getTachyonPath() {
     return new TachyonURI(mTachyonPath);
   }
 
+  /**
+   * @return the UFS path
+   */
   public TachyonURI getUfsPath() {
     return new TachyonURI(mUfsPath);
   }
