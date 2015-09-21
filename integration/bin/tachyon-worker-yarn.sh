@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
 TACHYON_WORKER_JAVA_OPTS="${TACHYON_WORKER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 
-TACHYON_MASTER_ADDRESS=localhost
+echo master address is $TACHYON_MASTER_ADDRESS
 
 ${TACHYON_HOME}/bin/tachyon-mount.sh Mount
 
