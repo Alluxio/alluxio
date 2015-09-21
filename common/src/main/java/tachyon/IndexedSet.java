@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master;
+package tachyon;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -176,13 +176,15 @@ public class IndexedSet<T> implements Iterable<T> {
     Preconditions.checkNotNull(object);
     synchronized (mLock) {
       boolean success = mObjects.add(object);
-      for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
-        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
-        Object value = index.getKey().getFieldValue(object);
-        if (fieldValueToSet.containsKey(value)) {
-          success = success && fieldValueToSet.get(value).add(object);
-        } else {
-          fieldValueToSet.put(value, Sets.newHashSet(object));
+      if (success) {
+        for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
+          Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
+          Object value = index.getKey().getFieldValue(object);
+          if (fieldValueToSet.containsKey(value)) {
+            success = fieldValueToSet.get(value).add(object) && success;
+          } else {
+            fieldValueToSet.put(value, Sets.newHashSet(object));
+          }
         }
       }
       return success;

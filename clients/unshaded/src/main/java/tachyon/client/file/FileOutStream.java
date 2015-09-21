@@ -20,8 +20,13 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
@@ -44,6 +49,8 @@ import tachyon.worker.WorkerClient;
  */
 @PublicApi
 public final class FileOutStream extends OutputStream implements Cancelable {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final long mFileId;
   private final long mBlockSize;
   private final TachyonStorageType mTachyonStorageType;
@@ -148,6 +155,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(mFileId);
+      } catch (TException e) {
+        throw new IOException(e);
       } finally {
         mContext.releaseMasterClient(masterClient);
       }
@@ -178,6 +187,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     if (mUnderStorageType.isPersist()) {
       mUnderStorageOutputStream.write(b);
+      ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
   }
 
@@ -217,6 +227,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     if (mUnderStorageType.isPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
+      ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
   }
 
@@ -238,6 +249,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getNewBlockIdForFile(mFileId);
+    } catch (TException e) {
+      throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -248,7 +261,8 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       // TODO(yupeng): Handle this exception better.
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
     }
-    // TODO(yupeng): Handle this error.
+
+    LOG.warn("Failed to write into TachyonStore, canceling write attempt.", ioe);
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();

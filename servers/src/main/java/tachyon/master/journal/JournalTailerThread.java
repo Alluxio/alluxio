@@ -23,20 +23,31 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.conf.TachyonConf;
 import tachyon.master.Master;
+import tachyon.master.MasterContext;
 import tachyon.util.CommonUtils;
 
+/**
+ * This thread continually tails the journal and applies it to the master, until the master
+ * initiates the shutdown of the thread.
+ */
 public final class JournalTailerThread extends Thread {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // TODO: make the quiet period a configuration parameter.
-  private static final int SHUTDOWN_QUIET_WAIT_TIME_MS = 5 * Constants.SECOND_MS;
-  // TODO: make this sleep time  a config parameter.
-  private static final int JOURNAL_TAILER_SLEEP_TIME_MS = 1 * Constants.SECOND_MS;
 
+  /** The master to apply the journal entries to. */
   private final Master mMaster;
+  /** The journal to tail. */
   private final Journal mJournal;
-  /** This become true when this class is instructed to shutdown. */
+  private final int mShutdownQuietWaitTimeMs;
+  private final int mJournalTailerSleepTimeMs;
+  /** This becomes true when the master initiates the shutdown. */
   private volatile boolean mInitiateShutdown = false;
+
+  /** The {@link JournalTailer} that this thread uses to continually tail the journal. */
+  private JournalTailer mJournalTailer = null;
+  /** True if this thread is no longer running. */
+  private boolean mStopped = false;
 
   /**
    * @param master the master to apply the journal entries to
@@ -45,13 +56,17 @@ public final class JournalTailerThread extends Thread {
   public JournalTailerThread(Master master, Journal journal) {
     mMaster = Preconditions.checkNotNull(master);
     mJournal = Preconditions.checkNotNull(journal);
+    TachyonConf conf = MasterContext.getConf();
+    mShutdownQuietWaitTimeMs = conf.getInt(
+        Constants.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
+    mJournalTailerSleepTimeMs = conf.getInt(Constants.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
   }
 
   /**
    * Initiate the shutdown of this tailer thread.
    */
   public void shutdown() {
-    LOG.info(mMaster.getServiceName() + " Journal tailer shutdown has been initiated.");
+    LOG.info(mMaster.getServiceName() + ": Journal tailer shutdown has been initiated.");
     mInitiateShutdown = true;
   }
 
@@ -64,13 +79,27 @@ public final class JournalTailerThread extends Thread {
       // Wait for the thread to finish.
       join();
     } catch (InterruptedException ie) {
-      LOG.warn("stopping the journal tailer caused exception: " + ie.getMessage());
+      LOG.warn(mMaster.getServiceName() + ": stopping the journal tailer caused exception: "
+          + ie.getMessage());
     }
+  }
+
+  /**
+   * @return the {@link JournalTailer} that this thread last used to tail the journal. This will
+   *         only return the {@link JournalTailer} if this thread is no longer running, to prevent
+   *         concurrent access to the {@link JournalTailer}. Returns null if this thread has not yet
+   *         used a {@link JournalTailer}, or if this thread is still running.
+   */
+  public JournalTailer getLatestJournalTailer() {
+    if (mStopped) {
+      return mJournalTailer;
+    }
+    return null;
   }
 
   @Override
   public void run() {
-    LOG.info(mMaster.getServiceName() + " Journal tailer started.");
+    LOG.info(mMaster.getServiceName() + ": Journal tailer started.");
     // Continually loop loading the checkpoint file, and then loading all completed files. The loop
     // only repeats when the checkpoint file is updated after it was read.
     while (!mInitiateShutdown) {
@@ -79,22 +108,23 @@ public final class JournalTailerThread extends Thread {
         long waitForShutdownStart = -1;
 
         // Load the checkpoint file.
-        LOG.info("Waiting to load the checkpoint file.");
-        JournalTailer tailer = new JournalTailer(mMaster, mJournal);
-        while (!tailer.checkpointExists()) {
-          CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
+        LOG.info(mMaster.getServiceName() + ": Waiting to load the checkpoint file.");
+        mJournalTailer = new JournalTailer(mMaster, mJournal);
+        while (!mJournalTailer.checkpointExists()) {
+          CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           if (mInitiateShutdown) {
-            LOG.info("Journal tailer is shutdown when waiting to load the checkpoint file.");
+            LOG.info("Journal tailer has been shutdown while waiting to load the checkpoint file.");
+            mStopped = true;
             return;
           }
         }
-        LOG.info("Start loading the checkpoint file.");
-        tailer.processJournalCheckpoint(true);
-        LOG.info("Checkpoint file has been loaded.");
+        LOG.info(mMaster.getServiceName() + ": Start loading the checkpoint file.");
+        mJournalTailer.processJournalCheckpoint(true);
+        LOG.info(mMaster.getServiceName() + ": Checkpoint file has been loaded.");
 
         // Continually process completed log files.
-        while (tailer.isValid()) {
-          if (tailer.processNextJournalLogFiles() > 0) {
+        while (mJournalTailer.isValid()) {
+          if (mJournalTailer.processNextJournalLogFiles() > 0) {
             // Reset the shutdown timer.
             waitForShutdownStart = -1;
           } else {
@@ -102,24 +132,28 @@ public final class JournalTailerThread extends Thread {
               if (waitForShutdownStart == -1) {
                 waitForShutdownStart = CommonUtils.getCurrentMs();
               } else if ((CommonUtils.getCurrentMs()
-                  - waitForShutdownStart) > SHUTDOWN_QUIET_WAIT_TIME_MS) {
+                  - waitForShutdownStart) > mShutdownQuietWaitTimeMs) {
                 // There have been no new logs for the quiet period. Shutdown now.
                 LOG.info(mMaster.getServiceName()
-                    + " Journal tailer has been shutdown. No new logs for the quiet period.");
+                    + ": Journal tailer has been shutdown. No new logs for the quiet period.");
+                mStopped = true;
                 return;
               }
             }
-            LOG.info("The next complete log file does not exist yet. Sleeping and checking again.");
-            CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
+            LOG.debug(mMaster.getServiceName()
+                + ": The next complete log file does not exist yet. Sleeping and checking again.");
+            CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
           }
         }
-        LOG.info("The checkpoint is out of date. Will reload the checkpoint file.");
-        CommonUtils.sleepMs(LOG, JOURNAL_TAILER_SLEEP_TIME_MS);
+        LOG.info(mMaster.getServiceName()
+            + ": The checkpoint is out of date. Will reload the checkpoint file.");
+        CommonUtils.sleepMs(LOG, mJournalTailerSleepTimeMs);
       } catch (IOException ioe) {
         // Log the error and continue the loop.
         LOG.error(ioe.getMessage());
       }
     }
-    LOG.info(mMaster.getServiceName() + " Journal tailer has been shutdown.");
+    LOG.info(mMaster.getServiceName() + ": Journal tailer has been shutdown.");
+    mStopped = true;
   }
 }

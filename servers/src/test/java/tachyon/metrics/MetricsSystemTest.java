@@ -50,7 +50,7 @@ public class MetricsSystemTest {
     Assert.assertNotNull(masterMetricsSystem.getServletHandler());
     Assert.assertEquals(2, masterMetricsSystem.getSinks().size());
     Assert.assertEquals(1, masterMetricsSystem.getSources().size());
-    masterMetricsSystem.registerSource(new MasterSource(null));
+    masterMetricsSystem.registerSource(new MasterSource());
     Assert.assertEquals(2, masterMetricsSystem.getSources().size());
     masterMetricsSystem.stop();
 

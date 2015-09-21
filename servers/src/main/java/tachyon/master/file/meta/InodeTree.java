@@ -17,6 +17,7 @@ package tachyon.master.file.meta;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,12 +27,14 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.master.IndexedSet;
+import tachyon.IndexedSet;
 import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeEntry;
@@ -103,6 +106,24 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
+   * Return the number of total inodes.
+   *
+   * @return the number of total inodes
+   */
+  public int getSize() {
+    return mInodes.size();
+  }
+
+  /**
+   * Return the number of pinned inodes.
+   *
+   * @return the number of pinned inodes
+   */
+  public int getPinnedSize() {
+    return mPinnedInodeFileIds.size();
+  }
+
+  /**
    * @param id the id to get the inode for
    * @return the inode with the given id
    * @throws FileDoesNotExistException
@@ -159,13 +180,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *        path, otherwise, throw InvalidPathException if there some necessary parent directories
    *        is nonexistent
    * @param directory if it is true, create a directory, otherwise, create a file
-   * @return a list of Inodes created in the order of creation time. If no Inodes are created, the
-   *         list will be empty
+   * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
+   *         path creation.
    * @throws FileAlreadyExistException
    * @throws BlockInfoException
    * @throws InvalidPathException
    */
-  public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
+  public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
     return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis());
@@ -182,8 +203,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *        is nonexistent
    * @param directory if it is true, create a directory, otherwise, create a file
    * @param creationTimeMs the time to create the inode
-   * @return a list of Inodes created in the order of creation time. If no Inodes are created, the
-   *         list will be empty
+   * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
+   *         path creation.
    * @throws FileAlreadyExistException when there is already a file at path if we want to create a
    *         directory there
    * @throws BlockInfoException when blockSizeBytes is invalid
@@ -191,7 +212,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *         necessary parent directories and recursive is false, (2) when one of the necessary
    *         parent directories is actually a file
    */
-  public List<Inode> createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
+  public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory, long creationTimeMs)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
     if (path.isRoot()) {
@@ -234,7 +255,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
-    List<Inode> ret = Lists.newArrayList();
+    List<Inode> modifiedInodes = Lists.newArrayList();
+    List<Inode> createdInodes = Lists.newArrayList();
+    // Add the last found inode, since the modification time will be updated when descendants are
+    // created.
+    modifiedInodes.add(currentInodeDirectory);
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
       Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
@@ -242,18 +267,18 @@ public final class InodeTree implements JournalCheckpointStreamable {
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
-      ret.add(dir);
+      createdInodes.add(dir);
       mInodes.add(dir);
       currentInodeDirectory = (InodeDirectory) dir;
     }
 
     // Create the final path component. First we need to make sure that there isn't already a file
     // here with that name. If there is an existing file that is a directory and we're creating a
-    // directory, we just return the existing directory's id.
+    // directory, nothing needs to be done.
     Inode lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
       if (lastInode.isDirectory() && directory) {
-        return ret; // Should be an empty list
+        return new CreatePathResult();
       }
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
@@ -271,14 +296,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     lastInode.setPinned(currentInodeDirectory.isPinned());
 
-    ret.add(lastInode);
+    createdInodes.add(lastInode);
     mInodes.add(lastInode);
     currentInodeDirectory.addChild(lastInode);
-    // TODO: If this should be updated, we need to write the corresponding journal entry
-    // currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
+    currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
-    return ret;
+    return new CreatePathResult(modifiedInodes, createdInodes);
   }
 
   /**
@@ -400,45 +424,64 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public void addInodeFromJournal(InodeEntry entry) {
     if (entry instanceof InodeFileEntry) {
       InodeFile file = ((InodeFileEntry) entry).toInodeFile();
-
-      if (file.getParentId() == mCachedInode.getId()) {
-        mCachedInode.addChild(file);
-      } else {
-        InodeDirectory parentDirectory =
-            (InodeDirectory) mInodes.getFirstByField(mIdIndex, file.getParentId());
-        parentDirectory.addChild(file);
-      }
-      // Update indexes.
-      mInodes.add(file);
-      if (file.isPinned()) {
-        mPinnedInodeFileIds.add(file.getId());
-      }
+      addInodeFromJournalInternal(file);
     } else if (entry instanceof InodeDirectoryEntry) {
       InodeDirectory directory = ((InodeDirectoryEntry) entry).toInodeDirectory();
 
       if (directory.getName() == ROOT_INODE_NAME) {
         // This is the root inode. Clear all the state, and set the root.
-        mRoot = directory;
         mInodes.clear();
+        mPinnedInodeFileIds.clear();
+        mRoot = directory;
         mCachedInode = mRoot;
+        mInodes.add(mRoot);
       } else {
-        // Add this directory to its parent.
-        if (directory.getParentId() == mCachedInode.getId()) {
-          mCachedInode.addChild(directory);
-        } else {
-          InodeDirectory parentDirectory =
-              (InodeDirectory) mInodes.getFirstByField(mIdIndex, directory.getParentId());
-          parentDirectory.addChild(directory);
-        }
-      }
-      // Update indexes.
-      mInodes.add(directory);
-      if (directory.isPinned()) {
-        mPinnedInodeFileIds.add(directory.getId());
+        addInodeFromJournalInternal(directory);
       }
     } else {
       LOG.error("Unexpected InodeEntry journal entry: " + entry);
     }
+  }
+
+  /**
+   * Adds a given inode into the inode tree, by adding the inode to its parent. Also updates the
+   * appropriate inode indexes.
+   *
+   * @param inode the inode to add to the inode tree.
+   */
+  private void addInodeFromJournalInternal(Inode inode) {
+    InodeDirectory parentDirectory = mCachedInode;
+    if (inode.getParentId() != mCachedInode.getId()) {
+      parentDirectory =
+          (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
+      mCachedInode = parentDirectory;
+    }
+    parentDirectory.addChild(inode);
+    mInodes.add(inode);
+    // Update indexes.
+    if (inode.isFile() && inode.isPinned()) {
+      mPinnedInodeFileIds.add(inode.getId());
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mRoot, mIdIndex, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
+        mDirectoryIdGenerator, mCachedInode);
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object instanceof InodeTree) {
+      InodeTree that = (InodeTree) object;
+      return Objects.equal(mRoot, that.mRoot) && Objects.equal(mIdIndex, that.mIdIndex)
+          && Objects.equal(mInodes, that.mInodes)
+          && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
+          && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
+          && Objects.equal(mDirectoryIdGenerator, that.mDirectoryIdGenerator)
+          && Objects.equal(mCachedInode, that.mCachedInode);
+    }
+    return false;
   }
 
   private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {
@@ -520,6 +563,48 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     Inode getInode() {
       return mInode;
+    }
+  }
+
+  /**
+   * Represents the results of creating a path in the inode tree. This keeps track of inodes which
+   * were modified, and inodes which were newly created during the path creation.
+   */
+  public static final class CreatePathResult {
+    private final List<Inode> mModified;
+    private final List<Inode> mCreated;
+
+    /**
+     * Constructs the results of modified and created inodes when creating a path.
+     *
+     * @param modified a list of modified inodes
+     * @param created a list of created inodes
+     */
+    CreatePathResult(List<Inode> modified, List<Inode> created) {
+      mModified = Preconditions.checkNotNull(modified);
+      mCreated = Preconditions.checkNotNull(created);
+    }
+
+    /**
+     * Constructs an empty result when creating a path.
+     */
+    CreatePathResult() {
+      mModified = Collections.emptyList();
+      mCreated = Collections.emptyList();
+    }
+
+    /**
+     * @return the list of inodes modified during path creation.
+     */
+    public List<Inode> getModified() {
+      return mModified;
+    }
+
+    /**
+     * @return the list of inodes created during path creation.
+     */
+    public List<Inode> getCreated() {
+      return mCreated;
     }
   }
 }

@@ -34,13 +34,13 @@ public class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static boolean validate() {
-    Constants constants = new Constants();
     Set<String> validProperties = new HashSet<String>();
     try {
       // Iterate over the array of Field objects in tachyon.Constants by reflection
-      for (Field field : constants.getClass().getDeclaredFields()) {
+      for (Field field : Constants.class.getDeclaredFields()) {
         if (field.getType().isAssignableFrom(String.class)) {
-          String name = (String) field.get(constants);
+          // all fields are static, so ignore the argument
+          String name = (String) field.get(null);
           if (name.startsWith("tachyon.")) {
             validProperties.add(name.trim());
           }

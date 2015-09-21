@@ -65,7 +65,7 @@ public final class WorkerClient implements Closeable {
   private InetSocketAddress mWorkerAddress;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
-  // TODO: This boolean indicates whether or not the client is connected to the worker. However,
+  // TODO(hy): This boolean indicates whether or not the client is connected to the worker. However,
   // since error exceptions are returned through thrift, all api errors look like fatal errors like
   // network/thrift problems. Maybe error codes/status should be returned for api errors, to be
   // independent from thrift exceptions.
@@ -83,21 +83,20 @@ public final class WorkerClient implements Closeable {
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
    * @param conf Tachyon configuration
-   * @param sessionId the id of the session
    * @param clientMetrics metrics of the lcient.
    */
   public WorkerClient(NetAddress workerNetAddress, ExecutorService executorService,
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
-    mTachyonConf = conf;
+    mTachyonConf = Preconditions.checkNotNull(conf);
     mSessionId = sessionId;
     mIsLocal = isLocal;
-    mClientMetrics = clientMetrics;
+    mClientMetrics = Preconditions.checkNotNull(clientMetrics);
   }
 
   /**
-   * Update the latest block access time on the worker.
+   * Updates the latest block access time on the worker.
    *
    * @param blockId The id of the block
    * @throws IOException
@@ -115,7 +114,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker that the checkpoint file of the file has been added.
+   * Notifies the worker that the checkpoint file of the file has been added.
    *
    * @param fileId The id of the checkpointed file
    * @throws IOException
@@ -140,7 +139,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker to checkpoint the file asynchronously.
+   * Notifies the worker to checkpoint the file asynchronously.
    *
    * @param fileId The id of the file
    * @return true if success, false otherwise
@@ -160,7 +159,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker the block is cached.
+   * Notifies the worker the block is cached.
    *
    * @param blockId The id of the block
    * @throws IOException
@@ -181,7 +180,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify worker that the block has been cancelled
+   * Notifies worker that the block has been cancelled
    *
    * @param blockId The Id of the block to be cancelled
    * @throws IOException
@@ -198,7 +197,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Close the connection to worker. Shutdown the heartbeat thread.
+   * Closes the connection to worker. Shutdown the heartbeat thread.
    */
   @Override
   public synchronized void close() {
@@ -219,7 +218,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Open the connection to the worker. And start the heartbeat thread.
+   * Opens the connection to the worker. And start the heartbeat thread.
    *
    * @return true if succeed, false otherwise
    * @throws IOException
