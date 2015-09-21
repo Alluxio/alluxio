@@ -27,6 +27,35 @@ end
 
 require 'yaml'
 
+# parse zookeeper.yml
+class ZookeeperVersion
+  def initialize(yaml_path)
+    puts 'parsing zookeeper.yml'
+    @yml = YAML.load_file(yaml_path)
+
+    @type = @yml['Type']
+    @dist = ''
+    case @type
+    when "Release"
+      @version = @yml['Release']['Version']
+      puts "using zookeeper version #{@version}"
+    when "None"
+      puts 'No zookeeper will be set up'
+    else
+      puts "Unknown Type"
+      exit(1)
+    end
+  end
+
+  def type
+    return @type
+  end
+
+  def version
+    return @version
+  end
+end
+
 # parse tachyon_version.yml
 class TachyonVersion
   def initialize(yaml_path)
