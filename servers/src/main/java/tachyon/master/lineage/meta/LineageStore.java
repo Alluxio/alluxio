@@ -16,6 +16,7 @@ package tachyon.master.lineage.meta;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -44,8 +45,8 @@ public final class LineageStore {
     mIdIndex = Maps.newHashMap();
   }
 
-  public synchronized long createLineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles,
-      Job job) {
+  public synchronized long createLineage(List<TachyonFile> inputFiles,
+      List<LineageFile> outputFiles, Job job) {
     Lineage lineage = new Lineage(inputFiles, outputFiles, job);
 
     List<Lineage> parentLineages = Lists.newArrayList();
@@ -101,10 +102,19 @@ public final class LineageStore {
     return mLineageDAG.getChildren(lineage);
   }
 
-  public synchronized void reportLostFile(long fileId){
+  public synchronized List<Lineage> getParents(Lineage lineage) {
+    Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
+        "lineage id " + lineage.getId() + " does not exist");
+
+    return mLineageDAG.getParents(lineage);
+  }
+
+  public synchronized Lineage reportLostFile(long fileId) {
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.addLostFile(fileId);
+    return lineage;
   }
+
   /**
    * Gets all the root lineages.
    */
@@ -112,9 +122,12 @@ public final class LineageStore {
     return mLineageDAG.getRoots();
   }
 
-
   public synchronized void commitCheckpointFile(Long fileId) {
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.commitOutputFile(fileId);
+  }
+
+  public synchronized List<Lineage> sortLineageTopologically(Set<Lineage> lineages) {
+    return mLineageDAG.sortTopologically(lineages);
   }
 }
