@@ -19,6 +19,8 @@ import java.io.File;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -35,17 +37,21 @@ public class StorageTierViewTest {
   private StorageTier mTestTier;
   private StorageTierView mTestTierView;
 
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder sTestFolder = new TemporaryFolder();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    File tempFolder = sTestFolder.newFolder();
+    TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
+  }
+
   @Before
   public void before() throws Exception {
-    File tempFolder = mTestFolder.newFolder();
-    BlockMetadataManager metaManager =
-        TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();
     BlockMetadataManagerView metaManagerView =
         new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(),
             Sets.<Long>newHashSet());

@@ -22,6 +22,8 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -53,18 +55,21 @@ public final class BlockMetadataManagerTest {
 
   private BlockMetadataManager mMetaManager;
 
-  @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder sFolder = new TemporaryFolder();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @Before
-  public void before() throws Exception {
-    String baseDir = mFolder.newFolder().getAbsolutePath();
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    String baseDir = sFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
+  }
 
+  @Before
+  public void before() throws Exception {
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
   }
 

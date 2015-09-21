@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -40,35 +40,35 @@ public class BlockStoreMetaTest {
   /** num of total committed blocks */
   private static final long COMMITTED_BLOCKS_NUM = 10L;
 
-  private BlockMetadataManager mMetadataManager;
-  private BlockStoreMeta mBlockStoreMeta;
+  private static BlockMetadataManager sMetadataManager;
+  private static BlockStoreMeta sBlockStoreMeta;
 
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder sTestFolder = new TemporaryFolder();
 
-  @Before
-  public void before() throws Exception {
-    String tachyonHome = mTestFolder.newFolder().getAbsolutePath();
-    mMetadataManager = TieredBlockStoreTestUtils.defaultMetadataManager(tachyonHome);
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    String tachyonHome = sTestFolder.newFolder().getAbsolutePath();
+    sMetadataManager = TieredBlockStoreTestUtils.defaultMetadataManager(tachyonHome);
 
     // Add and commit COMMITTED_BLOCKS_NUM temp blocks repeatedly
-    StorageDir dir = mMetadataManager.getTier(1).getDir(0);
+    StorageDir dir = sMetadataManager.getTier(1).getDir(0);
     for (long blockId = 0L; blockId < COMMITTED_BLOCKS_NUM; blockId ++) {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
-          mMetadataManager, null);
+          sMetadataManager, null);
     }
-    mBlockStoreMeta = new BlockStoreMeta(mMetadataManager);
+    sBlockStoreMeta = new BlockStoreMeta(sMetadataManager);
   }
 
   @Test
   public void getBlockListTest() {
     Map<Long, List<Long>> dirIdToBlockIds = new HashMap<Long, List<Long>>();
-    for (StorageTier tier : mMetadataManager.getTiers()) {
+    for (StorageTier tier : sMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         dirIdToBlockIds.put(dir.getStorageDirId(), dir.getBlockIds());
       }
     }
-    Map<Long, List<Long>> actual = mBlockStoreMeta.getBlockList();
+    Map<Long, List<Long>> actual = sBlockStoreMeta.getBlockList();
     Assert.assertEquals(TieredBlockStoreTestUtils.getDefaultDirNum(), actual.keySet().size());
     Assert.assertEquals(dirIdToBlockIds, actual);
   }
@@ -76,19 +76,19 @@ public class BlockStoreMetaTest {
   @Test
   public void getCapacityBytesTest() {
     Assert.assertEquals(TieredBlockStoreTestUtils.getDefaultTotalCapacityBytes(),
-        mBlockStoreMeta.getCapacityBytes());
+        sBlockStoreMeta.getCapacityBytes());
   }
 
   @Test
   public void getCapacityBytesOnDirsTest() {
     Map<Long, Long> dirsToCapacityBytes = new HashMap<Long, Long>();
-    for (StorageTier tier : mMetadataManager.getTiers()) {
+    for (StorageTier tier : sMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         dirsToCapacityBytes.put(dir.getStorageDirId(), dir.getCapacityBytes());
       }
     }
-    Assert.assertEquals(dirsToCapacityBytes, mBlockStoreMeta.getCapacityBytesOnDirs());
-    Assert.assertEquals(TieredBlockStoreTestUtils.getDefaultDirNum(), mBlockStoreMeta
+    Assert.assertEquals(dirsToCapacityBytes, sBlockStoreMeta.getCapacityBytesOnDirs());
+    Assert.assertEquals(TieredBlockStoreTestUtils.getDefaultDirNum(), sBlockStoreMeta
         .getCapacityBytesOnDirs().values().size());
   }
 
@@ -99,47 +99,47 @@ public class BlockStoreMetaTest {
     expectedCapacityBytesOnTiers.add(5000L);  // MEM
     expectedCapacityBytesOnTiers.add(60000L); // SSD
     expectedCapacityBytesOnTiers.add(0L);     // HDD
-    Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
+    Assert.assertEquals(expectedCapacityBytesOnTiers, sBlockStoreMeta.getCapacityBytesOnTiers());
   }
 
   @Test
   public void getDirPathsTest() {
     Map<Long, String> dirToPaths = new HashMap<Long, String>();
-    for (StorageTier tier : mMetadataManager.getTiers()) {
+    for (StorageTier tier : sMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         dirToPaths.put(dir.getStorageDirId(), dir.getDirPath());
       }
     }
-    Assert.assertEquals(dirToPaths, mBlockStoreMeta.getDirPaths());
+    Assert.assertEquals(dirToPaths, sBlockStoreMeta.getDirPaths());
   }
 
   @Test
   public void getNumberOfBlocksTest() {
-    Assert.assertEquals(COMMITTED_BLOCKS_NUM, mBlockStoreMeta.getNumberOfBlocks());
+    Assert.assertEquals(COMMITTED_BLOCKS_NUM, sBlockStoreMeta.getNumberOfBlocks());
   }
 
   @Test
   public void getUsedBytesTest() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
-    Assert.assertEquals(usedBytes, mBlockStoreMeta.getUsedBytes());
+    Assert.assertEquals(usedBytes, sBlockStoreMeta.getUsedBytes());
   }
 
   @Test
   public void getUsedBytesOnDirsTest() {
     Map<Long, Long> dirsToUsedBytes = new HashMap<Long, Long>();
-    for (StorageTier tier : mMetadataManager.getTiers()) {
+    for (StorageTier tier : sMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
         dirsToUsedBytes.put(dir.getStorageDirId(),
             dir.getCapacityBytes() - dir.getAvailableBytes());
       }
     }
-    Assert.assertEquals(dirsToUsedBytes, mBlockStoreMeta.getUsedBytesOnDirs());
+    Assert.assertEquals(dirsToUsedBytes, sBlockStoreMeta.getUsedBytesOnDirs());
   }
 
   @Test
   public void getUsedBytesOnTiersTest() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
     List<Long> usedBytesOnTiers = new ArrayList<Long>(Arrays.asList(usedBytes, 0L, 0L));
-    Assert.assertEquals(usedBytesOnTiers, mBlockStoreMeta.getUsedBytesOnTiers());
+    Assert.assertEquals(usedBytesOnTiers, sBlockStoreMeta.getUsedBytesOnTiers());
   }
 }

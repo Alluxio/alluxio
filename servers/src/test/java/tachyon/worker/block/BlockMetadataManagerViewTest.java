@@ -20,6 +20,8 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -46,16 +48,21 @@ public final class BlockMetadataManagerViewTest {
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mMetaManagerView;
 
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder sTestFolder = new TemporaryFolder();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    File tempFolder = sTestFolder.newFolder();
+    TieredBlockStoreTestUtils.setupTachyonConfDefault(tempFolder.getAbsolutePath());
+  }
+
   @Before
   public void before() throws Exception {
-    File tempFolder = mTestFolder.newFolder();
-    mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
+    mMetaManager = BlockMetadataManager.newBlockMetadataManager();
     mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
         Sets.<Long>newHashSet(), Sets.<Long>newHashSet()));
   }

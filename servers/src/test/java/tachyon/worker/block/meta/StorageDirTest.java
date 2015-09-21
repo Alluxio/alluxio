@@ -23,6 +23,8 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -50,7 +52,8 @@ public final class StorageDirTest {
   private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR_INDEX = 1;
   private static final long TEST_DIR_CAPACITY = 1000;
-  private String mTestDirPath;
+  private static String sTestDirPath;
+
   private StorageTier mTier;
   private StorageDir mDir;
   private BlockMeta mBlockMeta;
@@ -59,21 +62,24 @@ public final class StorageDirTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder sFolder = new TemporaryFolder();
 
-  @Before
-  public void before() throws Exception {
-    // Creates a dummy test dir under mTestDirPath with 1 byte space so initialization can occur
-    mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    String[] testDirPaths = {mTestDirPath};
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    // Creates a dummy test dir under sTestDirPath with 1 byte space so initialization can occur
+    sTestDirPath = sFolder.newFolder().getAbsolutePath();
+    String[] testDirPaths = {sTestDirPath};
     long[] testDirCapacity = {1};
 
     TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
         StorageLevelAlias.MEM, testDirPaths, testDirCapacity, "");
+  }
 
+  @Before
+  public void before() throws Exception {
     mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
-    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);
+    mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, sTestDirPath);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE,
         mDir);
@@ -93,7 +99,7 @@ public final class StorageDirTest {
 
   @Test
   public void initializeMetaNoExceptionTest() throws Exception {
-    File testDir = mFolder.newFolder();
+    File testDir = sFolder.newFolder();
 
     int nBlock = 10;
     long availableBytes = TEST_DIR_CAPACITY;
@@ -126,7 +132,7 @@ public final class StorageDirTest {
 
   @Test
   public void initializeMetaDeleteInappropriateFileTest() throws Exception {
-    File testDir = mFolder.newFolder();
+    File testDir = sFolder.newFolder();
 
     newBlockFile(testDir, "block", 1);
 
@@ -136,7 +142,7 @@ public final class StorageDirTest {
 
   @Test
   public void initializeMetaDeleteInappropriateDirTest() throws Exception {
-    File testDir = mFolder.newFolder();
+    File testDir = sFolder.newFolder();
 
     File newDir = new File(testDir, "dir");
     boolean created = newDir.mkdir();
@@ -148,7 +154,7 @@ public final class StorageDirTest {
 
   @Test
   public void initializeMetaBlockLargerThanCapacityTest() throws Exception {
-    File testDir = mFolder.newFolder();
+    File testDir = sFolder.newFolder();
 
     newBlockFile(testDir, String.valueOf(TEST_BLOCK_ID), Ints.checkedCast(TEST_DIR_CAPACITY + 1));
     StorageLevelAlias alias = StorageLevelAlias.getAlias(TEST_DIR_INDEX);
@@ -198,7 +204,7 @@ public final class StorageDirTest {
 
   @Test
   public void getDirPathTest() {
-    Assert.assertEquals(mTestDirPath, mDir.getDirPath());
+    Assert.assertEquals(sTestDirPath, mDir.getDirPath());
   }
 
   @Test
