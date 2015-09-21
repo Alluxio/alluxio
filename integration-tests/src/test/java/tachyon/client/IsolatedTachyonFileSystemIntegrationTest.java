@@ -158,7 +158,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       if (k != 0) {
         Assert.assertTrue(info.getInMemoryPercentage() == 100);
       } else {
-        CommonUtils.sleepMs(null, getSleepMs());
+        CommonUtils.sleepMs(getSleepMs());
         Assert.assertFalse(info.getInMemoryPercentage() == 100);
       }
     }
@@ -224,7 +224,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
-    CommonUtils.sleepMs(null, getSleepMs());
+    CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(numOfFiles));
     Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
@@ -255,7 +255,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
 
-    CommonUtils.sleepMs(null, getSleepMs());
+    CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k ++) {

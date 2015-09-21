@@ -192,6 +192,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
     if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b);
+      ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
   }
 
@@ -231,6 +232,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
     if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
+      ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
   }
 

@@ -66,8 +66,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
     mDataManager = Preconditions.checkNotNull(dataManager);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mTransferType =
-        mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
+    mTransferType = mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
+        FileTransferType.class);
   }
 
   @Override

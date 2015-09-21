@@ -37,6 +37,8 @@ public final class RemoteBlockInStream extends BlockInStream {
   private final InetSocketAddress mLocation;
 
   private long mPos;
+  private long mBytesReadRemote = 0L;
+  private boolean mClosed;
 
   /**
    * Creates a new remote block input stream.
@@ -47,10 +49,22 @@ public final class RemoteBlockInStream extends BlockInStream {
    */
   // TODO(calvin): Modify the locking so the stream owns the lock instead of the data server.
   public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
+    mClosed = false;
     mBlockId = blockId;
     mBlockSize = blockSize;
     // TODO(calvin): Validate these fields.
     mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    if (mBytesReadRemote > 0) {
+      ClientContext.getClientMetrics().incBlocksReadRemote(1);
+    }
+    mClosed = true;
   }
 
   @Override
@@ -94,6 +108,7 @@ public final class RemoteBlockInStream extends BlockInStream {
       mPos += bytesToRead;
       bytesLeft -= bytesToRead;
     }
+    ClientContext.getClientMetrics().incBytesReadRemote(lengthToRead);
 
     return lengthToRead;
   }
