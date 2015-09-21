@@ -69,9 +69,9 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-     List<Long> persistedFiles = mLineageDataManager.fetchPersistedFiles();
+    List<Long> persistedFiles = mLineageDataManager.fetchPersistedFiles();
 
-    LineageCommand command=null;
+    LineageCommand command = null;
     try {
       command = mMasterClient.workerLineageHeartbeat(mWorkerId, persistedFiles);
     } catch (IOException e) {
@@ -104,7 +104,11 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     @Override
     public void run() {
-      mLineageDataManager.persistFile(mFileId, mBlockIds, mUnderFsPath);
+      try {
+        mLineageDataManager.persistFile(mFileId, mBlockIds, mUnderFsPath);
+      } catch (IOException e) {
+        // TODO(yupeng) error handling
+      }
     }
   }
 }
