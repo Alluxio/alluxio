@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.Pair;
@@ -1025,6 +1026,15 @@ public final class FileSystemMaster extends MasterBase {
    */
   public List<String> getWhiteList() {
     return mWhitelist.getList();
+  }
+
+  public List<Long> getLostFiles() {
+    Set<Long> lostFiles = Sets.newHashSet();
+    for (long blockId : mBlockMaster.getLostBlocks()) {
+      // the file id is the container id of the block id
+      lostFiles.add(BlockId.getContainerId(blockId));
+    }
+    return new ArrayList<Long>(lostFiles);
   }
 
   // TODO(gene): The following methods are for lineage, which is not fully functional yet.

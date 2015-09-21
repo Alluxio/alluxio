@@ -15,6 +15,9 @@
 
 package tachyon.master.lineage.recompute;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +25,8 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
+import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageState;
 
 /**
  * A periodical executor that detects lost files and launches recompute jobs.
@@ -29,23 +34,46 @@ import tachyon.HeartbeatExecutor;
 public final class RecomputeExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static final int DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE = 10;
   private final RecomputePlanner mPlanner;
-  private final RecomputeLauncher mLauncher;
+  /** The thread pool to launch recompute jobs */
+  private final ExecutorService mFixedExecutionService =
+      Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE);
 
   /**
    * @param planner recompute planner
-   * @param executor recompute executor
    */
-  public RecomputeExecutor(RecomputePlanner planner, RecomputeLauncher executor) {
+  public RecomputeExecutor(RecomputePlanner planner) {
     mPlanner = Preconditions.checkNotNull(planner);
-    mLauncher = Preconditions.checkNotNull(executor);
   }
 
   @Override
   public void heartbeat() {
     RecomputePlan plan = mPlanner.plan();
-    if (plan != null && plan.isEmpty()) {
-      mLauncher.recompute(plan);
+    if (plan != null && !plan.isEmpty()) {
+      mFixedExecutionService.submit(new RecomputeLauncher(plan));
+    }
+  }
+
+  /**
+   * Thread to launch the recompute jobs in a given plan.
+   */
+  final class RecomputeLauncher implements Runnable {
+    private RecomputePlan mPlan;
+
+    RecomputeLauncher(RecomputePlan plan) {
+      mPlan = Preconditions.checkNotNull(plan);
+    }
+
+    @Override
+    public void run() {
+      for (Lineage lineage : mPlan.getLineageToRecompute()) {
+        lineage.setState(LineageState.IN_RECOMPUTE);
+        boolean success = lineage.getJob().run();
+        if (!success) {
+          // error handling
+        }
+      }
     }
   }
 }

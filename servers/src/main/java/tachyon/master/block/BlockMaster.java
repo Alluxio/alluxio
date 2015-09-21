@@ -583,6 +583,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
+   * @return the lost blocks in Tachyon Storage
+   */
+  public Set<Long> getLostBlocks() {
+    return Collections.unmodifiableSet(mLostBlocks);
+  }
+
+  /**
    * Creates a {@link BlockInfo} form a given {@link MasterBlockInfo}, by populating worker
    * locations.
    *

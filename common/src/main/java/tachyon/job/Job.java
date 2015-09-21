@@ -33,4 +33,6 @@ public abstract class Job implements Serializable {
   protected JobConf getJobConf() {
     return mJobConf;
   }
+
+  public abstract boolean run();
 }
