@@ -13,22 +13,23 @@
  * the License.
  */
 
-package tachyon;
-
-import tachyon.conf.TachyonConf;
+package tachyon.master.journal;
 
 /**
- * The version of the current build.
+ * The read-write journal. This allows both reads and writes to the journal.
  */
-public final class Version {
-  public static final String VERSION;
-
-  static {
-    TachyonConf tachyonConf = new TachyonConf();
-    VERSION = tachyonConf.get(Constants.TACHYON_VERSION);
+public class ReadWriteJournal extends ReadOnlyJournal {
+  /**
+   * @param directory the base directory for the journal
+   */
+  public ReadWriteJournal(String directory) {
+    super(directory);
   }
 
-  public static void main(String[] args) {
-    System.out.println("Tachyon version: " + VERSION);
+  /**
+   * @return the {@link JournalWriter} for this journal
+   */
+  public JournalWriter getNewWriter() {
+    return new JournalWriter(this);
   }
 }

@@ -57,6 +57,13 @@ public enum ExceptionMessage {
   TEMP_BLOCK_ID_COMMITTED("Temp blockId {0} is not available, because it is already committed"),
   TEMP_BLOCK_ID_EXISTS("Temp blockId {0} is not available, because it already exists"),
 
+  // file system master
+  UNEXPECETD_JOURNAL_ENTRY("Unexpected entry in journal: {0}"),
+  FILEID_MUST_BE_FILE("File id {0} must be a file"),
+  JOURNAL_WRITE_AFTER_CLOSE("Cannot write entry after closing the stream"),
+  RAW_TABLE_ID_DOES_NOT_EXIST("Raw table with id {0} does not exist"),
+  UNKNOWN_ENTRY_TYPE("Unknown entry type: {0}"),
+
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 

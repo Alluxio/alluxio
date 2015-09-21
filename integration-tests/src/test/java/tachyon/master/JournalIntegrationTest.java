@@ -36,6 +36,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
+import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -78,8 +79,8 @@ public class JournalIntegrationTest {
 
   private void deleteFsMasterJournalLogs() throws IOException {
     String journalFolder = mLocalTachyonCluster.getMaster().getJournalFolder();
-    Journal journal = new Journal(PathUtils.concatPath(journalFolder,
-        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME));
+    Journal journal = new ReadWriteJournal(
+        PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME));
     UnderFileSystem.get(journalFolder, mMasterTachyonConf).delete(journal.getCurrentLogFilePath(),
         true);
   }
@@ -173,7 +174,7 @@ public class JournalIntegrationTest {
 
     String journalFolder =
         FileSystemMaster.getJournalDirectory(mLocalTachyonCluster.getMaster().getJournalFolder());
-    Journal journal = new Journal(journalFolder);
+    Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
     Assert.assertTrue(UnderFileSystem.get(completedPath,
         mMasterTachyonConf).list(completedPath).length > 1);

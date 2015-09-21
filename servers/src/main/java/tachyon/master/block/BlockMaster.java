@@ -39,15 +39,15 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
+import tachyon.IndexedSet;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.master.IndexedSet;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.block.meta.MasterBlockInfo;
 import tachyon.master.block.meta.MasterBlockLocation;
 import tachyon.master.block.meta.MasterWorkerInfo;
@@ -160,21 +160,18 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     if (entry instanceof BlockContainerIdGeneratorEntry) {
       mBlockContainerIdGenerator
           .setNextContainerId(((BlockContainerIdGeneratorEntry) entry).getNextContainerId());
-    } else if (entry instanceof WorkerIdGeneratorEntry) {
-      mNextWorkerId.set(((WorkerIdGeneratorEntry) entry).getNextWorkerId());
     } else if (entry instanceof BlockInfoEntry) {
       BlockInfoEntry blockInfoEntry = (BlockInfoEntry) entry;
       mBlocks.put(blockInfoEntry.getBlockId(),
           new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
     } else {
-      throw new IOException("unexpected entry in journal: " + entry);
+      throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
-    outputStream.writeEntry(new WorkerIdGeneratorEntry(mNextWorkerId.get()));
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       outputStream.writeEntry(new BlockInfoEntry(blockInfo.getBlockId(), blockInfo.getLength()));
     }
@@ -454,10 +451,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       long workerId = mNextWorkerId.getAndIncrement();
       mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
 
-      // Write worker id to the journal.
-      writeJournalEntry(new WorkerIdGeneratorEntry(workerId));
-      flushJournal();
-
       LOG.info("getWorkerId(): WorkerNetAddress: " + workerAddress + " id: " + workerId);
       return workerId;
     }
@@ -472,6 +465,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
    * @return the worker id
    */
+  // TODO(cc) return value should be void, throw exception when workerId doesn't exist.
   public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) {
     synchronized (mBlocks) {

@@ -67,7 +67,7 @@ public final class BlockMasterSync implements Runnable {
   private long mWorkerId;
   /** The thread pool to remove block */
   private final ExecutorService mFixedExecutionService =
-          Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
+      Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
   BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
       NetAddress workerAddress, WorkerBlockMasterClient masterClient) {
@@ -75,10 +75,8 @@ public final class BlockMasterSync implements Runnable {
     mWorkerAddress = workerAddress;
     mTachyonConf = tachyonConf;
     mMasterClient = masterClient;
-    mHeartbeatIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mHeartbeatTimeoutMs =
-        mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    mHeartbeatTimeoutMs = mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
     mWorkerId = 0;
@@ -109,9 +107,8 @@ public final class BlockMasterSync implements Runnable {
   public void registerWithMaster() {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
-      mWorkerId =
-          mMasterClient.register(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
-              storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+      mMasterClient.register(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
+          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
       throw new RuntimeException("Failed to register with master.", ioe);
     }
@@ -142,9 +139,9 @@ public final class BlockMasterSync implements Runnable {
       // Send the heartbeat and execute the response
       Command cmdFromMaster = null;
       try {
-        cmdFromMaster =
-            mMasterClient.heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(),
-                blockReport.getRemovedBlocks(), blockReport.getAddedBlocks());
+        cmdFromMaster = mMasterClient
+            .heartbeat(mWorkerId, storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
+                blockReport.getAddedBlocks());
         lastHeartbeatMs = System.currentTimeMillis();
         handleMasterCommand(cmdFromMaster);
       } catch (Exception e) {
@@ -185,14 +182,14 @@ public final class BlockMasterSync implements Runnable {
       return;
     }
     switch (cmd.mCommandType) {
-    // Currently unused
+      // Currently unused
       case Delete:
         break;
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
         for (long block : cmd.mData) {
           mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
-                  Sessions.MASTER_COMMAND_SESSION_ID, block));
+              Sessions.MASTER_COMMAND_SESSION_ID, block));
         }
         break;
       // No action required
@@ -200,6 +197,7 @@ public final class BlockMasterSync implements Runnable {
         break;
       // Master requests re-registration
       case Register:
+        setWorkerId();
         registerWithMaster();
         break;
       // Unknown request
