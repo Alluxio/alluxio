@@ -17,7 +17,10 @@ package tachyon.yarn;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,10 +81,6 @@ import tachyon.util.CommonUtils;
 public final class Client {
   /** Main class to invoke application master */
   private final String mAppMasterMainClass = ApplicationMaster.class.getName();
-  /** Start time for client */
-  private final long mClientStartTime = System.currentTimeMillis();
-  /** Flag to indicate debug */
-  boolean mFlagDebug;
   /** Yarn client to talk to resource manager */
   private YarnClient mYarnClient;
   /** Yarn configuration */
@@ -102,8 +101,6 @@ public final class Client {
   private int mAmVCores;
   /** Application master jar file on HDFS */
   private String mHDFSAppMasterJar;
-  /** Timeout threshold for client. Kill app after time interval expires. */
-  private long mClientTimeout;
   /** Number of tachyon workers. */
   private int mNumWorkers;
   /** Tachyon home path on YARN containers. */
@@ -121,7 +118,6 @@ public final class Client {
     mOptions.addOption("priority", true, "Application Priority. Default 0");
     mOptions.addOption("queue", true, "RM Queue in which this application is to be submitted");
     mOptions.addOption("user", true, "User to run the application as");
-    mOptions.addOption("timeout", true, "Application timeout in milliseconds");
     mOptions.addOption("master_memory", true,
         "Amount of memory in MB to be requested to run the application master");
     mOptions.addOption("master_vcores", true, "Amount of virtual cores to be requested to run the "
@@ -129,7 +125,6 @@ public final class Client {
     mOptions.addOption("jar", true, "Jar file containing the application master");
     mOptions.addOption("tachyon_home", true, "Path to Tachyon home dir on YARN slave machines");
     mOptions.addOption("master_address", true, "Address to run Tachyon master");
-    mOptions.addOption("debug", false, "Dump out debug information");
     mOptions.addOption("help", false, "Print usage");
     mOptions.addOption("num_workers", true, "Number of tachyon workers to launch");
   }
@@ -160,6 +155,18 @@ public final class Client {
   }
 
   /**
+   * Main run function for the client
+   *
+   * @return true if application completed successfully
+   * @throws IOException
+   * @throws YarnException
+   */
+  public boolean run() throws IOException, YarnException {
+    submitApplication();
+    return monitorApplication();
+  }
+
+  /**
    * Helper function to print out usage.
    */
   private void printUsage() {
@@ -173,7 +180,7 @@ public final class Client {
    * @return Whether the parseArgs was successful to run the client
    * @throws ParseException
    */
-  public boolean parseArgs(String[] args) throws ParseException {
+  private boolean parseArgs(String[] args) throws ParseException {
     Preconditions.checkArgument(args.length > 0, "No args specified for client to initialize");
     CommandLine cliParser = new GnuParser().parse(mOptions, args);
 
@@ -197,9 +204,6 @@ public final class Client {
     mAmMemory = Integer.parseInt(cliParser.getOptionValue("master_memory", "256"));
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("master_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
-    mFlagDebug = cliParser.hasOption("debug");
-
-    mClientTimeout = Integer.parseInt(cliParser.getOptionValue("timeout", "600000"));
 
     Preconditions.checkArgument(mAmMemory > 0, "Invalid memory specified for application master, "
         + "exiting. Specified memory=" + mAmMemory);
@@ -335,27 +339,31 @@ public final class Client {
   }
 
   /**
-   * Monitors the submitted application for completion. Kill application if time expires.
+   * Monitors the submitted application for completion.
    *
    * @return true if application completed successfully
    * @throws YarnException
    * @throws IOException
    */
   private boolean monitorApplication() throws YarnException, IOException {
+    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
     while (true) {
-      // Check app status every 1 second.
-      CommonUtils.sleepMs(Constants.SECOND_MS);
+      // Check app status every 10 second.
+      CommonUtils.sleepMs(10 * Constants.SECOND_MS);
+      Date date = new Date();
+      String timeDateStr = dateFormat.format(date);
 
       // Get application report for the appId we are interested in
       ApplicationReport report = mYarnClient.getApplicationReport(mAppId);
 
-      System.out.println("Got application report from ASM for appId=" + mAppId.getId()
-          + ", clientToAMToken=" + report.getClientToAMToken() + ", appDiagnostics="
-          + report.getDiagnostics() + ", appMasterHost=" + report.getHost() + ", appQueue="
-          + report.getQueue() + ", appMasterRpcPort=" + report.getRpcPort() + ", appStartTime="
-          + report.getStartTime() + ", yarnAppState=" + report.getYarnApplicationState().toString()
-          + ", distributedFinalState=" + report.getFinalApplicationStatus().toString()
-          + ", appTrackingUrl=" + report.getTrackingUrl() + ", appUser=" + report.getUser());
+      System.out.println(timeDateStr + " Got application report from ASM for appId="
+          + mAppId.getId() + ", clientToAMToken=" + report.getClientToAMToken()
+          + ", appDiagnostics=" + report.getDiagnostics() + ", appMasterHost=" + report.getHost()
+          + ", appQueue=" + report.getQueue() + ", appMasterRpcPort=" + report.getRpcPort()
+          + ", appStartTime=" + report.getStartTime() + ", yarnAppState="
+          + report.getYarnApplicationState().toString() + ", distributedFinalState="
+          + report.getFinalApplicationStatus().toString() + ", appTrackingUrl="
+          + report.getTrackingUrl() + ", appUser=" + report.getUser());
 
       YarnApplicationState state = report.getYarnApplicationState();
       FinalApplicationStatus dsStatus = report.getFinalApplicationStatus();
@@ -374,40 +382,7 @@ public final class Client {
             + ", DSFinalStatus=" + dsStatus.toString() + ". Breaking monitoring loop");
         return false;
       }
-
-      if (System.currentTimeMillis() > (mClientStartTime + mClientTimeout)) {
-        System.out.println("Reached client specified timeout for application. Killing application");
-        forceKillApplication();
-        return false;
-      }
     }
   }
 
-  /**
-   * Kills a submitted application by sending a call to the ASM.
-   *
-   * @throws YarnException
-   * @throws IOException
-   */
-  private void forceKillApplication() throws YarnException, IOException {
-    // TODO clarify whether multiple jobs with the same app id can be submitted and be running at
-    // the same time.
-    // If yes, can we kill a particular attempt only?
-
-    // Response can be ignored as it is non-null on success or
-    // throws an exception in case of failures
-    mYarnClient.killApplication(mAppId);
-  }
-
-  /**
-   * Main run function for the client
-   *
-   * @return true if application completed successfully
-   * @throws IOException
-   * @throws YarnException
-   */
-  public boolean run() throws IOException, YarnException {
-    submitApplication();
-    return monitorApplication();
-  }
 }
