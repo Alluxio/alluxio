@@ -129,9 +129,10 @@ public class Constants {
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.byte";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
-  public static final String EXECUTOR_DEPENDENCY_PATH = "tachyon.executor.dependency.path";
-  public static final String JRE_URL = "tachyon.jre.url";
-  public static final String JRE_VERSION = "tachyon.jre.version";
+  public static final String EXECUTOR_DEPENDENCY_PATH
+      = "tachyon.integration.mesos.executor.dependency.path";
+  public static final String JRE_URL = "tachyon.integration.mesos.jre.url";
+  public static final String JRE_VERSION = "tachyon.integration.mesos.jre.version";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_HOSTNAME_LISTENING = "tachyon.master.hostname.listening";
