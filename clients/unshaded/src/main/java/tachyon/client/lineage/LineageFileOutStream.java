@@ -52,7 +52,10 @@ public class LineageFileOutStream extends FileOutStream {
     }
 
     LineageMasterClient masterClient = mContext.acquireMasterClient();
-
-
+    try {
+      masterClient.asyncCompleteFile(mFileId, mUnderStorageFile);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 }

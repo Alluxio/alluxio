@@ -15,36 +15,96 @@
 
 package tachyon.worker.lineage;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import tachyon.Constants;
+import tachyon.Sessions;
+import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidStateException;
+import tachyon.exception.NotFoundException;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.worker.block.BlockDataManager;
+import tachyon.worker.block.io.BlockReader;
 
 /**
  * Responsible for managing the lineage storing into under file system.
  */
 public final class LineageDataManager {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
   private final List<Long> mPersistedFiles;
+  private final TachyonConf mTachyonConf;
 
-  public LineageDataManager(BlockDataManager blockDataManager) {
+  public LineageDataManager(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
     mPersistedFiles = Lists.newArrayList();
+    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
   }
 
   /**
    * Persists the blocks of a file into the under file system.
    *
-   *@param fileId the id of the file.
+   * @param fileId the id of the file.
    * @param blockIds the list of block ids.
    * @param filePath the destination path in the under file system.
+   * @throws IOException
    */
-  public void persistFile(long fileId, List<Long> blockIds, String filePath) {
-    // TODO persist
+  public void persistFile(long fileId, List<Long> blockIds, String filePath) throws IOException {
+    UnderFileSystem underFs = UnderFileSystem.get(filePath, mTachyonConf);
+    OutputStream outputStream;
+    try {
+      outputStream = underFs.create(filePath);
+    } catch (IOException e) {
+      // TODO error handling
+      return;
+    }
 
+    for (long blockId : blockIds) {
+      long lockId;
+      try {
+        lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
+      } catch (NotFoundException ioe) {
+        LOG.error("Failed to lock block: " + blockId, ioe);
+        // TODO error handling
+        return;
+      }
+
+      // obtain block reader
+      try {
+        BlockReader reader;
+        try {
+          reader =
+              mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+        } catch (NotFoundException nfe) {
+          throw new IOException(nfe);
+        } catch (InvalidStateException ise) {
+          throw new IOException(ise);
+        }
+
+        // write content out
+        ByteBuffer buffer = reader.read(0, reader.getLength());
+        outputStream.write(buffer.array());
+      } finally {
+        try {
+          mBlockDataManager.unlockBlock(lockId);
+        } catch (NotFoundException nfe) {
+          throw new IOException(nfe);
+        }
+      }
+    }
+
+    outputStream.close();
     synchronized (mPersistedFiles) {
       mPersistedFiles.add(fileId);
     }

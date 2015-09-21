@@ -60,7 +60,7 @@ public final class LineageWorker {
 
     mTachyonConf = WorkerContext.getConf();
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mLineageDataManager = new LineageDataManager(blockDataManager);
+    mLineageDataManager = new LineageDataManager(blockDataManager, mTachyonConf);
     mWorkerId = workerId;
 
     // Setup MasterClientBase along with its heartbeat ExecutorService

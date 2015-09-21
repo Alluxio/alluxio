@@ -51,13 +51,11 @@ import tachyon.worker.WorkerClient;
 public class FileOutStream extends OutputStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final long mFileId;
   private final long mBlockSize;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
-  private final String mUnderStorageFile;
   private final WorkerClient mWorkerClient;
 
   private boolean mCanceled;
@@ -65,6 +63,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private boolean mShouldCacheCurrentBlock;
   private BufferedBlockOutStream mCurrentBlockOutStream;
   private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
+
+  protected final long mFileId;
+  protected final String mUnderStorageFile;
 
   /**
    * Creates a new file output stream.
