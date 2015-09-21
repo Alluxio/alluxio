@@ -61,7 +61,7 @@ public class PermissionStatus {
   /** Get the Directory default PermissionStatus. */
   public static PermissionStatus getDirDefault() {
     return new PermissionStatus("", "",
-        new FsPermission(Constants.DEFAULT_TFS_DIR_PERMISSION));
+        new FsPermission(Constants.DEFAULT_TFS_FULL_PERMISSION));
   }
 
   /** {@inheritDoc} */
