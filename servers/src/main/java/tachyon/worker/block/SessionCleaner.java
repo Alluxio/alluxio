@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * SessionCleaner periodically checks if any session have become zombies, removes the zombie session
@@ -31,8 +32,6 @@ public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** The configuration values */
-  private final TachyonConf mTachyonConf;
   /** Milliseconds between each check */
   private final int mCheckIntervalMs;
 
@@ -43,13 +42,11 @@ public final class SessionCleaner implements Runnable {
    * Constructor for SessionCleaner
    *
    * @param blockDataManager the blockDataManager this checker is updating to
-   * @param tachyonConf the configuration values to be used
    */
-  public SessionCleaner(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
+  public SessionCleaner(BlockDataManager blockDataManager) {
     mBlockDataManager = blockDataManager;
-    mTachyonConf = tachyonConf;
     mCheckIntervalMs =
-        mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+        WorkerContext.getConf().getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;
   }

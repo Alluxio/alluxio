@@ -15,9 +15,6 @@
 
 package tachyon.client.netty;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelInitializer;
@@ -29,18 +26,16 @@ import io.netty.channel.socket.SocketChannel;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.network.ChannelType;
-import tachyon.util.network.NettyUtils;
 import tachyon.network.protocol.RPCMessage;
 import tachyon.network.protocol.RPCMessageDecoder;
 import tachyon.network.protocol.RPCMessageEncoder;
+import tachyon.util.network.NettyUtils;
 
 /**
  * Shared configuration and methods for the Netty client.
  */
 public final class NettyClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  // Share both the encoder and decoder with all the client pipelines.
+  /**  Share both the encoder and decoder with all the client pipelines. */
   private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
@@ -49,13 +44,15 @@ public final class NettyClient {
       TACHYON_CONF.getEnum(Constants.USER_NETTY_CHANNEL, ChannelType.class);
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
       .getClientChannelClass(CHANNEL_TYPE);
-  // Reuse EventLoopGroup for all clients.
-  // Use daemon threads so the JVM is allowed to shutdown even when daemon threads are alive.
-  // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
+  /**
+   * Reuse EventLoopGroup for all clients. Use daemon threads so the JVM is allowed to shutdown even
+   * when daemon threads are alive. If number of worker threads is 0, Netty creates (#processors *
+   * 2) threads by default.
+   */
   private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
       TACHYON_CONF.getInt(Constants.USER_NETTY_WORKER_THREADS), "netty-client-worker-%d", true);
 
-  // The maximum number of milliseconds to wait for a response from the server.
+  /** The maximum number of milliseconds to wait for a response from the server. */
   public static final long TIMEOUT_MS =
       TACHYON_CONF.getInt(Constants.USER_NETTY_TIMEOUT_MS);
 

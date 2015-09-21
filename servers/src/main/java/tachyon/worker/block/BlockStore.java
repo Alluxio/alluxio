@@ -83,10 +83,10 @@ interface BlockStore {
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
    */
-  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
-  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
-  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
-  // exception
+  // TODO(cc): Exceptions like NotFoundException, IOException and InvalidStateException here
+  // involves implementation details, also, AlreadyExistsException has two possible semantic now,
+  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
+  // more general exception.
   TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
           IOException, InvalidStateException;
@@ -167,9 +167,9 @@ interface BlockStore {
    * @throws InvalidStateException if the space requested is less than current space or blocks to
    *         move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO: exceptions like IOException AlreadyExistsException and InvalidStateException here
+  // TODO(cc): Exceptions like IOException AlreadyExistsException and InvalidStateException here
   // involves implementation details, also, NotFoundException has two semantic now, revisit this
-  // with a more general exception
+  // with a more general exception.
   void requestSpace(long sessionId, long blockId, long additionalBytes) throws NotFoundException,
       OutOfSpaceException, IOException, AlreadyExistsException, InvalidStateException;
 
@@ -314,9 +314,9 @@ interface BlockStore {
    * @throws InvalidStateException if blocks to move/evict in
    *         {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO: exceptions like NotFoundException, IOException AlreadyExistsException and
+  // TODO(cc): Exceptions like NotFoundException, IOException AlreadyExistsException and
   // InvalidStateException here involves implementation details, may be removed to a more general
-  // exception
+  // exception.
   void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
       throws OutOfSpaceException, NotFoundException, IOException, AlreadyExistsException,
       InvalidStateException;

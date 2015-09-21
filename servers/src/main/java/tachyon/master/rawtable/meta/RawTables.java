@@ -18,7 +18,8 @@ package tachyon.master.rawtable.meta;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import tachyon.master.IndexedSet;
+import tachyon.IndexedSet;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.thrift.TableDoesNotExistException;
@@ -80,7 +81,7 @@ public class RawTables implements JournalCheckpointStreamable {
    */
   public synchronized int getColumns(long tableId) {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
-    return null == table ? -1 : table.getColumns();
+    return table == null ? -1 : table.getColumns();
   }
 
   /**
@@ -91,7 +92,7 @@ public class RawTables implements JournalCheckpointStreamable {
    */
   public synchronized ByteBuffer getMetadata(long tableId) {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
-    return null == table ? null : BufferUtils.cloneByteBuffer(table.getMetadata());
+    return table == null ? null : BufferUtils.cloneByteBuffer(table.getMetadata());
   }
 
   /**
@@ -116,8 +117,9 @@ public class RawTables implements JournalCheckpointStreamable {
       throws TableDoesNotExistException {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
 
-    if (null == table) {
-      throw new TableDoesNotExistException("The raw table " + tableId + " does not exist.");
+    if (table == null) {
+      throw new TableDoesNotExistException(
+          ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(tableId));
     }
 
     table.setMetadata(metadata);

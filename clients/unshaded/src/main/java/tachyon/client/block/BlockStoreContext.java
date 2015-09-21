@@ -20,11 +20,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.google.common.base.Throwables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
@@ -53,17 +50,16 @@ public enum BlockStoreContext {
    */
   BlockStoreContext() {
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    // TODO(calvin): Get the capacity from configuration.
-    final int CAPACITY = 10;
-    mRemoteBlockWorkerExecutor =
-        Executors.newFixedThreadPool(CAPACITY,
-            ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
+    int capacity = ClientContext.getConf()
+        .getInt(Constants.USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS);
+    mRemoteBlockWorkerExecutor = Executors.newFixedThreadPool(capacity,
+        ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
 
     NetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
     // If the local worker is not available, do not initialize the local worker client pool.
-    if (null == localWorkerAddress) {
+    if (localWorkerAddress == null) {
       mLocalBlockWorkerClientPool = null;
     } else {
       mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
@@ -164,7 +160,7 @@ public enum BlockStoreContext {
     NetAddress workerAddress = getWorkerAddress(hostname);
 
     // If we couldn't find a worker, crash.
-    if (null == workerAddress) {
+    if (workerAddress == null) {
       // TODO(calvin): Better exception usage.
       throw new RuntimeException("No Tachyon worker available for host: " + hostname);
     }
@@ -198,7 +194,7 @@ public enum BlockStoreContext {
    * @return true if there was a local worker, false otherwise
    */
   // TODO(calvin): Handle the case when the local worker starts up after the client or shuts down
-  // TODO before the client does.
+  // before the client does.
   public boolean hasLocalWorker() {
     return mLocalBlockWorkerClientPool != null;
   }
@@ -222,7 +218,7 @@ public enum BlockStoreContext {
           getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
       // If the local worker is not available, do not initialize the local worker client pool.
-      if (null == localWorkerAddress) {
+      if (localWorkerAddress == null) {
         mLocalBlockWorkerClientPool = null;
       } else {
         mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);

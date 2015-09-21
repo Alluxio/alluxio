@@ -44,6 +44,7 @@ public final class BlockMetadataManagerTest {
   private static final long TEST_SESSION_ID = 2;
   private static final long TEST_BLOCK_ID = 9;
   private static final long TEST_TEMP_BLOCK_ID = 10;
+  private static final long TEST_TEMP_BLOCK_ID2 = TEST_TEMP_BLOCK_ID + 1;
   private static final long TEST_BLOCK_SIZE = 20;
 
   private static final int[] TIER_LEVEL = {0, 1};
@@ -189,8 +190,81 @@ public final class BlockMetadataManagerTest {
     mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID);
   }
 
+  /**
+   * Dummy unit test, actually the case of move block meta to same dir should never happen
+   */
   @Test
-  public void moveBlockMetaTest() throws Exception {
+  public void moveBlockMetaSameDirTest() throws Exception {
+    // create and add two temp block metas with same tier and dir to the meta manager
+    StorageDir dir = mMetaManager.getTier(1).getDir(0);
+    TempBlockMeta tempBlockMeta1 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID,
+        TEST_BLOCK_SIZE, dir);
+    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID2,
+        TEST_BLOCK_SIZE, dir);
+    mMetaManager.addTempBlockMeta(tempBlockMeta1);
+    mMetaManager.addTempBlockMeta(tempBlockMeta2);
+
+    // commit the first temp block meta
+    mMetaManager.commitTempBlockMeta(tempBlockMeta1);
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
+
+    mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
+
+    // test to make sure that the dst tempBlockMeta has been removed from the dir
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND
+        .getMessage(TEST_TEMP_BLOCK_ID2));
+    mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
+  }
+
+  @Test
+  public void moveBlockMetaDiffDirTest() throws Exception {
+    // create and add two temp block metas with different dirs in the same HDD tier
+    StorageDir dir1 = mMetaManager.getTier(3).getDir(0);
+    StorageDir dir2 = mMetaManager.getTier(3).getDir(1);
+    TempBlockMeta tempBlockMeta1 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID,
+        TEST_BLOCK_SIZE, dir1);
+    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID2,
+        TEST_BLOCK_SIZE, dir2);
+    mMetaManager.addTempBlockMeta(tempBlockMeta1);
+    mMetaManager.addTempBlockMeta(tempBlockMeta2);
+
+    // commit the first temp block meta
+    mMetaManager.commitTempBlockMeta(tempBlockMeta1);
+    BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
+
+    mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
+
+    // make sure that the dst tempBlockMeta has been removed from the dir2
+    mThrown.expect(NotFoundException.class);
+    mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND
+        .getMessage(TEST_TEMP_BLOCK_ID2));
+    mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID2);
+  }
+
+  @Test
+  public void moveBlockMetaOutOfSpaceExceptionTest() throws Exception {
+    // Create a committed block under dir2 with larger size than the capacity of dir1,
+    // so that OutOfSpaceException should be thrown when move this block to dir1.
+
+    StorageDir dir1 = mMetaManager.getTier(3).getDir(0);
+    StorageDir dir2 = mMetaManager.getTier(3).getDir(1);
+    long maxHddDir1Capacity = TIER_CAPACITY_BYTES[1][0];
+    long blockMetaSize = maxHddDir1Capacity + 1;
+    BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, blockMetaSize, dir2);
+    TempBlockMeta tempBlockMeta2 = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID2,
+        TEST_BLOCK_SIZE, dir1);
+    mMetaManager.addTempBlockMeta(tempBlockMeta2);
+    dir2.addBlockMeta(blockMeta);
+
+    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_SPACE_FOR_BLOCK_META.getMessage(TEST_BLOCK_ID,
+        blockMetaSize, maxHddDir1Capacity, TIER_ALIAS[1]));
+    mMetaManager.moveBlockMeta(blockMeta, tempBlockMeta2);
+  }
+
+  @Test
+  public void moveBlockMetaDeprecatedTest() throws Exception {
     StorageDir dir = mMetaManager.getTier(1).getDir(0);
     TempBlockMeta tempBlockMeta =
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
@@ -212,7 +286,7 @@ public final class BlockMetadataManagerTest {
   }
 
   @Test
-  public void moveBlockMetaExceedCapacity() throws Exception {
+  public void moveBlockMetaDeprecatedExceedCapacityTest() throws Exception {
     StorageDir dir = mMetaManager.getTier(3).getDir(0);
     BlockMeta blockMeta = new BlockMeta(TEST_BLOCK_ID, 2000, dir);
     dir.addBlockMeta(blockMeta);

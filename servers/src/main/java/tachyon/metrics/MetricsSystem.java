@@ -100,7 +100,11 @@ public class MetricsSystem {
   public MetricsSystem(String instance, TachyonConf tachyonConf) {
     mInstance = instance;
     mTachyonConf = tachyonConf;
-    mMetricsConfig = new MetricsConfig(mTachyonConf.get(Constants.METRICS_CONF_FILE));
+    String metricsConfFile = null;
+    if (mTachyonConf.containsKey(Constants.METRICS_CONF_FILE)) {
+      metricsConfFile = mTachyonConf.get(Constants.METRICS_CONF_FILE);
+    }
+    mMetricsConfig = new MetricsConfig(metricsConfFile);
   }
 
   /**

@@ -38,18 +38,16 @@ import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.RemoteBlockReader;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
@@ -103,11 +101,10 @@ public class DataServerIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    mTFS.close();
     mBlockMasterClient.close();
     mLocalTachyonCluster.stop();
     System.clearProperty(Constants.WORKER_DATA_SERVER);
-    System.clearProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE);
+    System.clearProperty(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE);
     System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
@@ -145,7 +142,7 @@ public class DataServerIntegrationTest {
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
     System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    System.setProperty(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    System.setProperty(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mBlockReader);
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
@@ -213,7 +210,7 @@ public class DataServerIntegrationTest {
 
     CommonUtils
         .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2
-                + 10);
+            + 10);
 
     FileInfo fileInfo = mTFS.getInfo(mTFS.open(new TachyonURI("/readFile1")));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);
@@ -273,7 +270,7 @@ public class DataServerIntegrationTest {
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
   }
 
-  // TODO: Make this work with the new BlockReader
+  // TODO(calvin): Make this work with the new BlockReader.
   // @Test
   public void readThroughClientNonExistentTest() throws IOException, TException {
     final int length = 10;

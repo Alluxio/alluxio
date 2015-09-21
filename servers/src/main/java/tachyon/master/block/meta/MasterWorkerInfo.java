@@ -51,7 +51,7 @@ public final class MasterWorkerInfo {
   private long mLastUpdatedTimeMs;
   /** If true, the worker is considered registered. */
   private boolean mIsRegistered;
-  // TODO: convert all tier information to tierAlias (or storage type).
+  // TODO(gene): Convert all tier information to tierAlias (or storage type).
   /** Total bytes on each storage tier */
   private List<Long> mTotalBytesOnTiers;
   /** Used bytes on each storage tier */
@@ -63,13 +63,15 @@ public final class MasterWorkerInfo {
   private Set<Long> mToRemoveBlocks;
 
   public MasterWorkerInfo(long id, NetAddress address) {
-    mId = id;
     mWorkerAddress = Preconditions.checkNotNull(address);
+    mId = id;
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
+    mIsRegistered = false;
+    mTotalBytesOnTiers = Collections.emptyList();
+    mUsedBytesOnTiers = Collections.emptyList();
     mBlocks = new HashSet<Long>();
     mToRemoveBlocks = new HashSet<Long>();
-    mIsRegistered = false;
   }
 
   /**

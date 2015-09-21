@@ -31,10 +31,10 @@ import tachyon.worker.block.meta.StorageTier;
 /**
  * This class holds the meta data information of a block store.
  * <p>
- * TODO: use proto buf to represent this information
+ * TODO(bin): Use proto buf to represent this information.
  */
 public final class BlockStoreMeta {
-  // TODO: the following two fields don't need to be computed on the creation of each
+  // TODO(bin): The following two fields don't need to be computed on the creation of each
   // {@link BlockStoreMeta} instance.
   /**
    * Capacity bytes on each tier alias (MEM, SSD and HDD). E.g., for two tiers [MEM: 1GB][HDD:

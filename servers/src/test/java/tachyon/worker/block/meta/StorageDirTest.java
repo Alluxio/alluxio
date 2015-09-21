@@ -398,7 +398,7 @@ public final class StorageDirTest {
     mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY + 1);
   }
 
-  // TODO: also test claimed space
+  // TODO(bin): Also test claimed space.
   @Test
   public void cleanupSessionTest() throws Exception {
     // Create blocks under TEST_SESSION_ID

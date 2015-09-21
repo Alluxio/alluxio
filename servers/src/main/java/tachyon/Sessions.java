@@ -98,7 +98,7 @@ public class Sessions {
     } else {
       String folder = getSessionUfsTempFolder(sessionId);
       try {
-        String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
+        String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
         UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
         if (ufs.exists(folder)) {
           ufs.delete(folder, true);

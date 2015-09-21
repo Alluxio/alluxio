@@ -19,8 +19,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import tachyon.Constants;
-import tachyon.client.file.FileInStream;
-import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 
