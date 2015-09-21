@@ -28,6 +28,8 @@ import tachyon.Constants;
 import tachyon.HeartbeatThread;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.network.NetworkAddressUtils;
+import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
 
@@ -39,15 +41,13 @@ public final class LineageWorker {
 
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
-  /** Access to block data */
-  private final BlockDataManager mBlockDataManager;
   /** Threadpool for the lineage master sync */
   /** The executor service for the master client thread */
   private final ExecutorService mMasterClientExecutorService;
   /** The executor service for the master sync */
   private final ExecutorService mSyncExecutorService;
   /** Client for lineage master communication. */
-  private final LineageMasterWorkerClient mLineageMasterClient;
+  private final LineageMasterWorkerClient mLineageMasterWorkerClient;
   /** Configuration object */
   private final TachyonConf mTachyonConf;
   private final long mWorkerId;
@@ -59,28 +59,26 @@ public final class LineageWorker {
     Preconditions.checkState(workerId != 0, "Failed to register worker");
 
     mTachyonConf = WorkerContext.getConf();
-    mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
-    mLineageDataManager = new LineageDataManager(blockDataManager, mTachyonConf);
+    mLineageDataManager =
+        new LineageDataManager(Preconditions.checkNotNull(blockDataManager), mTachyonConf);
     mWorkerId = workerId;
 
     // Setup MasterClientBase along with its heartbeat ExecutorService
     mMasterClientExecutorService = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("lineage-worker-client-heartbeat-%d", true));
-    mLineageMasterClient = null;
-//    mLineageMasterClient = new LineageMasterClient(
-//        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-//        mMasterClientExecutorService, mTachyonConf);
+    mLineageMasterWorkerClient = new LineageMasterWorkerClient(
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
+        mMasterClientExecutorService, mTachyonConf);
 
     mSyncExecutorService = Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("lineage-worker-heartbeat-%d", true));
   }
 
   public void start() {
-    mFilePersistenceService =
-        mSyncExecutorService.submit(new HeartbeatThread(
-            "Lineage worker master sync", new LineageWorkerMasterSyncExecutor(mLineageDataManager,
-                mLineageMasterClient, mWorkerId),
-            mTachyonConf.getInt(Constants.MASTER_WORKER_LINEAGE_SYNC_INTERVAL_MS)));
+    mFilePersistenceService = mSyncExecutorService.submit(new HeartbeatThread(
+        "Lineage worker master sync", new LineageWorkerMasterSyncExecutor(mLineageDataManager,
+            mLineageMasterWorkerClient, mWorkerId),
+        mTachyonConf.getInt(Constants.MASTER_WORKER_LINEAGE_SYNC_INTERVAL_MS)));
   }
 
   public void stop() {
