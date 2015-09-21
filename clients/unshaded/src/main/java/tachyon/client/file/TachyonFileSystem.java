@@ -214,6 +214,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws InvalidPathException if the path is invalid
    * @throws IOException if the master cannot create the folder
    */
+  // TODO(calvin,jiri): Consider renaming to mkdir
   public boolean mkdirs(TachyonURI path) throws FileAlreadyExistException, InvalidPathException,
       IOException {
     return mkdirs(path, false);
