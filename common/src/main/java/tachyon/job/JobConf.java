@@ -19,5 +19,13 @@ package tachyon.job;
  * A job configuration.
  */
 public class JobConf {
+  private final String mOutputFilePath;
 
+  public JobConf(String outputFilePath) {
+    mOutputFilePath = outputFilePath;
+  }
+
+  public String getOutputFilePath() {
+    return mOutputFilePath;
+  }
 }
