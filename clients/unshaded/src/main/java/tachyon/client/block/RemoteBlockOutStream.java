@@ -65,6 +65,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     mRemoteWriter.close();
     if (mFlushedBytes == mBlockSize) {
       mWorkerClient.cacheBlock(mBlockId);
+      ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
     } else {
       mWorkerClient.cancelBlock(mBlockId);
     }
@@ -86,5 +87,6 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private void writeToRemoteBlock(byte[] b, int off, int len) throws IOException {
     mRemoteWriter.write(b, off, len);
     mFlushedBytes += len;
+    ClientContext.getClientMetrics().incBytesWrittenRemote(len);
   }
 }

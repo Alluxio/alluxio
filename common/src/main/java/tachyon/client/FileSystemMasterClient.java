@@ -37,7 +37,6 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.

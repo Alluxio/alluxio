@@ -17,6 +17,7 @@ package tachyon.worker;
 
 import java.io.IOException;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.HeartbeatExecutor;
@@ -25,11 +26,11 @@ import tachyon.HeartbeatExecutor;
  * Session client sends periodical heartbeats to the worker it is talking to. If it fails to do so,
  * the worker may withdraw the space granted to the particular session.
  */
-class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
+final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   private final WorkerClient mWorkerClient;
 
   public WorkerClientHeartbeatExecutor(WorkerClient workerClient) {
-    mWorkerClient = workerClient;
+    mWorkerClient = Preconditions.checkNotNull(workerClient);;
   }
 
   @Override

@@ -23,7 +23,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.apache.thrift.TEnum;
 import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
@@ -32,9 +31,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
@@ -224,7 +223,6 @@ public class TFsShellTest {
     Assert.assertEquals(new String(read), dataString);
   }
 
-  // TODO(cc): Investigate why this takes a long time? Around 7min on my Mac!
   @Test
   public void copyToLocalLargeTest() throws IOException {
     copyToLocalWithBytes(SIZE_BYTES);

@@ -632,38 +632,35 @@ public class FileSystemMasterIntegrationTest {
     HashSet<Long> listedDirIds = Sets.newHashSet();
     List<FileInfo> infoList = mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/")));
     for (FileInfo info : infoList) {
-      // TODO(Gene): After info.getFileId return long, remove this type cast.
-      long id = new Long(info.getFileId());
+      long id = info.getFileId();
       listedDirIds.add(id);
       for (FileInfo fileInfo : mFsMaster.getFileInfoList(id)) {
-        listedIds.add((long) fileInfo.getFileId());
+        listedIds.add(fileInfo.getFileId());
       }
     }
     Assert.assertEquals(ids, listedIds);
     Assert.assertEquals(dirIds, listedDirIds);
   }
 
-  // TODO(gene): There is no longer `ls` method in FileSystemMaster, should this test be removed or
-  // should `ls` be added back?
-  //@Test
-  //public void lsTest() throws FileAlreadyExistException, InvalidPathException, TachyonException,
-  //    BlockInfoException, FileDoesNotExistException {
-  //  for (int i = 0; i < 10; i ++) {
-  //    mMasterInfo.mkdirs(new TachyonURI("/i" + i), true);
-  //    for (int j = 0; j < 10; j ++) {
-  //      mMasterInfo.createFile(new TachyonURI("/i" + i + "/j" + j), 64);
-  //    }
-  //  }
+  @Test
+  public void lsTest() throws FileAlreadyExistException, InvalidPathException, TachyonException,
+      BlockInfoException, FileDoesNotExistException {
+    for (int i = 0; i < 10; i ++) {
+      mFsMaster.mkdirs(new TachyonURI("/i" + i), true);
+      for (int j = 0; j < 10; j ++) {
+        mFsMaster.createFile(new TachyonURI("/i" + i + "/j" + j), 64, true);
+      }
+    }
 
-  //  Assert.assertEquals(1, mMasterInfo.ls(new TachyonURI("/i0/j0"), false).size());
-  //  Assert.assertEquals(1, mMasterInfo.ls(new TachyonURI("/i0/j0"), true).size());
-  //  for (int i = 0; i < 10; i ++) {
-  //    Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI("/i" + i), false).size());
-  //    Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI("/i" + i), true).size());
-  //  }
-  //  Assert.assertEquals(11, mMasterInfo.ls(new TachyonURI(TachyonURI.SEPARATOR), false).size());
-  //  Assert.assertEquals(111, mMasterInfo.ls(new TachyonURI(TachyonURI.SEPARATOR), true).size());
-  //}
+    Assert.assertEquals(1,
+        mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/i0/j0"))).size());
+    for (int i = 0; i < 10; i ++) {
+      Assert.assertEquals(10,
+          mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/i" + i))).size());
+    }
+    Assert.assertEquals(10,
+        mFsMaster.getFileInfoList(mFsMaster.getFileId(new TachyonURI("/"))).size());
+  }
 
   @Test
   public void notFileCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,

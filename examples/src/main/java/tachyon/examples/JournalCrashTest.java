@@ -146,7 +146,7 @@ public class JournalCrashTest {
           continue;
         }
         mSuccessNum ++;
-        CommonUtils.sleepMs(null, 100);
+        CommonUtils.sleepMs(100);
       }
     }
 
