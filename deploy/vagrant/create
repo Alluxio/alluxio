@@ -162,28 +162,27 @@ if [[ "$ALIAS_IP" == "true" ]]; then
 fi
 
 # show master IP
-if [[ "$?" == "0" ]]; then
-  if [[ "$PROVIDER" == "aws" ]]; then
-    masters=$(cat $ANSIBLE_INFO_FILE | grep Master | cut -d' ' -f2 | cut -d'=' -f2)
-    main_master=$(cat $ANSIBLE_INFO_FILE | grep TachyonMaster | cut -d' ' -f2 | cut -d'=' -f2)
-  else
-    masters=$(cat files/hosts | grep Master | cut -d' ' -f1)
-    main_master=$(cat files/hosts | grep TachyonMaster | cut -d' ' -f1)
-  fi
-  masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
-
-  if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
-    info ">>> Tachyon is in Fault Tolerant mode, all Tachyon masters: ${masters} <<<"
-  fi
-  for master in ${masters[@]}; do
-    info "Trying to curl Tachyon web UI at ${master}:19999"
-    curl "${master}:19999" >/dev/null
-    if [[ "$?" == "0" ]]; then
-      info ">>> Tachyon master is currently ${master}, Tachyon web UI is at ${master}:19999 <<<"
-      break
-    fi
-  done
-
-  info ">>> Master public IP for other software is ${main_master} <<<"
-  info ">>> Please visit default port of the web UI of what you deployed <<<"
+set +e # turn off the option that exits immediately when a command fails
+if [[ "$PROVIDER" == "aws" ]]; then
+  masters=$(cat $ANSIBLE_INFO_FILE | grep Master | cut -d' ' -f2 | cut -d'=' -f2)
+  main_master=$(cat $ANSIBLE_INFO_FILE | grep 'TachyonMaster ' | cut -d' ' -f2 | cut -d'=' -f2)
+else
+  masters=$(cat files/hosts | grep Master | cut -d' ' -f1)
+  main_master=$(cat files/hosts | grep 'TachyonMaster ' | cut -d' ' -f1)
 fi
+masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
+
+if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
+  info ">>> Tachyon is in Fault Tolerant mode, all Tachyon masters: <<<"
+fi
+for master in ${masters[@]}; do
+  info "Tachyon master: ${master}"
+  info "Trying to curl Tachyon web UI at ${master}:19999"
+  curl "${master}:19999" >/dev/null
+  if [[ "$?" == "0" ]]; then
+    info ">>> Tachyon master is currently ${master}, Tachyon web UI is at ${master}:19999 <<<"
+  fi
+done
+
+info ">>> Master public IP for other software is ${main_master} <<<"
+info ">>> Please visit default port of the web UI of what you deployed <<<"
