@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.TachyonURI;
 import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
@@ -102,20 +104,11 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean completeFileCheckpoint(long workerId, long fileId, long length,
-      String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException {
-    return mFileSystemMaster.completeFileCheckpoint(workerId, fileId, length, new TachyonURI(
-        checkpointPath));
-  }
+  public long loadFileInfoFromUfs(String path, String ufsPath, boolean recursive)
+      throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException,
+      TachyonException, InvalidPathException {
+    Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(), "UFSPath is required.");
 
-  @Override
-  public long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws FileAlreadyExistException, BlockInfoException,
-      SuspectedFileSizeException, TachyonException, InvalidPathException {
-    if (ufsPath == null || ufsPath.isEmpty()) {
-      throw new IllegalArgumentException("the underFS path is not provided");
-    }
     UnderFileSystem underfs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
     try {
       long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);

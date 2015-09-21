@@ -40,9 +40,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -248,10 +248,6 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("blockId"),
                 entry.getLong("length"));
           }
-          case WORKER_ID_GENERATOR: {
-            return new WorkerIdGeneratorEntry(
-                entry.getLong("nextWorkerId"));
-          }
 
           // FileSystem
           case INODE_FILE: {
@@ -360,7 +356,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getByteBuffer("metadata"));
           }
           default:
-            throw new IOException("Unknown entry type: " + entry.mType);
+            throw new IOException("Unknown journal entry type: " + entry.mType);
         }
       }
 

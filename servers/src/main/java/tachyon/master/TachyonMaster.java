@@ -36,7 +36,7 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.journal.Journal;
+import tachyon.master.journal.ReadWriteJournal;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
 import tachyon.underfs.UnderFileSystem;
@@ -87,13 +87,13 @@ public class TachyonMaster {
   /** The master managing all raw table related metadata */
   protected RawTableMaster mRawTableMaster;
 
-  // The journals for the masters
+  // The read-write journals for the masters
   /** The journal for the block master */
-  protected final Journal mBlockMasterJournal;
+  protected final ReadWriteJournal mBlockMasterJournal;
   /** The journal for the file system master */
-  protected final Journal mFileSystemMasterJournal;
+  protected final ReadWriteJournal mFileSystemMasterJournal;
   /** The journal for the raw table master */
-  protected final Journal mRawTableMasterJournal;
+  protected final ReadWriteJournal mRawTableMasterJournal;
 
   /** The web ui server */
   private UIWebServer mWebServer = null;
@@ -154,10 +154,11 @@ public class TachyonMaster {
           "Tachyon was not formatted! The journal folder is " + journalDirectory);
 
       // Create the journals.
-      mBlockMasterJournal = new Journal(BlockMaster.getJournalDirectory(journalDirectory));
+      mBlockMasterJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(journalDirectory));
       mFileSystemMasterJournal =
-          new Journal(FileSystemMaster.getJournalDirectory(journalDirectory));
-      mRawTableMasterJournal = new Journal(RawTableMaster.getJournalDirectory(journalDirectory));
+          new ReadWriteJournal(FileSystemMaster.getJournalDirectory(journalDirectory));
+      mRawTableMasterJournal =
+          new ReadWriteJournal(RawTableMaster.getJournalDirectory(journalDirectory));
 
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
@@ -289,11 +290,17 @@ public class TachyonMaster {
   }
 
   private void startServing() {
+    startServing("", "");
+  }
+
+  protected void startServing(String startMessage, String stopMessage) {
     mMasterMetricsSystem.start();
     startServingWebServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
+    LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress + " "
+        + startMessage);
     startServingRPCServer();
-    LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress);
+    LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress + " "
+        + stopMessage);
   }
 
   protected void startServingWebServer() {

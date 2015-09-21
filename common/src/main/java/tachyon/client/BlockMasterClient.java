@@ -34,7 +34,7 @@ import tachyon.thrift.WorkerInfo;
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon clients.
  *
- * TODO(jsimsa): The functions in this wrapper contain very similar boilerplate. It would make sense
+ * TODO(jiri): The functions in this wrapper contain very similar boilerplate. It would make sense
  * to have a single "Retry" utility is used to to execute the while () { try ... catch ... } logic,
  * parametrized by the RPC to invoke.
  *

@@ -29,14 +29,14 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import com.google.common.io.Closer;
-
 import org.apache.thrift.TException;
+
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.FileInStream;
@@ -44,7 +44,6 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -81,7 +80,6 @@ public class TFsShell implements Closeable {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
     mTfs = TachyonFileSystem.get();
-    mCloser.register(mTfs);
   }
 
   @Override

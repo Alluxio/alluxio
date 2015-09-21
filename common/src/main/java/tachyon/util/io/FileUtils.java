@@ -23,6 +23,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import com.google.common.io.Files;
@@ -35,11 +36,11 @@ import tachyon.thrift.InvalidPathException;
  *
  * By convention, methods take file path strings as parameters.
  */
-public class FileUtils {
+public final class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger("");
 
   /**
-   * Change local file's permission.
+   * Changes local file's permission.
    *
    * @param filePath that will change permission
    * @param perms the permission, e.g. "775"
@@ -78,6 +79,7 @@ public class FileUtils {
    * @throws IOException when operation fails
    */
   private static void redirectIO(final Process process) throws IOException {
+    Preconditions.checkNotNull(process);
     /*
      * Because chmod doesn't have a lot of error or output messages, it is safe to process the
      * output after the process is done. As of java 7, you can have the process redirect to
@@ -97,7 +99,7 @@ public class FileUtils {
   }
 
   /**
-   * Change local file's permission to be 777.
+   * Changes local file's permission to be 777.
    *
    * @param filePath that will change permission
    * @throws IOException when fails to change file's permission to 777
@@ -151,8 +153,8 @@ public class FileUtils {
   }
 
   /**
-   * Move file from one place to another, can across storage devices (e.g., from memory to SSD) when
-   * {@link File#renameTo} may not work.
+   * Moves file from one place to another, can across storage devices (e.g., from memory to SSD)
+   * when {@link File#renameTo} may not work.
    *
    * Current implementation uses {@link com.google.common.io.Files#move(File, File)}, may change if
    * there is a better solution.
@@ -166,7 +168,7 @@ public class FileUtils {
   }
 
   /**
-   * Delete the file or directory.
+   * Deletes the file or directory.
    *
    * Current implementation uses {@link java.io.File#delete()}, may change if there is a better
    * solution.
@@ -183,7 +185,7 @@ public class FileUtils {
   }
 
   /**
-   * Create the storage directory path, including any necessary but nonexistent parent directories.
+   * Creates the storage directory path, including any necessary but nonexistent parent directories.
    * If the directory already exists, do nothing.
    *
    * Also, appropriate directory permissions (777 + StickyBit, namely "drwxrwxrwt") are set.
@@ -238,4 +240,6 @@ public class FileUtils {
   public static boolean exists(String path) {
     return new File(path).exists();
   }
+
+  private FileUtils() {} // prevent instantiation
 }

@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterContext;
 import tachyon.underfs.UnderFileSystem;
 
@@ -168,7 +169,7 @@ public final class JournalWriter {
   private void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
-    // TODO(gene): Should the deletes start from the end?
+    // TODO(gpang): should the deletes start from the end?
     int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
@@ -233,7 +234,7 @@ public final class JournalWriter {
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
-        throw new IOException("Cannot write entry after closing the stream.");
+        throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
           new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);
@@ -260,7 +261,7 @@ public final class JournalWriter {
 
       LOG.info("Successfully created tmp checkpoint file: " + mTempCheckpointPath);
       mUfs.delete(mJournal.getCheckpointFilePath(), false);
-      // TODO(gene): The real checkpoint should not be overwritten here, but after all operations.
+      // TODO(gpang): the real checkpoint should not be overwritten here, but after all operations.
       mUfs.rename(mTempCheckpointPath, mJournal.getCheckpointFilePath());
       mUfs.delete(mTempCheckpointPath, false);
       LOG.info("Renamed checkpoint file " + mTempCheckpointPath + " to "
@@ -299,7 +300,7 @@ public final class JournalWriter {
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
-        throw new IOException("Cannot write entry after closing the stream.");
+        throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
           new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);

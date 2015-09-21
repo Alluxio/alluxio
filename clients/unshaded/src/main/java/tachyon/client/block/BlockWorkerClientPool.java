@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
@@ -41,7 +42,6 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
    * The capacity for this pool must be large, since each block written will hold a client until
    * the block is committed at the end of the file completion.
    */
-  private static final int CAPACITY = 10000;
   private final ExecutorService mExecutorService;
   private final NetAddress mWorkerNetAddress;
 
@@ -51,9 +51,8 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
    * @param workerAddress the worker address
    */
   public BlockWorkerClientPool(NetAddress workerAddress) {
-    // TODO(calvin): Get the capacity from configuration.
-    super(CAPACITY);
-    mExecutorService = Executors.newFixedThreadPool(CAPACITY, ThreadFactoryUtils.build(
+    super(ClientContext.getConf().getInt(Constants.USER_LOCAL_BLOCK_WORKER_CLIENT_THREADS));
+    mExecutorService = Executors.newFixedThreadPool(mMaxCapacity, ThreadFactoryUtils.build(
         "block-worker-heartbeat-%d", true));
     mWorkerNetAddress = workerAddress;
   }
