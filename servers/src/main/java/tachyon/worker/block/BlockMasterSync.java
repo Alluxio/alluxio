@@ -31,6 +31,7 @@ import tachyon.exception.NotFoundException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * Task that carries out the necessary block worker to master communications, including register and
@@ -69,11 +70,18 @@ public final class BlockMasterSync implements Runnable {
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_BLOCK_REMOVER_POOL_SIZE);
 
-  BlockMasterSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      NetAddress workerAddress, WorkerBlockMasterClient masterClient) {
+  /**
+   * Constructor for BlockMasterSync
+   *
+   * @param blockDataManager the blockDataManager this syncer is updating to
+   * @param workerAddress the net address of the worker
+   * @param masterClient the Tachyon master client
+   */
+  BlockMasterSync(BlockDataManager blockDataManager, NetAddress workerAddress,
+      WorkerBlockMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     mWorkerAddress = workerAddress;
-    mTachyonConf = tachyonConf;
+    mTachyonConf = WorkerContext.getConf();
     mMasterClient = masterClient;
     mHeartbeatIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mHeartbeatTimeoutMs = mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
