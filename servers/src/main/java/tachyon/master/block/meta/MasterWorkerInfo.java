@@ -63,13 +63,15 @@ public final class MasterWorkerInfo {
   private Set<Long> mToRemoveBlocks;
 
   public MasterWorkerInfo(long id, NetAddress address) {
-    mId = id;
     mWorkerAddress = Preconditions.checkNotNull(address);
+    mId = id;
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
+    mIsRegistered = false;
+    mTotalBytesOnTiers = Collections.emptyList();
+    mUsedBytesOnTiers = Collections.emptyList();
     mBlocks = new HashSet<Long>();
     mToRemoveBlocks = new HashSet<Long>();
-    mIsRegistered = false;
   }
 
   /**
