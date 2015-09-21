@@ -175,7 +175,11 @@ public final class FileSystemMaster extends MasterBase {
       AddMountPointEntry typedEntry = (AddMountPointEntry) entry;
       TachyonURI tachyonPath = typedEntry.getTachyonPath();
       TachyonURI ufsPath = typedEntry.getUfsPath();
-      if (!mMountTable.add(tachyonPath, ufsPath)) {
+      try {
+        if (!mMountTable.add(tachyonPath, ufsPath)) {
+          throw new IOException("failed to mount " + ufsPath + " at " + tachyonPath);
+        }
+      } catch (InvalidPathException e) {
         throw new IOException("failed to mount " + ufsPath + " at " + tachyonPath);
       }
     } else if (entry instanceof DeleteMountPointEntry) {
@@ -346,7 +350,7 @@ public final class FileSystemMaster extends MasterBase {
    * @return the {@link FileInfo} for the given file id
    * @throws FileDoesNotExistException
    */
-  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException {
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileStatusOps();
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -355,7 +359,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   // This function should only be called from within synchronized (mInodeTree) blocks.
-  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
+  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException,
+      InvalidPathException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
     TachyonURI path = mInodeTree.getPath(inode);
@@ -377,7 +382,8 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
+  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException,
+      InvalidPathException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
 
@@ -604,7 +610,12 @@ public final class FileSystemMaster extends MasterBase {
 
       if (delInode.isFile()) {
         // Delete the ufs file.
-        String ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
+        String ufsPath;
+        try {
+          ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
+        } catch (InvalidPathException e) {
+          throw new TachyonException(e.getMessage());
+        }
         boolean isPersisted = ((InodeFile) delInode).isPersisted();
         if (isPersisted) {
           UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
@@ -639,7 +650,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws BlockInfoException
    */
   public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws FileDoesNotExistException, BlockInfoException {
+      throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
@@ -665,7 +676,8 @@ public final class FileSystemMaster extends MasterBase {
    * @return a list of {@link FileBlockInfo} for all the blocks of the file.
    * @throws FileDoesNotExistException
    */
-  public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException {
+  public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException,
+      InvalidPathException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
@@ -708,7 +720,8 @@ public final class FileSystemMaster extends MasterBase {
    * @return a new {@link FileBlockInfo} for the block
    */
   // This function should only be called from within synchronized (mInodeTree) blocks.
-  private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) {
+  private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) throws
+      InvalidPathException {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
 
     fileBlockInfo.blockInfo = blockInfo;
