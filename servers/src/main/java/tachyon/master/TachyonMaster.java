@@ -324,7 +324,7 @@ public class TachyonMaster {
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory =
-        new AuthenticationFactory(mTachyonConf).getServerTransportFactory();
+        new AuthenticationFactory(MasterContext.getConf()).getServerTransportFactory();
 
     // create master thrift service with the multiplexed processor.
     mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
