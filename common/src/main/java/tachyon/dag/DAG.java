@@ -15,8 +15,11 @@
 
 package tachyon.dag;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -123,5 +126,30 @@ public class DAG<T> {
       roots.add(root.getPayload());
     }
     return roots;
+  }
+
+  /**
+   * Sorts a given set of payloads topologically based on the DAG. This method requires all the
+   * payloads to be in the DAG. TODO(yupeng): optimize this implementation
+   *
+   * @param payloads the set of input payloads
+   * @return the payloads after topogological sort
+   */
+  public List<T> sortTopologically(Set<T> payloads) {
+    List<T> result = Lists.newArrayList();
+
+    Deque<DAGNode<T>> toVisit = new ArrayDeque<DAGNode<T>>(mRoots);
+    while (!toVisit.isEmpty()) {
+      DAGNode<T> visit = toVisit.removeFirst();
+      T payload = visit.getPayload();
+      if (payloads.remove(payload)) {
+        result.add(visit.getPayload());
+      }
+      toVisit.addAll(visit.getChildren());
+    }
+
+    Preconditions.checkState(toVisit.isEmpty(), "Not all the given payloads are in the DAG: ",
+        payloads);
+    return result;
   }
 }

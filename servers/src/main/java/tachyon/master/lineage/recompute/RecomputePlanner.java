@@ -15,10 +15,13 @@
 
 package tachyon.master.lineage.recompute;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
@@ -40,9 +43,33 @@ public class RecomputePlanner {
   public RecomputePlan plan() {
     List<Long> lostFiles = mFileSystemMaster.getLostFiles();
 
-    List<Lineage> toRecompute = Lists.newArrayList();
+    // lineage to recompute
+    Set<Lineage> toRecompute = Sets.newHashSet();
+    // report lost files
+    for (long lostFile : lostFiles) {
+      Lineage lineage = mLineageStore.reportLostFile(lostFile);
+      if (!lineage.isPersisted()) {
+        toRecompute.add(lineage);
+      }
+    }
 
-    RecomputePlan plan = new RecomputePlan(toRecompute);
+    for (Lineage lineage : Sets.newHashSet(toRecompute)) {
+      // find the parent lineages necessary to recompute
+      Deque<Lineage> deque = new ArrayDeque<Lineage>();
+      deque.addAll(mLineageStore.getParents(lineage));
+      while (!deque.isEmpty()) {
+        Lineage toCheck = deque.removeFirst();
+        if (toRecompute.contains(toCheck) || toCheck.isPersisted()) {
+          continue;
+        }
+
+        toRecompute.add(toCheck);
+        deque.addAll(mLineageStore.getParents(toCheck));
+      }
+    }
+
+    List<Lineage> toRecomputeAfterSort = mLineageStore.sortLineageTopologically(toRecompute);
+    RecomputePlan plan = new RecomputePlan(toRecomputeAfterSort);
     return plan;
   }
 }
