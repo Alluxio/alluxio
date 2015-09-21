@@ -73,18 +73,20 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException {
+  public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException,
+      InvalidPathException {
     return mFileSystemMaster.getFileInfoList(fileId);
   }
 
   @Override
   public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws FileDoesNotExistException, BlockInfoException {
+      throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
     return mFileSystemMaster.getFileBlockInfo(fileId, fileBlockIndex);
   }
 
   @Override
-  public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException {
+  public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException,
+      InvalidPathException {
     return mFileSystemMaster.getFileBlockInfoList(fileId);
   }
 

@@ -213,7 +213,8 @@ public class RawTableMaster extends MasterBase {
    * @return the table info
    * @throws TableDoesNotExistException when no table has the id
    */
-  public RawTableInfo getClientRawTableInfo(long id) throws TableDoesNotExistException {
+  public RawTableInfo getClientRawTableInfo(long id) throws InvalidPathException,
+      TableDoesNotExistException {
     if (!mRawTables.contains(id)) {
       throw new TableDoesNotExistException(
           ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));

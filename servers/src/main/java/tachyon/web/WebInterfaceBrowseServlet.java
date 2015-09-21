@@ -220,6 +220,10 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
             "Error: non-existing file " + fdne.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
+      } catch (InvalidPathException ipe) {
+        request.setAttribute("InvalidPathException",
+            "Error: invalid path " + ipe.getMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       }
       fileInfos.add(toAdd);
     }

@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.thrift.InvalidPathException;
+import tachyon.util.io.PathUtils;
 
 /** This class is used for keeping track of Tachyon mount points. It is thread safe. */
 public class MountTable {
@@ -46,7 +48,8 @@ public class MountTable {
    * @param ufsPath a UFS path
    * @return whether the operation succeeded or not
    */
-  public synchronized boolean add(TachyonURI tachyonPath, TachyonURI ufsPath) {
+  public synchronized boolean add(TachyonURI tachyonPath, TachyonURI ufsPath)
+      throws InvalidPathException {
     LOG.info("Mounting " + ufsPath + " under " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       TachyonURI path = entry.getKey();
@@ -81,7 +84,7 @@ public class MountTable {
    * @param tachyonPath a Tachyon path
    * @return mount point the given Tachyon path is nested under
    */
-  public synchronized TachyonURI getMountPoint(TachyonURI tachyonPath) {
+  public synchronized TachyonURI getMountPoint(TachyonURI tachyonPath) throws InvalidPathException {
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
         return entry.getKey();
@@ -98,7 +101,7 @@ public class MountTable {
    * @param tachyonPath a Tachyon path
    * @return the resolved path
    */
-  public synchronized TachyonURI resolve(TachyonURI tachyonPath) {
+  public synchronized TachyonURI resolve(TachyonURI tachyonPath) throws InvalidPathException {
     LOG.info("Resolving " + tachyonPath);
     for (Map.Entry<TachyonURI, TachyonURI> entry : mMountTable.entrySet()) {
       if (hasPrefix(tachyonPath, entry.getKey())) {
@@ -115,7 +118,17 @@ public class MountTable {
    * @param prefix a prefix
    * @return whether the given path has the given prefix
    */
-  private boolean hasPrefix(TachyonURI path, TachyonURI prefix) {
-    return path.toString().startsWith(prefix.toString());
+  private boolean hasPrefix(TachyonURI path, TachyonURI prefix) throws InvalidPathException {
+    String[] pathComponents = PathUtils.getPathComponents(path.toString());
+    String[] prefixComponents = PathUtils.getPathComponents(prefix.toString());
+    if (pathComponents.length < prefixComponents.length) {
+      return false;
+    }
+    for (int i = 0; i < prefixComponents.length; i ++) {
+      if (!pathComponents[i].equals(prefixComponents[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 }
