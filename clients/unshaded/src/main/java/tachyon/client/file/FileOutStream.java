@@ -62,6 +62,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
   private boolean mCanceled;
   private boolean mClosed;
+  private String mHostname;
   private boolean mShouldCacheCurrentBlock;
   private BufferedBlockOutStream mCurrentBlockOutStream;
   private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
@@ -95,6 +96,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     }
     mClosed = false;
     mCanceled = false;
+    mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
   }
 
@@ -240,7 +242,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     if (mTachyonStorageType.isStore()) {
       mCurrentBlockOutStream =
-          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, null);
+          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, mHostname);
       mShouldCacheCurrentBlock = true;
     }
   }
