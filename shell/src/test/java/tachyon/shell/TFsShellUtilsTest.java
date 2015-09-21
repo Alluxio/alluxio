@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -79,30 +78,12 @@ public class TFsShellUtilsTest {
     TFS, LOCAL
   }
 
-  public static Comparator<File> createFilePathComparator() {
-    return new Comparator<File>() {
-      public int compare(File file1, File file2) {
-        // ascending order
-        return file1.getAbsoluteFile().compareTo(file2.getAbsoluteFile());
-      }
-    };
-  }
-
-  public static Comparator<TachyonURI> createTachyonURIComparator() {
-    return new Comparator<TachyonURI>() {
-      public int compare(TachyonURI tUri1, TachyonURI tUri2) {
-        // ascending order
-        return tUri1.getPath().compareTo(tUri2.getPath());
-      }
-    };
-  }
-
   public String resetTachyonFileHierarchy() throws IOException, TException {
     return resetTachyonFileHierarchy(mTfs);
   }
 
-  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) throws IOException,
-      TException {
+  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) 
+      throws IOException, TException {
     /**
      * Generate such local structure /testWildCards
      *                                ├── foo |
