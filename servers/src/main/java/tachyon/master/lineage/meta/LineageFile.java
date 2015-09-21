@@ -23,7 +23,7 @@ public final class LineageFile extends TachyonFile {
 
   public LineageFile(long fileId) {
     super(fileId);
-    mState = LineageFileState.ADDED;
+    mState = LineageFileState.CREATED;
   }
 
   public String getUnderFilePath() {

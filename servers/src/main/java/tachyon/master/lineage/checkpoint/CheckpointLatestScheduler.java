@@ -16,45 +16,40 @@
 package tachyon.master.lineage.checkpoint;
 
 import java.util.ArrayDeque;
-import java.util.List;
 
 import com.google.common.collect.Lists;
 
 import tachyon.master.lineage.meta.Lineage;
-import tachyon.master.lineage.meta.LineageState;
 import tachyon.master.lineage.meta.LineageStoreView;
 
 /**
- * This class tries to checkpoint all the latest lineage, i.e. all the leaf nodes in the lineage
- * DAG.This class serves as an example to implement an Evictor.
+ * This class tries to checkpoint the latest created lineage that is ready for persistence.This
+ * class serves as an example to implement an Evictor.
  */
 public final class CheckpointLatestScheduler implements CheckpointScheduler {
 
   @Override
   public CheckpointPlan schedule(LineageStoreView store) {
-    List<Lineage> toCheckpoint = Lists.newArrayList();
-
+    Lineage toCheckpoint = null;
+    long latestCreated = 0;
     ArrayDeque<Lineage> deque = new ArrayDeque<Lineage>(store.getRootLineage());
     while (!deque.isEmpty()) {
       Lineage lineage = deque.pollFirst();
-      List<Lineage> children = store.getChildren(lineage);
-      // TODO(yupeng): rewrite this in switch statement
-      if (lineage.getState() == LineageState.ADDED
-          || lineage.getState() == LineageState.IN_RECORD) {
-        // the lineage and its descendants are not ready for checkpoint
-        // TODO(yupeng): what about LOST state?
-        continue;
-      } else if (lineage.getState() == LineageState.IN_CHECKPOINT) {
-        // the lineage is being recorded, do thing
-        continue;
-      } else if (children.isEmpty() && lineage.getState() == LineageState.RECORDED) {
-        toCheckpoint.add(lineage);
-      } else {
-        for (Lineage child : children) {
-          deque.add(child);
+      // checkpoint the lineage whose outfiles are all in memory and not persisted yet.
+      if (lineage.isCompleted() && !lineage.isPersisted() && !lineage.needRecompute()
+          && !lineage.isInCheckpointing()) {
+        if (lineage.getCreationTime() > latestCreated) {
+          toCheckpoint = lineage;
+          latestCreated = lineage.getCreationTime();
         }
       }
+
+      for (Lineage child : store.getChildren(lineage)) {
+        deque.add(child);
+      }
     }
-    return new CheckpointPlan(toCheckpoint);
+
+    return toCheckpoint == null ? new CheckpointPlan(Lists.<Lineage>newArrayList())
+        : new CheckpointPlan(Lists.newArrayList(toCheckpoint));
   }
 }

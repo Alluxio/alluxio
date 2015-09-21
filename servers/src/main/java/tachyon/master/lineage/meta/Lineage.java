@@ -32,8 +32,7 @@ public final class Lineage {
   private final List<TachyonFile> mInputFiles;
   private final List<LineageFile> mOutputFiles;
   private final Job mJob;
-
-  private LineageState mState;
+  private final long mCreationTimeMs;
 
   /**
    * Creates a new lineage. The state will be initialized to ADDED.
@@ -46,8 +45,8 @@ public final class Lineage {
     mInputFiles = Preconditions.checkNotNull(inputFiles);
     mOutputFiles = Preconditions.checkNotNull(outputFiles);
     mJob = Preconditions.checkNotNull(job);
-    mState = LineageState.ADDED;
     mId = LineageIdGenerator.generateId();
+    mCreationTimeMs = System.currentTimeMillis();
   }
 
   public List<TachyonFile> getInputFiles() {
@@ -62,59 +61,71 @@ public final class Lineage {
     return mJob;
   }
 
-  public LineageState getState() {
-    return mState;
-  }
-
-  public void setState(LineageState newState) {
-    mState = newState;
-  }
-
   public long getId() {
     return mId;
   }
 
-  public void recordOutputFile(long fileId) {
-    // TODO validate lineage state
-    if(mState!=LineageState.IN_RECORD) {
-      mState = LineageState.IN_RECORD;
-    }
+  public long getCreationTime() {
+    return mCreationTimeMs;
+  }
 
-    boolean allRecorded = true;
+  public void recordOutputFile(long fileId) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
-        outputFile.setState(LineageFileState.RECORDED);
+        outputFile.setState(LineageFileState.COMPLETED);
       }
-
-      if (outputFile.getState() != LineageFileState.RECORDED) {
-        allRecorded = false;
-      }
-    }
-
-    if (allRecorded) {
-      mState = LineageState.RECORDED;
     }
   }
 
-  public void commitOutputFile(long fileId) {
-    // TODO validate lineage state
-    if(mState!=LineageState.IN_CHECKPOINT) {
-      mState = LineageState.IN_CHECKPOINT;
-    }
-
-    boolean allCheckpointed = true;
+  public void addLostFile(long fileId) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
-        outputFile.setState(LineageFileState.CHECKPOINTED);
-      }
-
-      if (outputFile.getState() != LineageFileState.CHECKPOINTED) {
-        allCheckpointed = false;
+        outputFile.setState(LineageFileState.LOST);
       }
     }
+  }
 
-    if (allCheckpointed) {
-      mState = LineageState.CHECKPOINTED;
+  public boolean needRecompute() {
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getState() == LineageFileState.LOST) {
+        return true;
+      }
     }
+    return false;
+  }
+
+  public boolean isCompleted() {
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getState() != LineageFileState.COMPLETED) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public void commitOutputFile(long fileId) {
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getFileId() == fileId) {
+        outputFile.setState(LineageFileState.PERSISTED);
+      }
+    }
+  }
+
+  public boolean isPersisted() {
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getState() != LineageFileState.PERSISTED) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public boolean isInCheckpointing() {
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getState() != LineageFileState.PERSISENCE_REQUESTED) {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -16,15 +16,12 @@
 package tachyon.master.lineage.recompute;
 
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
-import tachyon.master.lineage.meta.LineageState;
 import tachyon.master.lineage.meta.LineageStore;
 
 /**
@@ -42,13 +39,6 @@ public class RecomputePlanner {
 
   public RecomputePlan plan() {
     List<Long> lostFiles = mFileSystemMaster.getLostFiles();
-
-    // find the corresponding lineages, mark all of them as lost
-    Set<Lineage> lineages = Sets.newHashSet();
-    for(long fileId : lostFiles) {
-      Lineage lineage = mLineageStore.getLineageByOutputFile(fileId);
-      lineage.setState(LineageState.IN_RECOMPUTE);
-    }
 
     List<Lineage> toRecompute = Lists.newArrayList();
 

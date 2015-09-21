@@ -44,7 +44,7 @@ public final class LineageStore {
     mIdIndex = Maps.newHashMap();
   }
 
-  public synchronized long addLineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles,
+  public synchronized long createLineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles,
       Job job) {
     Lineage lineage = new Lineage(inputFiles, outputFiles, job);
 
@@ -66,7 +66,7 @@ public final class LineageStore {
     return lineage.getId();
   }
 
-  public synchronized void recordFileForAsyncWrite(long fileId, String underFsPath) {
+  public synchronized void completeFileForAsyncWrite(long fileId, String underFsPath) {
     Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.recordOutputFile(fileId);
@@ -101,10 +101,10 @@ public final class LineageStore {
     return mLineageDAG.getChildren(lineage);
   }
 
-  public synchronized Lineage getLineageByOutputFile(long fileId) {
-    return mOutputFileIndex.get(fileId);
+  public synchronized void reportLostFile(long fileId){
+    Lineage lineage = mOutputFileIndex.get(fileId);
+    lineage.addLostFile(fileId);
   }
-
   /**
    * Gets all the root lineages.
    */
