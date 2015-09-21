@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -230,7 +231,7 @@ public class FileOutStreamIntegrationTest {
    * @throws IOException if file can not be opened successfully.
    */
   @Test
-  public void writeSpecifyLocalTest() throws IOException {
+  public void writeSpecifyLocalTest() throws IOException, TException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int LENGTH = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteLocal);
