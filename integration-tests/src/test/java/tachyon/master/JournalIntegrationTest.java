@@ -26,9 +26,9 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -36,7 +36,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
-import tachyon.master.journal.JournalWriter;
+import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -79,8 +79,8 @@ public class JournalIntegrationTest {
 
   private void deleteFsMasterJournalLogs() throws IOException {
     String journalFolder = mLocalTachyonCluster.getMaster().getJournalFolder();
-    Journal journal = new Journal(PathUtils.concatPath(journalFolder,
-        Constants.FILE_SYSTEM_MASTER_SERVICE_NAME), mMasterTachyonConf);
+    Journal journal = new ReadWriteJournal(
+        PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_SERVICE_NAME));
     UnderFileSystem.get(journalFolder, mMasterTachyonConf).delete(journal.getCurrentLogFilePath(),
         true);
   }
@@ -114,7 +114,7 @@ public class JournalIntegrationTest {
     TachyonFSTestUtils.createByteFile(mTfs, "/xyz", options, 10);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     TachyonURI ckPath = new TachyonURI("/xyz_ck");
-    // TODO(cc): what's the counterpart in the new client API for this?
+    // TODO(cc): What's the counterpart in the new client API for this?
     mTfs.loadFileInfoFromUfs(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()), true);
     FileInfo ckFileInfo = mTfs.getInfo(mTfs.open(ckPath));
     mLocalTachyonCluster.stopTFS();
@@ -152,7 +152,9 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    mLocalTachyonCluster.start();
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(Constants.KB));
+    mLocalTachyonCluster.start(conf);
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
@@ -164,7 +166,6 @@ public class JournalIntegrationTest {
    */
   @Test
   public void CompletedEditLogDeletionTest() throws Exception {
-    JournalWriter.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       mTfs.getOutStream(new TachyonURI("/a" + i), new ClientOptions.Builder(mMasterTachyonConf)
         .setBlockSize((i + 10) / 10 * 64).build()).close();
@@ -173,7 +174,7 @@ public class JournalIntegrationTest {
 
     String journalFolder =
         FileSystemMaster.getJournalDirectory(mLocalTachyonCluster.getMaster().getJournalFolder());
-    Journal journal = new Journal(journalFolder, mMasterTachyonConf);
+    Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
     Assert.assertTrue(UnderFileSystem.get(completedPath,
         mMasterTachyonConf).list(completedPath).length > 1);
@@ -192,18 +193,18 @@ public class JournalIntegrationTest {
   public void DeleteTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
       String dirPath = "/i" + i;
-      mTfs.mkdirs(new TachyonURI(dirPath));
+      mTfs.mkdirs(new TachyonURI(dirPath), TachyonFileSystem.RECURSIVE);
       for (int j = 0; j < 10; j ++) {
         ClientOptions option =
             new ClientOptions.Builder(mMasterTachyonConf).setBlockSize((i + j + 1) * 64).build();
         String filePath = dirPath + "/j" + j;
         mTfs.getOutStream(new TachyonURI(filePath), option).close();
         if (j >= 5) {
-          mTfs.delete(mTfs.open(new TachyonURI(filePath)));
+          mTfs.delete(mTfs.open(new TachyonURI(filePath)), TachyonFileSystem.RECURSIVE);
         }
       }
       if (i >= 5) {
-        mTfs.delete(mTfs.open(new TachyonURI(dirPath)));
+        mTfs.delete(mTfs.open(new TachyonURI(dirPath)), TachyonFileSystem.RECURSIVE);
       }
     }
     mLocalTachyonCluster.stopTFS();
@@ -413,7 +414,6 @@ public class JournalIntegrationTest {
    */
   @Test
   public void MultiEditLogTest() throws Exception {
-    JournalWriter.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       ClientOptions op = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(
           (i + 10) / 10 * 64).build();
@@ -529,7 +529,7 @@ public class JournalIntegrationTest {
     fsMaster.stop();
   }
 
-  // TODO(cc) Add these back when there is new RawTable client API
+  // TODO(cc) Add these back when there is new RawTable client API.
   ///**
   // * Test folder creation.
   // *

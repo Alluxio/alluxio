@@ -33,13 +33,14 @@ import tachyon.worker.WorkerClient;
  * from the local machine's storage. The instances of this class should only be used by one
  * thread and are not thread safe.
  */
-public class LocalBlockInStream extends BlockInStream {
+public final class LocalBlockInStream extends BlockInStream {
   private final long mBlockId;
   private final BlockStoreContext mContext;
   private final WorkerClient mWorkerClient;
   private final ByteBuffer mData;
 
   private boolean mClosed;
+  private long mBytesReadLocal = 0L;
 
   /**
    * Creates a new local block input stream.
@@ -55,7 +56,7 @@ public class LocalBlockInStream extends BlockInStream {
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
     String blockPath = mWorkerClient.lockBlock(blockId);
 
-    if (null == blockPath) {
+    if (blockPath == null) {
       // TODO(calvin): Handle this error case better.
       mContext.releaseWorkerClient(mWorkerClient);
       throw new IOException("Block is not available on local machine");
@@ -78,6 +79,9 @@ public class LocalBlockInStream extends BlockInStream {
     if (mClosed) {
       return;
     }
+    if (mBytesReadLocal > 0) {
+      ClientContext.getClientMetrics().incBlocksReadLocal(1);
+    }
     mWorkerClient.unlockBlock(mBlockId);
     mContext.releaseWorkerClient(mWorkerClient);
     // TODO(calvin): Evaluate if this is necessary.
@@ -92,6 +96,8 @@ public class LocalBlockInStream extends BlockInStream {
       close();
       return -1;
     }
+    mBytesReadLocal ++;
+    ClientContext.getClientMetrics().incBytesReadLocal(1);
     return BufferUtils.byteToInt(mData.get());
   }
 
@@ -117,6 +123,8 @@ public class LocalBlockInStream extends BlockInStream {
       return -1;
     }
     mData.get(b, off, ret);
+    mBytesReadLocal += ret;
+    ClientContext.getClientMetrics().incBytesReadLocal(ret);
     return ret;
   }
 

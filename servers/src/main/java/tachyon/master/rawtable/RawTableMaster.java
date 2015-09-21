@@ -26,7 +26,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
@@ -49,7 +51,6 @@ import tachyon.util.io.PathUtils;
 public class RawTableMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonConf mTachyonConf;
   private final long mMaxTableMetadataBytes;
   private final int mMaxColumns;
 
@@ -60,13 +61,12 @@ public class RawTableMaster extends MasterBase {
     return PathUtils.concatPath(baseDirectory, Constants.RAW_TABLE_MASTER_SERVICE_NAME);
   }
 
-  public RawTableMaster(TachyonConf tachyonConf, FileSystemMaster fileSystemMaster,
-      Journal journal) {
+  public RawTableMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("raw-table-master-%d", true)));
-    mTachyonConf = tachyonConf;
-    mMaxTableMetadataBytes = mTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
-    mMaxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
+    TachyonConf conf = MasterContext.getConf();
+    mMaxTableMetadataBytes = conf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
+    mMaxColumns = conf.getInt(Constants.MAX_COLUMNS);
     mFileSystemMaster = fileSystemMaster;
   }
 
@@ -95,7 +95,7 @@ public class RawTableMaster extends MasterBase {
         throw new IOException(tdnee);
       }
     } else {
-      throw new IOException("Unknown entry type " + entry.getType());
+      throw new IOException("Unknown raw table entry type: " + entry.getType());
     }
   }
 
@@ -168,7 +168,8 @@ public class RawTableMaster extends MasterBase {
   public void updateRawTableMetadata(long tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException {
     if (!mFileSystemMaster.isDirectory(tableId)) {
-      throw new TableDoesNotExistException("Table with id " + tableId + " does not exist.");
+      throw new TableDoesNotExistException(
+          ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(tableId));
     }
     mRawTables.updateMetadata(tableId, metadata);
 
@@ -214,13 +215,15 @@ public class RawTableMaster extends MasterBase {
    */
   public RawTableInfo getClientRawTableInfo(long id) throws TableDoesNotExistException {
     if (!mRawTables.contains(id)) {
-      throw new TableDoesNotExistException("Table with id " + id + " does not exist.");
+      throw new TableDoesNotExistException(
+          ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
     }
 
     try {
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(id);
       if (!fileInfo.isFolder) {
-        throw new TableDoesNotExistException("Table with id " + id + " does not exist.");
+        throw new TableDoesNotExistException(
+            ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
       }
 
       RawTableInfo ret = new RawTableInfo();
@@ -231,9 +234,8 @@ public class RawTableMaster extends MasterBase {
       ret.metadata = mRawTables.getMetadata(ret.id);
       return ret;
     } catch (FileDoesNotExistException fne) {
-      throw new TableDoesNotExistException("Table with id " + id + " does not exist.");
-    } catch (InvalidPathException e) {
-      throw new TableDoesNotExistException("Table id " + id + " is invalid.");
+      throw new TableDoesNotExistException(
+          ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
     }
   }
 
@@ -272,7 +274,7 @@ public class RawTableMaster extends MasterBase {
    * @param metadata the metadata to be validated
    * @throws TachyonException if the metadata is too large
    */
-  // TODO(cc) have a more explicit TableMetaException ?
+  // TODO(cc): Have a more explicit TableMetaException?
   private void validateMetadataSize(ByteBuffer metadata) throws TachyonException {
     if (metadata.limit() - metadata.position() >= mMaxTableMetadataBytes) {
       throw new TachyonException("Too big table metadata: " + metadata.toString());

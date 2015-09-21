@@ -39,7 +39,6 @@ import com.google.common.collect.Sets;
 import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -47,6 +46,7 @@ import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
+import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
@@ -128,11 +128,6 @@ public abstract class JournalFormatterTestBase {
     entryTest(new BlockInfoEntry(TEST_BLOCK_ID, TEST_LENGTH_BYTES));
   }
 
-  @Test
-  public void workerIdGeneratorEntryTest() throws IOException {
-    entryTest(new WorkerIdGeneratorEntry(TEST_WORKER_ID));
-  }
-
   // FileSystem
 
   @Test
@@ -154,6 +149,11 @@ public abstract class JournalFormatterTestBase {
     }
     entryTest(new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
         true, TEST_OP_TIME_MS, childrenIds));
+  }
+
+  @Test
+  public void inodeLastModificationTimeEntryTest() throws IOException {
+    entryTest(new InodeLastModificationTimeEntry(TEST_FILE_ID, TEST_OP_TIME_MS));
   }
 
   @Test

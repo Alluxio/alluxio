@@ -31,11 +31,12 @@ import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -74,7 +75,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     try {
       long fileId = mFsMaster.getFileId(currentPath);
       FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-      if (null == fileInfo) {
+      if (fileInfo == null) {
         throw new FileDoesNotExistException(currentPath.toString());
       }
       downloadFile(new TachyonURI(fileInfo.getPath()), request, response);
@@ -97,7 +98,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @throws IOException
    */
   private void downloadFile(TachyonURI path, HttpServletRequest request,
-      HttpServletResponse response) throws FileDoesNotExistException, IOException {
+      HttpServletResponse response) throws FileDoesNotExistException, IOException,
+      InvalidPathException {
     TachyonFileSystem tachyonClient = TachyonFileSystem.get();
     TachyonFile fd = tachyonClient.open(path);
     FileInfo tFile = tachyonClient.getInfo(fd);
@@ -114,8 +116,9 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      ClientOptions op = new ClientOptions.Builder(mFsMaster.getTachyonConf()).setTachyonStoreType(
-          TachyonStorageType.NO_STORE).build();
+      // TODO(jiri): Should we use MasterContext here instead?
+      ClientOptions op = new ClientOptions.Builder(
+          new TachyonConf()).setTachyonStoreType(TachyonStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);
@@ -128,6 +131,5 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
         is.close();
       }
     }
-    tachyonClient.close();
   }
 }

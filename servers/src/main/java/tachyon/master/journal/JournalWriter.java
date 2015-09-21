@@ -26,6 +26,8 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
+import tachyon.master.MasterContext;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -42,18 +44,17 @@ import tachyon.underfs.UnderFileSystem;
  */
 public final class JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  // TODO: make this a config parameter.
-  private static int sMaxLogSize = 10 * Constants.MB;
 
   private final Journal mJournal;
-  private final TachyonConf mTachyonConf;
   /** Absolute path to the directory storing all of the journal data. */
   private final String mJournalDirectory;
   /** Absolute path to the directory storing all completed logs. */
   private final String mCompletedDirectory;
   /** Absolute path to the temporary checkpoint file. */
   private final String mTempCheckpointPath;
+  /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
+  private final long mMaxLogSize;
 
   /** The log number to assign to the next complete log. */
   private int mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
@@ -63,22 +64,17 @@ public final class JournalWriter {
   /** The output stream singleton for the entry log files. */
   private EntryOutputStream mEntryOutputStream = null;
 
-  // TODO: start from the last known sequence number
   /** The sequence number for the next entry in the log. */
   private long mNextEntrySequenceNumber = 1;
 
-  JournalWriter(Journal journal, TachyonConf tachyonConf) {
+  JournalWriter(Journal journal) {
     mJournal = Preconditions.checkNotNull(journal);
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
     mJournalDirectory = mJournal.getDirectory();
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
-    mUfs = UnderFileSystem.get(mJournalDirectory, mTachyonConf);
-  }
-
-  // TODO: when this max size is a config parameter, this method can be removed.
-  public static void setMaxLogSize(int sizeInBytes) {
-    sMaxLogSize = sizeInBytes;
+    TachyonConf conf = MasterContext.getConf();
+    mUfs = UnderFileSystem.get(mJournalDirectory, conf);
+    mMaxLogSize = conf.getBytes(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES);
   }
 
   /**
@@ -173,7 +169,7 @@ public final class JournalWriter {
   private void deleteCompletedLogs() throws IOException {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
-    // TODO: should the deletes start from the end?
+    // TODO(gpang): should the deletes start from the end?
     int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
@@ -238,7 +234,7 @@ public final class JournalWriter {
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
-        throw new IOException("Cannot write entry after closing the stream.");
+        throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
           new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);
@@ -265,7 +261,7 @@ public final class JournalWriter {
 
       LOG.info("Successfully created tmp checkpoint file: " + mTempCheckpointPath);
       mUfs.delete(mJournal.getCheckpointFilePath(), false);
-      // TODO: the real checkpoint should not be overwritten here, but after all operations.
+      // TODO(gpang): the real checkpoint should not be overwritten here, but after all operations.
       mUfs.rename(mTempCheckpointPath, mJournal.getCheckpointFilePath());
       mUfs.delete(mTempCheckpointPath, false);
       LOG.info("Renamed checkpoint file " + mTempCheckpointPath + " to "
@@ -304,7 +300,7 @@ public final class JournalWriter {
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
-        throw new IOException("Cannot write entry after closing the stream.");
+        throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
           new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);
@@ -332,8 +328,8 @@ public final class JournalWriter {
       if (mOutputStream instanceof FSDataOutputStream) {
         ((FSDataOutputStream) mOutputStream).sync();
       }
-      if (mOutputStream.size() > sMaxLogSize) {
-        LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + sMaxLogSize);
+      if (mOutputStream.size() > mMaxLogSize) {
+        LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + mMaxLogSize);
         // rotate the current log.
         mOutputStream.close();
         completeCurrentLog();

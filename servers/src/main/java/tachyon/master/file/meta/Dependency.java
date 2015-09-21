@@ -29,7 +29,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryRepresentable;
@@ -62,8 +62,6 @@ public class Dependency implements JournalEntryRepresentable {
 
   private final Set<Long> mLostFileIds;
 
-  private final TachyonConf mTachyonConf;
-
   /**
    * Create a new dependency
    *
@@ -78,12 +76,10 @@ public class Dependency implements JournalEntryRepresentable {
    * @param type The type of the dependency, DependencyType.Wide or DependencyType.Narrow
    * @param parentDependencies The id of the parents' dependencies
    * @param creationTimeMs The create time of the dependency, in milliseconds
-   * @param tachyonConf The TachyonConf instance.
    */
   public Dependency(int id, List<Long> parents, List<Long> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
-      DependencyType type, Collection<Integer> parentDependencies, long creationTimeMs,
-      TachyonConf tachyonConf) {
+      DependencyType type, Collection<Integer> parentDependencies, long creationTimeMs) {
     mId = id;
     mCreationTimeMs = creationTimeMs;
 
@@ -102,7 +98,6 @@ public class Dependency implements JournalEntryRepresentable {
     mParentDependencies = Lists.newArrayList(parentDependencies);
     mChildrenDependencies = new ArrayList<Integer>(0);
     mLostFileIds = new HashSet<Long>(0);
-    mTachyonConf = tachyonConf;
   }
 
   /**
@@ -168,10 +163,10 @@ public class Dependency implements JournalEntryRepresentable {
    * @return the command used for the recomputation
    */
   public synchronized String getCommand() {
-    // TODO We should support different types of command in the future.
+    // TODO(gene): We should support different types of command in the future.
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(parseCommandPrefix());
-    sb.append(" ").append(mTachyonConf.get(Constants.MASTER_ADDRESS));
+    sb.append(" ").append(MasterContext.getConf().get(Constants.MASTER_ADDRESS));
     sb.append(" ").append(mId);
     for (int k = 0; k < mChildrenFiles.size(); k ++) {
       long id = mChildrenFiles.get(k);

@@ -53,7 +53,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * The class only supports creation using <code>new TachyonConf(properties)</code> to override
  * default values.
  */
-public class TachyonConf {
+public final class TachyonConf {
   /** File to set default properties */
   public static final String DEFAULT_PROPERTIES = "tachyon-default.properties";
   /** File to set customized properties */
@@ -68,6 +68,7 @@ public class TachyonConf {
   private final Properties mProperties = new Properties();
 
   public static void assertValidPort(final int port, TachyonConf tachyonConf) {
+    Preconditions.checkNotNull(tachyonConf);
     Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
 
     if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
@@ -233,15 +234,13 @@ public class TachyonConf {
     mProperties.put(key, value);
   }
 
-  public String get(String key, final String defaultValue) {
-    String raw = mProperties.getProperty(key, defaultValue);
-    String updated = lookup(raw);
-    LOG.debug("Get Tachyon property {} as {} with default {}", key, updated, defaultValue);
-    return updated;
-  }
-
   public String get(String key) {
-    return get(key, null);
+    if (!mProperties.containsKey(key)) {
+      // if key is not found among the default properties
+      throw new RuntimeException("Invalid configuration key " + key + ".");
+    }
+    String raw = mProperties.getProperty(key);
+    return lookup(raw);
   }
 
   public boolean containsKey(String key) {
@@ -340,6 +339,7 @@ public class TachyonConf {
     throw new RuntimeException("Invalid configuration key " + key + ".");
   }
 
+  @SuppressWarnings("unchecked")
   public <T> Class<T> getClass(String key) {
     if (mProperties.containsKey(key)) {
       String rawValue = mProperties.getProperty(key);
@@ -355,7 +355,7 @@ public class TachyonConf {
   }
 
   /**
-   * Return the properties as a Map.
+   * Returns the properties as a Map.
    *
    * @return a Map from each property name to its property values
    */
@@ -397,7 +397,8 @@ public class TachyonConf {
     }
 
     String resolved = base;
-    // Lets find pattern match to ${key}. TODO: Consider using Apache Commons StrSubstitutor
+    // Lets find pattern match to ${key}.
+    // TODO(hsaputra): Consider using Apache Commons StrSubstitutor.
     Matcher matcher = CONF_REGEX.matcher(base);
     while (matcher.find()) {
       String match = matcher.group(2).trim();

@@ -15,22 +15,21 @@
 
 package tachyon.master.journal;
 
-import tachyon.conf.TachyonConf;
-
 /**
- * The read-only version of {@link Journal}. It prevents access to a journal writer.
+ * The read-only journal. It prevents access to a {@link JournalWriter}.
  */
 public class ReadOnlyJournal extends Journal {
   /**
    * @param directory the base directory for the journal
-   * @param tachyonConf the tachyon conf
    */
-  public ReadOnlyJournal(String directory, TachyonConf tachyonConf) {
-    super(directory, tachyonConf);
+  public ReadOnlyJournal(String directory) {
+    super(directory);
   }
 
-  @Override
-  public JournalWriter getNewWriter() {
-    throw new IllegalStateException("Cannot get a writer for a read-only journal.");
+  /**
+   * @return the {@link JournalReader} for this journal
+   */
+  public JournalReader getNewReader() {
+    return new JournalReader(this);
   }
 }

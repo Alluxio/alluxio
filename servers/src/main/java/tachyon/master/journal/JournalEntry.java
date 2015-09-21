@@ -17,7 +17,7 @@ package tachyon.master.journal;
 
 import java.util.Map;
 
-// TODO: In the future, implementations of this interface can be represented as ProtoBuf
+// TODO(cc): In the future, implementations of this interface can be represented as ProtoBuf.
 public interface JournalEntry {
 
   /**

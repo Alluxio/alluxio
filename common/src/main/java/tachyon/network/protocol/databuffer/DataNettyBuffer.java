@@ -24,7 +24,7 @@ import io.netty.buffer.ByteBuf;
 /**
  * A DataBuffer with the underlying data being a {@link ByteBuf}.
  */
-public class DataNettyBuffer extends DataBuffer {
+public final class DataNettyBuffer implements DataBuffer {
   private final ByteBuffer mBuffer;
   private final long mLength;
   private final ByteBuf mNettyBuf;
@@ -56,7 +56,7 @@ public class DataNettyBuffer extends DataBuffer {
   /**
    * We would not support this method in DataNettyBuffer because this class is only for
    * reading netty buffers.
-   * TODO: investigate if using NettyDataBuffer for outgoing message is fine
+   * TODO(qifan): Investigate if using NettyDataBuffer for outgoing message is fine.
    *
    * @throws UnsupportedOperationException whenever called
    */
