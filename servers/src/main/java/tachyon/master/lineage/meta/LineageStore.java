@@ -101,6 +101,10 @@ public final class LineageStore {
     return mLineageDAG.getChildren(lineage);
   }
 
+  public synchronized Lineage getLineageByOutputFile(long fileId) {
+    return mOutputFileIndex.get(fileId);
+  }
+
   /**
    * Gets all the root lineages.
    */

@@ -40,7 +40,7 @@ public class RecomputePlan {
   /**
    * @return a list of lineages to recompute.
    */
-  public List<Lineage> toRecompute() {
+  public List<Lineage> getLineageToRecompute() {
     return mToRecompute;
   }
 

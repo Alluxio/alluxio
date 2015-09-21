@@ -15,8 +15,16 @@
 
 package tachyon.master.lineage.recompute;
 
-import com.google.common.base.Preconditions;
+import java.util.List;
+import java.util.Set;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import tachyon.master.file.FileSystemMaster;
+import tachyon.master.lineage.meta.Lineage;
+import tachyon.master.lineage.meta.LineageState;
 import tachyon.master.lineage.meta.LineageStore;
 
 /**
@@ -25,13 +33,26 @@ import tachyon.master.lineage.meta.LineageStore;
  */
 public class RecomputePlanner {
   private final LineageStore mLineageStore;
+  private final FileSystemMaster mFileSystemMaster;
 
-  public RecomputePlanner(LineageStore lineageStore) {
+  public RecomputePlanner(LineageStore lineageStore, FileSystemMaster fileSystemMaster) {
     mLineageStore = Preconditions.checkNotNull(lineageStore);
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
   }
 
   public RecomputePlan plan() {
-    // TODO add planning
-    return null;
+    List<Long> lostFiles = mFileSystemMaster.getLostFiles();
+
+    // find the corresponding lineages, mark all of them as lost
+    Set<Lineage> lineages = Sets.newHashSet();
+    for(long fileId : lostFiles) {
+      Lineage lineage = mLineageStore.getLineageByOutputFile(fileId);
+      lineage.setState(LineageState.IN_RECOMPUTE);
+    }
+
+    List<Lineage> toRecompute = Lists.newArrayList();
+
+    RecomputePlan plan = new RecomputePlan(toRecompute);
+    return plan;
   }
 }

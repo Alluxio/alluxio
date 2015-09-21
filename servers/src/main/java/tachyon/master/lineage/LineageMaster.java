@@ -42,7 +42,6 @@ import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
-import tachyon.master.lineage.recompute.RecomputeLauncher;
 import tachyon.master.lineage.recompute.RecomputePlanner;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.CheckpointFile;
@@ -105,8 +104,7 @@ public final class LineageMaster extends MasterBase {
               mTachyonConf.getInt(Constants.MASTER_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
           getExecutorService().submit(new HeartbeatThread("Recomupte service",
-              new RecomputeExecutor(new RecomputePlanner(mLineageStore),
-                  new RecomputeLauncher(mTachyonConf, mLineageStore)),
+              new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster)),
               mTachyonConf.getInt(Constants.MASTER_RECOMPUTE_INTERVAL_MS)));
     }
   }
