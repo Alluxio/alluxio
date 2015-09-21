@@ -22,12 +22,14 @@ public enum StorageLevelAlias {
   /**
    * Memory Layer
    */
-  MEM(1), /**
-           * SSD Layer
-           */
-  SSD(2), /**
-           * HDD Layer
-           */
+  MEM(1),
+  /**
+   * SSD Layer
+   */
+  SSD(2),
+  /**
+   * HDD Layer
+   */
   HDD(3);
 
   private int mValue;

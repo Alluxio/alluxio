@@ -27,7 +27,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.meta.InodeFile;
-import tachyon.thrift.BlockInfo;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
@@ -47,16 +46,15 @@ public final class MasterInfo {
   private final FileSystemMaster mFileSystemMaster;
   private final InetSocketAddress mMasterAddress;
   private final long mStartTimeMs;
-  private final TachyonConf mTachyonConf;
   private final String mUFSDataFolder;
 
   public MasterInfo(BlockMaster blockMaster, FileSystemMaster fileSystemMaster,
       InetSocketAddress address, TachyonConf tachyonConf) {
+    TachyonConf conf = MasterContext.getConf();
     mBlockMaster = Preconditions.checkNotNull(blockMaster);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mMasterAddress = Preconditions.checkNotNull(address);
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mUFSDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+    mUFSDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER);
     mStartTimeMs = System.currentTimeMillis();
   }
 
@@ -67,19 +65,6 @@ public final class MasterInfo {
    */
   public long getCapacityBytes() {
     return mBlockMaster.getCapacityBytes();
-  }
-
-  /**
-   * Gets the list of block info of an InodeFile determined by path.
-   *
-   * @param path path to the file
-   * @return The list of the block info of the file
-   * @throws InvalidPathException when the path is invalid
-   * @throws FileDoesNotExistException when the file does not exist
-   */
-  public List<BlockInfo> getBlockInfoList(TachyonURI path)
-      throws InvalidPathException, FileDoesNotExistException {
-    return mFileSystemMaster.getBlockInfoList(path);
   }
 
   /**
@@ -197,7 +182,7 @@ public final class MasterInfo {
    * @throws IOException when the operation fails
    */
   public long getUnderFsCapacityBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, MasterContext.getConf());
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_TOTAL);
   }
 
@@ -208,7 +193,7 @@ public final class MasterInfo {
    * @throws IOException when the operation fails
    */
   public long getUnderFsFreeBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, MasterContext.getConf());
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_FREE);
   }
 
@@ -219,7 +204,7 @@ public final class MasterInfo {
    * @throws IOException when the operation fails
    */
   public long getUnderFsUsedBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, mTachyonConf);
+    UnderFileSystem ufs = UnderFileSystem.get(mUFSDataFolder, MasterContext.getConf());
     return ufs.getSpace(mUFSDataFolder, SpaceType.SPACE_USED);
   }
 

@@ -20,6 +20,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,13 +30,13 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.FileSystemMasterClient;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
 
@@ -45,14 +46,14 @@ public class PinIntegrationTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
-  private FileSystemMasterClient mFSMasterClient;
+  private WorkerFileSystemMasterClient mFSMasterClient;
 
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-    mFSMasterClient = new FileSystemMasterClient(
+    mFSMasterClient = new WorkerFileSystemMasterClient(
         new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
             mLocalTachyonCluster.getMasterPort()),
         mExecutorService, mLocalTachyonCluster.getWorkerTachyonConf());
@@ -148,7 +149,7 @@ public class PinIntegrationTest {
         Sets.newHashSet(file0.getFileId(), file3.getFileId()));
   }
 
-  private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException {
+  private TachyonFile createEmptyFile(TachyonURI fileURI) throws IOException, TException {
     ClientOptions options =
         new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();

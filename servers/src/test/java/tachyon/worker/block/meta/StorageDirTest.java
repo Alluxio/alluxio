@@ -31,17 +31,15 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
-import tachyon.Constants;
 import tachyon.StorageLevelAlias;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.io.BufferUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockStoreLocation;
+import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public final class StorageDirTest {
   private static final long TEST_SESSION_ID = 2;
@@ -49,6 +47,7 @@ public final class StorageDirTest {
   private static final long TEST_BLOCK_SIZE = 20;
   private static final long TEST_TEMP_BLOCK_ID = 10;
   private static final long TEST_TEMP_BLOCK_SIZE = 30;
+  private static final int TEST_TIER_LEVEL = 0;
   private static final int TEST_DIR_INDEX = 1;
   private static final long TEST_DIR_CAPACITY = 1000;
   private String mTestDirPath;
@@ -67,18 +66,17 @@ public final class StorageDirTest {
   public void before() throws Exception {
     // Creates a dummy test dir under mTestDirPath with 1 byte space so initialization can occur
     mTestDirPath = mFolder.newFolder().getAbsolutePath();
-    TachyonConf tachyonConf = WorkerContext.getConf();
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 0),
-        mFolder.newFolder().getAbsolutePath());
-    tachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 0),
-        "1b");
-    tachyonConf.set(Constants.WORKER_DATA_FOLDER, "");
+    String[] testDirPaths = {mTestDirPath};
+    long[] testDirCapacity = {1};
 
-    mTier = StorageTier.newStorageTier(0 /* level */);
+    TieredBlockStoreTestUtils.setupTachyonConfWithSingleTier(null, TEST_TIER_LEVEL,
+        StorageLevelAlias.MEM, testDirPaths, testDirCapacity, "");
+
+    mTier = StorageTier.newStorageTier(TEST_TIER_LEVEL);
     mDir = StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY, mTestDirPath);
     mBlockMeta = new BlockMeta(TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
-    mTempBlockMeta =
-        new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
+    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE,
+        mDir);
   }
 
   private StorageDir newStorageDir(File testDir) throws Exception {
@@ -394,7 +392,7 @@ public final class StorageDirTest {
     mDir.resizeTempBlockMeta(mTempBlockMeta, TEST_DIR_CAPACITY + 1);
   }
 
-  // TODO: also test claimed space
+  // TODO(bin): Also test claimed space.
   @Test
   public void cleanupSessionTest() throws Exception {
     // Create blocks under TEST_SESSION_ID

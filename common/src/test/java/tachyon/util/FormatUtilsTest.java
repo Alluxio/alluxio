@@ -16,8 +16,6 @@
 package tachyon.util;
 
 import java.nio.ByteBuffer;
-import java.text.Normalizer;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -153,19 +151,19 @@ public class FormatUtilsTest {
     }
 
     List<TestCase> testCases = new LinkedList<TestCase>();
-    testCases.add(new TestCase("4.00 B", 1L << 2));
-    testCases.add(new TestCase("8.00 B", 1L << 3));
-    testCases.add(new TestCase("4096.00 B", 1L << 12));
-    testCases.add(new TestCase("8.00 KB", 1L << 13));
-    testCases.add(new TestCase("4096.00 KB", 1L << 22));
-    testCases.add(new TestCase("8.00 MB", 1L << 23));
-    testCases.add(new TestCase("4096.00 MB", 1L << 32));
-    testCases.add(new TestCase("8.00 GB", 1L << 33));
-    testCases.add(new TestCase("4096.00 GB", 1L << 42));
-    testCases.add(new TestCase("8.00 TB", 1L << 43));
-    testCases.add(new TestCase("4096.00 TB", 1L << 52));
-    testCases.add(new TestCase("8.00 PB", 1L << 53));
-    testCases.add(new TestCase("4096.00 PB", 1L << 62));
+    testCases.add(new TestCase("4.00B", 1L << 2));
+    testCases.add(new TestCase("8.00B", 1L << 3));
+    testCases.add(new TestCase("4096.00B", 1L << 12));
+    testCases.add(new TestCase("8.00KB", 1L << 13));
+    testCases.add(new TestCase("4096.00KB", 1L << 22));
+    testCases.add(new TestCase("8.00MB", 1L << 23));
+    testCases.add(new TestCase("4096.00MB", 1L << 32));
+    testCases.add(new TestCase("8.00GB", 1L << 33));
+    testCases.add(new TestCase("4096.00GB", 1L << 42));
+    testCases.add(new TestCase("8.00TB", 1L << 43));
+    testCases.add(new TestCase("4096.00TB", 1L << 52));
+    testCases.add(new TestCase("8.00PB", 1L << 53));
+    testCases.add(new TestCase("4096.00PB", 1L << 62));
 
     for (TestCase testCase : testCases) {
       Assert.assertEquals(testCase.mExpected, FormatUtils.getSizeFromBytes(testCase.mInput));

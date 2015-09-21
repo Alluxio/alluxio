@@ -89,7 +89,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       long blockId = it.next().getKey();
       try {
         BlockMeta block = mManagerView.getBlockMeta(blockId);
-        if (null != block) { // might not present in this view
+        if (block != null) { // might not present in this view
           if (block.getBlockLocation().belongTo(location)) {
             int tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
@@ -117,12 +117,13 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
     StorageTierView nextTierView = mManagerView.getNextTier(candidateDirView.getParentTierView());
     if (nextTierView == null) {
       // This is the last tier, evict all the blocks.
-      plan.toEvict().addAll(candidateBlocks);
       for (Long blockId : candidateBlocks) {
         try {
           BlockMeta block = mManagerView.getBlockMeta(blockId);
-          if (null != block) {
+          if (block != null) {
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
+            plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
+                candidateDirView.toBlockStoreLocation()));
           }
         } catch (NotFoundException nfe) {
           continue;
@@ -132,7 +133,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       for (Long blockId : candidateBlocks) {
         try {
           BlockMeta block = mManagerView.getBlockMeta(blockId);
-          if (null == block) {
+          if (block == null) {
             continue;
           }
           StorageDirView nextDirView = mAllocator.allocateBlockWithView(
@@ -145,12 +146,13 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
           if (nextDirView == null) {
             // If we failed to find a dir in the next tier to move this block, evict it and
             // continue. Normally this should not happen.
-            plan.toEvict().add(blockId);
+            plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
+                block.getBlockLocation()));
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             continue;
           }
-          plan.toMove().add(
-              new Pair<Long, BlockStoreLocation>(blockId, nextDirView.toBlockStoreLocation()));
+          plan.toMove().add(new BlockTransferInfo(blockId, block.getBlockLocation(),
+              nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
         } catch (NotFoundException nfe) {
@@ -167,8 +169,8 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       BlockMetadataManagerView view) {
     mManagerView = view;
 
-    List<Pair<Long, BlockStoreLocation>> toMove = new ArrayList<Pair<Long, BlockStoreLocation>>();
-    List<Long> toEvict = new ArrayList<Long>();
+    List<BlockTransferInfo> toMove = new ArrayList<BlockTransferInfo>();
+    List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<Pair<Long, BlockStoreLocation>>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
     StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
@@ -185,7 +187,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
    * specifying the iteration order using its own strategy. For example, LRUEvictor returns an
    * iterator that iterates the blocks in LRU order. The key of the map entry is the block Id.
    */
-  // TODO: Is a key iterator sufficient?
+  // TODO(calvin): Is a key iterator sufficient?
   protected abstract Iterator<Map.Entry<Long, Object>> getBlockIterator();
 
   /**

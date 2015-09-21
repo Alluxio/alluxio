@@ -21,8 +21,8 @@ import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.client.RemoteBlockReader;
 import tachyon.client.ClientContext;
+import tachyon.client.RemoteBlockReader;
 import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
 
@@ -31,13 +31,14 @@ import tachyon.util.io.BufferUtils;
  * through a Tachyon worker's dataserver to the client. The instances of this class should only be
  * used by one thread and are not thread safe.
  */
-public class RemoteBlockInStream extends BlockInStream {
+public final class RemoteBlockInStream extends BlockInStream {
   private final long mBlockId;
-  private final BlockStoreContext mContext;
   private final long mBlockSize;
   private final InetSocketAddress mLocation;
 
   private long mPos;
+  private long mBytesReadRemote = 0L;
+  private boolean mClosed;
 
   /**
    * Creates a new remote block input stream.
@@ -48,11 +49,22 @@ public class RemoteBlockInStream extends BlockInStream {
    */
   // TODO(calvin): Modify the locking so the stream owns the lock instead of the data server.
   public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
+    mClosed = false;
     mBlockId = blockId;
-    mContext = BlockStoreContext.INSTANCE;
     mBlockSize = blockSize;
     // TODO(calvin): Validate these fields.
     mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    if (mBytesReadRemote > 0) {
+      ClientContext.getClientMetrics().incBlocksReadRemote(1);
+    }
+    mClosed = true;
   }
 
   @Override
@@ -96,6 +108,7 @@ public class RemoteBlockInStream extends BlockInStream {
       mPos += bytesToRead;
       bytesLeft -= bytesToRead;
     }
+    ClientContext.getClientMetrics().incBytesReadRemote(lengthToRead);
 
     return lengthToRead;
   }
