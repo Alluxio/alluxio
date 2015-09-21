@@ -79,13 +79,19 @@ if [[ ! -f ./files/id_rsa ]]; then
   ssh-keygen -f ./files/id_rsa -t rsa -N '' &>/dev/null
 fi
 
-# files/workers
+# files/workers, order matters, the last one is often also chosen as master
 rm -f files/workers
-for i in `seq 1 $((TOTAL-1))`; do
+TACHYON_MASTERS=$(grep Masters conf/tachyon.yml | cut -d':' -f 2 | tr -d ' ')
+for i in `seq 1 $((TOTAL-TACHYON_MASTERS))`; do
   echo "TachyonWorker${i}" >> files/workers
 done
-echo "TachyonMaster" >> files/workers
-
+for i in `seq 1 $TACHYON_MASTERS`; do
+  if [[ "$i" == "$TACHYON_MASTERS" ]]; then
+    echo "TachyonMaster" >> files/workers
+  else
+    echo "TachyonMaster$i" >> files/workers
+  fi
+done
 # create virtual machine without provisioning
 [[ "$PROVIDER" == "aws" ]] && sgid=$(python bin/init_aws.py | tail -n 1)
 # pass security group id to vagrant up
@@ -158,11 +164,26 @@ fi
 # show master IP
 if [[ "$?" == "0" ]]; then
   if [[ "$PROVIDER" == "aws" ]]; then
-    master=$(cat $ANSIBLE_INFO_FILE | grep Master | cut -d' ' -f2 | cut -d'=' -f2)
+    masters=$(cat $ANSIBLE_INFO_FILE | grep Master | cut -d' ' -f2 | cut -d'=' -f2)
+    main_master=$(cat $ANSIBLE_INFO_FILE | grep TachyonMaster | cut -d' ' -f2 | cut -d'=' -f2)
   else
-    master=$(tail -n 1 files/hosts | cut -d' ' -f1)
+    masters=$(cat files/hosts | grep Master | cut -d' ' -f1)
+    main_master=$(cat files/hosts | grep TachyonMaster | cut -d' ' -f1)
   fi
-  info ">>> TachyonMaster public IP is ${master} <<<"
+  masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
+
+  if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
+    info ">>> Tachyon is in Fault Tolerant mode, all Tachyon masters: ${masters} <<<"
+  fi
+  for master in ${masters[@]}; do
+    info "Trying to curl Tachyon web UI at ${master}:19999"
+    curl "${master}:19999" >/dev/null
+    if [[ "$?" == "0" ]]; then
+      info ">>> Tachyon master is currently ${master}, Tachyon web UI is at ${master}:19999 <<<"
+      break
+    fi
+  done
+
+  info ">>> Master public IP for other software is ${main_master} <<<"
   info ">>> Please visit default port of the web UI of what you deployed <<<"
-  info ">>> For Tachyon, the web UI is at http://${master}:19999 <<<"
 fi

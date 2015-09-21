@@ -81,6 +81,7 @@ class TachyonVersion
     end
 
     @mem = @yml['WorkerMemory']
+    @masters = @yml['Masters']
   end
 
   def type
@@ -93,6 +94,10 @@ class TachyonVersion
 
   def memory
     return @mem
+  end
+
+  def masters
+    return @masters
   end
 end
 

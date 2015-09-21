@@ -14,6 +14,7 @@ Provider = @cmd['Provider']
 validate_provider(Provider)
 
 # load version configuration
+ZookeeperV = ZookeeperVersion.new('conf/zookeeper.yml')
 MesosV = MesosVersion.new('conf/mesos.yml')
 TachyonV = TachyonVersion.new('conf/tachyon.yml')
 SparkV = SparkVersion.new('conf/spark.yml')
@@ -27,15 +28,19 @@ Vagrant.require_version ">= 1.6.5"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   (1..Total).each do |i|
     # multi vm config
-    if i == Total
-      name = "TachyonMaster"
+    if i <= TachyonV.masters
+      if i == 1
+        name = "TachyonMaster"
+      else
+        name = "TachyonMaster#{i - 1}"
+      end
     else
-      name = "TachyonWorker#{i}"
+      name = "TachyonWorker#{i - TachyonV.masters}"
     end
     config.vm.define "#{name}" do |n|
       n.vm.hostname = "#{name}"
 
-      # Provision when the machine is master
+      # Start parallel provision when it is the last machine
       if i == Total
         n.vm.provision :ansible do |ans|
           ans.playbook = "provision/playbook.yml"
@@ -46,7 +51,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           is_vb = Provider == "vb"
           tachyon_dist = UfsV.tachyon_dist(tachyon_version)
           puts "using tachyon distribution #{tachyon_dist}"
+          tachyon_platform = "local"
+          if MesosV.type != "None"
+            tachyon_platform = "mesos"
+          end
           ans.extra_vars = {
+              zookeeper_type: ZookeeperV.type,
+              zookeeper_version: ZookeeperV.version,
+
               mesos_type: MesosV.type,
               mesos_repo: mesos_repo,
               mesos_dist: MesosV.dist,
@@ -57,6 +69,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               tachyon_dist:    tachyon_dist,
               tachyon_memory:  TachyonV.memory,
               tachyon_version: tachyon_version,
+              tachyon_masters: TachyonV.masters,
+              tachyon_platform: tachyon_platform,
 
               spark_type:    SparkV.type,
               spark_repo:    spark_repo,
