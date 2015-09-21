@@ -84,11 +84,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * be locked first.
    */
   private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
-  /**
-   * Keeps track of block which are no longer in tachyon storage. Access must be synchronized on
-   * mBlocks.
-   */
-  private final Set<Long> mLostBlocks = new HashSet<Long>();
   /** This state must be journaled. */
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
       new BlockContainerIdGenerator();
@@ -285,7 +280,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
               worker.updateToRemovedBlock(true, blockId);
             }
           }
-          mLostBlocks.remove(blockId);
         }
       }
     }
@@ -333,7 +327,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           flushJournal();
         }
         masterBlockInfo.addWorker(workerId, tierAlias);
-        mLostBlocks.remove(blockId);
       }
     }
   }
@@ -552,9 +545,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       }
       workerInfo.removeBlock(masterBlockInfo.getBlockId());
       masterBlockInfo.removeWorker(workerInfo.getId());
-      if (masterBlockInfo.getNumLocations() == 0) {
-        mLostBlocks.add(removedBlockId);
-      }
     }
   }
 
@@ -577,7 +567,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           // TODO(gene): Change upper API so that this is tier level or type, not storage dir id.
           int tierAlias = StorageDirId.getStorageLevelAliasValue(storageDirId);
           masterBlockInfo.addWorker(workerInfo.getId(), tierAlias);
-          mLostBlocks.remove(blockId);
         } else {
           LOG.warn(
               "failed to register workerId: " + workerInfo.getId() + " to blockId: " + blockId);
