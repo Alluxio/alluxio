@@ -53,14 +53,15 @@ import tachyon.util.io.PathUtils;
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // Parameters sent from Client
   private final int mMasterCpu;
   private final int mWorkerCpu;
   private final int mMasterMem;
   private final int mWorkerMem;
   private final int mNumWorkers;
-
   private final String mTachyonHome;
   private final String mMasterAddress;
+
   private final YarnConfiguration mYarnConf = new YarnConfiguration();
   private final TachyonConf mTachyonConf = new TachyonConf();
   /** Client to talk to Resource Manager */
@@ -74,6 +75,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   /** Network address of the container allocated for Tachyon master */
   private String mMasterContainerNetAddress;
 
+  private volatile boolean mApplicationDone;
+
   public ApplicationMaster(int numWorkers, String tachyonHome, String masterAddress) {
     mMasterCpu = mTachyonConf.getInt(Constants.MASTER_RESOURCE_CPU);
     mMasterMem = (int) mTachyonConf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
@@ -84,6 +87,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mMasterAddress = masterAddress;
     mMasterContainerAllocated = false;
     mNumAllocatedWorkerContainers = 0;
+    mApplicationDone = false;
   }
 
   /**
@@ -126,7 +130,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   public void onNodesUpdated(List<NodeReport> updated) {}
 
   @Override
-  public void onShutdownRequest() {}
+  public void onShutdownRequest() {
+    mApplicationDone = true;
+  }
 
   @Override
   public void onError(Throwable t) {}
@@ -193,9 +199,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       Thread.sleep(1000);
     }
 
+    LOG.info("Master and workers are launched");
     // Wait for 5 more seconds to avoid application unregistered before some container fully
     // launched.
-    Thread.sleep(5000);
+    while (!mApplicationDone) {
+      Thread.sleep(5000);
+    }
   }
 
   public void stop() {
