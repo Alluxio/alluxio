@@ -38,11 +38,11 @@ import tachyon.IntegrationTestConstants;
 import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.RemoteBlockReader;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.network.protocol.RPCResponse;
@@ -210,7 +210,7 @@ public class DataServerIntegrationTest {
 
     CommonUtils
         .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2
-                + 10);
+            + 10);
 
     FileInfo fileInfo = mTFS.getInfo(mTFS.open(new TachyonURI("/readFile1")));
     Assert.assertEquals(0, fileInfo.inMemoryPercentage);

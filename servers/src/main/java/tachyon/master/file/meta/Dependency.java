@@ -29,7 +29,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.journal.JournalEntry;
