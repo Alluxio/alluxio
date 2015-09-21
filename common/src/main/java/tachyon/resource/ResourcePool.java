@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client;
+package tachyon.resource;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -28,7 +28,6 @@ import com.google.common.base.Preconditions;
  *
  * @param <T> The type of resource this pool manages.
  */
-// TODO(calvin): This may fit better in the common module.
 public abstract class ResourcePool<T> {
   protected final Object mCapacityLock;
   protected final int mMaxCapacity;

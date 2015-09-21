@@ -40,9 +40,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.block.journal.WorkerIdGeneratorEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -50,6 +50,7 @@ import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
+import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
@@ -60,8 +61,8 @@ public final class JsonJournalFormatter implements JournalFormatter {
   private static class JsonEntry {
     /** Creates a JSON ObjectMapper configured not to close the underlying stream. */
     public static ObjectMapper createObjectMapper() {
-      // TODO: Could disable field name quoting, though this would produce technically invalid JSON
-      // See: JsonGenerator.QUOTE_FIELD_NAMES and JsonParser.ALLOW_UNQUOTED_FIELD_NAMES
+      // TODO(cc): Could disable field name quoting, though this would produce technically invalid
+      // JSON. See: JsonGenerator.QUOTE_FIELD_NAMES and JsonParser.ALLOW_UNQUOTED_FIELD_NAMES
       return new ObjectMapper().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false)
           .configure(SerializationFeature.CLOSE_CLOSEABLE, false);
     }
@@ -247,10 +248,6 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("blockId"),
                 entry.getLong("length"));
           }
-          case WORKER_ID_GENERATOR: {
-            return new WorkerIdGeneratorEntry(
-                entry.getLong("nextWorkerId"));
-          }
 
           // FileSystem
           case INODE_FILE: {
@@ -277,6 +274,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getBoolean("isPinned"),
                 entry.getLong("lastModificationTimeMs"),
                 entry.get("childrenIds", new TypeReference<Set<Long>>() {}));
+          }
+          case INODE_MTIME: {
+            return new InodeLastModificationTimeEntry(
+                entry.getLong("id"),
+                entry.getLong("lastModificationTimeMs"));
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(
@@ -354,7 +356,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getByteBuffer("metadata"));
           }
           default:
-            throw new IOException("Unknown entry type: " + entry.mType);
+            throw new IOException("Unknown journal entry type: " + entry.mType);
         }
       }
 

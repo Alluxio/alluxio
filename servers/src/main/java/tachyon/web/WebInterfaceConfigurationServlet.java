@@ -74,7 +74,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     for (Map.Entry<Object, Object> entry : mTachyonConf.getInternalProperties().entrySet()) {
       String key = entry.getKey().toString();
       if (key.startsWith(TACHYON_CONF_PREFIX) && !TACHYON_CONF_EXCLUDES.contains(key)) {
-        rtn.add(new ImmutablePair<String, String>(key, mTachyonConf.get(key, "")));
+        rtn.add(new ImmutablePair<String, String>(key, mTachyonConf.get(key)));
       }
     }
     return rtn;

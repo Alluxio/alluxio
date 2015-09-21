@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.block.journal;
+package tachyon.master.file.journal;
 
 import java.util.Map;
 
@@ -22,29 +22,33 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-/**
- * The {@link JournalEntry} representing the state of a worker in the block master.
- */
-public class WorkerIdGeneratorEntry implements JournalEntry {
-  private final long mNextWorkerId;
+public final class InodeLastModificationTimeEntry implements JournalEntry {
+  protected final long mId;
+  protected final long mLastModificationTimeMs;
 
-  public WorkerIdGeneratorEntry(long nextWorkerId) {
-    mNextWorkerId = nextWorkerId;
+  public InodeLastModificationTimeEntry(long id, long lastModificationTimeMs) {
+    mId = id;
+    mLastModificationTimeMs = lastModificationTimeMs;
   }
 
-  public long getNextWorkerId() {
-    return mNextWorkerId;
+  public long getId() {
+    return mId;
+  }
+
+  public long getLastModificationTimeMs() {
+    return mLastModificationTimeMs;
   }
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.WORKER_ID_GENERATOR;
+    return JournalEntryType.INODE_MTIME;
   }
 
   @Override
   public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
-    parameters.put("nextWorkerId", mNextWorkerId);
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
+    parameters.put("id", mId);
+    parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
     return parameters;
   }
 }

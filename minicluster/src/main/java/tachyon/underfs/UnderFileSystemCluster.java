@@ -21,9 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Throwables;
 
-import tachyon.conf.TachyonConf;
 import tachyon.LocalFilesystemCluster;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
 
 public abstract class UnderFileSystemCluster {
@@ -60,7 +60,7 @@ public abstract class UnderFileSystemCluster {
    */
   public static synchronized UnderFileSystemCluster get(String baseDir, TachyonConf tachyonConf)
       throws IOException {
-    if (null == sUnderFSCluster) {
+    if (sUnderFSCluster == null) {
       sUnderFSCluster = getUnderFilesystemCluster(baseDir, tachyonConf);
     }
 
@@ -106,8 +106,8 @@ public abstract class UnderFileSystemCluster {
    * @return true if reads on end of file return negative otherwise false
    */
   public static boolean readEOFReturnsNegative() {
-    // TODO Should be dynamically determined - may need additional method on UnderFileSystem
-    return null != sUfsClz && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
+    // TODO(hy): Should be dynamically determined - may need additional method on UnderFileSystem.
+    return sUfsClz != null && sUfsClz.equals("tachyon.underfs.hdfs.LocalMiniDFSCluster");
   }
 
   public UnderFileSystemCluster(String baseDir, TachyonConf tachyonConf) {

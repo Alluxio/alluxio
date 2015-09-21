@@ -19,7 +19,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.master.file.meta.InodeFile;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**

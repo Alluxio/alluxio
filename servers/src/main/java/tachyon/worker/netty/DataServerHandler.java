@@ -66,8 +66,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
     mDataManager = Preconditions.checkNotNull(dataManager);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mTransferType =
-        mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
+    mTransferType = mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
+        FileTransferType.class);
   }
 
   @Override
@@ -149,9 +149,9 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     }
   }
 
-  // TODO: This write request handler is very simple in order to be stateless. Therefore, the block
-  // file is opened and closed for every request. If this is too slow, then this handler should be
-  // optimized to keep state.
+  // TODO(hy): This write request handler is very simple in order to be stateless. Therefore, the
+  // block file is opened and closed for every request. If this is too slow, then this handler
+  // should be optimized to keep state.
   private void handleBlockWriteRequest(final ChannelHandlerContext ctx,
       final RPCBlockWriteRequest req) throws IOException {
     final long sessionId = req.getSessionId();

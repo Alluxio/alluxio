@@ -19,7 +19,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-
 import com.google.common.util.concurrent.SettableFuture;
 
 import tachyon.network.protocol.RPCResponse;

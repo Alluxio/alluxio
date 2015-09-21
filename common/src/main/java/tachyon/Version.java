@@ -20,12 +20,12 @@ import tachyon.conf.TachyonConf;
 /**
  * The version of the current build.
  */
-public class Version {
+public final class Version {
   public static final String VERSION;
 
   static {
     TachyonConf tachyonConf = new TachyonConf();
-    VERSION = tachyonConf.get(Constants.TACHYON_VERSION, "UNDEFINED");
+    VERSION = tachyonConf.get(Constants.TACHYON_VERSION);
   }
 
   public static void main(String[] args) {
