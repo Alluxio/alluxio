@@ -109,7 +109,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws IOException if the master cannot delete the file
    */
   public void delete(TachyonFile file) throws FileDoesNotExistException, IOException {
-    delete(file, false);
+    delete(file, !RECURSIVE);
   }
 
   /**
@@ -122,7 +122,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public void free(TachyonFile file) throws FileDoesNotExistException,
       IOException {
-    free(file, false);
+    free(file, !RECURSIVE);
   }
 
   /**
@@ -217,7 +217,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   // TODO(calvin,jiri): Consider renaming to mkdir
   public boolean mkdirs(TachyonURI path) throws FileAlreadyExistException, InvalidPathException,
       IOException {
-    return mkdirs(path, false);
+    return mkdirs(path, !RECURSIVE);
   }
 
   /**
