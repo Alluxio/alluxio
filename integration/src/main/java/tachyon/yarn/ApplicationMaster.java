@@ -16,9 +16,7 @@
 package tachyon.yarn;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +37,8 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
@@ -182,8 +182,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     // Make container requests for workers to ResourceManager
     for (int i = 0; i < mNumWorkers; i ++) {
-      ContainerRequest containerAsk =
-          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */, priority);
+      ContainerRequest containerAsk = new ContainerRequest(workerResource, null /* any hosts */,
+          null /* any racks */, priority);
       LOG.info("Making resource request for Tachyon worker " + i + " on any nodes");
       mRMClient.addContainerRequest(containerAsk);
     }
@@ -210,20 +210,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonMasterContainers(List<Container> containers) {
-    final String formatCommand =
-        new CommandBuilder(PathUtils.concatPath(mTachyonHome, "bin", "tachyon"))
-            .addArg("format").addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
+    final String command = new CommandBuilder(
+        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-master-yarn.sh"))
+            .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
-    final String startCommand =
-        new CommandBuilder(PathUtils.concatPath(mTachyonHome, "bin", "tachyon-start.sh"))
-            .addArg("master").addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
-            .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
-
-    List<String> commands = new ArrayList<String>();
-    commands.add(formatCommand);
-    commands.add("&&");
-    commands.add(startCommand);
+    List<String> commands = Lists.newArrayList(command);
 
     for (Container container : containers) {
       try {
@@ -246,11 +238,12 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   private void launchTachyonWorkerContainers(List<Container> containers) {
-    String startScript = PathUtils.concatPath(mTachyonHome, "bin", "tachyon-start.sh");
-    String command =
-        startScript + " worker SudoMount" + " 1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR
-            + "/stdout" + " 2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr";
+    final String command = new CommandBuilder(
+        PathUtils.concatPath(mTachyonHome, "integration", "bin", "tachyon-worker-yarn.sh"))
+            .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
+            .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
+    List<String> commands = Lists.newArrayList(command);
     Map<String, String> environmentMap = new HashMap<String, String>();
     environmentMap.put("TACHYON_MASTER_ADDRESS", mMasterContainerNetAddress);
     environmentMap.put("TACHYON_WORKER_MEMORY_SIZE",
@@ -263,7 +256,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       try {
         // Launch container by create ContainerLaunchContext
         ContainerLaunchContext ctx = Records.newRecord(ContainerLaunchContext.class);
-        ctx.setCommands(Collections.singletonList(command));
+        ctx.setCommands(commands);
         ctx.setEnvironment(environmentMap);
         LOG.info("Launching container {} for Tachyon worker {} on {} ", container.getId(),
             mNumAllocatedWorkerContainers, container.getNodeHttpAddress());
