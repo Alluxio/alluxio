@@ -56,8 +56,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private BlockStore mBlockStore;
-  /** Configuration values */
-  private TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
   private WorkerSource mWorkerSource;
   /** Metrics reporter that listens on block events and increases metrics counters */
@@ -87,8 +85,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
       WorkerBlockMasterClient workerBlockMasterClient,
       WorkerFileSystemMasterClient workerFileSystemMasterClient, BlockStore blockStore)
       throws IOException {
-    // TODO(jiri): We may not need to assign the conf to a variable
-    mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = blockStore;
     mWorkerSource = workerSource;
@@ -98,12 +94,12 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     mFileSystemMasterClient = workerFileSystemMasterClient;
 
     // Create Under FileSystem Client
-    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
+    String ufsAddress = WorkerContext.getConf().get(Constants.UNDERFS_ADDRESS);
+    mUfs = UnderFileSystem.get(ufsAddress, WorkerContext.getConf());
 
     // Connect to UFS to handle UFS security
-    mUfs.connectFromWorker(mTachyonConf,
-        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf));
+    mUfs.connectFromWorker(WorkerContext.getConf(),
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, WorkerContext.getConf()));
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -123,10 +119,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
 
     public void setMetricsReporter(BlockMetricsReporter reporter) {
       mMetricsReporter = reporter;
-    }
-
-    public void setTachyonConf(TachyonConf conf) {
-      mTachyonConf = conf;
     }
 
     public void setUnderFileSystem(UnderFileSystem ufs) {
@@ -184,7 +176,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   public void addCheckpoint(long sessionId, long fileId) throws TException, IOException {
     // TODO(calvin): This part needs to be changed.
     String srcPath = PathUtils.concatPath(getSessionUfsTmpFolder(sessionId), fileId);
-    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
+    String ufsDataFolder = WorkerContext.getConf().get(Constants.UNDERFS_DATA_FOLDER);
     FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
