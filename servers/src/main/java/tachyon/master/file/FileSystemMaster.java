@@ -1134,19 +1134,18 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
-    InodeFile iFile;
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
         LOG.warn("Reported file is a directory " + inode);
         return;
       }
-      iFile = (InodeFile) inode;
-    }
-    if (mDependencyMap.addLostFile(fileId) == null) {
-      LOG.error("There is no dependency info for " + iFile + " . No recovery on that");
-    } else {
-      LOG.info("Reported file loss. Tachyon will recompute it: " + iFile);
+      InodeFile iFile = (InodeFile) inode;
+      if (mDependencyMap.addLostFile(fileId) == null) {
+        LOG.error("There is no dependency info for " + iFile + " . No recovery on that");
+      } else {
+        LOG.info("Reported file loss. Tachyon will recompute it: " + iFile);
+      }
     }
   }
 
@@ -1154,7 +1153,9 @@ public final class FileSystemMaster extends MasterBase {
     return mDependencyMap.getPriorityDependencyList();
   }
 
-  public long loadFileInfoFromUfs(TachyonURI path, boolean recursive) throws TachyonException {
+  public long loadFileInfoFromUfs(TachyonURI path, boolean recursive)
+      throws BlockInfoException, FileAlreadyExistException, FileDoesNotExistException,
+      InvalidPathException, SuspectedFileSizeException, TachyonException {
     TachyonURI ufsPath;
     synchronized (mInodeTree) {
       ufsPath = mMountTable.resolve(path);
@@ -1168,22 +1169,7 @@ public final class FileSystemMaster extends MasterBase {
         addCheckpoint(-1, fileId, fileSizeByte, ufsPath);
       }
       return fileId;
-    } catch (BlockInfoException e) {
-      LOG.error(ExceptionUtils.getStackTrace(e));
-      throw new TachyonException(e.getMessage());
-    } catch (FileAlreadyExistException e) {
-      LOG.error(ExceptionUtils.getStackTrace(e));
-      throw new TachyonException(e.getMessage());
-    } catch (FileDoesNotExistException e) {
-      LOG.error(ExceptionUtils.getStackTrace(e));
-      throw new TachyonException(e.getMessage());
-    } catch (InvalidPathException e) {
-      LOG.error(ExceptionUtils.getStackTrace(e));
-      throw new TachyonException(e.getMessage());
     } catch (IOException e) {
-      LOG.error(ExceptionUtils.getStackTrace(e));
-      throw new TachyonException(e.getMessage());
-    } catch (SuspectedFileSizeException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
       throw new TachyonException(e.getMessage());
     }

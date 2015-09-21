@@ -321,12 +321,11 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
     } catch (IOException ioe) {
       LOG.debug("Failed to get BlockInStream for " + blockId + ", using ufs instead", ioe);
-//      TODO(jiri): Understand what happens here.
-//      if (!mFileInfo.isPersisted) {
-//        LOG.error("Could not obtain data for " + blockId
-//            + " from Tachyon and data is not persisted" + " in under storage.");
-//        throw ioe;
-//      }
+      if (!mFileInfo.isPersisted) {
+        LOG.error("Could not obtain data for " + blockId
+            + " from Tachyon and data is not persisted in under storage.");
+        throw ioe;
+      }
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;

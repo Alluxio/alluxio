@@ -68,8 +68,6 @@ public final class UiFileInfo {
   private final int mDependencyId;
   private final String mName;
   private final String mAbsolutePath;
-  // TODO(jiri): Fix this
-  private final String mCheckpointPath = "";
   private final long mBlockSizeBytes;
   private final long mSize;
   private final long mCreationTimeMs;
@@ -147,10 +145,6 @@ public final class UiFileInfo {
 
   public List<List<UiBlockInfo>> getBlocksOnTier() {
     return mBlocksOnTier;
-  }
-
-  public String getCheckpointPath() {
-    return mCheckpointPath;
   }
 
   public String getCreationTime() {
