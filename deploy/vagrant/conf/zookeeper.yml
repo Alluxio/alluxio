@@ -1,0 +1,7 @@
+# Release means using binary distribution from http://archive.apache.org/dist/zookeeper
+# {Release}
+Type: Release
+
+Release:
+  # Version will substitute {version} in http://archive.apache.org/dist/zookeeper/zookeeper-{version}/zookeeper-{version}.tar.gz
+  Version: 3.4.6
