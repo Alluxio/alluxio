@@ -39,6 +39,9 @@ TOTAL="$1"
 [[ "$TOTAL" -lt 2 ]] && error_exit "Machine number must be at least 2"
 shift
 
+TACHYON_MASTERS=$(grep Masters conf/tachyon.yml | cut -d':' -f 2 | tr -d ' ')
+[[ "$TOTAL" -lt "$TACHYON_MASTERS" ]] && error_exit "Total number of machines must be at least the same with Masters in conf/tachyon.yml"
+
 PROVIDER="$1"
 [[ "${PROVIDERS[*]}" =~ (^| )$PROVIDER( |$) ]] || error_exit "Provider $PROVIDER is not supported yet"
 shift
@@ -81,7 +84,6 @@ fi
 
 # files/workers, order matters, the last one is often also chosen as master
 rm -f files/workers
-TACHYON_MASTERS=$(grep Masters conf/tachyon.yml | cut -d':' -f 2 | tr -d ' ')
 for i in `seq 1 $((TOTAL-TACHYON_MASTERS))`; do
   echo "TachyonWorker${i}" >> files/workers
 done
