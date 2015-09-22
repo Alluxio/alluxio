@@ -139,7 +139,6 @@
     <slf4j.version>1.7.2</slf4j.version>
     <test.output.redirect>true</test.output.redirect>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
-    <yarn.version>${hadoop.version}</yarn.version>
   </properties>
 
   <modules>
@@ -152,7 +151,6 @@
     <module>integration-tests</module>
     <module>assembly</module>
     <module>minicluster</module>
-    <module>integration</module>
   </modules>
 
   <dependencyManagement>
@@ -536,6 +534,23 @@
       <id>hdfs2Test</id>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mesos</id>
+      <modules>
+        <module>integration/mesos</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>yarn</id>
+      <modules>
+        <module>integration/yarn</module>
+      </modules>
+      <properties>
+        <yarn.version>${hadoop.version}</yarn.version>
       </properties>
     </profile>
   </profiles>
