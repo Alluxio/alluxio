@@ -122,21 +122,20 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
   public void addCheckpointTest() throws Exception {
     long fileId = mHarness.mRandom.nextLong();
     long fileSize = mHarness.mRandom.nextLong();
-    long sessionId = mHarness.mRandom.nextLong();
-    String srcPath = "/tmp/" + fileId;
-    String parentPath = "/tmp/foo";
+    long nonce = mHarness.mRandom.nextLong();
     String dstPath = "/tmp/foo/bar";
+    String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
+    String parentPath = "/tmp/foo";
     FileInfo fileInfo = new FileInfo();
     fileInfo.setUfsPath(dstPath);
 
     // TODO(jiri): Add test cases for error cases.
-    Mockito.when(mHarness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
     Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
     Mockito.when(mHarness.mUfs.exists(parentPath)).thenReturn(true);
     Mockito.when(mHarness.mUfs.mkdirs(parentPath, true)).thenReturn(true);
     Mockito.when(mHarness.mUfs.rename(srcPath, dstPath)).thenReturn(true);
     Mockito.when(mHarness.mUfs.getFileSize(dstPath)).thenReturn(fileSize);
-    mHarness.mManager.addCheckpoint(sessionId, fileId);
+    mHarness.mManager.addCheckpoint(fileId, nonce);
     Mockito.verify(mHarness.mFileSystemMasterClient).addCheckpoint(mHarness.mWorkerId, fileId,
         fileSize, dstPath);
   }

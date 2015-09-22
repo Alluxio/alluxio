@@ -160,7 +160,11 @@ public final class FileSystemMaster extends MasterBase {
       dependency.resetUncheckpointedChildrenFiles(dependencyEntry.mUncheckpointedFiles);
       mDependencyMap.addDependency(dependency);
     } else if (entry instanceof CompleteFileEntry) {
-      completeFileFromEntry((CompleteFileEntry) entry);
+      try {
+        completeFileFromEntry((CompleteFileEntry) entry);
+      } catch (InvalidPathException e) {
+        throw new IOException("failed to complete file " + ((CompleteFileEntry) entry).getFileId());
+      }
     } else if (entry instanceof AddCheckpointEntry) {
       addCheckpointFromEntry((AddCheckpointEntry) entry);
     } else if (entry instanceof SetPinnedEntry) {
@@ -367,6 +371,7 @@ public final class FileSystemMaster extends MasterBase {
     TachyonURI resolvedPath = mMountTable.resolve(path);
     // Only set the UFS path if the path is nested under a mount point.
     if (!path.equals(resolvedPath)) {
+      fileInfo.isPersisted = true;
       fileInfo.setUfsPath(resolvedPath.toString());
     }
     return fileInfo;
@@ -406,13 +411,14 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    */
-  public void completeFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
+  public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException,
+      InvalidPathException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
       if (!inode.isFile()) {
         throw new FileDoesNotExistException(
-                ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
+            ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
       }
 
       InodeFile fileInode = (InodeFile) inode;
@@ -444,15 +450,23 @@ public final class FileSystemMaster extends MasterBase {
 
   // This function should only be called from within synchronized (mInodeTree) blocks.
   void completeFileInternal(List<Long> blockIds, long fileId, long fileLength, long opTimeMs)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, InvalidPathException {
     mDependencyMap.addFileCheckpoint(fileId);
     InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
     inodeFile.setBlockIds(blockIds);
     inodeFile.setCompleted(fileLength);
     inodeFile.setLastModificationTimeMs(opTimeMs);
+    // Mark all parent directories that have a UFS counterpart as persisted.
+    InodeDirectory inodeDir = (InodeDirectory) mInodeTree.getInodeById(inodeFile.getParentId());
+    TachyonURI path = mInodeTree.getPath(inodeDir);
+    while (!mMountTable.resolve(path).equals(path)) {
+      inodeDir.setPersisted(true);
+      inodeDir = (InodeDirectory) mInodeTree.getInodeById(inodeDir.getParentId());
+      path = mInodeTree.getPath(inodeDir);
+    }
   }
 
-  private void completeFileFromEntry(CompleteFileEntry entry) {
+  private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
     try {
       completeFileInternal(entry.getBlockIds(), entry.getFileId(), entry.getFileLength(),
           entry.getOperationTimeMs());

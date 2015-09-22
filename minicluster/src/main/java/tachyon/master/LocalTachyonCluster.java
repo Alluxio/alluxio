@@ -264,8 +264,6 @@ public final class LocalTachyonCluster {
 
     UnderFileSystemUtils.mkdirIfNotExists(
         mMasterConf.get(Constants.UNDERFS_DATA_FOLDER), mMasterConf);
-    UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER), mMasterConf);
     CommonUtils.sleepMs(10);
 
     startWorker();

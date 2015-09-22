@@ -199,7 +199,8 @@ service FileSystemMasterService {
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
   void completeFile(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
+    throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
+      3: InvalidPathException ipe)
 
   bool deleteFile(1: i64 fileId, 2: bool recursive)
     throws (1: TachyonException te)
@@ -281,7 +282,7 @@ service RawTableMasterService {
 service WorkerService {
   void accessBlock(1: i64 blockId)
 
-  void addCheckpoint(1: i64 sessionId, 2: i64 fileId)
+  void addCheckpoint(1: i64 fileId, 2: i64 nonce)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: FailedToCheckpointException eF, 4: BlockInfoException eB)
 
@@ -301,12 +302,6 @@ service WorkerService {
    * the location and space information related, then reclaim space allocated to the block.
    */
   void cancelBlock(1: i64 sessionId, 2: i64 blockId)
-
-  /**
-   * Used to get session's temporary folder on under file system, and the path of the session's temporary
-   * folder will be returned.
-   */
-  string getSessionUfsTempFolder(1: i64 sessionId)
 
   /**
    * Lock the file in Tachyon's space while the session is reading it, and the path of the block file

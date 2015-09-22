@@ -151,6 +151,17 @@ public final class PathUtils {
   }
 
   /**
+   * Generates a deterministic temporary file name for the given path and file id.
+   *
+   * @param fileId a file id
+   * @param path a file path
+   * @return a deterministic temporary file name
+   */
+  public static final String temporaryFileName(long fileId, long nonce, String path) {
+    return path + ".tachyon." + fileId + "." + nonce + ".tmp";
+  }
+
+  /**
    * Creates a unique path based off the caller.
    *
    * @return unique path based off the caller

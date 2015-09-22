@@ -236,16 +236,15 @@ public class LocalTachyonClusterMultiMaster {
       mMasterConf.set(Constants.MASTER_PORT, "0");
     }
 
-    // Create the directories for the data and workers after LocalTachyonMaster construction,
-    // because LocalTachyonMaster sets the UNDERFS_DATA_FOLDER and UNDERFS_WORKERS_FOLDER.
+    // Create the UFS data directory after LocalTachyonMaster construction, because
+    // LocalTachyonMaster sets UNDERFS_DATA_FOLDER.
     mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER));
-    mkdir(mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER));
 
     LOG.info("all " + mNumOfMasters + " masters started.");
     LOG.info("waiting for a leader.");
     boolean hasLeader = false;
     while (!hasLeader) {
-      for (int i = 0; i < mMasters.size(); i++) {
+      for (int i = 0; i < mMasters.size(); i ++) {
         if (mMasters.get(i).isServing()) {
           LOG.info("master NO." + i + " is selected as leader. address: "
               + mMasters.get(i).getAddress());
