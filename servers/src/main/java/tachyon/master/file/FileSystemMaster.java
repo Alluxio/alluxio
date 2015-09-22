@@ -1115,4 +1115,13 @@ public final class FileSystemMaster extends MasterBase {
       return mDependencyMap.getPriorityDependencyList();
     }
   }
+
+  public void emptyFile(long fileId) throws FileDoesNotExistException {
+    synchronized (mInodeTree) {
+      // free the file first
+      free(fileId, false);
+      InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
+      inodeFile.reinit();
+    }
+  }
 }

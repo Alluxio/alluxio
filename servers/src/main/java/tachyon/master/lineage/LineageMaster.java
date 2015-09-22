@@ -103,9 +103,11 @@ public final class LineageMaster extends MasterBase {
               new CheckpointPlanningExecutor(mTachyonConf, mCheckpointManager),
               mTachyonConf.getInt(Constants.MASTER_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
-          getExecutorService().submit(new HeartbeatThread("Recomupte service",
-              new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster)),
-              mTachyonConf.getInt(Constants.MASTER_RECOMPUTE_INTERVAL_MS)));
+          getExecutorService()
+              .submit(new HeartbeatThread("Recomupte service",
+                  new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
+                      mFileSystemMaster),
+                  mTachyonConf.getInt(Constants.MASTER_RECOMPUTE_INTERVAL_MS)));
     }
   }
 

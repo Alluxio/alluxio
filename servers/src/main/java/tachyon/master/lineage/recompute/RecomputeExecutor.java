@@ -25,7 +25,9 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
+import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
+import tachyon.thrift.FileDoesNotExistException;
 
 /**
  * A periodical executor that detects lost files and launches recompute jobs.
@@ -35,6 +37,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
 
   private static final int DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE = 10;
   private final RecomputePlanner mPlanner;
+  private final FileSystemMaster mFileSystemMaster;
   /** The thread pool to launch recompute jobs */
   private final ExecutorService mFixedExecutionService =
       Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE);
@@ -42,8 +45,9 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   /**
    * @param planner recompute planner
    */
-  public RecomputeExecutor(RecomputePlanner planner) {
+  public RecomputeExecutor(RecomputePlanner planner, FileSystemMaster fileSystemMaster) {
     mPlanner = Preconditions.checkNotNull(planner);
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
   }
 
   @Override
@@ -67,6 +71,15 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
     @Override
     public void run() {
       for (Lineage lineage : mPlan.getLineageToRecompute()) {
+        // empty all the lost files
+        for (Long fileId : lineage.getLostFiles()) {
+          try {
+            mFileSystemMaster.emptyFile(fileId);
+          } catch (FileDoesNotExistException e) {
+            // TODO error handling
+          }
+        }
+
         boolean success = lineage.getJob().run();
         if (!success) {
           // error handling

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
@@ -82,6 +83,17 @@ public final class InodeFile extends Inode {
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     return ret;
+  }
+
+  /**
+   * Reinitializes the inode file.
+   */
+  public void reinit() {
+    mBlocks = Lists.newArrayList();
+    mLength = 0;
+    mIsComplete = false;
+    mCache = false;
+    mUfsPath = "";
   }
 
   /**

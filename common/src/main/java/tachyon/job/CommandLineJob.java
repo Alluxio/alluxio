@@ -30,7 +30,8 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 
 /**
- * A job that wraps a programmed run by command line.
+ * A job that wraps a programmed run by command line. This job's caller should ensure the execution
+ * environment are identical on master and at the client site.
  */
 public class CommandLineJob extends Job {
   private static final long serialVersionUID = 1655996721855899996L;
