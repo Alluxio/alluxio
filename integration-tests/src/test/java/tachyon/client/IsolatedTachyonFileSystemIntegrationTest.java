@@ -32,6 +32,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
@@ -45,11 +46,9 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private String mMountPoint;
   private TachyonFileSystem mTfs = null;
-  private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
   private int mWorkerToMasterHeartbeatIntervalMs;
   private ClientOptions mWriteBoth;
-  private ClientOptions mWriteUnderStorage;
 
   @After
   public final void after() throws Exception {
@@ -58,22 +57,20 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    System.setProperty(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
+
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 100 * Constants.MB);
     mLocalTachyonCluster.start();
     mMountPoint = mLocalTachyonCluster.getMountPoint();
     mTfs = mLocalTachyonCluster.getClient();
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mWriteBoth =
         new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.STORE,
-            UnderStorageType.PERSIST).build();
-    mWriteUnderStorage =
-        new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.NO_STORE,
             UnderStorageType.PERSIST).build();
   }
 

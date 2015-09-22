@@ -24,6 +24,7 @@ import tachyon.Constants;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,
@@ -37,8 +38,6 @@ public final class PinListSync implements Runnable {
 
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** The configuration values */
-  private final TachyonConf mTachyonConf;
   /** Milliseconds between each sync */
   private final int mSyncIntervalMs;
   /** Milliseconds between syncs before a timeout */
@@ -53,16 +52,15 @@ public final class PinListSync implements Runnable {
    * Constructor for PinListSync
    *
    * @param blockDataManager the blockDataManager this syncer is updating to
-   * @param tachyonConf the configuration values to be used
    * @param masterClient the Tachyon master client
    */
-  public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      WorkerFileSystemMasterClient masterClient) {
+  public PinListSync(BlockDataManager blockDataManager, WorkerFileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
-    mTachyonConf = tachyonConf;
+    TachyonConf conf = WorkerContext.getConf();
+    
     mMasterClient = masterClient;
-    mSyncIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mSyncTimeoutMs = mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    mSyncIntervalMs = conf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    mSyncTimeoutMs = conf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
   }

@@ -27,6 +27,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
+import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.Seekable;
@@ -36,6 +37,8 @@ import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.NetAddress;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
@@ -224,7 +227,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           // TODO(calvin): Specify the location to be local.
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, 
+                     NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           LOG.warn("Failed to get TachyonStore stream, the block " + currentBlockId
               + " will not be in TachyonStorage", ioe);
@@ -284,7 +288,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, 
+                      NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           LOG.warn("Failed to write to TachyonStore stream, block " + getCurrentBlockId()
               + " will not be in TachyonStorage.", ioe);
