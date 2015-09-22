@@ -35,10 +35,11 @@ import tachyon.thrift.InvalidPathException;
 
 /**
  * Tachyon lineage client. This class is the entry point for all lineage related operations. An
- * instance of this class can be obtained via {@link TachyonLineageFileSystem#get}.This class is thread safe.
+ * instance of this class can be obtained via {@link TachyonLineageFileSystem#get}.This class is
+ * thread safe.
  */
 @PublicApi
-public class TachyonLineageFileSystem extends TachyonFileSystem{
+public class TachyonLineageFileSystem extends TachyonFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected LineageContext mContext;
@@ -66,7 +67,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem{
 
     try {
       long lineageId = masterClient.addLineage(inputFiles, outputFiles, job);
-      LOG.info("Added lineage "+lineageId);
+      LOG.info("Added lineage " + lineageId);
       return lineageId;
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -119,8 +120,8 @@ public class TachyonLineageFileSystem extends TachyonFileSystem{
   }
 
   @Override
-  public FileOutStream getOutStream(TachyonURI path, ClientOptions options) throws IOException,
-      InvalidPathException, FileAlreadyExistException, BlockInfoException {
+  public FileOutStream getOutStream(TachyonURI path, ClientOptions options)
+      throws IOException, InvalidPathException, FileAlreadyExistException, BlockInfoException {
     long fileId = create(path, options.getBlockSize(), true);
     return new LineageFileOutStream(fileId, options);
   }
