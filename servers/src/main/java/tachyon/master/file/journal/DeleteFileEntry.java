@@ -25,11 +25,13 @@ import tachyon.master.journal.JournalEntryType;
 public class DeleteFileEntry implements JournalEntry {
   public final long mFileId;
   public final boolean mRecursive;
+  public final boolean mPropagate;
   public final long mOpTimeMs;
 
-  public DeleteFileEntry(long fileId, boolean recursive, long opTimeMs) {
+  public DeleteFileEntry(long fileId, boolean recursive, boolean propagate, long opTimeMs) {
     mFileId = fileId;
     mRecursive = recursive;
+    mPropagate = propagate;
     mOpTimeMs = opTimeMs;
   }
 
@@ -43,6 +45,7 @@ public class DeleteFileEntry implements JournalEntry {
     Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
     parameters.put("fileId", mFileId);
     parameters.put("recursive", mRecursive);
+    parameters.put("propagate", mPropagate);
     parameters.put("operationTimeMs", mOpTimeMs);
     return parameters;
   }

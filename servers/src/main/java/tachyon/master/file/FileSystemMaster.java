@@ -380,7 +380,6 @@ public final class FileSystemMaster extends MasterBase {
     TachyonURI resolvedPath = mMountTable.resolve(path);
     // Only set the UFS path if the path is nested under a mount point.
     if (!path.equals(resolvedPath)) {
-      fileInfo.isPersisted = true;
       fileInfo.setUfsPath(resolvedPath.toString());
     }
     return fileInfo;
@@ -580,8 +579,8 @@ public final class FileSystemMaster extends MasterBase {
     MasterContext.getMasterSource().incDeleteFileOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
-      boolean ret = deleteFileInternal(fileId, recursive, opTimeMs);
-      writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
+      boolean ret = deleteFileInternal(fileId, recursive, true, opTimeMs);
+      writeJournalEntry(new DeleteFileEntry(fileId, recursive, true, opTimeMs));
       flushJournal();
       return ret;
     }
@@ -590,23 +589,23 @@ public final class FileSystemMaster extends MasterBase {
   private void deleteFileFromEntry(DeleteFileEntry entry) {
     MasterContext.getMasterSource().incDeleteFileOps();
     try {
-      deleteFileInternal(entry.mFileId, entry.mRecursive, entry.mOpTimeMs);
+      deleteFileInternal(entry.mFileId, entry.mRecursive, entry.mPropagate, entry.mOpTimeMs);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  boolean deleteFileInternal(long fileId, boolean recursive, long opTimeMs)
+  boolean deleteFileInternal(long fileId, boolean recursive, boolean propagate, long opTimeMs)
       throws TachyonException, FileDoesNotExistException {
     Inode inode = mInodeTree.getInodeById(fileId);
     synchronized (mInodeTree) {
-      return deleteInodeInternal(inode, recursive, opTimeMs);
+      return deleteInodeInternal(inode, recursive, propagate, opTimeMs);
     }
   }
 
   // This function should only be called from within synchronized (mInodeTree) blocks.
-  private boolean deleteInodeInternal(Inode inode, boolean recursive, long opTimeMs)
-      throws TachyonException, FileDoesNotExistException {
+  private boolean deleteInodeInternal(Inode inode, boolean recursive, boolean propagate,
+      long opTimeMs) throws TachyonException, FileDoesNotExistException {
     if (inode == null) {
       return true;
     }
@@ -631,28 +630,27 @@ public final class FileSystemMaster extends MasterBase {
     for (int i = delInodes.size() - 1; i >= 0; i --) {
       Inode delInode = delInodes.get(i);
 
-      if (delInode.isFile()) {
-        // Delete the ufs file.
+      if (propagate && delInode.isPersisted()) {
+        // Delete the file in the under file system.
         String ufsPath;
         try {
           ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
         } catch (InvalidPathException e) {
           throw new TachyonException(e.getMessage());
         }
-        boolean isPersisted = ((InodeFile) delInode).isPersisted();
-        if (isPersisted) {
-          UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-          try {
-            if (!ufs.exists(ufsPath)) {
-              LOG.warn("File does not exist the underfs: " + ufsPath);
-            } else if (!ufs.delete(ufsPath, true)) {
-              return false;
-            }
-          } catch (IOException e) {
-            throw new TachyonException(e.getMessage());
+        UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+        try {
+          if (!ufs.exists(ufsPath)) {
+            LOG.warn("File does not exist the underfs: " + ufsPath);
+          } else if (!ufs.delete(ufsPath, true)) {
+            return false;
           }
+        } catch (IOException e) {
+          throw new TachyonException(e.getMessage());
         }
+      }
 
+      if (delInode.isFile()) {
         // Remove corresponding blocks from workers.
         mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds());
       }
@@ -990,7 +988,7 @@ public final class FileSystemMaster extends MasterBase {
         TachyonURI ufsDstPath = mMountTable.resolve(dstPath);
         UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath.getPath(), MasterContext.getConf());
         String ufsParentPath = ufsDstPath.getParent().toString();
-        // TODO(jiri): Should we attempt to create the parent UFS directory?
+        // TODO(jiri): Should we create the parent UFS directory?
         if (!ufs.exists(ufsParentPath) && !ufs.mkdirs(ufsParentPath, true)) {
           LOG.error("Failed to create " + ufsParentPath);
           return false;
@@ -1226,10 +1224,13 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   public boolean unmount(TachyonURI tachyonPath) throws FileDoesNotExistException,
-      InvalidPathException {
+      InvalidPathException, TachyonException {
     synchronized (mInodeTree) {
       if (mMountTable.delete(tachyonPath)) {
-        // TODO(jiri): Delete metadata for the Tachyon namespace nested under tachyonPath.
+        Inode inode = mInodeTree.getInodeByPath(tachyonPath);
+        long opTimeMs = System.currentTimeMillis();
+        deleteFileInternal(inode.getId(), true, true, opTimeMs);
+        writeJournalEntry(new DeleteFileEntry(inode.getId(), true, true, opTimeMs));
         writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
         flushJournal();
         return true;

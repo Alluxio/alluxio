@@ -49,7 +49,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
-import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -256,11 +255,11 @@ public class FileSystemMasterIntegrationTest {
     TachyonURI uri = new TachyonURI(PathUtils.concatPath(mMountPoint, "testFile"));
     long fileId = mFsMaster.createFile(uri, Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals(PathUtils.concatPath(mLocalTachyonCluster.getTachyonHome(), "testFile"),
-        fileInfo.getUfsPath());
+    Assert.assertFalse(fileInfo.isIsPersisted());
     mFsMaster.addCheckpoint(-1, fileId, 1,
         new TachyonURI(PathUtils.concatPath(mMountPoint, "testPath")));
-    // TODO(jiri): Check the file exists in UFS.
+    fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertTrue(fileInfo.isIsPersisted());
   }
 
   @After
@@ -635,7 +634,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(
         mMountPoint, "testFolder", "testFile"))));
     long opTimeMs = System.currentTimeMillis();
-    Assert.assertTrue(mFsMaster.deleteFileInternal(fileId, true, opTimeMs));
+    Assert.assertTrue(mFsMaster.deleteFileInternal(fileId, true, true, opTimeMs));
     FileInfo folderInfo = mFsMaster.getFileInfo(folderId);
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }

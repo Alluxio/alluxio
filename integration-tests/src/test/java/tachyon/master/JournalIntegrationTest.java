@@ -185,7 +185,7 @@ public class JournalIntegrationTest {
   }
 
   /**
-   * Test file and folder creation and deletion;
+   * Test file and folder creation and deletion.
    *
    * @throws Exception
    */
