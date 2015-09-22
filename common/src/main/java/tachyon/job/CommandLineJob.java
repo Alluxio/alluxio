@@ -48,9 +48,7 @@ public class CommandLineJob extends Job {
   @Override
   public boolean run() {
     try {
-      // String outputPath = getJobConf().getOutputFilePath();
-      // FIXME for debug
-      String outputPath = "/Users/richbird/git/tachyon/logs/recompute.log";
+      String outputPath = getJobConf().getOutputFilePath();
       LOG.info("Exec " + mCommand + " output to " + outputPath);
       Process p = java.lang.Runtime.getRuntime().exec(mCommand);
       String line;

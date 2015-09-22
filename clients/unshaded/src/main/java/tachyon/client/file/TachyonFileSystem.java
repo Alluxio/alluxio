@@ -51,7 +51,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
       if (enableLineage) {
         return TachyonLineageFileSystem.get();
       } else {
-        return sTachyonFileSystem;
+        sTachyonFileSystem = new TachyonFileSystem();
       }
     }
     return sTachyonFileSystem;
