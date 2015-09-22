@@ -235,7 +235,7 @@ public final class LocalTachyonCluster {
 
   /**
    * Starts both a master and a worker using the configurations in {@link MasterContext} and
-   * {@link WorkerContext}.
+   * {@link WorkerContext} respectively.
    *
    * @throws IOException when the operation fails
    */
