@@ -116,8 +116,10 @@ public class BasicOperations implements Callable<Boolean> {
     boolean pass = true;
     LOG.debug("Reading data...");
     TachyonFile file = new TachyonFile(fileId);
+    ClientOptions clientOptions = new ClientOptions.Builder(ClientContext.getConf())
+            .setTachyonStoreType(TachyonStorageType.STORE).build();
     final long startTimeMs = CommonUtils.getCurrentMs();
-    FileInStream is = tachyonFileSystem.getInStream(file, mClientOptions);
+    FileInStream is = tachyonFileSystem.getInStream(file, clientOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());
