@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.apache.thrift.TException;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -43,7 +44,10 @@ import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.lineage.TachyonLineageFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.job.CommandLineJob;
+import tachyon.job.JobConf;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -846,6 +850,10 @@ public class TFsShell implements Closeable {
         } else if (cmd.equals("mv")) {
           return rename(argv);
         }
+      } else if (numOfArgs == 3) { // commands need 3 arguments
+        if (cmd.equals("addLineage")) {
+          return addLineage(argv);
+        }
       }
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
@@ -988,4 +996,39 @@ public class TFsShell implements Closeable {
     }
     return sizeInBytes;
   }
+
+  private int addLineage(String[] argv) throws IOException {
+    if (!(mTfs instanceof TachyonLineageFileSystem)) {
+      System.out.println("addLineage requires lineaged to be enabled.");
+      return -1;
+    }
+    TachyonLineageFileSystem tlfs = (TachyonLineageFileSystem)mTfs;
+
+    // TODO(yupeng) more validation
+    String inputArgs = argv[1].replace("input:", "");
+    List<TachyonURI> inputFiles = Lists.newArrayList();
+    for(String path:inputArgs.split(",")) {
+      inputFiles.add(new TachyonURI(path));
+    }
+    String outputArgs = argv[2].replace("output:", "");
+    List<TachyonURI> outputFiles = Lists.newArrayList();
+    for(String path:outputArgs.split(",")) {
+      outputFiles.add(new TachyonURI(path));
+    }
+    String cmd = argv[3].replace("job:", "");
+    // remove the trailing quote
+    cmd = cmd.substring(0, cmd.length()-1);
+
+    CommandLineJob job = new CommandLineJob(cmd, new JobConf(null));
+    System.out.println(inputFiles);
+    System.out.println(outputFiles);
+    System.out.println(cmd);
+    try {
+      tlfs.addLineage(inputFiles, outputFiles, job);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
+    return 0;
+  }
+
 }
