@@ -148,7 +148,7 @@ public final class WorkerBlockMasterClient extends MasterClientBase {
    * @param usedBytesOnTiers list of the used byes on each tier
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
    *        dir
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if an I/O error occurs or the workerId doesn't exist
    */
   // TODO: rename to workerBlockReport or workerInitialize?
   public synchronized void register(long workerId, List<Long> totalBytesOnTiers,
