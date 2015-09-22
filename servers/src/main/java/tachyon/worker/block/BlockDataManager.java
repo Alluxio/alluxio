@@ -325,7 +325,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws AlreadyExistsException if blocks to move already exists in destination location
    * @throws InvalidStateException if blocks to move/evict is uncommitted
    */
-  void freeSpace(long sessionId, long availableBytes, int tierAlias)
+  public void freeSpace(long sessionId, long availableBytes, int tierAlias)
       throws OutOfSpaceException, NotFoundException, IOException, AlreadyExistsException,
       InvalidStateException {
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);

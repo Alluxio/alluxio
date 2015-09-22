@@ -230,11 +230,11 @@ public final class Constants {
   public static final String WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT =
       "tachyon.worker.tieredstore.level%d.reserved.ratio";
 
-  public static final String WORKER_TIERED_STORAGE_EVICT_ASYNC_PERIOD_MS_FORMAT =
-      "tachyon.worker.tieredstore.evict.async.period.ms";
+  public static final String WORKER_SPACE_RESERVER_PERIOD_MS =
+      "tachyon.worker.space.reserver.period.ms";
 
-  public static final String WORKER_EVICT_ASYNC_ENABLE =
-      "tachyon.worker.tieredstore.evict.async.enable";
+  public static final String WORKER_SPACE_RESERVER_ENABLE =
+      "tachyon.worker.space.reserver.enable";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
