@@ -74,7 +74,7 @@ public final class Utils {
       try {
         return TachyonStorageType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unable to parse WriteType;" + e.getMessage());
+        System.err.println("Unable to parse TachyonStorageType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
       }
@@ -88,7 +88,7 @@ public final class Utils {
       try {
         return UnderStorageType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unable to parse ReadType;" + e.getMessage());
+        System.err.println("Unable to parse UnderStorageType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
       }
