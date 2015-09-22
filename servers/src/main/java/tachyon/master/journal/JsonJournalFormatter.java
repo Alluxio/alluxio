@@ -346,6 +346,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
             return new DeleteFileEntry(
                 entry.getLong("fileId"),
                 entry.getBoolean("recursive"),
+                entry.getBoolean("propagate"),
                 entry.getLong("operationTimeMs"));
           }
           case RENAME: {

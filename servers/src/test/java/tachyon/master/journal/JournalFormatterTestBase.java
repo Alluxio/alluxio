@@ -200,7 +200,7 @@ public abstract class JournalFormatterTestBase {
 
   @Test
   public void deleteFileEntryTest() throws IOException {
-    entryTest(new DeleteFileEntry(TEST_FILE_ID, true, TEST_OP_TIME_MS));
+    entryTest(new DeleteFileEntry(TEST_FILE_ID, true, true, TEST_OP_TIME_MS));
   }
 
   @Test

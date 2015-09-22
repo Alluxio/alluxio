@@ -292,4 +292,9 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       mCurrentBlockOutStream.cancel();
     }
   }
+
+  // TODO(jiri): This is for testing only. Apply the Tester/Testable idiom here.
+  public long getNonce() {
+    return mNonce;
+  }
 }
