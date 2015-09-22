@@ -29,7 +29,6 @@ import tachyon.Version;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
@@ -61,11 +60,11 @@ public class BasicOperations implements Callable<Boolean> {
   private final int mNumbers = 20;
 
   public BasicOperations(TachyonURI masterLocation, TachyonURI filePath,
-      TachyonStorageType storageType, UnderStorageType underStorageType) {
+      TachyonStorageType storageType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
     mClientOptions = new ClientOptions.Builder(ClientContext.getConf())
-        .setStorageTypes(storageType, underStorageType).build();
+        .setTachyonStoreType(storageType).build();
   }
 
   @Override
@@ -132,15 +131,14 @@ public class BasicOperations implements Callable<Boolean> {
   }
 
   public static void main(String[] args) throws IllegalArgumentException {
-    if (args.length != 4) {
+    if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION
           + "-jar-with-dependencies.jar tachyon.examples.BasicOperations"
-          + " <TachyonMasterAddress> <FilePath> <TachyonStorageType(STORE|NO_STORE)>"
-          + " <UnderStorageType(PERSIST|NO_PERSIST)>");
+          + " <TachyonMasterAddress> <FilePath> <WriteType(STORE|NO_STORE)>");
       System.exit(-1);
     }
 
     Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        TachyonStorageType.valueOf(args[2]), UnderStorageType.valueOf(args[3])));
+        TachyonStorageType.valueOf(args[2])));
   }
 }
