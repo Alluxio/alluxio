@@ -36,9 +36,9 @@ import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.master.rawtable.RawTableMaster;
+import tachyon.metrics.MetricsSystem;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -76,6 +76,8 @@ public class TachyonMaster {
   private final TServerSocket mTServerSocket;
   /** The address for the rpc server */
   private final InetSocketAddress mMasterAddress;
+  /** The master metrics system */
+  private final MetricsSystem mMasterMetricsSystem;
 
   // The masters
   /** The master managing all block metadata */
@@ -162,7 +164,9 @@ public class TachyonMaster {
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
 
-      // TODO(gene): Implement metrics.
+      MasterContext.getMasterSource().registerGauges(this);
+      mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
+      mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -290,6 +294,7 @@ public class TachyonMaster {
   }
 
   protected void startServing(String startMessage, String stopMessage) {
+    mMasterMetricsSystem.start();
     startServingWebServer();
     LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress + " "
         + startMessage);
@@ -303,6 +308,8 @@ public class TachyonMaster {
     TachyonConf conf = MasterContext.getConf();
     mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
         ServiceType.MASTER_WEB, conf), this, conf);
+    // Add the metrics servlet to the web server, this must be done after the metrics system starts
+    mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
     mWebServer.startWebServer();
   }
 
@@ -335,6 +342,7 @@ public class TachyonMaster {
       mWebServer.shutdownWebServer();
       mWebServer = null;
     }
+    mMasterMetricsSystem.stop();
     mIsServing = false;
   }
 

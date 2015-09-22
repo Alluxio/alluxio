@@ -62,8 +62,8 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
-    int quietPeriodSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD);
-    int timeoutSecs = mTachyonConf.getInt(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT);
+    int quietPeriodSecs = mTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
+    int timeoutSecs = mTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
     mChannelFuture.channel().close().awaitUninterruptibly();
     mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
     mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
@@ -81,25 +81,26 @@ public final class NettyDataServer implements DataServer {
     // set write buffer
     // this is the default, but its recommended to set it in case of change in future netty.
     boot.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK,
-        (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_WATERMARK_HIGH));
+        (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_WATERMARK_HIGH));
     boot.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK,
-        (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_WATERMARK_LOW));
+        (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_WATERMARK_LOW));
 
     // more buffer settings on Netty socket option, one can tune them by specifying
     // properties, e.g.:
     // tachyon.worker.network.netty.backlog=50
     // tachyon.worker.network.netty.buffer.send=64KB
     // tachyon.worker.network.netty.buffer.receive=64KB
-    if (mTachyonConf.containsKey(Constants.WORKER_NETTY_BACKLOG)) {
-      boot.option(ChannelOption.SO_BACKLOG, mTachyonConf.getInt(Constants.WORKER_NETTY_BACKLOG));
+    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_BACKLOG)) {
+      boot.option(ChannelOption.SO_BACKLOG,
+          mTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BACKLOG));
     }
-    if (mTachyonConf.containsKey(Constants.WORKER_NETTY_SEND_BUFFER)) {
+    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_SEND_BUFFER)) {
       boot.option(ChannelOption.SO_SNDBUF,
-          (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_SEND_BUFFER));
+          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_SEND_BUFFER));
     }
-    if (mTachyonConf.containsKey(Constants.WORKER_NETTY_RECEIVE_BUFFER)) {
+    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_RECEIVE_BUFFER)) {
       boot.option(ChannelOption.SO_RCVBUF,
-          (int) mTachyonConf.getBytes(Constants.WORKER_NETTY_RECEIVE_BUFFER));
+          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_RECEIVE_BUFFER));
     }
     return boot;
   }
@@ -138,9 +139,10 @@ public final class NettyDataServer implements DataServer {
    */
   private ServerBootstrap createBootstrapOfType(final ChannelType type) {
     final ServerBootstrap boot = new ServerBootstrap();
-    final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS);
+    final int bossThreadCount = mTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
     // If number of worker threads is 0, Netty creates (#processors * 2) threads by default.
-    final int workerThreadCount = mTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS);
+    final int workerThreadCount =
+        mTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS);
     final EventLoopGroup bossGroup =
         NettyUtils.createEventLoop(type, bossThreadCount, "data-server-boss-%d", false);
     final EventLoopGroup workerGroup =
