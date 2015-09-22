@@ -39,10 +39,11 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
+import tachyon.IndexedSet;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.master.IndexedSet;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
@@ -54,6 +55,8 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.test.Testable;
+import tachyon.test.Tester;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
@@ -70,7 +73,8 @@ import tachyon.util.io.PathUtils;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-public final class BlockMaster extends MasterBase implements ContainerIdGenerable {
+public final class BlockMaster extends MasterBase implements ContainerIdGenerable,
+    Testable<BlockMaster> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block metadata management. */
@@ -164,7 +168,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       mBlocks.put(blockInfoEntry.getBlockId(),
           new MasterBlockInfo(blockInfoEntry.getBlockId(), blockInfoEntry.getLength()));
     } else {
-      throw new IOException("unexpected entry in journal: " + entry);
+      throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
   }
 
@@ -642,5 +646,47 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         }
       }
     }
+  }
+
+  class PrivateAccess {
+    private PrivateAccess() {}
+
+    /**
+     * @param worker a {@link MasterWorkerInfo} to add to the list of lost workers
+     */
+    public void addLostWorker(MasterWorkerInfo worker) {
+      synchronized (mWorkers) {
+        mLostWorkers.add(worker);
+      }
+    }
+
+    /**
+     * Looks up the {@link MasterWorkerInfo} for a given worker ID.
+     *
+     * @param workerId the worker ID to look up
+     * @return the {@link MasterWorkerInfo} for the given workerId.
+     */
+    public MasterWorkerInfo getWorkerById(long workerId) {
+      synchronized (mWorkers) {
+        return mWorkers.getFirstByField(mIdIndex, workerId);
+      }
+    }
+
+    /**
+     * Looks up the {@link MasterBlockInfo} for the given block ID.
+     *
+     * @param blockId the block ID
+     * @return the {@link MasterBlockInfo}.
+     */
+    public MasterBlockInfo getMasterBlockInfo(long blockId) {
+      synchronized (mBlocks) {
+        return mBlocks.get(blockId);
+      }
+    }
+  }
+
+  /** Grants access to private members to testers of this class. */
+  public void grantAccess(Tester<BlockMaster> tester) {
+    tester.receiveAccess(new PrivateAccess());
   }
 }

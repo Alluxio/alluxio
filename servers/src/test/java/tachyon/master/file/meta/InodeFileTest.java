@@ -15,11 +15,15 @@
 
 package tachyon.master.file.meta;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
-import tachyon.master.file.meta.InodeFile;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
@@ -76,6 +80,33 @@ public final class InodeFileTest extends AbstractInodeTest {
   public void getBlockSizeBytesTest() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertEquals(Constants.KB, inode1.getBlockSizeBytes());
+  }
+
+  @Test
+  public void getBlockIdByIndexTest() throws Exception {
+    InodeFile inodeFile = createInodeFile(1);
+    List<Long> blockIds = Lists.newArrayList();
+    final int NUM_BLOCKS = 3;
+    for (int i = 0; i < NUM_BLOCKS; i ++) {
+      blockIds.add(inodeFile.getNewBlockId());
+    }
+    for (int i = 0; i < NUM_BLOCKS; i ++) {
+      Assert.assertEquals(blockIds.get(i), (Long) inodeFile.getBlockIdByIndex(i));
+    }
+    try {
+      inodeFile.getBlockIdByIndex(-1);
+      Assert.fail();
+    } catch (BlockInfoException e) {
+      Assert.assertEquals(String.format("blockIndex -1 is out of range. File blocks: %d",
+          NUM_BLOCKS), e.getMessage());
+    }
+    try {
+      inodeFile.getBlockIdByIndex(NUM_BLOCKS);
+      Assert.fail();
+    } catch (BlockInfoException e) {
+      Assert.assertEquals(String.format("blockIndex %d is out of range. File blocks: %d",
+          NUM_BLOCKS, NUM_BLOCKS), e.getMessage());
+    }
   }
 
   @Test

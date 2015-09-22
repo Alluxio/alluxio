@@ -66,7 +66,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
       mLocalFileChannel = mCloser.register(localFile.getChannel());
       // Change the permission of the temporary file in order that the worker can move it.
-      LOG.info("LocalBlockOutStream created new file block, block path: (" + blockPath + ")");
+      LOG.info("LocalBlockOutStream created new file block, block path: " + blockPath);
     } catch (IOException ioe) {
       mContext.releaseWorkerClient(mWorkerClient);
       throw ioe;
@@ -93,6 +93,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     mCloser.close();
     if (mWrittenBytes > 0) {
       mWorkerClient.cacheBlock(mBlockId);
+      ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
     }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
@@ -111,6 +112,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     mReservedBytes -= bytesToWrite;
     mFlushedBytes += bytesToWrite;
     mBuffer.clear();
+    ClientContext.getClientMetrics().incBytesWrittenLocal(bytesToWrite);
   }
 
   @Override
@@ -124,6 +126,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     BufferUtils.cleanDirectBuffer(mappedBuffer);
     mReservedBytes -= len;
     mFlushedBytes += len;
+    ClientContext.getClientMetrics().incBytesWrittenLocal(len);
   }
 
   private long requestSpace(long requestBytes) throws IOException {

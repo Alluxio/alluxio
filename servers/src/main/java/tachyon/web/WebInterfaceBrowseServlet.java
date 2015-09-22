@@ -25,17 +25,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
+import tachyon.client.ClientOptions;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
 import tachyon.thrift.BlockLocation;
@@ -52,8 +50,6 @@ import tachyon.util.io.PathUtils;
 public final class WebInterfaceBrowseServlet extends HttpServlet {
 
   private static final long serialVersionUID = 6121623049981468871L;
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final transient TachyonMaster mMaster;
   private final transient TachyonConf mTachyonConf;
@@ -75,19 +71,19 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    String masterAddress =
-        Constants.HEADER + mMaster.getMasterAddress().getHostName() + ":"
-            + mMaster.getMasterAddress().getPort();
-    TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress), new TachyonConf());
-    TachyonFile tFile = tachyonClient.getFile(path);
+    TachyonFileSystem tFS = TachyonFileSystem.get();
+    TachyonFile tFile = tFS.open(path);
     String fileData = null;
     if (tFile == null) {
       throw new FileDoesNotExistException(path.toString());
     }
-    if (tFile.isComplete()) {
-      FileInStream is = tFile.getInStream(ReadType.NO_CACHE);
+    FileInfo fileInfo = tFS.getInfo(tFile);
+    if (fileInfo.isComplete) {
+      ClientOptions readNoCache = new ClientOptions.Builder(mTachyonConf)
+          .setTachyonStoreType(TachyonStorageType.NO_STORE).build();
+      FileInStream is = tFS.getInStream(tFile, readNoCache);
       try {
-        int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);
+        int len = (int) Math.min(5 * Constants.KB, fileInfo.length - offset);
         byte[] data = new byte[len];
         long skipped = is.skip(offset);
         if (skipped < 0) {
@@ -111,11 +107,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       }
     } else {
       fileData = "The requested file is not complete yet.";
-    }
-    try {
-      tachyonClient.close();
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
     }
     List<UiBlockInfo> uiBlockInfo = new ArrayList<UiBlockInfo>();
     for (FileBlockInfo fileBlockInfo : mMaster.getFileSystemMaster().getFileBlockInfoList(path)) {
@@ -202,8 +193,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     } catch (IOException ie) {
-      request.setAttribute("invalidPathError", "Error: File " + currentPath + " is not available "
-          + ie.getMessage());
+      request.setAttribute("invalidPathError",
+          "Error: File " + currentPath + " is not available " + ie.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     }
@@ -249,12 +240,12 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       request.setAttribute("fileInfos", sub);
     } catch (NumberFormatException nfe) {
       request.setAttribute("fatalError",
-              "Error: offset or limit parse error, " + nfe.getLocalizedMessage());
+          "Error: offset or limit parse error, " + nfe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     } catch (IndexOutOfBoundsException iobe) {
       request.setAttribute("fatalError",
-              "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
+          "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     } catch (IllegalArgumentException iae) {
