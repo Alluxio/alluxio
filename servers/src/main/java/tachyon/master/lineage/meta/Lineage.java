@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.job.Job;
@@ -127,5 +128,15 @@ public final class Lineage {
       }
     }
     return false;
+  }
+
+  public List<Long> getLostFiles() {
+    List<Long> result = Lists.newArrayList();
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getState() == LineageFileState.LOST) {
+        result.add(outputFile.getFileId());
+      }
+    }
+    return result;
   }
 }
