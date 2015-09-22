@@ -90,8 +90,8 @@ rm -f files/workers
 for i in `seq 1 $((TOTAL-TACHYON_MASTERS))`; do
   echo "TachyonWorker${i}" >> files/workers
 done
-for i in `seq 1 $TACHYON_MASTERS`; do
-  if [[ "$i" == "$TACHYON_MASTERS" ]]; then
+for i in `seq $TACHYON_MASTERS 1`; do
+  if [[ "$i" == "1" ]]; then
     echo "TachyonMaster" >> files/workers
   else
     echo "TachyonMaster$i" >> files/workers

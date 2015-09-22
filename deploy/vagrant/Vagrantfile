@@ -32,7 +32,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       if i == 1
         name = "TachyonMaster"
       else
-        name = "TachyonMaster#{i - 1}"
+        name = "TachyonMaster#{i}"
       end
     else
       name = "TachyonWorker#{i - TachyonV.masters}"
