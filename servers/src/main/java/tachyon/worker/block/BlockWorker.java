@@ -96,8 +96,8 @@ public final class BlockWorker {
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
-  /** Asynchronous evictor for the block data manager */
-  private AsyncEvictor mAsyncEvictor = null;
+  /** Space reserver for the block data manager */
+  private SpaceReserver mSpaceReserver = null;
 
   /**
    * @return the worker service handler
@@ -209,7 +209,7 @@ public final class BlockWorker {
 
     // Setup Worker to Master Syncer
     // We create four threads for two syncers, one cleaner and one asynchronous evictor:
-    // mBlockMasterSync, mPinListSync, mSessionCleanerThread, mAsyncEvictor
+    // mBlockMasterSync, mPinListSync, mSessionCleanerThread, mSpaceReserver
     mSyncExecutorService =
         Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
@@ -225,9 +225,9 @@ public final class BlockWorker {
     // Setup session cleaner
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
 
-    // Setup asynchronous evictor
-    if (mTachyonConf.getBoolean(Constants.WORKER_EVICT_ASYNC_ENABLE)) {
-      mAsyncEvictor = new AsyncEvictor(mBlockDataManager, mTachyonConf);
+    // Setup space reserver
+    if (mTachyonConf.getBoolean(Constants.WORKER_SPACE_RESERVER_ENABLE)) {
+      mSpaceReserver = new SpaceReserver(mBlockDataManager);
     }
 
     // Setup session metadata mapping
@@ -270,9 +270,9 @@ public final class BlockWorker {
     // Start the session cleanup checker to perform the periodical checking
     mSyncExecutorService.submit(mSessionCleanerThread);
 
-    // Start the asynchronous evictor 
-    if (mAsyncEvictor != null) {
-      mSyncExecutorService.submit(mAsyncEvictor);
+    // Start the space reserver 
+    if (mSpaceReserver != null) {
+      mSyncExecutorService.submit(mSpaceReserver);
     }
 
     mWebServer.startWebServer();
@@ -296,8 +296,8 @@ public final class BlockWorker {
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     mWorkerMetricsSystem.stop();
-    if (mAsyncEvictor != null) {
-      mAsyncEvictor.stop();
+    if (mSpaceReserver != null) {
+      mSpaceReserver.stop();
     }
     try {
       mWebServer.shutdownWebServer();

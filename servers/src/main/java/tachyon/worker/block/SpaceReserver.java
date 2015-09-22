@@ -25,21 +25,21 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.Sessions;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
 import tachyon.exception.OutOfSpaceException;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerContext;
 
 /**
- * AsyncEvictor periodically checks if there is enough space reserved on each storage tier, if
+ * SpaceReserver periodically checks if there is enough space reserved on each storage tier, if
  * there is no enough free space on some tier, free space from it.
  */
-public class AsyncEvictor implements Runnable {
+public class SpaceReserver implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockDataManager mBlockManager;
-  /** Mapping from tier alias to space to be reserved on the tier */
+  /** Mapping from tier alias to space size to be reserved on the tier */
   private final List<Pair<Integer, Long>> mBytesToReserveOnTiers =
       new ArrayList<Pair<Integer, Long>>();
   /** Milliseconds between each check */
@@ -47,7 +47,7 @@ public class AsyncEvictor implements Runnable {
   /** Flag to indicate if the checking should continue */
   private volatile boolean mRunning;
 
-  public AsyncEvictor(BlockDataManager blockManager, TachyonConf tachyonConf) {
+  public SpaceReserver(BlockDataManager blockManager) {
     mBlockManager = blockManager;
     List<Long> capOnTiers = blockManager.getStoreMeta().getCapacityBytesOnTiers();
     List<Integer> aliasOnTiers = blockManager.getStoreMeta().getAliasOnTiers();
@@ -56,14 +56,16 @@ public class AsyncEvictor implements Runnable {
       String tierReservedSpaceProp =
           String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, idx);
       int tierAlias = aliasOnTiers.get(idx);
+      /** Similar to {@link BlockStoreMeta}, the alias index is the value of alias - 1 */
       long reservedSpaceBytes =
-          (long)(capOnTiers.get(tierAlias - 1) * tachyonConf.getDouble(tierReservedSpaceProp));
+          (long)(capOnTiers.get(tierAlias - 1) * WorkerContext.getConf()
+              .getDouble(tierReservedSpaceProp));
       mBytesToReserveOnTiers.add(new Pair<Integer, Long>(tierAlias,
           reservedSpaceBytes + lastTierReservedBytes));
       lastTierReservedBytes += reservedSpaceBytes;
     }
     mCheckIntervalMs =
-        tachyonConf.getInt(Constants.WORKER_TIERED_STORAGE_EVICT_ASYNC_PERIOD_MS_FORMAT);
+        WorkerContext.getConf().getInt(Constants.WORKER_SPACE_RESERVER_PERIOD_MS);
     mRunning = true;
   }
 
@@ -77,14 +79,14 @@ public class AsyncEvictor implements Runnable {
       if (toSleepMs > 0) {
         CommonUtils.sleepMs(LOG, toSleepMs);
       } else {
-        LOG.warn("Async eviction took: " + lastIntervalMs + ", expected: " + mCheckIntervalMs);
+        LOG.warn("Space reserver took: " + lastIntervalMs + ", expected: " + mCheckIntervalMs);
       }
       for (int tierIdx = mBytesToReserveOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
         Pair<Integer, Long> bytesReservedOnTier = mBytesToReserveOnTiers.get(tierIdx);
         int tierAlias = bytesReservedOnTier.getFirst();
         long bytesReserved = bytesReservedOnTier.getSecond();
         try {
-          mBlockManager.freeSpace(Sessions.DATASERVER_SESSION_ID, bytesReserved, tierAlias);
+          mBlockManager.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
         } catch (OutOfSpaceException e) {
           LOG.warn(e.getMessage());
         } catch (NotFoundException e) {
@@ -104,6 +106,7 @@ public class AsyncEvictor implements Runnable {
    * Stops the checking, once this method is called, the object should be discarded
    */
   public void stop() {
+    LOG.info("Space reserver exits!");
     mRunning = false;
   }
 }
