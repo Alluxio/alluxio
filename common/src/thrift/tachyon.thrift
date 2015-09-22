@@ -105,6 +105,15 @@ struct CheckpointFile {
   3: string mUnderFsPath 
 }
 
+struct JobConfInfo {
+  1: string outputFile
+}
+
+struct CommandLineJobInfo {
+  1: string command
+  2: JobConfInfo conf 
+}
+
 exception BlockInfoException {
   1: string message
 }
@@ -253,7 +262,7 @@ service FileSystemMasterService {
 
 service LineageMasterService {
   // for client
-  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: binary job)
+  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job)
   
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
   

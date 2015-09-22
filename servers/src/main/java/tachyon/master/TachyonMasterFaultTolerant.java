@@ -29,6 +29,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadOnlyJournal;
+import tachyon.master.lineage.LineageMaster;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.util.CommonUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -89,6 +90,7 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
         mBlockMaster.upgradeToReadWriteJournal(mBlockMasterJournal);
         mFileSystemMaster.upgradeToReadWriteJournal(mFileSystemMasterJournal);
         mRawTableMaster.upgradeToReadWriteJournal(mRawTableMasterJournal);
+        mLineageMaster.upgradeToReadWriteJournal(mLineageMasterJournal);
 
         startMasters(true);
         started = true;
@@ -107,6 +109,7 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
               new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
           mRawTableMaster = new RawTableMaster(mFileSystemMaster,
               new ReadOnlyJournal(mRawTableMasterJournal.getDirectory()));
+          mLineageMaster = new LineageMaster(mLineageMasterJournal, mFileSystemMaster);
           startMasters(false);
           started = true;
         }

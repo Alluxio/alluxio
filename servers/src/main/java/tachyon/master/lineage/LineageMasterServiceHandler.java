@@ -15,20 +15,24 @@
 
 package tachyon.master.lineage;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.job.Job;
+import tachyon.job.CommandLineJob;
+import tachyon.job.JobConf;
+import tachyon.thrift.CommandLineJobInfo;
 import tachyon.thrift.LineageCommand;
-import tachyon.thrift.LineageMasterService.Iface;
-import tachyon.util.io.SerDeUtils;
+import tachyon.thrift.LineageMasterService;
 
-public final class LineageMasterServiceHandler implements Iface {
+public final class LineageMasterServiceHandler implements LineageMasterService.Iface {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final LineageMaster mLineageMaster;
 
   public LineageMasterServiceHandler(LineageMaster lineageMaster) {
@@ -36,8 +40,7 @@ public final class LineageMasterServiceHandler implements Iface {
   }
 
   @Override
-  public long createLineage(List<String> inputFiles, List<String> outputFiles, ByteBuffer job)
-      throws TException {
+  public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo jobInfo) {
     // deserialization
     List<TachyonURI> inputFilesUri = Lists.newArrayList();
     for (String inputFile : inputFiles) {
@@ -47,22 +50,23 @@ public final class LineageMasterServiceHandler implements Iface {
     for (String output : outputFiles) {
       outputFilesUri.add(new TachyonURI(output));
     }
-    return mLineageMaster.createLineage(inputFilesUri, outputFilesUri,
-        (Job) SerDeUtils.byteArrayToObject(job.array()));
+
+    CommandLineJob job = new CommandLineJob(jobInfo.command, new JobConf(jobInfo.getConf().outputFile));
+    return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
   }
 
   @Override
-  public boolean deleteLineage(long lineageId, boolean cascade) throws TException {
+  public boolean deleteLineage(long lineageId, boolean cascade) {
     return mLineageMaster.deleteLineage(lineageId, cascade);
   }
 
   @Override
-  public void asyncCompleteFile(long fileId, String filePath) throws TException {
+  public void asyncCompleteFile(long fileId, String filePath) {
     mLineageMaster.asyncCompleteFile(fileId, filePath);
   }
 
   @Override
-  public long recreateFile(String path, long blockSizeBytes) throws TException {
+  public long recreateFile(String path, long blockSizeBytes) {
     return mLineageMaster.recreateFile(path, blockSizeBytes);
   }
 

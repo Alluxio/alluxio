@@ -17,7 +17,6 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -31,10 +30,9 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.job.Job;
+import tachyon.job.CommandLineJob;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.LineageMasterService;
-import tachyon.util.io.SerDeUtils;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by tachyon clients.
@@ -71,7 +69,7 @@ public final class LineageMasterClient extends MasterClientBase {
 
 
   public synchronized long addLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job) throws IOException, FileDoesNotExistException {
+      CommandLineJob job) throws IOException, FileDoesNotExistException {
     // prepare for RPC
     List<String> inputFileStrings = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
@@ -81,14 +79,13 @@ public final class LineageMasterClient extends MasterClientBase {
     for (TachyonURI outputFile : outputFiles) {
       outputFileStrings.add(outputFile.toString());
     }
-    byte[] jobByteArray = SerDeUtils.objectToByteArray(job);
 
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.createLineage(inputFileStrings, outputFileStrings,
-            ByteBuffer.wrap(jobByteArray));
+            job.toCommandLineJobInfo());
       } catch (FileDoesNotExistException e) {
         throw e;
       } catch (TException e) {

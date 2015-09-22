@@ -28,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
+import tachyon.thrift.CommandLineJobInfo;
+import tachyon.thrift.JobConfInfo;
 
 /**
  * A job that wraps a programmed run by command line. This job's caller should ensure the execution
@@ -43,6 +45,10 @@ public class CommandLineJob extends Job {
   public CommandLineJob(String command, JobConf jobConf) {
     super(jobConf);
     mCommand = command;
+  }
+
+  public CommandLineJobInfo toCommandLineJobInfo() {
+    return new CommandLineJobInfo(mCommand, new JobConfInfo(getJobConf().getOutputFilePath()));
   }
 
   @Override
@@ -85,4 +91,8 @@ public class CommandLineJob extends Job {
     return true;
   }
 
+  @Override
+  public String toString() {
+    return "Command line job, command:" + mCommand;
+  }
 }
