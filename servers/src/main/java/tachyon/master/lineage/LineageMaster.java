@@ -21,6 +21,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.thrift.TProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -32,6 +34,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
+import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
@@ -52,12 +55,14 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * The lineage master stores the lineage metadata in Tachyon, and it contains the components that
  * manage all lineage-related activities.
  */
 public final class LineageMaster extends MasterBase {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final TachyonConf mTachyonConf;
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
@@ -68,11 +73,19 @@ public final class LineageMaster extends MasterBase {
   /** The service that recomputes lineages. */
   private Future<?> mRecomputeExecutionService;
 
-  public LineageMaster(TachyonConf conf, Journal journal, FileSystemMaster fileSystemMaster) {
+  /**
+   * @param baseDirectory the base journal directory
+   * @return the journal directory for this master
+   */
+  public static String getJournalDirectory(String baseDirectory) {
+    return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_SERVICE_NAME);
+  }
+
+  public LineageMaster(Journal journal, FileSystemMaster fileSystemMaster) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
 
-    mTachyonConf = Preconditions.checkNotNull(conf);
+    mTachyonConf = MasterContext.getConf();
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageStore = new LineageStore();
     mCheckpointManager = new CheckpointManager(mLineageStore, mFileSystemMaster);
@@ -155,6 +168,8 @@ public final class LineageMaster extends MasterBase {
       }
     }
 
+    LOG.info("Created lineage of input:" + inputTachyonFiles + ", output:" + outputTachyonFiles
+        + ", job:" + job);
     return mLineageStore.createLineage(inputTachyonFiles, outputTachyonFiles, job);
   }
 

@@ -606,7 +606,7 @@ public class TFsShell implements Closeable {
         || cmd.equals("unpin") || cmd.equals("free") || cmd.equals("du")) {
       return 1;
     } else if (cmd.equals("copyFromLocal") || cmd.equals("copyToLocal") || cmd.equals("request")
-        || cmd.equals("mv")) {
+        || cmd.equals("mv") || cmd.equals("deleteLineage")) {
       return 2;
     } else if (cmd.equals("addLineage")) {
       return 3;
@@ -752,7 +752,8 @@ public class TFsShell implements Closeable {
       return -1;
     }
 
-    if (numOfArgs != argv.length - 1) {
+    // FIXME(yupeng) remove the first condition
+    if (numOfArgs < 3 && numOfArgs != argv.length - 1) {
       System.out.println(
           cmd + " takes " + numOfArgs + " arguments, " + " not " + (argv.length - 1) + "\n");
       printUsage();
@@ -834,8 +835,10 @@ public class TFsShell implements Closeable {
           return request(argv);
         } else if (cmd.equals("mv")) {
           return rename(argv);
+        } else if (cmd.equals("deleteLineage")) {
+          return deleteLineage(argv);
         }
-      } else if (numOfArgs == 3) { // commands need 3 arguments
+      } else if (numOfArgs > 2) { // commands need 3 arguments and more
         if (cmd.equals("addLineage")) {
           return addLineage(argv);
         }
@@ -988,14 +991,19 @@ public class TFsShell implements Closeable {
 
     // TODO(yupeng) more validation
     List<TachyonURI> inputFiles = Lists.newArrayList();
-    for (String path : argv[1].split(",")) {
-      inputFiles.add(new TachyonURI(path));
+    if (!argv[1].equals("noInput")) {
+      for (String path : argv[1].split(",")) {
+        inputFiles.add(new TachyonURI(path));
+      }
     }
     List<TachyonURI> outputFiles = Lists.newArrayList();
     for (String path : argv[2].split(",")) {
       outputFiles.add(new TachyonURI(path));
     }
-    String cmd = argv[3];
+    String cmd = "";
+    for (int i = 3; i < argv.length; i ++) {
+      cmd += argv[i] + " ";
+    }
 
     // FIXME for debug
     String outputPath = "/Users/richbird/git/tachyon/logs/recompute.log";
@@ -1011,4 +1019,16 @@ public class TFsShell implements Closeable {
     return 0;
   }
 
+  private int deleteLineage(String[] argv) throws IOException {
+    if (!(mTfs instanceof TachyonLineageFileSystem)) {
+      System.out.println("addLineage requires lineaged to be enabled.");
+      return -1;
+    }
+    TachyonLineageFileSystem tlfs = (TachyonLineageFileSystem) mTfs;
+    long lineageId = Long.parseLong(argv[1]);
+    boolean cascade = Boolean.parseBoolean(argv[2]);
+    tlfs.deleteLineage(lineageId, cascade);
+
+    return 0;
+  }
 }

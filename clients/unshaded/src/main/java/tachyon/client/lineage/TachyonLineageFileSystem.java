@@ -21,12 +21,15 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientOptions;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -72,9 +75,11 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   public long addLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
       throws FileDoesNotExistException, IOException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
+    // TODO(yupeng): relax this to support other type of jobs
+    Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
 
     try {
-      long lineageId = masterClient.addLineage(inputFiles, outputFiles, job);
+      long lineageId = masterClient.addLineage(inputFiles, outputFiles, (CommandLineJob) job);
       LOG.info("Added lineage " + lineageId);
       return lineageId;
     } finally {

@@ -37,6 +37,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.master.lineage.LineageMaster;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
 import tachyon.underfs.UnderFileSystem;
@@ -86,6 +87,8 @@ public class TachyonMaster {
   protected FileSystemMaster mFileSystemMaster;
   /** The master managing all raw table related metadata */
   protected RawTableMaster mRawTableMaster;
+  /** The master managing all lineage related metadata */
+  protected LineageMaster mLineageMaster;
 
   // The read-write journals for the masters
   /** The journal for the block master */
@@ -94,6 +97,8 @@ public class TachyonMaster {
   protected final ReadWriteJournal mFileSystemMasterJournal;
   /** The journal for the raw table master */
   protected final ReadWriteJournal mRawTableMasterJournal;
+  /** The journal for the lineage master */
+  protected final ReadWriteJournal mLineageMasterJournal;
 
   /** The web ui server */
   private UIWebServer mWebServer = null;
@@ -159,10 +164,13 @@ public class TachyonMaster {
           new ReadWriteJournal(FileSystemMaster.getJournalDirectory(journalDirectory));
       mRawTableMasterJournal =
           new ReadWriteJournal(RawTableMaster.getJournalDirectory(journalDirectory));
+      mLineageMasterJournal =
+          new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
 
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
+      mLineageMaster = new LineageMaster(mLineageMasterJournal, mFileSystemMaster);
 
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
@@ -271,6 +279,7 @@ public class TachyonMaster {
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
       mRawTableMaster.start(isLeader);
+      mLineageMaster.start(isLeader);
 
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -280,6 +289,7 @@ public class TachyonMaster {
 
   protected void stopMasters() {
     try {
+      mLineageMaster.stop();
       mBlockMaster.stop();
       mFileSystemMaster.stop();
       mRawTableMaster.stop();
@@ -320,6 +330,7 @@ public class TachyonMaster {
     processor.registerProcessor(mFileSystemMaster.getServiceName(),
         mFileSystemMaster.getProcessor());
     processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
+    processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
 
     // create master thrift service with the multiplexed processor.
     mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
