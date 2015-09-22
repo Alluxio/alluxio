@@ -29,8 +29,6 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
-  private boolean mPersisted = false;
-
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
@@ -97,7 +95,7 @@ public final class InodeDirectory extends Inode {
     ret.isFolder = true;
     ret.isPinned = isPinned();
     ret.isCacheable = false;
-    ret.isPersisted = mPersisted;
+    ret.isPersisted = isPersisted();
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
@@ -146,15 +144,6 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * Returns whether the file has been persisted or not.
-   *
-   * @return true if the file has checkpointed, false otherwise
-   */
-  public synchronized boolean isPersisted() {
-    return mPersisted;
-  }
-
-  /**
    * Removes the given inode from the directory.
    *
    * @param child The Inode to remove
@@ -174,15 +163,6 @@ public final class InodeDirectory extends Inode {
     return mChildren.removeByField(mNameIndex, name);
   }
 
-  /**
-   * Sets the persisted flag for the file.
-   *
-   * @param persisted if true, the file is persisted
-   */
-  public synchronized void setPersisted(boolean persisted) {
-    mPersisted = persisted;
-  }
-
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFolder(");
@@ -193,6 +173,6 @@ public final class InodeDirectory extends Inode {
   @Override
   public synchronized JournalEntry toJournalEntry() {
     return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-        isPinned(), getLastModificationTimeMs(), getChildrenIds());
+        isPersisted(), isPinned(), getLastModificationTimeMs(), getChildrenIds());
   }
 }

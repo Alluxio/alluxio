@@ -27,16 +27,18 @@ public abstract class InodeEntry implements JournalEntry {
   protected final long mId;
   protected final long mParentId;
   protected final String mName;
-  protected final boolean mIsPinned;
+  protected final boolean mPersisted;
+  protected final boolean mPinned;
   protected final long mCreationTimeMs;
   protected final long mLastModificationTimeMs;
 
-  public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
-      long lastModificationTimeMs) {
+  public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean persisted,
+                    boolean pinned, long lastModificationTimeMs) {
     mId = id;
     mParentId = parentId;
     mName = name;
-    mIsPinned = isPinned;
+    mPersisted = persisted;
+    mPinned = pinned;
     mCreationTimeMs = creationTimeMs;
     mLastModificationTimeMs = lastModificationTimeMs;
   }
@@ -50,7 +52,8 @@ public abstract class InodeEntry implements JournalEntry {
     parameters.put("id", mId);
     parameters.put("parentId", mParentId);
     parameters.put("name", mName);
-    parameters.put("isPinned", mIsPinned);
+    parameters.put("persisted", mPersisted);
+    parameters.put("pinned", mPinned);
     parameters.put("creationTimeMs", mCreationTimeMs);
     parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
     return parameters;
@@ -58,7 +61,7 @@ public abstract class InodeEntry implements JournalEntry {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mParentId, mName, mIsPinned, mCreationTimeMs,
+    return Objects.hashCode(mId, mParentId, mName, mPinned, mPersisted, mCreationTimeMs,
         mLastModificationTimeMs);
   }
 
@@ -67,7 +70,8 @@ public abstract class InodeEntry implements JournalEntry {
     if (object instanceof InodeEntry) {
       InodeEntry that = (InodeEntry) object;
       return Objects.equal(mId, that.mId) && Objects.equal(mParentId, that.mParentId)
-          && Objects.equal(mName, that.mName) && Objects.equal(mIsPinned, that.mIsPinned)
+          && Objects.equal(mName, that.mName) && Objects.equal(mPersisted, that.mPersisted)
+          && Objects.equal(mPinned, that.mPinned)
           && Objects.equal(mCreationTimeMs, that.mCreationTimeMs)
           && Objects.equal(mLastModificationTimeMs, that.mLastModificationTimeMs);
     }

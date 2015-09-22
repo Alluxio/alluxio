@@ -29,24 +29,23 @@ public class InodeFileEntry extends InodeEntry {
   private final long mLength;
   private final boolean mCompleted;
   private final boolean mCacheable;
-  private final boolean mPersisted;
   private final List<Long> mBlocks;
 
-  public InodeFileEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
-      long lastModificationTimeMs, long blockSizeBytes, long length, boolean isCompleted,
-      boolean isCacheable, boolean isPersisted, List<Long> blocks) {
-    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
+  public InodeFileEntry(long creationTimeMs, long id, String name, long parentId,
+      boolean persisted, boolean pinned, long lastModificationTimeMs, long blockSizeBytes,
+      long length, boolean completed, boolean cacheable, List<Long> blocks) {
+    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
-    mCompleted = isCompleted;
-    mCacheable = isCacheable;
-    mPersisted = isPersisted;
+    mCompleted = completed;
+    mCacheable = cacheable;
     mBlocks = Preconditions.checkNotNull(blocks);
   }
 
   public InodeFile toInodeFile() {
-    InodeFile inode = new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
-        mCreationTimeMs);
+    InodeFile inode =
+        new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
+            mCreationTimeMs);
 
     // Set flags.
     if (mCompleted) {
@@ -55,10 +54,10 @@ public class InodeFileEntry extends InodeEntry {
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
-    inode.setPinned(mIsPinned);
+    inode.setPersisted(mPersisted);
+    inode.setPinned(mPinned);
     inode.setCacheable(mCacheable);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);
-    inode.setPersisted(mPersisted);
 
     return inode;
   }
@@ -73,9 +72,8 @@ public class InodeFileEntry extends InodeEntry {
     Map<String, Object> parameters = super.getParameters();
     parameters.put("blockSizeBytes", mBlockSizeBytes);
     parameters.put("length", mLength);
-    parameters.put("isCompleted", mCompleted);
-    parameters.put("isCacheable", mCacheable);
-    parameters.put("isPersisted", mPersisted);
+    parameters.put("completed", mCompleted);
+    parameters.put("cacheable", mCacheable);
     parameters.put("blocks", mBlocks);
     return parameters;
   }

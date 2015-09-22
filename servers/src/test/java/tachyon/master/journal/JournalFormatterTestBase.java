@@ -47,6 +47,7 @@ import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
+import tachyon.master.file.journal.InodePersistedEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
@@ -137,7 +138,7 @@ public abstract class JournalFormatterTestBase {
       blocks.add(TEST_BLOCK_ID + i);
     }
     entryTest(new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
-        TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, true, blocks));
+        true, TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, blocks));
   }
 
   @Test
@@ -147,12 +148,17 @@ public abstract class JournalFormatterTestBase {
       childrenIds.add(TEST_FILE_ID + i);
     }
     entryTest(new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
-        true, TEST_OP_TIME_MS, childrenIds));
+        true, true, TEST_OP_TIME_MS, childrenIds));
   }
 
   @Test
   public void inodeLastModificationTimeEntryTest() throws IOException {
     entryTest(new InodeLastModificationTimeEntry(TEST_FILE_ID, TEST_OP_TIME_MS));
+  }
+
+  @Test
+  public void inodePersistedEntryTest() throws IOException {
+    entryTest(new InodePersistedEntry(TEST_FILE_ID, true));
   }
 
   @Test

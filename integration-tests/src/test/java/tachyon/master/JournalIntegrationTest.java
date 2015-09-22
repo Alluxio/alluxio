@@ -27,9 +27,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.ClientOptions;
-import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -55,6 +52,30 @@ public class JournalIntegrationTest {
   private TachyonURI mRootUri;
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
+
+  /**
+   * mLocalTachyonCluster is not closed in after(). Need to be closed by any test method.
+   *
+   * @throws Exception
+   */
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    mExecutorService.shutdown();
+  }
+
+  @Before
+  public final void before() throws Exception {
+    mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(Constants.KB));
+    mLocalTachyonCluster.start(conf);
+    mMountPoint = mLocalTachyonCluster.getMountPoint();
+    mRootUri = new TachyonURI(mMountPoint);
+    mTfs = mLocalTachyonCluster.getClient();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+  }
+
 
   /**
    * Test add block
@@ -136,29 +157,6 @@ public class JournalIntegrationTest {
     Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fsMaster.getFileId(
         new TachyonURI(PathUtils.concatPath(mMountPoint, "xyz")))));
     fsMaster.stop();
-  }
-
-  /**
-   * mLocalTachyonCluster is not closed in after(). Need to be closed by any test method.
-   *
-   * @throws Exception
-   */
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    mExecutorService.shutdown();
-  }
-
-  @Before
-  public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(Constants.KB));
-    mLocalTachyonCluster.start(conf);
-    mMountPoint = mLocalTachyonCluster.getMountPoint();
-    mRootUri = new TachyonURI(mMountPoint);
-    mTfs = mLocalTachyonCluster.getClient();
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
   /**

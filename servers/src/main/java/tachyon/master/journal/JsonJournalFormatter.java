@@ -40,7 +40,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
-import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -53,6 +52,7 @@ import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
+import tachyon.master.file.journal.InodePersistedEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
@@ -258,13 +258,13 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("id"),
                 entry.getString("name"),
                 entry.getLong("parentId"),
-                entry.getBoolean("isPinned"),
+                entry.getBoolean("persisted"),
+                entry.getBoolean("pinned"),
                 entry.getLong("lastModificationTimeMs"),
                 entry.getLong("blockSizeBytes"),
                 entry.getLong("length"),
-                entry.getBoolean("isCompleted"),
-                entry.getBoolean("isCacheable"),
-                entry.getBoolean("isPersisted"),
+                entry.getBoolean("completed"),
+                entry.getBoolean("cacheable"),
                 entry.get("blocks", new TypeReference<List<Long>>() {}));
           }
           case INODE_DIRECTORY: {
@@ -273,7 +273,8 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("id"),
                 entry.getString("name"),
                 entry.getLong("parentId"),
-                entry.getBoolean("isPinned"),
+                entry.getBoolean("persisted"),
+                entry.getBoolean("pinned"),
                 entry.getLong("lastModificationTimeMs"),
                 entry.get("childrenIds", new TypeReference<Set<Long>>() {}));
           }
@@ -281,6 +282,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
             return new InodeLastModificationTimeEntry(
                 entry.getLong("id"),
                 entry.getLong("lastModificationTimeMs"));
+          }
+          case INODE_PERSISTED: {
+            return new InodePersistedEntry(
+                entry.getLong("id"),
+                entry.getBoolean("persisted"));
           }
           case ADD_CHECKPOINT: {
             return new AddCheckpointEntry(
