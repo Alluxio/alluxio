@@ -211,14 +211,14 @@ public final class BlockWorker {
     mSyncExecutorService =
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
-    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
+    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
             mBlockMasterClient);
     // Get the worker id
     // TODO(calvin): Do this at TachyonWorker.
     mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
+    mPinListSync = new PinListSync(mBlockDataManager, mFileSystemMasterClient);
 
     // Setup session cleaner
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
