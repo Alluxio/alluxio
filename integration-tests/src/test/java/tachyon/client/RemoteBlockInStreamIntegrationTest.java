@@ -105,7 +105,7 @@ public class RemoteBlockInStreamIntegrationTest {
   public final void before() throws Exception {
     TachyonConf conf = WorkerContext.getConf();
     conf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    conf.set(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    conf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
     conf.set(Constants.USER_REMOTE_BLOCK_READER, mRemoteReaderClass);
     conf.set(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE, "100");
 
