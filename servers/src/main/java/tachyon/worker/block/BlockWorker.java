@@ -211,17 +211,17 @@ public final class BlockWorker {
     mSyncExecutorService =
         Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
-    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
+    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
             mBlockMasterClient);
     // Get the worker id
     // TODO(calvin): Do this at TachyonWorker.
     mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
+    mPinListSync = new PinListSync(mBlockDataManager, mFileSystemMasterClient);
 
     // Setup session cleaner
-    mSessionCleanerThread = new SessionCleaner(mBlockDataManager, mTachyonConf);
+    mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
 
     // Setup session metadata mapping
     // TODO(calvin): Have a top level register that gets the worker id.
@@ -283,6 +283,7 @@ public final class BlockWorker {
     mFileSystemMasterClient.close();
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
+    mWorkerMetricsSystem.stop();
     try {
       mWebServer.shutdownWebServer();
     } catch (Exception e) {
@@ -294,7 +295,7 @@ public final class BlockWorker {
       mDataServer.close();
       mThriftServer.stop();
       mThriftServerSocket.close();
-      CommonUtils.sleepMs(null, 100);
+      CommonUtils.sleepMs(100);
     }
   }
 

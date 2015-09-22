@@ -21,9 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Throwables;
 
-import tachyon.conf.TachyonConf;
 import tachyon.LocalFilesystemCluster;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.util.io.PathUtils;
 
 public abstract class UnderFileSystemCluster {

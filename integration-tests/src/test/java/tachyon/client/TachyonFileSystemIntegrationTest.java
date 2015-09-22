@@ -33,6 +33,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
@@ -69,7 +70,8 @@ public class TachyonFileSystemIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    System.setProperty(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     sLocalTachyonCluster.start();
@@ -153,8 +155,8 @@ public class TachyonFileSystemIntegrationTest {
   public void mkdirTest() throws IOException, TException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = 0; k < 10; k ++) {
-      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k)));
-      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k)));
+      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), TachyonFileSystem.RECURSIVE));
+      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), TachyonFileSystem.RECURSIVE));
     }
   }
 

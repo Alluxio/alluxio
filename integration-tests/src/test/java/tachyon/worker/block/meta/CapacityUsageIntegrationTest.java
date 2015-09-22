@@ -26,16 +26,17 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
 import tachyon.client.ClientOptions;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerContext;
 
 public class CapacityUsageIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 20 * Constants.MB;
@@ -49,29 +50,23 @@ public class CapacityUsageIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
-    // TODO(hy): Remove this once we are able to push tiered storage info to LocalTachyonCluster.
-    System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
-    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1));
-    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1));
-    System.clearProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1));
   }
 
   @Before
   public final void before() throws Exception {
-    // TODO(hy): Need to change LocalTachyonCluster to pass this info to be set in TachyonConf
-    System.setProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
-    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
-    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
+    TachyonConf workerConf = WorkerContext.getConf();
+    workerConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, "2");
+    workerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, 1), "HDD");
+    workerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, 1),
         "/disk1");
-    System.setProperty(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
+    workerConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, 1),
         DISK_CAPACITY_BYTES + "");
+    workerConf.set(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
 
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, MEM_CAPACITY_BYTES / 2);
     mLocalTachyonCluster.start();
 
-    mLocalTachyonCluster.getWorkerTachyonConf().set(
-        Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS, HEARTBEAT_INTERVAL_MS + "");
     mTFS = mLocalTachyonCluster.getClient();
   }
 

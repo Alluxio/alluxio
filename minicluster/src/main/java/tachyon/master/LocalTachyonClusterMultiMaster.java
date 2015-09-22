@@ -109,7 +109,6 @@ public class LocalTachyonClusterMultiMaster {
     return mClientPool.getClient(mMasterConf);
   }
 
-  // TODO(cc): Since we have MasterContext now, remove this.
   public TachyonConf getMasterTachyonConf() {
     return mMasterConf;
   }
@@ -257,7 +256,7 @@ public class LocalTachyonClusterMultiMaster {
     // Use first master port
     mMasterConf.set(Constants.MASTER_PORT, getMasterPort() + "");
 
-    CommonUtils.sleepMs(null, 10);
+    CommonUtils.sleepMs(10);
 
     mWorkerConf = WorkerContext.getConf();
     mWorkerConf.merge(mMasterConf);
@@ -299,8 +298,8 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, "100");
 
     // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     mWorker = new BlockWorker();
     Runnable runWorker = new Runnable() {
