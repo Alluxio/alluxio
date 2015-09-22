@@ -40,6 +40,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -79,11 +80,11 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = MasterContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mMountPoint = mLocalTachyonCluster.getMountPoint();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
