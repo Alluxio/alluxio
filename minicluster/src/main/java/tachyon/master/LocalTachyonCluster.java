@@ -234,33 +234,22 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Start both a master and a worker using the default configuration.
+   * Starts both a master and a worker using the configurations in {@link MasterContext} and
+   * {@link WorkerContext} respectively.
    *
    * @throws IOException when the operation fails
    */
   public void start() throws IOException {
-    start(new TachyonConf());
-  }
-
-  /**
-   * Start both a master and a worker using the given configuration.
-   *
-   * @param conf Tachyon configuration
-   * @throws IOException when the operation fails
-   */
-  // TODO(cc): Since we have MasterContext now, remove the parameter.
-  public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     // Delete the temp dir by ufs, otherwise, permission problem may be encountered.
-    UnderFileSystemUtils.deleteDir(mTachyonHome, conf);
+    UnderFileSystemUtils.deleteDir(mTachyonHome, MasterContext.getConf());
     mWorkerDataFolder = "/datastore";
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
-    MasterContext.getConf().merge(conf);
     startMaster();
 
     UnderFileSystemUtils.mkdirIfNotExists(

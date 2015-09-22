@@ -32,6 +32,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
@@ -57,10 +58,13 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    System.setProperty(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
+
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 100 * Constants.MB);
     mLocalTachyonCluster.start();
+
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
