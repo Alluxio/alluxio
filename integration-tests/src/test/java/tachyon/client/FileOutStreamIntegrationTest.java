@@ -235,7 +235,7 @@ public class FileOutStreamIntegrationTest {
    */
   @Test
   public void writeSpecifyLocalTest() throws IOException, TException {
-    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
+    TachyonURI filePath = new TachyonURI(PathUtils.concatPath(sMountPoint, PathUtils.uniqPath()));
     final int length = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteLocal);
     os.write((byte) 0);

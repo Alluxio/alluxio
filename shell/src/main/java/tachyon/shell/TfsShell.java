@@ -197,8 +197,8 @@ public class TfsShell implements Closeable {
   }
 
   /**
-   * Copies a list of files or directories specified by srcFiles from the local filesystem to 
-   * dstPath in the Tachyon filesystem space. 
+   * Copies a list of files or directories specified by srcFiles from the local filesystem to
+   * dstPath in the Tachyon filesystem space.
    * This method is used when the input path contains wildcards.
    * @param srcFiles The list of files in the local filesystem
    * @param dstPath The TachyonURI of the destination
@@ -219,7 +219,7 @@ public class TfsShell implements Closeable {
       TachyonFile dstFd = mTfs.open(dstPath);
       FileInfo dstFileInfo = mTfs.getInfo(dstFd);
       if (!dstFileInfo.isFolder) {
-        System.out.println("The destination cannot be an existent file when the src contains " 
+        System.out.println("The destination cannot be an existent file when the src contains "
             + "wildcards.");
         return -1;
       }
@@ -240,9 +240,9 @@ public class TfsShell implements Closeable {
     }
     return exitCode;
   }
-  
+
   /**
-   * Copies a file or directory specified by srcPath from the local filesystem to dstPath in 
+   * Copies a file or directory specified by srcPath from the local filesystem to dstPath in
    * the Tachyon filesystem space. Will
    * fail if the path given already exists in the filesystem.
    *
@@ -308,20 +308,20 @@ public class TfsShell implements Closeable {
   }
 
   /**
-   * Copies a list of files or directories specified by srcPaths from the Tachyon filesystem to 
-   * dstPath in the local filesystem. 
+   * Copies a list of files or directories specified by srcPaths from the Tachyon filesystem to
+   * dstPath in the local filesystem.
    * This method is used when the input path contains wildcards.
-   * 
+   *
    * @param srcPaths The list of files in the Tachyon filesystem
-   * @param dstFile The destination directory in the local filesystem 
+   * @param dstFile The destination directory in the local filesystem
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
-   * @throws FileDoesNotExistException 
-   * @throws InvalidPathException 
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
    */
   public int copyWildcardToLocal(List<TachyonURI> srcPaths, File dstFile) throws IOException {
     if (dstFile.exists() && !dstFile.isDirectory()) {
-      System.out.println("The destination cannot be an existent file when the src contains " 
+      System.out.println("The destination cannot be an existent file when the src contains "
           + "wildcards.");
       return -1;
     }
@@ -347,9 +347,9 @@ public class TfsShell implements Closeable {
 
   /**
    * Copies a file or a directory from the Tachyon filesystem to the local filesystem.
-   * 
+   *
    * @param srcPath The source TachyonURI (could be a file or a directory)
-   * @param dstFile The destination file in the local filesystem 
+   * @param dstFile The destination file in the local filesystem
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    * @throws InvalidPathException
@@ -364,7 +364,7 @@ public class TfsShell implements Closeable {
       System.out.println(srcPath.getPath() + " does not exist");
       return -1;
     }
-    
+
     if (srcFileInfo.isFolder) {
       //make a local directory
       if (!dstFile.exists()) {
@@ -375,7 +375,7 @@ public class TfsShell implements Closeable {
           System.out.println("Create directory: " + dstFile.getAbsolutePath());
         }
       }
-      
+
       int ret = 0;
       List<FileInfo> files = null;
       try {
@@ -386,7 +386,7 @@ public class TfsShell implements Closeable {
       }
       for (FileInfo file : files) {
         ret |= copyToLocal(
-            new TachyonURI(srcPath.getScheme(), srcPath.getAuthority(), file.getPath()), 
+            new TachyonURI(srcPath.getScheme(), srcPath.getAuthority(), file.getPath()),
             new File(dstFile.getAbsolutePath(), file.getName()));
       }
       return ret;
@@ -400,10 +400,10 @@ public class TfsShell implements Closeable {
    * This is the utility function.
    *
    * @param srcPath The source TachyonURI (has to be a file)
-   * @param dstFile The destination file in the local filesystem 
+   * @param dstFile The destination file in the local filesystem
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
-   * @throws InvalidPathException 
+   * @throws InvalidPathException
    */
   public int copyFileToLocal(TachyonURI srcPath, File dstFile)  throws IOException {
     TachyonFile srcFd;
@@ -413,7 +413,7 @@ public class TfsShell implements Closeable {
       System.out.println(srcPath.getPath() + " does not exist");
       return -1;
     }
-    
+
     Closer closer = Closer.create();
     try {
       ClientOptions op =
@@ -435,7 +435,7 @@ public class TfsShell implements Closeable {
       closer.close();
     }
   }
-  
+
   /**
    * Displays the number of folders and files matching the specified prefix in argv.
    *
@@ -573,7 +573,7 @@ public class TfsShell implements Closeable {
       }
     };
   }
-  
+
   /**
    * Displays information for all directories and files directly under the path specified in argv.
    *
@@ -968,7 +968,7 @@ public class TfsShell implements Closeable {
           return -1;
         }
         Collections.sort(paths, createTachyonURIComparator());
-        
+
         int exitCode = 0;
         for (TachyonURI path : paths) {
           try {
@@ -1012,12 +1012,12 @@ public class TfsShell implements Closeable {
         if (cmd.equals("copyFromLocal")) {
           String srcPath = argv[1];
           TachyonURI dstPath = new TachyonURI(argv[2]);
-          List<File> srcFiles = TFsShellUtils.getFiles(srcPath);
+          List<File> srcFiles = TfsShellUtils.getFiles(srcPath);
           if (srcFiles.size() == 0) {
             System.out.println("Local path " + srcPath + " does not exist.");
             return -1;
           }
-          
+
           if (srcPath.contains(TachyonURI.WILDCARD)) {
             return copyFromLocalWildcard(srcFiles, dstPath);
           } else {
@@ -1026,12 +1026,12 @@ public class TfsShell implements Closeable {
         } else if (cmd.equals("copyToLocal")) {
           TachyonURI srcPath = new TachyonURI(argv[1]);
           File dstFile = new File(argv[2]);
-          List<TachyonURI> srcPaths = TFsShellUtils.getTachyonURIs(mTfs, srcPath);
+          List<TachyonURI> srcPaths = TfsShellUtils.getTachyonURIs(mTfs, srcPath);
           if (srcPaths.size() == 0) {
             System.out.println(srcPath.getPath() + " does not exist.");
             return -1;
           }
-          
+
           if (srcPath.containsWildcard()) {
             return copyWildcardToLocal(srcPaths, dstFile);
           } else {
@@ -1141,7 +1141,7 @@ public class TfsShell implements Closeable {
   }
 
   /**
-   * Free the given file or folder from tachyon in-memory (recursively freeing all children 
+   * Free the given file or folder from tachyon in-memory (recursively freeing all children
    * if a folder)
    *
    * @param path The TachyonURI path as the input of the command
@@ -1168,7 +1168,7 @@ public class TfsShell implements Closeable {
    * @return total size of the specified path in byte.
    * @throws IOException
    */
-  private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path) 
+  private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
       throws IOException {
     long sizeInBytes = 0;
     List<FileInfo> files = null;
