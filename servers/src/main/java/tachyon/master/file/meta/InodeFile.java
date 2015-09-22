@@ -42,7 +42,6 @@ public final class InodeFile extends Inode {
 
   private boolean mCompleted = false;
   private boolean mCacheable = false;
-  private boolean mPersisted = false;
 
   /**
    * Creates a new InodeFile.
@@ -78,7 +77,7 @@ public final class InodeFile extends Inode {
     ret.isFolder = false;
     ret.isPinned = isPinned();
     ret.isCompleted = mCompleted;
-    ret.isPersisted = mPersisted;
+    ret.isPersisted = isPersisted();
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     return ret;
@@ -127,15 +126,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Returns whether the file has been persisted or not.
-   *
-   * @return true if the file has checkpointed, false otherwise
-   */
-  public synchronized boolean isPersisted() {
-    return mPersisted;
-  }
-
-  /**
    * @return true if the file is cacheable, false otherwise
    */
   public synchronized boolean isCacheable() {
@@ -174,15 +164,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Sets the persisted flag for the file.
-   *
-   * @param persisted if true, the file is persisted
-   */
-  public synchronized void setPersisted(boolean persisted) {
-    mPersisted = persisted;
-  }
-
-  /**
    * Sets the length of the file. Cannot set the length if the file is complete or the length is
    * negative.
    *
@@ -214,7 +195,6 @@ public final class InodeFile extends Inode {
     sb.append(super.toString()).append(", LENGTH: ").append(mLength);
     sb.append(", Cacheable: ").append(mCacheable);
     sb.append(", Completed: ").append(mCompleted);
-    sb.append(", Persisted: ").append(mPersisted);
     sb.append(", Cacheable: ").append(mCacheable);
     sb.append(", mBlocks: ").append(mBlocks);
     return sb.toString();
@@ -222,8 +202,8 @@ public final class InodeFile extends Inode {
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPinned(),
-        getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(), isCacheable(),
-        isPersisted(), mBlocks);
+    return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPersisted(),
+        isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(),
+        isCacheable(), mBlocks);
   }
 }

@@ -50,6 +50,7 @@ import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
+import tachyon.master.file.journal.InodePersistedEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
@@ -140,6 +141,14 @@ public final class FileSystemMaster extends MasterBase {
       try {
         Inode inode = mInodeTree.getInodeById(modTimeEntry.getId());
         inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+      } catch (FileDoesNotExistException fdnee) {
+        throw new RuntimeException(fdnee);
+      }
+    } else if (entry instanceof InodePersistedEntry) {
+      InodePersistedEntry typedEntry = (InodePersistedEntry) entry;
+      try {
+        Inode inode = mInodeTree.getInodeById(typedEntry.getId());
+        inode.setPersisted(typedEntry.isPersisted());
       } catch (FileDoesNotExistException fdnee) {
         throw new RuntimeException(fdnee);
       }
@@ -896,6 +905,7 @@ public final class FileSystemMaster extends MasterBase {
     for (Inode inode : createResult.getModified()) {
       writeJournalEntry(new InodeLastModificationTimeEntry(inode.getId(),
           inode.getLastModificationTimeMs()));
+      writeJournalEntry(new InodePersistedEntry(inode.getId(), inode.isPersisted()));
     }
     for (Inode inode : createResult.getCreated()) {
       writeJournalEntry(inode.toJournalEntry());
