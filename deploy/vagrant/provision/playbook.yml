@@ -82,7 +82,7 @@
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/start.yml
 
-# Start Tachyon on the specified platform(e.x. local, mesos)
+# Start Tachyon on the specified platform(e.x. standalone, mesos)
 - include: start_tachyon_on_{{ tachyon_platform }}.yml
 
 # Start computation frameworks.

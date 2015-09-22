@@ -51,7 +51,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           is_vb = Provider == "vb"
           tachyon_dist = UfsV.tachyon_dist(tachyon_version)
           puts "using tachyon distribution #{tachyon_dist}"
-          tachyon_platform = "local"
+          tachyon_platform = "standalone"
           if MesosV.type != "None"
             tachyon_platform = "mesos"
           end
