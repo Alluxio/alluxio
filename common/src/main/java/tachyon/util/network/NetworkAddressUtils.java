@@ -28,7 +28,6 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.thrift.transport.TServerSocket;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +46,7 @@ public final class NetworkAddressUtils {
   public static final String WILDCARD_ADDRESS = "0.0.0.0";
 
   /**
-   * Check if the underlying OS is Windows.
+   * Checks if the underlying OS is Windows.
    */
   public static final boolean WINDOWS = OSUtils.isWindows();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -387,7 +386,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Test if the address is externally resolvable. Address must not be wildcard, link local,
+   * Tests if the address is externally resolvable. Address must not be wildcard, link local,
    * loopback address, non-IPv4, or other unreachable addresses.
    *
    * @param address The testing address
@@ -404,7 +403,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Replace and resolve the hostname in a given address or path string.
+   * Replaces and resolves the hostname in a given address or path string.
    *
    * @param path an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
    * @return an address or path string with hostname resolved, or the original path intact if no
@@ -427,7 +426,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Resolve a given hostname by a canonical hostname. When a hostname alias (e.g., those specified
+   * Resolves a given hostname by a canonical hostname. When a hostname alias (e.g., those specified
    * in /etc/hosts) is given, the alias may not be resolvable on other hosts in a cluster unless the
    * same alias is defined there. In this situation, loadufs would break.
    *
@@ -456,7 +455,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Get FQDN(Full Qualified Domain Name) from Tachyon representation of network address.
+   * Gets FQDN(Full Qualified Domain Name) from Tachyon representation of network address.
    *
    * @param addr the input network address representation
    * @return the resolved FQDN host name
@@ -496,7 +495,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Parse InetSocketAddress from a String.
+   * Parses InetSocketAddress from a String.
    *
    * @param address socket address to parse
    * @return InetSocketAddress of the String

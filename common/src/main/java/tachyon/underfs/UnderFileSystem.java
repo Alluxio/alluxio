@@ -15,17 +15,17 @@
 
 package tachyon.underfs;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.conf.TachyonConf;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
@@ -72,7 +72,7 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Get the UnderFileSystem instance according to its schema.
+   * Gets the UnderFileSystem instance according to its schema.
    *
    * @param path file path storing over the ufs.
    * @param tachyonConf the {@link tachyon.conf.TachyonConf} instance.
@@ -84,7 +84,7 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Get the UnderFileSystem instance according to its scheme and configuration.
+   * Gets the UnderFileSystem instance according to its scheme and configuration.
    *
    * @param path file path storing over the ufs
    * @param ufsConf the configuration object for ufs only
@@ -94,6 +94,7 @@ public abstract class UnderFileSystem {
    */
   public static UnderFileSystem get(String path, Object ufsConf, TachyonConf tachyonConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
+    Preconditions.checkNotNull(tachyonConf);
 
     // Use the registry to determine the factory to use to create the client
     return UnderFileSystemRegistry.create(path, tachyonConf, ufsConf);
@@ -376,7 +377,7 @@ public abstract class UnderFileSystem {
   public abstract boolean rename(String src, String dst) throws IOException;
 
   /**
-   * To set the configuration object for UnderFileSystem. The conf object is understood by the
+   * Sets the configuration object for UnderFileSystem. The conf object is understood by the
    * concrete underfs's implementation.
    *
    * @param conf The configuration object accepted by ufs.
@@ -384,7 +385,7 @@ public abstract class UnderFileSystem {
   public abstract void setConf(Object conf);
 
   /**
-   * Change posix file permission
+   * Changes posix file permission
    *
    * @param path path of the file
    * @param posixPerm standard posix permission like "777", "775", etc.

@@ -44,6 +44,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.UnderFileSystemCluster;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.WorkerContext;
 
 /**
@@ -62,6 +63,7 @@ public class FileOutStreamIntegrationTest {
   private static ClientOptions sWriteBoth;
   private static ClientOptions sWriteTachyon;
   private static ClientOptions sWriteUnderStore;
+  private static ClientOptions sWriteLocal;
 
   private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
@@ -106,6 +108,10 @@ public class FileOutStreamIntegrationTest {
     sWriteUnderStore =
         new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType
             .NO_STORE, UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+    sWriteLocal = 
+        new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType.STORE,
+            UnderStorageType.PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
+            .setLocation(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
   }
 
   @BeforeClass
@@ -222,6 +228,22 @@ public class FileOutStreamIntegrationTest {
   }
 
   /**
+   * Test writing to a file and specify the location to be localhost.
+   *
+   * @throws IOException if file can not be opened successfully.
+   */
+  @Test
+  public void writeSpecifyLocalTest() throws IOException, TException {
+    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
+    final int length = 2;
+    FileOutStream os = mTfs.getOutStream(filePath, sWriteLocal);
+    os.write((byte) 0);
+    os.write((byte) 1);
+    os.close();
+    checkWrite(filePath, sWriteLocal.getUnderStorageType(), length, length);
+  }
+
+  /**
    * Test writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the sessionId doesn't
    * change. Tracks [TACHYON-171].
    *
@@ -231,13 +253,13 @@ public class FileOutStreamIntegrationTest {
   @Test
   public void longWriteChangesSessionId() throws IOException, InterruptedException, TException {
     TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
-    int len = 2;
+    final int length = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteUnderStore);
     os.write((byte) 0);
     Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
     os.write((byte) 1);
     os.close();
-    checkWrite(filePath, sWriteUnderStore.getUnderStorageType(), len, len);
+    checkWrite(filePath, sWriteUnderStore.getUnderStorageType(), length, length);
   }
 
   /**
