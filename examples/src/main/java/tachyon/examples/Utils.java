@@ -68,7 +68,8 @@ public final class Utils {
     }
   }
 
-  public static TachyonStorageType option(String[] args, int index, TachyonStorageType defaultValue) {
+  public static TachyonStorageType option(String[] args, int index,
+      TachyonStorageType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
         return TachyonStorageType.valueOf(args[index]);
