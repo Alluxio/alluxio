@@ -216,7 +216,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying worker RPC fails
    */
   synchronized void addCheckpoint(long fid) throws IOException {
-    mWorkerClient.addCheckpoint(fid);
+    mWorkerClient.addCheckpoint(fid, 0);
   }
 
   /**
@@ -276,28 +276,6 @@ public class TachyonFS extends AbstractTachyonFS {
     } catch (TException e) {
       throw new IOException(e);
     }
-  }
-
-  /**
-   * Creates a user UnderFileSystem temporary folder and returns it.
-   *
-   * @param ufsConf the configuration of UnderFileSystem
-   * @return the UnderFileSystem temporary folder
-   * @throws IOException if the underlying worker RPC or under file system interaction fails
-   */
-  synchronized String createAndGetUserUfsTempFolder(Object ufsConf) throws IOException {
-    String tmpFolder = mWorkerClient.getSessionUfsTempFolder();
-    if (tmpFolder == null) {
-      return null;
-    }
-
-    if (mUnderFileSystem == null) {
-      mUnderFileSystem = UnderFileSystem.get(tmpFolder, ufsConf, mTachyonConf);
-    }
-
-    mUnderFileSystem.mkdirs(tmpFolder, true);
-
-    return tmpFolder;
   }
 
   /**

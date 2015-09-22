@@ -173,19 +173,18 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
    * only if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
    * checkpointing is that through {@link tachyon.client.WriteType} operations write to
-   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a session temp
-   * directory (temp directory is defined in the worker as {@link #getSessionUfsTmpFolder(long)}).
+   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
    *
-   * @param sessionId The session id of the client who sends the notification
-   * @param fileId The id of the checkpointed file
+   * @param fileId a file id
+   * @param nonce a nonce used for temporary file creation
    * @throws TException if the file does not exist or cannot be renamed
    * @throws IOException if the update to the master fails
    */
-  public void addCheckpoint(long sessionId, long fileId) throws TException, IOException {
+  public void addCheckpoint(long fileId, long nonce) throws TException, IOException {
     // TODO(calvin): This part needs to be changed.
-    String srcPath = PathUtils.concatPath(getSessionUfsTmpFolder(sessionId), fileId);
     FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
+    String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
     String parentPath = (new TachyonURI(dstPath)).getParent().getPath();
     try {
       if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
@@ -346,16 +345,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    */
   public BlockStoreMeta getStoreMeta() {
     return mBlockStore.getBlockStoreMeta();
-  }
-
-  /**
-   * Gets the temporary folder for the session in the under filesystem.
-   *
-   * @param sessionId The id of the client
-   * @return the path to the under filesystem temporary folder for the client
-   */
-  public String getSessionUfsTmpFolder(long sessionId) {
-    return mSessions.getSessionUfsTempFolder(sessionId);
   }
 
   /**

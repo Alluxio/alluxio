@@ -18,12 +18,8 @@ package tachyon.master.file.meta;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.ImmutableSet;
 
-import tachyon.Constants;
 import tachyon.IndexedSet;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.journal.JournalEntry;
@@ -33,7 +29,7 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private boolean mPersisted = false;
 
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
@@ -101,7 +97,7 @@ public final class InodeDirectory extends Inode {
     ret.isFolder = true;
     ret.isPinned = isPinned();
     ret.isCacheable = false;
-    ret.isPersisted = false;
+    ret.isPersisted = mPersisted;
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
@@ -150,6 +146,15 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
+   * Returns whether the file has been persisted or not.
+   *
+   * @return true if the file has checkpointed, false otherwise
+   */
+  public synchronized boolean isPersisted() {
+    return mPersisted;
+  }
+
+  /**
    * Removes the given inode from the directory.
    *
    * @param child The Inode to remove
@@ -167,6 +172,15 @@ public final class InodeDirectory extends Inode {
    */
   public synchronized boolean removeChild(String name) {
     return mChildren.removeByField(mNameIndex, name);
+  }
+
+  /**
+   * Sets the persisted flag for the file.
+   *
+   * @param persisted if true, the file is persisted
+   */
+  public synchronized void setPersisted(boolean persisted) {
+    mPersisted = persisted;
   }
 
   @Override

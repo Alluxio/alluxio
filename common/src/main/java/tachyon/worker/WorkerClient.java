@@ -119,11 +119,11 @@ public final class WorkerClient implements Closeable {
    * @param fileId The id of the checkpointed file
    * @throws IOException
    */
-  public synchronized void addCheckpoint(long fileId) throws IOException {
+  public synchronized void addCheckpoint(long fileId, long nonce) throws IOException {
     mustConnect();
 
     try {
-      mClient.addCheckpoint(mSessionId, fileId);
+      mClient.addCheckpoint(fileId, nonce);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
@@ -279,23 +279,6 @@ public final class WorkerClient implements Closeable {
 
   public synchronized long getSessionId() {
     return mSessionId;
-  }
-
-  /**
-   * Gets the session temporary folder in the under file system of the specified session.
-   *
-   * @return The session temporary folder in the under file system
-   * @throws IOException
-   */
-  public synchronized String getSessionUfsTempFolder() throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.getSessionUfsTempFolder(mSessionId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
   }
 
   /**

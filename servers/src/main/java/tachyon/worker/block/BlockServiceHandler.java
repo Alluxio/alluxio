@@ -138,17 +138,6 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   }
 
   /**
-   * Used to get session's temporary folder on under file system, and the path of the session's
-   * temporary folder will be returned.
-   *
-   * @param sessionId the id of the session requesting the ufs location
-   */
-  @Override
-  public String getSessionUfsTempFolder(long sessionId) {
-    return mWorker.getSessionUfsTmpFolder(sessionId);
-  }
-
-  /**
    * Lock the file in Tachyon's space while the session is reading it, and the path of the block
    * file locked will be returned, if the block file is not found, FileDoesNotExistException will be
    * thrown.
