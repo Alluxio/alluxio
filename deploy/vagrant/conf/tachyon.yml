@@ -22,5 +22,5 @@ WorkerMemory: 1GB
 # The cluster will be in fault tolerant mode if the number is larger than 1.
 # When it is in fault tolerant mode, the masters will be named as TachyonMaster, TachyonMaster1, TachyonMaster2, etc,
 # currently, zookeeper is installed in /zookeeper and is a single node deployment, its server process runs on TachyonMaster.
-# This option has no effect currently when Tachyon cluster is run through mesos.
+# This option only has effect when Tachyon is run directly on the host instead of on top of frameworks like mesos or yarn.
 Masters: 3
