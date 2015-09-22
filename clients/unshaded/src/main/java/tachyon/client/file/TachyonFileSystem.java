@@ -47,7 +47,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   public static synchronized TachyonFileSystem get() {
     if (sTachyonFileSystem == null) {
-      boolean enableLineage = ClientContext.getConf().getBoolean(Constants.CLIENT_ENABLE_LINEAGE);
+      boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_ENABLE_LINEAGE);
       if(enableLineage) {
         return TachyonLineageFileSystem.get();
       } else {

@@ -156,8 +156,6 @@ public final class Constants {
   public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
   public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
-  // choose between default file system or lineage file system
-  public static final String CLIENT_ENABLE_LINEAGE = "tachyon.client.enable.lineage";
   public static final String MASTER_CHECKPOINT_STRATEGY_CLASS =
       "tachyon.master.lineage.checkpoint.strategy.class";
   public static final String MASTER_CHECKPOINT_INTERVAL_MS =
@@ -272,6 +270,7 @@ public final class Constants {
       "tachyon.user.block.master.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "tachyon.user.file.master.client.threads";
+  public static final String USER_ENABLE_LINEAGE = "tachyon.user.lineage.enabled";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
