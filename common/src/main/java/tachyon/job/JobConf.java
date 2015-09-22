@@ -15,10 +15,13 @@
 
 package tachyon.job;
 
+import java.io.Serializable;
+
 /**
  * A job configuration.
  */
-public class JobConf {
+public class JobConf implements Serializable {
+  private static final long serialVersionUID = 1258775437399802121L;
   private final String mOutputFilePath;
 
   public JobConf(String outputFilePath) {

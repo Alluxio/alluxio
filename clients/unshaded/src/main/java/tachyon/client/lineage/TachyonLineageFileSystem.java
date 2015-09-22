@@ -42,7 +42,15 @@ import tachyon.thrift.InvalidPathException;
 public class TachyonLineageFileSystem extends TachyonFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static TachyonLineageFileSystem sTachyonFileSystem;
   protected LineageContext mContext;
+
+  public static synchronized TachyonLineageFileSystem get() {
+    if (sTachyonFileSystem == null) {
+      sTachyonFileSystem = new TachyonLineageFileSystem();
+    }
+    return sTachyonFileSystem;
+  }
 
   protected TachyonLineageFileSystem() {
     super();

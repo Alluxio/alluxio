@@ -110,9 +110,8 @@ public class TFsShell implements Closeable {
     }
 
     if (!tFile.isFolder) {
-      ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
-              .build();
+      ClientOptions op = new ClientOptions.Builder(mTachyonConf)
+          .setTachyonStoreType(TachyonStorageType.NO_STORE).build();
       FileInStream is;
       try {
         is = mTfs.getInStream(fd, op);
@@ -180,9 +179,8 @@ public class TFsShell implements Closeable {
       } else {
         Closer closer = Closer.create();
         try {
-          ClientOptions op =
-              new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
-                  .build();
+          ClientOptions op = new ClientOptions.Builder(mTachyonConf)
+              .setTachyonStoreType(TachyonStorageType.STORE).build();
           FileInStream in = closer.register(mTfs.getInStream(fd, op));
           byte[] buf = new byte[8 * Constants.MB];
           while (in.read(buf) != -1) {
@@ -284,9 +282,8 @@ public class TFsShell implements Closeable {
       String dstPath = argv[2];
       File dst = new File(dstPath);
       TachyonFile srcFd = mTfs.open(srcPath);
-      ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
-              .build();
+      ClientOptions op = new ClientOptions.Builder(mTachyonConf)
+          .setTachyonStoreType(TachyonStorageType.NO_STORE).build();
       FileInStream is = closer.register(mTfs.getInStream(srcFd, op));
       FileOutputStream out = closer.register(new FileOutputStream(dst));
       byte[] buf = new byte[64 * Constants.MB];
@@ -600,32 +597,19 @@ public class TFsShell implements Closeable {
    * @return The number of argument of the input command
    */
   public int getNumOfArgs(String cmd) {
-    if (cmd.equals("getUsedBytes")
-        || cmd.equals("getCapacityBytes")) {
+    if (cmd.equals("getUsedBytes") || cmd.equals("getCapacityBytes")) {
       return 0;
-    } else if (cmd.equals("cat")
-        || cmd.equals("count")
-        || cmd.equals("ls")
-        || cmd.equals("lsr")
-        || cmd.equals("mkdir")
-        || cmd.equals("rm")
-        || cmd.equals("rmr")
-        || cmd.equals("tail")
-        || cmd.equals("touch")
-        || cmd.equals("load")
-        || cmd.equals("fileinfo")
-        || cmd.equals("location")
-        || cmd.equals("report")
-        || cmd.equals("pin")
-        || cmd.equals("unpin")
-        || cmd.equals("free")
-        || cmd.equals("du")) {
+    } else if (cmd.equals("cat") || cmd.equals("count") || cmd.equals("ls") || cmd.equals("lsr")
+        || cmd.equals("mkdir") || cmd.equals("rm") || cmd.equals("rmr") || cmd.equals("tail")
+        || cmd.equals("touch") || cmd.equals("load") || cmd.equals("fileinfo")
+        || cmd.equals("location") || cmd.equals("report") || cmd.equals("pin")
+        || cmd.equals("unpin") || cmd.equals("free") || cmd.equals("du")) {
       return 1;
-    } else if (cmd.equals("copyFromLocal")
-        || cmd.equals("copyToLocal")
-        || cmd.equals("request")
+    } else if (cmd.equals("copyFromLocal") || cmd.equals("copyToLocal") || cmd.equals("request")
         || cmd.equals("mv")) {
       return 2;
+    } else if (cmd.equals("addLineage")) {
+      return 3;
     } else {
       return -1;
     }
@@ -658,8 +642,8 @@ public class TFsShell implements Closeable {
     try {
       TachyonFile fd = mTfs.open(path);
       mTfs.reportLostFile(fd);
-      System.out.println(path + " with file id " + fd.getFileId()
-          + " has reported been report lost.");
+      System.out
+          .println(path + " with file id " + fd.getFileId() + " has reported been report lost.");
       return 0;
     } catch (TException e) {
       throw new IOException(e.getMessage());
@@ -769,7 +753,8 @@ public class TFsShell implements Closeable {
     }
 
     if (numOfArgs != argv.length - 1) {
-      System.out.println(cmd + " takes " + numOfArgs + " arguments.\n");
+      System.out.println(
+          cmd + " takes " + numOfArgs + " arguments, " + " not " + (argv.length - 1) + "\n");
       printUsage();
       return -1;
     }
@@ -880,9 +865,8 @@ public class TFsShell implements Closeable {
     }
 
     if (!fInfo.isFolder) {
-      ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
-              .build();
+      ClientOptions op = new ClientOptions.Builder(mTachyonConf)
+          .setTachyonStoreType(TachyonStorageType.NO_STORE).build();
       FileInStream is = null;
       try {
         is = mTfs.getInStream(fd, op);
@@ -919,10 +903,8 @@ public class TFsShell implements Closeable {
    */
   public int touch(TachyonURI path) throws IOException {
     try {
-      mTfs.getOutStream(
-          path,
-          new ClientOptions.Builder(mTachyonConf).setUnderStorageType(UnderStorageType.SYNC_PERSIST)
-              .build()).close();
+      mTfs.getOutStream(path, new ClientOptions.Builder(mTachyonConf)
+          .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build()).close();
     } catch (TException e) {
       throw new IOException(e.getMessage());
     }
@@ -1002,24 +984,22 @@ public class TFsShell implements Closeable {
       System.out.println("addLineage requires lineaged to be enabled.");
       return -1;
     }
-    TachyonLineageFileSystem tlfs = (TachyonLineageFileSystem)mTfs;
+    TachyonLineageFileSystem tlfs = (TachyonLineageFileSystem) mTfs;
 
     // TODO(yupeng) more validation
-    String inputArgs = argv[1].replace("input:", "");
     List<TachyonURI> inputFiles = Lists.newArrayList();
-    for(String path:inputArgs.split(",")) {
+    for (String path : argv[1].split(",")) {
       inputFiles.add(new TachyonURI(path));
     }
-    String outputArgs = argv[2].replace("output:", "");
     List<TachyonURI> outputFiles = Lists.newArrayList();
-    for(String path:outputArgs.split(",")) {
+    for (String path : argv[2].split(",")) {
       outputFiles.add(new TachyonURI(path));
     }
-    String cmd = argv[3].replace("job:", "");
-    // remove the trailing quote
-    cmd = cmd.substring(0, cmd.length()-1);
+    String cmd = argv[3];
 
-    CommandLineJob job = new CommandLineJob(cmd, new JobConf(null));
+    // FIXME for debug
+    String outputPath = "/Users/richbird/git/tachyon/logs/recompute.log";
+    CommandLineJob job = new CommandLineJob(cmd, new JobConf(outputPath));
     System.out.println(inputFiles);
     System.out.println(outputFiles);
     System.out.println(cmd);
