@@ -211,10 +211,10 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
     Assert.assertEquals(1000, intValue);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_BOSS_THREADS);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
     Assert.assertEquals(1, intValue);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETTY_WORKER_THREADS);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS);
     Assert.assertEquals(0, intValue);
 
     long longValue = sDefaultTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE);

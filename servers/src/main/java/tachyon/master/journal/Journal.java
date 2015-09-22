@@ -15,10 +15,7 @@
 
 package tachyon.master.journal;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 
 /**

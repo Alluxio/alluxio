@@ -256,7 +256,7 @@ public class LocalTachyonClusterMultiMaster {
     // Use first master port
     mMasterConf.set(Constants.MASTER_PORT, getMasterPort() + "");
 
-    CommonUtils.sleepMs(null, 10);
+    CommonUtils.sleepMs(10);
 
     mWorkerConf = WorkerContext.getConf();
     mWorkerConf.merge(mMasterConf);
@@ -298,8 +298,8 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerConf.set(Constants.WORKER_MAX_WORKER_THREADS, "100");
 
     // Perform immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    mWorkerConf.set(Constants.WORKER_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
+    mWorkerConf.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     mWorker = new BlockWorker();
     Runnable runWorker = new Runnable() {
@@ -337,17 +337,6 @@ public class LocalTachyonClusterMultiMaster {
       mMasters.get(k).stop();
     }
     mCuratorServer.stop();
-
-    System.clearProperty(Constants.TACHYON_HOME);
-    System.clearProperty(Constants.USE_ZOOKEEPER);
-    System.clearProperty(Constants.ZOOKEEPER_ADDRESS);
-    System.clearProperty(Constants.ZOOKEEPER_ELECTION_PATH);
-    System.clearProperty(Constants.ZOOKEEPER_LEADER_PATH);
-    System.clearProperty(Constants.WORKER_PORT);
-    System.clearProperty(Constants.WORKER_DATA_PORT);
-    System.clearProperty(Constants.WORKER_DATA_FOLDER);
-    System.clearProperty(Constants.WORKER_MEMORY_SIZE);
-    System.clearProperty(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
   }
 
   public void stopUFS() throws Exception {
