@@ -107,7 +107,7 @@ public class TFsShell implements Closeable {
 
     if (!tFile.isFolder) {
       ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+          new ClientOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.NO_STORE)
               .build();
       FileInStream is;
       try {
@@ -177,8 +177,8 @@ public class TFsShell implements Closeable {
         Closer closer = Closer.create();
         try {
           ClientOptions op =
-              new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
-                  .build();
+              new ClientOptions.Builder(mTachyonConf)
+                .setTachyonStorageType(TachyonStorageType.STORE) .build();
           FileInStream in = closer.register(mTfs.getInStream(fd, op));
           byte[] buf = new byte[8 * Constants.MB];
           while (in.read(buf) != -1) {
@@ -281,7 +281,7 @@ public class TFsShell implements Closeable {
       File dst = new File(dstPath);
       TachyonFile srcFd = mTfs.open(srcPath);
       ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+          new ClientOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.NO_STORE)
               .build();
       FileInStream is = closer.register(mTfs.getInStream(srcFd, op));
       FileOutputStream out = closer.register(new FileOutputStream(dst));
@@ -873,7 +873,7 @@ public class TFsShell implements Closeable {
 
     if (!fInfo.isFolder) {
       ClientOptions op =
-          new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+          new ClientOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.NO_STORE)
               .build();
       FileInStream is = null;
       try {

@@ -74,7 +74,7 @@ public final class ClientOptions {
      * @param tachyonStorageType the Tachyon storage type to use
      * @return the builder
      */
-    public Builder setTachyonStoreType(TachyonStorageType tachyonStorageType) {
+    public Builder setTachyonStorageType(TachyonStorageType tachyonStorageType) {
       mTachyonStorageType = tachyonStorageType;
       return this;
     }

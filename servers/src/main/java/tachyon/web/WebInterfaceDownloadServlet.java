@@ -118,7 +118,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     try {
       // TODO(jiri): Should we use MasterContext here instead?
       ClientOptions op = new ClientOptions.Builder(
-          new TachyonConf()).setTachyonStoreType(TachyonStorageType.NO_STORE).build();
+          new TachyonConf()).setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();
       ByteStreams.copy(is, out);
