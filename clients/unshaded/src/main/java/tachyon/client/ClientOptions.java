@@ -51,6 +51,18 @@ public final class ClientOptions {
     }
 
     /**
+     * Creates from a given ClientOptions.
+     *
+     * @param options the cient options.
+     */
+    public Builder(ClientOptions options) {
+      mBlockSize = options.mBlockSize;
+      mTachyonStorageType = options.mTachyonStorageType;
+      mUnderStorageType = options.mUnderStorageType;
+      mLocation = options.mLocation;
+    }
+
+    /**
      * @param location the location to use
      * @return the builder
      */

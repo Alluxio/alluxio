@@ -140,7 +140,8 @@ public final class LineageMaster extends MasterBase {
     // TODO add journal support
   }
 
-  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job) {
+  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
+      throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // validate input files exist
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
@@ -156,16 +157,8 @@ public final class LineageMaster extends MasterBase {
     List<LineageFile> outputTachyonFiles = Lists.newArrayList();
     for (TachyonURI outputFile : outputFiles) {
       long fileId;
-      try {
-        fileId = mFileSystemMaster.createFile(outputFile, 0, true);
-        outputTachyonFiles.add(new LineageFile(fileId));
-      } catch (InvalidPathException e) {
-        // TODO error handling
-      } catch (FileAlreadyExistException e) {
-        // TODO error handling
-      } catch (BlockInfoException e) {
-        // TODO error handling
-      }
+      fileId = mFileSystemMaster.createFile(outputFile, 1, true);
+      outputTachyonFiles.add(new LineageFile(fileId));
     }
 
     LOG.info("Created lineage of input:" + inputTachyonFiles + ", output:" + outputTachyonFiles

@@ -116,7 +116,7 @@ public final class LineageMasterClient extends MasterClientBase {
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        mClient.recreateFile(path, blockSizeBytes);
+        return mClient.recreateFile(path, blockSizeBytes);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -131,6 +131,7 @@ public final class LineageMasterClient extends MasterClientBase {
       connect();
       try {
         mClient.asyncCompleteFile(fileId, filePath);
+        return;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

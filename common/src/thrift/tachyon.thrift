@@ -262,7 +262,9 @@ service FileSystemMasterService {
 
 service LineageMasterService {
   // for client
-  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job)
+  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job) 
+    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
+      3: SuspectedFileSizeException sfse, 4: TachyonException te)
   
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
   
