@@ -135,7 +135,7 @@ public class MasterFaultToleranceIntegrationTest {
         // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
         // node can not be deleted.
         for (FileInfo file : mTfs.listStatus(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR)))) {
-          mTfs.delete(new TachyonFile(file.getFileId()));
+          mTfs.delete(new TachyonFile(file.getFileId()), true);
         }
         answer.clear();
         faultTestDataCheck(answer);
