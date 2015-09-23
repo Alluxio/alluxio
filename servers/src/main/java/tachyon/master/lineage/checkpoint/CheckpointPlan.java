@@ -43,6 +43,9 @@ public final class CheckpointPlan {
 
   @Override
   public String toString() {
+    if (mToCheckPoint.isEmpty()) {
+      return "check point plan is empty";
+    }
     return "toCheckpoint: " + Joiner.on(", ").join(mToCheckPoint);
   }
 }

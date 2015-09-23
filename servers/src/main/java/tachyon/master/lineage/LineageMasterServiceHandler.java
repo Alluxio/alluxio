@@ -18,12 +18,9 @@ package tachyon.master.lineage;
 import java.util.List;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
-import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
@@ -36,7 +33,6 @@ import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 
 public final class LineageMasterServiceHandler implements LineageMasterService.Iface {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final LineageMaster mLineageMaster;
 
   public LineageMasterServiceHandler(LineageMaster lineageMaster) {
@@ -73,7 +69,7 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
-  public long recreateFile(String path, long blockSizeBytes) {
+  public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException {
     return mLineageMaster.recreateFile(path, blockSizeBytes);
   }
 

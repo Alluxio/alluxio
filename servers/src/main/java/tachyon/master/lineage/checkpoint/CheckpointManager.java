@@ -18,10 +18,14 @@ package tachyon.master.lineage.checkpoint;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import tachyon.Constants;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
@@ -39,6 +43,8 @@ import tachyon.thrift.FileDoesNotExistException;
  * TODO(yupeng): relax the locking
  */
 public final class CheckpointManager {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
   private Map<Long, List<LineageFile>> mWorkerToCheckpointFile;
@@ -121,6 +127,7 @@ public final class CheckpointManager {
       mFileIdToCheckpoitnFile.remove(fileId);
 
       // update lineage
+      LOG.info("File " + fileId + " is persisted on worker " + workerId);
       mLineageStore.commitCheckpointFile(fileId);
 
       filesLeft.remove(fileId);

@@ -147,12 +147,8 @@ public final class LineageMaster extends MasterBase {
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
-      try {
-        fileId = mFileSystemMaster.getFileId(inputFile);
-        inputTachyonFiles.add(new TachyonFile(fileId));
-      } catch (InvalidPathException e) {
-        // TODO error handling
-      }
+      fileId = mFileSystemMaster.getFileId(inputFile);
+      inputTachyonFiles.add(new TachyonFile(fileId));
     }
     // create output files
     List<LineageFile> outputTachyonFiles = Lists.newArrayList();
@@ -162,7 +158,7 @@ public final class LineageMaster extends MasterBase {
       outputTachyonFiles.add(new LineageFile(fileId));
     }
 
-    LOG.info("Created lineage of input:" + inputTachyonFiles + ", output:" + outputTachyonFiles
+    LOG.info("Create lineage of input:" + inputTachyonFiles + ", output:" + outputTachyonFiles
         + ", job:" + job);
     return mLineageStore.createLineage(inputTachyonFiles, outputTachyonFiles, job);
   }
@@ -178,17 +174,15 @@ public final class LineageMaster extends MasterBase {
       // TODO error handling
     }
 
+    LOG.info("Delete lineage "+lineageId);
     mLineageStore.deleteLineage(lineageId);
     return true;
   }
 
-  public long recreateFile(String path, long blockSizeBytes) {
-    try {
-      return mFileSystemMaster.resetBlockSize(new TachyonURI(path), blockSizeBytes);
-    } catch (InvalidPathException e) {
-      // TODO(yupeng): error handling
-      return -1;
-    }
+  public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException {
+    LOG.info("Recreate the file " + path + " with block size of " + blockSizeBytes + " bytes");
+    return mFileSystemMaster.resetBlockSize(new TachyonURI(path), blockSizeBytes);
+
   }
 
   public void asyncCompleteFile(long fileId, String underFsPath) {
@@ -202,18 +196,17 @@ public final class LineageMaster extends MasterBase {
    *
    * @param workerId the id of the worker that heartbeats
    * @return the command for checkpointing the blocks of a file.
+   * @throws FileDoesNotExistException
    */
-  public LineageCommand lineageWorkerHeartbeat(long workerId, List<Long> persistedFiles) {
+  public LineageCommand lineageWorkerHeartbeat(long workerId, List<Long> persistedFiles)
+      throws FileDoesNotExistException {
     // notify checkpoitn manager the persisted files
     mCheckpointManager.commitCheckpointFiles(workerId, persistedFiles);
 
-    // get the files for the given worker to checkpoitn
+    // get the files for the given worker to checkpoint
     List<CheckpointFile> filesToCheckpoint = null;
-    try {
-      filesToCheckpoint = mCheckpointManager.getFilesToCheckpoint(workerId);
-    } catch (FileDoesNotExistException e) {
-      // TODO error handling
-    }
+    filesToCheckpoint = mCheckpointManager.getFilesToCheckpoint(workerId);
+    LOG.info("Sent files " + filesToCheckpoint + " to worker " + workerId + " to persist");
     return new LineageCommand(CommandType.Persist, filesToCheckpoint);
   }
 

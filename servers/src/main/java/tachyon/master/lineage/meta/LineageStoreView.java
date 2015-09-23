@@ -46,4 +46,11 @@ public final class LineageStoreView {
   public List<Lineage> getChildren(Lineage lineage) {
     return mLineageStore.getChildren(lineage);
   }
+
+  /**
+   * @return all the lineages in topological order.
+   */
+  public List<Lineage> getAllLineagesInTopologicalOrder() {
+    return mLineageStore.getAllInTopologicalOrder();
+  }
 }
