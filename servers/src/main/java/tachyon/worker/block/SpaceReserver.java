@@ -65,7 +65,7 @@ public class SpaceReserver implements Runnable {
       lastTierReservedBytes += reservedSpaceBytes;
     }
     mCheckIntervalMs =
-        WorkerContext.getConf().getInt(Constants.WORKER_SPACE_RESERVER_PERIOD_MS);
+        WorkerContext.getConf().getInt(Constants.WORKER_SPACE_RESERVER_INTERVAL_MS);
     mRunning = true;
   }
 

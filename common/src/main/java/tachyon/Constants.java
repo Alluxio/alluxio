@@ -230,8 +230,8 @@ public final class Constants {
   public static final String WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT =
       "tachyon.worker.tieredstore.level%d.reserved.ratio";
 
-  public static final String WORKER_SPACE_RESERVER_PERIOD_MS =
-      "tachyon.worker.space.reserver.period.ms";
+  public static final String WORKER_SPACE_RESERVER_INTERVAL_MS =
+      "tachyon.worker.space.reserver.interval.ms";
 
   public static final String WORKER_SPACE_RESERVER_ENABLE =
       "tachyon.worker.space.reserver.enable";
