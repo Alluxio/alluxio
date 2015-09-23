@@ -91,7 +91,6 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
     mTachyonStorageType = options.getTachyonStorageType();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     mClosed = false;
-    LOG.info("Will store " + info.getPath() + " in memory " + mTachyonStorageType.isStore());
   }
 
   @Override
@@ -227,7 +226,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           // TODO(calvin): Specify the location to be local.
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, 
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
                      NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           LOG.warn("Failed to get TachyonStore stream, the block " + currentBlockId
@@ -288,7 +287,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, 
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
                       NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           LOG.warn("Failed to write to TachyonStore stream, block " + getCurrentBlockId()
@@ -331,15 +330,10 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
             + " from Tachyon and data is not persisted in under storage.");
         throw ioe;
       }
-      FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-      try {
-        long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
-        mCurrentBlockInStream =
-            new UnderStoreFileInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
-        mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
-      } finally {
-        mContext.releaseMasterClient(masterClient);
-      }
+      long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
+      mCurrentBlockInStream =
+          new UnderStoreFileInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
+      mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     }
   }
 }

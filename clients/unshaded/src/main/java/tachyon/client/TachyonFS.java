@@ -169,8 +169,6 @@ public class TachyonFS extends AbstractTachyonFS {
   private final Map<String, FileInfo> mPathToClientFileInfo = new HashMap<String, FileInfo>();
   private final Map<Long, FileInfo> mIdToClientFileInfo = new HashMap<Long, FileInfo>();
 
-  private UnderFileSystem mUnderFileSystem;
-
   /** All Blocks that have been locked. */
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
   /** Mapping from block id to path of the block locked */
@@ -216,7 +214,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying worker RPC fails
    */
   synchronized void addCheckpoint(long fid) throws IOException {
-    mWorkerClient.addCheckpoint(fid, 0);
+    throw new UnsupportedOperationException("AddCheckpoint is not unsupported");
   }
 
   /**
@@ -1099,13 +1097,5 @@ public class TachyonFS extends AbstractTachyonFS {
         !uri.hasAuthority() || mRootUri.getAuthority().equals(uri.getAuthority()),
         "URI's authority: " + uri.getAuthority() + " must match the file system's authority: "
             + mRootUri.getAuthority() + ", unless it doesn't have an authority.");
-  }
-
-  public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
-    return mFSMasterClient.mount(tachyonPath, ufsPath);
-  }
-
-  public synchronized boolean unmount(TachyonURI tachyonPath) throws IOException {
-    return mFSMasterClient.unmount(tachyonPath);
   }
 }

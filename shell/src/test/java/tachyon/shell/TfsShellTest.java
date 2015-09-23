@@ -93,7 +93,7 @@ public class TfsShellTest {
 
   @Test
   public void catNotExistTest() throws IOException {
-    int ret = mFsShell.run(new String[] {"cat", "/testFile"});
+    int ret = mFsShell.run(new String[]{"cat", "/testFile"});
     Assert.assertEquals(-1, ret);
   }
 
@@ -205,7 +205,7 @@ public class TfsShellTest {
             + mLocalTachyonCluster.getMasterPort() + mMountPoint + "/dstFileURI";
     mFsShell.run(new String[]{"copyFromLocal", testFile.getPath(), tachyonURI});
     expected
-        .append(getCommandOutput(new String[] {"copyFromLocal", testFile.getPath(), tachyonURI}));
+        .append(getCommandOutput(new String[]{"copyFromLocal", testFile.getPath(), tachyonURI}));
     Assert.assertEquals(expected.toString(), mOutput.toString());
     TachyonFile file = mTfs.open(new TachyonURI(mMountPoint + "/dstFileURI"));
     FileInfo fileInfo = mTfs.getInfo(file);
@@ -246,7 +246,7 @@ public class TfsShellTest {
         UnderStorageType.NO_PERSIST, bytes);
     mFsShell.run(new String[]{"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"});
-    Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
+    Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile"}), mOutput.toString());
     fileReadTest("/testFile", 10);
   }
@@ -459,7 +459,7 @@ public class TfsShellTest {
   public void mkdirShortPathTest() throws IOException, TException {
     StringBuilder expected = new StringBuilder();
     mFsShell.run(new String[]{"mkdir", mMountPoint + "/testFile1"});
-    expected.append(getCommandOutput(new String[] {"mkdir", mMountPoint + "/testFile1"}));
+    expected.append(getCommandOutput(new String[]{"mkdir", mMountPoint + "/testFile1"}));
     TachyonFile tFile = mTfs.open(new TachyonURI(mMountPoint + "/testFile1"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
@@ -497,7 +497,7 @@ public class TfsShellTest {
     mFsShell.run(new String[]{"mkdir", "/test/File1"});
     expected.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
     mFsShell.run(new String[]{"mv", "/test", "/test2"});
-    expected.append(getCommandOutput(new String[] {"mv", "/test", "/test2"}));
+    expected.append(getCommandOutput(new String[]{"mv", "/test", "/test2"}));
     Assert.assertTrue(fileExist(new TachyonURI("/test2/File1")));
     Assert.assertFalse(fileExist(new TachyonURI("/test")));
     Assert.assertFalse(fileExist(new TachyonURI("/test/File1")));
@@ -523,7 +523,7 @@ public class TfsShellTest {
     mFsShell.run(new String[]{"mkdir", "/testFolder"});
     expected.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
     mFsShell.run(new String[]{"mkdir", "/testFolder1"});
-    expected.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
+    expected.append(getCommandOutput(new String[]{"mkdir", "/testFolder1"}));
     Assert.assertEquals(-1, mFsShell.run(new String[]{"mv", "/testFolder1", "/testFolder"}));
   }
 
@@ -602,7 +602,7 @@ public class TfsShellTest {
   public void tailEmptyFileTest() throws IOException {
     TachyonFSTestUtils.createByteFile(mTfs, "/emptyFile", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 0);
-    int ret = mFsShell.run(new String[] {"tail", "/emptyFile"});
+    int ret = mFsShell.run(new String[]{"tail", "/emptyFile"});
     Assert.assertEquals(0, ret);
   }
 
@@ -617,7 +617,7 @@ public class TfsShellTest {
 
   @Test
   public void tailNotExistTest() throws IOException {
-    int ret = mFsShell.run(new String[] {"tail", "/testFile"});
+    int ret = mFsShell.run(new String[]{"tail", "/testFile"});
     Assert.assertEquals(-1, ret);
   }
 
@@ -648,7 +648,7 @@ public class TfsShellTest {
         "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
             + mLocalTachyonCluster.getMasterPort() + mMountPoint + "/dstFileURI";
     mFsShell.run(new String[]{"touch", tachyonURI});
-    expected.append(getCommandOutput(new String[] {"touch", tachyonURI}));
+    expected.append(getCommandOutput(new String[]{"touch", tachyonURI}));
     TachyonFile tFile = mTfs.open(new TachyonURI(mMountPoint + "/dstFileURI"));
     FileInfo fileInfo = mTfs.getInfo(tFile);
     Assert.assertNotNull(fileInfo);
@@ -802,7 +802,7 @@ public class TfsShellTest {
     Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/bar/foobar3")));
     Assert.assertTrue(fileExist(new TachyonURI("/testWildCards/foobar4")));
 
-    mFsShell.run(new String[] {"rmr", "/testWildCards/*"});
+    mFsShell.run(new String[]{"rmr", "/testWildCards/*"});
     Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/bar")));
     Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/foo")));
     Assert.assertFalse(fileExist(new TachyonURI("/testWildCards/foobar4")));
@@ -838,7 +838,7 @@ public class TfsShellTest {
     Assert.assertFalse(res1.contains("/testWildCards/foo/foobar1"));
     Assert.assertFalse(res1.contains("/testWildCards/bar/foobar3"));
 
-    mFsShell.run(new String[] {"fileinfo", "/testWildCards/*/foo*"});
+    mFsShell.run(new String[]{"fileinfo", "/testWildCards/*/foo*"});
     String res2 = mOutput.toString();
     res2 = res2.replace(res1, "");
     Assert.assertTrue(res2.contains("/testWildCards/foo/foobar1"));
@@ -847,11 +847,9 @@ public class TfsShellTest {
     Assert.assertFalse(res2.contains("/testWildCards/foobar4"));
   }
 
-
   @Test
-  public void copyFromLocalWildcardExistingDirTest() throws IOException, TException {
+  public void copyFromLocalWildcardTest() throws IOException {
     TfsShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
-    mTfs.mkdirs(new TachyonURI("/testDir"));
     int ret = mFsShell.run(new String[] {"copyFromLocal",
         mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*/foo*",
         PathUtils.concatPath(mMountPoint, "testDir")});
@@ -862,6 +860,26 @@ public class TfsShellTest {
         new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir", "foobar2"))));
     Assert.assertTrue(fileExist(
         new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir", "foobar3"))));
+    Assert.assertFalse(fileExist(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir", "foobar4"))));
+  }
+
+  @Test
+  public void copyFromLocalWildcardExistingDirTest() throws IOException, TException {
+    TfsShellUtilsTest.resetLocalFileHierarchy(mLocalTachyonCluster);
+    mTfs.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir")));
+    int ret = mFsShell.run(new String[] {"copyFromLocal",
+        mLocalTachyonCluster.getTachyonHome() + "/testWildCards/*/foo*",
+        PathUtils.concatPath(mMountPoint, "testDir")});
+    Assert.assertEquals(0, ret);
+    Assert.assertTrue(fileExist(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir", "foobar1"))));
+    Assert.assertTrue(fileExist(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir", "foobar2"))));
+    Assert.assertTrue(fileExist(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir", "foobar3"))));
+    Assert.assertFalse(fileExist(
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir", "foobar4"))));
   }
 
   @Test
