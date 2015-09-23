@@ -368,3 +368,4 @@ public class DataServerIntegrationTest {
     return mBlockMasterClient.getBlockInfo(fileInfo.blockIds.get(0));
   }
 }
+autogen to debug jenkins
