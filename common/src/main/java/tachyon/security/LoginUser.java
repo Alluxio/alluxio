@@ -24,7 +24,7 @@ import javax.security.auth.login.LoginException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.authentication.AuthType;
 import tachyon.security.login.TachyonJaasConfiguration;
 
 /**
@@ -73,8 +73,8 @@ public final class LoginUser {
    * @throws IOException if login fails
    */
   private static User login(TachyonConf conf) throws IOException {
-    AuthenticationFactory.AuthType authType = conf.getEnum(
-        Constants.TACHYON_SECURITY_AUTHENTICATION, AuthenticationFactory.AuthType.class);
+    AuthType authType = conf.getEnum(
+        Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.class);
     checkSecurityEnabled(authType);
 
     try {
@@ -85,15 +85,13 @@ public final class LoginUser {
       loginContext.login();
 
       Set<User> userSet = subject.getPrincipals(User.class);
-      if (!userSet.isEmpty()) {
-        if (userSet.size() == 1) {
-          return userSet.iterator().next();
-        } else {
-          throw new LoginException("More than one Tachyon User is found");
-        }
-      } else {
+      if (userSet.isEmpty()) {
         throw new LoginException("No Tachyon User is found.");
       }
+      if (userSet.size() > 1) {
+        throw new LoginException("More than one Tachyon User is found");
+      }
+      return userSet.iterator().next();
     } catch (LoginException e) {
       throw new IOException("Fail to login", e);
     }
@@ -104,10 +102,9 @@ public final class LoginUser {
    *
    * @param authType the authentication type in configuration
    */
-  private static void checkSecurityEnabled(AuthenticationFactory.AuthType authType) {
+  private static void checkSecurityEnabled(AuthType authType) {
     // TODO: add Kerberos condition check.
-    if (authType != AuthenticationFactory.AuthType.SIMPLE
-        && authType != AuthenticationFactory.AuthType.CUSTOM) {
+    if (authType != AuthType.SIMPLE && authType != AuthType.CUSTOM) {
       throw new UnsupportedOperationException(
           "User is not supported in " + authType.getAuthName() + " mode");
     }

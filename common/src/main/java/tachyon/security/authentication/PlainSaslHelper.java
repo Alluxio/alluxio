@@ -32,7 +32,6 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
 
 import tachyon.conf.TachyonConf;
-import tachyon.security.authentication.AuthenticationFactory.AuthType;
 
 /**
  * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism. There is a new
@@ -65,7 +64,7 @@ public class PlainSaslHelper {
       TachyonConf conf) throws SaslException {
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
     AuthenticationProvider provider =
-        AuthenticationProviderFactory.getAuthenticationProvider(authType, conf);
+        AuthenticationProvider.Factory.getAuthenticationProvider(authType, conf);
     saslFactory.addServerDefinition(PlainSaslServerProvider.MECHANISM, null, null,
         new HashMap<String, String>(), new PlainSaslServer.PlainServerCallbackHandler(provider));
 

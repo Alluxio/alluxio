@@ -25,7 +25,6 @@ import javax.security.sasl.AuthenticationException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -33,7 +32,7 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.security.authentication.AuthenticationFactory.AuthType;
+import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.AuthenticationProvider;
 
 /**
@@ -150,7 +149,7 @@ public class MasterClientAuthenticationIntegrationTest {
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.createFile(filename, Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    masterClient.createFile(filename, Constants.DEFAULT_BLOCK_SIZE_BYTE, true, Constants.NO_TTL);
     Assert.assertNotNull(masterClient.getFileId(filename));
     masterClient.disconnect();
     masterClient.close();

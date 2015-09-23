@@ -32,7 +32,8 @@ public final class AuthorizedClientUser {
   private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<User>();
 
   /**
-   * Create a {@link tachyon.security.User} and set it to the ThreadLocal variable.
+   * Creates a {@link tachyon.security.User} and sets it to the ThreadLocal variable.
+   *
    * @param userName the name of the client user
    */
   public static void set(String userName) {
@@ -40,7 +41,8 @@ public final class AuthorizedClientUser {
   }
 
   /**
-   * Get the {@link tachyon.security.User} from the ThreadLocal variable.
+   * Gets the {@link tachyon.security.User} from the ThreadLocal variable.
+   *
    * @return the client user
    */
   public static User get() {
@@ -48,7 +50,7 @@ public final class AuthorizedClientUser {
   }
 
   /**
-   * Remove the {@link tachyon.security.User} from the ThreadLocal variable.
+   * Removes the {@link tachyon.security.User} from the ThreadLocal variable.
    */
   public static void remove() {
     sUserThreadLocal.remove();
