@@ -41,6 +41,10 @@ public final class CheckpointPlan {
     return mToCheckPoint;
   }
 
+  public boolean isEmtpy() {
+    return mToCheckPoint.isEmpty();
+  }
+
   @Override
   public String toString() {
     if (mToCheckPoint.isEmpty()) {

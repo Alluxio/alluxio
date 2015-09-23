@@ -27,6 +27,7 @@ import tachyon.job.JobConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.CommandLineJobInfo;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
@@ -64,7 +65,8 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
-  public void asyncCompleteFile(long fileId, String filePath) {
+  public void asyncCompleteFile(long fileId, String filePath)
+      throws FileDoesNotExistException, BlockInfoException {
     mLineageMaster.asyncCompleteFile(fileId, filePath);
   }
 

@@ -1048,6 +1048,7 @@ public class TFsShell implements Closeable {
   }
 
   private TachyonLineageFileSystem acquireTachyonLineageFileSystem() {
+    System.out.println("Lineage Info:");
     if (!(mTfs instanceof TachyonLineageFileSystem)) {
       System.out.println("addLineage requires lineaged to be enabled.");
       return null;
