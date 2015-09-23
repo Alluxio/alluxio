@@ -263,8 +263,6 @@ public final class Constants {
       "tachyon.user.file.understoragetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final String USER_REMOTE_BLOCK_WRITER = "tachyon.user.remote.block.writer.class";
-  public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
-  public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
   public static final String USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS =
       "tachyon.user.remote.block.worker.client.threads";
   public static final String USER_LOCAL_BLOCK_WORKER_CLIENT_THREADS =
