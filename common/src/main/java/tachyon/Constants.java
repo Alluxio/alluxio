@@ -223,6 +223,18 @@ public final class Constants {
    */
   public static final String WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT =
       "tachyon.worker.tieredstore.level%d.dirs.quota";
+  /**
+   * This format is used as a template to generate the property name for a given level.
+   * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, level)}
+   */
+  public static final String WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT =
+      "tachyon.worker.tieredstore.level%d.reserved.ratio";
+
+  public static final String WORKER_SPACE_RESERVER_INTERVAL_MS =
+      "tachyon.worker.space.reserver.interval.ms";
+
+  public static final String WORKER_SPACE_RESERVER_ENABLE =
+      "tachyon.worker.space.reserver.enable";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
