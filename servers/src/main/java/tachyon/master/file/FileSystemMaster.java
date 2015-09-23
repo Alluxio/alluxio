@@ -49,6 +49,7 @@ import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
+import tachyon.master.file.journal.ResizeBlockEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
 import tachyon.master.file.meta.DependencyMap;
@@ -167,6 +168,8 @@ public final class FileSystemMaster extends MasterBase {
       renameFromEntry((RenameEntry) entry);
     } else if (entry instanceof InodeDirectoryIdGeneratorEntry) {
       mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
+    } else if (entry instanceof ResizeBlockEntry) {
+      resetBlockSizeFromEntry((ResizeBlockEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -484,8 +487,20 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long resetBlockSize(TachyonURI path, long blockSizeBytes) throws InvalidPathException {
     // TODO(yupeng): add validation
-    return mInodeTree.resetBlockSize(path, blockSizeBytes);
+    long id = mInodeTree.resetBlockSize(path, blockSizeBytes);
+    writeJournalEntry(new ResizeBlockEntry(path.getPath(), blockSizeBytes));
+    flushJournal();
+    return id;
   }
+
+  private void resetBlockSizeFromEntry(ResizeBlockEntry entry) {
+    try {
+      mInodeTree.resetBlockSize(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes());
+    } catch (InvalidPathException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /**
    * Returns the next block id for a given file id. Called via RPC.
    *

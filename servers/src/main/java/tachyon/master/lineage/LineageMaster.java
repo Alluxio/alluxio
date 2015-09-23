@@ -42,6 +42,7 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.checkpoint.CheckpointManager;
 import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
+import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.meta.Lineage;
@@ -115,6 +116,8 @@ public final class LineageMaster extends MasterBase {
       mLineageStore.addLineageFromJournal((LineageEntry) entry);
     } else if (entry instanceof LineageIdGeneratorEntry) {
       mLineageIdGenerator.fromJournalEntry((LineageIdGeneratorEntry) entry);
+    } else if (entry instanceof AsyncCompleteFileEntry) {
+      asyncCompleteFileFromEntry((AsyncCompleteFileEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -199,7 +202,6 @@ public final class LineageMaster extends MasterBase {
   public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException {
     LOG.info("Recreate the file " + path + " with block size of " + blockSizeBytes + " bytes");
     return mFileSystemMaster.resetBlockSize(new TachyonURI(path), blockSizeBytes);
-
   }
 
   public void asyncCompleteFile(long fileId, String underFsPath)
@@ -208,6 +210,12 @@ public final class LineageMaster extends MasterBase {
     mLineageStore.completeFileForAsyncWrite(fileId, underFsPath);
     // complete file in Tachyon.
     mFileSystemMaster.completeFile(fileId);
+    writeJournalEntry(new AsyncCompleteFileEntry(fileId, underFsPath));
+    flushJournal();
+  }
+
+  private void asyncCompleteFileFromEntry(AsyncCompleteFileEntry entry) {
+    mLineageStore.completeFileForAsyncWrite(entry.getFileId(), entry.getUnderFsPath());
   }
 
   /**
