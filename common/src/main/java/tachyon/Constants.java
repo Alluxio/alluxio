@@ -145,7 +145,8 @@ public final class Constants {
   public static final String MASTER_WEB_PORT = "tachyon.master.web.port";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
-  public static final String MASTER_TTL_INTERVAL_MS = "tachyon.master.ttl.interval.ms";
+  public static final String MASTER_TTLCHECKER_INTERVAL_MS
+      = "tachyon.master.ttlchecker.interval.ms";
   public static final String MASTER_MAX_WORKER_THREADS = "tachyon.master.max.worker.threads";
   public static final String MASTER_MIN_WORKER_THREADS = "tachyon.master.min.worker.threads";
   public static final String MASTER_WORKER_TIMEOUT_MS = "tachyon.master.worker.timeout.ms";
@@ -285,8 +286,8 @@ public final class Constants {
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
 
-  //ttl related
-  public static final int NO_TTL = -1;
+  // ttl related
+  public static final long NO_TTL = -1;
 
   private Constants() {} // prevent instantiation
 }

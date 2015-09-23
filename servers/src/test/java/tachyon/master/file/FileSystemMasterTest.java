@@ -62,7 +62,7 @@ public final class FileSystemMasterTest {
 
   @Before
   public void before() throws Exception {
-    MasterContext.getConf().set(Constants.MASTER_TTL_INTERVAL_MS, "1000");
+    MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, "1000");
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
