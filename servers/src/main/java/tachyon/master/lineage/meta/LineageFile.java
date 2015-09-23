@@ -16,6 +16,7 @@
 package tachyon.master.lineage.meta;
 
 import tachyon.client.file.TachyonFile;
+import tachyon.thrift.LineageFileInfo;
 
 public final class LineageFile extends TachyonFile {
   private LineageFileState mState;
@@ -24,6 +25,14 @@ public final class LineageFile extends TachyonFile {
   public LineageFile(long fileId) {
     super(fileId);
     mState = LineageFileState.CREATED;
+  }
+
+  public LineageFileInfo generateLineageFileInfo() {
+    LineageFileInfo info = new LineageFileInfo();
+    info.mId = getFileId();
+    info.mState = mState.toString();
+    info.mUnderFilePath = mUnderFilePath;
+    return info;
   }
 
   public String getUnderFilePath() {

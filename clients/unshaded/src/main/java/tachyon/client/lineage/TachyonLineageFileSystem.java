@@ -35,6 +35,7 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.LineageInfo;
 
 /**
  * Tachyon lineage client. This class is the entry point for all lineage related operations. An
@@ -104,6 +105,17 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
     try {
       boolean result = masterClient.deleteLineage(lineageId, cascade);
       LOG.info(result ? "Succeeded to " : "Failed to" + "add lineage " + lineageId);
+      return result;
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  public List<LineageInfo> listLineages() throws IOException {
+    LineageMasterClient masterClient = mContext.acquireMasterClient();
+
+    try {
+      List<LineageInfo> result = masterClient.listLineages();
       return result;
     } finally {
       mContext.releaseMasterClient(masterClient);

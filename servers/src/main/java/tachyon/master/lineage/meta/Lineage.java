@@ -22,7 +22,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import tachyon.client.file.TachyonFile;
+import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
+import tachyon.thrift.LineageFileInfo;
+import tachyon.thrift.LineageInfo;
 
 /**
  * A lineage tracks the dependencies imposed by a job, including the input files the job depends on,
@@ -48,6 +51,27 @@ public final class Lineage {
     mJob = Preconditions.checkNotNull(job);
     mId = LineageIdGenerator.generateId();
     mCreationTimeMs = System.currentTimeMillis();
+  }
+
+  public LineageInfo generateLineageInfo() {
+    LineageInfo info = new LineageInfo();
+    info.mId = mId;
+    List<Long> inputFiles = Lists.newArrayList();
+    for (TachyonFile file : mInputFiles) {
+      inputFiles.add(file.getFileId());
+    }
+    info.mInputFiles = inputFiles;
+
+    List<LineageFileInfo> outputFiles = Lists.newArrayList();
+    for (LineageFile lineageFile : mOutputFiles) {
+      outputFiles.add(lineageFile.generateLineageFileInfo());
+    }
+    info.mOutputFiles = outputFiles;
+
+    // TODO(yupeng) allow other types of jobs
+    info.mJob = ((CommandLineJob) mJob).generateCommandLineJobInfo();
+    info.mCreationTimeMs = mCreationTimeMs;
+    return info;
   }
 
   public List<TachyonFile> getInputFiles() {

@@ -114,6 +114,22 @@ struct CommandLineJobInfo {
   2: JobConfInfo conf 
 }
 
+struct LineageFileInfo {
+  1: i64 mId
+  2: string mState
+  3: string mUnderFilePath
+}
+
+struct LineageInfo {
+  1: i64 mId
+  2: list<i64> mInputFiles
+  3: list<LineageFileInfo> mOutputFiles
+  4: CommandLineJobInfo mJob
+  5: i64 mCreationTimeMs
+  6: list<i64> parents
+  7: list<i64> children
+}
+
 exception BlockInfoException {
   1: string message
 }
@@ -267,6 +283,8 @@ service LineageMasterService {
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
   
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
+  
+  list<LineageInfo> listLineages()
   
   i64 recreateFile(1: string path, 2: i64 blockSizeBytes)
   

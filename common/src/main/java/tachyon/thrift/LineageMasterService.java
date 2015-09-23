@@ -43,6 +43,8 @@ public class LineageMasterService {
 
     public boolean deleteLineage(long lineageId, boolean cascade) throws org.apache.thrift.TException;
 
+    public List<LineageInfo> listLineages() throws org.apache.thrift.TException;
+
     public long recreateFile(String path, long blockSizeBytes) throws org.apache.thrift.TException;
 
     public void asyncCompleteFile(long fileId, String filePath) throws org.apache.thrift.TException;
@@ -56,6 +58,8 @@ public class LineageMasterService {
     public void createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void deleteLineage(long lineageId, boolean cascade, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void listLineages(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void recreateFile(String path, long blockSizeBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -144,6 +148,28 @@ public class LineageMasterService {
         return result.success;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "deleteLineage failed: unknown result");
+    }
+
+    public List<LineageInfo> listLineages() throws org.apache.thrift.TException
+    {
+      send_listLineages();
+      return recv_listLineages();
+    }
+
+    public void send_listLineages() throws org.apache.thrift.TException
+    {
+      listLineages_args args = new listLineages_args();
+      sendBase("listLineages", args);
+    }
+
+    public List<LineageInfo> recv_listLineages() throws org.apache.thrift.TException
+    {
+      listLineages_result result = new listLineages_result();
+      receiveBase(result, "listLineages");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "listLineages failed: unknown result");
     }
 
     public long recreateFile(String path, long blockSizeBytes) throws org.apache.thrift.TException
@@ -306,6 +332,35 @@ public class LineageMasterService {
       }
     }
 
+    public void listLineages(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      listLineages_call method_call = new listLineages_call(resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class listLineages_call extends org.apache.thrift.async.TAsyncMethodCall {
+      public listLineages_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("listLineages", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        listLineages_args args = new listLineages_args();
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public List<LineageInfo> getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        return (new Client(prot)).recv_listLineages();
+      }
+    }
+
     public void recreateFile(String path, long blockSizeBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       recreateFile_call method_call = new recreateFile_call(path, blockSizeBytes, resultHandler, this, ___protocolFactory, ___transport);
@@ -426,6 +481,7 @@ public class LineageMasterService {
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
       processMap.put("createLineage", new createLineage());
       processMap.put("deleteLineage", new deleteLineage());
+      processMap.put("listLineages", new listLineages());
       processMap.put("recreateFile", new recreateFile());
       processMap.put("asyncCompleteFile", new asyncCompleteFile());
       processMap.put("workerLineageHeartbeat", new workerLineageHeartbeat());
@@ -480,6 +536,26 @@ public class LineageMasterService {
         deleteLineage_result result = new deleteLineage_result();
         result.success = iface.deleteLineage(args.lineageId, args.cascade);
         result.setSuccessIsSet(true);
+        return result;
+      }
+    }
+
+    public static class listLineages<I extends Iface> extends org.apache.thrift.ProcessFunction<I, listLineages_args> {
+      public listLineages() {
+        super("listLineages");
+      }
+
+      public listLineages_args getEmptyArgsInstance() {
+        return new listLineages_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public listLineages_result getResult(I iface, listLineages_args args) throws org.apache.thrift.TException {
+        listLineages_result result = new listLineages_result();
+        result.success = iface.listLineages();
         return result;
       }
     }
@@ -560,6 +636,7 @@ public class LineageMasterService {
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
       processMap.put("createLineage", new createLineage());
       processMap.put("deleteLineage", new deleteLineage());
+      processMap.put("listLineages", new listLineages());
       processMap.put("recreateFile", new recreateFile());
       processMap.put("asyncCompleteFile", new asyncCompleteFile());
       processMap.put("workerLineageHeartbeat", new workerLineageHeartbeat());
@@ -688,6 +765,57 @@ public class LineageMasterService {
 
       public void start(I iface, deleteLineage_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
         iface.deleteLineage(args.lineageId, args.cascade,resultHandler);
+      }
+    }
+
+    public static class listLineages<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, listLineages_args, List<LineageInfo>> {
+      public listLineages() {
+        super("listLineages");
+      }
+
+      public listLineages_args getEmptyArgsInstance() {
+        return new listLineages_args();
+      }
+
+      public AsyncMethodCallback<List<LineageInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<List<LineageInfo>>() { 
+          public void onComplete(List<LineageInfo> o) {
+            listLineages_result result = new listLineages_result();
+            result.success = o;
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            listLineages_result result = new listLineages_result();
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, listLineages_args args, org.apache.thrift.async.AsyncMethodCallback<List<LineageInfo>> resultHandler) throws TException {
+        iface.listLineages(resultHandler);
       }
     }
 
@@ -1343,13 +1471,13 @@ public class LineageMasterService {
             case 1: // INPUT_FILES
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list204 = iprot.readListBegin();
-                  struct.inputFiles = new ArrayList<String>(_list204.size);
-                  String _elem205;
-                  for (int _i206 = 0; _i206 < _list204.size; ++_i206)
+                  org.apache.thrift.protocol.TList _list236 = iprot.readListBegin();
+                  struct.inputFiles = new ArrayList<String>(_list236.size);
+                  String _elem237;
+                  for (int _i238 = 0; _i238 < _list236.size; ++_i238)
                   {
-                    _elem205 = iprot.readString();
-                    struct.inputFiles.add(_elem205);
+                    _elem237 = iprot.readString();
+                    struct.inputFiles.add(_elem237);
                   }
                   iprot.readListEnd();
                 }
@@ -1361,13 +1489,13 @@ public class LineageMasterService {
             case 2: // OUTPUT_FILES
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list207 = iprot.readListBegin();
-                  struct.outputFiles = new ArrayList<String>(_list207.size);
-                  String _elem208;
-                  for (int _i209 = 0; _i209 < _list207.size; ++_i209)
+                  org.apache.thrift.protocol.TList _list239 = iprot.readListBegin();
+                  struct.outputFiles = new ArrayList<String>(_list239.size);
+                  String _elem240;
+                  for (int _i241 = 0; _i241 < _list239.size; ++_i241)
                   {
-                    _elem208 = iprot.readString();
-                    struct.outputFiles.add(_elem208);
+                    _elem240 = iprot.readString();
+                    struct.outputFiles.add(_elem240);
                   }
                   iprot.readListEnd();
                 }
@@ -1404,9 +1532,9 @@ public class LineageMasterService {
           oprot.writeFieldBegin(INPUT_FILES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.inputFiles.size()));
-            for (String _iter210 : struct.inputFiles)
+            for (String _iter242 : struct.inputFiles)
             {
-              oprot.writeString(_iter210);
+              oprot.writeString(_iter242);
             }
             oprot.writeListEnd();
           }
@@ -1416,9 +1544,9 @@ public class LineageMasterService {
           oprot.writeFieldBegin(OUTPUT_FILES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.outputFiles.size()));
-            for (String _iter211 : struct.outputFiles)
+            for (String _iter243 : struct.outputFiles)
             {
-              oprot.writeString(_iter211);
+              oprot.writeString(_iter243);
             }
             oprot.writeListEnd();
           }
@@ -1460,18 +1588,18 @@ public class LineageMasterService {
         if (struct.isSetInputFiles()) {
           {
             oprot.writeI32(struct.inputFiles.size());
-            for (String _iter212 : struct.inputFiles)
+            for (String _iter244 : struct.inputFiles)
             {
-              oprot.writeString(_iter212);
+              oprot.writeString(_iter244);
             }
           }
         }
         if (struct.isSetOutputFiles()) {
           {
             oprot.writeI32(struct.outputFiles.size());
-            for (String _iter213 : struct.outputFiles)
+            for (String _iter245 : struct.outputFiles)
             {
-              oprot.writeString(_iter213);
+              oprot.writeString(_iter245);
             }
           }
         }
@@ -1486,26 +1614,26 @@ public class LineageMasterService {
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list214 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.inputFiles = new ArrayList<String>(_list214.size);
-            String _elem215;
-            for (int _i216 = 0; _i216 < _list214.size; ++_i216)
+            org.apache.thrift.protocol.TList _list246 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.inputFiles = new ArrayList<String>(_list246.size);
+            String _elem247;
+            for (int _i248 = 0; _i248 < _list246.size; ++_i248)
             {
-              _elem215 = iprot.readString();
-              struct.inputFiles.add(_elem215);
+              _elem247 = iprot.readString();
+              struct.inputFiles.add(_elem247);
             }
           }
           struct.setInputFilesIsSet(true);
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list217 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.outputFiles = new ArrayList<String>(_list217.size);
-            String _elem218;
-            for (int _i219 = 0; _i219 < _list217.size; ++_i219)
+            org.apache.thrift.protocol.TList _list249 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.outputFiles = new ArrayList<String>(_list249.size);
+            String _elem250;
+            for (int _i251 = 0; _i251 < _list249.size; ++_i251)
             {
-              _elem218 = iprot.readString();
-              struct.outputFiles.add(_elem218);
+              _elem250 = iprot.readString();
+              struct.outputFiles.add(_elem250);
             }
           }
           struct.setOutputFilesIsSet(true);
@@ -3121,6 +3249,669 @@ public class LineageMasterService {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
+          struct.setSuccessIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class listLineages_args implements org.apache.thrift.TBase<listLineages_args, listLineages_args._Fields>, java.io.Serializable, Cloneable, Comparable<listLineages_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("listLineages_args");
+
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new listLineages_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new listLineages_argsTupleSchemeFactory());
+    }
+
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+;
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(listLineages_args.class, metaDataMap);
+    }
+
+    public listLineages_args() {
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public listLineages_args(listLineages_args other) {
+    }
+
+    public listLineages_args deepCopy() {
+      return new listLineages_args(this);
+    }
+
+    @Override
+    public void clear() {
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof listLineages_args)
+        return this.equals((listLineages_args)that);
+      return false;
+    }
+
+    public boolean equals(listLineages_args that) {
+      if (that == null)
+        return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(listLineages_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("listLineages_args(");
+      boolean first = true;
+
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class listLineages_argsStandardSchemeFactory implements SchemeFactory {
+      public listLineages_argsStandardScheme getScheme() {
+        return new listLineages_argsStandardScheme();
+      }
+    }
+
+    private static class listLineages_argsStandardScheme extends StandardScheme<listLineages_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, listLineages_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, listLineages_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class listLineages_argsTupleSchemeFactory implements SchemeFactory {
+      public listLineages_argsTupleScheme getScheme() {
+        return new listLineages_argsTupleScheme();
+      }
+    }
+
+    private static class listLineages_argsTupleScheme extends TupleScheme<listLineages_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, listLineages_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, listLineages_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+      }
+    }
+
+  }
+
+  public static class listLineages_result implements org.apache.thrift.TBase<listLineages_result, listLineages_result._Fields>, java.io.Serializable, Cloneable, Comparable<listLineages_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("listLineages_result");
+
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new listLineages_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new listLineages_resultTupleSchemeFactory());
+    }
+
+    public List<LineageInfo> success; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LineageInfo.class))));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(listLineages_result.class, metaDataMap);
+    }
+
+    public listLineages_result() {
+    }
+
+    public listLineages_result(
+      List<LineageInfo> success)
+    {
+      this();
+      this.success = success;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public listLineages_result(listLineages_result other) {
+      if (other.isSetSuccess()) {
+        List<LineageInfo> __this__success = new ArrayList<LineageInfo>(other.success.size());
+        for (LineageInfo other_element : other.success) {
+          __this__success.add(new LineageInfo(other_element));
+        }
+        this.success = __this__success;
+      }
+    }
+
+    public listLineages_result deepCopy() {
+      return new listLineages_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.success = null;
+    }
+
+    public int getSuccessSize() {
+      return (this.success == null) ? 0 : this.success.size();
+    }
+
+    public java.util.Iterator<LineageInfo> getSuccessIterator() {
+      return (this.success == null) ? null : this.success.iterator();
+    }
+
+    public void addToSuccess(LineageInfo elem) {
+      if (this.success == null) {
+        this.success = new ArrayList<LineageInfo>();
+      }
+      this.success.add(elem);
+    }
+
+    public List<LineageInfo> getSuccess() {
+      return this.success;
+    }
+
+    public listLineages_result setSuccess(List<LineageInfo> success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((List<LineageInfo>)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof listLineages_result)
+        return this.equals((listLineages_result)that);
+      return false;
+    }
+
+    public boolean equals(listLineages_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(listLineages_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("listLineages_result(");
+      boolean first = true;
+
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class listLineages_resultStandardSchemeFactory implements SchemeFactory {
+      public listLineages_resultStandardScheme getScheme() {
+        return new listLineages_resultStandardScheme();
+      }
+    }
+
+    private static class listLineages_resultStandardScheme extends StandardScheme<listLineages_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, listLineages_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list252 = iprot.readListBegin();
+                  struct.success = new ArrayList<LineageInfo>(_list252.size);
+                  LineageInfo _elem253;
+                  for (int _i254 = 0; _i254 < _list252.size; ++_i254)
+                  {
+                    _elem253 = new LineageInfo();
+                    _elem253.read(iprot);
+                    struct.success.add(_elem253);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, listLineages_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
+            for (LineageInfo _iter255 : struct.success)
+            {
+              _iter255.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class listLineages_resultTupleSchemeFactory implements SchemeFactory {
+      public listLineages_resultTupleScheme getScheme() {
+        return new listLineages_resultTupleScheme();
+      }
+    }
+
+    private static class listLineages_resultTupleScheme extends TupleScheme<listLineages_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, listLineages_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSuccess()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetSuccess()) {
+          {
+            oprot.writeI32(struct.success.size());
+            for (LineageInfo _iter256 : struct.success)
+            {
+              _iter256.write(oprot);
+            }
+          }
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, listLineages_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          {
+            org.apache.thrift.protocol.TList _list257 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<LineageInfo>(_list257.size);
+            LineageInfo _elem258;
+            for (int _i259 = 0; _i259 < _list257.size; ++_i259)
+            {
+              _elem258 = new LineageInfo();
+              _elem258.read(iprot);
+              struct.success.add(_elem258);
+            }
+          }
           struct.setSuccessIsSet(true);
         }
       }
@@ -5068,13 +5859,13 @@ public class LineageMasterService {
             case 2: // PERSISTED_FILES
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list220 = iprot.readListBegin();
-                  struct.persistedFiles = new ArrayList<Long>(_list220.size);
-                  long _elem221;
-                  for (int _i222 = 0; _i222 < _list220.size; ++_i222)
+                  org.apache.thrift.protocol.TList _list260 = iprot.readListBegin();
+                  struct.persistedFiles = new ArrayList<Long>(_list260.size);
+                  long _elem261;
+                  for (int _i262 = 0; _i262 < _list260.size; ++_i262)
                   {
-                    _elem221 = iprot.readI64();
-                    struct.persistedFiles.add(_elem221);
+                    _elem261 = iprot.readI64();
+                    struct.persistedFiles.add(_elem261);
                   }
                   iprot.readListEnd();
                 }
@@ -5105,9 +5896,9 @@ public class LineageMasterService {
           oprot.writeFieldBegin(PERSISTED_FILES_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.persistedFiles.size()));
-            for (long _iter223 : struct.persistedFiles)
+            for (long _iter263 : struct.persistedFiles)
             {
-              oprot.writeI64(_iter223);
+              oprot.writeI64(_iter263);
             }
             oprot.writeListEnd();
           }
@@ -5144,9 +5935,9 @@ public class LineageMasterService {
         if (struct.isSetPersistedFiles()) {
           {
             oprot.writeI32(struct.persistedFiles.size());
-            for (long _iter224 : struct.persistedFiles)
+            for (long _iter264 : struct.persistedFiles)
             {
-              oprot.writeI64(_iter224);
+              oprot.writeI64(_iter264);
             }
           }
         }
@@ -5162,13 +5953,13 @@ public class LineageMasterService {
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list225 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.persistedFiles = new ArrayList<Long>(_list225.size);
-            long _elem226;
-            for (int _i227 = 0; _i227 < _list225.size; ++_i227)
+            org.apache.thrift.protocol.TList _list265 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.persistedFiles = new ArrayList<Long>(_list265.size);
+            long _elem266;
+            for (int _i267 = 0; _i267 < _list265.size; ++_i267)
             {
-              _elem226 = iprot.readI64();
-              struct.persistedFiles.add(_elem226);
+              _elem266 = iprot.readI64();
+              struct.persistedFiles.add(_elem266);
             }
           }
           struct.setPersistedFilesIsSet(true);

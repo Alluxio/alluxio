@@ -32,6 +32,7 @@ import tachyon.thrift.CommandLineJobInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
+import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 
 public final class LineageMasterServiceHandler implements LineageMasterService.Iface {
@@ -80,5 +81,10 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles)
       throws TException {
     return mLineageMaster.lineageWorkerHeartbeat(workerId, persistedFiles);
+  }
+
+  @Override
+  public List<LineageInfo> listLineages() throws TException {
+    return mLineageMaster.listLineages();
   }
 }

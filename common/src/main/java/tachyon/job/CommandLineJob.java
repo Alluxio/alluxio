@@ -47,7 +47,7 @@ public class CommandLineJob extends Job {
     mCommand = command;
   }
 
-  public CommandLineJobInfo toCommandLineJobInfo() {
+  public CommandLineJobInfo generateCommandLineJobInfo() {
     return new CommandLineJobInfo(mCommand, new JobConfInfo(getJobConf().getOutputFilePath()));
   }
 

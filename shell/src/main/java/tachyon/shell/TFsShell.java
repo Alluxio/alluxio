@@ -54,6 +54,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.LineageInfo;
 import tachyon.util.FormatUtils;
 
 /**
@@ -597,7 +598,8 @@ public class TFsShell implements Closeable {
    * @return The number of argument of the input command
    */
   public int getNumOfArgs(String cmd) {
-    if (cmd.equals("getUsedBytes") || cmd.equals("getCapacityBytes")) {
+    if (cmd.equals("getUsedBytes") || cmd.equals("getCapacityBytes")
+        || cmd.equals("listLineages")) {
       return 0;
     } else if (cmd.equals("cat") || cmd.equals("count") || cmd.equals("ls") || cmd.equals("lsr")
         || cmd.equals("mkdir") || cmd.equals("rm") || cmd.equals("rmr") || cmd.equals("tail")
@@ -767,6 +769,8 @@ public class TFsShell implements Closeable {
           return getUsedBytes();
         } else if (cmd.equals("getCapacityBytes")) {
           return getCapacityBytes();
+        } else if (cmd.equals("listLineages")) {
+          return listLineages();
         }
       } else if (numOfArgs == 1) { // commands need 1 argument
         TachyonURI inputPath = new TachyonURI(argv[1]);
@@ -983,11 +987,10 @@ public class TFsShell implements Closeable {
   }
 
   private int addLineage(String[] argv) throws IOException {
-    if (!(mTfs instanceof TachyonLineageFileSystem)) {
-      System.out.println("addLineage requires lineaged to be enabled.");
+    TachyonLineageFileSystem tlfs = acquireTachyonLineageFileSystem();
+    if (tlfs == null) {
       return -1;
     }
-    TachyonLineageFileSystem tlfs = (TachyonLineageFileSystem) mTfs;
 
     // TODO(yupeng) more validation
     List<TachyonURI> inputFiles = Lists.newArrayList();
@@ -1020,15 +1023,35 @@ public class TFsShell implements Closeable {
   }
 
   private int deleteLineage(String[] argv) throws IOException {
-    if (!(mTfs instanceof TachyonLineageFileSystem)) {
-      System.out.println("addLineage requires lineaged to be enabled.");
+    TachyonLineageFileSystem tlfs = acquireTachyonLineageFileSystem();
+    if (tlfs == null) {
       return -1;
     }
-    TachyonLineageFileSystem tlfs = (TachyonLineageFileSystem) mTfs;
     long lineageId = Long.parseLong(argv[1]);
     boolean cascade = Boolean.parseBoolean(argv[2]);
     tlfs.deleteLineage(lineageId, cascade);
 
     return 0;
+  }
+
+  private int listLineages() throws IOException {
+    TachyonLineageFileSystem tlfs = acquireTachyonLineageFileSystem();
+    if (tlfs == null) {
+      return -1;
+    }
+
+    List<LineageInfo> infos = tlfs.listLineages();
+    for (LineageInfo info : infos) {
+      System.out.println(info);
+    }
+    return 0;
+  }
+
+  private TachyonLineageFileSystem acquireTachyonLineageFileSystem() {
+    if (!(mTfs instanceof TachyonLineageFileSystem)) {
+      System.out.println("addLineage requires lineaged to be enabled.");
+      return null;
+    }
+    return (TachyonLineageFileSystem) mTfs;
   }
 }

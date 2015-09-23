@@ -61,8 +61,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private boolean mCanceled;
   private boolean mClosed;
   private boolean mShouldCacheCurrentBlock;
-  private BufferedBlockOutStream mCurrentBlockOutStream;
-  private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
+  protected BufferedBlockOutStream mCurrentBlockOutStream;
+  protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
   protected final long mFileId;
   protected final String mUnderStorageFile;
@@ -139,22 +139,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       }
     }
 
-    if (mTachyonStorageType.isStore()) {
-      try {
-        if (mCanceled) {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.cancel();
-          }
-        } else {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.close();
-          }
-          canComplete = true;
-        }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
-      }
-    }
+    canComplete = storeToTachyon();
 
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -167,6 +152,26 @@ public class FileOutStream extends OutputStream implements Cancelable {
       }
     }
     mClosed = true;
+  }
+
+  protected boolean storeToTachyon() throws IOException {
+    if (mTachyonStorageType.isStore()) {
+      try {
+        if (mCanceled) {
+          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.cancel();
+          }
+        } else {
+          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.close();
+          }
+          return true;
+        }
+      } catch (IOException ioe) {
+        handleCacheWriteException(ioe);
+      }
+    }
+    return false;
   }
 
   @Override

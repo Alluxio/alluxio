@@ -32,6 +32,7 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 
 /**
@@ -85,7 +86,7 @@ public final class LineageMasterClient extends MasterClientBase {
       connect();
       try {
         return mClient.createLineage(inputFileStrings, outputFileStrings,
-            job.toCommandLineJobInfo());
+            job.generateCommandLineJobInfo());
       } catch (FileDoesNotExistException e) {
         throw e;
       } catch (TException e) {
@@ -110,8 +111,7 @@ public final class LineageMasterClient extends MasterClientBase {
     throw new IOException("Failed after " + retry + " retries.");
   }
 
-  public synchronized long recreateFile(String path, long blockSizeBytes)
-      throws IOException {
+  public synchronized long recreateFile(String path, long blockSizeBytes) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
@@ -132,6 +132,20 @@ public final class LineageMasterClient extends MasterClientBase {
       try {
         mClient.asyncCompleteFile(fileId, filePath);
         return;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  public synchronized List<LineageInfo> listLineages() throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return mClient.listLineages();
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
