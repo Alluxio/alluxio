@@ -52,11 +52,11 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   }
 
   @Override
-  public long create(TachyonURI path, long blockSize, boolean recursive) throws
+  public long create(TachyonURI path, long blockSize, boolean recursive, long ttl) throws
       BlockInfoException, FileAlreadyExistException, InvalidPathException, IOException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      long fileId = masterClient.createFile(path.getPath(), blockSize, recursive);
+      long fileId = masterClient.createFile(path.getPath(), blockSize, recursive, ttl);
       LOG.info("Created file " + path + " with file ID: " + fileId);
       return fileId;
     } finally {

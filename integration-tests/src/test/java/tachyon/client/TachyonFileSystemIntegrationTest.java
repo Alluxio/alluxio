@@ -33,6 +33,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
@@ -69,7 +70,8 @@ public class TachyonFileSystemIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    System.setProperty(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, Integer.toString(
+        USER_QUOTA_UNIT_BYTES));
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     sLocalTachyonCluster.start();
@@ -80,8 +82,8 @@ public class TachyonFileSystemIntegrationTest {
         new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setStorageTypes(TachyonStorageType.STORE, UnderStorageType.PERSIST).build();
     sReadCache =
-        new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf()).setTachyonStoreType(
-            TachyonStorageType.STORE).build();
+        new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
+            .setTachyonStorageType(TachyonStorageType.STORE).build();
   }
 
   @Test

@@ -97,6 +97,8 @@ public final class BlockWorker {
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
+  /** Space reserver for the block data manager */
+  private SpaceReserver mSpaceReserver = null;
 
   /**
    * @return the worker service handler
@@ -207,22 +209,27 @@ public final class BlockWorker {
             mStartTimeMs, mTachyonConf);
 
     // Setup Worker to Master Syncer
-    // We create three threads for two syncers and one cleaner: mBlockMasterSync,
-    // mPinListSync and mSessionCleanerThread
+    // We create four threads for two syncers, one cleaner and one asynchronous evictor:
+    // mBlockMasterSync, mPinListSync, mSessionCleanerThread, mSpaceReserver
     mSyncExecutorService =
-        Executors.newFixedThreadPool(3, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
+        Executors.newFixedThreadPool(4, ThreadFactoryUtils.build("worker-heartbeat-%d", true));
 
-    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mTachyonConf, mWorkerNetAddress,
-            mBlockMasterClient);
+    mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
+        mBlockMasterClient);
     // Get the worker id
     // TODO(calvin): Do this at TachyonWorker.
     mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
-    mPinListSync = new PinListSync(mBlockDataManager, mTachyonConf, mFileSystemMasterClient);
+    mPinListSync = new PinListSync(mBlockDataManager, mFileSystemMasterClient);
 
     // Setup session cleaner
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
+
+    // Setup space reserver
+    if (mTachyonConf.getBoolean(Constants.WORKER_SPACE_RESERVER_ENABLE)) {
+      mSpaceReserver = new SpaceReserver(mBlockDataManager);
+    }
 
     // Setup session metadata mapping
     // TODO(calvin): Have a top level register that gets the worker id.
@@ -264,6 +271,11 @@ public final class BlockWorker {
     // Start the session cleanup checker to perform the periodical checking
     mSyncExecutorService.submit(mSessionCleanerThread);
 
+    // Start the space reserver 
+    if (mSpaceReserver != null) {
+      mSyncExecutorService.submit(mSpaceReserver);
+    }
+
     mWebServer.startWebServer();
     mThriftServer.serve();
   }
@@ -285,6 +297,9 @@ public final class BlockWorker {
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     mWorkerMetricsSystem.stop();
+    if (mSpaceReserver != null) {
+      mSpaceReserver.stop();
+    }
     try {
       mWebServer.shutdownWebServer();
     } catch (Exception e) {

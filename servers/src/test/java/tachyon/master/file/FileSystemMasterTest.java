@@ -29,12 +29,16 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
+import tachyon.util.CommonUtils;
 
 /**
  * Unit tests for tachyon.master.filesystem.FileSystemMaster.
@@ -58,6 +62,7 @@ public final class FileSystemMasterTest {
 
   @Before
   public void before() throws Exception {
+    MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, "1000");
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
@@ -117,6 +122,16 @@ public final class FileSystemMasterTest {
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
+  }
+
+  @Test
+  public void createFileWithTTLTest() throws Exception {
+    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true, 1);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(fileInfo.fileId, fileId);
+    CommonUtils.sleepMs(5000);
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.getFileInfo(fileId);
   }
 
   @Test
