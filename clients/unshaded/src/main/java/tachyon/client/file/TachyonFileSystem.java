@@ -96,7 +96,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public long createEmptyFile(TachyonURI path, ClientOptions options) throws IOException,
       InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    long fileId = super.create(path, options.getBlockSize(), true, Constants.NO_TTL);
+    long fileId = super.create(path, options.getBlockSize(), true, options.getTTL());
     new FileOutStream(fileId, options).close();
     return fileId;
   }

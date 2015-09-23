@@ -36,7 +36,8 @@ public final class ClientOptions {
     private UnderStorageType mUnderStorageType;
     /** Worker location to write data, if not possible, the operation will fail */
     private String mHostname;
-    /** TTL value for file in Seconds, file will auto-deleted after ttl is expired */
+    /** TTL value for a file in seconds, and the file will be auto-deleted
+     after TTL seconds expired. */
     private long mTTL;
 
     /**

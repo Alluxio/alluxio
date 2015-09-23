@@ -99,7 +99,7 @@ public final class FileSystemMaster extends MasterBase {
   private final PrefixList mWhitelist;
 
   /** The service that tries to check inodefiles with ttl set */
-  private Future<?> mInodeFileTTLService;
+  private Future<?> mTTLCheckerService;
   /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
@@ -190,12 +190,10 @@ public final class FileSystemMaster extends MasterBase {
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       mInodeTree.initializeRoot();
-      if (isLeader) {
-        mInodeFileTTLService =
-            getExecutorService().submit(new HeartbeatThread("InodeFile TTL Check",
-                new MasterInodeTTLCheckExecutor(),
-                    MasterContext.getConf().getInt(Constants.MASTER_TTL_INTERVAL_MS)));
-      }
+      mTTLCheckerService =
+          getExecutorService().submit(new HeartbeatThread("InodeFile TTL Check",
+              new MasterInodeTTLCheckExecutor(),
+                  MasterContext.getConf().getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
   }
@@ -203,6 +201,7 @@ public final class FileSystemMaster extends MasterBase {
   @Override
   public void stop() throws IOException {
     super.stop();
+    mTTLCheckerService.cancel(true);
   }
 
   /**
@@ -1136,9 +1135,11 @@ public final class FileSystemMaster extends MasterBase {
             if (ttl > 0
                 && System.currentTimeMillis() - iFile.getCreationTimeMs() > ttl * 1000) {
               try {
-                mInodeTree.deleteInode(iFile);
+                deleteFile(iFile.getId(), false);
               } catch (FileDoesNotExistException e) {
                 LOG.error("file does not exit " + iFile.toString());
+              } catch (TachyonException e) {
+                LOG.error("tachyon exception for ttl check" + iFile.toString());
               }
             }
           }
