@@ -30,12 +30,12 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
-import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
+import tachyon.client.options.OutStreamOptions;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerClient;
@@ -74,7 +74,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(long fileId, ClientOptions options) throws IOException {
+  public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
     mBlockSize = options.getBlockSize();
     mTachyonStorageType = options.getTachyonStorageType();
