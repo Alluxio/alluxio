@@ -1,0 +1,9 @@
+- name: mkdir /zookeeper
+  script: mkdir.sh
+
+- name: download zookeeper release
+  script: download_release.sh
+  environment:
+    ZOOKEEPER_VERSION: "{{ zookeeper_version }}"
+
+# vim :set filetype=ansible.yaml:
