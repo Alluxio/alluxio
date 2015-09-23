@@ -15,8 +15,6 @@
 
 package tachyon.master.lineage.checkpoint;
 
-import java.util.ArrayDeque;
-
 import com.google.common.collect.Lists;
 
 import tachyon.master.lineage.meta.Lineage;
@@ -39,20 +37,14 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
   public CheckpointPlan schedule(LineageStoreView store) {
     Lineage toCheckpoint = null;
     long latestCreated = 0;
-    ArrayDeque<Lineage> deque = new ArrayDeque<Lineage>(store.getRootLineage());
-    while (!deque.isEmpty()) {
-      Lineage lineage = deque.pollFirst();
-      // checkpoint the lineage whose outfiles are all in memory and not persisted yet.
-      if (lineage.isCompleted() && !lineage.isPersisted() && !lineage.needRecompute()
-          && !lineage.isInCheckpointing()) {
-        if (lineage.getCreationTime() > latestCreated) {
-          toCheckpoint = lineage;
-          latestCreated = lineage.getCreationTime();
-        }
+    for (Lineage lineage : store.getAllLineagesInTopologicalOrder()) {
+      if (!lineage.isCompleted() || lineage.isPersisted() || lineage.needRecompute()
+          || lineage.isInCheckpointing()) {
+        continue;
       }
-
-      for (Lineage child : store.getChildren(lineage)) {
-        deque.add(child);
+      if (lineage.getCreationTime() > latestCreated) {
+        latestCreated = lineage.getCreationTime();
+        toCheckpoint = lineage;
       }
     }
 

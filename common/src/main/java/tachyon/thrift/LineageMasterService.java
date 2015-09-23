@@ -45,7 +45,7 @@ public class LineageMasterService {
 
     public List<LineageInfo> listLineages() throws org.apache.thrift.TException;
 
-    public long recreateFile(String path, long blockSizeBytes) throws org.apache.thrift.TException;
+    public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException, org.apache.thrift.TException;
 
     public void asyncCompleteFile(long fileId, String filePath) throws org.apache.thrift.TException;
 
@@ -172,7 +172,7 @@ public class LineageMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "listLineages failed: unknown result");
     }
 
-    public long recreateFile(String path, long blockSizeBytes) throws org.apache.thrift.TException
+    public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException, org.apache.thrift.TException
     {
       send_recreateFile(path, blockSizeBytes);
       return recv_recreateFile();
@@ -186,12 +186,15 @@ public class LineageMasterService {
       sendBase("recreateFile", args);
     }
 
-    public long recv_recreateFile() throws org.apache.thrift.TException
+    public long recv_recreateFile() throws InvalidPathException, org.apache.thrift.TException
     {
       recreateFile_result result = new recreateFile_result();
       receiveBase(result, "recreateFile");
       if (result.isSetSuccess()) {
         return result.success;
+      }
+      if (result.ipe != null) {
+        throw result.ipe;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "recreateFile failed: unknown result");
     }
@@ -386,7 +389,7 @@ public class LineageMasterService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws org.apache.thrift.TException {
+      public long getResult() throws InvalidPathException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -575,8 +578,12 @@ public class LineageMasterService {
 
       public recreateFile_result getResult(I iface, recreateFile_args args) throws org.apache.thrift.TException {
         recreateFile_result result = new recreateFile_result();
-        result.success = iface.recreateFile(args.path, args.blockSizeBytes);
-        result.setSuccessIsSet(true);
+        try {
+          result.success = iface.recreateFile(args.path, args.blockSizeBytes);
+          result.setSuccessIsSet(true);
+        } catch (InvalidPathException ipe) {
+          result.ipe = ipe;
+        }
         return result;
       }
     }
@@ -847,6 +854,12 @@ public class LineageMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             recreateFile_result result = new recreateFile_result();
+            if (e instanceof InvalidPathException) {
+                        result.ipe = (InvalidPathException) e;
+                        result.setIpeIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -4387,6 +4400,7 @@ public class LineageMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("recreateFile_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
+    private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4395,10 +4409,12 @@ public class LineageMasterService {
     }
 
     public long success; // required
+    public InvalidPathException ipe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      IPE((short)1, "ipe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4415,6 +4431,8 @@ public class LineageMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // IPE
+            return IPE;
           default:
             return null;
         }
@@ -4462,6 +4480,8 @@ public class LineageMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(recreateFile_result.class, metaDataMap);
     }
@@ -4470,11 +4490,13 @@ public class LineageMasterService {
     }
 
     public recreateFile_result(
-      long success)
+      long success,
+      InvalidPathException ipe)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
+      this.ipe = ipe;
     }
 
     /**
@@ -4483,6 +4505,9 @@ public class LineageMasterService {
     public recreateFile_result(recreateFile_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      if (other.isSetIpe()) {
+        this.ipe = new InvalidPathException(other.ipe);
+      }
     }
 
     public recreateFile_result deepCopy() {
@@ -4493,6 +4518,7 @@ public class LineageMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = 0;
+      this.ipe = null;
     }
 
     public long getSuccess() {
@@ -4518,6 +4544,30 @@ public class LineageMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
+    public InvalidPathException getIpe() {
+      return this.ipe;
+    }
+
+    public recreateFile_result setIpe(InvalidPathException ipe) {
+      this.ipe = ipe;
+      return this;
+    }
+
+    public void unsetIpe() {
+      this.ipe = null;
+    }
+
+    /** Returns true if field ipe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIpe() {
+      return this.ipe != null;
+    }
+
+    public void setIpeIsSet(boolean value) {
+      if (!value) {
+        this.ipe = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -4528,6 +4578,14 @@ public class LineageMasterService {
         }
         break;
 
+      case IPE:
+        if (value == null) {
+          unsetIpe();
+        } else {
+          setIpe((InvalidPathException)value);
+        }
+        break;
+
       }
     }
 
@@ -4535,6 +4593,9 @@ public class LineageMasterService {
       switch (field) {
       case SUCCESS:
         return Long.valueOf(getSuccess());
+
+      case IPE:
+        return getIpe();
 
       }
       throw new IllegalStateException();
@@ -4549,6 +4610,8 @@ public class LineageMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case IPE:
+        return isSetIpe();
       }
       throw new IllegalStateException();
     }
@@ -4575,6 +4638,15 @@ public class LineageMasterService {
           return false;
       }
 
+      boolean this_present_ipe = true && this.isSetIpe();
+      boolean that_present_ipe = true && that.isSetIpe();
+      if (this_present_ipe || that_present_ipe) {
+        if (!(this_present_ipe && that_present_ipe))
+          return false;
+        if (!this.ipe.equals(that.ipe))
+          return false;
+      }
+
       return true;
     }
 
@@ -4586,6 +4658,11 @@ public class LineageMasterService {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_ipe = true && (isSetIpe());
+      list.add(present_ipe);
+      if (present_ipe)
+        list.add(ipe);
 
       return list.hashCode();
     }
@@ -4604,6 +4681,16 @@ public class LineageMasterService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIpe()).compareTo(other.isSetIpe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIpe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipe, other.ipe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4630,6 +4717,14 @@ public class LineageMasterService {
 
       sb.append("success:");
       sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ipe:");
+      if (this.ipe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ipe);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -4684,6 +4779,15 @@ public class LineageMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // IPE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ipe = new InvalidPathException();
+                struct.ipe.read(iprot);
+                struct.setIpeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -4702,6 +4806,11 @@ public class LineageMasterService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeI64(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ipe != null) {
+          oprot.writeFieldBegin(IPE_FIELD_DESC);
+          struct.ipe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -4725,19 +4834,30 @@ public class LineageMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetIpe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
+        }
+        if (struct.isSetIpe()) {
+          struct.ipe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, recreateFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ipe = new InvalidPathException();
+          struct.ipe.read(iprot);
+          struct.setIpeIsSet(true);
         }
       }
     }
