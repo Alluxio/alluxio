@@ -17,14 +17,34 @@ package tachyon.security.authentication;
 
 import javax.security.sasl.AuthenticationException;
 
+import tachyon.conf.TachyonConf;
+
 public interface AuthenticationProvider {
   /**
-   * The authenticate method is called by the PlainServerCallbackHandler in the
-   * PlainSaslServer layer to authenticate users for their requests.
-   * If a user is to be granted, return nothing/throw nothing.
-   * When a user is to be disallowed, throw an appropriate {@link AuthenticationException}.
+   * Factory method to create an instance of {@link AuthenticationProvider} based on
+   * {@link AuthType} and {@link TachyonConf}.
+   */
+  class Factory {
+    public static AuthenticationProvider getAuthenticationProvider(AuthType authType,
+        TachyonConf conf) throws AuthenticationException {
+      switch (authType) {
+        case SIMPLE:
+          return new SimpleAuthenticationProviderImpl();
+        case CUSTOM:
+          return new CustomAuthenticationProviderImpl(conf);
+        default:
+          throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
+      }
+    }
+  }
+
+  /**
+   * The authenticate method is called by the PlainServerCallbackHandler in the PlainSaslServer
+   * layer to authenticate users for their requests. If a user is to be granted, return
+   * nothing/throw nothing. When a user is to be disallowed, throw an appropriate
+   * {@link AuthenticationException}.
    *
-   * @param user     The username received over the connection request
+   * @param user The username received over the connection request
    * @param password The password received over the connection request
    *
    * @throws AuthenticationException When a user is found to be invalid by the implementation

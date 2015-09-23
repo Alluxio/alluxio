@@ -35,7 +35,7 @@ import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
-import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
@@ -271,7 +271,7 @@ public final class BlockWorker {
     // Start the session cleanup checker to perform the periodical checking
     mSyncExecutorService.submit(mSessionCleanerThread);
 
-    // Start the space reserver 
+    // Start the space reserver
     if (mSpaceReserver != null) {
       mSyncExecutorService.submit(mSpaceReserver);
     }
@@ -329,7 +329,7 @@ public final class BlockWorker {
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
     TTransportFactory tTransportFactory =
-        new AuthenticationFactory(mTachyonConf).getServerTransportFactory();
+        AuthenticationUtils.getServerTransportFactory(mTachyonConf);
     return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
         .transportFactory(tTransportFactory)

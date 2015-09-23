@@ -301,6 +301,7 @@ public final class Constants {
   // ttl related
   public static final long NO_TTL = -1;
 
+  // TODO(binfan): explaine the following three properties in the configuration page in docs/
   /** Security */
   public static final String TACHYON_SECURITY_USERNAME = "tachyon.security.username";
   // Authentication

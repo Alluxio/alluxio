@@ -24,8 +24,6 @@ import java.util.concurrent.Future;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,7 @@ import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.conf.TachyonConf;
-import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -232,8 +230,8 @@ public final class WorkerClient implements Closeable {
       mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
-      mProtocol = new TBinaryProtocol(new AuthenticationFactory(mTachyonConf).getClientTransport(
-          new InetSocketAddress(host, port)));
+      mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
+          mTachyonConf, new InetSocketAddress(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
       mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);

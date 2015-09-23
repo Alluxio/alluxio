@@ -36,8 +36,7 @@ import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 /**
- * Unit test for inner class {@link tachyon.security.authentication.AuthenticationFactory
- * .AuthType} and methods of {@link tachyon.security.authentication.AuthenticationFactory}
+ * Unit test for methods of {@link AuthenticationUtils}
  *
  * In order to test methods that return kinds of TTransport for connection in different mode,
  * we build Thrift servers and clients with specific TTransport, and let them connect.
@@ -48,40 +47,10 @@ public class AuthenticationFactoryTest {
   TachyonConf mTachyonConf = new TachyonConf();
   InetSocketAddress mServerAddress = new InetSocketAddress("localhost",
       Constants.DEFAULT_MASTER_PORT);
-  TSocket mServerTSocket = AuthenticationFactory.createTSocket(mServerAddress);
+  TSocket mServerTSocket = AuthenticationUtils.createTSocket(mServerAddress);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
-
-  @Test
-  public void authenticationFactoryConstructorTest() {
-    AuthenticationFactory.AuthType authType;
-
-    // should return a NOSASL AuthType with conf "NOSASL"
-    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "NOSASL");
-    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
-    Assert.assertEquals(AuthenticationFactory.AuthType.NOSASL, authType);
-
-    // should return a SIMPLE AuthType with conf "SIMPLE"
-    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
-    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
-    Assert.assertEquals(AuthenticationFactory.AuthType.SIMPLE, authType);
-
-    // should return a CUSTOM AuthType with conf "CUSTOM"
-    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
-    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
-    Assert.assertEquals(AuthenticationFactory.AuthType.CUSTOM, authType);
-
-    // should return a KERBEROS AuthType with conf "KERBEROS"
-    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "KERBEROS");
-    authType = new AuthenticationFactory(mTachyonConf).getAuthType();
-    Assert.assertEquals(AuthenticationFactory.AuthType.KERBEROS, authType);
-
-    // wrong configuration - should throw exception with conf "wrong"
-    mTachyonConf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "wrong");
-    mThrown.expect(IllegalArgumentException.class);
-    new AuthenticationFactory(mTachyonConf).getAuthType();
-  }
 
   /**
    * In NOSASL mode, the TTransport used should be the same as Tachyon original code.
@@ -94,7 +63,7 @@ public class AuthenticationFactoryTest {
     startServerThread(mTachyonConf);
 
     // create client and connect to server
-    TTransport client = new AuthenticationFactory(mTachyonConf).getClientTransport(mServerAddress);
+    TTransport client = AuthenticationUtils.getClientTransport(mTachyonConf, mServerAddress);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -339,8 +308,7 @@ public class AuthenticationFactoryTest {
 
   private void startServerThread(TachyonConf conf) throws Exception {
     // create args and use them to build a Thrift TServer
-    AuthenticationFactory factory = new AuthenticationFactory(conf);
-    TTransportFactory tTransportFactory = factory.getServerTransportFactory();
+    TTransportFactory tTransportFactory = AuthenticationUtils.getServerTransportFactory(conf);
 
     TServerSocket wrappedServerSocket = new TServerSocket(mServerAddress);
 

@@ -23,8 +23,6 @@ import java.util.concurrent.ExecutorService;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +33,7 @@ import com.google.common.base.Throwables;
 import tachyon.conf.TachyonConf;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
-import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -119,8 +117,8 @@ public abstract class MasterClientBase implements Closeable {
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect with "
           + getServiceName() + " master @ " + mMasterAddress);
 
-      TProtocol binaryProtocol = new TBinaryProtocol(new AuthenticationFactory(mTachyonConf)
-          .getClientTransport(mMasterAddress));
+      TProtocol binaryProtocol = new TBinaryProtocol(
+          AuthenticationUtils.getClientTransport(mTachyonConf, mMasterAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();

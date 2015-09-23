@@ -23,7 +23,6 @@ import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +34,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
-import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadWriteJournal;
@@ -324,7 +323,7 @@ public class TachyonMaster {
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory =
-        new AuthenticationFactory(MasterContext.getConf()).getServerTransportFactory();
+         AuthenticationUtils.getServerTransportFactory(MasterContext.getConf());
 
     // create master thrift service with the multiplexed processor.
     mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)

@@ -21,7 +21,7 @@ import java.util.Map;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
 
-import tachyon.security.authentication.AuthenticationFactory;
+import tachyon.security.authentication.AuthType;
 
 /**
  * A JAAS configuration that defines the login modules, by which JAAS uses to login.
@@ -68,10 +68,10 @@ public final class TachyonJaasConfiguration extends Configuration {
 
   @Override
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
-    if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.SIMPLE.getAuthName())
-        || appName.equalsIgnoreCase(AuthenticationFactory.AuthType.CUSTOM.getAuthName())) {
+    if (appName.equalsIgnoreCase(AuthType.SIMPLE.getAuthName())
+        || appName.equalsIgnoreCase(AuthType.CUSTOM.getAuthName())) {
       return SIMPLE;
-    } else if (appName.equalsIgnoreCase(AuthenticationFactory.AuthType.KERBEROS.getAuthName())) {
+    } else if (appName.equalsIgnoreCase(AuthType.KERBEROS.getAuthName())) {
       // TODO: return KERBEROS;
       throw new UnsupportedOperationException("Kerberos is not supported currently.");
     }
