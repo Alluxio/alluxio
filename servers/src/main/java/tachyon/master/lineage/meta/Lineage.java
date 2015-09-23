@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import tachyon.client.file.TachyonFile;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
+import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.thrift.LineageFileInfo;
 import tachyon.thrift.LineageInfo;
 
@@ -39,21 +40,35 @@ public final class Lineage {
   private final long mCreationTimeMs;
 
   /**
-   * Creates a new lineage. The state will be initialized to ADDED.
+   * Creates a new lineage.
    *
    * @param inputFiles the input files.
    * @param outputFiles the output files.
    * @param job the job
    */
   public Lineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job) {
+    this(LineageIdGenerator.generateId(), inputFiles, outputFiles, job, System.currentTimeMillis());
+  }
+
+  /**
+   * A method for lineage only. TODO(yupeng): hide this method
+   *
+   * @param inputFiles the input files.
+   * @param inputFiles the input files.
+   * @param outputFiles the output files.
+   * @param job the job
+   * @param creationTimeMs the creation time
+   */
+  public Lineage(long id, List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job,
+      long creationTimeMs) {
     mInputFiles = Preconditions.checkNotNull(inputFiles);
     mOutputFiles = Preconditions.checkNotNull(outputFiles);
     mJob = Preconditions.checkNotNull(job);
-    mId = LineageIdGenerator.generateId();
-    mCreationTimeMs = System.currentTimeMillis();
+    mId = id;
+    mCreationTimeMs = creationTimeMs;
   }
 
-  public LineageInfo generateLineageInfo() {
+  public synchronized LineageInfo generateLineageInfo() {
     LineageInfo info = new LineageInfo();
     info.mId = mId;
     List<Long> inputFiles = Lists.newArrayList();
@@ -74,11 +89,11 @@ public final class Lineage {
     return info;
   }
 
-  public List<TachyonFile> getInputFiles() {
+  public synchronized List<TachyonFile> getInputFiles() {
     return Collections.unmodifiableList(mInputFiles);
   }
 
-  public List<LineageFile> getOutputFiles() {
+  public synchronized List<LineageFile> getOutputFiles() {
     return Collections.unmodifiableList(mOutputFiles);
   }
 
@@ -94,7 +109,7 @@ public final class Lineage {
     return mCreationTimeMs;
   }
 
-  public void recordOutputFile(long fileId) {
+  public synchronized void recordOutputFile(long fileId) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
         outputFile.setState(LineageFileState.COMPLETED);
@@ -102,7 +117,7 @@ public final class Lineage {
     }
   }
 
-  public void addLostFile(long fileId) {
+  public synchronized void addLostFile(long fileId) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
         outputFile.setState(LineageFileState.LOST);
@@ -110,7 +125,7 @@ public final class Lineage {
     }
   }
 
-  public boolean needRecompute() {
+  public synchronized boolean needRecompute() {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() == LineageFileState.LOST) {
         return true;
@@ -119,7 +134,7 @@ public final class Lineage {
     return false;
   }
 
-  public boolean isCompleted() {
+  public synchronized boolean isCompleted() {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() != LineageFileState.COMPLETED) {
         return false;
@@ -128,7 +143,7 @@ public final class Lineage {
     return true;
   }
 
-  public void commitOutputFile(long fileId) {
+  public synchronized void commitOutputFile(long fileId) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
         outputFile.setState(LineageFileState.PERSISTED);
@@ -136,7 +151,7 @@ public final class Lineage {
     }
   }
 
-  public boolean isPersisted() {
+  public synchronized boolean isPersisted() {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() != LineageFileState.PERSISTED) {
         return false;
@@ -145,7 +160,7 @@ public final class Lineage {
     return true;
   }
 
-  public boolean isInCheckpointing() {
+  public synchronized boolean isInCheckpointing() {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() != LineageFileState.PERSISENCE_REQUESTED) {
         return true;
@@ -154,7 +169,7 @@ public final class Lineage {
     return false;
   }
 
-  public List<Long> getLostFiles() {
+  public synchronized List<Long> getLostFiles() {
     List<Long> result = Lists.newArrayList();
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() == LineageFileState.LOST) {
@@ -162,5 +177,9 @@ public final class Lineage {
       }
     }
     return result;
+  }
+
+  public synchronized LineageEntry toJournalEntry() {
+    return new LineageEntry(mId, mInputFiles, mOutputFiles, mJob, mCreationTimeMs);
   }
 }

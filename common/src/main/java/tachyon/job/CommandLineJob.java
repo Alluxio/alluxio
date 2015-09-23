@@ -51,6 +51,10 @@ public class CommandLineJob extends Job {
     return new CommandLineJobInfo(mCommand, new JobConfInfo(getJobConf().getOutputFilePath()));
   }
 
+  public String getCommand() {
+    return mCommand;
+  }
+
   @Override
   public boolean run() {
     try {
