@@ -89,7 +89,7 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(file).getInMemoryPercentage() == 100);
     // Open the file
     ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.STORE)
+        new ClientOptions.Builder(new TachyonConf()).setTachyonStorageType(TachyonStorageType.STORE)
             .build();
     FileInStream in = mTFS.getInStream(file, options);
     Assert.assertEquals(0, in.read());
@@ -218,7 +218,7 @@ public class TieredStoreIntegrationTest {
     }
 
     FileInStream is = mTFS.getInStream(toPromote, new ClientOptions.Builder(mWorkerConf)
-        .setTachyonStoreType(TachyonStorageType.PROMOTE).build());
+        .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
     byte[] buf = new byte[toPromoteLen];
     int len = is.read(buf);
     is.close();
