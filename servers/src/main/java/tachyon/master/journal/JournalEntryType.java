@@ -39,4 +39,9 @@ public enum JournalEntryType {
   // Raw table master entries
   RAW_TABLE,
   UPDATE_METADATA,
+
+  // Lineage master entries
+  LINEAGE_FILE,
+  LINEAGE,
+  JOB,
 }

@@ -30,7 +30,7 @@ public abstract class Job implements Serializable {
     mJobConf = Preconditions.checkNotNull(jobConf);
   }
 
-  protected JobConf getJobConf() {
+  public JobConf getJobConf() {
     return mJobConf;
   }
 

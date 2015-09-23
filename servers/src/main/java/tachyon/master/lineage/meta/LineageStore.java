@@ -15,6 +15,7 @@
 
 package tachyon.master.lineage.meta;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,13 +27,16 @@ import com.google.common.collect.Maps;
 import tachyon.client.file.TachyonFile;
 import tachyon.dag.DAG;
 import tachyon.job.Job;
+import tachyon.master.journal.JournalCheckpointStreamable;
+import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.lineage.journal.LineageEntry;
 
 /**
  * A store of lineages. This class is thread-safe.
  *
  * TODO(yupeng): relax locking
  */
-public final class LineageStore {
+public final class LineageStore implements JournalCheckpointStreamable {
   private DAG<Lineage> mLineageDAG;
 
   /** Indices for lineages */
@@ -46,21 +50,28 @@ public final class LineageStore {
     mIdIndex = Maps.newHashMap();
   }
 
+  public void addLineageFromJournal(LineageEntry entry) {
+    Lineage lineage = entry.toLineage();
+    addLineageInternal(lineage);
+  }
+
   public synchronized long createLineage(List<TachyonFile> inputFiles,
       List<LineageFile> outputFiles, Job job) {
     Lineage lineage = new Lineage(inputFiles, outputFiles, job);
+    return addLineageInternal(lineage);
+  }
 
+  private long addLineageInternal(Lineage lineage) {
     List<Lineage> parentLineages = Lists.newArrayList();
-    for (TachyonFile inputFile : inputFiles) {
+    for (TachyonFile inputFile : lineage.getInputFiles()) {
       if (mOutputFileIndex.containsKey(inputFile)) {
         parentLineages.add(mOutputFileIndex.get(inputFile));
       }
     }
-
     mLineageDAG.add(lineage, parentLineages);
 
     // update index
-    for (TachyonFile outputFile : outputFiles) {
+    for (TachyonFile outputFile : lineage.getOutputFiles()) {
       mOutputFileIndex.put(outputFile.getFileId(), lineage);
     }
     mIdIndex.put(lineage.getId(), lineage);
@@ -132,7 +143,16 @@ public final class LineageStore {
     return mLineageDAG.sortTopologically(lineages);
   }
 
-  public synchronized List<Lineage>  getAllInTopologicalOrder() {
+  public synchronized List<Lineage> getAllInTopologicalOrder() {
     return mLineageDAG.getAllInTopologicalOrder();
+  }
+
+  @Override
+  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+    // write the lineages out in a topological order
+    for (Lineage lineage : mLineageDAG.getAllInTopologicalOrder()) {
+      outputStream.writeEntry(lineage.toJournalEntry());
+    }
+
   }
 }

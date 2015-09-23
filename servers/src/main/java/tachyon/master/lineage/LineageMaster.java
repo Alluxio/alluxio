@@ -32,6 +32,7 @@ import tachyon.HeartbeatThread;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
@@ -41,6 +42,7 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.checkpoint.CheckpointManager;
 import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
+import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageStore;
@@ -105,7 +107,11 @@ public final class LineageMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    // TODO add journal support
+    if(entry instanceof LineageEntry) {
+      mLineageStore.addLineageFromJournal((LineageEntry)entry);
+    } else {
+      throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
+    }
   }
 
   @Override
@@ -138,7 +144,7 @@ public final class LineageMaster extends MasterBase {
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    // TODO add journal support
+    mLineageStore.streamToJournalCheckpoint(outputStream);
   }
 
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)

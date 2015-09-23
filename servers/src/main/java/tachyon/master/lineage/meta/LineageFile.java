@@ -27,6 +27,12 @@ public final class LineageFile extends TachyonFile {
     mState = LineageFileState.CREATED;
   }
 
+  public LineageFile(long fileId, LineageFileState state, String underFilePath) {
+    super(fileId);
+    mState = state;
+    mUnderFilePath = underFilePath;
+  }
+
   public LineageFileInfo generateLineageFileInfo() {
     LineageFileInfo info = new LineageFileInfo();
     info.mId = getFileId();
