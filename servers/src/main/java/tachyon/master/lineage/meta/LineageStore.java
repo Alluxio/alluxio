@@ -153,6 +153,5 @@ public final class LineageStore implements JournalCheckpointStreamable {
     for (Lineage lineage : mLineageDAG.getAllInTopologicalOrder()) {
       outputStream.writeEntry(lineage.toJournalEntry());
     }
-
   }
 }
