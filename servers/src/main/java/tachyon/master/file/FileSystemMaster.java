@@ -201,7 +201,9 @@ public final class FileSystemMaster extends MasterBase {
   @Override
   public void stop() throws IOException {
     super.stop();
-    mTTLCheckerService.cancel(true);
+    if (mTTLCheckerService != null) {
+      mTTLCheckerService.cancel(true);
+    }
   }
 
   /**
@@ -1124,6 +1126,8 @@ public final class FileSystemMaster extends MasterBase {
    * MasterInodeTTL periodic check.
    */
   public final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
+    // TODO: current implementation needs to be improved by using a more efficient datastructure
+    //     such as hourly bucketized inodefilelist
     @Override
     public void heartbeat()  {
       synchronized (mInodeTree) {
