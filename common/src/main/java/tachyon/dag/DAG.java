@@ -46,13 +46,18 @@ public class DAG<T> {
     DAGNode<T> newNode = new DAGNode<T>(payload);
     mIndex.put(payload, newNode);
 
-    // find parent nodes
-    for (T parent : parents) {
-      Preconditions.checkState(contains(parent),
-          "the parent payload " + parent + " does not exist in the DAG");
-      DAGNode<T> parentNode = mIndex.get(parent);
-      parentNode.addChild(newNode);
-      newNode.addParent(parentNode);
+    if (parents.isEmpty()) {
+      // add to root
+      mRoots.add(newNode);
+    } else {
+      // find parent nodes
+      for (T parent : parents) {
+        Preconditions.checkState(contains(parent),
+            "the parent payload " + parent + " does not exist in the DAG");
+        DAGNode<T> parentNode = mIndex.get(parent);
+        parentNode.addChild(newNode);
+        newNode.addParent(parentNode);
+      }
     }
   }
 
@@ -68,6 +73,10 @@ public class DAG<T> {
 
     // remove from index
     mIndex.remove(payload);
+
+    if (node.getParents().isEmpty()) {
+      mRoots.remove(node);
+    }
   }
 
   /**

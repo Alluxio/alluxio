@@ -107,8 +107,8 @@ public final class LineageMaster extends MasterBase {
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if(entry instanceof LineageEntry) {
-      mLineageStore.addLineageFromJournal((LineageEntry)entry);
+    if (entry instanceof LineageEntry) {
+      mLineageStore.addLineageFromJournal((LineageEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -180,7 +180,7 @@ public final class LineageMaster extends MasterBase {
       // TODO error handling
     }
 
-    LOG.info("Delete lineage "+lineageId);
+    LOG.info("Delete lineage " + lineageId);
     mLineageStore.deleteLineage(lineageId);
     return true;
   }
@@ -191,8 +191,12 @@ public final class LineageMaster extends MasterBase {
 
   }
 
-  public void asyncCompleteFile(long fileId, String underFsPath) {
+  public void asyncCompleteFile(long fileId, String underFsPath)
+      throws FileDoesNotExistException, BlockInfoException {
+    LOG.info("Asyn complete file " + fileId + " with under file system path " + underFsPath);
     mLineageStore.completeFileForAsyncWrite(fileId, underFsPath);
+    // complete file in Tachyon.
+    mFileSystemMaster.completeFile(fileId);
   }
 
   /**

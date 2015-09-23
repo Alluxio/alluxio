@@ -289,6 +289,7 @@ service LineageMasterService {
   i64 recreateFile(1: string path, 2: i64 blockSizeBytes) throws (1: InvalidPathException ipe)
   
   void asyncCompleteFile(1: i64 fileId, 2: string filePath)
+    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
   
   // for workers
   LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
