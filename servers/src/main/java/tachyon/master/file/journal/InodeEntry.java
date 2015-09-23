@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
+import tachyon.security.authorization.PermissionStatus;
 
 public abstract class InodeEntry implements JournalEntry {
   protected final long mId;
@@ -29,15 +30,17 @@ public abstract class InodeEntry implements JournalEntry {
   protected final boolean mIsPinned;
   protected final long mCreationTimeMs;
   protected final long mLastModificationTimeMs;
+  protected final PermissionStatus mPs;
 
   public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
-      long lastModificationTimeMs) {
+      long lastModificationTimeMs, PermissionStatus ps) {
     mId = id;
     mParentId = parentId;
     mName = name;
     mIsPinned = isPinned;
     mCreationTimeMs = creationTimeMs;
     mLastModificationTimeMs = lastModificationTimeMs;
+    mPs = ps;
   }
 
   @Override
@@ -52,6 +55,9 @@ public abstract class InodeEntry implements JournalEntry {
     parameters.put("isPinned", mIsPinned);
     parameters.put("creationTimeMs", mCreationTimeMs);
     parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
+    parameters.put("username", mPs.getUserName());
+    parameters.put("groupname", mPs.getGroupName());
+    parameters.put("permission", mPs.getPermission().toShort());
     return parameters;
   }
 }

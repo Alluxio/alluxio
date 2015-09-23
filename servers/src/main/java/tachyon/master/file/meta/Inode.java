@@ -16,6 +16,7 @@
 package tachyon.master.file.meta;
 
 import tachyon.master.journal.JournalEntryRepresentable;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 
 /**
@@ -28,6 +29,10 @@ public abstract class Inode implements JournalEntryRepresentable {
   private final long mId;
   private String mName;
   private long mParentId;
+
+  private String mUsername;
+  private String mGroupname;
+  private short mPermission;
 
   /**
    * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
@@ -53,14 +58,19 @@ public abstract class Inode implements JournalEntryRepresentable {
    * @param parentId the id of the parent inode. -1 if there is no parent.
    * @param isFolder if the inode presents a folder
    * @param creationTimeMs the creation time of the inode, in milliseconds.
+   * @param ps the inode permissionStatus information
    */
-  protected Inode(String name, long id, long parentId, boolean isFolder, long creationTimeMs) {
+  protected Inode(String name, long id, long parentId, boolean isFolder, long creationTimeMs,
+      PermissionStatus ps) {
     mCreationTimeMs = creationTimeMs;
     mIsFolder = isFolder;
     mId = id;
     mName = name;
     mParentId = parentId;
     mLastModificationTimeMs = creationTimeMs;
+    mUsername = ps.getUserName();
+    mGroupname = ps.getGroupName();
+    mPermission = ps.getPermission().toShort();
   }
 
   /**
@@ -197,12 +207,58 @@ public abstract class Inode implements JournalEntryRepresentable {
     mPinned = pinned;
   }
 
+  /**
+   * @return the username of the inode
+   */
+  public synchronized String getUsername() {
+    return mUsername;
+  }
+
+  /**
+   * Sets the username of the inode
+   * @param username
+   */
+  public synchronized void setUsername(String username) {
+    mUsername = username;
+  }
+
+  /**
+   * @return the groupname of the inode
+   */
+  public synchronized String getGroupname() {
+    return mGroupname;
+  }
+
+  /**
+   * Sets the groupname of the inode
+   * @param groupname
+   */
+  public synchronized void setGroupname(String groupname) {
+    mGroupname = groupname;
+  }
+
+  /**
+   * @return the permission of the inode
+   */
+  public synchronized short getPermission() {
+    return mPermission;
+  }
+
+  /**
+   * Sets the permission of the inode
+   * @param permission
+   */
+  public synchronized void setmPermission(short permission) {
+    mPermission = permission;
+  }
+
   @Override
   public synchronized String toString() {
     return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
         .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
         .append(mCreationTimeMs).append(", PINNED:").append(mPinned).append("DELETED:")
         .append(mDeleted).append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs)
-        .append(")").toString();
+        .append(", USERNAME:").append(mUsername).append(", GROUPNAME:").append(mGroupname)
+        .append(", PERMISSION:").append(")").toString();
   }
 }

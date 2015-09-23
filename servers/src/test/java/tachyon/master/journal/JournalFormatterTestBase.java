@@ -51,6 +51,8 @@ import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
 import tachyon.master.rawtable.journal.RawTableEntry;
+import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -143,7 +145,7 @@ public abstract class JournalFormatterTestBase {
     }
     entryTest(new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
         TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, TEST_FILE_NAME,
-        blocks));
+        blocks, PermissionStatus.getDirDefault().applyUMask(new FsPermission((short)0111))));
   }
 
   @Test
@@ -153,7 +155,7 @@ public abstract class JournalFormatterTestBase {
       childrenIds.add(TEST_FILE_ID + i);
     }
     entryTest(new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
-        true, TEST_OP_TIME_MS, childrenIds));
+        true, TEST_OP_TIME_MS, childrenIds, PermissionStatus.getDirDefault()));
   }
 
   @Test

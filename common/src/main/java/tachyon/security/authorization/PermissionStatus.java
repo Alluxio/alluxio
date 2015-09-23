@@ -15,6 +15,8 @@
 
 package tachyon.security.authorization;
 
+import tachyon.Constants;
+
 public class PermissionStatus {
   private String mUsername;
   private String mGroupname;
@@ -24,6 +26,12 @@ public class PermissionStatus {
     mUsername = username;
     mGroupname = groupname;
     mPermission = permission;
+  }
+
+  public PermissionStatus(String username, String groupname, short permission) {
+    mUsername = username;
+    mGroupname = groupname;
+    mPermission = new FsPermission(permission);
   }
 
   /** Return user name */
@@ -46,8 +54,17 @@ public class PermissionStatus {
    * @see FsPermission#applyUMask(FsPermission)
    */
   public PermissionStatus applyUMask(FsPermission umask) {
-    mPermission = mPermission.applyUMask(umask);
-    return this;
+    FsPermission newFsPermission = mPermission.applyUMask(umask);
+    return new PermissionStatus(mUsername, mGroupname, newFsPermission);
+  }
+
+  /**
+   * Get the Directory default PermissionStatus.
+   * Currently the default dir permission is 0777.
+   */
+  public static PermissionStatus getDirDefault() {
+    return new PermissionStatus("", "",
+        new FsPermission(Constants.DEFAULT_TFS_FULL_PERMISSION));
   }
 
   /** {@inheritDoc} */

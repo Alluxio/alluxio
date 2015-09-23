@@ -138,7 +138,7 @@ public class FsPermission {
 
   /** Get the default permission. */
   public static FsPermission getDefault() {
-    return new FsPermission((short)0777);
+    return new FsPermission(Constants.DEFAULT_TFS_FULL_PERMISSION);
   }
 
   /**
