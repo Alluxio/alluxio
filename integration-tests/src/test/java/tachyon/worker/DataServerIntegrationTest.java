@@ -57,7 +57,6 @@ import tachyon.util.io.BufferUtils;
  * Integration tests for tachyon.worker.DataServer.
  */
 @RunWith(Parameterized.class)
-@Ignore("TACHYON-1050")
 public class DataServerIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
