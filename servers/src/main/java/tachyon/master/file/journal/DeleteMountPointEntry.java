@@ -47,7 +47,7 @@ public class DeleteMountPointEntry implements JournalEntry {
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.ADD_MOUNTPOINT;
+    return JournalEntryType.DELETE_MOUNTPOINT;
   }
 
   @Override
