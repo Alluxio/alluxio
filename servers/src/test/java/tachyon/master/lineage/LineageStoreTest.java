@@ -29,6 +29,7 @@ import tachyon.job.Job;
 import tachyon.job.JobConf;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
+import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.master.lineage.meta.LineageStore;
 
 public final class LineageStoreTest {
@@ -53,5 +54,14 @@ public final class LineageStoreTest {
     Assert.assertEquals(l1, lineages.get(0).getId());
     Assert.assertEquals(l2, lineages.get(1).getId());
     Assert.assertEquals(l3, lineages.get(2).getId());
+  }
+
+  @Test
+  public void completeFileForAsyncWriteTest() {
+    long id = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
+        Lists.newArrayList(new LineageFile(1)), mJob);
+    mLineageStore.completeFileForAsyncWrite(1, "path");
+    Assert.assertEquals(LineageFileState.COMPLETED,
+        mLineageStore.getLineage(id).getOutputFiles().get(0).getState());
   }
 }
