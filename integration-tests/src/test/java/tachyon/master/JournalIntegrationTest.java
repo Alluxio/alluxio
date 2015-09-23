@@ -152,9 +152,9 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(Constants.KB));
-    mLocalTachyonCluster.start(conf);
+    MasterContext.getConf().set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(
+        Constants.KB));
+    mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }

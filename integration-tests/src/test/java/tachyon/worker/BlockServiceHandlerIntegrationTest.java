@@ -40,6 +40,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -78,11 +79,11 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = MasterContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
@@ -172,7 +173,7 @@ public class BlockServiceHandlerIntegrationTest {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
 
     ClientOptions options = new ClientOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
-        .setTachyonStoreType(TachyonStorageType.STORE).build();
+        .setTachyonStorageType(TachyonStorageType.STORE).build();
     FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
 
