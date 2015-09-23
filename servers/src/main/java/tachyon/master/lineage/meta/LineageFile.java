@@ -59,6 +59,7 @@ public final class LineageFile extends TachyonFile {
 
   @Override
   public String toString() {
-    return "Lineage File(mState:" + mState + ",mUnderFilePath" + mUnderFilePath + ")";
+    return "Lineage File(mId:" + getFileId() + ", mState:" + mState + ", mUnderFilePath:"
+        + mUnderFilePath + ")";
   }
 }

@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master.lineage;
+package tachyon.master.lineage.meta;
 
 import java.util.List;
 
@@ -30,6 +30,7 @@ import tachyon.job.JobConf;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
+import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 
 public final class LineageStoreTest {
@@ -38,7 +39,7 @@ public final class LineageStoreTest {
 
   @Before
   public void before() {
-    mLineageStore = new LineageStore();
+    mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
 

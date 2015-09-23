@@ -21,7 +21,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.thrift.TProcessor;
-import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,8 +43,10 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.checkpoint.CheckpointManager;
 import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
 import tachyon.master.lineage.journal.LineageEntry;
+import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
+import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputePlanner;
@@ -71,6 +72,7 @@ public final class LineageMaster extends MasterBase {
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
   private final CheckpointManager mCheckpointManager;
+  private final LineageIdGenerator mLineageIdGenerator;
 
   /** The service that checkpoints lineages. */
   private Future<?> mCheckpointExecutionService;
@@ -91,7 +93,8 @@ public final class LineageMaster extends MasterBase {
 
     mTachyonConf = MasterContext.getConf();
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
-    mLineageStore = new LineageStore();
+    mLineageIdGenerator = new LineageIdGenerator();
+    mLineageStore = new LineageStore(mLineageIdGenerator);
     mCheckpointManager = new CheckpointManager(mLineageStore, mFileSystemMaster);
   }
 
@@ -110,6 +113,8 @@ public final class LineageMaster extends MasterBase {
   public void processJournalEntry(JournalEntry entry) throws IOException {
     if (entry instanceof LineageEntry) {
       mLineageStore.addLineageFromJournal((LineageEntry) entry);
+    } else if (entry instanceof LineageIdGeneratorEntry) {
+      mLineageIdGenerator.fromJournalEntry((LineageIdGeneratorEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -167,7 +172,12 @@ public final class LineageMaster extends MasterBase {
 
     LOG.info("Create lineage of input:" + inputTachyonFiles + ", output:" + outputTachyonFiles
         + ", job:" + job);
-    return mLineageStore.createLineage(inputTachyonFiles, outputTachyonFiles, job);
+    long lineageId = mLineageStore.createLineage(inputTachyonFiles, outputTachyonFiles, job);
+
+    writeJournalEntry(mLineageIdGenerator.toJournalEntry());
+    writeJournalEntry(mLineageStore.getLineage(lineageId).toJournalEntry());
+    flushJournal();
+    return lineageId;
   }
 
   public boolean deleteLineage(long lineageId, boolean cascade) {
@@ -222,7 +232,6 @@ public final class LineageMaster extends MasterBase {
   }
 
   public List<LineageInfo> listLineages() {
-    Log.info("List the lineage infos");
     List<LineageInfo> lineages = Lists.newArrayList();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
@@ -239,6 +248,7 @@ public final class LineageMaster extends MasterBase {
       info.children = children;
       lineages.add(info);
     }
+    LOG.info("List the lineage infos" + lineages);
     return lineages;
   }
 }

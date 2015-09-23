@@ -24,6 +24,7 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * A DAG.
@@ -31,8 +32,8 @@ import com.google.common.collect.Maps;
  * @param <T> the payload of each node.
  */
 public class DAG<T> {
-  private List<DAGNode<T>> mRoots;
-  private Map<T, DAGNode<T>> mIndex;
+  private final List<DAGNode<T>> mRoots;
+  private final Map<T, DAGNode<T>> mIndex;
 
   public DAG() {
     mRoots = Lists.newArrayList();
@@ -147,18 +148,19 @@ public class DAG<T> {
   public List<T> sortTopologically(Set<T> payloads) {
     List<T> result = Lists.newArrayList();
 
+    Set<T> input = Sets.newHashSet(payloads);
     Deque<DAGNode<T>> toVisit = new ArrayDeque<DAGNode<T>>(mRoots);
     while (!toVisit.isEmpty()) {
       DAGNode<T> visit = toVisit.removeFirst();
       T payload = visit.getPayload();
-      if (payloads.remove(payload)) {
+      if (input.remove(payload)) {
         result.add(visit.getPayload());
       }
       toVisit.addAll(visit.getChildren());
     }
 
     Preconditions.checkState(toVisit.isEmpty(), "Not all the given payloads are in the DAG: ",
-        payloads);
+        input);
     return result;
   }
 

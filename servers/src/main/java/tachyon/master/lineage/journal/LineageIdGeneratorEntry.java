@@ -13,36 +13,36 @@
  * the License.
  */
 
-package tachyon.master.journal;
+package tachyon.master.lineage.journal;
 
-/**
- * The types of entries that can be represented in the journal.
- */
-public enum JournalEntryType {
-  // Block master entries
-  BLOCK_CONTAINER_ID_GENERATOR,
-  BLOCK_INFO,
+import java.util.Map;
 
-  // File system master entries
-  INODE_FILE,
-  INODE_DIRECTORY,
-  INODE_MTIME,
-  ADD_CHECKPOINT,
-  DEPENDENCY,
-  COMPLETE_FILE,
-  FREE,
-  SET_PINNED,
-  DELETE_FILE,
-  RENAME,
-  INODE_DIRECTORY_ID_GENERATOR,
+import com.google.common.collect.Maps;
 
-  // Raw table master entries
-  RAW_TABLE,
-  UPDATE_METADATA,
+import tachyon.master.journal.JournalEntry;
+import tachyon.master.journal.JournalEntryType;
 
-  // Lineage master entries
-  LINEAGE,
-  LINEAGE_FILE,
-  LINEAGE_ID_GENERATOR,
-  JOB,
+public class LineageIdGeneratorEntry implements JournalEntry {
+  private final long mSequenceNumber;
+
+  public LineageIdGeneratorEntry(long sequenceNumber) {
+    mSequenceNumber = sequenceNumber;
+  }
+
+  public long getSequenceNumber() {
+    return mSequenceNumber;
+  }
+
+  @Override
+  public JournalEntryType getType() {
+    return JournalEntryType.LINEAGE_ID_GENERATOR;
+  }
+
+  @Override
+  public Map<String, Object> getParameters() {
+    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(1);
+    parameters.put("sequenceNumber", mSequenceNumber);
+    return parameters;
+  }
+
 }
