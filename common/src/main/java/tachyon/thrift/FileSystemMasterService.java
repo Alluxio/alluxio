@@ -4085,13 +4085,13 @@ public class FileSystemMasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
                 {
-                  org.apache.thrift.protocol.TSet _set148 = iprot.readSetBegin();
-                  struct.success = new HashSet<Long>(2*_set148.size);
-                  long _elem149;
-                  for (int _i150 = 0; _i150 < _set148.size; ++_i150)
+                  org.apache.thrift.protocol.TSet _set180 = iprot.readSetBegin();
+                  struct.success = new HashSet<Long>(2*_set180.size);
+                  long _elem181;
+                  for (int _i182 = 0; _i182 < _set180.size; ++_i182)
                   {
-                    _elem149 = iprot.readI64();
-                    struct.success.add(_elem149);
+                    _elem181 = iprot.readI64();
+                    struct.success.add(_elem181);
                   }
                   iprot.readSetEnd();
                 }
@@ -4119,9 +4119,9 @@ public class FileSystemMasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, struct.success.size()));
-            for (long _iter151 : struct.success)
+            for (long _iter183 : struct.success)
             {
-              oprot.writeI64(_iter151);
+              oprot.writeI64(_iter183);
             }
             oprot.writeSetEnd();
           }
@@ -4152,9 +4152,9 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (long _iter152 : struct.success)
+            for (long _iter184 : struct.success)
             {
-              oprot.writeI64(_iter152);
+              oprot.writeI64(_iter184);
             }
           }
         }
@@ -4166,13 +4166,13 @@ public class FileSystemMasterService {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TSet _set153 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-            struct.success = new HashSet<Long>(2*_set153.size);
-            long _elem154;
-            for (int _i155 = 0; _i155 < _set153.size; ++_i155)
+            org.apache.thrift.protocol.TSet _set185 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.success = new HashSet<Long>(2*_set185.size);
+            long _elem186;
+            for (int _i187 = 0; _i187 < _set185.size; ++_i187)
             {
-              _elem154 = iprot.readI64();
-              struct.success.add(_elem154);
+              _elem186 = iprot.readI64();
+              struct.success.add(_elem186);
             }
           }
           struct.setSuccessIsSet(true);
@@ -4743,13 +4743,13 @@ public class FileSystemMasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list156 = iprot.readListBegin();
-                  struct.success = new ArrayList<Integer>(_list156.size);
-                  int _elem157;
-                  for (int _i158 = 0; _i158 < _list156.size; ++_i158)
+                  org.apache.thrift.protocol.TList _list188 = iprot.readListBegin();
+                  struct.success = new ArrayList<Integer>(_list188.size);
+                  int _elem189;
+                  for (int _i190 = 0; _i190 < _list188.size; ++_i190)
                   {
-                    _elem157 = iprot.readI32();
-                    struct.success.add(_elem157);
+                    _elem189 = iprot.readI32();
+                    struct.success.add(_elem189);
                   }
                   iprot.readListEnd();
                 }
@@ -4777,9 +4777,9 @@ public class FileSystemMasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, struct.success.size()));
-            for (int _iter159 : struct.success)
+            for (int _iter191 : struct.success)
             {
-              oprot.writeI32(_iter159);
+              oprot.writeI32(_iter191);
             }
             oprot.writeListEnd();
           }
@@ -4810,9 +4810,9 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (int _iter160 : struct.success)
+            for (int _iter192 : struct.success)
             {
-              oprot.writeI32(_iter160);
+              oprot.writeI32(_iter192);
             }
           }
         }
@@ -4824,13 +4824,13 @@ public class FileSystemMasterService {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list161 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-            struct.success = new ArrayList<Integer>(_list161.size);
-            int _elem162;
-            for (int _i163 = 0; _i163 < _list161.size; ++_i163)
+            org.apache.thrift.protocol.TList _list193 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+            struct.success = new ArrayList<Integer>(_list193.size);
+            int _elem194;
+            for (int _i195 = 0; _i195 < _list193.size; ++_i195)
             {
-              _elem162 = iprot.readI32();
-              struct.success.add(_elem162);
+              _elem194 = iprot.readI32();
+              struct.success.add(_elem194);
             }
           }
           struct.setSuccessIsSet(true);
@@ -7258,14 +7258,14 @@ public class FileSystemMasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list164 = iprot.readListBegin();
-                  struct.success = new ArrayList<FileInfo>(_list164.size);
-                  FileInfo _elem165;
-                  for (int _i166 = 0; _i166 < _list164.size; ++_i166)
+                  org.apache.thrift.protocol.TList _list196 = iprot.readListBegin();
+                  struct.success = new ArrayList<FileInfo>(_list196.size);
+                  FileInfo _elem197;
+                  for (int _i198 = 0; _i198 < _list196.size; ++_i198)
                   {
-                    _elem165 = new FileInfo();
-                    _elem165.read(iprot);
-                    struct.success.add(_elem165);
+                    _elem197 = new FileInfo();
+                    _elem197.read(iprot);
+                    struct.success.add(_elem197);
                   }
                   iprot.readListEnd();
                 }
@@ -7302,9 +7302,9 @@ public class FileSystemMasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (FileInfo _iter167 : struct.success)
+            for (FileInfo _iter199 : struct.success)
             {
-              _iter167.write(oprot);
+              _iter199.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -7343,9 +7343,9 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (FileInfo _iter168 : struct.success)
+            for (FileInfo _iter200 : struct.success)
             {
-              _iter168.write(oprot);
+              _iter200.write(oprot);
             }
           }
         }
@@ -7360,14 +7360,14 @@ public class FileSystemMasterService {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list169 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<FileInfo>(_list169.size);
-            FileInfo _elem170;
-            for (int _i171 = 0; _i171 < _list169.size; ++_i171)
+            org.apache.thrift.protocol.TList _list201 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<FileInfo>(_list201.size);
+            FileInfo _elem202;
+            for (int _i203 = 0; _i203 < _list201.size; ++_i203)
             {
-              _elem170 = new FileInfo();
-              _elem170.read(iprot);
-              struct.success.add(_elem170);
+              _elem202 = new FileInfo();
+              _elem202.read(iprot);
+              struct.success.add(_elem202);
             }
           }
           struct.setSuccessIsSet(true);
@@ -9177,14 +9177,14 @@ public class FileSystemMasterService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list172 = iprot.readListBegin();
-                  struct.success = new ArrayList<FileBlockInfo>(_list172.size);
-                  FileBlockInfo _elem173;
-                  for (int _i174 = 0; _i174 < _list172.size; ++_i174)
+                  org.apache.thrift.protocol.TList _list204 = iprot.readListBegin();
+                  struct.success = new ArrayList<FileBlockInfo>(_list204.size);
+                  FileBlockInfo _elem205;
+                  for (int _i206 = 0; _i206 < _list204.size; ++_i206)
                   {
-                    _elem173 = new FileBlockInfo();
-                    _elem173.read(iprot);
-                    struct.success.add(_elem173);
+                    _elem205 = new FileBlockInfo();
+                    _elem205.read(iprot);
+                    struct.success.add(_elem205);
                   }
                   iprot.readListEnd();
                 }
@@ -9221,9 +9221,9 @@ public class FileSystemMasterService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (FileBlockInfo _iter175 : struct.success)
+            for (FileBlockInfo _iter207 : struct.success)
             {
-              _iter175.write(oprot);
+              _iter207.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -9262,9 +9262,9 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (FileBlockInfo _iter176 : struct.success)
+            for (FileBlockInfo _iter208 : struct.success)
             {
-              _iter176.write(oprot);
+              _iter208.write(oprot);
             }
           }
         }
@@ -9279,14 +9279,14 @@ public class FileSystemMasterService {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list177 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<FileBlockInfo>(_list177.size);
-            FileBlockInfo _elem178;
-            for (int _i179 = 0; _i179 < _list177.size; ++_i179)
+            org.apache.thrift.protocol.TList _list209 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<FileBlockInfo>(_list209.size);
+            FileBlockInfo _elem210;
+            for (int _i211 = 0; _i211 < _list209.size; ++_i211)
             {
-              _elem178 = new FileBlockInfo();
-              _elem178.read(iprot);
-              struct.success.add(_elem178);
+              _elem210 = new FileBlockInfo();
+              _elem210.read(iprot);
+              struct.success.add(_elem210);
             }
           }
           struct.setSuccessIsSet(true);
@@ -21584,13 +21584,13 @@ public class FileSystemMasterService {
             case 1: // PARENTS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list180 = iprot.readListBegin();
-                  struct.parents = new ArrayList<String>(_list180.size);
-                  String _elem181;
-                  for (int _i182 = 0; _i182 < _list180.size; ++_i182)
+                  org.apache.thrift.protocol.TList _list212 = iprot.readListBegin();
+                  struct.parents = new ArrayList<String>(_list212.size);
+                  String _elem213;
+                  for (int _i214 = 0; _i214 < _list212.size; ++_i214)
                   {
-                    _elem181 = iprot.readString();
-                    struct.parents.add(_elem181);
+                    _elem213 = iprot.readString();
+                    struct.parents.add(_elem213);
                   }
                   iprot.readListEnd();
                 }
@@ -21602,13 +21602,13 @@ public class FileSystemMasterService {
             case 2: // CHILDREN
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list183 = iprot.readListBegin();
-                  struct.children = new ArrayList<String>(_list183.size);
-                  String _elem184;
-                  for (int _i185 = 0; _i185 < _list183.size; ++_i185)
+                  org.apache.thrift.protocol.TList _list215 = iprot.readListBegin();
+                  struct.children = new ArrayList<String>(_list215.size);
+                  String _elem216;
+                  for (int _i217 = 0; _i217 < _list215.size; ++_i217)
                   {
-                    _elem184 = iprot.readString();
-                    struct.children.add(_elem184);
+                    _elem216 = iprot.readString();
+                    struct.children.add(_elem216);
                   }
                   iprot.readListEnd();
                 }
@@ -21628,13 +21628,13 @@ public class FileSystemMasterService {
             case 4: // DATA
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list186 = iprot.readListBegin();
-                  struct.data = new ArrayList<ByteBuffer>(_list186.size);
-                  ByteBuffer _elem187;
-                  for (int _i188 = 0; _i188 < _list186.size; ++_i188)
+                  org.apache.thrift.protocol.TList _list218 = iprot.readListBegin();
+                  struct.data = new ArrayList<ByteBuffer>(_list218.size);
+                  ByteBuffer _elem219;
+                  for (int _i220 = 0; _i220 < _list218.size; ++_i220)
                   {
-                    _elem187 = iprot.readBinary();
-                    struct.data.add(_elem187);
+                    _elem219 = iprot.readBinary();
+                    struct.data.add(_elem219);
                   }
                   iprot.readListEnd();
                 }
@@ -21702,9 +21702,9 @@ public class FileSystemMasterService {
           oprot.writeFieldBegin(PARENTS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.parents.size()));
-            for (String _iter189 : struct.parents)
+            for (String _iter221 : struct.parents)
             {
-              oprot.writeString(_iter189);
+              oprot.writeString(_iter221);
             }
             oprot.writeListEnd();
           }
@@ -21714,9 +21714,9 @@ public class FileSystemMasterService {
           oprot.writeFieldBegin(CHILDREN_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.children.size()));
-            for (String _iter190 : struct.children)
+            for (String _iter222 : struct.children)
             {
-              oprot.writeString(_iter190);
+              oprot.writeString(_iter222);
             }
             oprot.writeListEnd();
           }
@@ -21731,9 +21731,9 @@ public class FileSystemMasterService {
           oprot.writeFieldBegin(DATA_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.data.size()));
-            for (ByteBuffer _iter191 : struct.data)
+            for (ByteBuffer _iter223 : struct.data)
             {
-              oprot.writeBinary(_iter191);
+              oprot.writeBinary(_iter223);
             }
             oprot.writeListEnd();
           }
@@ -21809,18 +21809,18 @@ public class FileSystemMasterService {
         if (struct.isSetParents()) {
           {
             oprot.writeI32(struct.parents.size());
-            for (String _iter192 : struct.parents)
+            for (String _iter224 : struct.parents)
             {
-              oprot.writeString(_iter192);
+              oprot.writeString(_iter224);
             }
           }
         }
         if (struct.isSetChildren()) {
           {
             oprot.writeI32(struct.children.size());
-            for (String _iter193 : struct.children)
+            for (String _iter225 : struct.children)
             {
-              oprot.writeString(_iter193);
+              oprot.writeString(_iter225);
             }
           }
         }
@@ -21830,9 +21830,9 @@ public class FileSystemMasterService {
         if (struct.isSetData()) {
           {
             oprot.writeI32(struct.data.size());
-            for (ByteBuffer _iter194 : struct.data)
+            for (ByteBuffer _iter226 : struct.data)
             {
-              oprot.writeBinary(_iter194);
+              oprot.writeBinary(_iter226);
             }
           }
         }
@@ -21859,26 +21859,26 @@ public class FileSystemMasterService {
         BitSet incoming = iprot.readBitSet(9);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list195 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.parents = new ArrayList<String>(_list195.size);
-            String _elem196;
-            for (int _i197 = 0; _i197 < _list195.size; ++_i197)
+            org.apache.thrift.protocol.TList _list227 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.parents = new ArrayList<String>(_list227.size);
+            String _elem228;
+            for (int _i229 = 0; _i229 < _list227.size; ++_i229)
             {
-              _elem196 = iprot.readString();
-              struct.parents.add(_elem196);
+              _elem228 = iprot.readString();
+              struct.parents.add(_elem228);
             }
           }
           struct.setParentsIsSet(true);
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list198 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.children = new ArrayList<String>(_list198.size);
-            String _elem199;
-            for (int _i200 = 0; _i200 < _list198.size; ++_i200)
+            org.apache.thrift.protocol.TList _list230 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.children = new ArrayList<String>(_list230.size);
+            String _elem231;
+            for (int _i232 = 0; _i232 < _list230.size; ++_i232)
             {
-              _elem199 = iprot.readString();
-              struct.children.add(_elem199);
+              _elem231 = iprot.readString();
+              struct.children.add(_elem231);
             }
           }
           struct.setChildrenIsSet(true);
@@ -21889,13 +21889,13 @@ public class FileSystemMasterService {
         }
         if (incoming.get(3)) {
           {
-            org.apache.thrift.protocol.TList _list201 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.data = new ArrayList<ByteBuffer>(_list201.size);
-            ByteBuffer _elem202;
-            for (int _i203 = 0; _i203 < _list201.size; ++_i203)
+            org.apache.thrift.protocol.TList _list233 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.data = new ArrayList<ByteBuffer>(_list233.size);
+            ByteBuffer _elem234;
+            for (int _i235 = 0; _i235 < _list233.size; ++_i235)
             {
-              _elem202 = iprot.readBinary();
-              struct.data.add(_elem202);
+              _elem234 = iprot.readBinary();
+              struct.data.add(_elem234);
             }
           }
           struct.setDataIsSet(true);

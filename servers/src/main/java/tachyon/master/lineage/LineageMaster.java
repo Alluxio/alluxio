@@ -53,6 +53,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
+import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
@@ -216,4 +217,23 @@ public final class LineageMaster extends MasterBase {
     return new LineageCommand(CommandType.Persist, filesToCheckpoint);
   }
 
+  public List<LineageInfo> listLineages() {
+    List<LineageInfo> lineages = Lists.newArrayList();
+
+    for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
+      LineageInfo info = lineage.generateLineageInfo();
+      List<Long> parents = Lists.newArrayList();
+      for (Lineage parent : mLineageStore.getParents(lineage)) {
+        parents.add(parent.getId());
+      }
+      info.parents = parents;
+      List<Long> children = Lists.newArrayList();
+      for (Lineage child : mLineageStore.getChildren(lineage)) {
+        children.add(child.getId());
+      }
+      info.children = children;
+      lineages.add(info);
+    }
+    return lineages;
+  }
 }

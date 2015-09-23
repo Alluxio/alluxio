@@ -131,4 +131,8 @@ public final class LineageStore {
   public synchronized List<Lineage> sortLineageTopologically(Set<Lineage> lineages) {
     return mLineageDAG.sortTopologically(lineages);
   }
+
+  public synchronized List<Lineage>  getAllInTopologicalOrder() {
+    return mLineageDAG.getAllInTopologicalOrder();
+  }
 }

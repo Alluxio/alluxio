@@ -50,6 +50,11 @@ public class LineageFileOutStream extends FileOutStream {
       return;
     }
 
+    if (mCurrentBlockOutStream != null) {
+      mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+    }
+    storeToTachyon();
+
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.asyncCompleteFile(mFileId, mUnderStorageFile);

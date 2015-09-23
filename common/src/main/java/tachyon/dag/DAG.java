@@ -152,4 +152,11 @@ public class DAG<T> {
         payloads);
     return result;
   }
+
+  /**
+   * @return the payloads of all the nodes in toplogical order.
+   */
+  public List<T> getAllInTopologicalOrder() {
+    return sortTopologically(mIndex.keySet());
+  }
 }
