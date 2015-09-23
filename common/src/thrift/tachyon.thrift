@@ -61,6 +61,7 @@ struct FileInfo {
   13: i32 dependencyId
   14: i32 inMemoryPercentage
   15: i64 lastModificationTimeMs
+  16: i64 ttl
 }
 
 // Information about lineage.
@@ -191,7 +192,7 @@ service FileSystemMasterService {
   // TODO(gene): Is this necessary?
   string getUfsAddress()
 
-  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive)
+  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
