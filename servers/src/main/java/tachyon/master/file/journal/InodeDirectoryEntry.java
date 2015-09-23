@@ -20,19 +20,19 @@ import java.util.Set;
 
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.journal.JournalEntryType;
+import tachyon.security.authorization.PermissionStatus;
 
 public class InodeDirectoryEntry extends InodeEntry {
   private Set<Long> mChildrenIds;
 
   public InodeDirectoryEntry(long creationTimeMs, long id, String name, long parentId,
-      boolean isPinned, long lastModificationTimeMs, Set<Long> childrenIds) {
-    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
-
+      boolean isPinned, long lastModificationTimeMs, Set<Long> childrenIds, PermissionStatus ps) {
+    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs, ps);
     mChildrenIds = childrenIds;
   }
 
   public InodeDirectory toInodeDirectory() {
-    InodeDirectory inode = new InodeDirectory(mName, mId, mParentId, mCreationTimeMs);
+    InodeDirectory inode = new InodeDirectory(mName, mId, mParentId, mCreationTimeMs, mPs);
     inode.setPinned(mIsPinned);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);
     return inode;
