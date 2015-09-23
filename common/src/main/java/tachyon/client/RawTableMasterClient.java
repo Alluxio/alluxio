@@ -50,7 +50,7 @@ public final class RawTableMasterClient extends MasterClientBase {
    * @param tachyonConf the Tachyon configuration
    */
   public RawTableMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
-                              TachyonConf tachyonConf) {
+      TachyonConf tachyonConf) {
     super(masterAddress, executorService, tachyonConf);
   }
 
@@ -133,7 +133,7 @@ public final class RawTableMasterClient extends MasterClientBase {
     });
   }
 
-  // TODO(cc) {@link #RpcCallable} and {@link #retryPRC}  may be valuable to other clients too, but 
+  // TODO(cc) {@link #RpcCallable} and {@link #retryPRC}  may be valuable to other clients too, but
   // let's limit its use to this class in this PR, may be replaced if a better solution is found.
   /**
    * The RPC to be executed in {@link #retryRPC(RpcCallable)}.
@@ -151,7 +151,7 @@ public final class RawTableMasterClient extends MasterClientBase {
   }
 
   /**
-   * Tries to execute a RPC defined as a {@link RpcCallableWithPropagateTException}, if error
+   * Tries to execute a RPC defined as a {@link RpcCallable}, if error
    * happens in one execution, a reconnection will be tried through {@link #connect()} and the
    * action will be re-executed.
    *
