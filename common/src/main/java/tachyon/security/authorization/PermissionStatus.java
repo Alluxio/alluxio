@@ -58,7 +58,10 @@ public class PermissionStatus {
     return new PermissionStatus(mUsername, mGroupname, newFsPermission);
   }
 
-  /** Get the Directory default PermissionStatus. */
+  /**
+   * Get the Directory default PermissionStatus.
+   * Currently the default dir permission is 0777.
+   */
   public static PermissionStatus getDirDefault() {
     return new PermissionStatus("", "",
         new FsPermission(Constants.DEFAULT_TFS_FULL_PERMISSION));
