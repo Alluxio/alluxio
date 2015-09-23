@@ -27,7 +27,10 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.CommandLineJobInfo;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageMasterService;
 
@@ -40,18 +43,21 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
-  public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo jobInfo) {
+  public long createLineage(List<String> inputFiles, List<String> outputFiles,
+      CommandLineJobInfo jobInfo)
+          throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // deserialization
     List<TachyonURI> inputFilesUri = Lists.newArrayList();
     for (String inputFile : inputFiles) {
       inputFilesUri.add(new TachyonURI(inputFile));
     }
     List<TachyonURI> outputFilesUri = Lists.newArrayList();
-    for (String output : outputFiles) {
-      outputFilesUri.add(new TachyonURI(output));
+    for (String outputFile : outputFiles) {
+      outputFilesUri.add(new TachyonURI(outputFile));
     }
 
-    CommandLineJob job = new CommandLineJob(jobInfo.command, new JobConf(jobInfo.getConf().outputFile));
+    CommandLineJob job =
+        new CommandLineJob(jobInfo.command, new JobConf(jobInfo.getConf().outputFile));
     return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
   }
 

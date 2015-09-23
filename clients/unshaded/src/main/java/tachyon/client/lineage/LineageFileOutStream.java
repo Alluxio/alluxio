@@ -20,11 +20,10 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientOptions;
+import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 
 @PublicApi
@@ -39,10 +38,10 @@ public class LineageFileOutStream extends FileOutStream {
   }
 
   private static ClientOptions updateClientOptions(ClientOptions options) {
-    // TODO(yupeng) should we set options to async automatically?
-    Preconditions.checkState(options.getUnderStorageType().isAsyncPersist(),
-        "the option should be async persist for lineage");
-    return options;
+    // change the under storage type to async
+    ClientOptions.Builder builder = new ClientOptions.Builder(options);
+    builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);
+    return builder.build();
   }
 
   @Override

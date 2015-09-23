@@ -39,7 +39,7 @@ public class LineageMasterService {
 
   public interface Iface {
 
-    public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws org.apache.thrift.TException;
+    public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
 
     public boolean deleteLineage(long lineageId, boolean cascade) throws org.apache.thrift.TException;
 
@@ -85,7 +85,7 @@ public class LineageMasterService {
       super(iprot, oprot);
     }
 
-    public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws org.apache.thrift.TException
+    public long createLineage(List<String> inputFiles, List<String> outputFiles, CommandLineJobInfo job) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
       send_createLineage(inputFiles, outputFiles, job);
       return recv_createLineage();
@@ -100,12 +100,24 @@ public class LineageMasterService {
       sendBase("createLineage", args);
     }
 
-    public long recv_createLineage() throws org.apache.thrift.TException
+    public long recv_createLineage() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
       createLineage_result result = new createLineage_result();
       receiveBase(result, "createLineage");
       if (result.isSetSuccess()) {
         return result.success;
+      }
+      if (result.faee != null) {
+        throw result.faee;
+      }
+      if (result.bie != null) {
+        throw result.bie;
+      }
+      if (result.sfse != null) {
+        throw result.sfse;
+      }
+      if (result.te != null) {
+        throw result.te;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createLineage failed: unknown result");
     }
@@ -249,7 +261,7 @@ public class LineageMasterService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws org.apache.thrift.TException {
+      public long getResult() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -435,8 +447,18 @@ public class LineageMasterService {
 
       public createLineage_result getResult(I iface, createLineage_args args) throws org.apache.thrift.TException {
         createLineage_result result = new createLineage_result();
-        result.success = iface.createLineage(args.inputFiles, args.outputFiles, args.job);
-        result.setSuccessIsSet(true);
+        try {
+          result.success = iface.createLineage(args.inputFiles, args.outputFiles, args.job);
+          result.setSuccessIsSet(true);
+        } catch (FileAlreadyExistException faee) {
+          result.faee = faee;
+        } catch (BlockInfoException bie) {
+          result.bie = bie;
+        } catch (SuspectedFileSizeException sfse) {
+          result.sfse = sfse;
+        } catch (TachyonException te) {
+          result.te = te;
+        }
         return result;
       }
     }
@@ -572,6 +594,27 @@ public class LineageMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             createLineage_result result = new createLineage_result();
+            if (e instanceof FileAlreadyExistException) {
+                        result.faee = (FileAlreadyExistException) e;
+                        result.setFaeeIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof BlockInfoException) {
+                        result.bie = (BlockInfoException) e;
+                        result.setBieIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof SuspectedFileSizeException) {
+                        result.sfse = (SuspectedFileSizeException) e;
+                        result.setSfseIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof TachyonException) {
+                        result.te = (TachyonException) e;
+                        result.setTeIsSet(true);
+                        msg = result;
+            }
+             else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1481,6 +1524,10 @@ public class LineageMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createLineage_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
+    private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField SFSE_FIELD_DESC = new org.apache.thrift.protocol.TField("sfse", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1489,10 +1536,18 @@ public class LineageMasterService {
     }
 
     public long success; // required
+    public FileAlreadyExistException faee; // required
+    public BlockInfoException bie; // required
+    public SuspectedFileSizeException sfse; // required
+    public TachyonException te; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success");
+      SUCCESS((short)0, "success"),
+      FAEE((short)1, "faee"),
+      BIE((short)2, "bie"),
+      SFSE((short)3, "sfse"),
+      TE((short)4, "te");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1509,6 +1564,14 @@ public class LineageMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
+          case 1: // FAEE
+            return FAEE;
+          case 2: // BIE
+            return BIE;
+          case 3: // SFSE
+            return SFSE;
+          case 4: // TE
+            return TE;
           default:
             return null;
         }
@@ -1556,6 +1619,14 @@ public class LineageMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.FAEE, new org.apache.thrift.meta_data.FieldMetaData("faee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.SFSE, new org.apache.thrift.meta_data.FieldMetaData("sfse", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createLineage_result.class, metaDataMap);
     }
@@ -1564,11 +1635,19 @@ public class LineageMasterService {
     }
 
     public createLineage_result(
-      long success)
+      long success,
+      FileAlreadyExistException faee,
+      BlockInfoException bie,
+      SuspectedFileSizeException sfse,
+      TachyonException te)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
+      this.faee = faee;
+      this.bie = bie;
+      this.sfse = sfse;
+      this.te = te;
     }
 
     /**
@@ -1577,6 +1656,18 @@ public class LineageMasterService {
     public createLineage_result(createLineage_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
+      if (other.isSetFaee()) {
+        this.faee = new FileAlreadyExistException(other.faee);
+      }
+      if (other.isSetBie()) {
+        this.bie = new BlockInfoException(other.bie);
+      }
+      if (other.isSetSfse()) {
+        this.sfse = new SuspectedFileSizeException(other.sfse);
+      }
+      if (other.isSetTe()) {
+        this.te = new TachyonException(other.te);
+      }
     }
 
     public createLineage_result deepCopy() {
@@ -1587,6 +1678,10 @@ public class LineageMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = 0;
+      this.faee = null;
+      this.bie = null;
+      this.sfse = null;
+      this.te = null;
     }
 
     public long getSuccess() {
@@ -1612,6 +1707,102 @@ public class LineageMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
+    public FileAlreadyExistException getFaee() {
+      return this.faee;
+    }
+
+    public createLineage_result setFaee(FileAlreadyExistException faee) {
+      this.faee = faee;
+      return this;
+    }
+
+    public void unsetFaee() {
+      this.faee = null;
+    }
+
+    /** Returns true if field faee is set (has been assigned a value) and false otherwise */
+    public boolean isSetFaee() {
+      return this.faee != null;
+    }
+
+    public void setFaeeIsSet(boolean value) {
+      if (!value) {
+        this.faee = null;
+      }
+    }
+
+    public BlockInfoException getBie() {
+      return this.bie;
+    }
+
+    public createLineage_result setBie(BlockInfoException bie) {
+      this.bie = bie;
+      return this;
+    }
+
+    public void unsetBie() {
+      this.bie = null;
+    }
+
+    /** Returns true if field bie is set (has been assigned a value) and false otherwise */
+    public boolean isSetBie() {
+      return this.bie != null;
+    }
+
+    public void setBieIsSet(boolean value) {
+      if (!value) {
+        this.bie = null;
+      }
+    }
+
+    public SuspectedFileSizeException getSfse() {
+      return this.sfse;
+    }
+
+    public createLineage_result setSfse(SuspectedFileSizeException sfse) {
+      this.sfse = sfse;
+      return this;
+    }
+
+    public void unsetSfse() {
+      this.sfse = null;
+    }
+
+    /** Returns true if field sfse is set (has been assigned a value) and false otherwise */
+    public boolean isSetSfse() {
+      return this.sfse != null;
+    }
+
+    public void setSfseIsSet(boolean value) {
+      if (!value) {
+        this.sfse = null;
+      }
+    }
+
+    public TachyonException getTe() {
+      return this.te;
+    }
+
+    public createLineage_result setTe(TachyonException te) {
+      this.te = te;
+      return this;
+    }
+
+    public void unsetTe() {
+      this.te = null;
+    }
+
+    /** Returns true if field te is set (has been assigned a value) and false otherwise */
+    public boolean isSetTe() {
+      return this.te != null;
+    }
+
+    public void setTeIsSet(boolean value) {
+      if (!value) {
+        this.te = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -1622,6 +1813,38 @@ public class LineageMasterService {
         }
         break;
 
+      case FAEE:
+        if (value == null) {
+          unsetFaee();
+        } else {
+          setFaee((FileAlreadyExistException)value);
+        }
+        break;
+
+      case BIE:
+        if (value == null) {
+          unsetBie();
+        } else {
+          setBie((BlockInfoException)value);
+        }
+        break;
+
+      case SFSE:
+        if (value == null) {
+          unsetSfse();
+        } else {
+          setSfse((SuspectedFileSizeException)value);
+        }
+        break;
+
+      case TE:
+        if (value == null) {
+          unsetTe();
+        } else {
+          setTe((TachyonException)value);
+        }
+        break;
+
       }
     }
 
@@ -1629,6 +1852,18 @@ public class LineageMasterService {
       switch (field) {
       case SUCCESS:
         return Long.valueOf(getSuccess());
+
+      case FAEE:
+        return getFaee();
+
+      case BIE:
+        return getBie();
+
+      case SFSE:
+        return getSfse();
+
+      case TE:
+        return getTe();
 
       }
       throw new IllegalStateException();
@@ -1643,6 +1878,14 @@ public class LineageMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
+      case FAEE:
+        return isSetFaee();
+      case BIE:
+        return isSetBie();
+      case SFSE:
+        return isSetSfse();
+      case TE:
+        return isSetTe();
       }
       throw new IllegalStateException();
     }
@@ -1669,6 +1912,42 @@ public class LineageMasterService {
           return false;
       }
 
+      boolean this_present_faee = true && this.isSetFaee();
+      boolean that_present_faee = true && that.isSetFaee();
+      if (this_present_faee || that_present_faee) {
+        if (!(this_present_faee && that_present_faee))
+          return false;
+        if (!this.faee.equals(that.faee))
+          return false;
+      }
+
+      boolean this_present_bie = true && this.isSetBie();
+      boolean that_present_bie = true && that.isSetBie();
+      if (this_present_bie || that_present_bie) {
+        if (!(this_present_bie && that_present_bie))
+          return false;
+        if (!this.bie.equals(that.bie))
+          return false;
+      }
+
+      boolean this_present_sfse = true && this.isSetSfse();
+      boolean that_present_sfse = true && that.isSetSfse();
+      if (this_present_sfse || that_present_sfse) {
+        if (!(this_present_sfse && that_present_sfse))
+          return false;
+        if (!this.sfse.equals(that.sfse))
+          return false;
+      }
+
+      boolean this_present_te = true && this.isSetTe();
+      boolean that_present_te = true && that.isSetTe();
+      if (this_present_te || that_present_te) {
+        if (!(this_present_te && that_present_te))
+          return false;
+        if (!this.te.equals(that.te))
+          return false;
+      }
+
       return true;
     }
 
@@ -1680,6 +1959,26 @@ public class LineageMasterService {
       list.add(present_success);
       if (present_success)
         list.add(success);
+
+      boolean present_faee = true && (isSetFaee());
+      list.add(present_faee);
+      if (present_faee)
+        list.add(faee);
+
+      boolean present_bie = true && (isSetBie());
+      list.add(present_bie);
+      if (present_bie)
+        list.add(bie);
+
+      boolean present_sfse = true && (isSetSfse());
+      list.add(present_sfse);
+      if (present_sfse)
+        list.add(sfse);
+
+      boolean present_te = true && (isSetTe());
+      list.add(present_te);
+      if (present_te)
+        list.add(te);
 
       return list.hashCode();
     }
@@ -1698,6 +1997,46 @@ public class LineageMasterService {
       }
       if (isSetSuccess()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetFaee()).compareTo(other.isSetFaee());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetFaee()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.faee, other.faee);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetBie()).compareTo(other.isSetBie());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetBie()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bie, other.bie);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetSfse()).compareTo(other.isSetSfse());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSfse()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sfse, other.sfse);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.te, other.te);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -1724,6 +2063,38 @@ public class LineageMasterService {
 
       sb.append("success:");
       sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("faee:");
+      if (this.faee == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.faee);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("bie:");
+      if (this.bie == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.bie);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("sfse:");
+      if (this.sfse == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.sfse);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("te:");
+      if (this.te == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.te);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -1778,6 +2149,42 @@ public class LineageMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 1: // FAEE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.faee = new FileAlreadyExistException();
+                struct.faee.read(iprot);
+                struct.setFaeeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // BIE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.bie = new BlockInfoException();
+                struct.bie.read(iprot);
+                struct.setBieIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // SFSE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.sfse = new SuspectedFileSizeException();
+                struct.sfse.read(iprot);
+                struct.setSfseIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // TE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.te = new TachyonException();
+                struct.te.read(iprot);
+                struct.setTeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -1796,6 +2203,26 @@ public class LineageMasterService {
         if (struct.isSetSuccess()) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           oprot.writeI64(struct.success);
+          oprot.writeFieldEnd();
+        }
+        if (struct.faee != null) {
+          oprot.writeFieldBegin(FAEE_FIELD_DESC);
+          struct.faee.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.bie != null) {
+          oprot.writeFieldBegin(BIE_FIELD_DESC);
+          struct.bie.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.sfse != null) {
+          oprot.writeFieldBegin(SFSE_FIELD_DESC);
+          struct.sfse.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.te != null) {
+          oprot.writeFieldBegin(TE_FIELD_DESC);
+          struct.te.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -1819,19 +2246,63 @@ public class LineageMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetFaee()) {
+          optionals.set(1);
+        }
+        if (struct.isSetBie()) {
+          optionals.set(2);
+        }
+        if (struct.isSetSfse()) {
+          optionals.set(3);
+        }
+        if (struct.isSetTe()) {
+          optionals.set(4);
+        }
+        oprot.writeBitSet(optionals, 5);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
+        }
+        if (struct.isSetFaee()) {
+          struct.faee.write(oprot);
+        }
+        if (struct.isSetBie()) {
+          struct.bie.write(oprot);
+        }
+        if (struct.isSetSfse()) {
+          struct.sfse.write(oprot);
+        }
+        if (struct.isSetTe()) {
+          struct.te.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, createLineage_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
           struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.faee = new FileAlreadyExistException();
+          struct.faee.read(iprot);
+          struct.setFaeeIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.bie = new BlockInfoException();
+          struct.bie.read(iprot);
+          struct.setBieIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.sfse = new SuspectedFileSizeException();
+          struct.sfse.read(iprot);
+          struct.setSfseIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.te = new TachyonException();
+          struct.te.read(iprot);
+          struct.setTeIsSet(true);
         }
       }
     }
