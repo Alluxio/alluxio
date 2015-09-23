@@ -42,17 +42,19 @@ public final class Lineage {
   /**
    * Creates a new lineage.
    *
+   * @param id the lineage id
    * @param inputFiles the input files.
    * @param outputFiles the output files.
    * @param job the job
    */
-  public Lineage(List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job) {
-    this(LineageIdGenerator.generateId(), inputFiles, outputFiles, job, System.currentTimeMillis());
+  public Lineage(long id, List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job) {
+    this(id, inputFiles, outputFiles, job, System.currentTimeMillis());
   }
 
   /**
    * A method for lineage only. TODO(yupeng): hide this method
    *
+   * @param id the lineage id
    * @param inputFiles the input files.
    * @param inputFiles the input files.
    * @param outputFiles the output files.

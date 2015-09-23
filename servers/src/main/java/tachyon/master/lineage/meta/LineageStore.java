@@ -37,14 +37,16 @@ import tachyon.master.lineage.journal.LineageEntry;
  * TODO(yupeng): relax locking
  */
 public final class LineageStore implements JournalCheckpointStreamable {
-  private DAG<Lineage> mLineageDAG;
+  private final LineageIdGenerator mLineageIdGenerator;
+  private final DAG<Lineage> mLineageDAG;
 
   /** Indices for lineages */
   /** Index of the output files of lineage to lineage */
   private Map<Long, Lineage> mOutputFileIndex;
   private Map<Long, Lineage> mIdIndex;
 
-  public LineageStore() {
+  public LineageStore(LineageIdGenerator lineageIdGenerator) {
+    mLineageIdGenerator = lineageIdGenerator;
     mLineageDAG = new DAG<Lineage>();
     mOutputFileIndex = Maps.newHashMap();
     mIdIndex = Maps.newHashMap();
@@ -57,11 +59,13 @@ public final class LineageStore implements JournalCheckpointStreamable {
 
   public synchronized long createLineage(List<TachyonFile> inputFiles,
       List<LineageFile> outputFiles, Job job) {
-    Lineage lineage = new Lineage(inputFiles, outputFiles, job);
-    return addLineageInternal(lineage);
+    long lineageId = mLineageIdGenerator.generateId();
+    Lineage lineage = new Lineage(lineageId, inputFiles, outputFiles, job);
+    addLineageInternal(lineage);
+    return lineageId;
   }
 
-  private long addLineageInternal(Lineage lineage) {
+  private void addLineageInternal(Lineage lineage) {
     List<Lineage> parentLineages = Lists.newArrayList();
     for (TachyonFile inputFile : lineage.getInputFiles()) {
       if (mOutputFileIndex.containsKey(inputFile)) {
@@ -75,8 +79,6 @@ public final class LineageStore implements JournalCheckpointStreamable {
       mOutputFileIndex.put(outputFile.getFileId(), lineage);
     }
     mIdIndex.put(lineage.getId(), lineage);
-
-    return lineage.getId();
   }
 
   public synchronized void completeFileForAsyncWrite(long fileId, String underFsPath) {

@@ -15,15 +15,40 @@
 
 package tachyon.master.lineage.meta;
 
+import tachyon.master.journal.JournalEntry;
+import tachyon.master.journal.JournalEntryRepresentable;
+import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
+
 /**
  * Generates the lineage id as as sequence number.
  */
-final class LineageIdGenerator {
-  private static long sId = 0;
+public final class LineageIdGenerator implements JournalEntryRepresentable {
 
-  private LineageIdGenerator() {} // prevent instantiation
+  private boolean mInitialized = false;
+  private long mSequenceNumber;
 
-  static long generateId() {
-    return sId ++;
+  public LineageIdGenerator() {}
+
+  synchronized long generateId() {
+    initialize();
+    mSequenceNumber ++;
+    return mSequenceNumber;
+  }
+
+  private void initialize() {
+    if (!mInitialized) {
+      mSequenceNumber = 0;
+      mInitialized = true;
+    }
+  }
+
+  public void fromJournalEntry(LineageIdGeneratorEntry entry) {
+    mSequenceNumber = entry.getSequenceNumber();
+    mInitialized = true;
+  }
+
+  @Override
+  public JournalEntry toJournalEntry() {
+    return new LineageIdGeneratorEntry(mSequenceNumber);
   }
 }
