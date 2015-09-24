@@ -65,7 +65,7 @@ public final class RawTableMasterClient extends MasterClientBase {
   }
 
   /**
-   * Create a raw table. A table is a directory with sub-directories representing columns.
+   * Creates a raw table. A table is a directory with sub-directories representing columns.
    *
    * @param path the path where the table is placed
    * @param columns the number of columns in the table, must be in range (0, tachyon.max.columns)
@@ -84,7 +84,7 @@ public final class RawTableMasterClient extends MasterClientBase {
   }
 
   /**
-   * Get the {@link RawTableInfo} associated with the given id.
+   * Gets the {@link RawTableInfo} associated with the given id.
    *
    * @param id the id of the table
    * @return the table info
@@ -100,7 +100,7 @@ public final class RawTableMasterClient extends MasterClientBase {
   }
 
   /**
-   * Get the {@link RawTableInfo} associated with the given path.
+   * Gets the {@link RawTableInfo} associated with the given path.
    *
    * @param path the path of the table
    * @return the table info
@@ -116,7 +116,7 @@ public final class RawTableMasterClient extends MasterClientBase {
   }
 
   /**
-   * Update the metadata of a table.
+   * Updates the metadata of a table.
    *
    * @param tableId The id of the table to update
    * @param metadata The new metadata to update the table with
