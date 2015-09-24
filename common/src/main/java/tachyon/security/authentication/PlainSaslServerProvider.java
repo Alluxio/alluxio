@@ -28,18 +28,19 @@ import javax.security.sasl.SaslServerFactory;
  * When the SASL is using PLAIN mechanism, there is no support the SASL server. So there is a new
  * provider needed to register to support server-side PLAIN mechanism.
  */
-public class PlainSaslServerProvider extends Provider {
+public final class PlainSaslServerProvider extends Provider {
   public static final String PROVIDER_NAME = "SaslPlain";
   public static final String MECHANISM = "PLAIN";
+  public static final double PROVIDER_VERSION = 1.0;
 
   public PlainSaslServerProvider() {
-    super(PROVIDER_NAME, 1.0, "Plain SASL server provider");
+    super(PROVIDER_NAME, PROVIDER_VERSION, "Plain SASL server provider");
     put("SaslServerFactory." + MECHANISM, PlainSaslServerFactory.class.getName());
   }
 
   /**
-   * This class is used to create an instances of {@link PlainSaslServer}. The parameter
-   * mechanism must be "PLAIN" when this PlainSaslServerFactory is called, or null will be returned.
+   * This class is used to create an instances of {@link PlainSaslServer}. The parameter mechanism
+   * must be "PLAIN" when this PlainSaslServerFactory is called, or null will be returned.
    */
   public static class PlainSaslServerFactory implements SaslServerFactory {
     /**

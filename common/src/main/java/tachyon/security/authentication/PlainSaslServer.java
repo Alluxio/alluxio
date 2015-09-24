@@ -48,7 +48,7 @@ import tachyon.security.User;
  *
  * TODO: Authorization ID and authentication ID could be different after supporting impersonation.
  */
-public class PlainSaslServer implements SaslServer {
+public final class PlainSaslServer implements SaslServer {
   /**
    * This ID represent the authorized client user, who has been authenticated successfully. It is
    * associated with the client connection thread for following action authorization usage.
@@ -177,10 +177,10 @@ public class PlainSaslServer implements SaslServer {
    * do verification operation.
    */
   public static final class PlainServerCallbackHandler implements CallbackHandler {
-    private final AuthenticationProvider mAuthenticationPrivoder;
+    private final AuthenticationProvider mAuthenticationProvider;
 
     public PlainServerCallbackHandler(AuthenticationProvider authenticationProvider) {
-      mAuthenticationPrivoder = authenticationProvider;
+      mAuthenticationProvider = authenticationProvider;
     }
 
     @Override
@@ -203,7 +203,7 @@ public class PlainSaslServer implements SaslServer {
         }
       }
 
-      mAuthenticationPrivoder.authenticate(username, password);
+      mAuthenticationProvider.authenticate(username, password);
 
       if (ac != null) {
         ac.setAuthorized(true);

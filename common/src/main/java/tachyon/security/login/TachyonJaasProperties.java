@@ -53,7 +53,7 @@ public final class TachyonJaasProperties {
 
   // Return the OS principal class name
   private static String findOsPrincipalClassName() {
-    String principalClassName = null;
+    String principalClassName;
     if (PlatformUtils.IBM_JAVA) {
       if (IS_64_BIT) {
         principalClassName = "com.ibm.security.auth.UsernamePrincipal";
