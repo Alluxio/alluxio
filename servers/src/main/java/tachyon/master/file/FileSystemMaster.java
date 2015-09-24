@@ -315,6 +315,7 @@ public final class FileSystemMaster extends MasterBase {
           mDependencyMap.removePriorityDependency(dep);
         }
       }
+      mDependencyMap.addFileCheckpoint(fileId);
     }
     file.setLastModificationTimeMs(opTimeMs);
     file.setCompleted(length);
@@ -477,12 +478,12 @@ public final class FileSystemMaster extends MasterBase {
     inodeFile.setCompleted(fileLength);
     inodeFile.setLastModificationTimeMs(opTimeMs);
     // Mark all parent directories that have a UFS counterpart as persisted.
-    InodeDirectory inodeDir = (InodeDirectory) mInodeTree.getInodeById(inodeFile.getParentId());
-    TachyonURI path = mInodeTree.getPath(inodeDir);
+    InodeDirectory parentDir = (InodeDirectory) mInodeTree.getInodeById(inodeFile.getParentId());
+    TachyonURI path = mInodeTree.getPath(parentDir);
     while (!mMountTable.resolve(path).equals(path)) {
-      inodeDir.setPersisted(true);
-      inodeDir = (InodeDirectory) mInodeTree.getInodeById(inodeDir.getParentId());
-      path = mInodeTree.getPath(inodeDir);
+      parentDir.setPersisted(true);
+      parentDir = (InodeDirectory) mInodeTree.getInodeById(parentDir.getParentId());
+      path = mInodeTree.getPath(parentDir);
     }
   }
 
@@ -961,9 +962,11 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
       // Renaming across mount points is not allowed.
-      TachyonURI srcPathMountPoint = mMountTable.getMountPoint(srcPath);
-      TachyonURI dstPathMountPoint = mMountTable.getMountPoint(dstPath);
-      if (!srcPathMountPoint.equals(dstPathMountPoint)) {
+      String srcMount = mMountTable.getMountPoint(srcPath);
+      String dstMount = mMountTable.getMountPoint(dstPath);
+      if ((srcMount == null && dstMount != null)
+          || (srcMount != null && dstMount == null)
+          || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
         return false;
       }
 

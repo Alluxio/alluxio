@@ -127,6 +127,27 @@ public final class PathUtils {
   }
 
   /**
+   * Checks whether the given path contains the given prefix.
+   *
+   * @param path a path
+   * @param prefix a prefix
+   * @return whether the given path has the given prefix
+   */
+  public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
+    String[] pathComponents = getPathComponents(path);
+    String[] prefixComponents = getPathComponents(prefix);
+    if (pathComponents.length < prefixComponents.length) {
+      return false;
+    }
+    for (int i = 0; i < prefixComponents.length; i ++) {
+      if (!pathComponents[i].equals(prefixComponents[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Checks if the given path is the root.
    *
    * @param path The path to check

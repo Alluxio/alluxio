@@ -86,15 +86,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isPersist()) {
-      FileSystemMasterClient client = mContext.acquireMasterClient();
-      FileInfo fileInfo;
-      try {
-        fileInfo = client.getFileInfo(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e.getMessage());
-      } finally {
-        mContext.releaseMasterClient(client);
-      }
+      FileInfo fileInfo = getFileInfo(mFileId);
       String ufsPath = fileInfo.getUfsPath();
       String fileName = PathUtils.temporaryFileName(fileId, mNonce, ufsPath);
       UnderFileSystem underStorageClient = UnderFileSystem.get(fileName, ClientContext.getConf());
@@ -132,15 +124,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
-        FileSystemMasterClient client = mContext.acquireMasterClient();
-        FileInfo fileInfo;
-        try {
-          fileInfo = client.getFileInfo(mFileId);
-        } catch (FileDoesNotExistException e) {
-          throw new IOException(e.getMessage());
-        } finally {
-          mContext.releaseMasterClient(client);
-        }
+        FileInfo fileInfo = getFileInfo(mFileId);
         String ufsPath = fileInfo.getUfsPath();
         String fileName = PathUtils.temporaryFileName(mFileId, mNonce, ufsPath);
         UnderFileSystem underFsClient = UnderFileSystem.get(fileName, ClientContext.getConf());
@@ -290,6 +274,17 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     if (mCurrentBlockOutStream != null) {
       mShouldCacheCurrentBlock = false;
       mCurrentBlockOutStream.cancel();
+    }
+  }
+
+  private FileInfo getFileInfo(long fileId) throws IOException {
+    FileSystemMasterClient client = mContext.acquireMasterClient();
+    try {
+      return client.getFileInfo(fileId);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e.getMessage());
+    } finally {
+      mContext.releaseMasterClient(client);
     }
   }
 
