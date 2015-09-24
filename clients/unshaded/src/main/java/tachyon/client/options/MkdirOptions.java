@@ -15,9 +15,12 @@
 
 package tachyon.client.options;
 
+import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
-public class MkdirOptions {
+@PublicApi
+public final class MkdirOptions {
   public static class Builder {
     private boolean mRecursive;
 
@@ -36,7 +39,7 @@ public class MkdirOptions {
   }
 
   public static MkdirOptions defaults() {
-    return new Builder(new TachyonConf()).build();
+    return new Builder(ClientContext.getConf()).build();
   }
 
   private final boolean mRecursive;

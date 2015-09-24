@@ -29,6 +29,7 @@ import tachyon.Constants;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.options.InStreamOptions;
 import tachyon.client.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -85,10 +86,10 @@ public class BlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         String path = uniqPath + "/file_" + k + "_" + op;
-        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, k, op);
 
         for (int i = 0; i < 2; i ++) {
-          FileInStream is = sTfs.getInStream(f, op.toInStreamOptions());
+          FileInStream is = sTfs.getInStream(f, TachyonFSTestUtils.toInStreamOptions(op));
           byte[] ret = new byte[k];
           int value = is.read();
           int cnt = 0;
@@ -115,15 +116,15 @@ public class BlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         String path = uniqPath + "/file_" + k + "_" + op;
-        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, k, op);
 
-        FileInStream is = sTfs.getInStream(f, op.toInStreamOptions());
+        FileInStream is = sTfs.getInStream(f, TachyonFSTestUtils.toInStreamOptions(op));
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
-        is = sTfs.getInStream(f, op.toInStreamOptions());
+        is = sTfs.getInStream(f, TachyonFSTestUtils.toInStreamOptions(op));
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -141,16 +142,16 @@ public class BlockInStreamIntegrationTest {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         String path = uniqPath + "/file_" + k + "_" + op;
-        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, k, op);
 
-        FileInStream is = sTfs.getInStream(f, op.toInStreamOptions());
+        FileInStream is = sTfs.getInStream(f, TachyonFSTestUtils.toInStreamOptions(op));
 
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
 
-        is = sTfs.getInStream(f, op.toInStreamOptions());
+        is = sTfs.getInStream(f, TachyonFSTestUtils.toInStreamOptions(op));
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -168,15 +169,15 @@ public class BlockInStreamIntegrationTest {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
         String path = uniqPath + "/file_" + k + "_" + op;
-        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, k, op);
 
-        FileInStream is = sTfs.getInStream(f, op.toInStreamOptions());
+        FileInStream is = sTfs.getInStream(f, TachyonFSTestUtils.toInStreamOptions(op));
 
         Assert.assertEquals(k / 2, is.skip(k / 2));
         Assert.assertEquals(k / 2, is.read());
         is.close();
 
-        is = sTfs.getInStream(f, op.toInStreamOptions());
+        is = sTfs.getInStream(f, TachyonFSTestUtils.toInStreamOptions(op));
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());

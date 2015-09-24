@@ -163,12 +163,12 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), op, k);
+        writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
       }
     }
   }
 
-  private void writeTest1Util(TachyonURI filePath, OutStreamOptions op, int len) throws IOException,
+  private void writeTest1Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
       TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     for (int k = 0; k < len; k ++) {
@@ -186,12 +186,12 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), op, k);
+        writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
       }
     }
   }
 
-  private void writeTest2Util(TachyonURI filePath, OutStreamOptions op, int len) throws IOException,
+  private void writeTest2Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
       TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
@@ -207,12 +207,12 @@ public final class FileOutStreamIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (OutStreamOptions op : getOptionSet()) {
-        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), op, k);
+        writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), k, op);
       }
     }
   }
 
-  private void writeTest3Util(TachyonURI filePath, OutStreamOptions op, int len) throws IOException,
+  private void writeTest3Util(TachyonURI filePath, int len, OutStreamOptions op) throws IOException,
       TachyonException {
     FileOutStream os = mTfs.getOutStream(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);

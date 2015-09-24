@@ -29,13 +29,10 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.thrift.TException;
-
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
@@ -45,16 +42,14 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.options.DeleteOptions;
 import tachyon.client.options.FreeOptions;
+import tachyon.client.options.ListStatusOptions;
 import tachyon.client.options.InStreamOptions;
 import tachyon.client.options.MkdirOptions;
 import tachyon.client.options.OutStreamOptions;
 import tachyon.client.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.BlockLocation;
-import tachyon.thrift.DependencyDoesNotExistException;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;

@@ -16,13 +16,21 @@
 package tachyon.client.options;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.conf.TachyonConf;
 
-public class InStreamOptions {
+@PublicApi
+public final class InStreamOptions {
   public static class Builder {
     private TachyonStorageType mTachyonStorageType;
 
+    /**
+     * Creates a new builder for {@link InStreamOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
     public Builder(TachyonConf conf) {
       mTachyonStorageType =
           conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.class);
@@ -38,9 +46,9 @@ public class InStreamOptions {
     }
 
     /**
-     * Builds a new instance of <code>ClientOptions</code>
+     * Builds a new instance of <code>InStreamOptions</code>.
      *
-     * @return a <code>ClientOptions</code> instance
+     * @return a <code>InStreamOptions</code> instance
      */
     public InStreamOptions build() {
       return new InStreamOptions(this);
@@ -50,19 +58,18 @@ public class InStreamOptions {
   private final TachyonStorageType mTachyonStorageType;
 
   /**
-   * @return the default <code>ClientOptions</code>
+   * @return the default <code>InStreamOptions</code>
    */
   public static InStreamOptions defaults() {
-    return new Builder(new TachyonConf()).build();
+    return new Builder(ClientContext.getConf()).build();
   }
 
   private InStreamOptions(InStreamOptions.Builder builder) {
     mTachyonStorageType = builder.mTachyonStorageType;
   }
 
-
   /**
-   * @return the cache type
+   * @return the Tachyon storage type
    */
   public TachyonStorageType getTachyonStorageType() {
     return mTachyonStorageType;

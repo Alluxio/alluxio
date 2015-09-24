@@ -15,38 +15,23 @@
 
 package tachyon.client.options;
 
+import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
-public class SetStateOptions {
+@PublicApi
+public final class OpenOptions {
   public static class Builder {
-    private Boolean mPinned;
+    public Builder(TachyonConf conf) {}
 
-    public Builder(TachyonConf conf) {
-      mPinned = null;
-    }
-
-    public Builder setPinned(boolean pinned) {
-      mPinned = pinned;
-      return this;
-    }
-
-    public SetStateOptions build() {
-      return new SetStateOptions(this);
+    public OpenOptions build() {
+      return new OpenOptions(this);
     }
   }
 
-  public static SetStateOptions defaults() {
+  public static OpenOptions defaults() {
     return new Builder(ClientContext.getConf()).build();
   }
 
-  private final Boolean mPinned;
-
-  private SetStateOptions(SetStateOptions.Builder builder) {
-    mPinned = builder.mPinned;
-  }
-
-  public Boolean getPinned() {
-    return mPinned;
-  }
+  private OpenOptions(OpenOptions.Builder builder) {}
 }

@@ -16,11 +16,14 @@
 package tachyon.client.options;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
 
-public class OutStreamOptions {
+@PublicApi
+public final class OutStreamOptions {
   public static class Builder {
     private long mBlockSize;
     private String mHostname;
@@ -28,6 +31,11 @@ public class OutStreamOptions {
     private long mTTL;
     private UnderStorageType mUnderStorageType;
 
+    /**
+     * Creates a new builder for {@link OutStreamOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
     public Builder(TachyonConf conf) {
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
       mHostname = null;
@@ -73,15 +81,19 @@ public class OutStreamOptions {
       return this;
     }
 
+    /**
+     * @param ttl the TTL to use
+     * @return the builder
+     */
     public Builder setTTL(long ttl) {
       mTTL = ttl;
       return this;
     }
 
     /**
-     * Builds a new instance of <code>ClientOptions</code>
+     * Builds a new instance of <code>OutStreamOptions</code>.
      *
-     * @return a <code>ClientOptions</code> instance
+     * @return a <code>OutStreamOptions</code> instance
      */
     public OutStreamOptions build() {
       return new OutStreamOptions(this);
@@ -95,10 +107,10 @@ public class OutStreamOptions {
   private final long mTTL;
 
   /**
-   * @return the default <code>ClientOptions</code>
+   * @return the default <code>OutStreamOptions</code>
    */
   public static OutStreamOptions defaults() {
-    return new Builder(new TachyonConf()).build();
+    return new Builder(ClientContext.getConf()).build();
   }
 
   private OutStreamOptions(OutStreamOptions.Builder builder) {
@@ -124,24 +136,23 @@ public class OutStreamOptions {
   }
 
   /**
-   * @return the cache type
+   * @return the Tachyon storage type
    */
   public TachyonStorageType getTachyonStorageType() {
     return mTachyonStorageType;
   }
 
-  public long getTTL() { return mTTL; }
+  /**
+   * @return the TTL
+   */
+  public long getTTL() {
+    return mTTL;
+  }
 
   /**
    * @return the under storage type
    */
   public UnderStorageType getUnderStorageType() {
     return mUnderStorageType;
-  }
-
-
-  public InStreamOptions toInStreamOptions() {
-    return new InStreamOptions.Builder(new TachyonConf())
-        .setTachyonStorageType(mTachyonStorageType).build();
   }
 }

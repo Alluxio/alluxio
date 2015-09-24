@@ -18,13 +18,8 @@ package tachyon.exception;
 public class TachyonException extends Exception {
   private TachyonExceptionType mType;
 
-  public TachyonException(String message, TachyonExceptionType type) {
-    super(message);
-    mType = type;
-  }
-
-  public TachyonException(String message, Throwable cause, TachyonExceptionType type) {
-    super(message, cause);
+  public TachyonException(Exception e, TachyonExceptionType type) {
+    super(e.getMessage());
     mType = type;
   }
 

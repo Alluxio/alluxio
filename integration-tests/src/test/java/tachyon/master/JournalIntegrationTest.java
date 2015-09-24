@@ -26,7 +26,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -34,7 +33,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.options.DeleteOptions;
-import tachyon.client.options.LoadOptions;
+import tachyon.client.options.LoadMetadataOptions;
 import tachyon.client.options.MkdirOptions;
 import tachyon.client.options.OutStreamOptions;
 import tachyon.client.options.SetStateOptions;
@@ -118,12 +117,13 @@ public class JournalIntegrationTest {
         new OutStreamOptions.Builder(mMasterTachyonConf)
             .setTachyonStorageType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
-    TachyonFSTestUtils.createByteFile(mTfs, "/xyz", options, 10);
+    TachyonFSTestUtils.createByteFile(mTfs, "/xyz", 10, options);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     TachyonURI ckPath = new TachyonURI("/xyz_ck");
     // TODO(cc): What's the counterpart in the new client API for this?
-    LoadOptions recursive = new LoadOptions.Builder(new TachyonConf()).setRecursive(true).build();
-    mTfs.load(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()), recursive);
+    LoadMetadataOptions recursive =
+        new LoadMetadataOptions.Builder(new TachyonConf()).setRecursive(true).build();
+    mTfs.loadMetadata(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()), recursive);
     FileInfo ckFileInfo = mTfs.getInfo(mTfs.open(ckPath));
     mLocalTachyonCluster.stopTFS();
     AddCheckpointTestUtil(fInfo, ckFileInfo);

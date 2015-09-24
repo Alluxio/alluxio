@@ -15,9 +15,12 @@
 
 package tachyon.client.options;
 
+import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
-public class LoadOptions {
+@PublicApi
+public final class LoadMetadataOptions {
   public static class Builder {
     private boolean mRecursive;
 
@@ -30,18 +33,18 @@ public class LoadOptions {
       return this;
     }
 
-    public LoadOptions build() {
-      return new LoadOptions(this);
+    public LoadMetadataOptions build() {
+      return new LoadMetadataOptions(this);
     }
   }
 
-  public static LoadOptions defaults() {
-    return new Builder(new TachyonConf()).build();
+  public static LoadMetadataOptions defaults() {
+    return new Builder(ClientContext.getConf()).build();
   }
 
   private final boolean mRecursive;
 
-  private LoadOptions(LoadOptions.Builder builder) {
+  private LoadMetadataOptions(LoadMetadataOptions.Builder builder) {
     mRecursive = builder.mRecursive;
   }
 
