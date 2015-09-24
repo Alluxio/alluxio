@@ -49,6 +49,8 @@ import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
+import tachyon.master.lineage.journal.PersistFilesEntry;
+import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
@@ -128,6 +130,10 @@ public final class LineageMaster extends MasterBase {
       mLineageIdGenerator.fromJournalEntry((LineageIdGeneratorEntry) entry);
     } else if (entry instanceof AsyncCompleteFileEntry) {
       asyncCompleteFileFromEntry((AsyncCompleteFileEntry) entry);
+    } else if (entry instanceof PersistFilesEntry) {
+      persistFilesFromEntry((PersistFilesEntry) entry);
+    } else if (entry instanceof RequestFilePersistenceEntry) {
+      requestFilePersistenceFromEntry((RequestFilePersistenceEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -244,7 +250,7 @@ public final class LineageMaster extends MasterBase {
   public LineageCommand lineageWorkerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException {
     // notify checkpoitn manager the persisted files
-    commitCheckpointFiles(workerId, persistedFiles);
+    persistFiles(workerId, persistedFiles);
 
     // get the files for the given worker to checkpoint
     List<CheckpointFile> filesToCheckpoint = null;
@@ -330,19 +336,34 @@ public final class LineageMaster extends MasterBase {
   }
 
   public synchronized void requestFilePersistence(List<Long> fileIds) {
+    LOG.info("Request file persistency: " + fileIds);
     for (long fileId : fileIds) {
       mLineageStore.requestFilePersistence(fileId);
     }
-    // TODO log
+    writeJournalEntry(new RequestFilePersistenceEntry(fileIds));
+    flushJournal();
   }
 
-  public synchronized void commitCheckpointFiles(long workerId, List<Long> persistedFiles) {
+  private synchronized void requestFilePersistenceFromEntry(RequestFilePersistenceEntry entry) {
+    for (long fileId : entry.getFileIds()) {
+      mLineageStore.requestFilePersistence(fileId);
+    }
+  }
+
+  public synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
     Preconditions.checkNotNull(persistedFiles);
 
     LOG.info("Files persisted on worker " + workerId + ":" + persistedFiles);
     for (Long fileId : persistedFiles) {
       mLineageStore.commitFilePersistence(fileId);
-      // update lineage
+    }
+    writeJournalEntry(new PersistFilesEntry(persistedFiles));
+    flushJournal();
+  }
+
+  private synchronized void persistFilesFromEntry(PersistFilesEntry entry) {
+    for (Long fileId : entry.getFileIds()) {
+      mLineageStore.commitFilePersistence(fileId);
     }
   }
 
