@@ -57,7 +57,6 @@ import tachyon.util.io.BufferUtils;
  * Integration tests for tachyon.worker.DataServer.
  */
 // let jenkins test again
-// let jenkins test again
 @RunWith(Parameterized.class)
 public class DataServerIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
