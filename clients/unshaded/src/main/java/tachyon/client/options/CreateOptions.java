@@ -22,6 +22,7 @@ public class CreateOptions {
   public static class Builder {
     private long mBlockSize;
     private boolean mRecursive;
+    private long mTTL;
 
     public Builder(TachyonConf conf) {
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
@@ -38,6 +39,11 @@ public class CreateOptions {
       return this;
     }
 
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
+      return this;
+    }
+
     public CreateOptions build() {
       return new CreateOptions(this);
     }
@@ -49,10 +55,12 @@ public class CreateOptions {
 
   private final long mBlockSize;
   private final boolean mRecursive;
+  private final long mTTL;
 
   private CreateOptions(CreateOptions.Builder builder) {
     mBlockSize = builder.mBlockSize;
     mRecursive = builder.mRecursive;
+    mTTL = builder.mTTL;
   }
 
   public long getBlockSize() {
@@ -62,4 +70,6 @@ public class CreateOptions {
   public boolean isRecursive() {
     return mRecursive;
   }
+
+  public long getTTL() { return mTTL; }
 }

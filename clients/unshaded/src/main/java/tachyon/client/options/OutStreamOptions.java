@@ -23,17 +23,27 @@ import tachyon.conf.TachyonConf;
 public class OutStreamOptions {
   public static class Builder {
     private long mBlockSize;
-    private TachyonStorageType mTachyonStorageType;
-    private UnderStorageType mUnderStorageType;
     private String mHostname;
+    private TachyonStorageType mTachyonStorageType;
+    private long mTTL;
+    private UnderStorageType mUnderStorageType;
 
     public Builder(TachyonConf conf) {
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mHostname = null;
       mTachyonStorageType =
           conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.class);
       mUnderStorageType =
           conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
-      mHostname = null;
+    }
+
+    /**
+     * @param blockSize the block size to use
+     * @return the builder
+     */
+    public Builder setBlockSize(long blockSize) {
+      mBlockSize = blockSize;
+      return this;
     }
 
     /**
@@ -63,12 +73,8 @@ public class OutStreamOptions {
       return this;
     }
 
-    /**
-     * @param blockSize the block size to use
-     * @return the builder
-     */
-    public Builder setBlockSize(long blockSize) {
-      mBlockSize = blockSize;
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
       return this;
     }
 
@@ -83,9 +89,10 @@ public class OutStreamOptions {
   }
 
   private final long mBlockSize;
+  private final String mHostname;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
-  private final String mHostname;
+  private final long mTTL;
 
   /**
    * @return the default <code>ClientOptions</code>
@@ -96,9 +103,10 @@ public class OutStreamOptions {
 
   private OutStreamOptions(OutStreamOptions.Builder builder) {
     mBlockSize = builder.mBlockSize;
-    mTachyonStorageType = builder.mTachyonStorageType;
-    mUnderStorageType = builder.mUnderStorageType;
     mHostname = builder.mHostname;
+    mTachyonStorageType = builder.mTachyonStorageType;
+    mTTL = builder.mTTL;
+    mUnderStorageType = builder.mUnderStorageType;
   }
 
   /**
@@ -109,11 +117,20 @@ public class OutStreamOptions {
   }
 
   /**
+   * @return the hostname
+   */
+  public String getHostname() {
+    return mHostname;
+  }
+
+  /**
    * @return the cache type
    */
   public TachyonStorageType getTachyonStorageType() {
     return mTachyonStorageType;
   }
+
+  public long getTTL() { return mTTL; }
 
   /**
    * @return the under storage type
@@ -122,12 +139,6 @@ public class OutStreamOptions {
     return mUnderStorageType;
   }
 
-  /**
-   * @return the hostname
-   */
-  public String getHostname() {
-    return mHostname;
-  }
 
   public InStreamOptions toInStreamOptions() {
     return new InStreamOptions.Builder(new TachyonConf())
