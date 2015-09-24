@@ -13,41 +13,64 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
-public final class DeleteOptions {
+public final class MkdirOptions {
   public static class Builder {
     private boolean mRecursive;
 
+    /**
+     * Creates a new builder for {@link MkdirOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
     public Builder(TachyonConf conf) {
       mRecursive = false;
     }
 
+
+    /**
+     * @param recursive the recursive flag value to use; it specifies whether parent directories
+     *        should be created if they do not already exist
+     * @return the builder
+     */
     public Builder setRecursive(boolean recursive) {
       mRecursive = recursive;
       return this;
     }
 
-    public DeleteOptions build() {
-      return new DeleteOptions(this);
+    /**
+     * Builds a new instance of {@code MkdirOptions}.
+     *
+     * @return a {@code MkdirOptions} instance
+     */
+    public MkdirOptions build() {
+      return new MkdirOptions(this);
     }
   }
 
-  public static DeleteOptions defaults() {
+  /**
+   * @return the default {@code MkdirOptions}
+   */
+  public static MkdirOptions defaults() {
     return new Builder(ClientContext.getConf()).build();
   }
 
   private final boolean mRecursive;
 
-  private DeleteOptions(DeleteOptions.Builder builder) {
+  private MkdirOptions(MkdirOptions.Builder builder) {
     mRecursive = builder.mRecursive;
   }
 
+  /**
+   * @return the recursive flag value; it specifies whether parent directories should be created if
+   *         they do not already exist
+   */
   public boolean isRecursive() {
     return mRecursive;
   }

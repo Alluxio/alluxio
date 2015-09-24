@@ -13,25 +13,38 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
 @PublicApi
-public final class GetInfoOptions {
+public final class OpenOptions {
   public static class Builder {
+    /**
+     * Creates a new builder for {@link OpenOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
     public Builder(TachyonConf conf) {}
 
-    public GetInfoOptions build() {
-      return new GetInfoOptions(this);
+    /**
+     * Builds a new instance of {@code OpenOptions}.
+     *
+     * @return a {@code OpenOptions} instance
+     */
+    public OpenOptions build() {
+      return new OpenOptions(this);
     }
   }
 
-  public static GetInfoOptions defaults() {
+  /**
+   * @return the default {@code OpenOptions}
+   */
+  public static OpenOptions defaults() {
     return new Builder(ClientContext.getConf()).build();
   }
 
-  private GetInfoOptions(GetInfoOptions.Builder builder) {}
+  private OpenOptions(OpenOptions.Builder builder) {}
 }

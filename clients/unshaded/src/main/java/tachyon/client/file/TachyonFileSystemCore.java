@@ -20,16 +20,16 @@ import java.util.List;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.options.CreateOptions;
-import tachyon.client.options.DeleteOptions;
-import tachyon.client.options.FreeOptions;
-import tachyon.client.options.GetInfoOptions;
-import tachyon.client.options.ListStatusOptions;
-import tachyon.client.options.LoadMetadataOptions;
-import tachyon.client.options.MkdirOptions;
-import tachyon.client.options.OpenOptions;
-import tachyon.client.options.RenameOptions;
-import tachyon.client.options.SetStateOptions;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.DeleteOptions;
+import tachyon.client.file.options.FreeOptions;
+import tachyon.client.file.options.GetInfoOptions;
+import tachyon.client.file.options.ListStatusOptions;
+import tachyon.client.file.options.LoadMetadataOptions;
+import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.OpenOptions;
+import tachyon.client.file.options.RenameOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 

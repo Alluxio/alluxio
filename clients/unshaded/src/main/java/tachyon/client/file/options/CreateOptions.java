@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
@@ -27,31 +27,59 @@ public final class CreateOptions {
     private boolean mRecursive;
     private long mTTL;
 
+    /**
+     * Creates a new builder for {@link CreateOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
     public Builder(TachyonConf conf) {
+      mTTL = 0;
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
       mRecursive = false;
     }
 
+    /**
+     * @param blockSize the block size to use
+     * @return the builder
+     */
     public Builder setBlockSize(long blockSize) {
       mBlockSize = blockSize;
       return this;
     }
 
+    /**
+     * @param recursive the recursive flag value to use; it specifies whether parent directories
+     *        should be created if they do not already exist
+     * @return the builder
+     */
     public Builder setRecursive(boolean recursive) {
       mRecursive = recursive;
       return this;
     }
 
+    /**
+     * @param ttl the TTL (time to live) value to use; it identifies duration (in seconds) the
+     *        created file should be kept around before it is automatically deleted
+     * @return the builder
+     */
     public Builder setTTL(long ttl) {
       mTTL = ttl;
       return this;
     }
 
+    /**
+     * Builds a new instance of {@code CreateOptions}.
+     *
+     * @return a {@code CreateOptions} instance
+     */
     public CreateOptions build() {
       return new CreateOptions(this);
     }
   }
 
+  /**
+   * @return the default {@code CreateOptions}
+   */
   public static CreateOptions defaults() {
     return new Builder(ClientContext.getConf()).build();
   }
@@ -66,14 +94,25 @@ public final class CreateOptions {
     mTTL = builder.mTTL;
   }
 
+  /**
+   * @return the block size
+   */
   public long getBlockSize() {
     return mBlockSize;
   }
 
+  /**
+   * @return the recursive flag value; it specifies whether parent directories should be created if
+   *         they do not already exist
+   */
   public boolean isRecursive() {
     return mRecursive;
   }
 
+  /**
+   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
+   *         should be kept around before it is automatically deleted
+   */
   public long getTTL() {
     return mTTL;
   }

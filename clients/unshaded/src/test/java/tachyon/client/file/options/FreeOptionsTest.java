@@ -13,25 +13,28 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
-import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
+import java.util.Random;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import tachyon.conf.TachyonConf;
 
-@PublicApi
-public final class OpenOptions {
-  public static class Builder {
-    public Builder(TachyonConf conf) {}
-
-    public OpenOptions build() {
-      return new OpenOptions(this);
-    }
+public class FreeOptionsTest {
+  @Test
+  public void builderTest() {
+    Random random = new Random();
+    boolean recursive = random.nextBoolean();
+    FreeOptions options =
+        new FreeOptions.Builder(new TachyonConf()).setRecursive(recursive).build();
+    Assert.assertEquals(recursive, options.isRecursive());
   }
 
-  public static OpenOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+  @Test
+  public void defaultsTest() {
+    FreeOptions options = FreeOptions.defaults();
+    Assert.assertEquals(false, options.isRecursive());
   }
-
-  private OpenOptions(OpenOptions.Builder builder) {}
 }

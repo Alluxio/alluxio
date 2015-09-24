@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
@@ -82,7 +82,8 @@ public final class OutStreamOptions {
     }
 
     /**
-     * @param ttl the TTL to use
+     * @param ttl the TTL (time to live) value to use; it identifies duration (in seconds) the
+     *        created file should be kept around before it is automatically deleted
      * @return the builder
      */
     public Builder setTTL(long ttl) {
@@ -91,9 +92,9 @@ public final class OutStreamOptions {
     }
 
     /**
-     * Builds a new instance of <code>OutStreamOptions</code>.
+     * Builds a new instance of {@code OutStreamOptions}.
      *
-     * @return a <code>OutStreamOptions</code> instance
+     * @return a {@code OutStreamOptions} instance
      */
     public OutStreamOptions build() {
       return new OutStreamOptions(this);
@@ -107,7 +108,7 @@ public final class OutStreamOptions {
   private final long mTTL;
 
   /**
-   * @return the default <code>OutStreamOptions</code>
+   * @return the default {@code OutStreamOptions}
    */
   public static OutStreamOptions defaults() {
     return new Builder(ClientContext.getConf()).build();
@@ -143,7 +144,8 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the TTL
+   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
+   *         should be kept around before it is automatically deleted
    */
   public long getTTL() {
     return mTTL;
