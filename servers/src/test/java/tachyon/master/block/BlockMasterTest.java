@@ -38,6 +38,7 @@ import tachyon.test.Tester;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.TachyonException;
 
 /**
  * Unit tests for tachyon.master.block.BlockMaster.
@@ -174,7 +175,7 @@ public class BlockMasterTest implements Tester<BlockMaster> {
   }
 
   private void addWorker(BlockMaster master, long workerId, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers) {
+      List<Long> usedBytesOnTiers) throws TachyonException {
     master.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
         Maps.<Long, List<Long>>newHashMap());
   }

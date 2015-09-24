@@ -1,2 +1,3 @@
+# Deprecated: please use conf/workers
 # A Tachyon Worker will be started on each of the machines listed below.
 localhost
