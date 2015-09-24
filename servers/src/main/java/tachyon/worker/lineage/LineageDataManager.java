@@ -18,6 +18,9 @@ package tachyon.worker.lineage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -60,16 +63,18 @@ public final class LineageDataManager {
    * @param filePath the destination path in the under file system.
    * @throws IOException
    */
-  public void persistFile(long fileId, List<Long> blockIds, String filePath) throws IOException {
+  public synchronized void persistFile(long fileId, List<Long> blockIds, String filePath)
+      throws IOException {
     UnderFileSystem underFs = UnderFileSystem.get(filePath, mTachyonConf);
-    OutputStream outputStream = underFs.create(filePath);
+    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
+    OutputStream outputStream = underFs.create(ufsDataFolder+"/test");
+    final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
-    for (long blockId : blockIds) {
+    for (long blockId : Lists.newArrayList(blockIds)) {
       long lockId;
       try {
         lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
       } catch (NotFoundException ioe) {
-        LOG.error("Failed to lock block: " + blockId, ioe);
         throw new IOException(ioe);
       }
 
@@ -86,8 +91,9 @@ public final class LineageDataManager {
         }
 
         // write content out
-        ByteBuffer buffer = reader.read(0, reader.getLength());
-        outputStream.write(buffer.array());
+        ReadableByteChannel inputChannel = reader.getChannel();
+        fastCopy(inputChannel, outputChannel);
+        reader.close();
       } finally {
         try {
           mBlockDataManager.unlockBlock(lockId);
@@ -97,18 +103,34 @@ public final class LineageDataManager {
       }
     }
 
+    outputStream.flush();
+    outputChannel.close();
     outputStream.close();
-    synchronized (mPersistedFiles) {
-      mPersistedFiles.add(fileId);
+    mPersistedFiles.add(fileId);
+  }
+
+
+  private static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
+      throws IOException {
+    final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
+
+    while (src.read(buffer) != -1) {
+      buffer.flip();
+      dest.write(buffer);
+      buffer.compact();
+    }
+
+    buffer.flip();
+
+    while (buffer.hasRemaining()) {
+      dest.write(buffer);
     }
   }
 
-  public List<Long> fetchPersistedFiles() {
+  public synchronized List<Long> fetchPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
-    synchronized (mPersistedFiles) {
-      toReturn.addAll(mPersistedFiles);
-      mPersistedFiles.clear();
-      return toReturn;
-    }
+    toReturn.addAll(mPersistedFiles);
+    mPersistedFiles.clear();
+    return toReturn;
   }
 }

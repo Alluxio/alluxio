@@ -249,7 +249,7 @@ public final class LineageMaster extends MasterBase {
    */
   public LineageCommand lineageWorkerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException {
-    // notify checkpoitn manager the persisted files
+    // notify checkpoint manager the persisted files
     persistFiles(workerId, persistedFiles);
 
     // get the files for the given worker to checkpoint
@@ -336,7 +336,9 @@ public final class LineageMaster extends MasterBase {
   }
 
   public synchronized void requestFilePersistence(List<Long> fileIds) {
-    LOG.info("Request file persistency: " + fileIds);
+    if (!fileIds.isEmpty()) {
+      LOG.info("Request file persistency: " + fileIds);
+    }
     for (long fileId : fileIds) {
       mLineageStore.requestFilePersistence(fileId);
     }
@@ -353,7 +355,9 @@ public final class LineageMaster extends MasterBase {
   public synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
     Preconditions.checkNotNull(persistedFiles);
 
-    LOG.info("Files persisted on worker " + workerId + ":" + persistedFiles);
+    if (!persistedFiles.isEmpty()) {
+      LOG.info("Files persisted on worker " + workerId + ":" + persistedFiles);
+    }
     for (Long fileId : persistedFiles) {
       mLineageStore.commitFilePersistence(fileId);
     }
