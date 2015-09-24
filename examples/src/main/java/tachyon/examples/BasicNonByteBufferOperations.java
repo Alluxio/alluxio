@@ -97,8 +97,9 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     ClientOptions clientOptions =
         new ClientOptions.Builder(ClientContext.getConf()).setTachyonStoreType(writeType).build();
     // If the file exists already, we will override it.
-    TachyonFile file = getOrCreate(tachyonFileSystem, filePath, deleteIfExists, clientOptions);
-    DataOutputStream os = new DataOutputStream(new FileOutStream(file.getFileId(), clientOptions));
+    FileOutStream fileOutStream =
+        getOrCreate(tachyonFileSystem, filePath, deleteIfExists, clientOptions);
+    DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
       os.writeInt(length);
       for (int i = 0; i < length; i ++) {
@@ -109,7 +110,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     }
   }
 
-  private TachyonFile getOrCreate(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
+  private FileOutStream getOrCreate(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
       boolean deleteIfExists, ClientOptions clientOptions) throws IOException, BlockInfoException,
           FileAlreadyExistException, InvalidPathException, FileDoesNotExistException {
     TachyonFile file;
@@ -121,15 +122,13 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     }
     if (file == null) {
       // file doesn't exist yet, so create it
-      long fileId = tachyonFileSystem.createEmptyFile(filePath, clientOptions);
-      file = new TachyonFile(fileId);
+      return tachyonFileSystem.getOutStream(filePath, clientOptions);
     } else if (deleteIfExists) {
       // file exists, so delete it and recreate
       tachyonFileSystem.delete(file);
-      long fileId = tachyonFileSystem.createEmptyFile(filePath, clientOptions);
-      file = new TachyonFile(fileId);
+      return tachyonFileSystem.getOutStream(filePath, clientOptions);
     }
-    return file;
+    return null;
   }
 
   private boolean read(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
