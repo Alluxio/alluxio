@@ -39,6 +39,7 @@ import tachyon.master.lineage.journal.LineageEntry;
 public final class LineageStore implements JournalCheckpointStreamable {
   private final LineageIdGenerator mLineageIdGenerator;
   private final DAG<Lineage> mLineageDAG;
+  /** Files being persisted */
 
   /** Indices for lineages */
   /** Index of the output files of lineage to lineage */
@@ -81,10 +82,11 @@ public final class LineageStore implements JournalCheckpointStreamable {
     mIdIndex.put(lineage.getId(), lineage);
   }
 
-  public synchronized void completeFileForAsyncWrite(long fileId, String underFsPath) {
+  public synchronized void completeFile(long fileId, String underFsPath) {
     Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
     Lineage lineage = mOutputFileIndex.get(fileId);
-    lineage.recordOutputFile(fileId);
+    lineage.updateOutputFileState(fileId, LineageFileState.COMPLETED);
+    lineage.setOutputFileUnderFsPath(fileId, underFsPath);
   }
 
   public synchronized void deleteLineage(long lineageId) {
@@ -103,6 +105,12 @@ public final class LineageStore implements JournalCheckpointStreamable {
     for (TachyonFile outputFile : toDelete.getOutputFiles()) {
       mOutputFileIndex.remove(outputFile);
     }
+  }
+
+  public synchronized void requestFilePersistence(long fileId) {
+    Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
+    Lineage lineage = mOutputFileIndex.get(fileId);
+    lineage.updateOutputFileState(fileId, LineageFileState.PERSISENCE_REQUESTED);
   }
 
   public synchronized Lineage getLineage(long lineageId) {
@@ -125,7 +133,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
 
   public synchronized Lineage reportLostFile(long fileId) {
     Lineage lineage = mOutputFileIndex.get(fileId);
-    lineage.addLostFile(fileId);
+    lineage.updateOutputFileState(fileId, LineageFileState.LOST);
     return lineage;
   }
 
@@ -136,9 +144,9 @@ public final class LineageStore implements JournalCheckpointStreamable {
     return mLineageDAG.getRoots();
   }
 
-  public synchronized void commitCheckpointFile(Long fileId) {
+  public synchronized void commitFilePersistence(Long fileId) {
     Lineage lineage = mOutputFileIndex.get(fileId);
-    lineage.commitOutputFile(fileId);
+    lineage.updateOutputFileState(fileId, LineageFileState.PERSISTED);
   }
 
   public synchronized List<Lineage> sortLineageTopologically(Set<Lineage> lineages) {

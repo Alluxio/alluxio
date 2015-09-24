@@ -238,6 +238,7 @@ public final class BlockWorker {
     mBlockDataManager.setWorkerId(workerId);
 
     // Setup the lineage worker
+    LOG.info("Started lineage worker at " + workerId);
     mLineageWorker = new LineageWorker(mBlockDataManager, workerId);
   }
 
@@ -269,10 +270,10 @@ public final class BlockWorker {
     // Start the session cleanup checker to perform the periodical checking
     mSyncExecutorService.submit(mSessionCleanerThread);
 
+    mLineageWorker.start();
+
     mWebServer.startWebServer();
     mThriftServer.serve();
-
-    mLineageWorker.start();
   }
 
   /**
@@ -281,10 +282,10 @@ public final class BlockWorker {
    * @throws IOException if the data server fails to close.
    */
   public void stop() throws IOException {
-    mLineageWorker.stop();
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
+    mLineageWorker.stop();
     mBlockMasterSync.stop();
     mPinListSync.stop();
     mSessionCleanerThread.stop();

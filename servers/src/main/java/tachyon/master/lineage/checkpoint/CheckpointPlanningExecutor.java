@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.conf.TachyonConf;
+import tachyon.master.lineage.LineageMaster;
 
 /**
  * Executes a checkpoint manager.
@@ -31,22 +32,22 @@ public final class CheckpointPlanningExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
-  private final CheckpointManager mCheckpointManager;
+  private final LineageMaster mLineageMaster;
   private final CheckpointScheduler mScheduler;
 
-  public CheckpointPlanningExecutor(TachyonConf conf, CheckpointManager checkpointManager) {
-    mCheckpointManager = Preconditions.checkNotNull(checkpointManager);
+  public CheckpointPlanningExecutor(TachyonConf conf, LineageMaster lineageMaster) {
+    mLineageMaster = Preconditions.checkNotNull(lineageMaster);
     mTachyonConf = Preconditions.checkNotNull(conf);
     mScheduler = CheckpointScheduler.Factory.createScheduler(mTachyonConf,
-        mCheckpointManager.getLineageStoreView());
+        mLineageMaster.getLineageStoreView());
   }
 
   @Override
   public void heartbeat() {
-    CheckpointPlan plan = mScheduler.schedule(mCheckpointManager.getLineageStoreView());
+    CheckpointPlan plan = mScheduler.schedule(mLineageMaster.getLineageStoreView());
     if (!plan.isEmtpy()) {
       LOG.info("Checkpoint scheduler created the plan: " + plan);
     }
-    mCheckpointManager.acceptPlan(plan);
+    mLineageMaster.waitForCheckpoint(plan);
   }
 }

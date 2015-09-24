@@ -85,6 +85,7 @@ public final class LineageWorker {
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
     }
+    mLineageMasterWorkerClient.close();
     mSyncExecutorService.shutdown();
   }
 }
