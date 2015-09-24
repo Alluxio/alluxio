@@ -40,7 +40,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
-import tachyon.exception.ExceptionMessage;
+import tachyon.client.file.TachyonFile;
+import tachyon.job.CommandLineJob;
+import tachyon.job.Job;
+import tachyon.job.JobConf;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -52,8 +55,14 @@ import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
+import tachyon.master.file.journal.ResizeBlockEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
+import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
+import tachyon.master.lineage.journal.LineageEntry;
+import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
+import tachyon.master.lineage.meta.LineageFile;
+import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 
@@ -342,6 +351,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("containerId"),
                 entry.getLong("sequenceNumber"));
           }
+          case RESIZE_BLOCK: {
+            return new ResizeBlockEntry(
+                entry.getString("path"),
+                entry.getLong("blockSizeBytes"));
+          }
 
           // RawTable
           case RAW_TABLE: {
@@ -354,6 +368,42 @@ public final class JsonJournalFormatter implements JournalFormatter {
             return new UpdateMetadataEntry(
                 entry.getLong("id"),
                 entry.getByteBuffer("metadata"));
+          }
+
+          // Lineage
+          case ASYNC_COMPLETE_FILE: {
+            return new AsyncCompleteFileEntry(
+                entry.getLong("fileId"),
+                entry.getString("underFsPath"));
+          }
+          case LINEAGE: {
+            List<TachyonFile> inputFiles = Lists.newArrayList();
+            for (long fileId : entry.get("inputFiles", new TypeReference<List<Long>>() {})) {
+              inputFiles.add(new TachyonFile(fileId));
+            }
+            List<LineageFile> outputFiles = Lists.newArrayList();
+            List<Long> outputFileIds =
+                entry.get("outputFileIds", new TypeReference<List<Long>>() {});
+            List<LineageFileState> outputFileStates =
+                entry.get("outputFileStates", new TypeReference<List<LineageFileState>>() {});
+            List<String> outputFileUnderFsPaths =
+                entry.get("outputFileUnderFsPaths", new TypeReference<List<String>>() {});
+            for (int i = 0; i < outputFileIds.size(); i ++) {
+              outputFiles.add(new LineageFile(outputFileIds.get(i), outputFileStates.get(i),
+                  outputFileUnderFsPaths.get(i)));
+            }
+            Job job = new CommandLineJob(entry.getString("jobCommand"),
+                new JobConf(entry.getString("jobOutputPath")));
+            return new LineageEntry(
+                entry.getLong("id"),
+                inputFiles,
+                outputFiles,
+                job,
+                entry.getLong("creationTimeMs"));
+          }
+          case LINEAGE_ID_GENERATOR: {
+            return new LineageIdGeneratorEntry(
+                entry.getLong("sequenceNumber"));
           }
           default:
             throw new IOException("Unknown journal entry type: " + entry.mType);

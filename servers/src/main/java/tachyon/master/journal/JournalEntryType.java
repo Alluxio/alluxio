@@ -44,7 +44,5 @@ public enum JournalEntryType {
   // Lineage master entries
   ASYNC_COMPLETE_FILE,
   LINEAGE,
-  LINEAGE_FILE,
   LINEAGE_ID_GENERATOR,
-  JOB,
 }
