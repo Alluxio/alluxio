@@ -31,10 +31,11 @@ public class InodeFileEntry extends InodeEntry {
   private final boolean mIsCache;
   private final String mUfsPath;
   private final List<Long> mBlocks;
+  private final long mTTL;
 
   public InodeFileEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
       long lastModificationTimeMs, long blockSizeBytes, long length, boolean isComplete,
-      boolean isCache, String ufsPath, List<Long> blocks) {
+      boolean isCache, String ufsPath, List<Long> blocks, long ttl) {
     super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
@@ -42,11 +43,12 @@ public class InodeFileEntry extends InodeEntry {
     mIsCache = isCache;
     mUfsPath = ufsPath;
     mBlocks = Preconditions.checkNotNull(blocks);
+    mTTL = ttl;
   }
 
   public InodeFile toInodeFile() {
     InodeFile inode = new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
-        mCreationTimeMs);
+        mCreationTimeMs, mTTL);
 
     // Set flags.
     if (mIsComplete) {
@@ -77,6 +79,7 @@ public class InodeFileEntry extends InodeEntry {
     parameters.put("isCacheable", mIsCache);
     parameters.put("ufsPath", mUfsPath);
     parameters.put("blocks", mBlocks);
+    parameters.put("ttl", mTTL);
     return parameters;
   }
 }

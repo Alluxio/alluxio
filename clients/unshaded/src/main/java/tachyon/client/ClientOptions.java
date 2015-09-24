@@ -17,7 +17,6 @@ package tachyon.client;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.NetAddress;
 
 /**
  * Represents the set of operation specific configuration options a user can pass into a Tachyon
@@ -35,8 +34,11 @@ public final class ClientOptions {
     private TachyonStorageType mTachyonStorageType;
     /** How this operation should interact with the under storage */
     private UnderStorageType mUnderStorageType;
-    /** Worker location to execute this operation, if not possible, the operation will fail */
-    private NetAddress mLocation;
+    /** Worker location to write data, if not possible, the operation will fail */
+    private String mHostname;
+    /** TTL value for a file in seconds, and the file will be auto-deleted
+     after TTL seconds expired. */
+    private long mTTL;
 
     /**
      * @param conf Tachyon configuration
@@ -47,15 +49,17 @@ public final class ClientOptions {
           conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.class);
       mUnderStorageType =
           conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
-      mLocation = null;
+      mHostname = null;
+      mTTL = Constants.NO_TTL;
     }
 
     /**
-     * @param location the location to use
+     * @param hostname the hostname to use
      * @return the builder
      */
-    public Builder setLocation(NetAddress location) {
-      throw new UnsupportedOperationException("Set location is currently unsupported.");
+    public Builder setLocation(String hostname) {
+      mHostname = hostname;
+      return this;
     }
 
     /**
@@ -74,7 +78,7 @@ public final class ClientOptions {
      * @param tachyonStorageType the Tachyon storage type to use
      * @return the builder
      */
-    public Builder setTachyonStoreType(TachyonStorageType tachyonStorageType) {
+    public Builder setTachyonStorageType(TachyonStorageType tachyonStorageType) {
       mTachyonStorageType = tachyonStorageType;
       return this;
     }
@@ -98,6 +102,15 @@ public final class ClientOptions {
     }
 
     /**
+     * @param ttl time to live in seconds
+     * @return the builder
+     */
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
+      return this;
+    }
+
+    /**
      * Builds a new instance of <code>ClientOptions</code>
      *
      * @return a <code>ClientOptions</code> instance
@@ -110,7 +123,8 @@ public final class ClientOptions {
   private final long mBlockSize;
   private final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
-  private final NetAddress mLocation;
+  private final String mHostname;
+  private final long mTTL;
 
   /**
    * @return the default <code>ClientOptions</code>
@@ -123,7 +137,8 @@ public final class ClientOptions {
     mBlockSize = builder.mBlockSize;
     mTachyonStorageType = builder.mTachyonStorageType;
     mUnderStorageType = builder.mUnderStorageType;
-    mLocation = builder.mLocation;
+    mHostname = builder.mHostname;
+    mTTL = builder.mTTL;
   }
 
   /**
@@ -148,9 +163,16 @@ public final class ClientOptions {
   }
 
   /**
-   * @return the location
+   * @return the hostname
    */
-  public NetAddress getLocation() {
-    return mLocation;
+  public String getHostname() {
+    return mHostname;
+  }
+
+  /**
+   * @return the ttl
+   */
+  public long getTTL() {
+    return mTTL;
   }
 }

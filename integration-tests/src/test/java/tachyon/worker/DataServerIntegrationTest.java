@@ -29,6 +29,7 @@ import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -56,6 +57,7 @@ import tachyon.util.io.BufferUtils;
  * Integration tests for tachyon.worker.DataServer.
  */
 @RunWith(Parameterized.class)
+@Ignore("TACHYON-1050")
 public class DataServerIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
@@ -103,9 +105,6 @@ public class DataServerIntegrationTest {
   public final void after() throws Exception {
     mBlockMasterClient.close();
     mLocalTachyonCluster.stop();
-    System.clearProperty(Constants.WORKER_DATA_SERVER);
-    System.clearProperty(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE);
-    System.clearProperty(Constants.USER_REMOTE_BLOCK_READER);
   }
 
   /**
@@ -138,16 +137,16 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = WorkerContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+    tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
+    tachyonConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    tachyonConf.set(Constants.USER_REMOTE_BLOCK_READER, mBlockReader);
 
-    System.setProperty(Constants.WORKER_DATA_SERVER, mDataServerClass);
-    System.setProperty(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    System.setProperty(Constants.USER_REMOTE_BLOCK_READER, mBlockReader);
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
+    mLocalTachyonCluster.start();
 
-    mLocalTachyonCluster.start(tachyonConf);
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mTFS = mLocalTachyonCluster.getClient();
 
