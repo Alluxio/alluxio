@@ -61,6 +61,8 @@ import tachyon.master.file.meta.DependencyType;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
+import tachyon.master.lineage.journal.PersistFilesEntry;
+import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.master.rawtable.journal.RawTableEntry;
@@ -376,6 +378,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("fileId"),
                 entry.getString("underFsPath"));
           }
+          case PERSIST_FILE: {
+            return new PersistFilesEntry(
+                entry.get("fileIds", new TypeReference<List<Long>>() {
+                }));
+          }
           case LINEAGE: {
             List<TachyonFile> inputFiles = Lists.newArrayList();
             for (long fileId : entry.get("inputFiles", new TypeReference<List<Long>>() {})) {
@@ -404,6 +411,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
           case LINEAGE_ID_GENERATOR: {
             return new LineageIdGeneratorEntry(
                 entry.getLong("sequenceNumber"));
+          }
+          case REQUEST_FILE_PERSISTENCE: {
+            return new RequestFilePersistenceEntry(
+                entry.get("fileIds", new TypeReference<List<Long>>() {
+                }));
           }
           default:
             throw new IOException("Unknown journal entry type: " + entry.mType);
