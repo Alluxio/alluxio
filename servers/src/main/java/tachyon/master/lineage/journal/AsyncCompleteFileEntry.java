@@ -17,7 +17,6 @@ package tachyon.master.lineage.journal;
 
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
 import tachyon.master.journal.JournalEntry;
@@ -29,7 +28,7 @@ public class AsyncCompleteFileEntry implements JournalEntry {
 
   public AsyncCompleteFileEntry(long fileId, String underFsPath) {
     mFileId = fileId;
-    mUnderFsPath = Preconditions.checkNotNull(underFsPath);
+    mUnderFsPath = underFsPath;
   }
 
   public long getFileId() {
