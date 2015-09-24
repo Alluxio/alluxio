@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.FileSystemMasterClient;
@@ -74,7 +75,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
-          masterClient.createFile(path.getPath(), options.getBlockSize(), options.isRecursive());
+          masterClient.createFile(path.getPath(), options.getBlockSize(), options.isRecursive(), options.getTTL());
       return fileId;
     } catch (BlockInfoException e) {
       throw new TachyonException(e.getMessage(), TachyonExceptionType.FILE_ALREADY_EXISTS);
@@ -157,7 +158,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
       TachyonException {
     CreateOptions createOptions =
         (new CreateOptions.Builder(new TachyonConf())).setBlockSize(options.getBlockSize())
-            .setRecursive(true).build();
+            .setRecursive(true).setTTL(options.getTTL()).build();
     long fileId = create(path, createOptions);
     return new FileOutStream(fileId, options);
   }
