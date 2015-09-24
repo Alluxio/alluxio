@@ -641,7 +641,8 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void lastModificationTimeRenameTest() throws InvalidPathException,
-      FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+      FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException,
+      IOException {
     mFsMaster.mkdirs(new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder")), true);
     long fileId =
         mFsMaster.createFile(
@@ -649,7 +650,8 @@ public class FileSystemMasterIntegrationTest {
             Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long opTimeMs = System.currentTimeMillis();
     mFsMaster.renameInternal(fileId,
-        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile2")), opTimeMs);
+        new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile2")), true,
+        opTimeMs);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint,
             "testFolder"))));

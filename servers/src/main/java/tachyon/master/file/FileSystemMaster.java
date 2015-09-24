@@ -580,7 +580,7 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       boolean ret = deleteFileInternal(fileId, recursive, true, opTimeMs);
-      writeJournalEntry(new DeleteFileEntry(fileId, recursive, true, opTimeMs));
+      writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
       flushJournal();
       return ret;
     }
@@ -589,7 +589,7 @@ public final class FileSystemMaster extends MasterBase {
   private void deleteFileFromEntry(DeleteFileEntry entry) {
     MasterContext.getMasterSource().incDeleteFileOps();
     try {
-      deleteFileInternal(entry.mFileId, entry.mRecursive, entry.mPropagate, entry.mOpTimeMs);
+      deleteFileInternal(entry.mFileId, entry.mRecursive, false, entry.mOpTimeMs);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -933,7 +933,7 @@ public final class FileSystemMaster extends MasterBase {
       if (srcPath.isRoot() || dstPath.isRoot()) {
         return false;
       }
-      // Renaming across mount table partitions is not allowed.
+      // Renaming across mount points is not allowed.
       TachyonURI srcPathMountPoint = mMountTable.getMountPoint(srcPath);
       TachyonURI dstPathMountPoint = mMountTable.getMountPoint(dstPath);
       if (!srcPathMountPoint.equals(dstPathMountPoint)) {
@@ -979,25 +979,7 @@ public final class FileSystemMaster extends MasterBase {
 
       // Now we remove srcInode from it's parent and insert it into dstPath's parent
       long opTimeMs = System.currentTimeMillis();
-      renameInternal(fileId, dstPath, opTimeMs);
-
-      // If the source file is persisted, rename it in the UFS.
-      FileInfo fileInfo = getFileInfoInternal(srcInode);
-      if (fileInfo.isPersisted) {
-        TachyonURI ufsSrcPath = mMountTable.resolve(srcPath);
-        TachyonURI ufsDstPath = mMountTable.resolve(dstPath);
-        UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath.getPath(), MasterContext.getConf());
-        String ufsParentPath = ufsDstPath.getParent().toString();
-        // TODO(jiri): Should we create the parent UFS directory?
-        if (!ufs.exists(ufsParentPath) && !ufs.mkdirs(ufsParentPath, true)) {
-          LOG.error("Failed to create " + ufsParentPath);
-          return false;
-        }
-        if (!ufs.rename(ufsSrcPath.getPath(), ufsDstPath.getPath())) {
-          LOG.error("Failed to rename " + ufsSrcPath + " to " + ufsDstPath);
-          return false;
-        }
-      }
+      renameInternal(fileId, dstPath, true, opTimeMs);
 
       writeJournalEntry(new RenameEntry(fileId, dstPath.getPath(), opTimeMs));
       flushJournal();
@@ -1008,8 +990,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   // This function should only be called from within synchronized (mInodeTree) blocks.
-  void renameInternal(long fileId, TachyonURI dstPath, long opTimeMs) throws InvalidPathException,
-      FileDoesNotExistException {
+  void renameInternal(long fileId, TachyonURI dstPath, boolean propagate, long opTimeMs)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     Inode srcInode = mInodeTree.getInodeById(fileId);
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
     TachyonURI dstParentURI = dstPath.getParent();
@@ -1021,12 +1003,29 @@ public final class FileSystemMaster extends MasterBase {
     ((InodeDirectory) dstParentInode).addChild(srcInode);
     dstParentInode.setLastModificationTimeMs(opTimeMs);
     MasterContext.getMasterSource().incFilesRenamed();
+
+    // If the source file is persisted, rename it in the UFS.
+    TachyonURI srcPath = mInodeTree.getPath(srcInode);
+    FileInfo fileInfo = getFileInfoInternal(srcInode);
+    if (propagate && fileInfo.isPersisted) {
+      TachyonURI ufsSrcPath = mMountTable.resolve(srcPath);
+      TachyonURI ufsDstPath = mMountTable.resolve(dstPath);
+      UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath.getPath(), MasterContext.getConf());
+      String ufsParentPath = ufsDstPath.getParent().toString();
+      // TODO(jiri): Should we create the parent UFS directory?
+      if (!ufs.exists(ufsParentPath) && !ufs.mkdirs(ufsParentPath, true)) {
+        LOG.error("Failed to create " + ufsParentPath);
+      }
+      if (!ufs.rename(ufsSrcPath.getPath(), ufsDstPath.getPath())) {
+        LOG.error("Failed to rename " + ufsSrcPath + " to " + ufsDstPath);
+      }
+    }
   }
 
   private void renameFromEntry(RenameEntry entry) {
     MasterContext.getMasterSource().incRenameOps();
     try {
-      renameInternal(entry.mFileId, new TachyonURI(entry.mDstPath), entry.mOpTimeMs);
+      renameInternal(entry.mFileId, new TachyonURI(entry.mDstPath), false, entry.mOpTimeMs);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -1230,7 +1229,7 @@ public final class FileSystemMaster extends MasterBase {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
         long opTimeMs = System.currentTimeMillis();
         deleteFileInternal(inode.getId(), true, true, opTimeMs);
-        writeJournalEntry(new DeleteFileEntry(inode.getId(), true, true, opTimeMs));
+        writeJournalEntry(new DeleteFileEntry(inode.getId(), true, opTimeMs));
         writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
         flushJournal();
         return true;
