@@ -256,11 +256,13 @@ public class TachyonMaster {
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      LOG.info("Stopping Tachyon Master @ " + mMasterAddress);
+      LOG.info("Stopping RPC server on Tachyon Master @ " + mMasterAddress);
       stopServing();
       stopMasters();
       mTServerSocket.close();
       mIsServing = false;
+    } else {
+      LOG.info("Stopping Tachyon Master @ " + mMasterAddress);
     }
   }
 
