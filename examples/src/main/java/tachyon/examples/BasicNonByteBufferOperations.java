@@ -95,7 +95,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
           throws IOException, BlockInfoException, FileDoesNotExistException, InvalidPathException,
           FileAlreadyExistException {
     ClientOptions clientOptions =
-        new ClientOptions.Builder(ClientContext.getConf()).setTachyonStoreType(writeType).build();
+        new ClientOptions.Builder(ClientContext.getConf()).setTachyonStorageType(writeType).build();
     // If the file exists already, we will override it.
     FileOutStream fileOutStream =
         getOrCreate(tachyonFileSystem, filePath, deleteIfExists, clientOptions);
@@ -128,6 +128,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       tachyonFileSystem.delete(file);
       return tachyonFileSystem.getOutStream(filePath, clientOptions);
     }
+    // file exists
     return null;
   }
 
@@ -135,7 +136,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       TachyonStorageType readType)
           throws IOException, InvalidPathException, FileDoesNotExistException {
     ClientOptions clientOptions =
-        new ClientOptions.Builder(ClientContext.getConf()).setTachyonStoreType(readType).build();
+        new ClientOptions.Builder(ClientContext.getConf()).setTachyonStorageType(readType).build();
     TachyonFile file = tachyonFileSystem.open(filePath);
     DataInputStream input = new DataInputStream(tachyonFileSystem.getInStream(file, clientOptions));
     boolean passes = true;
