@@ -164,7 +164,7 @@ public final class Lineage {
 
   public synchronized boolean isInCheckpointing() {
     for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getState() != LineageFileState.PERSISENCE_REQUESTED) {
+      if (outputFile.getState() == LineageFileState.PERSISENCE_REQUESTED) {
         return true;
       }
     }
@@ -183,5 +183,10 @@ public final class Lineage {
 
   public synchronized LineageEntry toJournalEntry() {
     return new LineageEntry(mId, mInputFiles, mOutputFiles, mJob, mCreationTimeMs);
+  }
+
+  @Override
+  public String toString() {
+    return generateLineageInfo().toString();
   }
 }
