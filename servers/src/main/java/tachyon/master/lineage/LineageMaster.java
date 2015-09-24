@@ -17,6 +17,8 @@ package tachyon.master.lineage;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -26,6 +28,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
@@ -40,21 +44,25 @@ import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.master.lineage.checkpoint.CheckpointManager;
+import tachyon.master.lineage.checkpoint.CheckpointPlan;
 import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
+import tachyon.master.lineage.meta.LineageFileState;
 import tachyon.master.lineage.meta.LineageIdGenerator;
 import tachyon.master.lineage.meta.LineageStore;
+import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputePlanner;
 import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
@@ -72,13 +80,15 @@ public final class LineageMaster extends MasterBase {
   private final TachyonConf mTachyonConf;
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
-  private final CheckpointManager mCheckpointManager;
   private final LineageIdGenerator mLineageIdGenerator;
 
   /** The service that checkpoints lineages. */
   private Future<?> mCheckpointExecutionService;
   /** The service that recomputes lineages. */
   private Future<?> mRecomputeExecutionService;
+
+  /** Map from worker to the files to checkpoint on that worker. Used by checkpoint service. */
+  private final Map<Long, Set<LineageFile>> mWorkerToCheckpointFile;
 
   /**
    * @param baseDirectory the base journal directory
@@ -96,7 +106,7 @@ public final class LineageMaster extends MasterBase {
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
-    mCheckpointManager = new CheckpointManager(mLineageStore, mFileSystemMaster);
+    mWorkerToCheckpointFile = Maps.newHashMap();
   }
 
   @Override
@@ -129,7 +139,7 @@ public final class LineageMaster extends MasterBase {
     if (isLeader) {
       mCheckpointExecutionService =
           getExecutorService().submit(new HeartbeatThread("Checkpoint planning service",
-              new CheckpointPlanningExecutor(mTachyonConf, mCheckpointManager),
+              new CheckpointPlanningExecutor(mTachyonConf, this),
               mTachyonConf.getInt(Constants.MASTER_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
           getExecutorService()
@@ -154,6 +164,10 @@ public final class LineageMaster extends MasterBase {
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     mLineageStore.streamToJournalCheckpoint(outputStream);
+  }
+
+  public LineageStoreView getLineageStoreView() {
+    return new LineageStoreView(mLineageStore);
   }
 
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
@@ -207,7 +221,7 @@ public final class LineageMaster extends MasterBase {
   public void asyncCompleteFile(long fileId, String underFsPath)
       throws FileDoesNotExistException, BlockInfoException {
     LOG.info("Asyn complete file " + fileId + " with under file system path " + underFsPath);
-    mLineageStore.completeFileForAsyncWrite(fileId, underFsPath);
+    mLineageStore.completeFile(fileId, underFsPath);
     // complete file in Tachyon.
     mFileSystemMaster.completeFile(fileId);
     writeJournalEntry(new AsyncCompleteFileEntry(fileId, underFsPath));
@@ -215,7 +229,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   private void asyncCompleteFileFromEntry(AsyncCompleteFileEntry entry) {
-    mLineageStore.completeFileForAsyncWrite(entry.getFileId(), entry.getUnderFsPath());
+    mLineageStore.completeFile(entry.getFileId(), entry.getUnderFsPath());
   }
 
   /**
@@ -230,12 +244,14 @@ public final class LineageMaster extends MasterBase {
   public LineageCommand lineageWorkerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException {
     // notify checkpoitn manager the persisted files
-    mCheckpointManager.commitCheckpointFiles(workerId, persistedFiles);
+    commitCheckpointFiles(workerId, persistedFiles);
 
     // get the files for the given worker to checkpoint
     List<CheckpointFile> filesToCheckpoint = null;
-    filesToCheckpoint = mCheckpointManager.getFilesToCheckpoint(workerId);
-    LOG.info("Sent files " + filesToCheckpoint + " to worker " + workerId + " to persist");
+    filesToCheckpoint = pollToCheckpoint(workerId);
+    if (!filesToCheckpoint.isEmpty()) {
+      LOG.info("Sent files " + filesToCheckpoint + " to worker " + workerId + " to persist");
+    }
     return new LineageCommand(CommandType.Persist, filesToCheckpoint);
   }
 
@@ -258,5 +274,97 @@ public final class LineageMaster extends MasterBase {
     }
     LOG.info("List the lineage infos" + lineages);
     return lineages;
+  }
+
+  public synchronized void waitForCheckpoint(CheckpointPlan plan) {
+    for (long lineageId : plan.getLineagesToCheckpoint()) {
+      Lineage lineage = mLineageStore.getLineage(lineageId);
+      // register the lineage file to checkpoint
+      for (LineageFile file : lineage.getOutputFiles()) {
+        // find the worker
+        long workerId = findStoringWorker(file);
+        if (workerId == -1) {
+          // the file is not on any worker
+          continue;
+        }
+        if (!mWorkerToCheckpointFile.containsKey(workerId)) {
+          mWorkerToCheckpointFile.put(workerId, Sets.<LineageFile>newHashSet());
+        }
+        mWorkerToCheckpointFile.get(workerId).add(file);
+      }
+    }
+  }
+
+  /**
+   * Polls the files to send to the given worker for checkpoint
+   *
+   * @param workerId the worker id
+   * @return the list of files.
+   * @throws FileDoesNotExistException
+   */
+  public synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
+      throws FileDoesNotExistException {
+    List<CheckpointFile> files = Lists.newArrayList();
+    if (!mWorkerToCheckpointFile.containsKey(workerId)) {
+      return files;
+    }
+
+    List<Long> toRequestFilePersistence = Lists.newArrayList();
+    for (LineageFile file : mWorkerToCheckpointFile.get(workerId)) {
+      if (file.getState() == LineageFileState.COMPLETED) {
+        long fileId = file.getFileId();
+        toRequestFilePersistence.add(fileId);
+        List<Long> blockIds = Lists.newArrayList();
+        for (FileBlockInfo fileBlockInfo : mFileSystemMaster.getFileBlockInfoList(fileId)) {
+          blockIds.add(fileBlockInfo.blockInfo.blockId);
+        }
+        String underFsPath = file.getUnderFilePath();
+
+        CheckpointFile toCheckpoint = new CheckpointFile(fileId, blockIds, underFsPath);
+        files.add(toCheckpoint);
+      }
+    }
+
+    requestFilePersistence(toRequestFilePersistence);
+    return files;
+  }
+
+  public synchronized void requestFilePersistence(List<Long> fileIds) {
+    for (long fileId : fileIds) {
+      mLineageStore.requestFilePersistence(fileId);
+    }
+    // TODO log
+  }
+
+  public synchronized void commitCheckpointFiles(long workerId, List<Long> persistedFiles) {
+    Preconditions.checkNotNull(persistedFiles);
+
+    LOG.info("Files persisted on worker " + workerId + ":" + persistedFiles);
+    for (Long fileId : persistedFiles) {
+      mLineageStore.commitFilePersistence(fileId);
+      // update lineage
+    }
+  }
+
+  private long findStoringWorker(LineageFile file) {
+    List<Long> workers = Lists.newArrayList();
+    try {
+      for (FileBlockInfo fileBlockInfo : mFileSystemMaster.getFileBlockInfoList(file.getFileId())) {
+        for (BlockLocation blockLocation : fileBlockInfo.blockInfo.locations) {
+          workers.add(blockLocation.workerId);
+        }
+      }
+    } catch (FileDoesNotExistException e) {
+      // should not happen
+      throw new RuntimeException(e);
+    }
+
+    if (workers.size() == 0) {
+      LOG.info("the file " + file + " is not on any worker");
+      return -1;
+    }
+    Preconditions.checkState(workers.size() < 2,
+        "the file is stored at more than one worker: " + workers);
+    return workers.get(0);
   }
 }

@@ -75,7 +75,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     try {
       command = mMasterClient.workerLineageHeartbeat(mWorkerId, persistedFiles);
     } catch (IOException e) {
-      // TODO error handling
+      LOG.error("Failed to heartbeat to master", e);
     }
     Preconditions.checkState(command.mCommandType == CommandType.Persist);
 
@@ -105,9 +105,10 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     @Override
     public void run() {
       try {
+        LOG.info("persist file " + mFileId + " to " + mUnderFsPath);
         mLineageDataManager.persistFile(mFileId, mBlockIds, mUnderFsPath);
       } catch (IOException e) {
-        // TODO(yupeng) error handling
+        LOG.error("Failed to persist file " + mFileId + " at " + mUnderFsPath, e);
       }
     }
   }

@@ -62,13 +62,7 @@ public final class LineageDataManager {
    */
   public void persistFile(long fileId, List<Long> blockIds, String filePath) throws IOException {
     UnderFileSystem underFs = UnderFileSystem.get(filePath, mTachyonConf);
-    OutputStream outputStream;
-    try {
-      outputStream = underFs.create(filePath);
-    } catch (IOException e) {
-      // TODO error handling
-      return;
-    }
+    OutputStream outputStream = underFs.create(filePath);
 
     for (long blockId : blockIds) {
       long lockId;
@@ -76,8 +70,7 @@ public final class LineageDataManager {
         lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
       } catch (NotFoundException ioe) {
         LOG.error("Failed to lock block: " + blockId, ioe);
-        // TODO error handling
-        return;
+        throw new IOException(ioe);
       }
 
       // obtain block reader

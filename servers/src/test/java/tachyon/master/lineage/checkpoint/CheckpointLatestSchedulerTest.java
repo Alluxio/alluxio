@@ -33,13 +33,13 @@ import tachyon.master.lineage.meta.LineageStoreView;
 public final class CheckpointLatestSchedulerTest {
   private LineageStore mLineageStore;
   private Job mJob;
-  private CheckpointLatestScheduler scheduler;
+  private CheckpointLatestScheduler mScheduler;
 
   @Before
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
-    scheduler = new CheckpointLatestScheduler(new LineageStoreView(mLineageStore));
+    mScheduler = new CheckpointLatestScheduler(new LineageStoreView(mLineageStore));
   }
 
   @Test
@@ -49,14 +49,14 @@ public final class CheckpointLatestSchedulerTest {
     long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
         Lists.newArrayList(new LineageFile(2)), mJob);
     // complete first
-    mLineageStore.completeFileForAsyncWrite(1, "test1");
+    mLineageStore.completeFile(1, "test1");
 
-    CheckpointPlan plan = scheduler.schedule(new LineageStoreView(mLineageStore));
-    Assert.assertEquals(l1, plan.getLineagesToCheckpoint().get(0).getId());
+    CheckpointPlan plan = mScheduler.schedule(new LineageStoreView(mLineageStore));
+    Assert.assertEquals((Long) l1, plan.getLineagesToCheckpoint().get(0));
 
     // complete second
-    mLineageStore.completeFileForAsyncWrite(2, "test2");
-    plan = scheduler.schedule(new LineageStoreView(mLineageStore));
-    Assert.assertEquals(l2, plan.getLineagesToCheckpoint().get(0).getId());
+    mLineageStore.completeFile(2, "test2");
+    plan = mScheduler.schedule(new LineageStoreView(mLineageStore));
+    Assert.assertEquals((Long) l2, plan.getLineagesToCheckpoint().get(0));
   }
 }

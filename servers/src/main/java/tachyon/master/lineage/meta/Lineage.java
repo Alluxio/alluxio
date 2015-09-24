@@ -111,18 +111,18 @@ public final class Lineage {
     return mCreationTimeMs;
   }
 
-  public synchronized void recordOutputFile(long fileId) {
+  public synchronized void setOutputFileUnderFsPath(long fileId, String underFsPath) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
-        outputFile.setState(LineageFileState.COMPLETED);
+        outputFile.setUnderFilePath(underFsPath);
       }
     }
   }
 
-  public synchronized void addLostFile(long fileId) {
+  public synchronized void updateOutputFileState(long fileId, LineageFileState newState) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
-        outputFile.setState(LineageFileState.LOST);
+        outputFile.setState(newState);
       }
     }
   }
@@ -143,14 +143,6 @@ public final class Lineage {
       }
     }
     return true;
-  }
-
-  public synchronized void commitOutputFile(long fileId) {
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getFileId() == fileId) {
-        outputFile.setState(LineageFileState.PERSISTED);
-      }
-    }
   }
 
   public synchronized boolean isPersisted() {

@@ -48,7 +48,7 @@ public final class CheckpointLatestScheduler implements CheckpointScheduler {
       }
     }
 
-    return toCheckpoint == null ? new CheckpointPlan(Lists.<Lineage>newArrayList())
-        : new CheckpointPlan(Lists.newArrayList(toCheckpoint));
+    return toCheckpoint == null ? new CheckpointPlan(Lists.<Long>newArrayList())
+        : new CheckpointPlan(Lists.newArrayList(toCheckpoint.getId()));
   }
 }

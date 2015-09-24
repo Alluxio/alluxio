@@ -95,7 +95,7 @@ public class LineageEntry implements JournalEntry {
     parameters.put("inputFiles", mInputFiles);
     parameters.put("outputFileIds", mOutputFileIds);
     parameters.put("outputFileStates", mOutputFileStates);
-    parameters.put("outputFileUnderFsPaths", mOutputFileStates);
+    parameters.put("outputFileUnderFsPaths", mOutputFileUnderFsPaths);
     parameters.put("jobCommand", mJobCommand);
     parameters.put("jobOutputPath", mJobOutputPath);
     parameters.put("creationTimeMs", mCreationTimeMs);

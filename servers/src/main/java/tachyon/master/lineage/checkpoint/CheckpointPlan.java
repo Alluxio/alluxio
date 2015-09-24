@@ -20,24 +20,22 @@ import java.util.List;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
-import tachyon.master.lineage.meta.Lineage;
-
 /**
  * A plan for checkpointing lineage. It essentially contains a list of lineages to checkpoint in
  * order.
  */
 public final class CheckpointPlan {
-  /** A list of lineages to checkpoint */
-  private final List<Lineage> mToCheckPoint;
+  /** A list of lineage ids to checkpoint */
+  private final List<Long> mToCheckPoint;
 
-  public CheckpointPlan(List<Lineage> toCheckPoint) {
+  public CheckpointPlan(List<Long> toCheckPoint) {
     mToCheckPoint = Preconditions.checkNotNull(toCheckPoint);
   }
 
   /**
    * @return a list of lineages to check point in sequence.
    */
-  public List<Lineage> getLineagesToCheckpoint() {
+  public List<Long> getLineagesToCheckpoint() {
     return mToCheckPoint;
   }
 
