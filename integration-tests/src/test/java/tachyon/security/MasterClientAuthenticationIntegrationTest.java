@@ -57,15 +57,15 @@ public class MasterClientAuthenticationIntegrationTest {
 
   @After
   public void after() throws Exception {
-    System.clearProperty(Constants.TACHYON_SECURITY_AUTHENTICATION);
-    System.clearProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS);
-    System.clearProperty(Constants.TACHYON_SECURITY_USERNAME);
+    System.clearProperty(Constants.SECURITY_AUTHENTICATION_TYPE);
+    System.clearProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
   }
 
   @Test
   public void noAuthenticationOpenCloseTest() throws Exception {
     // no authentication configure
-    System.setProperty(Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.NOSASL.getAuthName());
+    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     // start cluster
     mLocalTachyonCluster.start();
 
@@ -78,7 +78,7 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     // simple authentication configure
-    System.setProperty(Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.SIMPLE.getAuthName());
+    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     // start cluster
     mLocalTachyonCluster.start();
 
@@ -91,16 +91,16 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void customAuthenticationOpenCloseTest() throws Exception {
     // custom authentication configure
-    System.setProperty(Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.CUSTOM.getAuthName());
+    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+    System.setProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
 
     /**
      * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
      * Tachyon Master.
      */
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
 
     // start cluster
     mLocalTachyonCluster.start();
@@ -114,22 +114,22 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void customAuthenticationDenyConnectTest() throws Exception {
     // custom authentication configure
-    System.setProperty(Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.CUSTOM.getAuthName());
+    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    System.setProperty(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+    System.setProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
     /**
      * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
      * Tachyon Master.
      */
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon");
     // start cluster
     mLocalTachyonCluster.start();
 
     // Using no-tachyon as loginUser to connect to Master, the IOException will be thrown
     clearLoginUser();
     mThrown.expect(IOException.class);
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "no-tachyon");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
             mLocalTachyonCluster.getMasterTachyonConf());
@@ -167,7 +167,7 @@ public class MasterClientAuthenticationIntegrationTest {
   @Test
   public void kerberosAuthenticationNotSupportTest() throws Exception {
     // kerberos authentication configure
-    System.setProperty(Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.KERBEROS.getAuthName());
+    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.KERBEROS.getAuthName());
     // Currently the kerberos authentication doesn't support
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("Kerberos is not supported currently");

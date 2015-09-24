@@ -48,7 +48,7 @@ public final class AuthenticationUtils {
   public static TTransportFactory getServerTransportFactory(TachyonConf tachyonConf)
       throws SaslException {
     AuthType authType =
-        tachyonConf.getEnum(Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.class);
+        tachyonConf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     switch (authType) {
       case NOSASL:
         return new TFramedTransport.Factory();
@@ -79,7 +79,7 @@ public final class AuthenticationUtils {
   public static TTransport getClientTransport(TachyonConf tachyonConf,
       InetSocketAddress serverAddress) throws IOException {
     AuthType authType =
-        tachyonConf.getEnum(Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.class);
+        tachyonConf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     TTransport tTransport = AuthenticationUtils.createTSocket(serverAddress);
     switch (authType) {
       case NOSASL:

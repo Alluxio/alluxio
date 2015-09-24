@@ -40,7 +40,7 @@ public class PlainServerCallbackHandlerTest {
   @Before
   public void before() throws Exception {
     mConf = new TachyonConf();
-    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
+    mConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServer.PlainServerCallbackHandler(
         AuthenticationProvider.Factory.getAuthenticationProvider(AuthType.CUSTOM, mConf));

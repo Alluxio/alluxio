@@ -303,11 +303,11 @@ public final class Constants {
 
   // TODO(binfan): explaine the following three properties in the configuration page in docs/
   /** Security */
-  public static final String TACHYON_SECURITY_USERNAME = "tachyon.security.username";
+  public static final String SECURITY_LOGIN_USERNAME = "tachyon.security.login.username";
   // Authentication
-  public static final String TACHYON_SECURITY_AUTHENTICATION = "tachyon.security.authentication";
-  public static final String TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS =
-      "tachyon.authentication.provider.custom.class";
+  public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
+  public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
+      "tachyon.security.authentication.custom.provider.class";
 
   private Constants() {} // prevent instantiation
 }

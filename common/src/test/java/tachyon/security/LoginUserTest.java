@@ -49,7 +49,7 @@ public final class LoginUserTest {
   @Test
   public void getSimpleLoginUserTest() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     User loginUser = LoginUser.get(conf);
 
@@ -65,10 +65,10 @@ public final class LoginUserTest {
   @Test
   public void getSimpleLoginUserProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
     //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon-user");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user");
 
     User loginUser = LoginUser.get(conf);
 
@@ -76,7 +76,7 @@ public final class LoginUserTest {
     Assert.assertEquals(loginUser.getName(), "tachyon-user");
 
     // clean up
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
   }
 
   /**
@@ -88,10 +88,10 @@ public final class LoginUserTest {
   @Test
   public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "SIMPLE");
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
     //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
 
     User loginUser = LoginUser.get(conf);
 
@@ -106,7 +106,7 @@ public final class LoginUserTest {
   @Test
   public void getCustomLoginUserTest() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
 
     User loginUser = LoginUser.get(conf);
 
@@ -122,10 +122,10 @@ public final class LoginUserTest {
   @Test
   public void getCustomLoginUserProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
     //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "tachyon-user");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "tachyon-user");
 
     User loginUser = LoginUser.get(conf);
 
@@ -133,7 +133,7 @@ public final class LoginUserTest {
     Assert.assertEquals(loginUser.getName(), "tachyon-user");
 
     // clean up
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
   }
 
   /**
@@ -145,10 +145,10 @@ public final class LoginUserTest {
   @Test
   public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "CUSTOM");
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM");
     //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
-    System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "");
+    System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "");
 
     User loginUser = LoginUser.get(conf);
 
@@ -167,7 +167,7 @@ public final class LoginUserTest {
     // TODO: add Kerberos in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TACHYON_SECURITY_AUTHENTICATION, "NOSASL");
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
 
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("User is not supported in NOSASL mode");
