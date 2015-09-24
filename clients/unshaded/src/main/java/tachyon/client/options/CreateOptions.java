@@ -16,9 +16,12 @@
 package tachyon.client.options;
 
 import tachyon.Constants;
+import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
-public class CreateOptions {
+@PublicApi
+public final class CreateOptions {
   public static class Builder {
     private long mBlockSize;
     private boolean mRecursive;
@@ -50,7 +53,7 @@ public class CreateOptions {
   }
 
   public static CreateOptions defaults() {
-    return new Builder(new TachyonConf()).build();
+    return new Builder(ClientContext.getConf()).build();
   }
 
   private final long mBlockSize;
@@ -71,5 +74,7 @@ public class CreateOptions {
     return mRecursive;
   }
 
-  public long getTTL() { return mTTL; }
+  public long getTTL() {
+    return mTTL;
+  }
 }
