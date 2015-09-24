@@ -331,7 +331,7 @@ public class JournalIntegrationTest {
     OutStreamOptions op = new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
     mTfs.getOutStream(file0Path, op).close();
     TachyonFile file0 = mTfs.open(file0Path);
-    mTfs.setState(folder, setUnpinned);
+    mTfs.setState(file0, setUnpinned);
 
     TachyonURI file1Path = new TachyonURI("/myFolder/file1");
     mTfs.getOutStream(file1Path, op).close();

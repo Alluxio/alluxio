@@ -36,6 +36,7 @@ import tachyon.client.options.MkdirOptions;
 import tachyon.client.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.thrift.FileAlreadyExistException;
@@ -106,12 +107,16 @@ public class TachyonFileSystemIntegrationTest {
     }
   }
 
-  @Test(expected = FileAlreadyExistException.class)
+  @Test
   public void createFileWithFileAlreadyExistExceptionTest() throws IOException, TachyonException {
     TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uri, sWriteBoth).close();
     Assert.assertNotNull(sTfs.getInfo(sTfs.open(uri)));
-    sTfs.getOutStream(uri, sWriteBoth);
+    try {
+      sTfs.getOutStream(uri, sWriteBoth);
+    } catch (TachyonException e) {
+      Assert.assertEquals(e.getType(), TachyonExceptionType.FILE_ALREADY_EXISTS);
+    }
   }
 
   // TODO(calvin): Validate the URI.
