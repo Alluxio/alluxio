@@ -55,7 +55,11 @@ public class CreateOptions {
     mRecursive = builder.mRecursive;
   }
 
-  public long getBlockSize() { return mBlockSize; }
+  public long getBlockSize() {
+    return mBlockSize;
+  }
 
-  public boolean isRecursive() { return mRecursive; }
+  public boolean isRecursive() {
+    return mRecursive;
+  }
 }

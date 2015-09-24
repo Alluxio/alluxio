@@ -28,7 +28,10 @@ import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.options.InStreamOptions;
+import tachyon.client.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -166,8 +169,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     FileInfo info = getUnCachedFileStatus();
     TachyonURI uri = new TachyonURI(info.getPath());
-    ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
+    InStreamOptions.Builder optionsBuilder = new InStreamOptions.Builder(mTachyonConf);
     if (readType.isCache()) {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
     } else {
@@ -175,9 +177,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
     try {
       return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
-    } catch (InvalidPathException e) {
-      throw new IOException(e.getMessage());
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
   }
@@ -259,7 +259,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     FileInfo info = getUnCachedFileStatus();
-    ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
+    OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
     optionsBuilder.setBlockSize(info.getBlockSizeBytes());
 
     if (writeType.isCache()) {

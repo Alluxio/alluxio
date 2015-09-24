@@ -31,7 +31,11 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.options.InStreamOptions;
+import tachyon.client.options.MkdirOptions;
+import tachyon.client.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.thrift.FileAlreadyExistException;
@@ -48,8 +52,8 @@ public class TachyonFileSystemIntegrationTest {
   private static String sHost = null;
   private static int sPort = -1;
   private static TachyonFileSystem sTfs = null;
-  private static ClientOptions sReadCache;
-  private static ClientOptions sWriteBoth;
+  private static InStreamOptions sReadCache;
+  private static OutStreamOptions sWriteBoth;
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
 
@@ -79,20 +83,21 @@ public class TachyonFileSystemIntegrationTest {
     sHost = sLocalTachyonCluster.getMasterHostname();
     sPort = sLocalTachyonCluster.getMasterPort();
     sWriteBoth =
-        new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
-            .setStorageTypes(TachyonStorageType.STORE, UnderStorageType.PERSIST).build();
+        new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
+            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
     sReadCache =
-        new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
+        new InStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE).build();
   }
 
   @Test
-  public void getRootTest() throws IOException, TException {
+  public void getRootTest() throws IOException, TachyonException {
     Assert.assertEquals(0, sTfs.getInfo(sTfs.open(new TachyonURI("/"))).getFileId());
   }
 
   @Test
-  public void createFileTest() throws IOException, TException {
+  public void createFileTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     for (int k = 1; k < 5; k ++) {
       TachyonURI uri = new TachyonURI(uniqPath + k);
@@ -102,7 +107,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test(expected = FileAlreadyExistException.class)
-  public void createFileWithFileAlreadyExistExceptionTest() throws IOException, TException {
+  public void createFileWithFileAlreadyExistExceptionTest() throws IOException, TachyonException {
     TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uri, sWriteBoth).close();
     Assert.assertNotNull(sTfs.getInfo(sTfs.open(uri)));
@@ -112,7 +117,7 @@ public class TachyonFileSystemIntegrationTest {
   // TODO(calvin): Validate the URI.
   @Ignore
   @Test
-  public void createFileWithInvalidPathExceptionTest() throws IOException, TException {
+  public void createFileWithInvalidPathExceptionTest() throws IOException, TachyonException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("URI must be absolute, unless it's empty.");
     sTfs.getOutStream(new TachyonURI("root/testFile1"), sWriteBoth);
@@ -121,7 +126,7 @@ public class TachyonFileSystemIntegrationTest {
   // TODO(calvin): Add Raw Table tests.
   // TODO(calvin): Check worker capacity?
   @Test
-  public void deleteFileTest() throws IOException, TException {
+  public void deleteFileTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
 
     for (int k = 0; k < 5; k ++) {
@@ -140,7 +145,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void getFileStatusTest() throws IOException, TException {
+  public void getFileStatusTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
@@ -152,16 +157,17 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void mkdirTest() throws IOException, TException {
+  public void mkdirTest() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
+    MkdirOptions options = new MkdirOptions.Builder(new TachyonConf()).setRecursive(true).build();
     for (int k = 0; k < 10; k ++) {
-      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), TachyonFileSystem.RECURSIVE));
-      Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), TachyonFileSystem.RECURSIVE));
+      Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
+      Assert.assertTrue(sTfs.mkdir(new TachyonURI(uniqPath + k), options));
     }
   }
 
   @Test
-  public void renameFileTest1() throws IOException, TException {
+  public void renameFileTest1() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonURI path1 = new TachyonURI(uniqPath + 1);
     sTfs.getOutStream(path1, sWriteBoth).close();
@@ -179,7 +185,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void renameFileTest2() throws IOException, TException {
+  public void renameFileTest2() throws IOException, TachyonException {
     TachyonURI uniqUri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uniqUri, sWriteBoth).close();
     TachyonFile f = sTfs.open(uniqUri);

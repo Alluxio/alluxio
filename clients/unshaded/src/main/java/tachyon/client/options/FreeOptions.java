@@ -45,5 +45,7 @@ public class FreeOptions {
     mRecursive = builder.mRecursive;
   }
 
-  public boolean isRecursive() { return mRecursive; }
+  public boolean isRecursive() {
+    return mRecursive;
+  }
 }
