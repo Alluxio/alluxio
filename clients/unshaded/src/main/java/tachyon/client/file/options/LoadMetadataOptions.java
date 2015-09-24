@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
@@ -24,20 +24,39 @@ public final class LoadMetadataOptions {
   public static class Builder {
     private boolean mRecursive;
 
+    /**
+     * Creates a new builder for {@link FreeOptions}.
+     *
+     * @param conf a Tachyon configuration
+     */
     public Builder(TachyonConf conf) {
       mRecursive = false;
     }
 
+    /**
+     * @param recursive the recursive flag value to use; if the object whose metadata is to be
+     *        loaded is a directory, the flag specifies whether metadata for the directory content
+     *        should be loaded as well
+     * @return the builder
+     */
     public Builder setRecursive(boolean recursive) {
       mRecursive = recursive;
       return this;
     }
 
+    /**
+     * Builds a new instance of {@code LoadMetadataOptions}.
+     *
+     * @return a {@code LoadMetadataOptions} instance
+     */
     public LoadMetadataOptions build() {
       return new LoadMetadataOptions(this);
     }
   }
 
+  /**
+   * @return the default {@code LoadMetadataOptions}
+   */
   public static LoadMetadataOptions defaults() {
     return new Builder(ClientContext.getConf()).build();
   }
@@ -48,6 +67,10 @@ public final class LoadMetadataOptions {
     mRecursive = builder.mRecursive;
   }
 
+  /**
+   * @return the recursive flag value; if the object whose metadata is to be loaded is a directory,
+   *         the flag specifies whether metadata for the directory content should be loaded as well
+   */
   public boolean isRecursive() {
     return mRecursive;
   }

@@ -31,15 +31,14 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.options.InStreamOptions;
-import tachyon.client.options.MkdirOptions;
-import tachyon.client.options.OutStreamOptions;
+import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.PathUtils;
 

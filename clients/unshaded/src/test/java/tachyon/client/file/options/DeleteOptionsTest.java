@@ -13,25 +13,28 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
-import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
+import java.util.Random;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import tachyon.conf.TachyonConf;
 
-@PublicApi
-public final class ListStatusOptions {
-  public static class Builder {
-    public Builder(TachyonConf conf) {}
-
-    public ListStatusOptions build() {
-      return new ListStatusOptions(this);
-    }
+public class DeleteOptionsTest {
+  @Test
+  public void builderTest() {
+    Random random = new Random();
+    boolean recursive = random.nextBoolean();
+    DeleteOptions options =
+        new DeleteOptions.Builder(new TachyonConf()).setRecursive(recursive).build();
+    Assert.assertEquals(recursive, options.isRecursive());
   }
 
-  public static ListStatusOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+  @Test
+  public void defaultsTest() {
+    DeleteOptions options = DeleteOptions.defaults();
+    Assert.assertEquals(false, options.isRecursive());
   }
-
-  private ListStatusOptions(ListStatusOptions.Builder builder) {}
 }

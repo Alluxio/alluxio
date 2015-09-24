@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
@@ -46,9 +46,9 @@ public final class InStreamOptions {
     }
 
     /**
-     * Builds a new instance of <code>InStreamOptions</code>.
+     * Builds a new instance of {@code InStreamOptions}.
      *
-     * @return a <code>InStreamOptions</code> instance
+     * @return a {@code InStreamOptions} instance
      */
     public InStreamOptions build() {
       return new InStreamOptions(this);
@@ -58,7 +58,7 @@ public final class InStreamOptions {
   private final TachyonStorageType mTachyonStorageType;
 
   /**
-   * @return the default <code>InStreamOptions</code>
+   * @return the default {@code InStreamOptions}
    */
   public static InStreamOptions defaults() {
     return new Builder(ClientContext.getConf()).build();

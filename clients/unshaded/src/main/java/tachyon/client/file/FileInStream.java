@@ -33,7 +33,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
-import tachyon.client.options.InStreamOptions;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.util.network.NetworkAddressUtils;

@@ -13,42 +13,20 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
-import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
+import org.junit.Test;
+
 import tachyon.conf.TachyonConf;
 
-@PublicApi
-public final class MkdirOptions {
-  public static class Builder {
-    private boolean mRecursive;
-
-    public Builder(TachyonConf conf) {
-      mRecursive = false;
-    }
-
-    public Builder setRecursive(boolean recursive) {
-      mRecursive = recursive;
-      return this;
-    }
-
-    public MkdirOptions build() {
-      return new MkdirOptions(this);
-    }
+public class RenameOptionsTest {
+  @Test
+  public void builderTest() {
+    new RenameOptions.Builder(new TachyonConf()).build();
   }
 
-  public static MkdirOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
-  }
-
-  private final boolean mRecursive;
-
-  private MkdirOptions(MkdirOptions.Builder builder) {
-    mRecursive = builder.mRecursive;
-  }
-
-  public boolean isRecursive() {
-    return mRecursive;
+  @Test
+  public void defaultsTest() {
+    OpenOptions options = OpenOptions.defaults();
   }
 }

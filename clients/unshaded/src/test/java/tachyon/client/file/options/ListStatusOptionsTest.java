@@ -13,25 +13,20 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
-import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
+import org.junit.Test;
+
 import tachyon.conf.TachyonConf;
 
-@PublicApi
-public final class RenameOptions {
-  public static class Builder {
-    public Builder(TachyonConf conf) {}
-
-    public RenameOptions build() {
-      return new RenameOptions(this);
-    }
+public class ListStatusOptionsTest {
+  @Test
+  public void builderTest() {
+    new ListStatusOptions.Builder(new TachyonConf()).build();
   }
 
-  public static RenameOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+  @Test
+  public void defaultsTest() {
+    ListStatusOptions options = ListStatusOptions.defaults();
   }
-
-  private RenameOptions(RenameOptions.Builder builder) {}
 }

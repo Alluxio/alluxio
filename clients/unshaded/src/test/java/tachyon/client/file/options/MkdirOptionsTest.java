@@ -13,40 +13,30 @@
  * the License.
  */
 
-package tachyon.client.options;
+package tachyon.client.file.options;
 
-import tachyon.client.ClientContext;
+import java.util.Random;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 import tachyon.conf.TachyonConf;
 
-public class SetStateOptions {
-  public static class Builder {
-    private Boolean mPinned;
+public class MkdirOptionsTest {
+  @Test
+  public void builderTest() {
+    Random random = new Random();
+    boolean recursive = random.nextBoolean();
 
-    public Builder(TachyonConf conf) {
-      mPinned = null;
-    }
+    MkdirOptions options =
+        new MkdirOptions.Builder(new TachyonConf()).setRecursive(recursive).build();
 
-    public Builder setPinned(boolean pinned) {
-      mPinned = pinned;
-      return this;
-    }
-
-    public SetStateOptions build() {
-      return new SetStateOptions(this);
-    }
+    Assert.assertEquals(recursive, options.isRecursive());
   }
 
-  public static SetStateOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
-  }
-
-  private final Boolean mPinned;
-
-  private SetStateOptions(SetStateOptions.Builder builder) {
-    mPinned = builder.mPinned;
-  }
-
-  public Boolean getPinned() {
-    return mPinned;
+  @Test
+  public void defaultsTest() {
+    MkdirOptions options = MkdirOptions.defaults();
+    Assert.assertEquals(false, options.isRecursive());
   }
 }
