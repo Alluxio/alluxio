@@ -95,7 +95,8 @@ public class FileOutStream extends OutputStream implements Cancelable {
       mUnderStorageFile = PathUtils.concatPath(sessionUnderStorageFolder, mFileId);
       UnderFileSystem underStorageClient =
           UnderFileSystem.get(mUnderStorageFile, ClientContext.getConf());
-      underStorageClient.mkdirs(sessionUnderStorageFolder, true);
+      boolean result = underStorageClient.mkdirs(sessionUnderStorageFolder, true);
+      LOG.info("created folder " + sessionUnderStorageFolder + " " + result);
       mUnderStorageOutputStream = null;
     } else {
       mWorkerClient = null;
