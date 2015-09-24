@@ -55,7 +55,7 @@ public final class AuthenticationUtils {
       case SIMPLE:
         // intended to fall through
       case CUSTOM:
-        return PlainSaslHelper.getPlainServerTransportFactory(authType, tachyonConf);
+        return PlainSaslUtils.getPlainServerTransportFactory(authType, tachyonConf);
       case KERBEROS:
         throw new UnsupportedOperationException("Kerberos is not supported currently.");
       default:
@@ -88,7 +88,7 @@ public final class AuthenticationUtils {
         // indent to fall through after case SIMPLE
       case CUSTOM:
         String username = LoginUser.get(tachyonConf).getName();
-        return PlainSaslHelper.getPlainClientTransport(username, "noPassword", tTransport);
+        return PlainSaslUtils.getPlainClientTransport(username, "noPassword", tTransport);
       case KERBEROS:
         throw new SaslException("Kerberos is not supported currently.");
       default:

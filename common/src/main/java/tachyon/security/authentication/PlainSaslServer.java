@@ -29,7 +29,7 @@ import javax.security.sasl.SaslServer;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.security.AuthorizedClientUser;
+import tachyon.security.User;
 
 /**
  * This class provides PLAIN SASL authentication.
@@ -54,6 +54,7 @@ public class PlainSaslServer implements SaslServer {
    * associated with the client connection thread for following action authorization usage.
    */
   private String mAuthorizationId;
+  /** Whether an authentication is complete or not */
   private boolean mCompleted;
   private CallbackHandler mHandler;
 
@@ -64,7 +65,7 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public String getMechanismName() {
-    return "PLAIN";
+    return PlainSaslServerProvider.MECHANISM;
   }
 
   @Override
@@ -207,6 +208,48 @@ public class PlainSaslServer implements SaslServer {
       if (ac != null) {
         ac.setAuthorized(true);
       }
+    }
+  }
+
+  /**
+   * An instance of this class represents a client user connecting to Tachyon service.
+   *
+   * It is maintained in a ThreadLocal variable based on the Thrift RPC mechanism.
+   * {@link org.apache.thrift.server.TThreadPoolServer} allocates a thread to serve a connection
+   * from client side and take back it when connection is closed. During the thread alive cycle,
+   * all the RPC happens in this thread. These RPC methods implemented in server side could
+   * get the client user by this class.
+   */
+  public static final class AuthorizedClientUser {
+
+    /**
+     * A ThreadLocal variable to maintain the client user along with a specific thread.
+     */
+    private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<User>();
+
+    /**
+     * Creates a {@link User} and sets it to the ThreadLocal variable.
+     *
+     * @param userName the name of the client user
+     */
+    public static void set(String userName) {
+      sUserThreadLocal.set(new User(userName));
+    }
+
+    /**
+     * Gets the {@link User} from the ThreadLocal variable.
+     *
+     * @return the client user
+     */
+    public static User get() {
+      return sUserThreadLocal.get();
+    }
+
+    /**
+     * Removes the {@link User} from the ThreadLocal variable.
+     */
+    public static void remove() {
+      sUserThreadLocal.remove();
     }
   }
 }

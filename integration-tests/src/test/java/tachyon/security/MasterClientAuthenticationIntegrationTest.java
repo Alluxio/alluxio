@@ -38,6 +38,8 @@ import tachyon.security.authentication.AuthenticationProvider;
 /**
  * Though its name indicates that it provides the tests for Tachyon authentication. This class is
  * likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
+ *
+ * TODO: add tests for {@link tachyon.master.LocalTachyonClusterMultiMaster} in fault tolerant mode
  */
 public class MasterClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -129,7 +131,7 @@ public class MasterClientAuthenticationIntegrationTest {
     mThrown.expect(IOException.class);
     System.setProperty(Constants.TACHYON_SECURITY_USERNAME, "no-tachyon");
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonCluster.getMasterAddress(), mExecutorService,
+        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
             mLocalTachyonCluster.getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
@@ -144,7 +146,7 @@ public class MasterClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonCluster.getMasterAddress(), mExecutorService,
+        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
             mLocalTachyonCluster.getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();

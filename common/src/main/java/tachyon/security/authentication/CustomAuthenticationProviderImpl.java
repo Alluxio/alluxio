@@ -17,39 +17,30 @@ package tachyon.security.authentication;
 
 import javax.security.sasl.AuthenticationException;
 
-import com.google.common.base.Strings;
-
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
 
 /**
  * An authentication provider implementation that allows {@link AuthenticationProvider} to be
  * customized at configuration time. This authentication provider is created if authentication type
- * specified in {@link TachyonConf} is {@link AuthType#CUSTOM CUSTOM}. It
- * requires the property {@code tachyon.authentication.provider.custom.class} to be set in
- * {@link TachyonConf Configuration} to determine which provider to load.
+ * specified in {@link TachyonConf} is {@link AuthType#CUSTOM CUSTOM}. It requires the property
+ * {@code tachyon.authentication.provider.custom.class} to be set in {@link TachyonConf
+ * Configuration} to determine which provider to load.
  */
 public class CustomAuthenticationProviderImpl implements AuthenticationProvider {
 
   private final AuthenticationProvider mCustomProvider;
 
-  public CustomAuthenticationProviderImpl(TachyonConf conf) {
-    String customProviderName = conf.get(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS);
-    if (Strings.isNullOrEmpty(customProviderName)) {
-      throw new RuntimeException(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS
-          + " didn't set");
-    }
-
+  public CustomAuthenticationProviderImpl(String providerName) {
     Class<?> customProviderClass;
     try {
-      customProviderClass = Class.forName(customProviderName);
+      customProviderClass = Class.forName(providerName);
       if (!AuthenticationProvider.class.isAssignableFrom(customProviderClass)) {
-        throw new RuntimeException(customProviderClass + " didn't implement "
-            + "interface AuthenticationProvider");
+        throw new RuntimeException(customProviderClass
+            + " didn't implement interface AuthenticationProvider");
       }
     } catch (ClassNotFoundException cfe) {
-      throw new RuntimeException(customProviderName + " not found");
+      throw new RuntimeException(providerName + " not found");
     }
 
     try {
