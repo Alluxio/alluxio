@@ -15,6 +15,8 @@
 
 package tachyon.master.block;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -60,6 +62,25 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mMaster = new BlockMaster(blockJournal);
     mMaster.grantAccess(BlockMasterTest.this); // initializes mPrivateAccess
+  }
+
+  @Test
+  public void removeBlocksTest() throws Exception {
+    mMaster.start(true);
+    long workerId = mMaster.getWorkerId(new NetAddress("test", 1, 2));
+    long worker2 = mMaster.getWorkerId(new NetAddress("test2", 1, 2));
+    List<Long> workerBlocks = Arrays.asList(1L, 2L, 3L);
+    HashMap<Long, List<Long>> noBlocksInTier = Maps.newHashMap();
+    HashMap<Long, List<Long>> workerBlocksInTier = Maps.newHashMap();
+    mMaster.workerRegister(workerId, Arrays.asList(100L), Arrays.asList(0L), noBlocksInTier);
+    mMaster.workerRegister(worker2, Arrays.asList(100L), Arrays.asList(0L), noBlocksInTier);
+    mMaster.commitBlock(workerId, 1L, 1, 1L, 1L);
+    mMaster.commitBlock(workerId, 2L, 1, 2L, 1L);
+    mMaster.commitBlock(workerId, 3L, 1, 3L, 1L);
+    mMaster.commitBlock(worker2, 1L, 1, 1L, 1L);
+    mMaster.commitBlock(worker2, 2L, 1, 2L, 1L);
+    mMaster.commitBlock(worker2, 3L, 1, 3L, 1L);
+    mMaster.removeBlocks(workerBlocks);
   }
 
   @Test
