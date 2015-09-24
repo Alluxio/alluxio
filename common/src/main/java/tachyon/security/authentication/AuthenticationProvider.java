@@ -36,11 +36,11 @@ public interface AuthenticationProvider {
           return new SimpleAuthenticationProviderImpl();
         case CUSTOM:
           Preconditions.checkState(conf
-              .containsKey(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS));
+              .containsKey(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER));
           String customProviderName =
-              conf.get(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS);
+              conf.get(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
           if (Strings.isNullOrEmpty(customProviderName)) {
-            throw new RuntimeException(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS
+            throw new RuntimeException(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER
                 + " didn't set");
           }
 

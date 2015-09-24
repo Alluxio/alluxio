@@ -31,7 +31,8 @@ public enum AuthType {
 
   /**
    * User is aware in Tachyon. Login user is OS user. The user is verified by Custom
-   * authentication provider (Use with property tachyon.authentication.provider.custom.class).
+   * authentication provider (Use with property tachyon.security.authentication.custom.provider
+   * .class).
    */
   CUSTOM("CUSTOM"),
 

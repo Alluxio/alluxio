@@ -27,7 +27,7 @@ import tachyon.security.User;
 
 /**
  * An app login module that creates a user based on the user name provided through application
- * configuration. Specifically, through Java system property tachyon.security.username.
+ * configuration. Specifically, through Java system property tachyon.security.login.username.
  * This module is useful if multiple Tachyon clients running under same OS user name
  * want to get different identifies (for resource and data management), or if Tachyon clients
  * running under different OS user names want to get same identify.
@@ -43,7 +43,7 @@ public final class AppLoginModule implements LoginModule {
   }
 
   /**
-   * Retrieve the user name by querying the property of Constants.TACHYON_SECURITY_USERNAME.
+   * Retrieve the user name by querying the property of Constants.SECURITY_LOGIN_USERNAME.
    *
    * @return true if user name provided by application is set and not empty.
    * @throws javax.security.auth.login.LoginException
@@ -52,7 +52,7 @@ public final class AppLoginModule implements LoginModule {
   public boolean login() throws LoginException {
     //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
     //instead of System.getProperty for retrieving user name.
-    String userName = System.getProperty(Constants.TACHYON_SECURITY_USERNAME, "");
+    String userName = System.getProperty(Constants.SECURITY_LOGIN_USERNAME, "");
     if (!userName.isEmpty()) {
       mUser = new User(userName);
       return true;
