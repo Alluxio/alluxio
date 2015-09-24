@@ -156,6 +156,7 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
     mMasterConf.set(Constants.MASTER_PORT, Integer.toString(0));
     mMasterConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
+    mMasterConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
 
     mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();

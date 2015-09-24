@@ -52,9 +52,9 @@ import tachyon.worker.WorkerContext;
 
 /**
  * Integration tests for <code>tachyon.client.FileOutStream</code>.
+ * TODO(binfan): Run tests with local writes enabled and disabled.
  */
-@RunWith(Parameterized.class)
-public class FileOutStreamIntegrationTest {
+public final class FileOutStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 32;
@@ -70,22 +70,6 @@ public class FileOutStreamIntegrationTest {
 
   private TachyonFileSystem mTfs = null;
   private TachyonConf mMasterTachyonConf;
-  // If true, clients will write directly to the local file.
-  private final boolean mEnableLocalWrite;
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    List<Object[]> list = new ArrayList<Object[]>();
-    // Enable local writes.
-    list.add(new Object[] {true});
-    // Disable local writes.
-    list.add(new Object[] {false});
-    return list;
-  }
-
-  public FileOutStreamIntegrationTest(boolean enableLocalWrite) {
-    mEnableLocalWrite = enableLocalWrite;
-  }
 
   @After
   public final void after() throws Exception {
@@ -96,7 +80,6 @@ public class FileOutStreamIntegrationTest {
   public final void before() throws Exception {
     TachyonConf tachyonConf = WorkerContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES));
-    tachyonConf.set(Constants.USER_ENABLE_LOCAL_WRITE, Boolean.toString(mEnableLocalWrite));
     // Only the Netty data server supports remote writes.
     tachyonConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
     sLocalTachyonCluster.start();

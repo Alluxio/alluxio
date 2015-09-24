@@ -39,6 +39,9 @@ TOTAL="$1"
 [[ "$TOTAL" -lt 2 ]] && error_exit "Machine number must be at least 2"
 shift
 
+TACHYON_MASTERS=$(grep Masters conf/tachyon.yml | cut -d':' -f 2 | tr -d ' ')
+[[ "$TOTAL" -lt "$TACHYON_MASTERS" ]] && error_exit "Total number of machines must be at least the same with Masters in conf/tachyon.yml"
+
 PROVIDER="$1"
 [[ "${PROVIDERS[*]}" =~ (^| )$PROVIDER( |$) ]] || error_exit "Provider $PROVIDER is not supported yet"
 shift
@@ -79,13 +82,21 @@ if [[ ! -f ./files/id_rsa ]]; then
   ssh-keygen -f ./files/id_rsa -t rsa -N '' &>/dev/null
 fi
 
-# files/workers
+# files/workers, order matters, 
+# when in Tachyon fault tolerant mode, the last one is often also chosen as Tachyon leader(not sure), 
+# when not in fault tolerant mode, the last one is Tachyon master,
+# currently, for other systems like HDFS, fault tolerant mode hasn't been enabled, the last one is the single master.
 rm -f files/workers
-for i in `seq 1 $((TOTAL-1))`; do
+for i in `seq 1 $((TOTAL-TACHYON_MASTERS))`; do
   echo "TachyonWorker${i}" >> files/workers
 done
-echo "TachyonMaster" >> files/workers
-
+for i in `seq $TACHYON_MASTERS 1`; do
+  if [[ "$i" == "1" ]]; then
+    echo "TachyonMaster" >> files/workers
+  else
+    echo "TachyonMaster$i" >> files/workers
+  fi
+done
 # create virtual machine without provisioning
 [[ "$PROVIDER" == "aws" ]] && sgid=$(python bin/init_aws.py | tail -n 1)
 # pass security group id to vagrant up
@@ -156,13 +167,27 @@ if [[ "$ALIAS_IP" == "true" ]]; then
 fi
 
 # show master IP
-if [[ "$?" == "0" ]]; then
-  if [[ "$PROVIDER" == "aws" ]]; then
-    master=$(cat $ANSIBLE_INFO_FILE | grep Master | cut -d' ' -f2 | cut -d'=' -f2)
-  else
-    master=$(tail -n 1 files/hosts | cut -d' ' -f1)
-  fi
-  info ">>> TachyonMaster public IP is ${master} <<<"
-  info ">>> Please visit default port of the web UI of what you deployed <<<"
-  info ">>> For Tachyon, the web UI is at http://${master}:19999 <<<"
+set +e # turn off the option that exits immediately when a command fails
+if [[ "$PROVIDER" == "aws" ]]; then
+  masters=$(cat $ANSIBLE_INFO_FILE | grep Master | cut -d' ' -f2 | cut -d'=' -f2)
+  main_master=$(cat $ANSIBLE_INFO_FILE | grep 'TachyonMaster ' | cut -d' ' -f2 | cut -d'=' -f2)
+else
+  masters=$(cat files/hosts | grep Master | cut -d' ' -f1)
+  main_master=$(cat files/hosts | grep 'TachyonMaster ' | cut -d' ' -f1)
 fi
+masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
+
+if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
+  info ">>> Tachyon is in Fault Tolerant mode, all Tachyon masters: <<<"
+fi
+for master in ${masters[@]}; do
+  info "Tachyon master: ${master}"
+  info "Trying to curl Tachyon web UI at ${master}:19999"
+  curl "${master}:19999" >/dev/null
+  if [[ "$?" == "0" ]]; then
+    info ">>> Tachyon master is currently ${master}, Tachyon web UI is at ${master}:19999 <<<"
+  fi
+done
+
+info ">>> Master public IP for other software is ${main_master} <<<"
+info ">>> Please visit default port of the web UI of what you deployed <<<"
