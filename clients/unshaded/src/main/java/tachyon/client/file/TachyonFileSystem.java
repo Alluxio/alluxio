@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientOptions;
@@ -60,7 +61,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Use getOutStream instead to create files.
    */
   @Override
-  public long create(TachyonURI path, long blockSize, boolean recursive) {
+  public long create(TachyonURI path, long blockSize, boolean recursive, long ttl) {
     throw new UnsupportedOperationException("Create is not supported, use getOutStream instead.");
   }
 
@@ -95,7 +96,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public long createEmptyFile(TachyonURI path, ClientOptions options) throws IOException,
       InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    long fileId = super.create(path, options.getBlockSize(), true);
+    long fileId = super.create(path, options.getBlockSize(), true, options.getTTL());
     new FileOutStream(fileId, options).close();
     return fileId;
   }
@@ -189,7 +190,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public FileOutStream getOutStream(TachyonURI path, ClientOptions options) throws IOException,
       InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    long fileId = super.create(path, options.getBlockSize(), true);
+    long fileId = super.create(path, options.getBlockSize(), true, options.getTTL());
     return new FileOutStream(fileId, options);
   }
 

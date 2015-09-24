@@ -1,7 +1,4 @@
 # Rsync local Tachyon repo(suppose it's under the relative path: playbook.yml/../../../)
-#
-# TODO(binfan): $TACHYON_HOME/journal is temporarily removed from the exclude lists, due to a naming collision
-# with java files in package tachyon.master.journal. Try to find a better way to exclude files.
 ---
 
 - name: mkdir /tachyon
@@ -12,17 +9,15 @@
     src: ../../../../../../
     dest: /tachyon
     rsync_opts: >
-      --exclude=.git,
       --exclude=.gitignore,
-      --exclude=clients/target,
-      --exclude=servers/target,
-      --exclude=integration-tests/target,
-      --exclude=integration/target,
-      --exclude=assembly/target,
-      --exclude=client/target,
-      --exclude=deploy,
-      --exclude=docs,
-      --exclude=logs,
-      --exclude=underFSStorage
+      --filter="- /*/target/",
+      --filter="- /.git/",
+      --filter="- /deploy/",
+      --filter="- /docs/",
+      --filter="- /journal/",
+      --filter="- /logs/",
+      --filter="- /target/",
+      --filter="- /underFSStorage/"
+
 
 # vim :set filetype=ansible.yaml:

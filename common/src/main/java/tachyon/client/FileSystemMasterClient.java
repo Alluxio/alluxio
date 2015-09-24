@@ -239,19 +239,20 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the file path
    * @param blockSizeBytes the file size
    * @param recursive whether parent directories should be created if not present yet
+   * @param ttl TTL for file expiration
    * @return the file id
    * @throws InvalidPathException if the given path is invalid
    * @throws BlockInfoException if the block index is invalid
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
+  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
       throws IOException, BlockInfoException, InvalidPathException, FileAlreadyExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createFile(path, blockSizeBytes, recursive);
+        return mClient.createFile(path, blockSizeBytes, recursive, ttl);
       } catch (BlockInfoException e) {
         throw e;
       } catch (InvalidPathException e) {
