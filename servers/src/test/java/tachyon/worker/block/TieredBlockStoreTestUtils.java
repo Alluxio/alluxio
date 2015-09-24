@@ -267,6 +267,20 @@ public class TieredBlockStoreTestUtils {
     }
   }
 
+  public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
+      BlockStoreLocation location) throws Exception {
+    TempBlockMeta tempBlockMeta =
+        blockStore.createBlockMeta(sessionId, blockId, location, bytes);
+    // write data
+    FileUtils.createFile(tempBlockMeta.getPath());
+    BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta);
+    writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
+    writer.close();
+    
+    // commit block
+    blockStore.commitBlock(sessionId, blockId);
+  }
+
   /**
    * Caches bytes into StorageDir.
    *
