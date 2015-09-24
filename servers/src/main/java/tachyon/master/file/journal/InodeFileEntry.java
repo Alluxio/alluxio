@@ -30,22 +30,24 @@ public class InodeFileEntry extends InodeEntry {
   private final boolean mCompleted;
   private final boolean mCacheable;
   private final List<Long> mBlocks;
+  private final long mTTL;
 
   public InodeFileEntry(long creationTimeMs, long id, String name, long parentId,
       boolean persisted, boolean pinned, long lastModificationTimeMs, long blockSizeBytes,
-      long length, boolean completed, boolean cacheable, List<Long> blocks) {
+      long length, boolean completed, boolean cacheable, List<Long> blocks, long ttl) {
     super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
     mCompleted = completed;
     mCacheable = cacheable;
     mBlocks = Preconditions.checkNotNull(blocks);
+    mTTL = ttl;
   }
 
   public InodeFile toInodeFile() {
     InodeFile inode =
         new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
-            mCreationTimeMs);
+            mCreationTimeMs, mTTL);
 
     // Set flags.
     if (mCompleted) {
@@ -75,6 +77,7 @@ public class InodeFileEntry extends InodeEntry {
     parameters.put("completed", mCompleted);
     parameters.put("cacheable", mCacheable);
     parameters.put("blocks", mBlocks);
+    parameters.put("ttl", mTTL);
     return parameters;
   }
 }

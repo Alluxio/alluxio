@@ -118,16 +118,16 @@ public class RemoteBlockInStreamIntegrationTest {
     mTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mTfs = mLocalTachyonCluster.getClient();
     mWriteTachyon =
-        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+        new ClientOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     mWriteUnderStore =
-        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+        new ClientOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
     mReadCache =
-        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+        new ClientOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .build();
     mReadNoCache =
-        new ClientOptions.Builder(mTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+        new ClientOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.NO_STORE)
             .build();
   }
 
