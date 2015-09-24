@@ -16,14 +16,11 @@
 package tachyon.client.file;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.options.CreateOptions;
 import tachyon.client.options.DeleteOptions;
@@ -36,11 +33,12 @@ import tachyon.client.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import tachyon.thrift.InvalidPathException;
 
 /**
  * A TachyonFileSystem implementation including convenience methods as well as a streaming API to
@@ -51,8 +49,6 @@ import org.slf4j.LoggerFactory;
  */
 @PublicApi
 public class TachyonFileSystem extends AbstractTachyonFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private static TachyonFileSystem sTachyonFileSystem;
 
   public static final boolean RECURSIVE = true;
@@ -69,14 +65,26 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   @Override
-  public long create(TachyonURI path) {
+  public long create(TachyonURI path) throws IOException, TachyonException {
     return create(path, CreateOptions.defaults());
   }
 
   @Override
-  public long create(TachyonURI path, CreateOptions options) {
-    throw new UnsupportedOperationException(
-        "create() is currently not supported, use getOutStream instead.");
+  public long create(TachyonURI path, CreateOptions options) throws IOException, TachyonException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      long fileId =
+          masterClient.createFile(path.getPath(), options.getBlockSize(), options.isRecursive());
+      return fileId;
+    } catch (BlockInfoException e) {
+      throw new TachyonException(e.getMessage(), TachyonExceptionType.FILE_ALREADY_EXISTS);
+    } catch (FileAlreadyExistException e) {
+      throw new TachyonException(e.getMessage(), TachyonExceptionType.FILE_ALREADY_EXISTS);
+    } catch (InvalidPathException e) {
+      throw new TachyonException(e.getMessage(), TachyonExceptionType.INVALID_PATH);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
   }
 
   @Override

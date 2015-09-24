@@ -16,6 +16,7 @@
 package tachyon.exception;
 
 public enum TachyonExceptionType {
+  BLOCK_INFO,
   DEPENDENCY_DOES_NOT_EXIST,
   FILE_DOES_NOT_EXIST,
   FILE_ALREADY_EXISTS,

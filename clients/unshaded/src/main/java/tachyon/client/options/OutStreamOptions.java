@@ -40,20 +40,8 @@ public class OutStreamOptions {
      * @param hostname the hostname to use
      * @return the builder
      */
-    public Builder setLocation(String hostname) {
+    public Builder setHostname(String hostname) {
       mHostname = hostname;
-      return this;
-    }
-
-    /**
-     * @param tachyonStorageType the Tachyon storage type to use
-     * @param underStorageType the under storage type to use
-     * @return the builder
-     */
-    public Builder setStorageTypes(TachyonStorageType tachyonStorageType, UnderStorageType
-        underStorageType) {
-      mTachyonStorageType = tachyonStorageType;
-      mUnderStorageType = underStorageType;
       return this;
     }
 
@@ -139,5 +127,10 @@ public class OutStreamOptions {
    */
   public String getHostname() {
     return mHostname;
+  }
+
+  public InStreamOptions toInStreamOptions() {
+    return new InStreamOptions.Builder(new TachyonConf())
+        .setTachyonStorageType(mTachyonStorageType).build();
   }
 }

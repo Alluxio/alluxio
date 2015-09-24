@@ -15,8 +15,9 @@
 
 package tachyon.client.options;
 
-import tachyon.conf.TachyonConf;
 import java.util.Optional;
+
+import tachyon.conf.TachyonConf;
 
 public class SetStateOptions {
   public static class Builder {
@@ -26,8 +27,8 @@ public class SetStateOptions {
       mPinned = Optional.of(false);
     }
 
-    public Builder setRecursive(boolean recursive) {
-      mPinned = Optional.of(recursive);
+    public Builder setPinned(boolean pinned) {
+      mPinned = Optional.of(pinned);
       return this;
     }
 
@@ -46,5 +47,7 @@ public class SetStateOptions {
     mPinned = Optional.of(builder.mPinned.get());
   }
 
-  public Optional<Boolean> getPinned() { return mPinned; }
+  public Optional<Boolean> getPinned() {
+    return mPinned;
+  }
 }
