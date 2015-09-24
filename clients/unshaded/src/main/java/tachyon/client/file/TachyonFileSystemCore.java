@@ -40,14 +40,15 @@ interface TachyonFileSystemCore {
    * @param path the path of the file to create in Tachyon space
    * @param blockSize the block size in bytes, must be greater than 0
    * @param recursive whether or not to create parent directories if required
+   * @param ttl time to live for file expiration
    * @return the file id that identifies the newly created file
    * @throws BlockInfoException if the block size is less than or equal to 0
    * @throws FileAlreadyExistException if the path already exists as a file in Tachyon
    * @throws InvalidPathException if the path is not a valid Tachyon path
    * @throws IOException if the master is unable to create the file
    */
-  long create(TachyonURI path, long blockSize, boolean recursive) throws BlockInfoException,
-      FileAlreadyExistException, InvalidPathException, IOException;
+  long create(TachyonURI path, long blockSize, boolean recursive, long ttl) throws
+      BlockInfoException, FileAlreadyExistException, InvalidPathException, IOException;
 
   /**
    * Deletes a file. If the file is a folder, its contents will be deleted recursively if the

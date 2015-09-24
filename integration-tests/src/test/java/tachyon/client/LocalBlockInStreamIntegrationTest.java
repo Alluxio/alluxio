@@ -69,16 +69,16 @@ public class LocalBlockInStreamIntegrationTest {
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
-        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.PERSIST).build();
     sWriteTachyon =
-        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     sReadCache =
-        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.STORE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .build();
     sReadNoCache =
-        new ClientOptions.Builder(sTachyonConf).setTachyonStoreType(TachyonStorageType.NO_STORE)
+        new ClientOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.NO_STORE)
             .build();
   }
 

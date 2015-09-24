@@ -84,8 +84,8 @@ public class TachyonFileSystemIntegrationTest {
         new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setStorageTypes(TachyonStorageType.STORE, UnderStorageType.PERSIST).build();
     sReadCache =
-        new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf()).setTachyonStoreType(
-            TachyonStorageType.STORE).build();
+        new ClientOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
+            .setTachyonStorageType(TachyonStorageType.STORE).build();
   }
 
   @Test

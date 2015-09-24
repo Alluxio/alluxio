@@ -144,6 +144,8 @@ public final class Constants {
   public static final String MASTER_WEB_PORT = "tachyon.master.web.port";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
+  public static final String MASTER_TTLCHECKER_INTERVAL_MS
+      = "tachyon.master.ttlchecker.interval.ms";
   public static final String MASTER_MAX_WORKER_THREADS = "tachyon.master.max.worker.threads";
   public static final String MASTER_MIN_WORKER_THREADS = "tachyon.master.min.worker.threads";
   public static final String MASTER_WORKER_TIMEOUT_MS = "tachyon.master.worker.timeout.ms";
@@ -222,6 +224,18 @@ public final class Constants {
    */
   public static final String WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT =
       "tachyon.worker.tieredstore.level%d.dirs.quota";
+  /**
+   * This format is used as a template to generate the property name for a given level.
+   * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, level)}
+   */
+  public static final String WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT =
+      "tachyon.worker.tieredstore.level%d.reserved.ratio";
+
+  public static final String WORKER_SPACE_RESERVER_INTERVAL_MS =
+      "tachyon.worker.space.reserver.interval.ms";
+
+  public static final String WORKER_SPACE_RESERVER_ENABLE =
+      "tachyon.worker.space.reserver.enable";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
@@ -248,8 +262,6 @@ public final class Constants {
       "tachyon.user.file.understoragetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final String USER_REMOTE_BLOCK_WRITER = "tachyon.user.remote.block.writer.class";
-  public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
-  public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
   public static final String USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS =
       "tachyon.user.remote.block.worker.client.threads";
   public static final String USER_LOCAL_BLOCK_WORKER_CLIENT_THREADS =
@@ -282,6 +294,9 @@ public final class Constants {
   public static final int BYTES_WRITTEN_LOCAL_INDEX = 8;
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
+
+  // ttl related
+  public static final long NO_TTL = -1;
 
   private Constants() {} // prevent instantiation
 }

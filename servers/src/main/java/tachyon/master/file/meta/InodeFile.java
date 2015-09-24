@@ -42,6 +42,7 @@ public final class InodeFile extends Inode {
 
   private boolean mCompleted = false;
   private boolean mCacheable = false;
+  private long mTTL;
 
   /**
    * Creates a new InodeFile.
@@ -52,14 +53,16 @@ public final class InodeFile extends Inode {
    * @param parentId The inode id of the parent of the file
    * @param blockSizeBytes The block size of the file, in bytes
    * @param creationTimeMs The creation time of the file, in milliseconds
+   * @param ttl The TTL for file expiration
    */
   public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
-      long creationTimeMs) {
+      long creationTimeMs, long ttl) {
     super(name, BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), parentId,
         false, creationTimeMs);
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = blockContainerId;
     mBlockSizeBytes = blockSizeBytes;
+    mTTL = ttl;
   }
 
   @Override
@@ -80,6 +83,7 @@ public final class InodeFile extends Inode {
     ret.isPersisted = isPersisted();
     ret.blockIds = getBlockIds();
     ret.lastModificationTimeMs = getLastModificationTimeMs();
+    ret.ttl = mTTL;
     return ret;
   }
 
@@ -204,6 +208,15 @@ public final class InodeFile extends Inode {
   public synchronized JournalEntry toJournalEntry() {
     return new InodeFileEntry(getCreationTimeMs(), getId(), getName(), getParentId(), isPersisted(),
         isPinned(), getLastModificationTimeMs(), getBlockSizeBytes(), getLength(), isCompleted(),
-        isCacheable(), mBlocks);
+        isCacheable(), mBlocks, mTTL);
+  }
+
+  /**
+   * Get the ttl of the inode file
+   *
+   * @return the ttl of the file
+   */
+  public synchronized long getTTL() {
+    return mTTL;
   }
 }

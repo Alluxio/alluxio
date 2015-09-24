@@ -1,3 +1,4 @@
+# Environment setup: network, ssh, mount disk, install development tools, etc.
 - hosts: all
   tasks:
     - include: roles/common/tasks/main.yml
@@ -12,6 +13,7 @@
       sudo: yes
       when: provider == "os"
 
+# Download, compile, configure all the cluster components.
 - hosts: TachyonMaster
   tasks:
     - include: roles/vagrant_utils/tasks/main.yml
@@ -62,7 +64,8 @@
     - include: roles/mesos/tasks/compile.yml
       when: mesos_type == "Github"
 
-- hosts: TachyonWorker*
+# Rsync compiled and configured packages to other machines.
+- hosts: all
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/rsync_dist.yml
 
@@ -74,32 +77,16 @@
     - include: roles/mesos/tasks/rsync_dist.yml
       when: mesos_type != "None"
 
-- hosts: TachyonMaster
-  tasks:
-    - include: roles/mesos/tasks/start_master.yml
-      when: mesos_type != "None"
-
-- hosts: all
-  tasks:
-    - include: roles/mesos/tasks/start_slave.yml
-      when: mesos_type != "None"
-
-    - include: roles/tachyon/tasks/create_mount.yml
-      when: mesos_type != "None"
-
-    - include: roles/mesos/tasks/config_tachyon.yml
-      when: mesos_type != "None"
-
+# Start UFS.
 - hosts: TachyonMaster
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/start.yml
 
-    - include: roles/tachyon/tasks/start.yml
-      when: mesos_type == "None"
+# Start Tachyon on the specified platform(e.x. standalone, mesos)
+- include: start_tachyon_on_{{ tachyon_platform }}.yml
 
-    - include: roles/tachyon/tasks/start_mesos_framework.yml
-      when: mesos_type != "None"
-
+# Start computation frameworks.
+- hosts: TachyonMaster
+  tasks:
     - include: roles/spark/tasks/start.yml
       when: spark_type != "None"
-

@@ -50,6 +50,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.io.PathUtils;
+import tachyon.util.CommonUtils;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -312,6 +313,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertTrue(fileInfo.isCacheable);
     Assert.assertFalse(fileInfo.isCompleted);
+    Assert.assertEquals(Constants.NO_TTL, fileInfo.ttl);
   }
 
   private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
@@ -614,7 +616,7 @@ public class FileSystemMasterIntegrationTest {
     long opTimeMs = System.currentTimeMillis();
     mFsMaster.createFileInternal(
         new TachyonURI(PathUtils.concatPath(mMountPoint, "testFolder", "testFile")),
-        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, opTimeMs);
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, opTimeMs, Constants.NO_TTL);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI(PathUtils.concatPath(mMountPoint,
             "testFolder"))));
@@ -756,6 +758,48 @@ public class FileSystemMasterIntegrationTest {
             .concatPath(mMountPoint, "testDir1", "testDir2"))),
         new TachyonURI(PathUtils.concatPath(mMountPoint, "testDir1", "testDir2", "testDir3",
             "testDir4")));
+  }
+
+  @Test
+  public void ttlCreateFileTest() throws InvalidPathException,
+      FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
+    long ttl = 100;
+    mFsMaster.createFileInternal(new TachyonURI("/testFolder/testFile"),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, System.currentTimeMillis(), ttl);
+    FileInfo folderInfo = mFsMaster.getFileInfo(
+        mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    Assert.assertEquals(ttl, folderInfo.ttl);
+  }
+
+  @Test
+  public void ttlExpiredCreateFileTest() throws InvalidPathException,
+     FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
+    long ttl = 1;
+    long fileId = mFsMaster.createFile(new TachyonURI("/testFolder/testFile1"),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, ttl);
+    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(
+        new TachyonURI("/testFolder/testFile1")));
+    Assert.assertEquals(fileId, folderInfo.fileId);
+    Assert.assertEquals(ttl, folderInfo.ttl);
+    CommonUtils.sleepMs(5000);
+    mThrown.expect(FileDoesNotExistException.class);
+    mFsMaster.getFileInfo(fileId);
+  }
+
+  @Test
+  public void ttlRenameTest() throws InvalidPathException, IOException,
+     FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
+    mFsMaster.mkdirs(new TachyonURI("/testFolder"), true);
+    long ttl = 1;
+    long fileId = mFsMaster.createFile(new TachyonURI("/testFolder/testFile1"),
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, ttl);
+    mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true,
+        System.currentTimeMillis());
+    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(
+        new TachyonURI("/testFolder/testFile2")));
+    Assert.assertEquals(ttl, folderInfo.ttl);
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
