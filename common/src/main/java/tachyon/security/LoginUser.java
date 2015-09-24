@@ -73,8 +73,7 @@ public final class LoginUser {
    * @throws IOException if login fails
    */
   private static User login(TachyonConf conf) throws IOException {
-    AuthType authType = conf.getEnum(
-        Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.class);
+    AuthType authType = conf.getEnum(Constants.TACHYON_SECURITY_AUTHENTICATION, AuthType.class);
     checkSecurityEnabled(authType);
 
     try {

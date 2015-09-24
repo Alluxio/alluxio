@@ -39,7 +39,7 @@ import tachyon.conf.TachyonConf;
  * PlainSaslHelper is used to register this provider. It also provides methods to generate PLAIN
  * transport for server and client.
  */
-public class PlainSaslHelper {
+public final class PlainSaslUtils {
   static {
     Security.addProvider(new PlainSaslServerProvider());
   }

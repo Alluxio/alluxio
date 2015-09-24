@@ -113,10 +113,6 @@ public final class LocalTachyonCluster {
     return mMaster.getUri();
   }
 
-  public InetSocketAddress getMasterAddress() {
-    return mMaster.getAddress();
-  }
-
   public int getMasterPort() {
     return mMaster.getRPCLocalPort();
   }
