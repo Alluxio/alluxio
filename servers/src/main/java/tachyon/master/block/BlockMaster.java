@@ -278,12 +278,16 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           if (masterBlockInfo == null) {
             continue;
           }
+          ArrayList<Long> workersToRemove = new ArrayList<Long>();
           for (long workerId : masterBlockInfo.getWorkers()) {
-            masterBlockInfo.removeWorker(workerId);
+            workersToRemove.add(workerId);
             MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
             if (worker != null) {
               worker.updateToRemovedBlock(true, blockId);
             }
+          }
+          for (long workerId : workersToRemove) {
+            masterBlockInfo.removeWorker(workerId);
           }
           mLostBlocks.remove(blockId);
         }
