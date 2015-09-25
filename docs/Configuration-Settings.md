@@ -329,7 +329,7 @@ number.
 <tr>
   <td>tachyon.worker.tieredstore.level0.reserved.ratio</td>
   <td>0.1</td>
-  <td>The portion of space reserved on top storage layer.</td>
+  <td>Value is between 0 and 1, it sets the portion of space reserved on top storage layer.</td>
 </tr>
 <tr>
   <td>tachyon.worker.space.reserver.enable</td>
