@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
@@ -52,6 +55,8 @@ public final class LocalTachyonCluster {
     cluster.stop();
     CommonUtils.sleepMs(Constants.SECOND_MS);
   }
+
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // private access to the reinitializer of ClientContext
   private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
@@ -260,6 +265,7 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(10);
 
     startWorker();
+    LOG.info("TachyonConf: " + mWorkerConf.toString());
   }
 
   /**

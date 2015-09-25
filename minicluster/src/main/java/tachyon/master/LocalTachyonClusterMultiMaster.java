@@ -320,6 +320,7 @@ public class LocalTachyonClusterMultiMaster {
       ClientContext.accessReinitializer(sReinitializerAccesser);
     }
     sReinitializer.reinitializeWithConf(mWorkerConf);
+    LOG.info("TachyonConf: " + mWorkerConf.toString());
   }
 
   public void stop() throws Exception {
