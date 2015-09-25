@@ -35,7 +35,6 @@ import tachyon.StorageLevelAlias;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.util.CommonUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
@@ -50,11 +49,9 @@ public class SpaceReserverTest {
       StorageLevelAlias.HDD};
   private static final String[][] TIER_PATH = {{"/ramdisk"}, {"/disk1"}};
   private static final long[][] TIER_CAPACITY_BYTES = {{1000}, {3000}};
-  BlockDataManager mBlockDataManager;
   BlockStore mBlockStore;
   SpaceReserver mSpaceReserver;
-  ExecutorService mExecutorService =
-      Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("space-reserver-%d", true));
+  ExecutorService mExecutorService = Executors.newFixedThreadPool(1);
 
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
@@ -75,7 +72,7 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
     mBlockStore = new TieredBlockStore();
-    mBlockDataManager =
+    BlockDataManager blockDataManager =
         new BlockDataManager(workerSource, blockMasterClient, workerFileSystemMasterClient,
             mBlockStore);
     String reserveRatioProp =
@@ -84,13 +81,13 @@ public class SpaceReserverTest {
     reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     WorkerContext.getConf().set(reserveRatioProp, "0.2");
-    mSpaceReserver = new SpaceReserver(mBlockDataManager);
+    mSpaceReserver = new SpaceReserver(blockDataManager);
     mExecutorService.submit(mSpaceReserver);
   }
 
   @Test
   public void reserveTest() throws Exception {
-    // Reserve on first tier
+    // Reserve on top tier
     long blockId = 100;
     BlockStoreLocation tier0 = BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue());
     for (int i = 0; i < 3; i ++) {
@@ -103,9 +100,9 @@ public class SpaceReserverTest {
     Assert.assertEquals(3 * BLOCK_SIZE, storeMeta.getUsedBytes());
     List<Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
     Assert.assertEquals(2 * BLOCK_SIZE,
-        (long)usedBytesOnTiers.get(StorageLevelAlias.MEM.getValue() - 1));
+        (long) usedBytesOnTiers.get(StorageLevelAlias.MEM.getValue() - 1));
     Assert.assertEquals(BLOCK_SIZE,
-        (long)usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
+        (long) usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
 
     // Reserve on under tier
     for (int i = 0; i < 7; i ++) {
@@ -117,8 +114,8 @@ public class SpaceReserverTest {
     Assert.assertEquals(9 * BLOCK_SIZE, storeMeta.getUsedBytes());
     usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
     Assert.assertEquals(2 * BLOCK_SIZE,
-        (long)usedBytesOnTiers.get(StorageLevelAlias.MEM.getValue() - 1));
+        (long) usedBytesOnTiers.get(StorageLevelAlias.MEM.getValue() - 1));
     Assert.assertEquals(7 * BLOCK_SIZE,
-        (long)usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
+        (long) usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
   }
 }
