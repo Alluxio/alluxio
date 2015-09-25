@@ -30,6 +30,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import tachyon.master.LocalTachyonCluster;
+import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -76,6 +77,9 @@ public class TFSRenameIntegrationTest {
 
   @Test
   public void basicRenameTest() throws Exception {
+    String ufsRoot = sLocalTachyonCluster.getTachyonHome();
+    UnderFileSystem ufs =
+        UnderFileSystem.get(ufsRoot, sLocalTachyonCluster.getMasterTachyonConf());
     // Rename /fileA to /fileB
     {
       Path fileA = new Path(PathUtils.concatPath(sMountPoint, "fileA"));
@@ -87,7 +91,13 @@ public class TFSRenameIntegrationTest {
 
       Assert.assertFalse(sTFS.exists(fileA));
       Assert.assertTrue(sTFS.exists(fileB));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "fileB")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(sTFS.exists(fileB));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileB")));
     }
     // Rename /fileA to /dirA/fileA
     {
@@ -103,7 +113,14 @@ public class TFSRenameIntegrationTest {
       Assert.assertFalse(sTFS.exists(fileA));
       Assert.assertTrue(sTFS.exists(dirA));
       Assert.assertTrue(sTFS.exists(finalDst));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA", "fileA")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA")));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA", "fileA")));
     }
     // Rename /fileA to /dirA/fileA without specifying the full path
     {
@@ -119,7 +136,14 @@ public class TFSRenameIntegrationTest {
       Assert.assertFalse(sTFS.exists(fileA));
       Assert.assertTrue(sTFS.exists(dirA));
       Assert.assertTrue(sTFS.exists(finalDst));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA", "fileA")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA")));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA", "fileA")));
     }
     // Rename /fileA to /fileA
     {
@@ -130,7 +154,12 @@ public class TFSRenameIntegrationTest {
       Assert.assertTrue(sTFS.rename(fileA, fileA));
 
       Assert.assertTrue(sTFS.exists(fileA));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(sTFS.exists(fileA));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
     }
     // Rename /fileA to /fileAfileA
     {
@@ -141,8 +170,15 @@ public class TFSRenameIntegrationTest {
 
       Assert.assertTrue(sTFS.rename(fileA, finalDst));
 
+      Assert.assertFalse(sTFS.exists(fileA));
       Assert.assertTrue(sTFS.exists(finalDst));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "fileAfileA")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(sTFS.exists(finalDst));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileAfileA")));
     }
     // Rename /dirA to /dirB, /dirA/fileA should become /dirB/fileA
     {
@@ -160,7 +196,17 @@ public class TFSRenameIntegrationTest {
       Assert.assertFalse(sTFS.exists(fileA));
       Assert.assertTrue(sTFS.exists(dirB));
       Assert.assertTrue(sTFS.exists(finalDst));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA")));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA", "fileA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirB")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirB", "fileA")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(sTFS.exists(dirB));
+      Assert.assertFalse(sTFS.exists(finalDst));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirB")));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirB", "fileA")));
     }
     // Rename /dirA to /dirB, /dirA/fileA should become /dirB/fileA even if it was not closed
     {
@@ -200,6 +246,10 @@ public class TFSRenameIntegrationTest {
   @Ignore
   @Test
   public void errorRenameTest() throws Exception {
+    String ufsRoot = sLocalTachyonCluster.getTachyonHome();
+    UnderFileSystem ufs =
+        UnderFileSystem.get(ufsRoot, sLocalTachyonCluster.getMasterTachyonConf());
+
     // Rename /dirA to /dirA/dirB should fail
     {
       Path dirA = new Path(PathUtils.concatPath(sMountPoint, "dirA"));
@@ -211,7 +261,13 @@ public class TFSRenameIntegrationTest {
 
       Assert.assertFalse(sTFS.exists(finalDst));
       Assert.assertTrue(sTFS.exists(dirA));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA", "dirB")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirB")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(sTFS.exists(dirA));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirB")));
     }
     // Rename /fileA to /fileB should fail if /fileB exists
     {
@@ -225,7 +281,15 @@ public class TFSRenameIntegrationTest {
 
       Assert.assertTrue(sTFS.exists(fileA));
       Assert.assertTrue(sTFS.exists(fileB));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "fileB")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(sTFS.exists(fileA));
+      Assert.assertFalse(sTFS.exists(fileB));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileB")));
     }
     // Rename /fileA to /dirA/fileA should fail if /dirA/fileA exists
     {
@@ -242,7 +306,18 @@ public class TFSRenameIntegrationTest {
       Assert.assertTrue(sTFS.exists(fileA));
       Assert.assertTrue(sTFS.exists(dirA));
       Assert.assertTrue(sTFS.exists(finalDst));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA")));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA", "fileA")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(sTFS.exists(fileA));
+      Assert.assertFalse(sTFS.exists(dirA));
+      Assert.assertFalse(sTFS.exists(finalDst));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA")));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "dirA", "fileA")));
     }
     // Rename /fileA to an nonexistent path should fail
     {
@@ -254,7 +329,12 @@ public class TFSRenameIntegrationTest {
       Assert.assertFalse(sTFS.rename(fileA, nonexistentPath));
 
       Assert.assertTrue(sTFS.exists(fileA));
+      Assert.assertTrue(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
+
       cleanup(sTFS);
+
+      Assert.assertFalse(sTFS.exists(fileA));
+      Assert.assertFalse(ufs.exists(PathUtils.concatPath(ufsRoot, "fileA")));
     }
   }
 

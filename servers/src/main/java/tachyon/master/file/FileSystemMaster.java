@@ -478,7 +478,14 @@ public final class FileSystemMaster extends MasterBase {
     inodeFile.setCompleted(fileLength);
     inodeFile.setLastModificationTimeMs(opTimeMs);
     // Mark all parent directories that have a UFS counterpart as persisted.
-    InodeDirectory parentDir = (InodeDirectory) mInodeTree.getInodeById(inodeFile.getParentId());
+    propagatePersisted(inodeFile);
+  }
+
+  void propagatePersisted(Inode inode) throws FileDoesNotExistException, InvalidPathException {
+    if (!inode.isPersisted()) {
+      return;
+    }
+    InodeDirectory parentDir = (InodeDirectory) mInodeTree.getInodeById(inode.getParentId());
     TachyonURI path = mInodeTree.getPath(parentDir);
     while (!mMountTable.resolve(path).equals(path)) {
       parentDir.setPersisted(true);
@@ -658,6 +665,8 @@ public final class FileSystemMaster extends MasterBase {
     for (int i = delInodes.size() - 1; i >= 0; i --) {
       Inode delInode = delInodes.get(i);
 
+      TachyonURI path = mInodeTree.getPath(delInode);
+      LOG.info("Path: " + path + " Persisted: " + delInode.isPersisted());
       if (propagate && delInode.isPersisted()) {
         // Delete the file in the under file system.
         String ufsPath;
@@ -673,6 +682,7 @@ public final class FileSystemMaster extends MasterBase {
           } else if (!ufs.delete(ufsPath, true)) {
             return false;
           }
+          LOG.info("Deleting UFS path: " + ufsPath);
         } catch (IOException e) {
           throw new TachyonException(e.getMessage());
         }
@@ -1023,6 +1033,7 @@ public final class FileSystemMaster extends MasterBase {
   void renameInternal(long fileId, TachyonURI dstPath, boolean propagate, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     Inode srcInode = mInodeTree.getInodeById(fileId);
+    TachyonURI srcPath = mInodeTree.getPath(srcInode);
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
     TachyonURI dstParentURI = dstPath.getParent();
     Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
@@ -1033,9 +1044,9 @@ public final class FileSystemMaster extends MasterBase {
     ((InodeDirectory) dstParentInode).addChild(srcInode);
     dstParentInode.setLastModificationTimeMs(opTimeMs);
     MasterContext.getMasterSource().incFilesRenamed();
+    propagatePersisted(srcInode);
 
     // If the source file is persisted, rename it in the UFS.
-    TachyonURI srcPath = mInodeTree.getPath(srcInode);
     FileInfo fileInfo = getFileInfoInternal(srcInode);
     if (propagate && fileInfo.isPersisted) {
       TachyonURI ufsSrcPath = mMountTable.resolve(srcPath);
