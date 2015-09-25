@@ -292,13 +292,13 @@ public final class BlockWorker {
     mPinListSync.stop();
     mSessionCleanerThread.stop();
     mBlockMasterClient.close();
+    if (mSpaceReserver != null) {
+      mSpaceReserver.stop();
+    }
     mFileSystemMasterClient.close();
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     mWorkerMetricsSystem.stop();
-    if (mSpaceReserver != null) {
-      mSpaceReserver.stop();
-    }
     try {
       mWebServer.shutdownWebServer();
     } catch (Exception e) {

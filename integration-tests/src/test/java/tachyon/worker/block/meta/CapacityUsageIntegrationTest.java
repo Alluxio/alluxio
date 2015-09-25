@@ -19,20 +19,20 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
@@ -72,15 +72,15 @@ public class CapacityUsageIntegrationTest {
 
   private TachyonFile createAndWriteFile(TachyonURI filePath,
       TachyonStorageType tachyonStorageType, UnderStorageType underStorageType, int len)
-      throws IOException, TException {
+      throws IOException, TachyonException {
     ByteBuffer buf = ByteBuffer.allocate(len);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < len; k ++) {
       buf.put((byte) k);
     }
 
-    ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setTachyonStorageType(tachyonStorageType)
+    OutStreamOptions options =
+        new OutStreamOptions.Builder(new TachyonConf()).setTachyonStorageType(tachyonStorageType)
             .setUnderStorageType(underStorageType).build();
     FileOutStream os = mTFS.getOutStream(filePath, options);
     os.write(buf.array());
@@ -88,7 +88,7 @@ public class CapacityUsageIntegrationTest {
     return mTFS.open(filePath);
   }
 
-  private void deleteDuringEviction(int i) throws IOException, TException {
+  private void deleteDuringEviction(int i) throws IOException, TachyonException {
     final String fileName1 = "/file" + i + "_1";
     final String fileName2 = "/file" + i + "_2";
     TachyonFile file1 =
@@ -109,7 +109,7 @@ public class CapacityUsageIntegrationTest {
 
   // TODO(calvin): Rethink the approach of this test and what it should be testing.
   // @Test
-  public void deleteDuringEvictionTest() throws IOException, TException {
+  public void deleteDuringEvictionTest() throws IOException, TachyonException {
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i ++) {
       deleteDuringEviction(i);
