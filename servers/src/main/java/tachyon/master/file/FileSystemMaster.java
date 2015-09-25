@@ -1144,13 +1144,13 @@ public final class FileSystemMaster extends MasterBase {
         return;
       }
 
-      InodeFile iFile = (InodeFile) inode;
       List<Long> blockIds = Lists.newArrayList();
       for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
         blockIds.add(fileBlockInfo.blockInfo.blockId);
       }
       mBlockMaster.reportLostBlocks(blockIds);
-      LOG.info("Reported file loss. Tachyon will recompute it: " + iFile);
+      LOG.info(
+          "Reported file loss of blocks" + blockIds + ". Tachyon will recompute it: " + fileId);
     }
   }
 

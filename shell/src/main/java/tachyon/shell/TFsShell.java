@@ -795,6 +795,7 @@ public class TFsShell implements Closeable {
       mTfs.reportLostFile(fd);
       System.out
           .println(path + " with file id " + fd.getFileId() + " has reported been report lost.");
+      listLineages();
       return 0;
     } catch (TException e) {
       throw new IOException(e.getMessage());
@@ -1195,6 +1196,7 @@ public class TFsShell implements Closeable {
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
+    listLineages();
     return 0;
   }
 
@@ -1206,7 +1208,7 @@ public class TFsShell implements Closeable {
     long lineageId = Long.parseLong(argv[1]);
     boolean cascade = Boolean.parseBoolean(argv[2]);
     tlfs.deleteLineage(lineageId, cascade);
-
+    listLineages();
     return 0;
   }
 
