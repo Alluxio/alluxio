@@ -244,6 +244,7 @@ public final class BlockMasterSync implements Runnable {
     public void run() {
       try {
         mBlockDataManager.removeBlock(mSessionId, mBlockId);
+        LOG.info("Block " + mBlockId + " removed at session " + mSessionId);
       } catch (IOException ioe) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
       } catch (InvalidStateException e) {

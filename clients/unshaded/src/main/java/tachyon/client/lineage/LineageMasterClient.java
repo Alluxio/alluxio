@@ -32,6 +32,8 @@ import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.job.CommandLineJob;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.LineageDeletionException;
+import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 
@@ -97,7 +99,8 @@ public final class LineageMasterClient extends MasterClientBase {
     throw new IOException("Failed after " + retry + " retries.");
   }
 
-  public synchronized boolean deleteLineage(long lineageId, boolean cascade) throws IOException {
+  public synchronized boolean deleteLineage(long lineageId, boolean cascade)
+      throws IOException, LineageDoesNotExistException, LineageDeletionException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();

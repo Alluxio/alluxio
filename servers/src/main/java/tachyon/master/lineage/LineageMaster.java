@@ -68,6 +68,8 @@ import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
+import tachyon.thrift.LineageDeletionException;
+import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 import tachyon.util.ThreadFactoryUtils;
@@ -204,15 +206,18 @@ public final class LineageMaster extends MasterBase {
     return lineageId;
   }
 
-  public boolean deleteLineage(long lineageId, boolean cascade) {
+  public boolean deleteLineage(long lineageId, boolean cascade)
+      throws LineageDoesNotExistException, LineageDeletionException {
     Lineage lineage = mLineageStore.getLineage(lineageId);
     if (lineage == null) {
-      // TODO error handling
+      throw new LineageDoesNotExistException(
+          "the lineage " + lineageId + " to delete does not exist");
     }
 
     // there should not be child lineage if cascade
     if (!cascade && !mLineageStore.getChildren(lineage).isEmpty()) {
-      // TODO error handling
+      throw new LineageDeletionException(
+          "the lineage " + lineageId + " to delete has children lineages");
     }
 
     LOG.info("Delete lineage " + lineageId);

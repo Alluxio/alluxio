@@ -35,6 +35,8 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.LineageDeletionException;
+import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 
 /**
@@ -62,9 +64,9 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   }
 
   /**
-   * Creates a lineage. It requires all the input files must either exist in Tachyon
-   * storage, or have been added as output files in other lineages. It also requires the output
-   * files do not exist in Tachyon, and it will create an empty file for each of it.
+   * Creates a lineage. It requires all the input files must either exist in Tachyon storage, or
+   * have been added as output files in other lineages. It also requires the output files do not
+   * exist in Tachyon, and it will create an empty file for each of it.
    *
    * @param inputFiles the files that the job depends on
    * @param outputFiles the files that the job outputs
@@ -97,20 +99,28 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    * @param lineageId the id of the lineage
    * @param cascade whether to delete all the downstream lineages recursively
    * @return true if the lineage deletion is successful, false otherwise
-   * @throws IOException
+   * @throws IOException if the master cannot delete the lineage
+   * @throws LineageDeletionException if the deletion is cascade but the lineage has children
+   * @throws LineageDoesNotExistException if the lineage does not exist
    */
-  public boolean deleteLineage(long lineageId, boolean cascade) throws IOException {
+  public boolean deleteLineage(long lineageId, boolean cascade)
+      throws IOException, LineageDoesNotExistException, LineageDeletionException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
-
     try {
       boolean result = masterClient.deleteLineage(lineageId, cascade);
-      LOG.info(result ? "Succeeded to " : "Failed to" + "add lineage " + lineageId);
+      LOG.info(result ? "Succeeded to " : "Failed to" + "delete lineage " + lineageId);
       return result;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
   }
 
+  /**
+   * Lists all the lineages.
+   *
+   * @return the informaiton about lineages
+   * @throws IOException if the master cannot list the lineage info
+   */
   public List<LineageInfo> listLineages() throws IOException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
 
@@ -141,6 +151,10 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
     }
   }
 
+  /**
+   * Gets the output stream for lineage job. If the file already exists on master, returns a dummpy
+   * output stream.
+   */
   @Override
   public FileOutStream getOutStream(TachyonURI path, ClientOptions options)
       throws IOException, InvalidPathException, FileAlreadyExistException, BlockInfoException {
