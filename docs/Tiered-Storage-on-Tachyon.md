@@ -103,6 +103,12 @@ Currently only synchronous eviction is supported by tiered storage. It is recomm
 small block size (less than 64MB), to reduce the latency of block eviction. This restriction will
 not exist when asynchronous eviction is introduced.
 
+## Space Reserver
+
+Space reserver makes tiered storage try to reserve certain portion of space on each storage layer
+before all space on some layer is consumed. It will be good for burst write performance, but for
+continous write, since the bottleneck is eviction speed, it will get very little performance gain. 
+
 # Enabling and Configuring Tiered Storage
 
 Tiered storage can be enabled in Tachyon with some
@@ -113,6 +119,7 @@ MEM tier. To specify additional tiers for Tachyon, use the following configurati
     tachyon.worker.tieredstore.level{x}.alias
     tachyon.worker.tieredstore.level{x}.dirs.quota
     tachyon.worker.tieredstore.level{x}.dirs.path
+    tachyon.worker.tieredstore.level{x}.reserved.ratio
 
 For example, if you wanted to configure Tachyon to have two tiers, of MEM and HDD, it would be
 configured something like:
@@ -121,9 +128,11 @@ configured something like:
     tachyon.worker.tieredstore.level0.alias=MEM
     tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
     tachyon.worker.tieredstore.level0.dirs.quota=100GB
+    tachyon.worker.tieredstore.level0.reserved.ratio=0.2
     tachyon.worker.tieredstore.level1.alias=HDD
     tachyon.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
     tachyon.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
+    tachyon.worker.tieredstore.level1.reserved.ratio=0.1
 
 Here is the explanation of the example configuration:
 
@@ -132,11 +141,15 @@ Here is the explanation of the example configuration:
 * `tachyon.worker.tieredstore.level0.dirs.path=/mnt/ramdisk` defines `/mnt/ramdisk` to be the file
 path to the ramdisk.
 * `tachyon.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`.
+* `tachyon.worker.tieredstore.level0.reserved.ratio=0.2` sets the ratio of space to be reserved on
+top layer to be 0.1.
 * `tachyon.worker.tieredstore.level1.alias=HDD` configures the second tier to be HDD.
 * `tachyon.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate
 file paths for the HDD tier.
 * `tachyon.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB` defines the quota for each of the 3
 file paths of the HDD tier.
+* `tachyon.worker.tieredstore.level1.reserved.ratio=0.1` sets the ratio of space to be reserved on
+the second layer to be 0.1.
 
 There are a few restrictions to defining the tiers. First of all, there can be at most 3 tiers.
 Also, at most 1 tier can refer to a specific alias. For example, at most 1 tier can have the alias
@@ -148,6 +161,10 @@ parameters are:
 
     tachyon.worker.allocate.strategy.class=tachyon.worker.block.allocator.MaxFreeAllocator
     tachyon.worker.evict.strategy.class=tachyon.worker.block.evictor.LRUEvictor
+
+Space reserver can be configured to be enabled or disabled, the configuration parameter is:
+
+    tachyon.worker.space.reserver.enable=false
 
 # Configuration Parameters For Tiered Storage
 
@@ -187,6 +204,27 @@ These are the configuration parameters for tiered storage.
   storage tier number (starting from 0). For a particular storage tier, if the list of quotas is
   shorter than the list of directories of that tier, then the quotas for the remaining directories
   will just use the last-defined quota. Quota definitions use these suffixes: KB, MB, GB, TB, PB.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.worker.tieredstore.level{x}.reserved.ratio</td>
+  <td>0.1</td>
+  <td>
+  The portion of space reserved on storage tier x.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.worker.space.reserver.enable</td>
+  <td>false</td>
+  <td>
+  Whether enabling space reserver service.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.worker.space.reserver.interval.ms</td>
+  <td>1000</td>
+  <td>
+  The period of space reserver service.
   </td>
 </tr>
 <tr>
