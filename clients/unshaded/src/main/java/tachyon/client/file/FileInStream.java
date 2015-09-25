@@ -28,12 +28,12 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
 import tachyon.client.ClientContext;
-import tachyon.client.ClientOptions;
 import tachyon.client.Seekable;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.block.BufferedBlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
 import tachyon.util.network.NetworkAddressUtils;
@@ -83,7 +83,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @param info the file information
    * @param options the client options
    */
-  public FileInStream(FileInfo info, ClientOptions options) {
+  public FileInStream(FileInfo info, InStreamOptions options) {
     mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
     mBlockIds = info.getBlockIds();
