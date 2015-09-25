@@ -304,7 +304,8 @@ public final class InodeTreeTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
-    Inode testFile = new InodeFile("testFile1", 1, 1, Constants.KB, System.currentTimeMillis());
+    Inode testFile = new InodeFile("testFile1", 1, 1, Constants.KB, System.currentTimeMillis(),
+        Constants.NO_TTL);
     mTree.deleteInode(testFile);
   }
 
