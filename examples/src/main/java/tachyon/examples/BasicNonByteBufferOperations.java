@@ -99,6 +99,9 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     // If the file exists already, we will override it.
     FileOutStream fileOutStream =
         getOrCreate(tachyonFileSystem, filePath, deleteIfExists, clientOptions);
+    if (fileOutStream == null) {
+      throw new FileAlreadyExistException("File exists but deleteIfExists is false");
+    }
     DataOutputStream os = new DataOutputStream(fileOutStream);
     try {
       os.writeInt(length);
@@ -128,7 +131,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       tachyonFileSystem.delete(file);
       return tachyonFileSystem.getOutStream(filePath, clientOptions);
     }
-    // file exists
+    // file exists and deleteIfExists is false
     return null;
   }
 
