@@ -42,6 +42,9 @@ public enum AuthType {
    */
   KERBEROS;
 
+  /**
+   * @return the string value of AuthType
+   */
   public String getAuthName() {
     return name();
   }

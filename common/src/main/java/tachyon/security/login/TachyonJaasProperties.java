@@ -33,7 +33,9 @@ public final class TachyonJaasProperties {
     OS_PRINCIPAL_CLASS_NAME = findOsPrincipalClassName();
   }
 
-  // Return the OS login module class name.
+  /**
+   * @return the OS login module class name.
+   */
   private static String findOSLoginModuleName() {
     if (PlatformUtils.IBM_JAVA) {
       if (WINDOWS) {
@@ -51,7 +53,9 @@ public final class TachyonJaasProperties {
     }
   }
 
-  // Return the OS principal class name
+  /**
+   * @return the OS principal class name
+   */
   private static String findOsPrincipalClassName() {
     String principalClassName;
     if (PlatformUtils.IBM_JAVA) {

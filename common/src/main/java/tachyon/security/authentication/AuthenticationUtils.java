@@ -31,9 +31,9 @@ import tachyon.security.LoginUser;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * This class is the main entry for Tachyon authentication. Based on different authentication types
- * specified in Tachyon configuration, it provides corresponding Thrift class for authenticated
- * connection between Client and Server.
+ * This class provides factory methods for authentication in Tachyon. Based on different
+ * authentication types specified in Tachyon configuration, it provides corresponding Thrift class
+ * for authenticated connection between Client and Server.
  */
 public final class AuthenticationUtils {
   /**
@@ -47,13 +47,11 @@ public final class AuthenticationUtils {
    */
   public static TTransportFactory getServerTransportFactory(TachyonConf tachyonConf)
       throws SaslException {
-    AuthType authType =
-        tachyonConf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    AuthType authType = tachyonConf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     switch (authType) {
       case NOSASL:
         return new TFramedTransport.Factory();
-      case SIMPLE:
-        // intended to fall through
+      case SIMPLE: // intended to fall through
       case CUSTOM:
         return PlainSaslUtils.getPlainServerTransportFactory(authType, tachyonConf);
       case KERBEROS:
@@ -65,8 +63,8 @@ public final class AuthenticationUtils {
   }
 
   /**
-   * Create a transport per the connection options. Supported transport options are: NOSASL, SIMPLE,
-   * CUSTOM, KERBEROS. With NOSASL as input, an unmodified TTransport is returned; with
+   * Creates a transport per the connection options. Supported transport options are: NOSASL,
+   * SIMPLE, CUSTOM, KERBEROS. With NOSASL as input, an unmodified TTransport is returned; with
    * SIMPLE/CUSTOM as input, a PlainClientTransport is returned; KERBEROS is not supported
    * currently. If the auth type is not supported or recognized, an UnsupportedOperationException is
    * thrown.
@@ -78,26 +76,25 @@ public final class AuthenticationUtils {
    */
   public static TTransport getClientTransport(TachyonConf tachyonConf,
       InetSocketAddress serverAddress) throws IOException {
-    AuthType authType =
-        tachyonConf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    AuthType authType = tachyonConf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     TTransport tTransport = AuthenticationUtils.createTSocket(serverAddress);
     switch (authType) {
       case NOSASL:
         return new TFramedTransport(tTransport);
-      case SIMPLE:
-        // indent to fall through after case SIMPLE
+      case SIMPLE: // intended to fall through
       case CUSTOM:
         String username = LoginUser.get(tachyonConf).getName();
         return PlainSaslUtils.getPlainClientTransport(username, "noPassword", tTransport);
       case KERBEROS:
-        throw new SaslException("Kerberos is not supported currently.");
+        throw new UnsupportedOperationException("Kerberos is not supported currently.");
       default:
-        throw new SaslException("Unsupported authentication type: " + authType.getAuthName());
+        throw new UnsupportedOperationException("Unsupported authentication type: "
+            + authType.getAuthName());
     }
   }
 
   /**
-   * Create a new Thrift socket what will connect to the given address
+   * Creates a new Thrift socket what will connect to the given address
    *
    * @param address The given address to connect
    * @return An unconnected socket
