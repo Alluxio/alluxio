@@ -59,7 +59,7 @@ public final class InodeFile extends Inode {
    */
   public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
       long creationTimeMs, long ttl) {
-    super(name, blockContainerId, parentId,
+    super(name, toFileId(blockContainerId), parentId,
         false, creationTimeMs);
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = blockContainerId;
@@ -263,5 +263,9 @@ public final class InodeFile extends Inode {
    */
   public synchronized long getTTL() {
     return mTTL;
+  }
+
+  public static long toFileId(long containerId) {
+    return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
   }
 }

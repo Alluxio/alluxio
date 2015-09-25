@@ -69,7 +69,7 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
 
-  public synchronized long addLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
+  public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
       CommandLineJob job) throws IOException, FileDoesNotExistException {
     // prepare for RPC
     List<String> inputFileStrings = Lists.newArrayList();

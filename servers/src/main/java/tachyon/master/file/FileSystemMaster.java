@@ -1103,7 +1103,9 @@ public final class FileSystemMaster extends MasterBase {
     Set<Long> lostFiles = Sets.newHashSet();
     for (long blockId : mBlockMaster.getLostBlocks()) {
       // the file id is the container id of the block id
-      lostFiles.add(BlockId.getContainerId(blockId));
+      long containerId = BlockId.getContainerId(blockId);
+      long fileId = InodeFile.toFileId(containerId);
+      lostFiles.add(fileId);
     }
     return new ArrayList<Long>(lostFiles);
   }
