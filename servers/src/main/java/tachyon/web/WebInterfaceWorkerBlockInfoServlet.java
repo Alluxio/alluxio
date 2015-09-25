@@ -36,10 +36,10 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.NotFoundException;
+import tachyon.exception.TachyonException;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.BlockStoreMeta;
 import tachyon.worker.block.meta.BlockMeta;
@@ -211,14 +211,19 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     } else {
       try {
         file = tachyonFileSystem.open(filePath);
-      } catch (InvalidPathException e) {
+      } catch (TachyonException e) {
         throw new FileDoesNotExistException(filePath.toString());
       }
     }
-    FileInfo fileInfo = tachyonFileSystem.getInfo(file);
-    if (fileInfo == null) {
-      throw new FileDoesNotExistException(
-          fileId != -1 ? Long.toString(fileId) : filePath.toString());
+    FileInfo fileInfo;
+    try {
+      fileInfo = tachyonFileSystem.getInfo(file);
+      if (fileInfo == null) {
+        throw new FileDoesNotExistException(
+            fileId != -1 ? Long.toString(fileId) : filePath.toString());
+      }
+    } catch (TachyonException e) {
+      throw new FileDoesNotExistException(filePath.toString());
     }
     UiFileInfo uiFileInfo = new UiFileInfo(fileInfo);
     boolean blockExistOnWorker = false;
