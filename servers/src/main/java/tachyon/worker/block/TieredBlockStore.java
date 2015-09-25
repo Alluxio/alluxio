@@ -292,7 +292,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public void removeBlock(long sessionId, long blockId) throws InvalidStateException,
       NotFoundException, IOException {
-    removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier());
+    removeBlock(sessionId, blockId, BlockStoreLocation.anyTier());
   }
 
   @Override
