@@ -29,9 +29,11 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.security.authentication.AuthType;
 import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
+import tachyon.worker.WorkerContext;
 
 /**
  * Test RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
@@ -53,16 +55,18 @@ public class WorkerClientAuthenticationIntegrationTest {
 
   @After
   public void after() throws Exception {
-    System.clearProperty(Constants.SECURITY_AUTHENTICATION_TYPE);
-    System.clearProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.resetConf();
+    WorkerContext.resetConf();
   }
 
   @Test
   public void noAuthenticationOpenCloseTest() throws Exception {
-    // no authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE,
+    // no authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.NOSASL.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.NOSASL.getAuthName());
+
     // start cluster
     mLocalTachyonCluster.start();
 
@@ -74,9 +78,12 @@ public class WorkerClientAuthenticationIntegrationTest {
 
   @Test
   public void simpleAuthenticationOpenCloseTest() throws Exception {
-    // simple authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE,
+    // simple authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.SIMPLE.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.SIMPLE.getAuthName());
+
     // start cluster
     mLocalTachyonCluster.start();
 
@@ -88,11 +95,15 @@ public class WorkerClientAuthenticationIntegrationTest {
 
   @Test
   public void customAuthenticationOpenCloseTest() throws Exception {
-    // custom authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE,
+    // custom authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.CUSTOM.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+        MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
 
     /**
@@ -112,12 +123,17 @@ public class WorkerClientAuthenticationIntegrationTest {
 
   @Test
   public void customAuthenticationDenyConnectTest() throws Exception {
-    // custom authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE,
+    // custom authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.CUSTOM.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
         AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+        MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider.class.getName());
+
     /**
      * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
      * Tachyon Master during starting cluster.
@@ -131,11 +147,27 @@ public class WorkerClientAuthenticationIntegrationTest {
     mThrown.expect(IOException.class);
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
 
-    WorkerClient workerClient = new WorkerClient(mLocalTachyonCluster.getWorkerAddress(),
-        mExecutorService, mLocalTachyonCluster.getWorkerTachyonConf(), 1 /* fake session id */,
-        true, new ClientMetrics());
+    WorkerClient workerClient =
+        new WorkerClient(mLocalTachyonCluster.getWorkerAddress(), mExecutorService,
+            mLocalTachyonCluster.getWorkerTachyonConf(), 1 /* fake session id */, true,
+            new ClientMetrics());
     Assert.assertFalse(workerClient.isConnected());
     workerClient.mustConnect();
+  }
+
+  @Test
+  public void kerberosAuthenticationNotSupportTest() throws Exception {
+    // kerberos authentication configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.KERBEROS.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.KERBEROS.getAuthName());
+
+    // Currently the kerberos authentication doesn't support
+    mThrown.expect(UnsupportedOperationException.class);
+    mThrown.expectMessage("Kerberos is not supported currently");
+    // start cluster
+    mLocalTachyonCluster.start();
   }
 
   /**
@@ -144,27 +176,16 @@ public class WorkerClientAuthenticationIntegrationTest {
    * @throws Exception
    */
   private void authenticationOperationTest() throws Exception {
-    WorkerClient workerClient = new WorkerClient(mLocalTachyonCluster.getWorkerAddress(),
-        mExecutorService, mLocalTachyonCluster.getWorkerTachyonConf(), 1 /* fake session id */,
-        true, new ClientMetrics());
+    WorkerClient workerClient =
+        new WorkerClient(mLocalTachyonCluster.getWorkerAddress(), mExecutorService,
+            mLocalTachyonCluster.getWorkerTachyonConf(), 1 /* fake session id */, true,
+            new ClientMetrics());
 
     Assert.assertFalse(workerClient.isConnected());
     workerClient.mustConnect();
     Assert.assertTrue(workerClient.isConnected());
 
     workerClient.close();
-  }
-
-  @Test
-  public void kerberosAuthenticationNotSupportTest() throws Exception {
-    // kerberos authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.KERBEROS.getAuthName());
-    // Currently the kerberos authentication doesn't support
-    mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("Kerberos is not supported currently");
-    // start cluster
-    mLocalTachyonCluster.start();
   }
 
   private void clearLoginUser() throws Exception {

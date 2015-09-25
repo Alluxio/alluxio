@@ -32,8 +32,10 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.security.authentication.AuthType;
 import tachyon.security.authentication.AuthenticationProvider;
+import tachyon.worker.WorkerContext;
 
 /**
  * Though its name indicates that it provides the tests for Tachyon authentication. This class is
@@ -57,15 +59,17 @@ public class MasterClientAuthenticationIntegrationTest {
 
   @After
   public void after() throws Exception {
-    System.clearProperty(Constants.SECURITY_AUTHENTICATION_TYPE);
-    System.clearProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
-    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
+    MasterContext.resetConf();
+    WorkerContext.resetConf();
   }
 
   @Test
   public void noAuthenticationOpenCloseTest() throws Exception {
-    // no authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    // no authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.NOSASL.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.NOSASL.getAuthName());
     // start cluster
     mLocalTachyonCluster.start();
 
@@ -77,8 +81,12 @@ public class MasterClientAuthenticationIntegrationTest {
 
   @Test
   public void simpleAuthenticationOpenCloseTest() throws Exception {
-    // simple authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    // simple authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.SIMPLE.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.SIMPLE.getAuthName());
+
     // start cluster
     mLocalTachyonCluster.start();
 
@@ -90,10 +98,15 @@ public class MasterClientAuthenticationIntegrationTest {
 
   @Test
   public void customAuthenticationOpenCloseTest() throws Exception {
-    // custom authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    // custom authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.CUSTOM.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+        NameMatchAuthenticationProvider.class.getName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
 
     /**
@@ -113,11 +126,17 @@ public class MasterClientAuthenticationIntegrationTest {
 
   @Test
   public void customAuthenticationDenyConnectTest() throws Exception {
-    // custom authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    // custom authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.CUSTOM.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.CUSTOM.getAuthName());
     // custom authenticationProvider configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+        NameMatchAuthenticationProvider.class.getName());
+
     /**
      * Using tachyon as loginUser for unit testing, only tachyon user is allowed to connect to
      * Tachyon Master.
@@ -135,6 +154,21 @@ public class MasterClientAuthenticationIntegrationTest {
             mLocalTachyonCluster.getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
+  }
+
+  @Test
+  public void kerberosAuthenticationNotSupportTest() throws Exception {
+    // kerberos authentication type configure
+    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.KERBEROS.getAuthName());
+    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.KERBEROS.getAuthName());
+
+    // Currently the kerberos authentication doesn't support
+    mThrown.expect(UnsupportedOperationException.class);
+    mThrown.expectMessage("Kerberos is not supported currently");
+    // start cluster
+    mLocalTachyonCluster.start();
   }
 
   /**
@@ -164,16 +198,6 @@ public class MasterClientAuthenticationIntegrationTest {
     field.set(null, null);
   }
 
-  @Test
-  public void kerberosAuthenticationNotSupportTest() throws Exception {
-    // kerberos authentication configure
-    System.setProperty(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.KERBEROS.getAuthName());
-    // Currently the kerberos authentication doesn't support
-    mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("Kerberos is not supported currently");
-    // start cluster
-    mLocalTachyonCluster.start();
-  }
 
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
