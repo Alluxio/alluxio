@@ -37,7 +37,7 @@ public final class TachyonJaasConfiguration extends Configuration {
   private static final Map<String, String> EMPTY_JAAS_OPTIONS = new HashMap<String, String>();
 
   private static final AppConfigurationEntry OS_SPECIFIC_LOGIN = new AppConfigurationEntry(
-      TachyonJaasProperties.getOsLoginModuleName(),
+      TachyonJaasProperties.OS_LOGIN_MODULE_NAME,
       AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
   /**
    * This app login module allows a user name provided by application to be specified.

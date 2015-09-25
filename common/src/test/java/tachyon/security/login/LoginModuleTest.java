@@ -24,8 +24,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.security.User;
-import tachyon.security.login.TachyonJaasConfiguration;
-import tachyon.security.login.TachyonJaasProperties;
 
 /**
  * Unit test for the login modules defined in {@link tachyon.security.login.TachyonLoginModule} and

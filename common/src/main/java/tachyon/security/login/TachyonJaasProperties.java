@@ -18,37 +18,35 @@ package tachyon.security.login;
 import tachyon.util.OSUtils;
 
 /**
- * This class collects constants used in JAAS login.
+ * This class provides constants used in JAAS login.
  */
 public final class TachyonJaasProperties {
-
-  private static final String OS_LOGIN_MODULE_NAME;
-  private static final String OS_PRINCIPAL_CLASS_NAME;
-  private static final boolean WINDOWS = OSUtils.OS_NAME.startsWith("Windows");
-  private static final boolean IS_64_BIT = OSUtils.PROCESSOR_BIT.contains("64");
-  private static final boolean AIX = OSUtils.OS_NAME.equals("AIX");
+  /** Login module according to different OS type */
+  public static final String OS_LOGIN_MODULE_NAME;
+  /** Class name of Principal according to different OS type */
+  public static final String OS_PRINCIPAL_CLASS_NAME;
 
   static {
-    OS_LOGIN_MODULE_NAME = findOSLoginModuleName();
-    OS_PRINCIPAL_CLASS_NAME = findOsPrincipalClassName();
+    OS_LOGIN_MODULE_NAME = getOSLoginModuleName();
+    OS_PRINCIPAL_CLASS_NAME = getOSPrincipalClassName();
   }
 
   /**
    * @return the OS login module class name.
    */
-  private static String findOSLoginModuleName() {
+  private static String getOSLoginModuleName() {
     if (OSUtils.IBM_JAVA) {
-      if (WINDOWS) {
-        return IS_64_BIT ? "com.ibm.security.auth.module.Win64LoginModule"
+      if (OSUtils.isWindows()) {
+        return OSUtils.is64Bit() ? "com.ibm.security.auth.module.Win64LoginModule"
             : "com.ibm.security.auth.module.NTLoginModule";
-      } else if (AIX) {
-        return IS_64_BIT ? "com.ibm.security.auth.module.AIX64LoginModule"
+      } else if (OSUtils.isAIX()) {
+        return OSUtils.is64Bit() ? "com.ibm.security.auth.module.AIX64LoginModule"
             : "com.ibm.security.auth.module.AIXLoginModule";
       } else {
         return "com.ibm.security.auth.module.LinuxLoginModule";
       }
     } else {
-      return WINDOWS ? "com.sun.security.auth.module.NTLoginModule"
+      return OSUtils.isWindows() ? "com.sun.security.auth.module.NTLoginModule"
           : "com.sun.security.auth.module.UnixLoginModule";
     }
   }
@@ -56,32 +54,24 @@ public final class TachyonJaasProperties {
   /**
    * @return the OS principal class name
    */
-  private static String findOsPrincipalClassName() {
+  private static String getOSPrincipalClassName() {
     String principalClassName;
     if (OSUtils.IBM_JAVA) {
-      if (IS_64_BIT) {
+      if (OSUtils.is64Bit()) {
         principalClassName = "com.ibm.security.auth.UsernamePrincipal";
       } else {
-        if (WINDOWS) {
+        if (OSUtils.isWindows()) {
           principalClassName = "com.ibm.security.auth.NTUserPrincipal";
-        } else if (AIX) {
+        } else if (OSUtils.isAIX()) {
           principalClassName = "com.ibm.security.auth.AIXPrincipal";
         } else {
           principalClassName = "com.ibm.security.auth.LinuxPrincipal";
         }
       }
     } else {
-      principalClassName = WINDOWS ? "com.sun.security.auth.NTUserPrincipal"
+      principalClassName = OSUtils.isWindows() ? "com.sun.security.auth.NTUserPrincipal"
           : "com.sun.security.auth.UnixPrincipal";
     }
     return principalClassName;
-  }
-
-  static String getOsLoginModuleName() {
-    return OS_LOGIN_MODULE_NAME;
-  }
-
-  static String getOsPrincipalClassName() {
-    return OS_PRINCIPAL_CLASS_NAME;
   }
 }

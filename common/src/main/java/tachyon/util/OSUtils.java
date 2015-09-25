@@ -31,10 +31,24 @@ public final class OSUtils {
   public static final boolean IBM_JAVA = JAVA_VENDOR_NAME.contains("IBM");
 
   /**
-   * @return true if current OS is Windows
+   * @return true if current processor is 64 bit.
+   */
+  public static boolean is64Bit() {
+    return OSUtils.PROCESSOR_BIT.contains("64");
+  }
+
+  /**
+   * @return true if current OS is Windows.
    */
   public static boolean isWindows() {
     return SystemUtils.IS_OS_WINDOWS;
+  }
+
+  /**
+   * @return true if current OS is AIX.
+   */
+  public static boolean isAIX() {
+    return OSUtils.OS_NAME.equals("AIX");
   }
 
   private OSUtils() {} // prevent instantiation
