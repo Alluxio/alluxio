@@ -36,6 +36,7 @@ import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
@@ -759,7 +760,7 @@ public class TFsShell implements Closeable {
     } else if (cmd.equals("copyFromLocal") || cmd.equals("copyToLocal") || cmd.equals("request")
         || cmd.equals("mv") || cmd.equals("deleteLineage")) {
       return 2;
-    } else if (cmd.equals("addLineage")) {
+    } else if (cmd.equals("createLineage")) {
       return 3;
     } else {
       return -1;
@@ -1018,8 +1019,8 @@ public class TFsShell implements Closeable {
           return deleteLineage(argv);
         }
       } else if (numOfArgs > 2) { // commands need 3 arguments and more
-        if (cmd.equals("addLineage")) {
-          return addLineage(argv);
+        if (cmd.equals("createLineage")) {
+          return createLineage(argv);
         }
       }
     } catch (IOException ioe) {
@@ -1163,7 +1164,7 @@ public class TFsShell implements Closeable {
     return sizeInBytes;
   }
 
-  private int addLineage(String[] argv) throws IOException {
+  private int createLineage(String[] argv) throws IOException {
     TachyonLineageFileSystem tlfs = acquireTachyonLineageFileSystem();
     if (tlfs == null) {
       return -1;
@@ -1185,18 +1186,19 @@ public class TFsShell implements Closeable {
       cmd += argv[i] + " ";
     }
 
-    // FIXME for debug
-    String outputPath = "/Users/richbird/git/tachyon/logs/recompute.log";
+    String outputPath = ClientContext.getConf().get(Constants.MASTER_RECOMPUTE_LOG_PATH);
+    if (outputPath == null) {
+      System.out.println("recompute output log is not configured");
+      return -1;
+    }
     CommandLineJob job = new CommandLineJob(cmd, new JobConf(outputPath));
-    System.out.println(inputFiles);
-    System.out.println(outputFiles);
-    System.out.println(cmd);
+    long lineageId;
     try {
-      tlfs.addLineage(inputFiles, outputFiles, job);
+      lineageId = tlfs.createLineage(inputFiles, outputFiles, job);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
-    listLineages();
+    System.out.println("Lineage " + lineageId + " has been created.");
     return 0;
   }
 
@@ -1208,7 +1210,7 @@ public class TFsShell implements Closeable {
     long lineageId = Long.parseLong(argv[1]);
     boolean cascade = Boolean.parseBoolean(argv[2]);
     tlfs.deleteLineage(lineageId, cascade);
-    listLineages();
+    System.out.println("Lineage " + lineageId + " has been deleted.");
     return 0;
   }
 
@@ -1228,7 +1230,7 @@ public class TFsShell implements Closeable {
   private TachyonLineageFileSystem acquireTachyonLineageFileSystem() {
     System.out.println("Lineage Info:");
     if (!(mTfs instanceof TachyonLineageFileSystem)) {
-      System.out.println("addLineage requires lineaged to be enabled.");
+      System.out.println("Lineage operations require lineaged to be enabled.");
       return null;
     }
     return (TachyonLineageFileSystem) mTfs;

@@ -164,6 +164,8 @@ public final class Constants {
       "tachyon.master.lineage.checkpoint.interval.ms";
   public static final String MASTER_RECOMPUTE_INTERVAL_MS =
       "tachyon.master.lineage.recompute.interval.ms";
+  public static final String MASTER_RECOMPUTE_LOG_PATH =
+      "tachyon.master.lineage.recompute.log.path";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";

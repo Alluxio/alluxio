@@ -62,7 +62,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   }
 
   /**
-   * Creates and adds a lineage. It requires all the input files must either exist in Tachyon
+   * Creates a lineage. It requires all the input files must either exist in Tachyon
    * storage, or have been added as output files in other lineages. It also requires the output
    * files do not exist in Tachyon, and it will create an empty file for each of it.
    *
@@ -73,15 +73,15 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    * @throws IOException
    * @throws FileDoesNotExistException
    */
-  public long addLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
+  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
       throws FileDoesNotExistException, IOException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
 
     try {
-      long lineageId = masterClient.addLineage(inputFiles, outputFiles, (CommandLineJob) job);
-      LOG.info("Added lineage " + lineageId);
+      long lineageId = masterClient.createLineage(inputFiles, outputFiles, (CommandLineJob) job);
+      LOG.info("Created lineage " + lineageId);
       return lineageId;
     } finally {
       mContext.releaseMasterClient(masterClient);
