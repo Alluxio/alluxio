@@ -33,7 +33,7 @@ import tachyon.worker.WorkerClient;
  * from the local machine's storage. The instances of this class should only be used by one
  * thread and are not thread safe.
  */
-public final class LocalBlockInStream extends BlockInStream {
+public final class LocalBlockInStream extends BufferedBlockInStream {
   private final long mBlockId;
   private final BlockStoreContext mContext;
   private final WorkerClient mWorkerClient;

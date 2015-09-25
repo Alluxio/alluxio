@@ -86,7 +86,7 @@ public final class TachyonBlockStore implements Closeable {
    * @return a BlockInStream which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
-  public BlockInStream getInStream(long blockId) throws IOException {
+  public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Fix this RPC.
@@ -96,7 +96,7 @@ public final class TachyonBlockStore implements Closeable {
         // TODO(calvin): Maybe this shouldn't be an exception.
         throw new IOException("No block " + blockId + " is not available in Tachyon");
       }
-      return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
+      return BufferedBlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
           .getWorkerAddress());
     } finally {
       mContext.releaseMasterClient(masterClient);
