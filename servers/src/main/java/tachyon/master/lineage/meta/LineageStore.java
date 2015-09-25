@@ -164,4 +164,12 @@ public final class LineageStore implements JournalCheckpointStreamable {
       outputStream.writeEntry(lineage.toJournalEntry());
     }
   }
+
+  /**
+   * @param fileId the fild id
+   * @return the lineage state of the given file
+   */
+  public synchronized LineageFileState getLineageFileState(long fileId) {
+    return mOutputFileIndex.get(fileId).getOutputFileState(fileId);
+  }
 }

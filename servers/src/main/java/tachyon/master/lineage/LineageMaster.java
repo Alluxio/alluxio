@@ -219,9 +219,22 @@ public final class LineageMaster extends MasterBase {
     return true;
   }
 
+  /**
+   * Reinitializes the file when the file is lost or not completed.
+   *
+   * @param path the path to the file
+   * @param blockSizeBytes the block size
+   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise.
+   * @throws InvalidPathException the file path is invalid
+   */
   public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException {
-    LOG.info("Recreate the file " + path + " with block size of " + blockSizeBytes + " bytes");
-    return mFileSystemMaster.resetBlockSize(new TachyonURI(path), blockSizeBytes);
+    long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
+    LineageFileState state = mLineageStore.getLineageFileState(fileId);
+    if (state == LineageFileState.CREATED || state == LineageFileState.LOST) {
+      LOG.info("Recreate the file " + path + " with block size of " + blockSizeBytes + " bytes");
+      return mFileSystemMaster.resetBlockSize(new TachyonURI(path), blockSizeBytes);
+    }
+    return -1;
   }
 
   public void asyncCompleteFile(long fileId, String underFsPath)

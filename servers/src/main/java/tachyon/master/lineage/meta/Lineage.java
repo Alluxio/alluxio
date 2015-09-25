@@ -173,6 +173,15 @@ public final class Lineage {
     return result;
   }
 
+  public synchronized LineageFileState getOutputFileState(long fileId) {
+    for (LineageFile outputFile : mOutputFiles) {
+      if (outputFile.getFileId() == fileId) {
+        return outputFile.getState();
+      }
+    }
+    throw new RuntimeException("Output file " + fileId + " not found");
+  }
+
   public synchronized LineageEntry toJournalEntry() {
     return new LineageEntry(mId, mInputFiles, mOutputFiles, mJob, mCreationTimeMs);
   }
