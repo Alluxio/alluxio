@@ -30,11 +30,13 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -135,7 +137,8 @@ public class MasterFaultToleranceIntegrationTest {
         // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
         // node can not be deleted.
         for (FileInfo file : mTfs.listStatus(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR)))) {
-          mTfs.delete(new TachyonFile(file.getFileId()), true);
+          mTfs.delete(new TachyonFile(file.getFileId()),
+              new DeleteOptions.Builder(ClientContext.getConf()).setRecursive(true).build());
         }
         answer.clear();
         faultTestDataCheck(answer);
