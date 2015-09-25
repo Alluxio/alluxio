@@ -41,6 +41,7 @@ public final class LeaderInquireClient {
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
       String leaderPath) {
     String key = zookeeperAddress + leaderPath;
+    LOG.info("get zookeeper client. address: " + zookeeperAddress);
     if (!sCreatedClients.containsKey(key)) {
       sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
     }
@@ -55,7 +56,7 @@ public final class LeaderInquireClient {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
-    LOG.info("create zookeeper client. address: " + mZookeeperAddress);
+    LOG.info("create new zookeeper client. address: " + mZookeeperAddress);
     mCLient =
         CuratorFrameworkFactory.newClient(mZookeeperAddress, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));
