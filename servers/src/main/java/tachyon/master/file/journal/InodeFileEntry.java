@@ -20,7 +20,6 @@ import java.util.Map;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.master.block.BlockId;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.journal.JournalEntryType;
 
@@ -47,7 +46,7 @@ public class InodeFileEntry extends InodeEntry {
   }
 
   public InodeFile toInodeFile() {
-    InodeFile inode = new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
+    InodeFile inode = new InodeFile(mName, mId, mParentId, mBlockSizeBytes,
         mCreationTimeMs, mTTL);
 
     // Set flags.

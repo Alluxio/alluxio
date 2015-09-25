@@ -18,9 +18,13 @@ package tachyon.master.lineage.recompute;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import tachyon.Constants;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageStore;
@@ -30,6 +34,8 @@ import tachyon.master.lineage.meta.LineageStore;
  * plan.
  */
 public class RecomputePlanner {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
 
@@ -43,11 +49,14 @@ public class RecomputePlanner {
 
     // lineage to recompute
     Set<Lineage> toRecompute = Sets.newHashSet();
-    // report lost files
-    for (long lostFile : lostFiles) {
-      Lineage lineage = mLineageStore.reportLostFile(lostFile);
-      if (!lineage.isPersisted()) {
-        toRecompute.add(lineage);
+    if(!lostFiles.isEmpty()) {
+      LOG.info("report lost files " + lostFiles);
+      // report lost files
+      for (long lostFile : lostFiles) {
+        Lineage lineage = mLineageStore.reportLostFile(lostFile);
+        if (!lineage.isPersisted()) {
+          toRecompute.add(lineage);
+        }
       }
     }
 

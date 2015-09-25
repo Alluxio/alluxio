@@ -79,6 +79,7 @@ import tachyon.util.io.PathUtils;
  */
 public final class LineageMaster extends MasterBase {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final TachyonConf mTachyonConf;
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
