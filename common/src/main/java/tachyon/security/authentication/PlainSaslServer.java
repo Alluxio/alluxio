@@ -91,12 +91,10 @@ public final class PlainSaslServer implements SaslServer {
       String authorizationId = parts[0];
       String authenticationId = parts[1];
       String passwd = parts[2];
-      if (authenticationId == null || authenticationId.isEmpty()) {
-        throw new IllegalStateException("No authentication identity provided");
-      }
-      if (passwd == null || passwd.isEmpty()) {
-        throw new IllegalStateException("No password provided");
-      }
+      Preconditions.checkState(authenticationId != null && !authenticationId.isEmpty(),
+          "No authentication identity provided");
+      Preconditions.checkState(passwd != null && !passwd.isEmpty(), "No password provided");
+
       if (authorizationId == null || authorizationId.isEmpty()) {
         authorizationId = authenticationId;
       } else if (!authorizationId.equals(authenticationId)) {

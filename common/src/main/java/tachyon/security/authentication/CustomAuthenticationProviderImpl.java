@@ -39,18 +39,12 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
       throw new RuntimeException(providerName + " not found");
     }
 
-    if (!AuthenticationProvider.class.isAssignableFrom(customProviderClass)) {
-      throw new RuntimeException(customProviderClass + " didn't implement interface "
-          + AuthenticationProvider.class.getName());
-    }
-
     try {
-      mCustomProvider =
-          (AuthenticationProvider) CommonUtils.createNewClassInstance(customProviderClass, null,
-              null);
+      mCustomProvider = (AuthenticationProvider) CommonUtils
+          .createNewClassInstance(customProviderClass, null, null);
     } catch (Exception e) {
-      throw new RuntimeException(customProviderClass.getName() + " instantiate failed :"
-          + e.getMessage());
+      throw new RuntimeException(
+          customProviderClass.getName() + " instantiate failed :" + e.getMessage());
     }
   }
 
