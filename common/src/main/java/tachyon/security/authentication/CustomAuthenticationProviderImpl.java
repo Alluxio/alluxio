@@ -35,12 +35,13 @@ public class CustomAuthenticationProviderImpl implements AuthenticationProvider 
     Class<?> customProviderClass;
     try {
       customProviderClass = Class.forName(providerName);
-      if (!AuthenticationProvider.class.isAssignableFrom(customProviderClass)) {
-        throw new RuntimeException(customProviderClass
-            + " didn't implement interface AuthenticationProvider");
-      }
     } catch (ClassNotFoundException cfe) {
       throw new RuntimeException(providerName + " not found");
+    }
+
+    if (!AuthenticationProvider.class.isAssignableFrom(customProviderClass)) {
+      throw new RuntimeException(customProviderClass + " didn't implement interface "
+          + AuthenticationProvider.class.getName());
     }
 
     try {

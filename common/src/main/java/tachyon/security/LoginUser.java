@@ -40,15 +40,12 @@ public final class LoginUser {
   /** User instance of the login user in Tachyon client process */
   private static User sLoginUser;
 
-  /**
-   * This constructor should never be invoked.
-   */
   private LoginUser() {} // prevent instantiation
 
   /**
-   * Get current singleton login user. This method is called to identify the singleton user who runs
-   * Tachyon client. When Tachyon client gets a user by this method and connects to Tachyon service,
-   * this user represents the client and is maintained in service.
+   * Gets current singleton login user. This method is called to identify the singleton user who
+   * runs Tachyon client. When Tachyon client gets a user by this method and connects to Tachyon
+   * service, this user represents the client and is maintained in service.
    *
    * @param conf Tachyon configuration
    * @return the login user
@@ -97,15 +94,15 @@ public final class LoginUser {
   }
 
   /**
-   * Check whether Tachyon is running in secure mode, such as SIMPLE, KERBEROS, CUSTOM.
+   * Checks whether Tachyon is running in secure mode, such as SIMPLE, KERBEROS, CUSTOM.
    *
    * @param authType the authentication type in configuration
    */
   private static void checkSecurityEnabled(AuthType authType) {
     // TODO: add Kerberos condition check.
     if (authType != AuthType.SIMPLE && authType != AuthType.CUSTOM) {
-      throw new UnsupportedOperationException(
-          "User is not supported in " + authType.getAuthName() + " mode");
+      throw new UnsupportedOperationException("User is not supported in " + authType.getAuthName()
+          + " mode");
     }
   }
 }

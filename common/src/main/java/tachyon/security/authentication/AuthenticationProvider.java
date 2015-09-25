@@ -17,9 +17,6 @@ package tachyon.security.authentication;
 
 import javax.security.sasl.AuthenticationException;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
@@ -35,15 +32,7 @@ public interface AuthenticationProvider {
         case SIMPLE:
           return new SimpleAuthenticationProviderImpl();
         case CUSTOM:
-          Preconditions.checkState(conf
-              .containsKey(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER));
-          String customProviderName =
-              conf.get(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
-          if (Strings.isNullOrEmpty(customProviderName)) {
-            throw new RuntimeException(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER
-                + " didn't set");
-          }
-
+          String customProviderName = conf.get(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
           return new CustomAuthenticationProviderImpl(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());
