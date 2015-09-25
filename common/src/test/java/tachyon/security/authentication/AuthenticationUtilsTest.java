@@ -41,7 +41,7 @@ import tachyon.conf.TachyonConf;
  * In order to test methods that return kinds of TTransport for connection in different mode,
  * we build Thrift servers and clients with specific TTransport, and let them connect.
  */
-public class AuthenticationFactoryTest {
+public class AuthenticationUtilsTest {
 
   TThreadPoolServer mServer;
   TachyonConf mTachyonConf = new TachyonConf();
