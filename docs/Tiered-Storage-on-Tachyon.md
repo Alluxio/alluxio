@@ -106,8 +106,8 @@ not exist when asynchronous eviction is introduced.
 ## Space Reserver
 
 Space reserver makes tiered storage try to reserve certain portion of space on each storage layer
-before all space on some layer is consumed. It will be good for burst write performance, but for
-continous write, since the bottleneck is eviction speed, it will get very little performance gain. 
+before all space on some layer is consumed. It will benefit the performance of bursty write, but may
+provide marginal performance gain for continuous writes when eviction becomes the bottleneck. 
 
 # Enabling and Configuring Tiered Storage
 
@@ -210,7 +210,7 @@ These are the configuration parameters for tiered storage.
   <td>tachyon.worker.tieredstore.level{x}.reserved.ratio</td>
   <td>0.1</td>
   <td>
-  The portion of space reserved on storage tier x.
+  Value is between 0 and 1, it sets the portion of space reserved on storage tier x.
   </td>
 </tr>
 <tr>
