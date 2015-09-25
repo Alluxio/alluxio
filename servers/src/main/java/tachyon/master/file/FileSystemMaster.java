@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
@@ -1142,13 +1143,14 @@ public final class FileSystemMaster extends MasterBase {
         LOG.warn("Reported file is a directory " + inode);
         return;
       }
-      InodeFile iFile = (InodeFile) inode;
 
-      if (mDependencyMap.addLostFile(fileId) == null) {
-        LOG.error("There is no dependency info for " + iFile + " . No recovery on that");
-      } else {
-        LOG.info("Reported file loss. Tachyon will recompute it: " + iFile);
+      InodeFile iFile = (InodeFile) inode;
+      List<Long> blockIds = Lists.newArrayList();
+      for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+        blockIds.add(fileBlockInfo.blockInfo.blockId);
       }
+      mBlockMaster.reportLostBlocks(blockIds);
+      LOG.info("Reported file loss. Tachyon will recompute it: " + iFile);
     }
   }
 

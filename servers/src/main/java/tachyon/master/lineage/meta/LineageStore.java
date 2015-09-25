@@ -69,8 +69,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
   private void addLineageInternal(Lineage lineage) {
     List<Lineage> parentLineages = Lists.newArrayList();
     for (TachyonFile inputFile : lineage.getInputFiles()) {
-      if (mOutputFileIndex.containsKey(inputFile)) {
-        parentLineages.add(mOutputFileIndex.get(inputFile));
+      if (mOutputFileIndex.containsKey(inputFile.getFileId())) {
+        parentLineages.add(mOutputFileIndex.get(inputFile.getFileId()));
       }
     }
     mLineageDAG.add(lineage, parentLineages);
@@ -103,7 +103,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
     mLineageDAG.deleteLeaf(toDelete);
     mIdIndex.remove(lineageId);
     for (TachyonFile outputFile : toDelete.getOutputFiles()) {
-      mOutputFileIndex.remove(outputFile);
+      mOutputFileIndex.remove(outputFile.getFileId());
     }
   }
 
@@ -133,14 +133,17 @@ public final class LineageStore implements JournalCheckpointStreamable {
 
   public synchronized Lineage reportLostFile(long fileId) {
     Lineage lineage = mOutputFileIndex.get(fileId);
-    lineage.updateOutputFileState(fileId, LineageFileState.LOST);
+    // TODO(yupeng) push the persisted info to FS master
+    if (lineage.getOutputFileState(fileId) != LineageFileState.PERSISTED) {
+      lineage.updateOutputFileState(fileId, LineageFileState.LOST);
+    }
     return lineage;
   }
 
   /**
    * Gets all the root lineages.
    */
-  public synchronized List<Lineage> getRootLineage() {
+  public synchronized List<Lineage> getRootLineages() {
     return mLineageDAG.getRoots();
   }
 

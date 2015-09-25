@@ -615,6 +615,12 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
     return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
   }
 
+  public void reportLostBlocks(List<Long> blockIds) {
+    synchronized (mLostBlocks) {
+      mLostBlocks.addAll(blockIds);
+    }
+  }
+
   /**
    * Lost worker periodic check.
    */
@@ -692,6 +698,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /** Grants access to private members to testers of this class. */
+  @Override
   public void grantAccess(Tester<BlockMaster> tester) {
     tester.receiveAccess(new PrivateAccess());
   }

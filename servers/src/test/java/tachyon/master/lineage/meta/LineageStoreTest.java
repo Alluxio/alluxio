@@ -27,11 +27,6 @@ import tachyon.client.file.TachyonFile;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
-import tachyon.master.lineage.meta.Lineage;
-import tachyon.master.lineage.meta.LineageFile;
-import tachyon.master.lineage.meta.LineageFileState;
-import tachyon.master.lineage.meta.LineageIdGenerator;
-import tachyon.master.lineage.meta.LineageStore;
 
 public final class LineageStoreTest {
   private LineageStore mLineageStore;
@@ -55,6 +50,7 @@ public final class LineageStoreTest {
     Assert.assertEquals(l1, lineages.get(0).getId());
     Assert.assertEquals(l2, lineages.get(1).getId());
     Assert.assertEquals(l3, lineages.get(2).getId());
+    Assert.assertEquals(1, mLineageStore.getRootLineages().size());
   }
 
   @Test

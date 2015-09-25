@@ -37,7 +37,7 @@ public final class LineageStoreView {
    * Gets all the root lineages in the lineage store.
    */
   public List<Lineage> getRootLineage() {
-    return mLineageStore.getRootLineage();
+    return mLineageStore.getRootLineages();
   }
 
   /**

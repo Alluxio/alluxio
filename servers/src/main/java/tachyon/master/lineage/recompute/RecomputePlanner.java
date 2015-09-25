@@ -15,8 +15,6 @@
 
 package tachyon.master.lineage.recompute;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 
@@ -50,21 +48,6 @@ public class RecomputePlanner {
       Lineage lineage = mLineageStore.reportLostFile(lostFile);
       if (!lineage.isPersisted()) {
         toRecompute.add(lineage);
-      }
-    }
-
-    for (Lineage lineage : Sets.newHashSet(toRecompute)) {
-      // find the parent lineages necessary to recompute
-      Deque<Lineage> deque = new ArrayDeque<Lineage>();
-      deque.addAll(mLineageStore.getParents(lineage));
-      while (!deque.isEmpty()) {
-        Lineage toCheck = deque.removeFirst();
-        if (toRecompute.contains(toCheck) || toCheck.isPersisted()) {
-          continue;
-        }
-
-        toRecompute.add(toCheck);
-        deque.addAll(mLineageStore.getParents(toCheck));
       }
     }
 
