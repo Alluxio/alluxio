@@ -31,10 +31,14 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.Sessions;
+import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.io.PathUtils;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
@@ -43,6 +47,8 @@ import tachyon.worker.block.io.BlockReader;
  */
 public final class LineageDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  UnderFileSystem mUfs;
 
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
@@ -53,6 +59,9 @@ public final class LineageDataManager {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
     mPersistedFiles = Lists.newArrayList();
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
+    // Create Under FileSystem Client
+    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
+    mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
   }
 
   /**
@@ -65,9 +74,21 @@ public final class LineageDataManager {
    */
   public synchronized void persistFile(long fileId, List<Long> blockIds, String filePath)
       throws IOException {
-    UnderFileSystem underFs = UnderFileSystem.get(filePath, mTachyonConf);
     String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
-    OutputStream outputStream = underFs.create(ufsDataFolder+"/test");
+    FileInfo fileInfo;
+    try {
+      fileInfo = mBlockDataManager.getFileInfo(fileId);
+    } catch (FileDoesNotExistException e) {
+      LOG.warn("Fail to get file info for file " + fileId, e);
+      throw new IOException(e);
+    }
+    TachyonURI uri = new TachyonURI(fileInfo.getPath());
+    String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
+    String parentPath = PathUtils.concatPath(ufsDataFolder, uri.getParent().getPath());
+    if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
+      throw new IOException("Failed to create " + parentPath);
+    }
+    OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     for (long blockId : Lists.newArrayList(blockIds)) {
