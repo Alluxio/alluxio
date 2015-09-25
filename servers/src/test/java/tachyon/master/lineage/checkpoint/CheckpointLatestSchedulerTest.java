@@ -43,9 +43,10 @@ public final class CheckpointLatestSchedulerTest {
   }
 
   @Test
-  public void scheduleTest() {
+  public void scheduleTest() throws Exception {
     long l1 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
         Lists.newArrayList(new LineageFile(1)), mJob);
+    Thread.sleep(1);
     long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
         Lists.newArrayList(new LineageFile(2)), mJob);
     // complete first

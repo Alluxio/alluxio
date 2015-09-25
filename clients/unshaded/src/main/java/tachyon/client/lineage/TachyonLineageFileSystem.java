@@ -138,8 +138,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    *
    * @throws IOException
    */
-  @Override
-  public long create(TachyonURI path, long blockSize, boolean recursive, long ttl) {
+  public long recreate(TachyonURI path, long blockSize, boolean recursive, long ttl) {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId = masterClient.recreateFile(path.getPath(), blockSize);
@@ -158,7 +157,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   @Override
   public FileOutStream getOutStream(TachyonURI path, ClientOptions options)
       throws IOException, InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    long fileId = create(path, options.getBlockSize(), true, options.getTTL());
+    long fileId = recreate(path, options.getBlockSize(), true, options.getTTL());
     if (fileId < 0) {
       return new DummyOutputStream(fileId, options);
     }

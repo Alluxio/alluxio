@@ -74,8 +74,8 @@ import tachyon.util.io.PathUtils;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-public final class BlockMaster extends MasterBase implements ContainerIdGenerable,
-    Testable<BlockMaster> {
+public final class BlockMaster extends MasterBase
+    implements ContainerIdGenerable, Testable<BlockMaster> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block metadata management. */
@@ -471,7 +471,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    */
   public void workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)
-        throws TachyonException {
+          throws TachyonException {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
@@ -549,7 +549,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         // Continue to remove the remaining blocks.
         continue;
       }
-      LOG.info("Block "+removedBlockId+ " is removed on worker "+workerInfo.getId());
+      LOG.info("Block " + removedBlockId + " is removed on worker " + workerInfo.getId());
       workerInfo.removeBlock(masterBlockInfo.getBlockId());
       masterBlockInfo.removeWorker(workerInfo.getId());
       if (masterBlockInfo.getNumLocations() == 0) {
@@ -609,8 +609,8 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
-        locations.add(new BlockLocation(masterBlockLocation.getWorkerId(),
-            workerInfo.getAddress(), masterBlockLocation.getTier()));
+        locations.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
+            masterBlockLocation.getTier()));
       }
     }
     return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);

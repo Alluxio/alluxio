@@ -49,7 +49,7 @@ public class RecomputePlanner {
 
     // lineage to recompute
     Set<Lineage> toRecompute = Sets.newHashSet();
-    if(!lostFiles.isEmpty()) {
+    if (!lostFiles.isEmpty()) {
       LOG.info("report lost files " + lostFiles);
       // report lost files
       for (long lostFile : lostFiles) {
