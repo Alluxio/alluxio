@@ -710,28 +710,30 @@ public class TfsShell implements Closeable {
   public void printUsage() {
     System.out.println("Usage: java TfsShell");
     System.out.println("       [cat <path>]");
+    System.out.println("       [copyFromLocal <src> <remoteDst>]");
+    System.out.println("       [copyToLocal <src> <localDst>]");
     System.out.println("       [count <path>]");
+    System.out.println("       [du <path>]");
+    System.out.println("       [fileinfo <path>]");
+    System.out.println("       [free <file path|folder path>]");
+    System.out.println("       [getUsedBytes]");
+    System.out.println("       [getCapacityBytes]");
+    System.out.println("       [load <path>]");
+    System.out.println("       [location <path>]");
     System.out.println("       [ls <path>]");
     System.out.println("       [lsr <path>]");
     System.out.println("       [mkdir <path>]");
+    System.out.println("       [mount <tachyonPath> <ufsURI>]");
+    System.out.println("       [mv <src> <dst>]");
+    System.out.println("       [pin <path>]");
+    System.out.println("       [report <path>]");
+    System.out.println("       [request <tachyonaddress> <dependencyId>]");
     System.out.println("       [rm <path>]");
     System.out.println("       [rmr <path>]");
     System.out.println("       [tail <path>]");
     System.out.println("       [touch <path>]");
-    System.out.println("       [mv <src> <dst>]");
-    System.out.println("       [load <path>]");
-    System.out.println("       [copyFromLocal <src> <remoteDst>]");
-    System.out.println("       [copyToLocal <src> <localDst>]");
-    System.out.println("       [fileinfo <path>]");
-    System.out.println("       [location <path>]");
-    System.out.println("       [report <path>]");
-    System.out.println("       [request <tachyonaddress> <dependencyId>]");
-    System.out.println("       [pin <path>]");
+    System.out.println("       [unmount <tachyonPath>]");
     System.out.println("       [unpin <path>]");
-    System.out.println("       [free <file path|folder path>]");
-    System.out.println("       [getUsedBytes]");
-    System.out.println("       [getCapacityBytes]");
-    System.out.println("       [du <path>]");
   }
 
   /**
