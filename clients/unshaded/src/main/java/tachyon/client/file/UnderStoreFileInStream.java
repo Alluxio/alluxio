@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import tachyon.client.ClientContext;
-import tachyon.client.block.BlockInStream;
+import tachyon.client.block.BufferedBlockInStream;
 import tachyon.underfs.UnderFileSystem;
 
 /**
@@ -29,7 +29,7 @@ import tachyon.underfs.UnderFileSystem;
  * storage client.
  */
 // TODO(calvin): This should be treated like a block in stream.
-public final class UnderStoreFileInStream extends BlockInStream {
+public final class UnderStoreFileInStream extends BufferedBlockInStream {
   private final long mInitPos;
   private final long mLength;
   private final String mUfsPath;

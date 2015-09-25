@@ -31,7 +31,7 @@ import tachyon.util.io.BufferUtils;
  * through a Tachyon worker's dataserver to the client. The instances of this class should only be
  * used by one thread and are not thread safe.
  */
-public final class RemoteBlockInStream extends BlockInStream {
+public final class RemoteBlockInStream extends BufferedBlockInStream {
   private final long mBlockId;
   private final long mBlockSize;
   private final InetSocketAddress mLocation;

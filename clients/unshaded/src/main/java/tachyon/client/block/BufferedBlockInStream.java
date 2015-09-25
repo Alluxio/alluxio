@@ -17,10 +17,14 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
+import com.google.common.base.Preconditions;
+import tachyon.Constants;
 import tachyon.client.BoundedStream;
 import tachyon.client.ClientContext;
 import tachyon.client.Seekable;
+import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -32,23 +36,33 @@ import tachyon.util.network.NetworkAddressUtils;
  * This class provides the same methods as a Java {@link InputStream} with additional methods from
  * Tachyon Stream interfaces.
  */
-public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
-  /**
-   * Creates a block input stream.
-   *
-   * @param blockId the block id
-   * @param blockSize the block size (for remote block input streams)
-   * @param location the block location (for remote block input streams)
-   * @return a block input stream
-   * @throws IOException if an I/O error occurs
-   */
-  public static BlockInStream get(long blockId, long blockSize, NetAddress location)
-      throws IOException {
-    String localHostname = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
-    if (location.getHost().equals(localHostname)) {
-      return new LocalBlockInStream(blockId);
-    } else {
-      return new RemoteBlockInStream(blockId, blockSize, location);
-    }
+public abstract class BufferedBlockInStream extends InputStream implements BoundedStream, Seekable {
+  private final long mBlockId;
+  private final long mBlockSize;
+  private final BlockStoreContext mContext;
+
+  private ByteBuffer mBuffer;
+  private boolean mClosed;
+
+  public BufferedBlockInStream(long blockId, long blockSize) {
+    mBlockId = blockId;
+    mBlockSize = blockSize;
+    mBuffer = allocateBuffer();
+    mClosed = false;
+    mContext = BlockStoreContext.INSTANCE;
+  }
+
+  private ByteBuffer allocateBuffer() {
+    TachyonConf conf = ClientContext.getConf();
+    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE));
+  }
+
+  private void checkIfClosed() {
+    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
+  }
+
+  @Override
+  public int read() throws IOException {
+    checkIfClosed();
   }
 }
