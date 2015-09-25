@@ -314,6 +314,25 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   }
 
   /**
+   * Frees space to make a specific amount of bytes available in the tier.
+   *
+   * @param sessionId the session ID
+   * @param availableBytes the amount of free space in bytes
+   * @param tierAlias the alias of the tier to free space
+   * @throws OutOfSpaceException if there is not enough space
+   * @throws NotFoundException if blocks can not be found
+   * @throws IOException if blocks fail to be moved or deleted on file system
+   * @throws AlreadyExistsException if blocks to move already exists in destination location
+   * @throws InvalidStateException if blocks to move/evict is uncommitted
+   */
+  public void freeSpace(long sessionId, long availableBytes, int tierAlias)
+      throws OutOfSpaceException, NotFoundException, IOException, AlreadyExistsException,
+      InvalidStateException {
+    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
+    mBlockStore.freeSpace(sessionId, availableBytes, location);
+  }
+
+  /**
    * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
    * data server.
    *

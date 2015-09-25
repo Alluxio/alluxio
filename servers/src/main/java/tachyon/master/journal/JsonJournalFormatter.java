@@ -274,7 +274,8 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getBoolean("isComplete"),
                 entry.getBoolean("isCacheable"),
                 entry.getString("ufsPath"),
-                entry.get("blocks", new TypeReference<List<Long>>() {}));
+                entry.get("blocks", new TypeReference<List<Long>>() {}),
+                entry.getLong("ttl"));
           }
           case INODE_DIRECTORY: {
             return new InodeDirectoryEntry(

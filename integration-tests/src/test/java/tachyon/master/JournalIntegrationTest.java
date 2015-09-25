@@ -152,9 +152,9 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(Constants.KB));
-    mLocalTachyonCluster.start(conf);
+    MasterContext.getConf().set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(
+        Constants.KB));
+    mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
@@ -193,18 +193,18 @@ public class JournalIntegrationTest {
   public void DeleteTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
       String dirPath = "/i" + i;
-      mTfs.mkdirs(new TachyonURI(dirPath));
+      mTfs.mkdirs(new TachyonURI(dirPath), TachyonFileSystem.RECURSIVE);
       for (int j = 0; j < 10; j ++) {
         ClientOptions option =
             new ClientOptions.Builder(mMasterTachyonConf).setBlockSize((i + j + 1) * 64).build();
         String filePath = dirPath + "/j" + j;
         mTfs.getOutStream(new TachyonURI(filePath), option).close();
         if (j >= 5) {
-          mTfs.delete(mTfs.open(new TachyonURI(filePath)));
+          mTfs.delete(mTfs.open(new TachyonURI(filePath)), TachyonFileSystem.RECURSIVE);
         }
       }
       if (i >= 5) {
-        mTfs.delete(mTfs.open(new TachyonURI(dirPath)));
+        mTfs.delete(mTfs.open(new TachyonURI(dirPath)), TachyonFileSystem.RECURSIVE);
       }
     }
     mLocalTachyonCluster.stopTFS();

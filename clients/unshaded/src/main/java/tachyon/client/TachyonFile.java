@@ -169,9 +169,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
     ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
     optionsBuilder.setBlockSize(info.getBlockSizeBytes());
     if (readType.isCache()) {
-      optionsBuilder.setTachyonStoreType(TachyonStorageType.STORE);
+      optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
     } else {
-      optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
+      optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
     try {
       return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
@@ -263,9 +263,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
     optionsBuilder.setBlockSize(info.getBlockSizeBytes());
 
     if (writeType.isCache()) {
-      optionsBuilder.setTachyonStoreType(TachyonStorageType.STORE);
+      optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
     } else {
-      optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
+      optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
     if (writeType.isThrough()) {
       optionsBuilder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);

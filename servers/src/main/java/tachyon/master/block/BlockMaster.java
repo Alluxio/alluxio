@@ -64,6 +64,7 @@ import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
@@ -466,16 +467,15 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @param totalBytesOnTiers list of total bytes on each tier
    * @param usedBytesOnTiers list of the used byes on each tier
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
-   * @return the worker id
+   * @throws TachyonException if workerId cannot be found
    */
-  // TODO(cc) return value should be void, throw exception when workerId doesn't exist.
-  public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) {
+  public void workerRegister(long workerId, List<Long> totalBytesOnTiers,
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)
+        throws TachyonException {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
-          LOG.warn("Could not find worker id: " + workerId + " to register.");
-          return -1L;
+          throw new TachyonException("Could not find worker id: " + workerId + " to register.");
         }
         MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
         workerInfo.updateLastUpdatedTimeMs();
@@ -494,7 +494,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         LOG.info("registerWorker(): " + workerInfo);
       }
     }
-    return workerId;
   }
 
   /**

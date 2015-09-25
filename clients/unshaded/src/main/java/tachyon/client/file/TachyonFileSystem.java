@@ -45,6 +45,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   private static TachyonFileSystem sTachyonFileSystem;
 
+  public static final boolean RECURSIVE = true;
+
   public static synchronized TachyonFileSystem get() {
     if (sTachyonFileSystem == null) {
       boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_ENABLE_LINEAGE);
@@ -66,7 +68,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Use getOutStream instead to create files.
    */
   @Override
-  public long create(TachyonURI path, long blockSize, boolean recursive) {
+  public long create(TachyonURI path, long blockSize, boolean recursive, long ttl) {
     throw new UnsupportedOperationException("Create is not supported, use getOutStream instead.");
   }
 
@@ -101,25 +103,26 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public long createEmptyFile(TachyonURI path, ClientOptions options) throws IOException,
       InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    long fileId = super.create(path, options.getBlockSize(), true);
+    long fileId = super.create(path, options.getBlockSize(), true, options.getTTL());
     new FileOutStream(fileId, options).close();
     return fileId;
   }
 
   /**
-   * Convenience method for delete with recursive set. This is the same as calling delete(file,
-   * true).
+   * Convenience method for delete without recursive set. This is the same as calling delete(file,
+   * false).
    *
    * @param file the handler for the file to delete recursively
    * @throws FileDoesNotExistException if the file does not exist in Tachyon space
    * @throws IOException if the master cannot delete the file
    */
   public void delete(TachyonFile file) throws FileDoesNotExistException, IOException {
-    delete(file, true);
+    delete(file, !RECURSIVE);
   }
 
   /**
-   * Convenience method for free with recursive set. This is the same as calling free(file, true).
+   * Convenience method for free without recursive set. This is the same as calling free(file, 
+   * false).
    *
    * @param file the handler for the file to free recursively
    * @throws FileDoesNotExistException if the file does not exist in Tachyon space
@@ -127,7 +130,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public void free(TachyonFile file) throws FileDoesNotExistException,
       IOException {
-    free(file, true);
+    free(file, !RECURSIVE);
   }
 
   /**
@@ -194,7 +197,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public FileOutStream getOutStream(TachyonURI path, ClientOptions options) throws IOException,
       InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    long fileId = super.create(path, options.getBlockSize(), true);
+    long fileId = super.create(path, options.getBlockSize(), true, options.getTTL());
     return new FileOutStream(fileId, options);
   }
 
@@ -219,9 +222,10 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws InvalidPathException if the path is invalid
    * @throws IOException if the master cannot create the folder
    */
+  // TODO(calvin,jiri): Consider renaming to mkdir
   public boolean mkdirs(TachyonURI path) throws FileAlreadyExistException, InvalidPathException,
       IOException {
-    return mkdirs(path, true);
+    return mkdirs(path, !RECURSIVE);
   }
 
   /**
