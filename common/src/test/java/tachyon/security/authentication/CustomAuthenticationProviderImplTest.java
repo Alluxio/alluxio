@@ -36,15 +36,15 @@ public class CustomAuthenticationProviderImplTest {
   }
 
   @Test
-  public void classNotProviderInterfaceTest() throws Exception {
+  public void classNotProviderTest() throws Exception {
+    String notProviderClass = CustomAuthenticationProviderImplTest.class.getName();
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage(CustomAuthenticationProviderImplTest.class.getName()
-        + " didn't implement interface AuthenticationProvider");
-    new CustomAuthenticationProviderImpl(CustomAuthenticationProviderImplTest.class.getName());
+    mThrown.expectMessage(notProviderClass + " instantiate failed :");
+    new CustomAuthenticationProviderImpl(notProviderClass);
   }
 
   @Test
-  public void underlyingCustomProviderTest() throws Exception {
+  public void mockCustomProviderTest() throws Exception {
     CustomAuthenticationProviderImpl provider =
         new CustomAuthenticationProviderImpl(MockAuthenticationProvider.class.getName());
     Assert.assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);

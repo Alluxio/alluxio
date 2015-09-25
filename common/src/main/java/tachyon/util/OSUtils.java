@@ -21,7 +21,14 @@ import org.apache.commons.lang3.SystemUtils;
  * OS related utility functions
  */
 public final class OSUtils {
-  private OSUtils() {}
+  /** The OS name */
+  public static final String OS_NAME = System.getProperty("os.name");
+  /** The processor bit */
+  public static final String PROCESSOR_BIT = System.getProperty("os.arch");
+  /** The java vendor name used in this platform. */
+  public static final String JAVA_VENDOR_NAME = System.getProperty("java.vendor");
+  /** Indicates the current java vendor is IBM java or not. */
+  public static final boolean IBM_JAVA = JAVA_VENDOR_NAME.contains("IBM");
 
   /**
    * @return true if current OS is Windows
@@ -29,6 +36,8 @@ public final class OSUtils {
   public static boolean isWindows() {
     return SystemUtils.IS_OS_WINDOWS;
   }
+
+  private OSUtils() {} // prevent instantiation
 }
 
 

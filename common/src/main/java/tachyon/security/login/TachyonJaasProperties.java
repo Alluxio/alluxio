@@ -15,7 +15,7 @@
 
 package tachyon.security.login;
 
-import tachyon.util.PlatformUtils;
+import tachyon.util.OSUtils;
 
 /**
  * This class collects constants used in JAAS login.
@@ -24,9 +24,9 @@ public final class TachyonJaasProperties {
 
   private static final String OS_LOGIN_MODULE_NAME;
   private static final String OS_PRINCIPAL_CLASS_NAME;
-  private static final boolean WINDOWS = PlatformUtils.OS_NAME.startsWith("Windows");
-  private static final boolean IS_64_BIT = PlatformUtils.PROCESSOR_BIT.contains("64");
-  private static final boolean AIX = PlatformUtils.OS_NAME.equals("AIX");
+  private static final boolean WINDOWS = OSUtils.OS_NAME.startsWith("Windows");
+  private static final boolean IS_64_BIT = OSUtils.PROCESSOR_BIT.contains("64");
+  private static final boolean AIX = OSUtils.OS_NAME.equals("AIX");
 
   static {
     OS_LOGIN_MODULE_NAME = findOSLoginModuleName();
@@ -37,7 +37,7 @@ public final class TachyonJaasProperties {
    * @return the OS login module class name.
    */
   private static String findOSLoginModuleName() {
-    if (PlatformUtils.IBM_JAVA) {
+    if (OSUtils.IBM_JAVA) {
       if (WINDOWS) {
         return IS_64_BIT ? "com.ibm.security.auth.module.Win64LoginModule"
             : "com.ibm.security.auth.module.NTLoginModule";
@@ -58,7 +58,7 @@ public final class TachyonJaasProperties {
    */
   private static String findOsPrincipalClassName() {
     String principalClassName;
-    if (PlatformUtils.IBM_JAVA) {
+    if (OSUtils.IBM_JAVA) {
       if (IS_64_BIT) {
         principalClassName = "com.ibm.security.auth.UsernamePrincipal";
       } else {
