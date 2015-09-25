@@ -549,6 +549,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         // Continue to remove the remaining blocks.
         continue;
       }
+      LOG.info("Block "+removedBlockId+ " is removed on worker "+workerInfo.getId());
       workerInfo.removeBlock(masterBlockInfo.getBlockId());
       masterBlockInfo.removeWorker(workerInfo.getId());
       if (masterBlockInfo.getNumLocations() == 0) {

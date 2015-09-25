@@ -30,6 +30,8 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
+import tachyon.thrift.LineageDeletionException;
+import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 
@@ -60,7 +62,8 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
-  public boolean deleteLineage(long lineageId, boolean cascade) {
+  public boolean deleteLineage(long lineageId, boolean cascade)
+      throws LineageDoesNotExistException, LineageDeletionException {
     return mLineageMaster.deleteLineage(lineageId, cascade);
   }
 

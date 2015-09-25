@@ -179,6 +179,14 @@ exception DependencyDoesNotExistException {
   1: string message
 }
 
+exception LineageDoesNotExistException {
+  1: string message
+}
+
+exception LineageDeletionException {
+  1: string message
+}
+
 service BlockMasterService {
   i64 workerGetWorkerId(1: NetAddress workerNetAddress)
 
@@ -284,6 +292,7 @@ service LineageMasterService {
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
   
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
+    throws (1: LineageDoesNotExistException lnee, 2: LineageDeletionException lde)
   
   list<LineageInfo> listLineages()
   

@@ -1209,7 +1209,12 @@ public class TFsShell implements Closeable {
     }
     long lineageId = Long.parseLong(argv[1]);
     boolean cascade = Boolean.parseBoolean(argv[2]);
-    tlfs.deleteLineage(lineageId, cascade);
+    try {
+      tlfs.deleteLineage(lineageId, cascade);
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Lineage '" + lineageId + "' could not be unpinned.");
+    }
     System.out.println("Lineage " + lineageId + " has been deleted.");
     return 0;
   }
