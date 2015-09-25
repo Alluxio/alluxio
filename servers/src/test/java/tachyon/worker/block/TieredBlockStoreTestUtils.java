@@ -267,6 +267,16 @@ public class TieredBlockStoreTestUtils {
     }
   }
 
+  /**
+   * Cache bytes into BlockStore at specific location
+   * 
+   * @param sessionId session who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param blockStore block store that the block is written into
+   * @param location the location where the block resides
+   * @throws Exception when fail to cache
+   */
   public static void cache(long sessionId, long blockId, long bytes, BlockStore blockStore,
       BlockStoreLocation location) throws Exception {
     TempBlockMeta tempBlockMeta =
@@ -284,7 +294,7 @@ public class TieredBlockStoreTestUtils {
   /**
    * Caches bytes into StorageDir.
    *
-   * @param userId user who caches the data
+   * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
    * @param tierLevel tier level of the StorageDir the block resides in
