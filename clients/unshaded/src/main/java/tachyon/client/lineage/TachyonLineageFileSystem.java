@@ -75,10 +75,10 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    */
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
       throws FileDoesNotExistException, IOException {
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
 
+    LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long lineageId = masterClient.createLineage(inputFiles, outputFiles, (CommandLineJob) job);
       LOG.info("Created lineage " + lineageId);
@@ -95,7 +95,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    * specified lineage.
    *
    * @param lineageId the id of the lineage
-   * @param cascade whether to delete all the downstream lineages recursively
+   * @param cascade whether to delete all the downstream lineages
    * @return true if the lineage deletion is successful, false otherwise
    * @throws IOException if the master cannot delete the lineage
    * @throws LineageDeletionException if the deletion is cascade but the lineage has children
@@ -136,10 +136,12 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    *
    * @throws IOException
    */
-  public long recreate(TachyonURI path, long blockSize, boolean recursive, long ttl) {
+  public long recreate(TachyonURI path, OutStreamOptions options)
+      throws LineageDoesNotExistException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      long fileId = masterClient.recreateFile(path.getPath(), blockSize);
+      long fileId =
+          masterClient.recreateFile(path.getPath(), options.getBlockSize(), options.getTTL());
       return fileId;
     } catch (IOException e) {
       throw new RuntimeException("recreation failed", e);
@@ -155,7 +157,13 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   @Override
   public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options)
       throws IOException, TachyonException {
-    long fileId = recreate(path, options.getBlockSize(), true, options.getTTL());
+    long fileId;
+    try {
+      fileId = recreate(path, options);
+    } catch (LineageDoesNotExistException e) {
+      // not a lineage file
+      return super.getOutStream(path, options);
+    }
     if (fileId < 0) {
       return new DummyOutputStream(fileId, options);
     }

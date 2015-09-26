@@ -45,7 +45,7 @@ public class LineageMasterService {
 
     public List<LineageInfo> listLineages() throws org.apache.thrift.TException;
 
-    public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException, org.apache.thrift.TException;
+    public long recreateFile(String path, long blockSizeBytes, long ttl) throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException;
 
     public void asyncCompleteFile(long fileId, String filePath) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
 
@@ -61,7 +61,7 @@ public class LineageMasterService {
 
     public void listLineages(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void recreateFile(String path, long blockSizeBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void recreateFile(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void asyncCompleteFile(long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -178,21 +178,22 @@ public class LineageMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "listLineages failed: unknown result");
     }
 
-    public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException, org.apache.thrift.TException
+    public long recreateFile(String path, long blockSizeBytes, long ttl) throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException
     {
-      send_recreateFile(path, blockSizeBytes);
+      send_recreateFile(path, blockSizeBytes, ttl);
       return recv_recreateFile();
     }
 
-    public void send_recreateFile(String path, long blockSizeBytes) throws org.apache.thrift.TException
+    public void send_recreateFile(String path, long blockSizeBytes, long ttl) throws org.apache.thrift.TException
     {
       recreateFile_args args = new recreateFile_args();
       args.setPath(path);
       args.setBlockSizeBytes(blockSizeBytes);
+      args.setTtl(ttl);
       sendBase("recreateFile", args);
     }
 
-    public long recv_recreateFile() throws InvalidPathException, org.apache.thrift.TException
+    public long recv_recreateFile() throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException
     {
       recreateFile_result result = new recreateFile_result();
       receiveBase(result, "recreateFile");
@@ -201,6 +202,9 @@ public class LineageMasterService {
       }
       if (result.ipe != null) {
         throw result.ipe;
+      }
+      if (result.ldee != null) {
+        throw result.ldee;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "recreateFile failed: unknown result");
     }
@@ -376,9 +380,9 @@ public class LineageMasterService {
       }
     }
 
-    public void recreateFile(String path, long blockSizeBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void recreateFile(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      recreateFile_call method_call = new recreateFile_call(path, blockSizeBytes, resultHandler, this, ___protocolFactory, ___transport);
+      recreateFile_call method_call = new recreateFile_call(path, blockSizeBytes, ttl, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -386,10 +390,12 @@ public class LineageMasterService {
     public static class recreateFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
       private long blockSizeBytes;
-      public recreateFile_call(String path, long blockSizeBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private long ttl;
+      public recreateFile_call(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
         this.blockSizeBytes = blockSizeBytes;
+        this.ttl = ttl;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -397,11 +403,12 @@ public class LineageMasterService {
         recreateFile_args args = new recreateFile_args();
         args.setPath(path);
         args.setBlockSizeBytes(blockSizeBytes);
+        args.setTtl(ttl);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws InvalidPathException, org.apache.thrift.TException {
+      public long getResult() throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -597,10 +604,12 @@ public class LineageMasterService {
       public recreateFile_result getResult(I iface, recreateFile_args args) throws org.apache.thrift.TException {
         recreateFile_result result = new recreateFile_result();
         try {
-          result.success = iface.recreateFile(args.path, args.blockSizeBytes);
+          result.success = iface.recreateFile(args.path, args.blockSizeBytes, args.ttl);
           result.setSuccessIsSet(true);
         } catch (InvalidPathException ipe) {
           result.ipe = ipe;
+        } catch (LineageDoesNotExistException ldee) {
+          result.ldee = ldee;
         }
         return result;
       }
@@ -894,6 +903,11 @@ public class LineageMasterService {
                         result.setIpeIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof LineageDoesNotExistException) {
+                        result.ldee = (LineageDoesNotExistException) e;
+                        result.setLdeeIsSet(true);
+                        msg = result;
+            }
              else 
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
@@ -915,7 +929,7 @@ public class LineageMasterService {
       }
 
       public void start(I iface, recreateFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.recreateFile(args.path, args.blockSizeBytes,resultHandler);
+        iface.recreateFile(args.path, args.blockSizeBytes, args.ttl,resultHandler);
       }
     }
 
@@ -4197,6 +4211,7 @@ public class LineageMasterService {
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeBytes", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4206,11 +4221,13 @@ public class LineageMasterService {
 
     public String path; // required
     public long blockSizeBytes; // required
+    public long ttl; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       PATH((short)1, "path"),
-      BLOCK_SIZE_BYTES((short)2, "blockSizeBytes");
+      BLOCK_SIZE_BYTES((short)2, "blockSizeBytes"),
+      TTL((short)3, "ttl");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4229,6 +4246,8 @@ public class LineageMasterService {
             return PATH;
           case 2: // BLOCK_SIZE_BYTES
             return BLOCK_SIZE_BYTES;
+          case 3: // TTL
+            return TTL;
           default:
             return null;
         }
@@ -4270,6 +4289,7 @@ public class LineageMasterService {
 
     // isset id assignments
     private static final int __BLOCKSIZEBYTES_ISSET_ID = 0;
+    private static final int __TTL_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -4277,6 +4297,8 @@ public class LineageMasterService {
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.BLOCK_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("blockSizeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(recreateFile_args.class, metaDataMap);
@@ -4287,12 +4309,15 @@ public class LineageMasterService {
 
     public recreateFile_args(
       String path,
-      long blockSizeBytes)
+      long blockSizeBytes,
+      long ttl)
     {
       this();
       this.path = path;
       this.blockSizeBytes = blockSizeBytes;
       setBlockSizeBytesIsSet(true);
+      this.ttl = ttl;
+      setTtlIsSet(true);
     }
 
     /**
@@ -4304,6 +4329,7 @@ public class LineageMasterService {
         this.path = other.path;
       }
       this.blockSizeBytes = other.blockSizeBytes;
+      this.ttl = other.ttl;
     }
 
     public recreateFile_args deepCopy() {
@@ -4315,6 +4341,8 @@ public class LineageMasterService {
       this.path = null;
       setBlockSizeBytesIsSet(false);
       this.blockSizeBytes = 0;
+      setTtlIsSet(false);
+      this.ttl = 0;
     }
 
     public String getPath() {
@@ -4364,6 +4392,29 @@ public class LineageMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKSIZEBYTES_ISSET_ID, value);
     }
 
+    public long getTtl() {
+      return this.ttl;
+    }
+
+    public recreateFile_args setTtl(long ttl) {
+      this.ttl = ttl;
+      setTtlIsSet(true);
+      return this;
+    }
+
+    public void unsetTtl() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TTL_ISSET_ID);
+    }
+
+    /** Returns true if field ttl is set (has been assigned a value) and false otherwise */
+    public boolean isSetTtl() {
+      return EncodingUtils.testBit(__isset_bitfield, __TTL_ISSET_ID);
+    }
+
+    public void setTtlIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TTL_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case PATH:
@@ -4382,6 +4433,14 @@ public class LineageMasterService {
         }
         break;
 
+      case TTL:
+        if (value == null) {
+          unsetTtl();
+        } else {
+          setTtl((Long)value);
+        }
+        break;
+
       }
     }
 
@@ -4392,6 +4451,9 @@ public class LineageMasterService {
 
       case BLOCK_SIZE_BYTES:
         return Long.valueOf(getBlockSizeBytes());
+
+      case TTL:
+        return Long.valueOf(getTtl());
 
       }
       throw new IllegalStateException();
@@ -4408,6 +4470,8 @@ public class LineageMasterService {
         return isSetPath();
       case BLOCK_SIZE_BYTES:
         return isSetBlockSizeBytes();
+      case TTL:
+        return isSetTtl();
       }
       throw new IllegalStateException();
     }
@@ -4443,6 +4507,15 @@ public class LineageMasterService {
           return false;
       }
 
+      boolean this_present_ttl = true;
+      boolean that_present_ttl = true;
+      if (this_present_ttl || that_present_ttl) {
+        if (!(this_present_ttl && that_present_ttl))
+          return false;
+        if (this.ttl != that.ttl)
+          return false;
+      }
+
       return true;
     }
 
@@ -4459,6 +4532,11 @@ public class LineageMasterService {
       list.add(present_blockSizeBytes);
       if (present_blockSizeBytes)
         list.add(blockSizeBytes);
+
+      boolean present_ttl = true;
+      list.add(present_ttl);
+      if (present_ttl)
+        list.add(ttl);
 
       return list.hashCode();
     }
@@ -4487,6 +4565,16 @@ public class LineageMasterService {
       }
       if (isSetBlockSizeBytes()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockSizeBytes, other.blockSizeBytes);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetTtl()).compareTo(other.isSetTtl());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTtl()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ttl, other.ttl);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4521,6 +4609,10 @@ public class LineageMasterService {
       if (!first) sb.append(", ");
       sb.append("blockSizeBytes:");
       sb.append(this.blockSizeBytes);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ttl:");
+      sb.append(this.ttl);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -4583,6 +4675,14 @@ public class LineageMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // TTL
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.ttl = iprot.readI64();
+                struct.setTtlIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -4605,6 +4705,9 @@ public class LineageMasterService {
         }
         oprot.writeFieldBegin(BLOCK_SIZE_BYTES_FIELD_DESC);
         oprot.writeI64(struct.blockSizeBytes);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(TTL_FIELD_DESC);
+        oprot.writeI64(struct.ttl);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -4630,19 +4733,25 @@ public class LineageMasterService {
         if (struct.isSetBlockSizeBytes()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetTtl()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
         }
         if (struct.isSetBlockSizeBytes()) {
           oprot.writeI64(struct.blockSizeBytes);
         }
+        if (struct.isSetTtl()) {
+          oprot.writeI64(struct.ttl);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, recreateFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
@@ -4650,6 +4759,10 @@ public class LineageMasterService {
         if (incoming.get(1)) {
           struct.blockSizeBytes = iprot.readI64();
           struct.setBlockSizeBytesIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.ttl = iprot.readI64();
+          struct.setTtlIsSet(true);
         }
       }
     }
@@ -4661,6 +4774,7 @@ public class LineageMasterService {
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField LDEE_FIELD_DESC = new org.apache.thrift.protocol.TField("ldee", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4670,11 +4784,13 @@ public class LineageMasterService {
 
     public long success; // required
     public InvalidPathException ipe; // required
+    public LineageDoesNotExistException ldee; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      IPE((short)1, "ipe");
+      IPE((short)1, "ipe"),
+      LDEE((short)2, "ldee");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4693,6 +4809,8 @@ public class LineageMasterService {
             return SUCCESS;
           case 1: // IPE
             return IPE;
+          case 2: // LDEE
+            return LDEE;
           default:
             return null;
         }
@@ -4742,6 +4860,8 @@ public class LineageMasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.LDEE, new org.apache.thrift.meta_data.FieldMetaData("ldee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(recreateFile_result.class, metaDataMap);
     }
@@ -4751,12 +4871,14 @@ public class LineageMasterService {
 
     public recreateFile_result(
       long success,
-      InvalidPathException ipe)
+      InvalidPathException ipe,
+      LineageDoesNotExistException ldee)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
       this.ipe = ipe;
+      this.ldee = ldee;
     }
 
     /**
@@ -4767,6 +4889,9 @@ public class LineageMasterService {
       this.success = other.success;
       if (other.isSetIpe()) {
         this.ipe = new InvalidPathException(other.ipe);
+      }
+      if (other.isSetLdee()) {
+        this.ldee = new LineageDoesNotExistException(other.ldee);
       }
     }
 
@@ -4779,6 +4904,7 @@ public class LineageMasterService {
       setSuccessIsSet(false);
       this.success = 0;
       this.ipe = null;
+      this.ldee = null;
     }
 
     public long getSuccess() {
@@ -4828,6 +4954,30 @@ public class LineageMasterService {
       }
     }
 
+    public LineageDoesNotExistException getLdee() {
+      return this.ldee;
+    }
+
+    public recreateFile_result setLdee(LineageDoesNotExistException ldee) {
+      this.ldee = ldee;
+      return this;
+    }
+
+    public void unsetLdee() {
+      this.ldee = null;
+    }
+
+    /** Returns true if field ldee is set (has been assigned a value) and false otherwise */
+    public boolean isSetLdee() {
+      return this.ldee != null;
+    }
+
+    public void setLdeeIsSet(boolean value) {
+      if (!value) {
+        this.ldee = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
@@ -4846,6 +4996,14 @@ public class LineageMasterService {
         }
         break;
 
+      case LDEE:
+        if (value == null) {
+          unsetLdee();
+        } else {
+          setLdee((LineageDoesNotExistException)value);
+        }
+        break;
+
       }
     }
 
@@ -4856,6 +5014,9 @@ public class LineageMasterService {
 
       case IPE:
         return getIpe();
+
+      case LDEE:
+        return getLdee();
 
       }
       throw new IllegalStateException();
@@ -4872,6 +5033,8 @@ public class LineageMasterService {
         return isSetSuccess();
       case IPE:
         return isSetIpe();
+      case LDEE:
+        return isSetLdee();
       }
       throw new IllegalStateException();
     }
@@ -4907,6 +5070,15 @@ public class LineageMasterService {
           return false;
       }
 
+      boolean this_present_ldee = true && this.isSetLdee();
+      boolean that_present_ldee = true && that.isSetLdee();
+      if (this_present_ldee || that_present_ldee) {
+        if (!(this_present_ldee && that_present_ldee))
+          return false;
+        if (!this.ldee.equals(that.ldee))
+          return false;
+      }
+
       return true;
     }
 
@@ -4923,6 +5095,11 @@ public class LineageMasterService {
       list.add(present_ipe);
       if (present_ipe)
         list.add(ipe);
+
+      boolean present_ldee = true && (isSetLdee());
+      list.add(present_ldee);
+      if (present_ldee)
+        list.add(ldee);
 
       return list.hashCode();
     }
@@ -4951,6 +5128,16 @@ public class LineageMasterService {
       }
       if (isSetIpe()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipe, other.ipe);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetLdee()).compareTo(other.isSetLdee());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetLdee()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ldee, other.ldee);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4984,6 +5171,14 @@ public class LineageMasterService {
         sb.append("null");
       } else {
         sb.append(this.ipe);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ldee:");
+      if (this.ldee == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ldee);
       }
       first = false;
       sb.append(")");
@@ -5048,6 +5243,15 @@ public class LineageMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // LDEE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ldee = new LineageDoesNotExistException();
+                struct.ldee.read(iprot);
+                struct.setLdeeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -5071,6 +5275,11 @@ public class LineageMasterService {
         if (struct.ipe != null) {
           oprot.writeFieldBegin(IPE_FIELD_DESC);
           struct.ipe.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ldee != null) {
+          oprot.writeFieldBegin(LDEE_FIELD_DESC);
+          struct.ldee.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -5097,19 +5306,25 @@ public class LineageMasterService {
         if (struct.isSetIpe()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetLdee()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
         }
         if (struct.isSetIpe()) {
           struct.ipe.write(oprot);
         }
+        if (struct.isSetLdee()) {
+          struct.ldee.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, recreateFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
@@ -5118,6 +5333,11 @@ public class LineageMasterService {
           struct.ipe = new InvalidPathException();
           struct.ipe.read(iprot);
           struct.setIpeIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.ldee = new LineageDoesNotExistException();
+          struct.ldee.read(iprot);
+          struct.setLdeeIsSet(true);
         }
       }
     }

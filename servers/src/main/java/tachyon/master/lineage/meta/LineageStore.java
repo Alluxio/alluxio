@@ -30,6 +30,7 @@ import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.journal.LineageEntry;
+import tachyon.thrift.LineageDoesNotExistException;
 
 /**
  * A store of lineages. This class is thread-safe.
@@ -171,8 +172,13 @@ public final class LineageStore implements JournalCheckpointStreamable {
   /**
    * @param fileId the fild id
    * @return the lineage state of the given file
+   * @throws LineageDoesNotExistException
    */
-  public synchronized LineageFileState getLineageFileState(long fileId) {
+  public synchronized LineageFileState getLineageFileState(long fileId)
+      throws LineageDoesNotExistException {
+    if (!mOutputFileIndex.containsKey(fileId)) {
+      throw new LineageDoesNotExistException("No lineage has output file " + fileId);
+    }
     return mOutputFileIndex.get(fileId).getOutputFileState(fileId);
   }
 }

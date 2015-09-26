@@ -230,15 +230,17 @@ public final class LineageMaster extends MasterBase {
    *
    * @param path the path to the file
    * @param blockSizeBytes the block size
+   * @param ttl the TTL
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise.
    * @throws InvalidPathException the file path is invalid
    */
-  public long recreateFile(String path, long blockSizeBytes) throws InvalidPathException {
+  public long recreateFile(String path, long blockSizeBytes, long ttl)
+      throws InvalidPathException, LineageDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     LineageFileState state = mLineageStore.getLineageFileState(fileId);
     if (state == LineageFileState.CREATED || state == LineageFileState.LOST) {
       LOG.info("Recreate the file " + path + " with block size of " + blockSizeBytes + " bytes");
-      return mFileSystemMaster.resetBlockSize(new TachyonURI(path), blockSizeBytes);
+      return mFileSystemMaster.reinitializeBlock(new TachyonURI(path), blockSizeBytes, ttl);
     }
     return -1;
   }

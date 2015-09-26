@@ -54,8 +54,8 @@ import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
+import tachyon.master.file.journal.ReinitializeBlockEntry;
 import tachyon.master.file.journal.RenameEntry;
-import tachyon.master.file.journal.ResizeBlockEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
@@ -354,10 +354,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("containerId"),
                 entry.getLong("sequenceNumber"));
           }
-          case RESIZE_BLOCK: {
-            return new ResizeBlockEntry(
+          case REINITIALIZE_BLOCK: {
+            return new ReinitializeBlockEntry(
                 entry.getString("path"),
-                entry.getLong("blockSizeBytes"));
+                entry.getLong("blockSizeBytes"),
+                entry.getLong("ttl"));
           }
 
           // RawTable

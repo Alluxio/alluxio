@@ -296,7 +296,8 @@ service LineageMasterService {
   
   list<LineageInfo> listLineages()
   
-  i64 recreateFile(1: string path, 2: i64 blockSizeBytes) throws (1: InvalidPathException ipe)
+  i64 recreateFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
+    throws (1: InvalidPathException ipe, 2: LineageDoesNotExistException ldee)
   
   void asyncCompleteFile(1: i64 fileId, 2: string filePath)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
