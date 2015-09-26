@@ -27,7 +27,6 @@ public enum UnderStorageType {
   /** Do not persist data to Under Storage. */
   NO_PERSIST(2),
 
-
   /** Persist data to Under Storage asynchronously via lineage */
   ASYNC_PERSIST(3);
 

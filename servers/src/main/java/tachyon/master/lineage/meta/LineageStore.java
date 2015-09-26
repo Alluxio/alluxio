@@ -83,11 +83,10 @@ public final class LineageStore implements JournalCheckpointStreamable {
     mIdIndex.put(lineage.getId(), lineage);
   }
 
-  public synchronized void completeFile(long fileId, String underFsPath) {
+  public synchronized void completeFile(long fileId) {
     Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.COMPLETED);
-    lineage.setOutputFileUnderFsPath(fileId, underFsPath);
   }
 
   public synchronized void deleteLineage(long lineageId) {

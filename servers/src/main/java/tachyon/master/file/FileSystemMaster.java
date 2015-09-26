@@ -103,6 +103,7 @@ public final class FileSystemMaster extends MasterBase {
 
   /** The service that tries to check inodefiles with ttl set */
   private Future<?> mTTLCheckerService;
+
   /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
@@ -515,7 +516,8 @@ public final class FileSystemMaster extends MasterBase {
    * @return the file id
    * @throws InvalidPathException
    */
-  public long reinitializeBlock(TachyonURI path, long blockSizeBytes, long ttl) throws InvalidPathException {
+  public long reinitializeBlock(TachyonURI path, long blockSizeBytes, long ttl)
+      throws InvalidPathException {
     // TODO(yupeng): add validation
     long id = mInodeTree.reinitializeBlock(path, blockSizeBytes, ttl);
     writeJournalEntry(new ReinitializeBlockEntry(path.getPath(), blockSizeBytes, ttl));

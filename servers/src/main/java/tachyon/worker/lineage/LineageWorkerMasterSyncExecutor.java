@@ -84,7 +84,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     for (CheckpointFile checkpointFile : command.mCheckpointFiles) {
       mFixedExecutionService.execute(new FilePersister(mLineageDataManager, checkpointFile.mFileId,
-          checkpointFile.mBlockIds, checkpointFile.mUnderFsPath));
+          checkpointFile.mBlockIds));
     }
   }
 
@@ -95,23 +95,20 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     private LineageDataManager mLineageDataManager;
     private long mFileId;
     private List<Long> mBlockIds;
-    private String mUnderFsPath;
 
-    public FilePersister(LineageDataManager lineageDataManager, long fileId, List<Long> blockIds,
-        String underFsPath) {
+    public FilePersister(LineageDataManager lineageDataManager, long fileId, List<Long> blockIds) {
       mLineageDataManager = lineageDataManager;
       mFileId = fileId;
       mBlockIds = blockIds;
-      mUnderFsPath = underFsPath;
     }
 
     @Override
     public void run() {
       try {
-        LOG.info("persist file " + mFileId + " of blocks " + mBlockIds + " to " + mUnderFsPath);
-        mLineageDataManager.persistFile(mFileId, mBlockIds, mUnderFsPath);
+        LOG.info("persist file " + mFileId + " of blocks " + mBlockIds);
+        mLineageDataManager.persistFile(mFileId, mBlockIds);
       } catch (IOException e) {
-        LOG.error("Failed to persist file " + mFileId + " at " + mUnderFsPath, e);
+        LOG.error("Failed to persist file " + mFileId, e);
       }
     }
   }

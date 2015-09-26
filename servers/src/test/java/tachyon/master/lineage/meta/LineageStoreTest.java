@@ -57,7 +57,7 @@ public final class LineageStoreTest {
   public void completeFileForAsyncWriteTest() {
     long id = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
         Lists.newArrayList(new LineageFile(1)), mJob);
-    mLineageStore.completeFile(1, "path");
+    mLineageStore.completeFile(1);
     Assert.assertEquals(LineageFileState.COMPLETED,
         mLineageStore.getLineage(id).getOutputFiles().get(0).getState());
   }

@@ -68,9 +68,9 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
-  public void asyncCompleteFile(long fileId, String filePath)
+  public void asyncCompleteFile(long fileId)
       throws FileDoesNotExistException, BlockInfoException {
-    mLineageMaster.asyncCompleteFile(fileId, filePath);
+    mLineageMaster.asyncCompleteFile(fileId);
   }
 
   @Override

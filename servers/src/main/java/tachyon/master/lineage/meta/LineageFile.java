@@ -20,33 +20,22 @@ import tachyon.thrift.LineageFileInfo;
 
 public final class LineageFile extends TachyonFile {
   private LineageFileState mState;
-  private String mUnderFilePath;
 
   public LineageFile(long fileId) {
     super(fileId);
     mState = LineageFileState.CREATED;
   }
 
-  public LineageFile(long fileId, LineageFileState state, String underFilePath) {
+  public LineageFile(long fileId, LineageFileState state) {
     super(fileId);
     mState = state;
-    mUnderFilePath = underFilePath;
   }
 
   public LineageFileInfo generateLineageFileInfo() {
     LineageFileInfo info = new LineageFileInfo();
     info.mId = getFileId();
     info.mState = mState.toString();
-    info.mUnderFilePath = mUnderFilePath;
     return info;
-  }
-
-  public String getUnderFilePath() {
-    return mUnderFilePath;
-  }
-
-  public void setUnderFilePath(String path) {
-    mUnderFilePath = path;
   }
 
   public LineageFileState getState() {
@@ -59,7 +48,6 @@ public final class LineageFile extends TachyonFile {
 
   @Override
   public String toString() {
-    return "Lineage File(mId:" + getFileId() + ", mState:" + mState + ", mUnderFilePath:"
-        + mUnderFilePath + ")";
+    return "Lineage File(mId:" + getFileId() + ", mState:" + mState + ")";
   }
 }

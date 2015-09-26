@@ -50,13 +50,13 @@ public final class CheckpointLatestSchedulerTest {
     long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
         Lists.newArrayList(new LineageFile(2)), mJob);
     // complete first
-    mLineageStore.completeFile(1, "test1");
+    mLineageStore.completeFile(1);
 
     CheckpointPlan plan = mScheduler.schedule(new LineageStoreView(mLineageStore));
     Assert.assertEquals((Long) l1, plan.getLineagesToCheckpoint().get(0));
 
     // complete second
-    mLineageStore.completeFile(2, "test2");
+    mLineageStore.completeFile(2);
     plan = mScheduler.schedule(new LineageStoreView(mLineageStore));
     Assert.assertEquals((Long) l2, plan.getLineagesToCheckpoint().get(0));
   }

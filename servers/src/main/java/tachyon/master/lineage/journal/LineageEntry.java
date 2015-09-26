@@ -38,7 +38,6 @@ public class LineageEntry implements JournalEntry {
   private final List<Long> mOutputFileIds;
   // TODO(yupeng) allow journal entry to have nested class
   private final List<LineageFileState> mOutputFileStates;
-  private final List<String> mOutputFileUnderFsPaths;
   private final String mJobCommand;
   private final String mJobOutputPath;
   private final long mCreationTimeMs;
@@ -52,11 +51,9 @@ public class LineageEntry implements JournalEntry {
     }
     mOutputFileIds = Lists.newArrayList();
     mOutputFileStates = Lists.newArrayList();
-    mOutputFileUnderFsPaths = Lists.newArrayList();
     for (LineageFile file : outputFiles) {
       mOutputFileIds.add(file.getFileId());
       mOutputFileStates.add(file.getState());
-      mOutputFileUnderFsPaths.add(file.getUnderFilePath());
     }
     // TODO(yupeng) support other job types
     Preconditions.checkState(job instanceof CommandLineJob);
@@ -74,8 +71,7 @@ public class LineageEntry implements JournalEntry {
 
     List<LineageFile> outputFiles = Lists.newArrayList();
     for (int i = 0; i < mOutputFileIds.size(); i ++) {
-      outputFiles.add(new LineageFile(mOutputFileIds.get(i), mOutputFileStates.get(i),
-          mOutputFileUnderFsPaths.get(i)));
+      outputFiles.add(new LineageFile(mOutputFileIds.get(i), mOutputFileStates.get(i)));
     }
 
     Job job = new CommandLineJob(mJobCommand, new JobConf(mJobOutputPath));
@@ -95,7 +91,6 @@ public class LineageEntry implements JournalEntry {
     parameters.put("inputFiles", mInputFiles);
     parameters.put("outputFileIds", mOutputFileIds);
     parameters.put("outputFileStates", mOutputFileStates);
-    parameters.put("outputFileUnderFsPaths", mOutputFileUnderFsPaths);
     parameters.put("jobCommand", mJobCommand);
     parameters.put("jobOutputPath", mJobOutputPath);
     parameters.put("creationTimeMs", mCreationTimeMs);

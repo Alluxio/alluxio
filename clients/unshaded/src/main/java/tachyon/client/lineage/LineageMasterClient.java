@@ -129,12 +129,12 @@ public final class LineageMasterClient extends MasterClientBase {
     throw new IOException("Failed after " + retry + " retries.");
   }
 
-  public synchronized void asyncCompleteFile(long fileId, String filePath) throws IOException {
+  public synchronized void asyncCompleteFile(long fileId) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        mClient.asyncCompleteFile(fileId, filePath);
+        mClient.asyncCompleteFile(fileId);
         return;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);

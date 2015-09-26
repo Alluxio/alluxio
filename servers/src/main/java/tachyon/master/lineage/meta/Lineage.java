@@ -111,14 +111,6 @@ public final class Lineage {
     return mCreationTimeMs;
   }
 
-  public synchronized void setOutputFileUnderFsPath(long fileId, String underFsPath) {
-    for (LineageFile outputFile : mOutputFiles) {
-      if (outputFile.getFileId() == fileId) {
-        outputFile.setUnderFilePath(underFsPath);
-      }
-    }
-  }
-
   public synchronized void updateOutputFileState(long fileId, LineageFileState newState) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {

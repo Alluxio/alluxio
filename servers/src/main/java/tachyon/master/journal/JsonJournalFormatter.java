@@ -377,8 +377,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
           // Lineage
           case ASYNC_COMPLETE_FILE: {
             return new AsyncCompleteFileEntry(
-                entry.getLong("fileId"),
-                entry.getString("underFsPath"));
+                entry.getLong("fileId"));
           }
           case PERSIST_FILE: {
             return new PersistFilesEntry(
@@ -395,11 +394,8 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.get("outputFileIds", new TypeReference<List<Long>>() {});
             List<LineageFileState> outputFileStates =
                 entry.get("outputFileStates", new TypeReference<List<LineageFileState>>() {});
-            List<String> outputFileUnderFsPaths =
-                entry.get("outputFileUnderFsPaths", new TypeReference<List<String>>() {});
             for (int i = 0; i < outputFileIds.size(); i ++) {
-              outputFiles.add(new LineageFile(outputFileIds.get(i), outputFileStates.get(i),
-                  outputFileUnderFsPaths.get(i)));
+              outputFiles.add(new LineageFile(outputFileIds.get(i), outputFileStates.get(i)));
             }
             Job job = new CommandLineJob(entry.getString("jobCommand"),
                 new JobConf(entry.getString("jobOutputPath")));
