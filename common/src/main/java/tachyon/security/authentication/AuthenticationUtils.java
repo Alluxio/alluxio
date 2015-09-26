@@ -55,10 +55,11 @@ public final class AuthenticationUtils {
       case CUSTOM:
         return PlainSaslUtils.getPlainServerTransportFactory(authType, tachyonConf);
       case KERBEROS:
-        throw new UnsupportedOperationException("Kerberos is not supported currently.");
+        throw new UnsupportedOperationException("getServerTransportFactory: Kerberos is "
+            + "not supported currently.");
       default:
-        throw new UnsupportedOperationException("Unsupported authentication type: "
-            + authType.getAuthName());
+        throw new UnsupportedOperationException("getServerTransportFactory: Unsupported "
+            + "authentication type: " + authType.getAuthName());
     }
   }
 
@@ -86,10 +87,11 @@ public final class AuthenticationUtils {
         String username = LoginUser.get(tachyonConf).getName();
         return PlainSaslUtils.getPlainClientTransport(username, "noPassword", tTransport);
       case KERBEROS:
-        throw new UnsupportedOperationException("Kerberos is not supported currently.");
+        throw new UnsupportedOperationException("getClientTransport: Kerberos is not "
+            + "supported currently.");
       default:
-        throw new UnsupportedOperationException("Unsupported authentication type: "
-            + authType.getAuthName());
+        throw new UnsupportedOperationException(
+            "getClientTransport: Unsupported authentication type: " + authType.getAuthName());
     }
   }
 
