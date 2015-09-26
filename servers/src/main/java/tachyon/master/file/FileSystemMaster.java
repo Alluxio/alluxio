@@ -231,9 +231,9 @@ public final class FileSystemMaster extends MasterBase {
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       TachyonConf conf = MasterContext.getConf();
       mInodeTree.initializeRoot();
-      String defaultUFS = conf.get(Constants.UNDERFS_ADDRESS);
+      String defaultUFS = conf.get(Constants.UNDERFS_DATA_FOLDER);
       try {
-        mMountTable.add(new TachyonURI("/"), new TachyonURI(defaultUFS + TachyonURI.SEPARATOR));
+        mMountTable.add(new TachyonURI("/"), new TachyonURI(defaultUFS));
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
