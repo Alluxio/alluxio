@@ -47,7 +47,7 @@ public class LineageMasterService {
 
     public long recreateFile(String path, long blockSizeBytes, long ttl) throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException;
 
-    public void asyncCompleteFile(long fileId, String filePath) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
+    public void asyncCompleteFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
 
     public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles) throws org.apache.thrift.TException;
 
@@ -63,7 +63,7 @@ public class LineageMasterService {
 
     public void recreateFile(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void asyncCompleteFile(long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void asyncCompleteFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void workerLineageHeartbeat(long workerId, List<Long> persistedFiles, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -209,17 +209,16 @@ public class LineageMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "recreateFile failed: unknown result");
     }
 
-    public void asyncCompleteFile(long fileId, String filePath) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public void asyncCompleteFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
     {
-      send_asyncCompleteFile(fileId, filePath);
+      send_asyncCompleteFile(fileId);
       recv_asyncCompleteFile();
     }
 
-    public void send_asyncCompleteFile(long fileId, String filePath) throws org.apache.thrift.TException
+    public void send_asyncCompleteFile(long fileId) throws org.apache.thrift.TException
     {
       asyncCompleteFile_args args = new asyncCompleteFile_args();
       args.setFileId(fileId);
-      args.setFilePath(filePath);
       sendBase("asyncCompleteFile", args);
     }
 
@@ -418,27 +417,24 @@ public class LineageMasterService {
       }
     }
 
-    public void asyncCompleteFile(long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void asyncCompleteFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      asyncCompleteFile_call method_call = new asyncCompleteFile_call(fileId, filePath, resultHandler, this, ___protocolFactory, ___transport);
+      asyncCompleteFile_call method_call = new asyncCompleteFile_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class asyncCompleteFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long fileId;
-      private String filePath;
-      public asyncCompleteFile_call(long fileId, String filePath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public asyncCompleteFile_call(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
-        this.filePath = filePath;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("asyncCompleteFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         asyncCompleteFile_args args = new asyncCompleteFile_args();
         args.setFileId(fileId);
-        args.setFilePath(filePath);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -631,7 +627,7 @@ public class LineageMasterService {
       public asyncCompleteFile_result getResult(I iface, asyncCompleteFile_args args) throws org.apache.thrift.TException {
         asyncCompleteFile_result result = new asyncCompleteFile_result();
         try {
-          iface.asyncCompleteFile(args.fileId, args.filePath);
+          iface.asyncCompleteFile(args.fileId);
         } catch (FileDoesNotExistException fdnee) {
           result.fdnee = fdnee;
         } catch (BlockInfoException bie) {
@@ -990,7 +986,7 @@ public class LineageMasterService {
       }
 
       public void start(I iface, asyncCompleteFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.asyncCompleteFile(args.fileId, args.filePath,resultHandler);
+        iface.asyncCompleteFile(args.fileId,resultHandler);
       }
     }
 
@@ -5348,7 +5344,6 @@ public class LineageMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("asyncCompleteFile_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField FILE_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("filePath", org.apache.thrift.protocol.TType.STRING, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -5357,12 +5352,10 @@ public class LineageMasterService {
     }
 
     public long fileId; // required
-    public String filePath; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId"),
-      FILE_PATH((short)2, "filePath");
+      FILE_ID((short)1, "fileId");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -5379,8 +5372,6 @@ public class LineageMasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
-          case 2: // FILE_PATH
-            return FILE_PATH;
           default:
             return null;
         }
@@ -5428,8 +5419,6 @@ public class LineageMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.FILE_PATH, new org.apache.thrift.meta_data.FieldMetaData("filePath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(asyncCompleteFile_args.class, metaDataMap);
     }
@@ -5438,13 +5427,11 @@ public class LineageMasterService {
     }
 
     public asyncCompleteFile_args(
-      long fileId,
-      String filePath)
+      long fileId)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
-      this.filePath = filePath;
     }
 
     /**
@@ -5453,9 +5440,6 @@ public class LineageMasterService {
     public asyncCompleteFile_args(asyncCompleteFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
-      if (other.isSetFilePath()) {
-        this.filePath = other.filePath;
-      }
     }
 
     public asyncCompleteFile_args deepCopy() {
@@ -5466,7 +5450,6 @@ public class LineageMasterService {
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
-      this.filePath = null;
     }
 
     public long getFileId() {
@@ -5492,30 +5475,6 @@ public class LineageMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
     }
 
-    public String getFilePath() {
-      return this.filePath;
-    }
-
-    public asyncCompleteFile_args setFilePath(String filePath) {
-      this.filePath = filePath;
-      return this;
-    }
-
-    public void unsetFilePath() {
-      this.filePath = null;
-    }
-
-    /** Returns true if field filePath is set (has been assigned a value) and false otherwise */
-    public boolean isSetFilePath() {
-      return this.filePath != null;
-    }
-
-    public void setFilePathIsSet(boolean value) {
-      if (!value) {
-        this.filePath = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case FILE_ID:
@@ -5526,14 +5485,6 @@ public class LineageMasterService {
         }
         break;
 
-      case FILE_PATH:
-        if (value == null) {
-          unsetFilePath();
-        } else {
-          setFilePath((String)value);
-        }
-        break;
-
       }
     }
 
@@ -5541,9 +5492,6 @@ public class LineageMasterService {
       switch (field) {
       case FILE_ID:
         return Long.valueOf(getFileId());
-
-      case FILE_PATH:
-        return getFilePath();
 
       }
       throw new IllegalStateException();
@@ -5558,8 +5506,6 @@ public class LineageMasterService {
       switch (field) {
       case FILE_ID:
         return isSetFileId();
-      case FILE_PATH:
-        return isSetFilePath();
       }
       throw new IllegalStateException();
     }
@@ -5586,15 +5532,6 @@ public class LineageMasterService {
           return false;
       }
 
-      boolean this_present_filePath = true && this.isSetFilePath();
-      boolean that_present_filePath = true && that.isSetFilePath();
-      if (this_present_filePath || that_present_filePath) {
-        if (!(this_present_filePath && that_present_filePath))
-          return false;
-        if (!this.filePath.equals(that.filePath))
-          return false;
-      }
-
       return true;
     }
 
@@ -5606,11 +5543,6 @@ public class LineageMasterService {
       list.add(present_fileId);
       if (present_fileId)
         list.add(fileId);
-
-      boolean present_filePath = true && (isSetFilePath());
-      list.add(present_filePath);
-      if (present_filePath)
-        list.add(filePath);
 
       return list.hashCode();
     }
@@ -5629,16 +5561,6 @@ public class LineageMasterService {
       }
       if (isSetFileId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetFilePath()).compareTo(other.isSetFilePath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFilePath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.filePath, other.filePath);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -5665,14 +5587,6 @@ public class LineageMasterService {
 
       sb.append("fileId:");
       sb.append(this.fileId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("filePath:");
-      if (this.filePath == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.filePath);
-      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -5727,14 +5641,6 @@ public class LineageMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // FILE_PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.filePath = iprot.readString();
-                struct.setFilePathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -5753,11 +5659,6 @@ public class LineageMasterService {
         oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
         oprot.writeI64(struct.fileId);
         oprot.writeFieldEnd();
-        if (struct.filePath != null) {
-          oprot.writeFieldBegin(FILE_PATH_FIELD_DESC);
-          oprot.writeString(struct.filePath);
-          oprot.writeFieldEnd();
-        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -5779,29 +5680,19 @@ public class LineageMasterService {
         if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        if (struct.isSetFilePath()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
+        oprot.writeBitSet(optionals, 1);
         if (struct.isSetFileId()) {
           oprot.writeI64(struct.fileId);
-        }
-        if (struct.isSetFilePath()) {
-          oprot.writeString(struct.filePath);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, asyncCompleteFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           struct.fileId = iprot.readI64();
           struct.setFileIdIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.filePath = iprot.readString();
-          struct.setFilePathIsSet(true);
         }
       }
     }

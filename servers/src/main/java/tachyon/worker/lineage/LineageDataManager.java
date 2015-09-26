@@ -69,10 +69,9 @@ public final class LineageDataManager {
    *
    * @param fileId the id of the file.
    * @param blockIds the list of block ids.
-   * @param filePath the destination path in the under file system.
    * @throws IOException
    */
-  public synchronized void persistFile(long fileId, List<Long> blockIds, String filePath)
+  public synchronized void persistFile(long fileId, List<Long> blockIds)
       throws IOException {
     String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
     FileInfo fileInfo;

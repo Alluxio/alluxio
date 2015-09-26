@@ -24,19 +24,13 @@ import tachyon.master.journal.JournalEntryType;
 
 public class AsyncCompleteFileEntry implements JournalEntry {
   private long mFileId;
-  private String mUnderFsPath;
 
-  public AsyncCompleteFileEntry(long fileId, String underFsPath) {
+  public AsyncCompleteFileEntry(long fileId) {
     mFileId = fileId;
-    mUnderFsPath = underFsPath;
   }
 
   public long getFileId() {
     return mFileId;
-  }
-
-  public String getUnderFsPath() {
-    return mUnderFsPath;
   }
 
   @Override
@@ -48,7 +42,6 @@ public class AsyncCompleteFileEntry implements JournalEntry {
   public Map<String, Object> getParameters() {
     Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
     parameters.put("fileId", mFileId);
-    parameters.put("underFsPath", mUnderFsPath);
     return parameters;
   }
 

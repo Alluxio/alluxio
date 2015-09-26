@@ -103,7 +103,6 @@ struct LineageCommand {
 struct CheckpointFile {
   1: i64 mFileId
   2: list<i64> mBlockIds
-  3: string mUnderFsPath 
 }
 
 struct JobConfInfo {
@@ -299,7 +298,7 @@ service LineageMasterService {
   i64 recreateFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
     throws (1: InvalidPathException ipe, 2: LineageDoesNotExistException ldee)
   
-  void asyncCompleteFile(1: i64 fileId, 2: string filePath)
+  void asyncCompleteFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
   
   // for workers

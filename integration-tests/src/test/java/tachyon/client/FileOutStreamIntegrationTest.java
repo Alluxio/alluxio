@@ -81,24 +81,19 @@ public final class FileOutStreamIntegrationTest {
     sLocalTachyonCluster.start();
     mTfs = sLocalTachyonCluster.getClient();
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    sWriteBoth =
-        new OutStreamOptions.Builder(mMasterTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
-    sWriteTachyon =
-        new OutStreamOptions.Builder(mMasterTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
-            .build();
-    sWriteUnderStore =
-        new OutStreamOptions.Builder(mMasterTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
-    sWriteLocal =
-        new OutStreamOptions.Builder(mMasterTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
-            .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
+    sWriteBoth = new OutStreamOptions.Builder(mMasterTachyonConf)
+        .setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+    sWriteTachyon = new OutStreamOptions.Builder(mMasterTachyonConf)
+        .setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+    sWriteUnderStore = new OutStreamOptions.Builder(mMasterTachyonConf)
+        .setTachyonStorageType(TachyonStorageType.NO_STORE)
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+    sWriteLocal = new OutStreamOptions.Builder(mMasterTachyonConf)
+        .setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
+        .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
   }
 
   @BeforeClass

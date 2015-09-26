@@ -40,7 +40,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
 
   private static final org.apache.thrift.protocol.TField M_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mFileId", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField M_BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("mBlockIds", org.apache.thrift.protocol.TType.LIST, (short)2);
-  private static final org.apache.thrift.protocol.TField M_UNDER_FS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("mUnderFsPath", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -50,13 +49,11 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
 
   public long mFileId; // required
   public List<Long> mBlockIds; // required
-  public String mUnderFsPath; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     M_FILE_ID((short)1, "mFileId"),
-    M_BLOCK_IDS((short)2, "mBlockIds"),
-    M_UNDER_FS_PATH((short)3, "mUnderFsPath");
+    M_BLOCK_IDS((short)2, "mBlockIds");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -75,8 +72,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
           return M_FILE_ID;
         case 2: // M_BLOCK_IDS
           return M_BLOCK_IDS;
-        case 3: // M_UNDER_FS_PATH
-          return M_UNDER_FS_PATH;
         default:
           return null;
       }
@@ -127,8 +122,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
     tmpMap.put(_Fields.M_BLOCK_IDS, new org.apache.thrift.meta_data.FieldMetaData("mBlockIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
-    tmpMap.put(_Fields.M_UNDER_FS_PATH, new org.apache.thrift.meta_data.FieldMetaData("mUnderFsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CheckpointFile.class, metaDataMap);
   }
@@ -138,14 +131,12 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
 
   public CheckpointFile(
     long mFileId,
-    List<Long> mBlockIds,
-    String mUnderFsPath)
+    List<Long> mBlockIds)
   {
     this();
     this.mFileId = mFileId;
     setMFileIdIsSet(true);
     this.mBlockIds = mBlockIds;
-    this.mUnderFsPath = mUnderFsPath;
   }
 
   /**
@@ -158,9 +149,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
       List<Long> __this__mBlockIds = new ArrayList<Long>(other.mBlockIds);
       this.mBlockIds = __this__mBlockIds;
     }
-    if (other.isSetMUnderFsPath()) {
-      this.mUnderFsPath = other.mUnderFsPath;
-    }
   }
 
   public CheckpointFile deepCopy() {
@@ -172,7 +160,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
     setMFileIdIsSet(false);
     this.mFileId = 0;
     this.mBlockIds = null;
-    this.mUnderFsPath = null;
   }
 
   public long getMFileId() {
@@ -237,30 +224,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
     }
   }
 
-  public String getMUnderFsPath() {
-    return this.mUnderFsPath;
-  }
-
-  public CheckpointFile setMUnderFsPath(String mUnderFsPath) {
-    this.mUnderFsPath = mUnderFsPath;
-    return this;
-  }
-
-  public void unsetMUnderFsPath() {
-    this.mUnderFsPath = null;
-  }
-
-  /** Returns true if field mUnderFsPath is set (has been assigned a value) and false otherwise */
-  public boolean isSetMUnderFsPath() {
-    return this.mUnderFsPath != null;
-  }
-
-  public void setMUnderFsPathIsSet(boolean value) {
-    if (!value) {
-      this.mUnderFsPath = null;
-    }
-  }
-
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case M_FILE_ID:
@@ -279,14 +242,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
       }
       break;
 
-    case M_UNDER_FS_PATH:
-      if (value == null) {
-        unsetMUnderFsPath();
-      } else {
-        setMUnderFsPath((String)value);
-      }
-      break;
-
     }
   }
 
@@ -297,9 +252,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
 
     case M_BLOCK_IDS:
       return getMBlockIds();
-
-    case M_UNDER_FS_PATH:
-      return getMUnderFsPath();
 
     }
     throw new IllegalStateException();
@@ -316,8 +268,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
       return isSetMFileId();
     case M_BLOCK_IDS:
       return isSetMBlockIds();
-    case M_UNDER_FS_PATH:
-      return isSetMUnderFsPath();
     }
     throw new IllegalStateException();
   }
@@ -353,15 +303,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
         return false;
     }
 
-    boolean this_present_mUnderFsPath = true && this.isSetMUnderFsPath();
-    boolean that_present_mUnderFsPath = true && that.isSetMUnderFsPath();
-    if (this_present_mUnderFsPath || that_present_mUnderFsPath) {
-      if (!(this_present_mUnderFsPath && that_present_mUnderFsPath))
-        return false;
-      if (!this.mUnderFsPath.equals(that.mUnderFsPath))
-        return false;
-    }
-
     return true;
   }
 
@@ -378,11 +319,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
     list.add(present_mBlockIds);
     if (present_mBlockIds)
       list.add(mBlockIds);
-
-    boolean present_mUnderFsPath = true && (isSetMUnderFsPath());
-    list.add(present_mUnderFsPath);
-    if (present_mUnderFsPath)
-      list.add(mUnderFsPath);
 
     return list.hashCode();
   }
@@ -411,16 +347,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
     }
     if (isSetMBlockIds()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mBlockIds, other.mBlockIds);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetMUnderFsPath()).compareTo(other.isSetMUnderFsPath());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetMUnderFsPath()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mUnderFsPath, other.mUnderFsPath);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -454,14 +380,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
       sb.append("null");
     } else {
       sb.append(this.mBlockIds);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("mUnderFsPath:");
-    if (this.mUnderFsPath == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.mUnderFsPath);
     }
     first = false;
     sb.append(")");
@@ -535,14 +453,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // M_UNDER_FS_PATH
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.mUnderFsPath = iprot.readString();
-              struct.setMUnderFsPathIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -573,11 +483,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
         }
         oprot.writeFieldEnd();
       }
-      if (struct.mUnderFsPath != null) {
-        oprot.writeFieldBegin(M_UNDER_FS_PATH_FIELD_DESC);
-        oprot.writeString(struct.mUnderFsPath);
-        oprot.writeFieldEnd();
-      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -602,10 +507,7 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
       if (struct.isSetMBlockIds()) {
         optionals.set(1);
       }
-      if (struct.isSetMUnderFsPath()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetMFileId()) {
         oprot.writeI64(struct.mFileId);
       }
@@ -618,15 +520,12 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
           }
         }
       }
-      if (struct.isSetMUnderFsPath()) {
-        oprot.writeString(struct.mUnderFsPath);
-      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, CheckpointFile struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         struct.mFileId = iprot.readI64();
         struct.setMFileIdIsSet(true);
@@ -643,10 +542,6 @@ public class CheckpointFile implements org.apache.thrift.TBase<CheckpointFile, C
           }
         }
         struct.setMBlockIdsIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.mUnderFsPath = iprot.readString();
-        struct.setMUnderFsPathIsSet(true);
       }
     }
   }

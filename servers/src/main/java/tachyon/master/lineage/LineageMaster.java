@@ -245,18 +245,18 @@ public final class LineageMaster extends MasterBase {
     return -1;
   }
 
-  public void asyncCompleteFile(long fileId, String underFsPath)
+  public void asyncCompleteFile(long fileId)
       throws FileDoesNotExistException, BlockInfoException {
-    LOG.info("Asyn complete file " + fileId + " with under file system path " + underFsPath);
-    mLineageStore.completeFile(fileId, underFsPath);
+    LOG.info("Asyn complete file " + fileId);
+    mLineageStore.completeFile(fileId);
     // complete file in Tachyon.
     mFileSystemMaster.completeFile(fileId);
-    writeJournalEntry(new AsyncCompleteFileEntry(fileId, underFsPath));
+    writeJournalEntry(new AsyncCompleteFileEntry(fileId));
     flushJournal();
   }
 
   private void asyncCompleteFileFromEntry(AsyncCompleteFileEntry entry) {
-    mLineageStore.completeFile(entry.getFileId(), entry.getUnderFsPath());
+    mLineageStore.completeFile(entry.getFileId());
   }
 
   /**
@@ -345,9 +345,8 @@ public final class LineageMaster extends MasterBase {
         for (FileBlockInfo fileBlockInfo : mFileSystemMaster.getFileBlockInfoList(fileId)) {
           blockIds.add(fileBlockInfo.blockInfo.blockId);
         }
-        String underFsPath = file.getUnderFilePath();
 
-        CheckpointFile toCheckpoint = new CheckpointFile(fileId, blockIds, underFsPath);
+        CheckpointFile toCheckpoint = new CheckpointFile(fileId, blockIds);
         files.add(toCheckpoint);
       }
     }

@@ -56,7 +56,7 @@ public final class RecomputePlannerTest {
         Lists.newArrayList(new LineageFile(1)), mJob);
     mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
         Lists.newArrayList(new LineageFile(2)), mJob);
-    mLineageStore.completeFile(1, "path");
+    mLineageStore.completeFile(1);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
     RecomputePlan plan = mPlanner.plan();
     Assert.assertEquals(1, plan.getLineageToRecompute().size());
@@ -69,8 +69,8 @@ public final class RecomputePlannerTest {
         Lists.newArrayList(new LineageFile(1)), mJob);
     long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
         Lists.newArrayList(new LineageFile(2)), mJob);
-    mLineageStore.completeFile(1, "path");
-    mLineageStore.completeFile(2, "path");
+    mLineageStore.completeFile(1);
+    mLineageStore.completeFile(2);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L, 2L));
     RecomputePlan plan = mPlanner.plan();
     Assert.assertEquals(2, plan.getLineageToRecompute().size());
@@ -82,7 +82,7 @@ public final class RecomputePlannerTest {
   public void oneCheckointedLineageTest() {
     mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(),
         Lists.newArrayList(new LineageFile(1)), mJob);
-    mLineageStore.completeFile(1, "path");
+    mLineageStore.completeFile(1);
     mLineageStore.commitFilePersistence(1L);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
     RecomputePlan plan = mPlanner.plan();
@@ -95,8 +95,8 @@ public final class RecomputePlannerTest {
         Lists.newArrayList(new LineageFile(1)), mJob);
     long l2 = mLineageStore.createLineage(Lists.<TachyonFile>newArrayList(new TachyonFile(1)),
         Lists.newArrayList(new LineageFile(2)), mJob);
-    mLineageStore.completeFile(1, "path");
-    mLineageStore.completeFile(2, "path");
+    mLineageStore.completeFile(1);
+    mLineageStore.completeFile(2);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(2L));
     RecomputePlan plan = mPlanner.plan();
     Assert.assertEquals(1, plan.getLineageToRecompute().size());
