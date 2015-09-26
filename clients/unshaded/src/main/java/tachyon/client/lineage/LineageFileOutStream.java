@@ -33,7 +33,6 @@ public class LineageFileOutStream extends FileOutStream {
 
   public LineageFileOutStream(long fileId, OutStreamOptions options) throws IOException {
     super(fileId, updateOutStreamOptions(options));
-
     mContext = LineageContext.INSTANCE;
   }
 
@@ -46,21 +45,24 @@ public class LineageFileOutStream extends FileOutStream {
 
   @Override
   public void close() throws IOException {
-    if (isClosed()) {
+    if (mClosed) {
       return;
     }
 
     if (mCurrentBlockOutStream != null) {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
-    storeToTachyon();
 
-    LineageMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      LOG.info("async complete file" + mFileId + " request at " + mUnderStorageFile);
-      masterClient.asyncCompleteFile(mFileId, mUnderStorageFile);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
+    if (storeToTachyon()) {
+      LineageMasterClient masterClient = mContext.acquireMasterClient();
+      try {
+        LOG.info("async complete file" + mFileId + " request at " + mUnderStorageFile);
+        masterClient.asyncCompleteFile(mFileId, mUnderStorageFile);
+      } finally {
+        mContext.releaseMasterClient(masterClient);
+      }
+    } else {
+      LOG.warn("Failed to store file " + mFileId + " in Tachyon Storage");
     }
   }
 }

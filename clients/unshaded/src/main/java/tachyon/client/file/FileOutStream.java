@@ -59,7 +59,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private final WorkerClient mWorkerClient;
 
   private boolean mCanceled;
-  private boolean mClosed;
+  protected boolean mClosed;
   private String mHostname;
   private boolean mShouldCacheCurrentBlock;
   protected BufferedBlockOutStream mCurrentBlockOutStream;
@@ -90,15 +90,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
           UnderFileSystem.get(mUnderStorageFile, ClientContext.getConf());
       underStorageClient.mkdirs(sessionUnderStorageFolder, true);
       mUnderStorageOutputStream = underStorageClient.create(mUnderStorageFile, (int) mBlockSize);
-    } else if (mUnderStorageType.isAsyncPersist()) {
-      mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-      String sessionUnderStorageFolder = mWorkerClient.getSessionUfsTempFolder();
-      mUnderStorageFile = PathUtils.concatPath(sessionUnderStorageFolder, mFileId);
-      UnderFileSystem underStorageClient =
-          UnderFileSystem.get(mUnderStorageFile, ClientContext.getConf());
-      boolean result = underStorageClient.mkdirs(sessionUnderStorageFolder, true);
-      LOG.info("created folder " + sessionUnderStorageFolder + " " + result);
-      mUnderStorageOutputStream = null;
     } else {
       mWorkerClient = null;
       mUnderStorageFile = null;
@@ -108,10 +99,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
     mCanceled = false;
     mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
-  }
-
-  protected boolean isClosed() {
-    return mClosed;
   }
 
   @Override
@@ -150,7 +137,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       }
     }
 
-    canComplete = storeToTachyon();
+    canComplete = canComplete || storeToTachyon();
 
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();

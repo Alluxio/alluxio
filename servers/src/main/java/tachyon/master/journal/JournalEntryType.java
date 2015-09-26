@@ -35,7 +35,7 @@ public enum JournalEntryType {
   DELETE_FILE,
   RENAME,
   INODE_DIRECTORY_ID_GENERATOR,
-  RESIZE_BLOCK,
+  REINITIALIZE_BLOCK,
 
   // Raw table master entries
   RAW_TABLE,

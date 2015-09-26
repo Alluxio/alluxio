@@ -101,11 +101,18 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Resets the block size
+   * Sets the block size
    */
-  public void resetBlockSize(long blockSizeBytes) {
+  public void setBlockSize(long blockSizeBytes) {
     // TODO(yupeng): add validation
     mBlockSizeBytes = blockSizeBytes;
+  }
+
+  /**
+   * Sets the ttl.
+   */
+  public void setTTL(long ttl) {
+    mTTL = ttl;
   }
 
   /**

@@ -23,13 +23,15 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class ResizeBlockEntry implements JournalEntry {
+public class ReinitializeBlockEntry implements JournalEntry {
   private final String mPath;
   private final long mBlockSizeBytes;
+  private final long mTTL;
 
-  public ResizeBlockEntry(String path, long blockSizeBytes) {
+  public ReinitializeBlockEntry(String path, long blockSizeBytes, long ttl) {
     mPath = Preconditions.checkNotNull(path);
     mBlockSizeBytes = blockSizeBytes;
+    mTTL = ttl;
   }
 
   public String getPath() {
@@ -40,9 +42,13 @@ public class ResizeBlockEntry implements JournalEntry {
     return mBlockSizeBytes;
   }
 
+  public long getTTL() {
+    return mTTL;
+  }
+
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.RESIZE_BLOCK;
+    return JournalEntryType.REINITIALIZE_BLOCK;
   }
 
   @Override
@@ -50,6 +56,7 @@ public class ResizeBlockEntry implements JournalEntry {
     Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
     parameters.put("path", mPath);
     parameters.put("blockSizeBytes", mBlockSizeBytes);
+    parameters.put("ttl", mTTL);
     return parameters;
   }
 }
