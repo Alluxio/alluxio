@@ -1176,7 +1176,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
     // TODO: current implementation needs to be improved by using a more efficient datastructure
-    //     such as hourly bucketized inodefilelist
+    // such as hourly bucketized inodefilelist
     @Override
     public void heartbeat()  {
       synchronized (mInodeTree) {
@@ -1185,8 +1185,7 @@ public final class FileSystemMaster extends MasterBase {
           if (inode.isFile() && !inode.isPinned()) {
             InodeFile iFile = (InodeFile) inode;
             long ttl = iFile.getTTL();
-            if (ttl > 0
-                && System.currentTimeMillis() - iFile.getCreationTimeMs() > ttl * 1000) {
+            if (ttl > 0 && System.currentTimeMillis() - iFile.getCreationTimeMs() > ttl * 1000) {
               try {
                 deleteFile(iFile.getId(), false);
               } catch (FileDoesNotExistException e) {

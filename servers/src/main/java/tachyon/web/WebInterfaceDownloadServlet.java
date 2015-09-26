@@ -31,12 +31,13 @@ import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -79,11 +80,14 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
         throw new FileDoesNotExistException(currentPath.toString());
       }
       downloadFile(new TachyonURI(fileInfo.getPath()), request, response);
-    } catch (FileDoesNotExistException fdne) {
-      request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
+    } catch (FileDoesNotExistException e) {
+      request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-    } catch (InvalidPathException ipe) {
-      request.setAttribute("invalidPathError", "Error: Invalid Path " + ipe.getLocalizedMessage());
+    } catch (InvalidPathException e) {
+      request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+    } catch (TachyonException e) {
+      request.setAttribute("invalidPathError", "Error: " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
     }
   }
@@ -99,7 +103,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    */
   private void downloadFile(TachyonURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,
-      InvalidPathException {
+      InvalidPathException, TachyonException {
     TachyonFileSystem tachyonClient = TachyonFileSystem.get();
     TachyonFile fd = tachyonClient.open(path);
     FileInfo tFile = tachyonClient.getInfo(fd);
@@ -117,7 +121,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     ServletOutputStream out = null;
     try {
       // TODO(jiri): Should we use MasterContext here instead?
-      ClientOptions op = new ClientOptions.Builder(
+      InStreamOptions op = new InStreamOptions.Builder(
           new TachyonConf()).setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       is = tachyonClient.getInStream(fd, op);
       out = response.getOutputStream();

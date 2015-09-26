@@ -22,24 +22,24 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientOptions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.options.OutStreamOptions;
 
 @PublicApi
 public class LineageFileOutStream extends FileOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private LineageContext mContext;
 
-  public LineageFileOutStream(long fileId, ClientOptions options) throws IOException {
-    super(fileId, updateClientOptions(options));
+  public LineageFileOutStream(long fileId, OutStreamOptions options) throws IOException {
+    super(fileId, updateOutStreamOptions(options));
 
     mContext = LineageContext.INSTANCE;
   }
 
-  private static ClientOptions updateClientOptions(ClientOptions options) {
+  private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
     // change the under storage type to async
-    ClientOptions.Builder builder = new ClientOptions.Builder(options);
+    OutStreamOptions.Builder builder = new OutStreamOptions.Builder(options);
     builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);
     return builder.build();
   }

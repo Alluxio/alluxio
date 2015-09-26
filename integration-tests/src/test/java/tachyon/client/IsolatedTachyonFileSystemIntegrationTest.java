@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,7 +29,9 @@ import tachyon.Constants;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
@@ -48,8 +49,8 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
   private int mWorkerToMasterHeartbeatIntervalMs;
-  private ClientOptions mWriteBoth;
-  private ClientOptions mWriteUnderStorage;
+  private OutStreamOptions mWriteBoth;
+  private OutStreamOptions mWriteUnderStorage;
 
   @After
   public final void after() throws Exception {
@@ -72,26 +73,28 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     mWriteBoth =
-        new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.STORE,
-            UnderStorageType.SYNC_PERSIST).build();
+        new OutStreamOptions.Builder(mWorkerTachyonConf)
+            .setTachyonStorageType(TachyonStorageType.STORE)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     mWriteUnderStorage =
-        new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.NO_STORE,
-            UnderStorageType.SYNC_PERSIST).build();
+        new OutStreamOptions.Builder(mWorkerTachyonConf)
+            .setTachyonStorageType(TachyonStorageType.NO_STORE)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 
   @Test
-  public void lockBlockTest1() throws IOException, TException {
+  public void lockBlockTest1() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
     for (int k = 0; k < numOfFiles; k ++) {
-      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth, fileSize));
+      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, fileSize, mWriteBoth));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       Assert.assertTrue(mTfs.getInfo(files.get(k)).getInMemoryPercentage() == 100);
     }
-    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
+    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
     CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
 
@@ -102,7 +105,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest2() throws IOException, TException {
+  public void lockBlockTest2() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -111,17 +114,17 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
     for (int k = 0; k < numOfFiles; k ++) {
-      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth, fileSize));
+      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, fileSize, mWriteBoth));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
-      is = mTfs.getInStream(files.get(k), mWriteBoth);
+      is = mTfs.getInStream(files.get(k), TachyonFSTestUtils.toInStreamOptions(mWriteBoth));
       buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.close();
     }
-    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
+    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
     for (int k = 1; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
@@ -133,7 +136,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest3() throws IOException, TException {
+  public void lockBlockTest3() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -142,12 +145,12 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
     for (int k = 0; k < numOfFiles; k ++) {
-      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth, fileSize));
+      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, fileSize, mWriteBoth));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
-      is = mTfs.getInStream(files.get(k), mWriteBoth);
+      is = mTfs.getInStream(files.get(k), TachyonFSTestUtils.toInStreamOptions(mWriteBoth));
       buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       int r = is.read(buf.array());
       if (k < numOfFiles - 1) {
@@ -155,7 +158,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       }
       is.close();
     }
-    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
+    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
     for (int k = 0; k <= numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
@@ -169,7 +172,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest1() throws IOException, TException {
+  public void unlockBlockTest1() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -178,17 +181,17 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
     for (int k = 0; k < numOfFiles; k ++) {
-      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth, fileSize));
+      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, fileSize, mWriteBoth));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
-      is = mTfs.getInStream(files.get(k), mWriteBoth);
+      is = mTfs.getInStream(files.get(k), TachyonFSTestUtils.toInStreamOptions(mWriteBoth));
       buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.close();
     }
-    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
+    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
     CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(0));
@@ -200,7 +203,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest2() throws IOException, TException {
+  public void unlockBlockTest2() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -209,12 +212,12 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
     for (int k = 0; k < numOfFiles; k ++) {
-      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth, fileSize));
+      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, fileSize, mWriteBoth));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
-      is = mTfs.getInStream(files.get(k), mWriteBoth);
+      is = mTfs.getInStream(files.get(k), TachyonFSTestUtils.toInStreamOptions(mWriteBoth));
       buf = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.seek(0);
@@ -222,7 +225,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       Assert.assertTrue(is.read(buf.array()) != -1);
       is.close();
     }
-    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
+    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
     for (int k = 1; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
@@ -234,7 +237,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest3() throws IOException, TException {
+  public void unlockBlockTest3() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
@@ -244,12 +247,12 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
     for (int k = 0; k < numOfFiles; k ++) {
-      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, mWriteBoth, fileSize));
+      files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + k, fileSize, mWriteBoth));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
-      is = mTfs.getInStream(files.get(k), mWriteBoth);
+      is = mTfs.getInStream(files.get(k), TachyonFSTestUtils.toInStreamOptions(mWriteBoth));
       buf1 = ByteBuffer.allocate((int) info.getBlockSizeBytes());
       Assert.assertTrue(is.read(buf1.array()) != -1);
       buf2 = ByteBuffer.allocate((int) info.getBlockSizeBytes());
@@ -257,7 +260,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       Assert.assertTrue(is.read(buf2.array()) != -1);
       is.close();
     }
-    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, mWriteBoth, fileSize));
+    files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
     CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(0));
