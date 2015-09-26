@@ -17,8 +17,8 @@ package tachyon.client.lineage;
 
 import java.io.IOException;
 
-import tachyon.client.ClientOptions;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.options.OutStreamOptions;
 
 /**
  * A dummy output stream that does nothing. This is used for lineage job recomputation. When the
@@ -26,7 +26,7 @@ import tachyon.client.file.FileOutStream;
  */
 public class DummyOutputStream extends FileOutStream {
 
-  public DummyOutputStream(long fileId, ClientOptions options) throws IOException {
+  public DummyOutputStream(long fileId, OutStreamOptions options) throws IOException {
     super(fileId, options);
   }
 

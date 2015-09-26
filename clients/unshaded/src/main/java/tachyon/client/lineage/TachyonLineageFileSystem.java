@@ -26,15 +26,13 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientOptions;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.OutStreamOptions;
+import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageDeletionException;
 import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
@@ -155,8 +153,8 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    * output stream.
    */
   @Override
-  public FileOutStream getOutStream(TachyonURI path, ClientOptions options)
-      throws IOException, InvalidPathException, FileAlreadyExistException, BlockInfoException {
+  public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options)
+      throws IOException, TachyonException {
     long fileId = recreate(path, options.getBlockSize(), true, options.getTTL());
     if (fileId < 0) {
       return new DummyOutputStream(fileId, options);
