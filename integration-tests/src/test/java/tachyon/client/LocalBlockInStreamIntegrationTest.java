@@ -45,7 +45,6 @@ public class LocalBlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static String sMountPoint;
   private static TachyonFileSystem sTfs = null;
   private static ClientOptions sWriteBoth;
   private static ClientOptions sWriteTachyon;
@@ -65,7 +64,6 @@ public class LocalBlockInStreamIntegrationTest {
   public static final void beforeClass() throws Exception {
     sLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
     sLocalTachyonCluster.start();
-    sMountPoint = sLocalTachyonCluster.getMountPoint();
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
@@ -87,7 +85,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -131,7 +129,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest2() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -159,7 +157,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void readTest3() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -193,7 +191,7 @@ public class LocalBlockInStreamIntegrationTest {
   public void seekExceptionTest1() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Seek position is negative: -1");
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -221,7 +219,8 @@ public class LocalBlockInStreamIntegrationTest {
   public void seekExceptionTest2() throws IOException, TException {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -245,7 +244,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void seekTest() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =
@@ -269,7 +268,7 @@ public class LocalBlockInStreamIntegrationTest {
    */
   @Test
   public void skipTest() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         TachyonFile f =

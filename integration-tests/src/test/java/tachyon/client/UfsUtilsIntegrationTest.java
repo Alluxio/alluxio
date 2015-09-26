@@ -32,17 +32,15 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.UnderFileSystemUtils;
-import tachyon.util.io.PathUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
  */
 public class UfsUtilsIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private String mMountPoint;
   private TachyonFS mTfs = null;
   private TachyonFileSystem mTachyonFileSystem = null;
-  private String mUfsAddress = null;
+  private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 
   @After
@@ -55,45 +53,41 @@ public class UfsUtilsIntegrationTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, 128);
     mLocalTachyonCluster.start();
 
-    mMountPoint = mLocalTachyonCluster.getMountPoint();
     mTfs = mLocalTachyonCluster.getOldClient();
     mTachyonFileSystem = mLocalTachyonCluster.getClient();
 
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mUfsAddress = mLocalTachyonCluster.getTachyonHome();
-    mUfs = UnderFileSystem.get(mUfsAddress + TachyonURI.SEPARATOR, masterConf);
+    mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
+    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
   }
 
   @Test
-  public void loadUfsTest() throws IOException, TException {
+  public void loadUnderFsTest() throws IOException, TException {
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
-        mUfs.mkdirs(mUfsAddress + exclusion, true);
+        mUfs.mkdirs(mUnderfsAddress + exclusion, true);
       }
     }
 
     for (String inclusion : inclusions) {
       if (!mUfs.exists(inclusion)) {
-        mUfs.mkdirs(mUfsAddress + inclusion, true);
+        mUfs.mkdirs(mUnderfsAddress + inclusion, true);
       }
-      UnderFileSystemUtils.touch(mUfsAddress + inclusion + "/1",
+      UnderFileSystemUtils.touch(mUnderfsAddress + inclusion + "/1",
           mLocalTachyonCluster.getMasterTachyonConf());
     }
 
-    TachyonURI tachyonRoot = new TachyonURI(mMountPoint);
-    TachyonURI ufsRoot = new TachyonURI(mUfsAddress + TachyonURI.SEPARATOR);
-
-    UfsUtils.loadUfs(mTfs, tachyonRoot, ufsRoot, new PrefixList("tachyon;exclusions", ";"),
+    UfsUtils.loadUfs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUnderfsAddress
+        + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
         mLocalTachyonCluster.getMasterTachyonConf());
 
     List<String> paths = null;
     for (String exclusion : exclusions) {
       try {
-        paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem,
-            PathUtils.concatPath(tachyonRoot, exclusion));
-        Assert.fail("FileDoesNotExistException is expected here");
+        paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, exclusion);
+        Assert.fail("NO FileDoesNotExistException is expected here");
       } catch (IOException ioe) {
         Assert.assertNotNull(ioe);
       }
@@ -101,8 +95,7 @@ public class UfsUtilsIntegrationTest {
     }
 
     for (String inclusion : inclusions) {
-      paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem,
-          PathUtils.concatPath(tachyonRoot, inclusion));
+      paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, inclusion);
       Assert.assertNotNull(paths);
     }
   }

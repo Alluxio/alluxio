@@ -33,7 +33,6 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for statistics in TFS.
@@ -43,7 +42,6 @@ public class TFSStatisticsTest {
   private static final int BLOCK_SIZE = 128;
   private static final int FILE_LEN = BLOCK_SIZE * 2 + 1;
   private static LocalTachyonCluster sLocalTachyonCluster;
-  private static String sMountPoint;
   private static FileSystem.Statistics sStatistics;
   private static FileSystem sTFS;
 
@@ -55,11 +53,9 @@ public class TFSStatisticsTest {
     // Start local Tachyon cluster
     sLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, BLOCK_SIZE);
     sLocalTachyonCluster.start();
-    sMountPoint = sLocalTachyonCluster.getMountPoint();
 
     TachyonFileSystem tachyonFS = sLocalTachyonCluster.getClient();
-    TachyonFSTestUtils.createByteFile(tachyonFS,
-        PathUtils.concatPath(sMountPoint, "testFile-read"), TachyonStorageType.STORE,
+    TachyonFSTestUtils.createByteFile(tachyonFS, "/testFile-read", TachyonStorageType.STORE,
         UnderStorageType.PERSIST, FILE_LEN);
 
     URI uri = URI.create(sLocalTachyonCluster.getMasterUri());
@@ -78,7 +74,7 @@ public class TFSStatisticsTest {
   @Test
   public void bytesReadStatisticsTest() throws Exception {
     long originStat = sStatistics.getBytesRead();
-    InputStream is = sTFS.open(new Path(PathUtils.concatPath(sMountPoint, "testFile-read")));
+    InputStream is = sTFS.open(new Path("/testFile-read"));
     while (is.read() != -1) {
     }
     is.close();
@@ -91,7 +87,7 @@ public class TFSStatisticsTest {
   @Test
   public void bytesWrittenStatisticsTest() throws Exception {
     long originStat = sStatistics.getBytesWritten();
-    OutputStream os = sTFS.create(new Path(PathUtils.concatPath(sMountPoint, "testFile-write")));
+    OutputStream os = sTFS.create(new Path("/testFile-write"));
     for (int i = 0; i < FILE_LEN; i ++) {
       os.write(1);
     }
@@ -108,12 +104,12 @@ public class TFSStatisticsTest {
     int exceptedWriteOps = sStatistics.getWriteOps();
 
     // Call all the overridden methods and check the statistics.
-    sTFS.create(new Path(PathUtils.concatPath(sMountPoint, "testFile-create"))).close();
+    sTFS.create(new Path("/testFile-create")).close();
     exceptedWriteOps ++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    sTFS.delete(new Path(PathUtils.concatPath(sMountPoint, "testFile-create")), true);
+    sTFS.delete(new Path("/testFile-create"), true);
     exceptedWriteOps ++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
@@ -126,8 +122,7 @@ public class TFSStatisticsTest {
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    FileStatus fStatus =
-        sTFS.getFileStatus(new Path(PathUtils.concatPath(sMountPoint, "testFile-read")));
+    FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile-read"));
     exceptedReadOps ++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
@@ -145,28 +140,27 @@ public class TFSStatisticsTest {
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    sTFS.listStatus(new Path(sMountPoint));
+    sTFS.listStatus(new Path("/"));
     exceptedReadOps ++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    sTFS.mkdirs(new Path(PathUtils.concatPath(sMountPoint, "testDir")));
+    sTFS.mkdirs(new Path("/testDir"));
     exceptedWriteOps ++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    sTFS.open(new Path(PathUtils.concatPath(sMountPoint, "testFile-read"))).close();
+    sTFS.open(new Path("/testFile-read")).close();
     exceptedReadOps ++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    sTFS.rename(new Path(PathUtils.concatPath(sMountPoint, "testDir")),
-        new Path(PathUtils.concatPath(sMountPoint, "testDir-rename")));
+    sTFS.rename(new Path("/testDir"), new Path("/testDir-rename"));
     exceptedWriteOps ++;
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    sTFS.setWorkingDirectory(new Path(PathUtils.concatPath(sMountPoint, "testDir-rename")));
+    sTFS.setWorkingDirectory(new Path("/testDir-rename"));
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
   }

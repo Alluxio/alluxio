@@ -23,7 +23,6 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
@@ -75,7 +74,6 @@ public final class LocalTachyonCluster {
   private LocalTachyonMaster mMaster;
   private TachyonConf mMasterConf;
   private TachyonConf mWorkerConf;
-  private String mMountPoint = "/mnt/minicluster";
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
@@ -109,10 +107,6 @@ public final class LocalTachyonCluster {
 
   public int getMasterPort() {
     return mMaster.getRPCLocalPort();
-  }
-
-  public String getMountPoint() {
-    return mMountPoint;
   }
 
   public String getTachyonHome() {
@@ -253,8 +247,6 @@ public final class LocalTachyonCluster {
     CommonUtils.sleepMs(10);
 
     startWorker();
-
-    mMaster.getClient().mount(new TachyonURI(mMountPoint), new TachyonURI(mTachyonHome));
   }
 
   /**

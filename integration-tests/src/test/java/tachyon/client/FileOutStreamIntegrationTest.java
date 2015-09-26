@@ -60,7 +60,6 @@ public final class FileOutStreamIntegrationTest {
   private static final int QUOTA_UNIT_BYTES = 128;
   private static final int BLOCK_SIZE_BYTES = 128;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static String sMountPoint;
   private static ClientOptions sWriteBoth;
   private static ClientOptions sWriteTachyon;
   private static ClientOptions sWriteUnderStore;
@@ -81,7 +80,6 @@ public final class FileOutStreamIntegrationTest {
     // Only the Netty data server supports remote writes.
     tachyonConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
     sLocalTachyonCluster.start();
-    sMountPoint = sLocalTachyonCluster.getMountPoint();
     mTfs = sLocalTachyonCluster.getClient();
     mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
@@ -130,9 +128,10 @@ public final class FileOutStreamIntegrationTest {
     if (underStorageType.isPersist()) {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
-      UnderFileSystem ufs = UnderFileSystem.get(info.getUfsPath(), mMasterTachyonConf);
+      String checkpointPath = info.getUfsPath();
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mMasterTachyonConf);
 
-      InputStream is = ufs.open(info.getUfsPath());
+      InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) info.getLength()];
       if (UnderFileSystemCluster.readEOFReturnsNegative() && 0 == res.length) {
         // Returns -1 for zero-sized byte array to indicate no more bytes available here.
@@ -150,7 +149,7 @@ public final class FileOutStreamIntegrationTest {
    */
   @Test
   public void writeTest1() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         writeTest1Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), op, k);
@@ -173,7 +172,7 @@ public final class FileOutStreamIntegrationTest {
    */
   @Test
   public void writeTest2() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         writeTest2Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), op, k);
@@ -194,7 +193,7 @@ public final class FileOutStreamIntegrationTest {
    */
   @Test
   public void writeTest3() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
         writeTest3Util(new TachyonURI(uniqPath + "/file_" + k + "_" + op), op, k);
@@ -218,7 +217,7 @@ public final class FileOutStreamIntegrationTest {
    */
   @Test
   public void writeSpecifyLocalTest() throws IOException, TException {
-    TachyonURI filePath = new TachyonURI(PathUtils.concatPath(sMountPoint, PathUtils.uniqPath()));
+    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteLocal);
     os.write((byte) 0);
@@ -236,7 +235,7 @@ public final class FileOutStreamIntegrationTest {
    */
   @Test
   public void longWriteChangesSessionId() throws IOException, InterruptedException, TException {
-    TachyonURI filePath = new TachyonURI(PathUtils.concatPath(sMountPoint, PathUtils.uniqPath()));
+    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteUnderStore);
     os.write((byte) 0);
@@ -255,7 +254,7 @@ public final class FileOutStreamIntegrationTest {
    */
   @Test
   public void outOfOrderWriteTest() throws IOException, TException {
-    TachyonURI filePath = new TachyonURI(PathUtils.concatPath(sMountPoint, PathUtils.uniqPath()));
+    TachyonURI filePath = new TachyonURI(PathUtils.uniqPath());
     FileOutStream os = mTfs.getOutStream(filePath, sWriteTachyon);
 
     // Write something small, so it is written into the buffer, and not directly to the file.

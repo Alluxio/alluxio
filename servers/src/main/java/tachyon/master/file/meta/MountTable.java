@@ -53,9 +53,8 @@ public final class MountTable {
     LOG.info("Mounting " + ufsPath + " at " + tachyonPath.getPath());
     for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
       String path = entry.getKey();
-      if (PathUtils.hasPrefix(tachyonPath.getPath(), path)
-          || PathUtils.hasPrefix(path, tachyonPath.getPath())) {
-        // Cannot mount a path under an existing mount point.
+      if (tachyonPath.getPath().equals(path)) {
+        // Cannot mount a path onto an existing mount point.
         return false;
       }
     }
@@ -66,13 +65,21 @@ public final class MountTable {
   /**
    * Unmounts the given Tachyon path. The path should match an existing mount point.
    *
-   * @param path a Tachyon path
+   * @param uri a Tachyon path URI
    * @return whether the operation succeeded or not
    */
-  public synchronized boolean delete(TachyonURI path) {
-    LOG.info("Unmounting " + path.getPath());
-    if (mMountTable.containsKey(path.getPath())) {
-      mMountTable.remove(path.getPath());
+  public synchronized boolean delete(TachyonURI uri) throws InvalidPathException {
+    String path = uri.getPath();
+    LOG.info("Unmounting " + path);
+    if (mMountTable.containsKey(path)) {
+      for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
+        String tachyonPath = entry.getKey();
+        if (!path.equals(tachyonPath) && PathUtils.hasPrefix(tachyonPath, path)) {
+          // Cannout unmount a path if it has nested mount points.
+          return false;
+        }
+      }
+      mMountTable.remove(path);
       return true;
     }
     // Cannot unmount a path that does not correspond to a mount point.
@@ -80,19 +87,32 @@ public final class MountTable {
   }
 
   /**
-   * Returns the mount point the given path is nested under.
+   * Returns the deepest mount point the given path is nested under.
    *
-   * @param path a Tachyon path
+   * @param uri a Tachyon path URI
    * @return mount point the given Tachyon path is nested under
    */
-  public synchronized String getMountPoint(TachyonURI path) throws InvalidPathException {
+  public synchronized String getMountPoint(TachyonURI uri) throws InvalidPathException {
+    String path = uri.getPath();
+    String mountPoint = null;
     for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
       String tachyonPath = entry.getKey();
-      if (PathUtils.hasPrefix(path.getPath(), tachyonPath)) {
-        return tachyonPath;
+      if (PathUtils.hasPrefix(path, tachyonPath)
+          && (mountPoint == null || PathUtils.hasPrefix(tachyonPath, mountPoint))) {
+        mountPoint = tachyonPath;
       }
     }
-    return null;
+    return mountPoint;
+  }
+
+  /**
+   * Returns in indication of whether the given path is a mount point.
+   *
+   * @param uri a Tachyon path URI
+   * @return mount point the given Tachyon path is nested under
+   */
+  public synchronized boolean isMountPoint(TachyonURI uri) throws InvalidPathException {
+    return mMountTable.containsKey(uri.getPath());
   }
 
   /**
@@ -100,20 +120,18 @@ public final class MountTable {
    * resolution maps the Tachyon path to the corresponding UFS path. Otherwise, the resolution is a
    * no-op.
    *
-   * @param path a Tachyon path
+   * @param uri a Tachyon path URI
    * @return the resolved path
    */
-  public synchronized TachyonURI resolve(TachyonURI path) throws InvalidPathException {
+  public synchronized TachyonURI resolve(TachyonURI uri) throws InvalidPathException {
+    String path = uri.getPath();
     LOG.info("Resolving " + path);
-    for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
-      String tachyonPath = entry.getKey();
-      TachyonURI ufsPath = entry.getValue();
-      if (PathUtils.hasPrefix(path.getPath(), tachyonPath)) {
-        return new TachyonURI(ufsPath.getScheme(), ufsPath.getAuthority(), ufsPath.getPath()
-            + path.getPath().substring(tachyonPath.length()));
-      }
+    String mountPoint = getMountPoint(uri);
+    if (mountPoint != null) {
+      TachyonURI ufsPath = mMountTable.get(mountPoint);
+      return new TachyonURI(ufsPath.getScheme(), ufsPath.getAuthority(), PathUtils.concatPath(
+          ufsPath.getPath(), path.substring(mountPoint.length())));
     }
-    // If the given path is not found in the mount table, return the original URI.
-    return path;
+    return uri;
   }
 }

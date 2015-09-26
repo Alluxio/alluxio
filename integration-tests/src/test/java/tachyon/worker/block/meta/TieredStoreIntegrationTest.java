@@ -42,7 +42,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
-import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for {@link tachyon.worker.block.meta.StorageTier}.
@@ -53,7 +52,6 @@ public class TieredStoreIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   private LocalTachyonCluster mLocalTachyonCluster;
-  private String mMountPoint;
   private TachyonConf mWorkerConf;
   private TachyonFileSystem mTFS;
   private int mWorkerToMasterHeartbeatIntervalMs;
@@ -74,7 +72,6 @@ public class TieredStoreIntegrationTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     mLocalTachyonCluster.start();
-    mMountPoint = mLocalTachyonCluster.getMountPoint();
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
@@ -84,9 +81,8 @@ public class TieredStoreIntegrationTest {
   // Tests that deletes go through despite failing initially due to concurrent read
   @Test
   public void deleteWhileReadTest() throws Exception {
-    TachyonFile file =
-        TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
-            UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
+    TachyonFile file = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
@@ -154,9 +150,8 @@ public class TieredStoreIntegrationTest {
   @Test
   public void unpinFileTest() throws Exception {
     // Create a file that fills the entire Tachyon store
-    TachyonFile file1 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
-            UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
+    TachyonFile file1 = TachyonFSTestUtils.createByteFile(mTFS, "/test1", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // Pin the file
     mTFS.setPin(file1, true);
@@ -174,9 +169,8 @@ public class TieredStoreIntegrationTest {
 
     // Try to create a file that cannot be stored unless the previous file is evicted, this
     // should succeed
-    TachyonFile file2 =
-        TachyonFSTestUtils.createByteFile(mTFS, "/test2", TachyonStorageType.STORE,
-            UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
+    TachyonFile file2 = TachyonFSTestUtils.createByteFile(mTFS, "/test2", TachyonStorageType.STORE,
+        UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // File 2 should be in memory and File 1 should be evicted
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
@@ -187,14 +181,14 @@ public class TieredStoreIntegrationTest {
   @Test
   public void promoteBlock() throws Exception {
     TachyonFile file1 =
-        TachyonFSTestUtils.createByteFile(mTFS, PathUtils.concatPath(mMountPoint, "test1"),
-            TachyonStorageType.STORE, UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 6);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", TachyonStorageType.STORE,
+            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 6);
     TachyonFile file2 =
-        TachyonFSTestUtils.createByteFile(mTFS, PathUtils.concatPath(mMountPoint, "test2"),
-            TachyonStorageType.STORE, UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", TachyonStorageType.STORE,
+            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
     TachyonFile file3 =
-        TachyonFSTestUtils.createByteFile(mTFS, PathUtils.concatPath(mMountPoint, "test3"),
-            TachyonStorageType.STORE, UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", TachyonStorageType.STORE,
+            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
@@ -223,10 +217,8 @@ public class TieredStoreIntegrationTest {
       Assert.assertEquals(100, file2Info.getInMemoryPercentage());
     }
 
-    FileInStream is =
-        mTFS.getInStream(toPromote,
-            new ClientOptions.Builder(mWorkerConf)
-                .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
+    FileInStream is = mTFS.getInStream(toPromote, new ClientOptions.Builder(mWorkerConf)
+        .setTachyonStorageType(TachyonStorageType.PROMOTE).build());
     byte[] buf = new byte[toPromoteLen];
     int len = is.read(buf);
     is.close();

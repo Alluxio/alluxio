@@ -44,11 +44,12 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private String mMountPoint;
   private TachyonFileSystem mTfs = null;
+  private TachyonConf mMasterTachyonConf;
   private TachyonConf mWorkerTachyonConf;
   private int mWorkerToMasterHeartbeatIntervalMs;
   private ClientOptions mWriteBoth;
+  private ClientOptions mWriteUnderStorage;
 
   @After
   public final void after() throws Exception {
@@ -63,8 +64,9 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, 100 * Constants.MB);
     mLocalTachyonCluster.start();
-    mMountPoint = mLocalTachyonCluster.getMountPoint();
+
     mTfs = mLocalTachyonCluster.getClient();
+    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
     mWorkerToMasterHeartbeatIntervalMs =
@@ -72,11 +74,14 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mWriteBoth =
         new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.STORE,
             UnderStorageType.PERSIST).build();
+    mWriteUnderStorage =
+        new ClientOptions.Builder(mWorkerTachyonConf).setStorageTypes(TachyonStorageType.NO_STORE,
+            UnderStorageType.PERSIST).build();
   }
 
   @Test
   public void lockBlockTest1() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(mMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
@@ -98,7 +103,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Test
   public void lockBlockTest2() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(mMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
     ByteBuffer buf = null;
@@ -129,7 +134,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Test
   public void lockBlockTest3() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(mMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
     ByteBuffer buf = null;
@@ -165,7 +170,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Test
   public void unlockBlockTest1() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(mMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
     ByteBuffer buf = null;
@@ -196,7 +201,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Test
   public void unlockBlockTest2() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(mMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
     ByteBuffer buf = null;
@@ -230,7 +235,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
 
   @Test
   public void unlockBlockTest3() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(mMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     TachyonFile tFile = null;
     FileInStream is = null;
     ByteBuffer buf1 = null;

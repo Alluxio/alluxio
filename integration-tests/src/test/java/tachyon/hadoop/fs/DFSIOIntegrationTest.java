@@ -111,7 +111,6 @@ public class DFSIOIntegrationTest implements Tool {
   private Configuration mConfig;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
   private static URI sLocalTachyonClusterUri = null;
-  private static String sMountPoint;
 
   static {
     Configuration.addDefaultResource("hdfs-default.xml");
@@ -180,7 +179,7 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   private static String getBaseDir(Configuration conf) {
-    return conf.get("test.dfsio.build.data", sMountPoint + "/benchmarks/DFSIOIntegrationTest");
+    return conf.get("test.dfsio.build.data", "/benchmarks/DFSIOIntegrationTest");
   }
 
   private static Path getControlDir(Configuration conf) {
@@ -218,7 +217,6 @@ public class DFSIOIntegrationTest implements Tool {
     // Start local Tachyon cluster
     sLocalTachyonCluster = new LocalTachyonCluster(500000, 100000, BLOCK_SIZE);
     sLocalTachyonCluster.start();
-    sMountPoint = sLocalTachyonCluster.getMountPoint();
 
     sLocalTachyonClusterUri = URI.create(sLocalTachyonCluster.getMasterUri());
     sBench.getConf().set("fs.defaultFS", sLocalTachyonClusterUri.toString());
@@ -318,7 +316,8 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   @SuppressWarnings("deprecation")
-  private void createControlFile(FileSystem fs, long nrBytes, int nrFiles) throws IOException {
+  private void createControlFile(FileSystem fs, long nrBytes, // in bytes
+      int nrFiles) throws IOException {
     LOG.info("creating control file: " + nrBytes + " bytes, " + nrFiles + " files");
 
     Path controlDir = getControlDir(mConfig);

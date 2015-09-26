@@ -196,16 +196,20 @@ public final class FileSystemMaster extends MasterBase {
       TachyonURI ufsPath = typedEntry.getUfsPath();
       try {
         if (!mMountTable.add(tachyonPath, ufsPath)) {
-          throw new IOException("failed to mount " + ufsPath + " at " + tachyonPath);
+          LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
         }
       } catch (InvalidPathException e) {
-        throw new IOException("failed to mount " + ufsPath + " at " + tachyonPath);
+        LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
       }
     } else if (entry instanceof DeleteMountPointEntry) {
       DeleteMountPointEntry typedEntry = (DeleteMountPointEntry) entry;
       TachyonURI tachyonPath = typedEntry.getTachyonPath();
-      if (!mMountTable.delete(typedEntry.getTachyonPath())) {
-        throw new IOException("failed to unmount " + tachyonPath);
+      try {
+        if (!mMountTable.delete(typedEntry.getTachyonPath())) {
+          LOG.error("Failed to unmount " + tachyonPath);
+        }
+      } catch (InvalidPathException e) {
+        LOG.error("Failed to unmount " + tachyonPath);
       }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
@@ -225,11 +229,18 @@ public final class FileSystemMaster extends MasterBase {
       // Only initialize root when isLeader because when initializing root, BlockMaster needs to
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
+      TachyonConf conf = MasterContext.getConf();
       mInodeTree.initializeRoot();
+      String defaultUFS = conf.get(Constants.UNDERFS_ADDRESS);
+      try {
+        mMountTable.add(new TachyonURI("/"), new TachyonURI(defaultUFS + TachyonURI.SEPARATOR));
+      } catch (InvalidPathException e) {
+        throw new IOException("Failed to mount the default UFS " + defaultUFS);
+      }
       mTTLCheckerService =
-          getExecutorService().submit(new HeartbeatThread("InodeFile TTL Check",
-              new MasterInodeTTLCheckExecutor(),
-                  MasterContext.getConf().getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+          getExecutorService().submit(
+              new HeartbeatThread("InodeFile TTL Check", new MasterInodeTTLCheckExecutor(), conf
+                  .getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
   }
@@ -480,12 +491,15 @@ public final class FileSystemMaster extends MasterBase {
     if (!inode.isPersisted()) {
       return;
     }
-    InodeDirectory parentDir = (InodeDirectory) mInodeTree.getInodeById(inode.getParentId());
-    TachyonURI path = mInodeTree.getPath(parentDir);
-    while (!mMountTable.resolve(path).equals(path)) {
-      parentDir.setPersisted(true);
-      parentDir = (InodeDirectory) mInodeTree.getInodeById(parentDir.getParentId());
-      path = mInodeTree.getPath(parentDir);
+    Inode handle = inode;
+    while (handle.getParentId() != -1) {
+      handle = mInodeTree.getInodeById(handle.getParentId());
+      handle.setPersisted(true);
+      TachyonURI path = mInodeTree.getPath(handle);
+      if (mMountTable.isMountPoint(path)) {
+        // Stop propagating the persisted status at mountpoints.
+        break;
+      }
     }
   }
 
@@ -976,6 +990,10 @@ public final class FileSystemMaster extends MasterBase {
       if ((srcMount == null && dstMount != null)
           || (srcMount != null && dstMount == null)
           || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
+        return false;
+      }
+      // Renaming onto a mount point is not allowed.
+      if (mMountTable.isMountPoint(dstPath)) {
         return false;
       }
 
