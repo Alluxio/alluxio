@@ -37,7 +37,6 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -74,7 +73,6 @@ public abstract class JournalFormatterTestBase {
   protected static final long TEST_TABLE_ID = 2L;
   protected static final long TEST_OP_TIME_MS = 1409349750338L;
   protected static final long TEST_SEQUENCE_NUMBER = 1945L;
-  protected static final long TEST_WORKER_ID = 100L;
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -165,8 +163,7 @@ public abstract class JournalFormatterTestBase {
 
   @Test
   public void addCheckpointEntryTest() throws IOException {
-    entryTest(new AddCheckpointEntry(TEST_WORKER_ID, TEST_FILE_ID, TEST_LENGTH_BYTES,
-        new TachyonURI(TEST_FILE_NAME), TEST_OP_TIME_MS));
+    entryTest(new AddCheckpointEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS));
   }
 
   @Test

@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Sessions;
@@ -52,6 +54,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * thread-safe.
  */
 public final class BlockDataManager implements Testable<BlockDataManager> {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Block store delta reporter for master heartbeat */
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
@@ -67,8 +71,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   private WorkerBlockMasterClient mBlockMasterClient;
   /** WorkerFileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
   private WorkerFileSystemMasterClient mFileSystemMasterClient;
-  /** UnderFileSystem Client */
-  private UnderFileSystem mUfs;
   /** Session metadata, used to keep track of session heartbeats */
   private Sessions mSessions;
   /** Id of this worker */
@@ -97,14 +99,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     mBlockMasterClient = workerBlockMasterClient;
     mFileSystemMasterClient = workerFileSystemMasterClient;
 
-    // Create Under FileSystem Client
-    String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-
-    // Connect to UFS to handle UFS security
-    mUfs.connectFromWorker(mTachyonConf,
-        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf));
-
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
@@ -127,10 +121,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
 
     public void setTachyonConf(TachyonConf conf) {
       mTachyonConf = conf;
-    }
-
-    public void setUnderFileSystem(UnderFileSystem ufs) {
-      mUfs = ufs;
     }
   }
 
@@ -181,16 +171,12 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws IOException if the update to the master fails
    */
   public void addCheckpoint(long fileId, long nonce) throws TException, IOException {
-    // TODO(calvin): This part needs to be changed.
     FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
     String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
-    String parentPath = (new TachyonURI(dstPath)).getParent().getPath();
+    UnderFileSystem ufs = UnderFileSystem.get(srcPath, WorkerContext.getConf());
     try {
-      if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
-        throw new FailedToCheckpointException("Failed to create " + parentPath);
-      }
-      if (!mUfs.rename(srcPath, dstPath)) {
+      if (!ufs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
       }
     } catch (IOException ioe) {
@@ -199,11 +185,11 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     }
     long fileSize;
     try {
-      fileSize = mUfs.getFileSize(dstPath);
+      fileSize = ufs.getFileSize(dstPath);
     } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
-    mFileSystemMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
+    mFileSystemMasterClient.addCheckpoint(fileId, fileSize);
   }
 
   /**

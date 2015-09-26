@@ -119,10 +119,6 @@ public final class LocalTachyonCluster {
     return mTachyonHome;
   }
 
-  public String getTempFolderInUnderFs() {
-    return mMasterConf.get(Constants.UNDERFS_ADDRESS);
-  }
-
   public BlockWorker getWorker() {
     return mWorker;
   }
