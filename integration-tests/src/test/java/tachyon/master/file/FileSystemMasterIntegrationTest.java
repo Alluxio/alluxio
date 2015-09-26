@@ -257,7 +257,6 @@ public class FileSystemMasterIntegrationTest {
     long fileId =
         mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals("", fileInfo.getUfsPath());
     Assert.assertFalse(fileInfo.isIsPersisted());
     mFsMaster.addCheckpoint(fileId, 1);
     fileInfo = mFsMaster.getFileInfo(fileId);
@@ -289,11 +288,11 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals("testFolder", fileInfo.getName());
     Assert.assertEquals(1, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertEquals("", fileInfo.getUfsPath());
-    Assert.assertTrue(fileInfo.isFolder);
-    Assert.assertFalse(fileInfo.isPinned);
     Assert.assertFalse(fileInfo.isCacheable);
     Assert.assertTrue(fileInfo.isCompleted);
+    Assert.assertTrue(fileInfo.isFolder);
+    Assert.assertFalse(fileInfo.isPersisted);
+    Assert.assertFalse(fileInfo.isPinned);
   }
 
   @Test
@@ -305,11 +304,11 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertEquals("", fileInfo.getUfsPath());
-    Assert.assertFalse(fileInfo.isFolder);
-    Assert.assertFalse(fileInfo.isPinned);
     Assert.assertTrue(fileInfo.isCacheable);
     Assert.assertFalse(fileInfo.isCompleted);
+    Assert.assertFalse(fileInfo.isFolder);
+    Assert.assertFalse(fileInfo.isPersisted);
+    Assert.assertFalse(fileInfo.isPinned);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.ttl);
   }
 
