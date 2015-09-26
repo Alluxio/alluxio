@@ -1039,6 +1039,12 @@ public final class FileSystemMaster extends MasterBase {
       String ufsSrcPath = mMountTable.resolve(srcPath).toString();
       String ufsDstPath = mMountTable.resolve(dstPath).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
+      String parentPath = new TachyonURI(ufsDstPath).getParent().toString();
+      // TODO(jiri): The following can be removed once directory creation is persisted onto UFS.
+      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
+        LOG.error("Failed to create " + parentPath);
+        return false;
+      }
       if (!ufs.rename(ufsSrcPath, ufsDstPath)) {
         LOG.error("Failed to rename " + ufsSrcPath + " to " + ufsDstPath);
         return false;
