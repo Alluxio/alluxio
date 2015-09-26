@@ -26,8 +26,8 @@ import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
+import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.InvalidWorkerStateException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -247,9 +247,9 @@ public final class BlockMasterSync implements Runnable {
         LOG.info("Block " + mBlockId + " removed at session " + mSessionId);
       } catch (IOException ioe) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
-      } catch (InvalidStateException e) {
+      } catch (InvalidWorkerStateException e) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block uncommitted.");
-      } catch (NotFoundException e) {
+      } catch (BlockDoesNotExistException e) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to block not found.");
       }
     }

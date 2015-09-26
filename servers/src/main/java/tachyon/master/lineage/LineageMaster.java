@@ -36,7 +36,13 @@ import tachyon.HeartbeatThread;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
+import tachyon.exception.LineageDeletionException;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
@@ -60,17 +66,11 @@ import tachyon.master.lineage.meta.LineageStore;
 import tachyon.master.lineage.meta.LineageStoreView;
 import tachyon.master.lineage.recompute.RecomputeExecutor;
 import tachyon.master.lineage.recompute.RecomputePlanner;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
-import tachyon.thrift.LineageDeletionException;
-import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
 import tachyon.util.ThreadFactoryUtils;
@@ -200,11 +200,11 @@ public final class LineageMaster extends MasterBase {
    * @param job the job
    * @return the id of the created lineage
    * @throws InvalidPathException if the path to the input file is invalid
-   * @throws FileAlreadyExistException if the output file already exists
+   * @throws FileAlreadyExistsException if the output file already exists
    * @throws BlockInfoException if fails to create the output file
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      Job job) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+      Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
     // TODO: validate input files exist
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
