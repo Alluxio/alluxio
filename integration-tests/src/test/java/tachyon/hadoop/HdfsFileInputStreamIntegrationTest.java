@@ -37,7 +37,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
 import tachyon.util.io.BufferUtils;
-import tachyon.util.io.PathUtils;
 
 /**
  * Integration tests for HdfsFileInputStream.
@@ -49,7 +48,6 @@ public class HdfsFileInputStreamIntegrationTest {
   private static final int BUFFER_SIZE = 50;
 
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static String sMountPoint;
   private static TachyonFS sTFS = null;
   private static TachyonFileSystem sTachyonFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
@@ -62,17 +60,14 @@ public class HdfsFileInputStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sLocalTachyonCluster =
-        new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES, Constants.GB);
+    sLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY, USER_QUOTA_UNIT_BYTES,
+        Constants.GB);
     sLocalTachyonCluster.start();
-    sMountPoint = sLocalTachyonCluster.getMountPoint();
     sTFS = sLocalTachyonCluster.getOldClient();
     sTachyonFileSystem = sLocalTachyonCluster.getClient();
-    TachyonFSTestUtils.createByteFile(sTachyonFileSystem,
-        PathUtils.concatPath(sMountPoint, "testFile1"), TachyonStorageType.STORE,
+    TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile1", TachyonStorageType.STORE,
         UnderStorageType.PERSIST, FILE_LEN);
-    TachyonFSTestUtils.createByteFile(sTachyonFileSystem,
-        PathUtils.concatPath(sMountPoint, "testFile2"), TachyonStorageType.NO_STORE,
+    TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile2", TachyonStorageType.NO_STORE,
         UnderStorageType.PERSIST, FILE_LEN);
   }
 
@@ -84,17 +79,15 @@ public class HdfsFileInputStreamIntegrationTest {
 
   @Before
   public final void before() throws IOException {
-    FileInfo fileInfo =
-        sTFS.getFileStatus(-1, new TachyonURI(PathUtils.concatPath(sMountPoint, "testFile1")));
-    mInMemInputStream =
-        new HdfsFileInputStream(sTFS, fileInfo.getFileId(), new Path(fileInfo.getUfsPath()),
-            new Configuration(), BUFFER_SIZE, null, sLocalTachyonCluster.getMasterTachyonConf());
+    FileInfo fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile1"));
+    mInMemInputStream = new HdfsFileInputStream(sTFS, fileInfo.getFileId(),
+        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE, null,
+        sLocalTachyonCluster.getMasterTachyonConf());
 
-    fileInfo =
-        sTFS.getFileStatus(-1, new TachyonURI(PathUtils.concatPath(sMountPoint, "testFile2")));
-    mUfsInputStream =
-        new HdfsFileInputStream(sTFS, fileInfo.getFileId(), new Path(fileInfo.getUfsPath()),
-            new Configuration(), BUFFER_SIZE, null, sLocalTachyonCluster.getMasterTachyonConf());
+    fileInfo = sTFS.getFileStatus(-1, new TachyonURI("/testFile2"));
+    mUfsInputStream = new HdfsFileInputStream(sTFS, fileInfo.getFileId(),
+        new Path(fileInfo.getUfsPath()), new Configuration(), BUFFER_SIZE, null,
+        sLocalTachyonCluster.getMasterTachyonConf());
   }
 
   /**
@@ -197,9 +190,8 @@ public class HdfsFileInputStreamIntegrationTest {
     } catch (IOException e) {
       exception = e;
     }
-    Assert.assertEquals(
-        "Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = " + FILE_LEN,
-        exception.getMessage());
+    Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = "
+        + FILE_LEN, exception.getMessage());
 
     mUfsInputStream.seek(0);
     Assert.assertEquals(0, mUfsInputStream.getPos());
@@ -214,8 +206,7 @@ public class HdfsFileInputStreamIntegrationTest {
     } catch (IOException e) {
       exception = e;
     }
-    Assert.assertEquals(
-        "Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = " + FILE_LEN,
-        exception.getMessage());
+    Assert.assertEquals("Seek position is past EOF: " + (FILE_LEN + 1) + ", fileSize = "
+        + FILE_LEN, exception.getMessage());
   }
 }

@@ -82,7 +82,7 @@ public class TfsShellUtilsTest {
     return resetTachyonFileHierarchy(mTfs);
   }
 
-  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) 
+  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs)
       throws IOException, TException {
     /**
      * Generate such local structure /testWildCards

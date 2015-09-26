@@ -45,7 +45,6 @@ public class TachyonFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static LocalTachyonCluster sLocalTachyonCluster = null;
-  private static String sMountPoint;
   private static String sHost = null;
   private static int sPort = -1;
   private static TachyonFileSystem sTfs = null;
@@ -76,7 +75,6 @@ public class TachyonFileSystemIntegrationTest {
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
     sLocalTachyonCluster.start();
-    sMountPoint = sLocalTachyonCluster.getMountPoint();
     sTfs = sLocalTachyonCluster.getClient();
     sHost = sLocalTachyonCluster.getMasterHostname();
     sPort = sLocalTachyonCluster.getMasterPort();
@@ -95,7 +93,7 @@ public class TachyonFileSystemIntegrationTest {
 
   @Test
   public void createFileTest() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = 1; k < 5; k ++) {
       TachyonURI uri = new TachyonURI(uniqPath + k);
       sTfs.getOutStream(uri, sWriteBoth).close();
@@ -105,7 +103,7 @@ public class TachyonFileSystemIntegrationTest {
 
   @Test(expected = FileAlreadyExistException.class)
   public void createFileWithFileAlreadyExistExceptionTest() throws IOException, TException {
-    TachyonURI uri = new TachyonURI(PathUtils.concatPath(sMountPoint, PathUtils.uniqPath()));
+    TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uri, sWriteBoth).close();
     Assert.assertNotNull(sTfs.getInfo(sTfs.open(uri)));
     sTfs.getOutStream(uri, sWriteBoth);
@@ -124,7 +122,7 @@ public class TachyonFileSystemIntegrationTest {
   // TODO(calvin): Check worker capacity?
   @Test
   public void deleteFileTest() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
 
     for (int k = 0; k < 5; k ++) {
       TachyonURI fileURI = new TachyonURI(uniqPath + k);
@@ -143,7 +141,7 @@ public class TachyonFileSystemIntegrationTest {
 
   @Test
   public void getFileStatusTest() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     TachyonURI uri = new TachyonURI(uniqPath);
     TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, uri.getPath(), sWriteBoth, writeBytes);
@@ -155,7 +153,7 @@ public class TachyonFileSystemIntegrationTest {
 
   @Test
   public void mkdirTest() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = 0; k < 10; k ++) {
       Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), TachyonFileSystem.RECURSIVE));
       Assert.assertTrue(sTfs.mkdirs(new TachyonURI(uniqPath + k), TachyonFileSystem.RECURSIVE));
@@ -164,7 +162,7 @@ public class TachyonFileSystemIntegrationTest {
 
   @Test
   public void renameFileTest1() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     TachyonURI path1 = new TachyonURI(uniqPath + 1);
     sTfs.getOutStream(path1, sWriteBoth).close();
     for (int k = 1; k < 10; k ++) {
@@ -182,7 +180,7 @@ public class TachyonFileSystemIntegrationTest {
 
   @Test
   public void renameFileTest2() throws IOException, TException {
-    TachyonURI uniqUri = new TachyonURI(PathUtils.concatPath(sMountPoint, PathUtils.uniqPath()));
+    TachyonURI uniqUri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uniqUri, sWriteBoth).close();
     TachyonFile f = sTfs.open(uniqUri);
     long oldFileId = f.getFileId();

@@ -44,7 +44,6 @@ public class BlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   private static LocalTachyonCluster sLocalTachyonCluster;
-  private static String sMountPoint;
   private static TachyonFileSystem sTfs;
   private static TachyonConf sTachyonConf;
   private static ClientOptions sWriteBoth;
@@ -61,7 +60,6 @@ public class BlockInStreamIntegrationTest {
   public static final void beforeClass() throws Exception {
     sLocalTachyonCluster = new LocalTachyonCluster(Constants.MB, Constants.KB, Constants.GB);
     sLocalTachyonCluster.start();
-    sMountPoint = sLocalTachyonCluster.getMountPoint();
     sTfs = sLocalTachyonCluster.getClient();
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
@@ -80,11 +78,11 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
-        TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        String path = uniqPath + "/file_" + k + "_" + op;
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
         for (int i = 0; i < 2; i ++) {
           FileInStream is = sTfs.getInStream(f, op);
@@ -110,11 +108,11 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void readTest2() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
-        TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        String path = uniqPath + "/file_" + k + "_" + op;
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
         FileInStream is = sTfs.getInStream(f, op);
         byte[] ret = new byte[k];
@@ -136,11 +134,11 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void readTest3() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
-        TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        String path = uniqPath + "/file_" + k + "_" + op;
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
         FileInStream is = sTfs.getInStream(f, op);
 
@@ -163,11 +161,11 @@ public class BlockInStreamIntegrationTest {
    */
   @Test
   public void skipTest() throws IOException, TException {
-    String uniqPath = PathUtils.concatPath(sMountPoint, PathUtils.uniqPath());
+    String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (ClientOptions op : getOptionSet()) {
-        TachyonFile f =
-            TachyonFSTestUtils.createByteFile(sTfs, uniqPath + "/file_" + k + "_" + op, op, k);
+        String path = uniqPath + "/file_" + k + "_" + op;
+        TachyonFile f = TachyonFSTestUtils.createByteFile(sTfs, path, op, k);
 
         FileInStream is = sTfs.getInStream(f, op);
 
