@@ -52,10 +52,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean addCheckpoint(long workerId, long fileId, long length, String checkpointPath)
+  public boolean addCheckpoint(long fileId, long length)
       throws BlockInfoException, FileDoesNotExistException, SuspectedFileSizeException {
-    return mFileSystemMaster.addCheckpoint(workerId, fileId, length, new TachyonURI(
-        checkpointPath));
+    return mFileSystemMaster.addCheckpoint(fileId, length);
   }
 
   @Override
@@ -181,6 +180,8 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
       throw new TachyonException(faee.getMessage());
     } catch (InvalidPathException ipe) {
       throw new TachyonException(ipe.getMessage());
+    } catch (IOException ioe) {
+      throw new TachyonException(ioe.getMessage());
     }
   }
 

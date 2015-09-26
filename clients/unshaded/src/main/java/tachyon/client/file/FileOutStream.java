@@ -89,10 +89,14 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       FileInfo fileInfo = getFileInfo(mFileId);
       String ufsPath = fileInfo.getUfsPath();
       String fileName = PathUtils.temporaryFileName(fileId, mNonce, ufsPath);
-      UnderFileSystem underStorageClient = UnderFileSystem.get(fileName, ClientContext.getConf());
+      UnderFileSystem ufs = UnderFileSystem.get(fileName, ClientContext.getConf());
       String parentPath = (new TachyonURI(ufsPath)).getParent().getPath();
-      underStorageClient.mkdirs(parentPath, true);
-      mUnderStorageOutputStream = underStorageClient.create(fileName, (int) mBlockSize);
+      if (!ufs.exists(parentPath)) {
+        if (!ufs.mkdirs(parentPath, true)) {
+          throw new IOException("Failed to create " + parentPath);
+        }
+      }
+      mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
       mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
     } else {
       mWorkerClient = null;
