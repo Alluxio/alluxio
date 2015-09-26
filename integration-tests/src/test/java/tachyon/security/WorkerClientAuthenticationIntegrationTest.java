@@ -38,6 +38,9 @@ import tachyon.worker.WorkerContext;
 /**
  * Test RPC authentication between worker and its client, in four modes: NOSASL, SIMPLE, CUSTOM,
  * KERBEROS.
+ *
+ * TODO: the way to set and isolate MasterContext/WorkerContext across testcases is hacky. A better
+ * solution is needed.
  */
 public class WorkerClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster;
@@ -55,6 +58,10 @@ public class WorkerClientAuthenticationIntegrationTest {
 
   @After
   public void after() throws Exception {
+    // stop cluster
+    mLocalTachyonCluster.stop();
+
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     MasterContext.resetConf();
     WorkerContext.resetConf();
   }
@@ -153,21 +160,6 @@ public class WorkerClientAuthenticationIntegrationTest {
             new ClientMetrics());
     Assert.assertFalse(workerClient.isConnected());
     workerClient.mustConnect();
-  }
-
-  @Test
-  public void kerberosAuthenticationNotSupportTest() throws Exception {
-    // kerberos authentication configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.KERBEROS.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.KERBEROS.getAuthName());
-
-    // Currently the kerberos authentication doesn't support
-    mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("Kerberos is not supported currently");
-    // start cluster
-    mLocalTachyonCluster.start();
   }
 
   /**

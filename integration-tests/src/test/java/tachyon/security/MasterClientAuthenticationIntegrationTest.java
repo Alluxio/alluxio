@@ -42,6 +42,9 @@ import tachyon.worker.WorkerContext;
  * likely to test four authentication modes: NOSASL, SIMPLE, CUSTOM, KERBEROS.
  *
  * TODO: add tests for {@link tachyon.master.LocalTachyonClusterMultiMaster} in fault tolerant mode
+ *
+ * TODO: the way to set and isolate MasterContext/WorkerContext across testcases is hacky. A better
+ * solution is needed.
  */
 public class MasterClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -59,6 +62,10 @@ public class MasterClientAuthenticationIntegrationTest {
 
   @After
   public void after() throws Exception {
+    // stop cluster
+    mLocalTachyonCluster.stop();
+
+    System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
     MasterContext.resetConf();
     WorkerContext.resetConf();
   }
@@ -154,21 +161,6 @@ public class MasterClientAuthenticationIntegrationTest {
             mLocalTachyonCluster.getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
-  }
-
-  @Test
-  public void kerberosAuthenticationNotSupportTest() throws Exception {
-    // kerberos authentication type configure
-    MasterContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.KERBEROS.getAuthName());
-    WorkerContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.KERBEROS.getAuthName());
-
-    // Currently the kerberos authentication doesn't support
-    mThrown.expect(UnsupportedOperationException.class);
-    mThrown.expectMessage("Kerberos is not supported currently");
-    // start cluster
-    mLocalTachyonCluster.start();
   }
 
   /**
