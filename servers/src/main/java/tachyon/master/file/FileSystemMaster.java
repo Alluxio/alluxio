@@ -636,6 +636,9 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   // This function should only be called from within synchronized (mInodeTree) blocks.
+  //
+  // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
+  // journaled will result in an inconsistency between Tachyon and UFS.
   private boolean deleteInodeInternal(Inode inode, boolean recursive, boolean propagate,
       long opTimeMs) throws TachyonException, FileDoesNotExistException {
     if (inode == null) {
@@ -663,6 +666,7 @@ public final class FileSystemMaster extends MasterBase {
       Inode delInode = delInodes.get(i);
 
       // TODO(jiri): What should the Tachyon behavior be when a UFS delete operation fails?
+      // Currently, it will result in an inconsistency between Tachyon and UFS.
       if (propagate && delInode.isPersisted()) {
         // Delete the file in the under file system.
         String ufsPath;
@@ -1051,6 +1055,8 @@ public final class FileSystemMaster extends MasterBase {
       }
     }
 
+    // TODO(jiri): A crash between now and the time the rename operation is journaled will result in
+    // an inconsistency between Tachyon and UFS.
     Inode srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
     TachyonURI dstParentURI = dstPath.getParent();
     Inode dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
