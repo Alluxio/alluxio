@@ -26,6 +26,7 @@ import tachyon.client.ClientContext;
 import tachyon.client.Seekable;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.NetAddress;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
@@ -43,6 +44,8 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
 
   private ByteBuffer mBuffer;
   private boolean mClosed;
+  private long mBufferPos;
+  private long mPos;
 
   public BufferedBlockInStream(long blockId, long blockSize) {
     mBlockId = blockId;
@@ -57,12 +60,84 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
     return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE));
   }
 
-  private void checkIfClosed() {
+  protected void checkIfClosed() {
     Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
   }
 
   @Override
   public int read() throws IOException {
     checkIfClosed();
+    if (mPos == mBlockSize) {
+      close();
+      return -1;
+    }
+    if (mBuffer.remaining() == 0) {
+      updateBuffer();
+    }
+    mPos ++;
+    incrementBytesReadMetric(1);
+    return BufferUtils.byteToInt(mBuffer.get());
   }
+
+  @Override
+  public int read(byte[] b) throws IOException {
+    return read(b, 0, b.length);
+  }
+
+  @Override
+  public int read(byte[] b, int off, int len) throws IOException {
+    checkIfClosed();
+    Preconditions.checkArgument(b != null, "Read buffer cannot be null");
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String.format
+        ("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    if (len == 0) {
+      return 0;
+    }
+
+    int toRead = (int) Math.min(len, remaining());
+    if (len > mBuffer.remaining()) {
+      return directRead(b, off, toRead);
+    } else {
+      mBuffer.get(b, off, toRead);
+      mPos += toRead;
+      incrementBytesReadMetric(toRead);
+      return toRead;
+    }
+  }
+
+  @Override
+  public long remaining() {
+    return mBlockSize - mPos;
+  }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    checkIfClosed();
+    Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
+    Preconditions.checkArgument(pos <= mBlockSize, "Seek position is past end of block: "
+        + mBlockSize);
+    mPos = pos;
+  }
+
+  @Override
+  public long skip(long n) throws IOException {
+    checkIfClosed();
+    if (n <= 0) {
+      return 0;
+    }
+
+    long toSkip = Math.min(remaining(), n);
+    mPos += toSkip;
+    return toSkip;
+  }
+
+  protected long remainingInBuf() {
+    return mPos - mBufferPos + mBuffer.remaining();
+  }
+
+  protected abstract void updateBuffer();
+
+  protected abstract void incrementBytesReadMetric(int bytes);
+
+  protected abstract int directRead(byte[] b, int off, int len);
 }
