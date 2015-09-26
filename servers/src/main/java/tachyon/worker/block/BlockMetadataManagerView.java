@@ -26,8 +26,8 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.NotFoundException;
 import tachyon.master.block.BlockId;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
@@ -214,9 +214,9 @@ public class BlockMetadataManagerView {
    *
    * @param blockId the block ID
    * @return metadata of the block or null
-   * @throws NotFoundException if no BlockMeta for this blockId is found
+   * @throws BlockDoesNotExistException if no BlockMeta for this blockId is found
    */
-  public BlockMeta getBlockMeta(long blockId) throws NotFoundException {
+  public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
     if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);
     } else {

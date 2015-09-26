@@ -27,11 +27,11 @@ import com.google.common.collect.Sets;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.collections.DirectedAcyclicGraph;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.journal.LineageEntry;
-import tachyon.thrift.LineageDoesNotExistException;
 
 /**
  * A store of lineages. This class is thread-safe.

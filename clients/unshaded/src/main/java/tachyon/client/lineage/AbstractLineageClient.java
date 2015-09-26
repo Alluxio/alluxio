@@ -27,11 +27,12 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.lineage.options.DeleteLineageOptions;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.LineageDeletionException;
+import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.LineageDeletionException;
-import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 
 /**
@@ -45,7 +46,7 @@ public abstract class AbstractLineageClient implements LineageClient {
 
   @Override
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
-      throws FileDoesNotExistException, IOException {
+          throws FileDoesNotExistException, TachyonException, IOException {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
 
@@ -54,19 +55,26 @@ public abstract class AbstractLineageClient implements LineageClient {
       long lineageId = masterClient.createLineage(inputFiles, outputFiles, (CommandLineJob) job);
       LOG.info("Created lineage " + lineageId);
       return lineageId;
+    } catch (TachyonException e) {
+      TachyonException.unwrap(e, FileDoesNotExistException.class);
+      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
   }
 
   @Override
-  public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException {
+  public boolean deleteLineage(long lineageId, DeleteLineageOptions options) throws IOException,
+      LineageDoesNotExistException, LineageDeletionException, TachyonException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
       LOG.info(result ? "Succeeded to " : "Failed to " + "delete lineage " + lineageId);
       return result;
+    } catch (TachyonException e) {
+      TachyonException.unwrap(e, LineageDoesNotExistException.class);
+      TachyonException.unwrap(e, LineageDeletionException.class);
+      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
