@@ -63,7 +63,7 @@ public final class LoginUser {
   }
 
   /**
-   * Login based on the LoginModules.
+   * Logs in based on the LoginModules.
    *
    * @param conf Tachyon configuration
    * @return the login user

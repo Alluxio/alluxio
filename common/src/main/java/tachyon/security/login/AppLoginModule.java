@@ -104,7 +104,7 @@ public final class AppLoginModule implements LoginModule {
   }
 
   /**
-   * Logout the user
+   * Logs out the user
    *
    * <p>
    * The implementation removes the User associated with the Subject.

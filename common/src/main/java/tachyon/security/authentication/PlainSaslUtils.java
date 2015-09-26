@@ -72,7 +72,7 @@ public final class PlainSaslUtils {
   }
 
   /**
-   * Get a PLAIN mechanism transport for client side.
+   * Gets a PLAIN mechanism transport for client side.
    *
    * @param username User Name of PlainClient
    * @param password Password of PlainClient
