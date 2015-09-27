@@ -52,13 +52,13 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
-  private final TachyonStorageType mTachyonStorageType;
+  protected final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
   private final WorkerClient mWorkerClient;
 
-  private boolean mCanceled;
+  protected boolean mCanceled;
   protected boolean mClosed;
   private String mHostname;
   private boolean mShouldCacheCurrentBlock;
@@ -137,7 +137,22 @@ public class FileOutStream extends OutputStream implements Cancelable {
       }
     }
 
-    canComplete = canComplete || storeToTachyon();
+    if (mTachyonStorageType.isStore()) {
+      try {
+        if (mCanceled) {
+          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.cancel();
+          }
+        } else {
+          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.close();
+          }
+          canComplete = true;
+        }
+      } catch (IOException ioe) {
+        handleCacheWriteException(ioe);
+      }
+    }
 
     if (canComplete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -150,26 +165,6 @@ public class FileOutStream extends OutputStream implements Cancelable {
       }
     }
     mClosed = true;
-  }
-
-  protected boolean storeToTachyon() throws IOException {
-    if (mTachyonStorageType.isStore()) {
-      try {
-        if (mCanceled) {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.cancel();
-          }
-        } else {
-          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.close();
-          }
-          return true;
-        }
-      } catch (IOException ioe) {
-        handleCacheWriteException(ioe);
-      }
-    }
-    return false;
   }
 
   @Override
@@ -264,7 +259,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     }
   }
 
-  private void handleCacheWriteException(IOException ioe) throws IOException {
+  protected void handleCacheWriteException(IOException ioe) throws IOException {
     if (!mUnderStorageType.isSyncPersist()) {
       // TODO(yupeng): Handle this exception better.
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);

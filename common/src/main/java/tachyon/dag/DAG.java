@@ -27,7 +27,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * A DAG.
+ * A DAG. This class is NOT thread-safe.
  *
  * @param <T> the payload of each node.
  */
@@ -91,11 +91,11 @@ public class DAG<T> {
    * @return the children's payloads, null if the given payload doesn't exist in the DAG.
    */
   public List<T> getChildren(T payload) {
+    List<T> children = Lists.newArrayList();
     if (!mIndex.containsKey(payload)) {
-      return null;
+      return children;
     }
     DAGNode<T> node = mIndex.get(payload);
-    List<T> children = Lists.newArrayList();
     for (DAGNode<T> child : node.getChildren()) {
       children.add(child.getPayload());
     }
@@ -106,11 +106,11 @@ public class DAG<T> {
    * @return the parents' payloads, null if the given payload doesn't exist in the DAG.
    */
   public List<T> getParents(T payload) {
+    List<T> parents = Lists.newArrayList();
     if (!mIndex.containsKey(payload)) {
-      return null;
+      return parents;
     }
     DAGNode<T> node = mIndex.get(payload);
-    List<T> parents = Lists.newArrayList();
     for (DAGNode<T> parent : node.getParents()) {
       parents.add(parent.getPayload());
     }

@@ -35,7 +35,7 @@ public interface CheckpointScheduler {
     public static CheckpointScheduler createScheduler(TachyonConf conf, LineageStoreView store) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<CheckpointScheduler>getClass(Constants.MASTER_CHECKPOINT_STRATEGY_CLASS),
+            conf.<CheckpointScheduler>getClass(Constants.MASTER_LINEAGE_CHECKPOINT_STRATEGY_CLASS),
             new Class[] {LineageStoreView.class}, new Object[] {store});
       } catch (Exception e) {
         throw Throwables.propagate(e);

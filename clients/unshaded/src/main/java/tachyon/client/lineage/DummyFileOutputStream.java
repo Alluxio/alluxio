@@ -21,12 +21,12 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.options.OutStreamOptions;
 
 /**
- * A dummy output stream that does nothing. This is used for lineage job recomputation. When the
- * file is not lost on Tachyon, it's no need for the job to rewrite the file.
+ * A dummy file output stream that does nothing. This is used for lineage recomputation. When the
+ * file is not lost on Tachyon, there's no need for the job to rewrite the file.
  */
-public final class DummyOutputStream extends FileOutStream {
+public final class DummyFileOutputStream extends FileOutStream {
 
-  public DummyOutputStream(long fileId, OutStreamOptions options) throws IOException {
+  public DummyFileOutputStream(long fileId, OutStreamOptions options) throws IOException {
     super(fileId, options);
   }
 
