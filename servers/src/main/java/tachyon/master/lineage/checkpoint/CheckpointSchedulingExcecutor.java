@@ -23,21 +23,22 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 import tachyon.master.lineage.LineageMaster;
 
 /**
- * Executes a checkpoint manager.
+ * Schedules a checkpoint plan.
  */
-public final class CheckpointPlanningExecutor implements HeartbeatExecutor {
+public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonConf mTachyonConf;
   private final LineageMaster mLineageMaster;
   private final CheckpointScheduler mScheduler;
 
-  public CheckpointPlanningExecutor(TachyonConf conf, LineageMaster lineageMaster) {
+  public CheckpointSchedulingExcecutor(LineageMaster lineageMaster) {
     mLineageMaster = Preconditions.checkNotNull(lineageMaster);
-    mTachyonConf = Preconditions.checkNotNull(conf);
+    mTachyonConf = MasterContext.getConf();
     mScheduler = CheckpointScheduler.Factory.createScheduler(mTachyonConf,
         mLineageMaster.getLineageStoreView());
   }

@@ -40,7 +40,6 @@ import tachyon.thrift.LineageDoesNotExistException;
 public final class LineageStore implements JournalCheckpointStreamable {
   private final LineageIdGenerator mLineageIdGenerator;
   private final DAG<Lineage> mLineageDAG;
-  /** Files being persisted */
 
   /** Indices for lineages */
   /** Index of the output files of lineage to lineage */
@@ -54,7 +53,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
     mIdIndex = Maps.newHashMap();
   }
 
-  public void addLineageFromJournal(LineageEntry entry) {
+  public synchronized void addLineageFromJournal(LineageEntry entry) {
     Lineage lineage = entry.toLineage();
     addLineageInternal(lineage);
   }
@@ -161,7 +160,8 @@ public final class LineageStore implements JournalCheckpointStreamable {
   }
 
   @Override
-  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
+      throws IOException {
     // write the lineages out in a topological order
     for (Lineage lineage : mLineageDAG.getAllInTopologicalOrder()) {
       outputStream.writeEntry(lineage.toJournalEntry());

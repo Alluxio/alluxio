@@ -109,8 +109,8 @@ final class TachyonMasterFaultTolerant extends TachyonMaster {
               new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
           mRawTableMaster = new RawTableMaster(mFileSystemMaster,
               new ReadOnlyJournal(mRawTableMasterJournal.getDirectory()));
-          mLineageMaster = new LineageMaster(
-              new ReadOnlyJournal(mLineageMasterJournal.getDirectory()), mFileSystemMaster);
+          mLineageMaster = new LineageMaster(mFileSystemMaster,
+              new ReadOnlyJournal(mLineageMasterJournal.getDirectory()));
           startMasters(false);
           started = true;
         }
