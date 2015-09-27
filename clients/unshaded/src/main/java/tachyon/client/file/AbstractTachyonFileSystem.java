@@ -32,9 +32,11 @@ import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.BlockInfoException;
@@ -161,7 +163,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     }
   }
 
-
   /**
    * {@inheritDoc}
    *
@@ -197,6 +198,17 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       throw new TachyonException(e, TachyonExceptionType.FILE_ALREADY_EXISTS);
     } catch (InvalidPathException e) {
       throw new TachyonException(e, TachyonExceptionType.INVALID_PATH);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath, MountOptions options)
+      throws IOException, TachyonException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.mount(tachyonPath, ufsPath);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -244,6 +256,17 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       }
     } catch (FileDoesNotExistException e) {
       throw new TachyonException(e, TachyonExceptionType.FILE_DOES_NOT_EXIST);
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
+  @Override
+  public boolean unmount(TachyonURI tachyonPath, UnmountOptions options)
+      throws IOException, TachyonException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.unmount(tachyonPath);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

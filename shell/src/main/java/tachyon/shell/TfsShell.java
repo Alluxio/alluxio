@@ -787,12 +787,16 @@ public class TfsShell implements Closeable {
   public int mount(String[] argv) throws IOException {
     TachyonURI tachyonPath = new TachyonURI(argv[1]);
     TachyonURI ufsPath = new TachyonURI(argv[2]);
-    if (mTfs.mount(tachyonPath, ufsPath)) {
-      System.out.println("Mounted " + ufsPath + " at " + tachyonPath);
-      return 0;
-    } else {
-      System.out.println("mount: Failed to mount" + ufsPath + " to " + tachyonPath);
-      return -1;
+    try {
+      if (mTfs.mount(tachyonPath, ufsPath)) {
+        System.out.println("Mounted " + ufsPath + " at " + tachyonPath);
+        return 0;
+      } else {
+        System.out.println("mount: Failed to mount" + ufsPath + " to " + tachyonPath);
+        return -1;
+      }
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
     }
   }
 
