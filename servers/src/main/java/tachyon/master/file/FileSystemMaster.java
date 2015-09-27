@@ -81,6 +81,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
+import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
@@ -519,7 +520,7 @@ public final class FileSystemMaster extends MasterBase {
   public long reinitializeBlock(TachyonURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException {
     // TODO(yupeng): add validation
-    long id = mInodeTree.reinitializeBlock(path, blockSizeBytes, ttl);
+    long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
     writeJournalEntry(new ReinitializeBlockEntry(path.getPath(), blockSizeBytes, ttl));
     flushJournal();
     return id;
@@ -527,7 +528,7 @@ public final class FileSystemMaster extends MasterBase {
 
   private void resetBlockSizeFromEntry(ReinitializeBlockEntry entry) {
     try {
-      mInodeTree.reinitializeBlock(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
+      mInodeTree.reinitializeFile(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
           entry.getTTL());
     } catch (InvalidPathException e) {
       throw new RuntimeException(e);
@@ -1104,12 +1105,15 @@ public final class FileSystemMaster extends MasterBase {
     return mWhitelist.getList();
   }
 
+  /**
+   * @return all the files lost on the workers.
+   */
   public List<Long> getLostFiles() {
     Set<Long> lostFiles = Sets.newHashSet();
     for (long blockId : mBlockMaster.getLostBlocks()) {
       // the file id is the container id of the block id
       long containerId = BlockId.getContainerId(blockId);
-      long fileId = InodeFile.toFileId(containerId);
+      long fileId = IdUtils.createFileId(containerId);
       lostFiles.add(fileId);
     }
     return new ArrayList<Long>(lostFiles);
@@ -1167,7 +1171,13 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  public void emptyFile(long fileId) throws FileDoesNotExistException {
+  /**
+   * Resets a file. It first free the whole file, and then reinitializes it.
+   *
+   * @param fileId
+   * @throws FileDoesNotExistException if the file doesn't exist
+   */
+  public void resetFile(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       // free the file first
       free(fileId, false);
