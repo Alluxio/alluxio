@@ -70,7 +70,6 @@ public final class LineageMasterClient extends MasterClientBase {
     mClient = new LineageMasterService.Client(mProtocol);
   }
 
-
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
       CommandLineJob job) throws IOException, FileDoesNotExistException {
     // prepare for RPC

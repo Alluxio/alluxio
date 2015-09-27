@@ -26,7 +26,7 @@ import tachyon.client.lineage.TachyonLineageFileSystem;
 @PublicApi
 public final class TachyonFileSystemFactory {
   public static synchronized TachyonFileSystem get() {
-    boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_ENABLE_LINEAGE);
+    boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
     return enableLineage ? TachyonLineageFileSystem.get() : TachyonFileSystem.get();
   }
 }

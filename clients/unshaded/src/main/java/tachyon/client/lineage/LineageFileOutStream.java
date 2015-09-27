@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.UnderStorageType;
+import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.options.OutStreamOptions;
 
@@ -53,7 +54,25 @@ public class LineageFileOutStream extends FileOutStream {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    if (storeToTachyon()) {
+    boolean canComplete = false;
+    if (mTachyonStorageType.isStore()) {
+      try {
+        if (mCanceled) {
+          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.cancel();
+          }
+        } else {
+          for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.close();
+          }
+          canComplete = true;
+        }
+      } catch (IOException ioe) {
+        handleCacheWriteException(ioe);
+      }
+    }
+
+    if (canComplete) {
       LineageMasterClient masterClient = mContext.acquireMasterClient();
       try {
         LOG.info("async complete file" + mFileId + " request at " + mUnderStorageFile);

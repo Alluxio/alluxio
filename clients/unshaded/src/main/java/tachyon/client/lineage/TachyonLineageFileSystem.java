@@ -39,15 +39,14 @@ import tachyon.thrift.LineageInfo;
 
 /**
  * Tachyon lineage client. This class is the entry point for all lineage related operations. An
- * instance of this class can be obtained via {@link TachyonLineageFileSystem#get}.This class is
- * thread safe.
+ * instance of this class can be obtained via {@link TachyonLineageFileSystem#get}.
  */
 @PublicApi
 public class TachyonLineageFileSystem extends TachyonFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonLineageFileSystem sTachyonFileSystem;
-  protected LineageContext mContext;
+  private LineageContext mContext;
 
   public static synchronized TachyonLineageFileSystem get() {
     if (sTachyonFileSystem == null) {
@@ -131,10 +130,11 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   }
 
   /**
-   * All the files are already created when lineage was added. This method reconfigures the created
-   * file.
+   * A file is created when its lineag is added. This method reinitializes the created file. But
+   * it's no-op if the file is already completed.
    *
-   * @throws IOException
+   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise.
+   * @throws LineageDoesNotExistException if the lineage does not exist.
    */
   public long recreate(TachyonURI path, OutStreamOptions options)
       throws LineageDoesNotExistException {
@@ -165,7 +165,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
       return super.getOutStream(path, options);
     }
     if (fileId < 0) {
-      return new DummyOutputStream(fileId, options);
+      return new DummyFileOutputStream(fileId, options);
     }
     return new LineageFileOutStream(fileId, options);
   }

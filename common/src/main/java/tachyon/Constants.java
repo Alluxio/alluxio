@@ -158,13 +158,13 @@ public final class Constants {
   public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
   public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
-  public static final String MASTER_CHECKPOINT_STRATEGY_CLASS =
+  public static final String MASTER_LINEAGE_CHECKPOINT_STRATEGY_CLASS =
       "tachyon.master.lineage.checkpoint.strategy.class";
-  public static final String MASTER_CHECKPOINT_INTERVAL_MS =
+  public static final String MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
       "tachyon.master.lineage.checkpoint.interval.ms";
-  public static final String MASTER_RECOMPUTE_INTERVAL_MS =
+  public static final String MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
       "tachyon.master.lineage.recompute.interval.ms";
-  public static final String MASTER_RECOMPUTE_LOG_PATH =
+  public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
       "tachyon.master.lineage.recompute.log.path";
 
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
@@ -216,7 +216,7 @@ public final class Constants {
       "tachyon.worker.evict.strategy.lrfu.attenuation.factor";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
-  public static final String MASTER_WORKER_LINEAGE_SYNC_INTERVAL_MS =
+  public static final String WORKER_LINEAGE_SYNC_INTERVAL_MS =
       "tachyon.worker.lineage.interval.ms";
 
   public static final String WORKER_BLOCK_LOCK_COUNT = "tachyon.worker.block.lock.count";
@@ -284,7 +284,7 @@ public final class Constants {
       "tachyon.user.block.master.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "tachyon.user.file.master.client.threads";
-  public static final String USER_ENABLE_LINEAGE = "tachyon.user.lineage.enabled";
+  public static final String USER_LINEAGE_ENABLED = "tachyon.user.lineage.enabled";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
