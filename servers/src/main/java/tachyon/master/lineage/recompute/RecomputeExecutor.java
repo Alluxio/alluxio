@@ -74,7 +74,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
         // empty all the lost files
         for (Long fileId : lineage.getLostFiles()) {
           try {
-            mFileSystemMaster.emptyFile(fileId);
+            mFileSystemMaster.resetFile(fileId);
           } catch (FileDoesNotExistException e) {
             // TODO error handling
           }
