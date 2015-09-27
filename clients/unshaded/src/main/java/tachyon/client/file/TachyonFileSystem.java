@@ -20,10 +20,8 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
 import tachyon.client.ClientContext;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.file.options.CreateOptions;
@@ -38,7 +36,6 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
-import tachyon.client.lineage.TachyonLineageFileSystem;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -58,12 +55,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   public static synchronized TachyonFileSystem get() {
     if (sTachyonFileSystem == null) {
-      boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_ENABLE_LINEAGE);
-      if (enableLineage) {
-        return TachyonLineageFileSystem.get();
-      } else {
-        sTachyonFileSystem = new TachyonFileSystem();
-      }
+      sTachyonFileSystem = new TachyonFileSystem();
     }
     return sTachyonFileSystem;
   }

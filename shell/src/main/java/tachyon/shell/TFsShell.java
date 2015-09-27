@@ -42,6 +42,7 @@ import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystemFactory;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.InStreamOptions;
@@ -88,7 +89,7 @@ public class TFsShell implements Closeable {
   public TFsShell(TachyonConf tachyonConf) {
     mTachyonConf = tachyonConf;
     mCloser = Closer.create();
-    mTfs = TachyonFileSystem.get();
+    mTfs = TachyonFileSystemFactory.get();
   }
 
   @Override
@@ -939,7 +940,7 @@ public class TFsShell implements Closeable {
         }
 
         List<TachyonURI> paths = null;
-        paths = TFsShellUtils.getTachyonURIs(TachyonFileSystem.get(), inputPath);
+        paths = TFsShellUtils.getTachyonURIs(mTfs, inputPath);
         if (paths.size() == 0) { // A unified sanity check on the paths
           System.out.println(inputPath + " does not exist.");
           return -1;
