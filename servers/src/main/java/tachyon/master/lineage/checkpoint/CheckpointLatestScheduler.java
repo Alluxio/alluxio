@@ -21,7 +21,7 @@ import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageStoreView;
 
 /**
- * This class tries to checkpoint the latest created lineage that is ready for persistence.This
+ * This class tries to checkpoint the latest created lineage that is ready for persistence. This
  * class serves as an example to implement an Evictor.
  */
 public final class CheckpointLatestScheduler implements CheckpointScheduler {

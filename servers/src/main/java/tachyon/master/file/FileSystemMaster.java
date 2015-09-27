@@ -115,7 +115,7 @@ public final class FileSystemMaster extends MasterBase {
 
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("lineage-master-%d", true)));
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -517,13 +517,15 @@ public final class FileSystemMaster extends MasterBase {
    * @return the file id
    * @throws InvalidPathException
    */
-  public long reinitializeBlock(TachyonURI path, long blockSizeBytes, long ttl)
+  public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException {
     // TODO(yupeng): add validation
-    long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
-    writeJournalEntry(new ReinitializeBlockEntry(path.getPath(), blockSizeBytes, ttl));
-    flushJournal();
-    return id;
+    synchronized (mInodeTree) {
+      long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
+      writeJournalEntry(new ReinitializeBlockEntry(path.getPath(), blockSizeBytes, ttl));
+      flushJournal();
+      return id;
+    }
   }
 
   private void resetBlockSizeFromEntry(ReinitializeBlockEntry entry) {
