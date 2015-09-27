@@ -27,6 +27,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -127,9 +128,7 @@ public class TfsShellUtils {
     List<FileInfo> files = null;
     try {
       files = tachyonClient.listStatus(tachyonClient.open(parentDir));
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
     for (FileInfo file : files) {
