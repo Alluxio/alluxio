@@ -379,7 +379,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
             return new AsyncCompleteFileEntry(
                 entry.getLong("fileId"));
           }
-          case PERSIST_FILE: {
+          case PERSIST_FILES: {
             return new PersistFilesEntry(
                 entry.get("fileIds", new TypeReference<List<Long>>() {
                 }));

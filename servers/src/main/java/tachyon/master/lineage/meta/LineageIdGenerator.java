@@ -23,28 +23,17 @@ import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
  * Generates the lineage id as as sequence number.
  */
 public final class LineageIdGenerator implements JournalEntryRepresentable {
-
-  private boolean mInitialized = false;
   private long mSequenceNumber;
 
   public LineageIdGenerator() {}
 
   synchronized long generateId() {
-    initialize();
-    mSequenceNumber ++;
+    mSequenceNumber = 0;
     return mSequenceNumber;
-  }
-
-  private void initialize() {
-    if (!mInitialized) {
-      mSequenceNumber = 0;
-      mInitialized = true;
-    }
   }
 
   public void fromJournalEntry(LineageIdGeneratorEntry entry) {
     mSequenceNumber = entry.getSequenceNumber();
-    mInitialized = true;
   }
 
   @Override

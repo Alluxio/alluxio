@@ -45,7 +45,7 @@ import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.checkpoint.CheckpointPlan;
-import tachyon.master.lineage.checkpoint.CheckpointPlanningExecutor;
+import tachyon.master.lineage.checkpoint.CheckpointSchedulingExcecutor;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
@@ -103,7 +103,7 @@ public final class LineageMaster extends MasterBase {
     return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_SERVICE_NAME);
   }
 
-  public LineageMaster(Journal journal, FileSystemMaster fileSystemMaster) {
+  public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
 
@@ -147,8 +147,8 @@ public final class LineageMaster extends MasterBase {
     super.start(isLeader);
     if (isLeader) {
       mCheckpointExecutionService =
-          getExecutorService().submit(new HeartbeatThread("Checkpoint planning service",
-              new CheckpointPlanningExecutor(mTachyonConf, this),
+          getExecutorService().submit(new HeartbeatThread("Checkpoint scheduling service",
+              new CheckpointSchedulingExcecutor(this),
               mTachyonConf.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
           getExecutorService()
@@ -192,6 +192,7 @@ public final class LineageMaster extends MasterBase {
     List<LineageFile> outputTachyonFiles = Lists.newArrayList();
     for (TachyonURI outputFile : outputFiles) {
       long fileId;
+      // create the file initialized with block size 1 as placeholder
       fileId = mFileSystemMaster.createFile(outputFile, 1, true);
       outputTachyonFiles.add(new LineageFile(fileId));
     }
@@ -314,7 +315,7 @@ public final class LineageMaster extends MasterBase {
       // register the lineage file to checkpoint
       for (LineageFile file : lineage.getOutputFiles()) {
         // find the worker
-        long workerId = findStoringWorker(file);
+        long workerId = getWorkerStoringFile(file);
         if (workerId == -1) {
           // the file is not on any worker
           continue;
@@ -396,7 +397,7 @@ public final class LineageMaster extends MasterBase {
     }
   }
 
-  private long findStoringWorker(LineageFile file) {
+  private long getWorkerStoringFile(LineageFile file) {
     List<Long> workers = Lists.newArrayList();
     try {
       for (FileBlockInfo fileBlockInfo : mFileSystemMaster.getFileBlockInfoList(file.getFileId())) {
