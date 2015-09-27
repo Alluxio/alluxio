@@ -27,6 +27,7 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.util.IdUtils;
 
 /**
  * Tachyon file system's file representation in the file system master.
@@ -59,8 +60,7 @@ public final class InodeFile extends Inode {
    */
   public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
       long creationTimeMs, long ttl) {
-    super(name, toFileId(blockContainerId), parentId,
-        false, creationTimeMs);
+    super(name, IdUtils.createFileId(blockContainerId), parentId, false, creationTimeMs);
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = blockContainerId;
     mBlockSizeBytes = blockSizeBytes;
@@ -270,9 +270,5 @@ public final class InodeFile extends Inode {
    */
   public synchronized long getTTL() {
     return mTTL;
-  }
-
-  public static long toFileId(long containerId) {
-    return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
   }
 }
