@@ -33,7 +33,7 @@ public abstract class InodeEntry implements JournalEntry {
   protected final long mLastModificationTimeMs;
 
   public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean persisted,
-                    boolean pinned, long lastModificationTimeMs) {
+      boolean pinned, long lastModificationTimeMs) {
     mId = id;
     mParentId = parentId;
     mName = name;

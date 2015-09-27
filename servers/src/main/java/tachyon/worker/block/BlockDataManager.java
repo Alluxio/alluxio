@@ -20,12 +20,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import tachyon.Constants;
 import tachyon.Sessions;
-import tachyon.TachyonURI;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
@@ -40,8 +36,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.util.network.NetworkAddressUtils;
-import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
@@ -54,8 +48,6 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * thread-safe.
  */
 public final class BlockDataManager implements Testable<BlockDataManager> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** Block store delta reporter for master heartbeat */
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */

@@ -36,7 +36,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.local.LocalUnderFileSystem;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
@@ -45,7 +47,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({WorkerBlockMasterClient.class, WorkerFileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class})
+    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
+    UnderFileSystem.class})
 public class BlockDataManagerTest implements Tester<BlockDataManager> {
   private TestHarness mHarness;
   private BlockDataManager.PrivateAccess mPrivateAccess;
@@ -124,14 +127,16 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
     FileInfo fileInfo = new FileInfo();
     fileInfo.setUfsPath(dstPath);
+    LocalUnderFileSystem ufs = PowerMockito.mock(LocalUnderFileSystem.class);
 
-    // TODO(jiri): Add test cases for error cases.
+    // TODO(jiri): Test error cases.
     Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
-    // TODO(jiri): Re-enable this.
-    // Mockito.when(mHarness.mUfs.rename(srcPath, dstPath)).thenReturn(true);
-    // Mockito.when(mHarness.mUfs.getFileSize(dstPath)).thenReturn(fileSize);
-    // mHarness.mManager.addCheckpoint(fileId, nonce);
-    // Mockito.verify(mHarness.mFileSystemMasterClient).addCheckpoint(fileId, fileSize);
+    PowerMockito.mockStatic(UnderFileSystem.class);
+    Mockito.when(UnderFileSystem.get(srcPath, WorkerContext.getConf())).thenReturn(ufs);
+    Mockito.when(ufs.rename(srcPath,dstPath)).thenReturn(true);
+    Mockito.when(ufs.getFileSize(dstPath)).thenReturn(fileSize);
+    mHarness.mManager.addCheckpoint(fileId, nonce);
+    Mockito.verify(mHarness.mFileSystemMasterClient).addCheckpoint(fileId, fileSize);
   }
 
   @Test

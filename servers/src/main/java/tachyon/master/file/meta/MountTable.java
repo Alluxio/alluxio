@@ -36,8 +36,8 @@ public final class MountTable {
    * Creates a new instance of <code>MountTable</code>.
    */
   public MountTable() {
-    final int INITIAL_CAPACITY = 10;
-    mMountTable = new HashMap<String, TachyonURI>(INITIAL_CAPACITY);
+    final int initialCapacity = 10;
+    mMountTable = new HashMap<String, TachyonURI>(initialCapacity);
   }
 
   /**
