@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import tachyon.client.file.TachyonFile;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
+import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.thrift.LineageFileInfo;
 import tachyon.thrift.LineageInfo;
@@ -32,7 +33,7 @@ import tachyon.thrift.LineageInfo;
  * A lineage tracks the dependencies imposed by a job, including the input files the job depends on,
  * and the output files the job generates.
  */
-public final class Lineage {
+public final class Lineage implements JournalEntryRepresentable {
   private final long mId;
   private final List<TachyonFile> mInputFiles;
   private final List<LineageFile> mOutputFiles;
@@ -174,6 +175,7 @@ public final class Lineage {
     throw new RuntimeException("Output file " + fileId + " not found");
   }
 
+  @Override
   public synchronized LineageEntry toJournalEntry() {
     return new LineageEntry(mId, mInputFiles, mOutputFiles, mJob, mCreationTimeMs);
   }

@@ -40,6 +40,12 @@ public class DAG<T> {
     mIndex = Maps.newHashMap();
   }
 
+  /**
+   * Adds a node to the DAG, that takes the given payload and depends on the specified parents.
+   *
+   * @param payload the payload
+   * @param parents the parents of the created node
+   */
   public void add(T payload, List<T> parents) {
     Preconditions.checkState(!contains(payload), "the payload already exists in the DAG");
 
@@ -62,6 +68,11 @@ public class DAG<T> {
     }
   }
 
+  /**
+   * Deletes a leaf DAG node that carries the given payload
+   *
+   * @param payload the payload of the node to delete.
+   */
   public void deleteLeaf(T payload) {
     Preconditions.checkState(contains(payload), "the node does not exist");
     DAGNode<T> node = mIndex.get(payload);

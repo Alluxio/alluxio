@@ -67,10 +67,11 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    *
    * @param inputFiles the files that the job depends on
    * @param outputFiles the files that the job outputs
-   * @param job the job to track
-   * @return the dependency id
-   * @throws IOException
-   * @throws FileDoesNotExistException
+   * @param job the job that takes the listed input file and computes the output file
+   * @return the lineage id
+   * @throws IOException if the master cannot create the lineage
+   * @throws FileDoesNotExistException an input file does not exist in Tachyon storage, nor is added
+   *         as an output file of an existing lineage
    */
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
       throws FileDoesNotExistException, IOException {
@@ -115,7 +116,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   /**
    * Lists all the lineages.
    *
-   * @return the informaiton about lineages
+   * @return the information about lineages
    * @throws IOException if the master cannot list the lineage info
    */
   public List<LineageInfo> listLineages() throws IOException {
@@ -130,13 +131,13 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
   }
 
   /**
-   * A file is created when its lineag is added. This method reinitializes the created file. But
+   * A file is created when its lineage is added. This method reinitializes the created file. But
    * it's no-op if the file is already completed.
    *
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise.
    * @throws LineageDoesNotExistException if the lineage does not exist.
    */
-  public long recreate(TachyonURI path, OutStreamOptions options)
+  private long recreate(TachyonURI path, OutStreamOptions options)
       throws LineageDoesNotExistException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {

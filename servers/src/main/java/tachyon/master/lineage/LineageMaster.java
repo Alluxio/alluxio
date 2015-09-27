@@ -152,7 +152,7 @@ public final class LineageMaster extends MasterBase {
               mTachyonConf.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
           getExecutorService()
-              .submit(new HeartbeatThread("Recomupte service",
+              .submit(new HeartbeatThread("Recompute service",
                   new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
                       mFileSystemMaster),
                   mTachyonConf.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
@@ -240,14 +240,14 @@ public final class LineageMaster extends MasterBase {
     LineageFileState state = mLineageStore.getLineageFileState(fileId);
     if (state == LineageFileState.CREATED || state == LineageFileState.LOST) {
       LOG.info("Recreate the file " + path + " with block size of " + blockSizeBytes + " bytes");
-      return mFileSystemMaster.reinitializeBlock(new TachyonURI(path), blockSizeBytes, ttl);
+      return mFileSystemMaster.reinitializeFile(new TachyonURI(path), blockSizeBytes, ttl);
     }
     return -1;
   }
 
   public void asyncCompleteFile(long fileId)
       throws FileDoesNotExistException, BlockInfoException {
-    LOG.info("Asyn complete file " + fileId);
+    LOG.info("Async complete file " + fileId);
     mLineageStore.completeFile(fileId);
     // complete file in Tachyon.
     mFileSystemMaster.completeFile(fileId);
@@ -299,10 +299,15 @@ public final class LineageMaster extends MasterBase {
       info.children = children;
       lineages.add(info);
     }
-    LOG.info("List the lineage infos" + lineages);
     return lineages;
   }
 
+  /**
+   * It takes a checkpoint plan and waits for the lineage checkpointing service to checkpoint the
+   * lineages in the plan.
+   *
+   * @param plan the plan for checkpointing
+   */
   public synchronized void waitForCheckpoint(CheckpointPlan plan) {
     for (long lineageId : plan.getLineagesToCheckpoint()) {
       Lineage lineage = mLineageStore.getLineage(lineageId);
