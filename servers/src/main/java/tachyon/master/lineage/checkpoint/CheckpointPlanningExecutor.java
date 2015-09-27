@@ -45,7 +45,7 @@ public final class CheckpointPlanningExecutor implements HeartbeatExecutor {
   @Override
   public void heartbeat() {
     CheckpointPlan plan = mScheduler.schedule(mLineageMaster.getLineageStoreView());
-    if (!plan.isEmtpy()) {
+    if (!plan.isEmpty()) {
       LOG.info("Checkpoint scheduler created the plan: " + plan);
     }
     mLineageMaster.waitForCheckpoint(plan);

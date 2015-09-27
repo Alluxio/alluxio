@@ -13,11 +13,17 @@
  * the License.
  */
 
-package tachyon.master.lineage.meta;
+package tachyon.util;
 
-/**
- * The state of a lineage file.
- */
-public enum LineageFileState {
-  CREATED, COMPLETED, PERSISTED, PERSISENCE_REQUESTED, LOST
+import tachyon.master.block.BlockId;
+
+public final class IdUtils {
+  private IdUtils() {} // prevent instantiation
+
+  /**
+   * @return a file id based on the given container id.
+   */
+  public static long createFileId(long containerId) {
+    return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());
+  }
 }
