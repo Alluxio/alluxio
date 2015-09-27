@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,13 +30,14 @@ import com.google.common.collect.Lists;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
@@ -72,14 +72,14 @@ public class MasterFaultToleranceIntegrationTest {
    * @throws IOException if an error occurs creating the file
    */
   private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
-      throws IOException, TException {
-    mTfs.mkdirs(folderName);
+      throws IOException, TachyonException {
+    mTfs.mkdir(folderName);
     answer.add(new Pair<Long, TachyonURI>(mTfs.open(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k ++) {
       TachyonURI path =
           new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
-      mTfs.getOutStream(path, ClientOptions.defaults()).close();
+      mTfs.getOutStream(path).close();
       answer.add(new Pair<Long, TachyonURI>(mTfs.open(path).getFileId(), path));
     }
   }
@@ -91,7 +91,7 @@ public class MasterFaultToleranceIntegrationTest {
    * @throws IOException if an error occurs opening the file
    */
   private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException,
-      TException {
+      TachyonException {
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
@@ -156,8 +156,9 @@ public class MasterFaultToleranceIntegrationTest {
   @Test
   public void createFilesTest() throws Exception {
     int clients = 10;
-    ClientOptions option = new ClientOptions.Builder(new TachyonConf()).setBlockSize(1024)
-        .setUnderStorageType(UnderStorageType.PERSIST).build();
+    OutStreamOptions option =
+        new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(1024)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
     for (int k = 0; k < clients; k ++) {
       TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();

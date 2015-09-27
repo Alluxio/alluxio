@@ -36,6 +36,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.InvalidPathException;
 
@@ -78,12 +79,12 @@ public class TfsShellUtilsTest {
     TFS, LOCAL
   }
 
-  public String resetTachyonFileHierarchy() throws IOException, TException {
+  public String resetTachyonFileHierarchy() throws IOException, TachyonException {
     return resetTachyonFileHierarchy(mTfs);
   }
 
   public static String resetTachyonFileHierarchy(TachyonFileSystem tfs)
-      throws IOException, TException {
+      throws IOException, TachyonException {
     /**
      * Generate such local structure /testWildCards
      *                                ├── foo |
@@ -98,15 +99,15 @@ public class TfsShellUtilsTest {
       fd = tfs.open(new TachyonURI("/testWildCars"));
     } catch (IOException ioe) {
       fd = null;
-    } catch (InvalidPathException e) {
+    } catch (TachyonException e) {
       fd = null;
     }
     if (fd != null) {
       tfs.delete(fd);
     }
-    tfs.mkdirs(new TachyonURI("/testWildCards"));
-    tfs.mkdirs(new TachyonURI("/testWildCards/foo"));
-    tfs.mkdirs(new TachyonURI("/testWildCards/bar"));
+    tfs.mkdir(new TachyonURI("/testWildCards"));
+    tfs.mkdir(new TachyonURI("/testWildCards/foo"));
+    tfs.mkdir(new TachyonURI("/testWildCards/bar"));
 
     TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
@@ -166,7 +167,7 @@ public class TfsShellUtilsTest {
     return ret;
   }
 
-  public String resetFsHierarchy(FsType fsType) throws IOException, TException {
+  public String resetFsHierarchy(FsType fsType) throws IOException, TachyonException {
     if (fsType == FsType.TFS) {
       return resetTachyonFileHierarchy();
     } else if (fsType == FsType.LOCAL) {
@@ -177,7 +178,7 @@ public class TfsShellUtilsTest {
   }
 
   @Test
-  public void getPathTest() throws IOException, TException {
+  public void getPathTest() throws IOException, TachyonException, TException {
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
 
