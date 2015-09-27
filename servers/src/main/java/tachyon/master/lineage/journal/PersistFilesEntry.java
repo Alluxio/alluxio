@@ -37,7 +37,7 @@ public class PersistFilesEntry implements JournalEntry {
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.PERSIST_FILE;
+    return JournalEntryType.PERSIST_FILES;
   }
 
   @Override
