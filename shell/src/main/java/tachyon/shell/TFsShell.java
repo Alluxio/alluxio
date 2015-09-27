@@ -1188,7 +1188,7 @@ public class TFsShell implements Closeable {
       cmd += argv[i] + " ";
     }
 
-    String outputPath = ClientContext.getConf().get(Constants.MASTER_RECOMPUTE_LOG_PATH);
+    String outputPath = ClientContext.getConf().get(Constants.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
     if (outputPath == null) {
       System.out.println("recompute output log is not configured");
       return -1;
