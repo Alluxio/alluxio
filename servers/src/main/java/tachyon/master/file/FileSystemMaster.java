@@ -487,7 +487,8 @@ public final class FileSystemMaster extends MasterBase {
     propagatePersisted(inodeFile);
   }
 
-  void propagatePersisted(Inode inode) throws FileDoesNotExistException, InvalidPathException {
+  private void propagatePersisted(Inode inode) throws FileDoesNotExistException,
+      InvalidPathException {
     if (!inode.isPersisted()) {
       return;
     }
@@ -779,9 +780,7 @@ public final class FileSystemMaster extends MasterBase {
   public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
       throws FileDoesNotExistException, InvalidPathException {
     long fileId = getFileId(path);
-    synchronized (mInodeTree) {
-      return getFileBlockInfoList(fileId);
-    }
+    return getFileBlockInfoList(fileId);
   }
 
   /**
