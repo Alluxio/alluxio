@@ -189,7 +189,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #mount(TachyonURI, TachyonURI, MountOptions)} with default
    * options.
    */
-  public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException,
+  public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException,
       TachyonException {
     return mount(tachyonPath, ufsPath, MountOptions.defaults());
   }
@@ -219,13 +219,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   /**
    * Convenience method for {@link #unmount(TachyonURI, UnmountOptions)} with default options.
    */
-  public synchronized boolean unmount(TachyonURI tachyonPath) throws IOException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      return masterClient.unmount(tachyonPath);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
+  public boolean unmount(TachyonURI tachyonPath) throws IOException, TachyonException {
+    return unmount(tachyonPath, UnmountOptions.defaults());
   }
 
   // TODO: Move this to lineage client

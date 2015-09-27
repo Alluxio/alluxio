@@ -157,9 +157,7 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
-   * Returns whether the file has been persisted or not.
-   *
-   * @return true if the file has checkpointed, false otherwise
+   * @return true if the file has persisted, false otherwise
    */
   public synchronized boolean isPersisted() {
     return mPersisted;

@@ -172,9 +172,10 @@ public final class PathUtils {
   }
 
   /**
-   * Generates a deterministic temporary file name for the given path and file id.
+   * Generates a deterministic temporary file name for the a path and a file id and a nonce.
    *
    * @param fileId a file id
+   * @param nonce a nonce token
    * @param path a file path
    * @return a deterministic temporary file name
    */

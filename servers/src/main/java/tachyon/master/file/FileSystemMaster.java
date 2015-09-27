@@ -191,26 +191,9 @@ public final class FileSystemMaster extends MasterBase {
     } else if (entry instanceof InodeDirectoryIdGeneratorEntry) {
       mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
     } else if (entry instanceof AddMountPointEntry) {
-      AddMountPointEntry typedEntry = (AddMountPointEntry) entry;
-      TachyonURI tachyonPath = typedEntry.getTachyonPath();
-      TachyonURI ufsPath = typedEntry.getUfsPath();
-      try {
-        if (!mMountTable.add(tachyonPath, ufsPath)) {
-          LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
-        }
-      } catch (InvalidPathException e) {
-        LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
-      }
+      mountFromEntry((AddMountPointEntry) entry);
     } else if (entry instanceof DeleteMountPointEntry) {
-      DeleteMountPointEntry typedEntry = (DeleteMountPointEntry) entry;
-      TachyonURI tachyonPath = typedEntry.getTachyonPath();
-      try {
-        if (!mMountTable.delete(typedEntry.getTachyonPath())) {
-          LOG.error("Failed to unmount " + tachyonPath);
-        }
-      } catch (InvalidPathException e) {
-        LOG.error("Failed to unmount " + tachyonPath);
-      }
+      unmountFromEntry((DeleteMountPointEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -619,8 +602,8 @@ public final class FileSystemMaster extends MasterBase {
    * @throws TachyonException
    * @throws FileDoesNotExistException
    */
-  public boolean deleteFile(long fileId, boolean recursive)
-      throws TachyonException, FileDoesNotExistException {
+  public boolean deleteFile(long fileId, boolean recursive) throws FileDoesNotExistException,
+      TachyonException {
     MasterContext.getMasterSource().incDeleteFileOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
@@ -989,6 +972,7 @@ public final class FileSystemMaster extends MasterBase {
       if ((srcMount == null && dstMount != null)
           || (srcMount != null && dstMount == null)
           || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
+        LOG.warn("Renaming " + srcPath + " to " + dstPath + " spans mount points.");
         return false;
       }
       // Renaming onto a mount point is not allowed.
@@ -1278,9 +1262,9 @@ public final class FileSystemMaster extends MasterBase {
 
   public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
       throws FileAlreadyExistException, InvalidPathException, IOException {
-    mkdirs(tachyonPath, true);
     synchronized (mInodeTree) {
-      if (mMountTable.add(tachyonPath, ufsPath)) {
+      mkdirs(tachyonPath, true);
+      if (mountInternal(tachyonPath, ufsPath)) {
         writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
         flushJournal();
         return true;
@@ -1289,14 +1273,28 @@ public final class FileSystemMaster extends MasterBase {
     return false;
   }
 
+  void mountFromEntry(AddMountPointEntry entry) {
+    TachyonURI tachyonPath = entry.getTachyonPath();
+    TachyonURI ufsPath = entry.getUfsPath();
+    try {
+      if (!mountInternal(tachyonPath, ufsPath)) {
+        LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
+      }
+    } catch (InvalidPathException e) {
+      LOG.error("Failed to mount " + ufsPath + " at " + tachyonPath);
+    }
+  }
+
+  boolean mountInternal(TachyonURI tachyonPath, TachyonURI ufsPath) throws InvalidPathException {
+    return mMountTable.add(tachyonPath, ufsPath);
+  }
+
   public boolean unmount(TachyonURI tachyonPath) throws FileDoesNotExistException,
       InvalidPathException, TachyonException {
     synchronized (mInodeTree) {
-      if (mMountTable.delete(tachyonPath)) {
+      if (unmountInternal(tachyonPath)) {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
-        long opTimeMs = System.currentTimeMillis();
-        deleteFileInternal(inode.getId(), true, true, opTimeMs);
-        writeJournalEntry(new DeleteFileEntry(inode.getId(), true, opTimeMs));
+        deleteFile(inode.getId(), true);
         writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
         flushJournal();
         return true;
@@ -1304,6 +1302,22 @@ public final class FileSystemMaster extends MasterBase {
     }
     return false;
   }
+
+  void unmountFromEntry(DeleteMountPointEntry entry) {
+    TachyonURI tachyonPath = entry.getTachyonPath();
+    try {
+      if (!unmountInternal(tachyonPath)) {
+        LOG.error("Failed to unmount " + tachyonPath);
+      }
+    } catch (InvalidPathException e) {
+      LOG.error("Failed to unmount " + tachyonPath);
+    }
+  }
+
+  boolean unmountInternal(TachyonURI tachyonPath) throws InvalidPathException {
+    return mMountTable.delete(tachyonPath);
+  }
+
 
   /**
    * MasterInodeTTL periodic check.

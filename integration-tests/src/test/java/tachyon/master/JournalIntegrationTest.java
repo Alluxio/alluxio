@@ -26,9 +26,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -113,7 +110,7 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void loadFileInfoFromUFSTest() throws Exception {
+  public void loadMetadataTest() throws Exception {
     String ufsRoot =
         PathUtils.concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(
             Constants.UNDERFS_DATA_FOLDER));
@@ -130,12 +127,12 @@ public class JournalIntegrationTest {
     mTfs.loadMetadata(new TachyonURI("/xyz"), recursive);
     FileInfo fileInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     mLocalTachyonCluster.stopTFS();
-    loadFileInfoFromUFSTestUtil(fileInfo);
+    loadMetadataTestUtil(fileInfo);
     deleteFsMasterJournalLogs();
-    loadFileInfoFromUFSTestUtil(fileInfo);
+    loadMetadataTestUtil(fileInfo);
   }
 
-  private void loadFileInfoFromUFSTestUtil(FileInfo fileInfo) throws IOException,
+  private void loadMetadataTestUtil(FileInfo fileInfo) throws IOException,
       InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 

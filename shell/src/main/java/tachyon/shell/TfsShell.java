@@ -801,12 +801,16 @@ public class TfsShell implements Closeable {
   }
 
   public int unmount(TachyonURI path) throws IOException {
-    if (mTfs.unmount(path)) {
-      System.out.println("Unmounted " + path);
-      return 0;
-    } else {
-      System.out.println("unmount: Failed to unmount" + path);
-      return -1;
+    try {
+      if (mTfs.unmount(path)) {
+        System.out.println("Unmounted " + path);
+        return 0;
+      } else {
+        System.out.println("unmount: Failed to unmount" + path);
+        return -1;
+      }
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
     }
   }
 

@@ -153,7 +153,7 @@ public final class InodeFile extends Inode {
    * @param cacheable If true, the file is cacheable
    */
   public synchronized void setCacheable(boolean cacheable) {
-    // TODO this related logic is not complete right. fix this.
+    // TODO(gene). This related logic is not complete right. Fix this.
     mCacheable = cacheable;
   }
 

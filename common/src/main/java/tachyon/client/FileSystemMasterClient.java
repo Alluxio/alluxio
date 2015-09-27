@@ -549,7 +549,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
     int retry = 0;
-    while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.mount(tachyonPath.toString(), ufsPath.toString(), new MountOpts());
@@ -569,7 +569,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized boolean unmount(TachyonURI tachyonPath) throws IOException {
     int retry = 0;
-    while (!mClosed && (retry++) <= RPC_MAX_NUM_RETRY) {
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.unmount(tachyonPath.toString());
