@@ -49,29 +49,29 @@ import tachyon.util.network.NetworkAddressUtils;
  */
 @PublicApi
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {
-  /** Logger for this class */
+  /** Logger for this class. */
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** How the data should be written into Tachyon space, if at all */
+  /** How the data should be written into Tachyon space, if at all. */
   private final TachyonStorageType mTachyonStorageType;
-  /** Standard block size in bytes of the file, guaranteed for all but the last block */
+  /** Standard block size in bytes of the file, guaranteed for all but the last block. */
   private final long mBlockSize;
-  /** Total length of the file in bytes */
+  /** Total length of the file in bytes. */
   private final long mFileLength;
-  /** File System context containing the FileSystemMasterClient pool */
+  /** File System context containing the FileSystemMasterClient pool. */
   private final FileSystemContext mContext;
-  /** Block ids associated with this file */
+  /** File information. */
   private final FileInfo mFileInfo;
 
-  /** If the stream is closed, this can only go from false to true */
+  /** If the stream is closed, this can only go from false to true. */
   private boolean mClosed;
   /** Whether or not the current block should be cached. */
   private boolean mShouldCacheCurrentBlock;
-  /** Current position of the stream */
+  /** Current position of the stream. */
   private long mPos;
-  /** Current BlockInStream backing this stream */
+  /** Current BlockInStream backing this stream. */
   private BlockInStream mCurrentBlockInStream;
-  /** Current BlockOutStream writing the data into Tachyon, this may be null */
+  /** Current BlockOutStream writing the data into Tachyon, this may be null. */
   private BufferedBlockOutStream mCurrentCacheStream;
 
   /**

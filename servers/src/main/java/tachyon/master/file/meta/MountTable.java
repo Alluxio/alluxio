@@ -44,21 +44,22 @@ public final class MountTable {
    * Mounts the given UFS path at the given Tachyon path. The Tachyon path should not be nested
    * under an existing mount point.
    *
-   * @param tachyonPath a Tachyon path
-   * @param ufsPath a URI identifying the UFS path
+   * @param tachyonUri a Tachyon path URI
+   * @param ufsUri a UFS path URI
    * @return whether the operation succeeded or not
    */
-  public synchronized boolean add(TachyonURI tachyonPath, TachyonURI ufsPath)
+  public synchronized boolean add(TachyonURI tachyonUri, TachyonURI ufsUri)
       throws InvalidPathException {
-    LOG.info("Mounting " + ufsPath + " at " + tachyonPath.getPath());
+    String tachyonPath = tachyonUri.getPath();
+    LOG.info("Mounting " + ufsUri + " at " + tachyonPath);
     for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
       String path = entry.getKey();
-      if (tachyonPath.getPath().equals(path)) {
-        // Cannot mount a path onto an existing mount point.
+      if (tachyonPath.equals(path)) {
+        LOG.warn("Mount point " + tachyonPath + " already exists.");
         return false;
       }
     }
-    mMountTable.put(tachyonPath.getPath(), ufsPath);
+    mMountTable.put(tachyonPath, ufsUri);
     return true;
   }
 
@@ -75,14 +76,14 @@ public final class MountTable {
       for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
         String tachyonPath = entry.getKey();
         if (!path.equals(tachyonPath) && PathUtils.hasPrefix(tachyonPath, path)) {
-          // Cannout unmount a path if it has nested mount points.
+          LOG.warn("Mount point " + path + " has nested mount points.");
           return false;
         }
       }
       mMountTable.remove(path);
       return true;
     }
-    // Cannot unmount a path that does not correspond to a mount point.
+    LOG.warn("Mount point " + path + " does not exist.");
     return false;
   }
 
