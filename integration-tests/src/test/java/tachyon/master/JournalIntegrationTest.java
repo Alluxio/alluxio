@@ -465,7 +465,7 @@ public class JournalIntegrationTest {
   //  Journal journal = new Journal(journalPrefix, mMasterTachyonConf);
   //  UnderFileSystem ufs = UnderFileSystem.get(journalPrefix, mMasterTachyonConf);
   //  ufs.delete(journalPrefix, true);
-  //  ufs.mkdirs(journalPrefix, true);
+  //  ufs.mkdir(journalPrefix, true);
   //  OutputStream ops = ufs.create(journal.getCurrentLogFilePath());
   //  if (ops != null) {
   //    ops.close();

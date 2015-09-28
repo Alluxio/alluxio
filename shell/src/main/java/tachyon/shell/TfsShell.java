@@ -378,7 +378,7 @@ public class TfsShell implements Closeable {
       //make a local directory
       if (!dstFile.exists()) {
         if (!dstFile.mkdirs()) {
-          System.out.println("mkdirs failure for directory: " + dstFile.getAbsolutePath());
+          System.out.println("mkdir failure for directory: " + dstFile.getAbsolutePath());
           return -1;
         } else {
           System.out.println("Create directory: " + dstFile.getAbsolutePath());

@@ -22,11 +22,11 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class InodePersistedEntry implements JournalEntry {
+public final class PersistDirectoryEntry implements JournalEntry {
   protected final long mId;
   protected final boolean mPersisted;
 
-  public InodePersistedEntry(long id, boolean persisted) {
+  public PersistDirectoryEntry(long id, boolean persisted) {
     mId = id;
     mPersisted = persisted;
   }

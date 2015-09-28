@@ -50,7 +50,7 @@ import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
-import tachyon.master.file.journal.InodePersistedEntry;
+import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
@@ -162,8 +162,8 @@ public abstract class JournalFormatterTestBase {
   }
 
   @Test
-  public void inodePersistedEntryTest() throws IOException {
-    entryTest(new InodePersistedEntry(TEST_FILE_ID, true));
+  public void persistedDirectoryEntryTest() throws IOException {
+    entryTest(new PersistDirectoryEntry(TEST_FILE_ID, true));
   }
 
   @Test
