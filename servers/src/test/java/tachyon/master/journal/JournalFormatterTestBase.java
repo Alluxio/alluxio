@@ -37,8 +37,11 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
+import tachyon.master.file.journal.AddMountPointEntry;
+import tachyon.master.file.journal.DeleteMountPointEntry;
 import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -73,6 +76,8 @@ public abstract class JournalFormatterTestBase {
   protected static final long TEST_TABLE_ID = 2L;
   protected static final long TEST_OP_TIME_MS = 1409349750338L;
   protected static final long TEST_SEQUENCE_NUMBER = 1945L;
+  protected static final TachyonURI TEST_TACHYON_PATH = new TachyonURI("/test/path");
+  protected static final TachyonURI TEST_UFS_PATH = new TachyonURI("hdfs://host:port/test/path");
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -210,6 +215,16 @@ public abstract class JournalFormatterTestBase {
   @Test
   public void inodeDirectoryIdGeneratorEntryTest() throws IOException {
     entryTest(new InodeDirectoryIdGeneratorEntry(TEST_CONTAINER_ID, TEST_SEQUENCE_NUMBER));
+  }
+
+  @Test
+  public void addMountPointEntryTest() throws IOException {
+    entryTest(new AddMountPointEntry(TEST_TACHYON_PATH, TEST_UFS_PATH));
+  }
+
+  @Test
+  public void deleteMountPointEntryTest() throws IOException {
+    entryTest(new DeleteMountPointEntry(TEST_TACHYON_PATH));
   }
 
   // RawTable
