@@ -29,12 +29,13 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.TachyonMaster;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
@@ -70,7 +71,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws InvalidPathException
    */
   private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, IOException, TachyonException {
     TachyonFileSystem tFS = TachyonFileSystem.get();
     TachyonFile tFile = tFS.open(path);
     String fileData = null;
@@ -79,8 +80,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     }
     FileInfo fileInfo = tFS.getInfo(tFile);
     if (fileInfo.isComplete) {
-      ClientOptions readNoCache = new ClientOptions.Builder(mTachyonConf)
-          .setTachyonStoreType(TachyonStorageType.NO_STORE).build();
+      InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)
+          .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       FileInStream is = tFS.getInStream(tFile, readNoCache);
       try {
         int len = (int) Math.min(5 * Constants.KB, fileInfo.length - offset);
@@ -176,7 +177,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         } else if (offset > fileInfo.getLength()) {
           offset = fileInfo.getLength();
         }
-        displayFile(new TachyonURI(currentFileInfo.getAbsolutePath()), request, offset);
+        try {
+          displayFile(new TachyonURI(currentFileInfo.getAbsolutePath()), request, offset);
+        } catch (TachyonException e) {
+          throw new IOException(e.getMessage());
+        }
         request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
         return;
