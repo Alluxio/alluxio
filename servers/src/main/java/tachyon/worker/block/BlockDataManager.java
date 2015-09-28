@@ -159,32 +159,32 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    *
    * @param fileId a file id
    * @param nonce a nonce used for temporary file creation
-   * @param path the UFS path of the file
+   * @param ufsPath the UFS path of the file
    * @throws TException if the file does not exist or cannot be renamed
    * @throws IOException if the update to the master fails
    */
-  public void persistFile(long fileId, long nonce, String path) throws TException, IOException {
-    String tmpPath = PathUtils.temporaryFileName(fileId, nonce, path);
+  public void persistFile(long fileId, long nonce, String ufsPath) throws TException, IOException {
+    String tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
     UnderFileSystem ufs = UnderFileSystem.get(tmpPath, WorkerContext.getConf());
     try {
       if (!ufs.exists(tmpPath)) {
         // Location of the temporary file has changed, recompute it.
         FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
-        path = fileInfo.getUfsPath();
-        tmpPath = PathUtils.temporaryFileName(fileId, nonce, path);
+        ufsPath = fileInfo.getUfsPath();
+        tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
       }
-      if (!ufs.rename(tmpPath, path)) {
-        throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + path);
+      if (!ufs.rename(tmpPath, ufsPath)) {
+        throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + ufsPath);
       }
     } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + path + ": "
+      throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + ufsPath + ": "
           + ioe);
     }
     long fileSize;
     try {
-      fileSize = ufs.getFileSize(path);
+      fileSize = ufs.getFileSize(ufsPath);
     } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to getFileSize " + path);
+      throw new FailedToCheckpointException("Failed to getFileSize " + ufsPath);
     }
     mFileSystemMasterClient.persistFile(fileId, fileSize);
   }

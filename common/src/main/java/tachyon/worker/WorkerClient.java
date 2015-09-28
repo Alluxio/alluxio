@@ -114,11 +114,11 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notifies the worker that a file has been persisted.
+   * Notifies the worker that a file has been persisted in a temporary UFS location.
    *
    * @param fileId the file id
    * @param nonce nonce a nonce used for temporary file creation
-   * @param path the UFS path of the file
+   * @param path the UFS path where the file should be eventually stored
    * @throws IOException
    */
   public synchronized void persistFile(long fileId, long nonce, String path) throws IOException {
