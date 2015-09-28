@@ -550,6 +550,7 @@
         <module>integration/yarn</module>
       </modules>
       <properties>
+        <!-- Requires hadoop.version to be 2.4.0 or later -->
         <yarn.version>${hadoop.version}</yarn.version>
       </properties>
     </profile>
