@@ -43,6 +43,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
@@ -727,6 +728,7 @@ public class TfsShell implements Closeable {
     System.out.println("       [getUsedBytes]");
     System.out.println("       [getCapacityBytes]");
     System.out.println("       [load <path>]");
+    System.out.println("       [loadMetadata <path>]");
     System.out.println("       [location <path>]");
     System.out.println("       [ls <path>]");
     System.out.println("       [lsr <path>]");
@@ -771,7 +773,8 @@ public class TfsShell implements Closeable {
         || cmd.equals("unpin")
         || cmd.equals("free")
         || cmd.equals("du")
-        || cmd.equals("unmount")) {
+        || cmd.equals("unmount")
+        || cmd.equals("loadMetadata")) {
       return 1;
     } else if (cmd.equals("copyFromLocal")
         || cmd.equals("copyToLocal")
@@ -784,6 +787,12 @@ public class TfsShell implements Closeable {
     }
   }
 
+  /** Mounts a UFS path onto a Tachyon path.
+   *
+   * @param argv Aaray of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred
+   * @throws IOException if an I/O error occurs
+   */
   public int mount(String[] argv) throws IOException {
     TachyonURI tachyonPath = new TachyonURI(argv[1]);
     TachyonURI ufsPath = new TachyonURI(argv[2]);
@@ -800,6 +809,12 @@ public class TfsShell implements Closeable {
     }
   }
 
+  /** Unmounts a Tachyon path.
+   *
+   * @param path the TachyonURI path as the input of the command
+   * @return 0 if command is successful, -1 if an error occurred
+   * @throws IOException if an I/O error occurs
+   */
   public int unmount(TachyonURI path) throws IOException {
     try {
       if (mTfs.unmount(path)) {
@@ -812,6 +827,23 @@ public class TfsShell implements Closeable {
     } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     }
+  }
+
+  /** Loads metadata for the given Tachyon path from UFS.
+   *
+   * @param path the TachyonURI path as the input of the command
+   * @return 0 if command is successful, -1 if an error occurred
+   * @throws IOException if an I/O error occurs
+   */
+  public int loadMetadata(TachyonURI path) throws IOException {
+    try {
+      LoadMetadataOptions recursive =
+          new LoadMetadataOptions.Builder(mTachyonConf).setRecursive(true).build();
+      mTfs.loadMetadata(path, recursive);
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
+    }
+    return 0;
   }
 
   /**
@@ -976,6 +1008,8 @@ public class TfsShell implements Closeable {
           return count(inputPath);
         } else if (cmd.equals("unmount")) {
           return unmount(inputPath);
+        } else if (cmd.equals("loadMetadata")) {
+          return loadMetadata(inputPath);
         }
 
         List<TachyonURI> paths = null;
