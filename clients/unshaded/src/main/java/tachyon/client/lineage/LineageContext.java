@@ -27,7 +27,7 @@ public enum LineageContext {
   private LineageMasterClientPool mLineageMasterClientPool;
 
   /**
-   * Creates a new lineage context
+   * Creates a new lineage context.
    */
   LineageContext() {
     mLineageMasterClientPool = new LineageMasterClientPool(ClientContext.getMasterAddress());
