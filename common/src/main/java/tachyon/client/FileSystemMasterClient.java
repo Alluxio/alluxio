@@ -38,7 +38,6 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.MountOpts;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.
@@ -552,7 +551,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.mount(tachyonPath.toString(), ufsPath.toString(), new MountOpts());
+        return mClient.mount(tachyonPath.toString(), ufsPath.toString());
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

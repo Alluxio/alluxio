@@ -87,9 +87,8 @@ public class FileSystemMasterService {
      * 
      * @param tachyonPath
      * @param ufsPath
-     * @param opts
      */
-    public boolean mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException, org.apache.thrift.TException;
+    public boolean mount(String tachyonPath, String ufsPath) throws TachyonException, org.apache.thrift.TException;
 
     /**
      * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
@@ -148,7 +147,7 @@ public class FileSystemMasterService {
 
     public void loadFileInfoFromUfs(String ufsPath, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void mount(String tachyonPath, String ufsPath, MountOpts opts, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void mount(String tachyonPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void unmount(String tachyonPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -694,18 +693,17 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "loadFileInfoFromUfs failed: unknown result");
     }
 
-    public boolean mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException, org.apache.thrift.TException
+    public boolean mount(String tachyonPath, String ufsPath) throws TachyonException, org.apache.thrift.TException
     {
-      send_mount(tachyonPath, ufsPath, opts);
+      send_mount(tachyonPath, ufsPath);
       return recv_mount();
     }
 
-    public void send_mount(String tachyonPath, String ufsPath, MountOpts opts) throws org.apache.thrift.TException
+    public void send_mount(String tachyonPath, String ufsPath) throws org.apache.thrift.TException
     {
       mount_args args = new mount_args();
       args.setTachyonPath(tachyonPath);
       args.setUfsPath(ufsPath);
-      args.setOpts(opts);
       sendBase("mount", args);
     }
 
@@ -1484,9 +1482,9 @@ public class FileSystemMasterService {
       }
     }
 
-    public void mount(String tachyonPath, String ufsPath, MountOpts opts, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void mount(String tachyonPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      mount_call method_call = new mount_call(tachyonPath, ufsPath, opts, resultHandler, this, ___protocolFactory, ___transport);
+      mount_call method_call = new mount_call(tachyonPath, ufsPath, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -1494,12 +1492,10 @@ public class FileSystemMasterService {
     public static class mount_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String tachyonPath;
       private String ufsPath;
-      private MountOpts opts;
-      public mount_call(String tachyonPath, String ufsPath, MountOpts opts, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public mount_call(String tachyonPath, String ufsPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.tachyonPath = tachyonPath;
         this.ufsPath = ufsPath;
-        this.opts = opts;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -1507,7 +1503,6 @@ public class FileSystemMasterService {
         mount_args args = new mount_args();
         args.setTachyonPath(tachyonPath);
         args.setUfsPath(ufsPath);
-        args.setOpts(opts);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -2225,7 +2220,7 @@ public class FileSystemMasterService {
       public mount_result getResult(I iface, mount_args args) throws org.apache.thrift.TException {
         mount_result result = new mount_result();
         try {
-          result.success = iface.mount(args.tachyonPath, args.ufsPath, args.opts);
+          result.success = iface.mount(args.tachyonPath, args.ufsPath);
           result.setSuccessIsSet(true);
         } catch (TachyonException te) {
           result.te = te;
@@ -3558,7 +3553,7 @@ public class FileSystemMasterService {
       }
 
       public void start(I iface, mount_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.mount(args.tachyonPath, args.ufsPath, args.opts,resultHandler);
+        iface.mount(args.tachyonPath, args.ufsPath,resultHandler);
       }
     }
 
@@ -21046,7 +21041,6 @@ public class FileSystemMasterService {
 
     private static final org.apache.thrift.protocol.TField TACHYON_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("tachyonPath", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)2);
-    private static final org.apache.thrift.protocol.TField OPTS_FIELD_DESC = new org.apache.thrift.protocol.TField("opts", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -21056,13 +21050,11 @@ public class FileSystemMasterService {
 
     public String tachyonPath; // required
     public String ufsPath; // required
-    public MountOpts opts; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       TACHYON_PATH((short)1, "tachyonPath"),
-      UFS_PATH((short)2, "ufsPath"),
-      OPTS((short)3, "opts");
+      UFS_PATH((short)2, "ufsPath");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -21081,8 +21073,6 @@ public class FileSystemMasterService {
             return TACHYON_PATH;
           case 2: // UFS_PATH
             return UFS_PATH;
-          case 3: // OPTS
-            return OPTS;
           default:
             return null;
         }
@@ -21130,8 +21120,6 @@ public class FileSystemMasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.OPTS, new org.apache.thrift.meta_data.FieldMetaData("opts", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MountOpts.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mount_args.class, metaDataMap);
     }
@@ -21141,13 +21129,11 @@ public class FileSystemMasterService {
 
     public mount_args(
       String tachyonPath,
-      String ufsPath,
-      MountOpts opts)
+      String ufsPath)
     {
       this();
       this.tachyonPath = tachyonPath;
       this.ufsPath = ufsPath;
-      this.opts = opts;
     }
 
     /**
@@ -21160,9 +21146,6 @@ public class FileSystemMasterService {
       if (other.isSetUfsPath()) {
         this.ufsPath = other.ufsPath;
       }
-      if (other.isSetOpts()) {
-        this.opts = new MountOpts(other.opts);
-      }
     }
 
     public mount_args deepCopy() {
@@ -21173,7 +21156,6 @@ public class FileSystemMasterService {
     public void clear() {
       this.tachyonPath = null;
       this.ufsPath = null;
-      this.opts = null;
     }
 
     public String getTachyonPath() {
@@ -21224,30 +21206,6 @@ public class FileSystemMasterService {
       }
     }
 
-    public MountOpts getOpts() {
-      return this.opts;
-    }
-
-    public mount_args setOpts(MountOpts opts) {
-      this.opts = opts;
-      return this;
-    }
-
-    public void unsetOpts() {
-      this.opts = null;
-    }
-
-    /** Returns true if field opts is set (has been assigned a value) and false otherwise */
-    public boolean isSetOpts() {
-      return this.opts != null;
-    }
-
-    public void setOptsIsSet(boolean value) {
-      if (!value) {
-        this.opts = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case TACHYON_PATH:
@@ -21266,14 +21224,6 @@ public class FileSystemMasterService {
         }
         break;
 
-      case OPTS:
-        if (value == null) {
-          unsetOpts();
-        } else {
-          setOpts((MountOpts)value);
-        }
-        break;
-
       }
     }
 
@@ -21284,9 +21234,6 @@ public class FileSystemMasterService {
 
       case UFS_PATH:
         return getUfsPath();
-
-      case OPTS:
-        return getOpts();
 
       }
       throw new IllegalStateException();
@@ -21303,8 +21250,6 @@ public class FileSystemMasterService {
         return isSetTachyonPath();
       case UFS_PATH:
         return isSetUfsPath();
-      case OPTS:
-        return isSetOpts();
       }
       throw new IllegalStateException();
     }
@@ -21340,15 +21285,6 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_opts = true && this.isSetOpts();
-      boolean that_present_opts = true && that.isSetOpts();
-      if (this_present_opts || that_present_opts) {
-        if (!(this_present_opts && that_present_opts))
-          return false;
-        if (!this.opts.equals(that.opts))
-          return false;
-      }
-
       return true;
     }
 
@@ -21365,11 +21301,6 @@ public class FileSystemMasterService {
       list.add(present_ufsPath);
       if (present_ufsPath)
         list.add(ufsPath);
-
-      boolean present_opts = true && (isSetOpts());
-      list.add(present_opts);
-      if (present_opts)
-        list.add(opts);
 
       return list.hashCode();
     }
@@ -21398,16 +21329,6 @@ public class FileSystemMasterService {
       }
       if (isSetUfsPath()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsPath, other.ufsPath);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetOpts()).compareTo(other.isSetOpts());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetOpts()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.opts, other.opts);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -21447,14 +21368,6 @@ public class FileSystemMasterService {
         sb.append(this.ufsPath);
       }
       first = false;
-      if (!first) sb.append(", ");
-      sb.append("opts:");
-      if (this.opts == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.opts);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -21462,9 +21375,6 @@ public class FileSystemMasterService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
-      if (opts != null) {
-        opts.validate();
-      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -21517,15 +21427,6 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 3: // OPTS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.opts = new MountOpts();
-                struct.opts.read(iprot);
-                struct.setOptsIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -21549,11 +21450,6 @@ public class FileSystemMasterService {
         if (struct.ufsPath != null) {
           oprot.writeFieldBegin(UFS_PATH_FIELD_DESC);
           oprot.writeString(struct.ufsPath);
-          oprot.writeFieldEnd();
-        }
-        if (struct.opts != null) {
-          oprot.writeFieldBegin(OPTS_FIELD_DESC);
-          struct.opts.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -21580,25 +21476,19 @@ public class FileSystemMasterService {
         if (struct.isSetUfsPath()) {
           optionals.set(1);
         }
-        if (struct.isSetOpts()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetTachyonPath()) {
           oprot.writeString(struct.tachyonPath);
         }
         if (struct.isSetUfsPath()) {
           oprot.writeString(struct.ufsPath);
         }
-        if (struct.isSetOpts()) {
-          struct.opts.write(oprot);
-        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, mount_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.tachyonPath = iprot.readString();
           struct.setTachyonPathIsSet(true);
@@ -21606,11 +21496,6 @@ public class FileSystemMasterService {
         if (incoming.get(1)) {
           struct.ufsPath = iprot.readString();
           struct.setUfsPathIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.opts = new MountOpts();
-          struct.opts.read(iprot);
-          struct.setOptsIsSet(true);
         }
       }
     }

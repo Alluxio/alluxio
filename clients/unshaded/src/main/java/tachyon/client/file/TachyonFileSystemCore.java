@@ -121,7 +121,9 @@ interface TachyonFileSystemCore {
   boolean mkdir(TachyonURI path, MkdirOptions options) throws IOException, TachyonException;
 
   /**
-   * Mounts a UFS subtree into Tachyon.
+   * Mounts a UFS subtree to the given Tachyon path. The Tachyon path is expected not to exist as
+   * the method creates it. This method does not transfer any data or metadata from the UFS. It
+   * simply establishes the connection between the given Tachyon path and UFS path.
    *
    * @param tachyonPath a Tachyon path
    * @param ufsPath a UFS path
@@ -169,7 +171,9 @@ interface TachyonFileSystemCore {
   void setState(TachyonFile file, SetStateOptions options) throws IOException, TachyonException;
 
   /**
-   * Unmounts a UFS subtree from Tachyon.
+   * Unmounts a UFS subtree identified by the given Tachyon path. The Tachyon path match a
+   * previously mounted path. The contents of the subtree rooted at this path are removed from
+   * Tachyon but the corresponding UFS subtree is left untouched.
    *
    * @param tachyonPath a Tachyon path
    * @param options method options

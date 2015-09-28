@@ -222,7 +222,7 @@ public final class FileSystemMaster extends MasterBase {
       mInodeTree.initializeRoot();
       String defaultUFS = conf.get(Constants.UNDERFS_DATA_FOLDER);
       try {
-        mMountTable.add(new TachyonURI("/"), new TachyonURI(defaultUFS));
+        mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
@@ -1299,7 +1299,7 @@ public final class FileSystemMaster extends MasterBase {
   public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException, IOException {
     synchronized (mInodeTree) {
-      InodeTree.CreatePathResult createResult = mkdir(tachyonPath, true);
+      InodeTree.CreatePathResult createResult = mkdir(tachyonPath, false);
       if (mountInternal(tachyonPath, ufsPath)) {
         writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
         flushJournal();
@@ -1329,7 +1329,12 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       if (unmountInternal(tachyonPath)) {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
-        deleteFile(inode.getId(), true);
+        // Use the internal delete API, setting {@code replayed} to false to prevent the delete
+        // operations from being persisted in the UFS.
+        long fileId = inode.getId();
+        long opTimeMs = System.currentTimeMillis();
+        deleteFileInternal(fileId, true /* recursive */, false /* replayed */, opTimeMs);
+        writeJournalEntry(new DeleteFileEntry(fileId, true /* recursive */, opTimeMs));
         writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
         flushJournal();
         return true;

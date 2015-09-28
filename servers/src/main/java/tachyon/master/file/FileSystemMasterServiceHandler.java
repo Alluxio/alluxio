@@ -30,7 +30,6 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.MountOpts;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 
@@ -177,7 +176,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException {
+  public boolean mount(String tachyonPath, String ufsPath) throws TachyonException {
     try {
       return mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
     } catch (FileAlreadyExistException e) {
