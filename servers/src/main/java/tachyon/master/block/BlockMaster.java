@@ -616,6 +616,11 @@ public final class BlockMaster extends MasterBase
     return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
   }
 
+  /**
+   * Reports the ids of the blocks lost on workers.
+   *
+   * @param blockIds the ids of the lost blocks
+   */
   public void reportLostBlocks(List<Long> blockIds) {
     synchronized (mLostBlocks) {
       mLostBlocks.addAll(blockIds);

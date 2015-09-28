@@ -33,7 +33,7 @@ import tachyon.thrift.JobConfInfo;
 
 /**
  * A job that wraps a programmed run by command line. This job's caller should ensure the execution
- * environment are identical on master and at the client site.
+ * environment are identical on master and at the client side.
  */
 public class CommandLineJob extends Job {
   private static final long serialVersionUID = 1655996721855899996L;
@@ -47,6 +47,9 @@ public class CommandLineJob extends Job {
     mCommand = command;
   }
 
+  /**
+   * @return the {@link CommandLineJobInfo} for RPC.
+   */
   public CommandLineJobInfo generateCommandLineJobInfo() {
     return new CommandLineJobInfo(mCommand, new JobConfInfo(getJobConf().getOutputFilePath()));
   }

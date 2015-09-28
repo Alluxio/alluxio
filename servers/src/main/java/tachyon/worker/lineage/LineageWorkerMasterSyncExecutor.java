@@ -69,7 +69,7 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    List<Long> persistedFiles = mLineageDataManager.fetchPersistedFiles();
+    List<Long> persistedFiles = mLineageDataManager.popPersistedFiles();
     if (!persistedFiles.isEmpty()) {
       LOG.info("files " + persistedFiles + " persisted");
     }

@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
@@ -36,6 +37,7 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.lineage.TachyonLineageFileSystem;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -53,11 +55,15 @@ import tachyon.thrift.FileInfo;
 public class TachyonFileSystem extends AbstractTachyonFileSystem {
   private static TachyonFileSystem sTachyonFileSystem;
 
-  public static synchronized TachyonFileSystem get() {
-    if (sTachyonFileSystem == null) {
-      sTachyonFileSystem = new TachyonFileSystem();
+  public static class TachyonFileSystemFactory {
+    public static synchronized TachyonFileSystem get() {
+      if (sTachyonFileSystem == null) {
+        boolean enableLineage = ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
+        sTachyonFileSystem =
+            enableLineage ? TachyonLineageFileSystem.get() : new TachyonFileSystem();
+      }
+      return sTachyonFileSystem;
     }
-    return sTachyonFileSystem;
   }
 
   protected TachyonFileSystem() {

@@ -18,19 +18,36 @@ package tachyon.master.lineage.meta;
 import tachyon.client.file.TachyonFile;
 import tachyon.thrift.LineageFileInfo;
 
+/**
+ * A file declared as a lineage's output.
+ */
 public final class LineageFile extends TachyonFile {
   private LineageFileState mState;
 
+  /**
+   * Constructs the lineage file with the default state as created.
+   *
+   * @param fileId the file id
+   */
   public LineageFile(long fileId) {
     super(fileId);
     mState = LineageFileState.CREATED;
   }
 
+  /**
+   * Constructs the lineage file.
+   *
+   * @param fileId the file id
+   * @param state the state
+   */
   public LineageFile(long fileId, LineageFileState state) {
     super(fileId);
     mState = state;
   }
 
+  /**
+   * @return the generated {@link LineageFileInfo} for RPC
+   */
   public LineageFileInfo generateLineageFileInfo() {
     LineageFileInfo info = new LineageFileInfo();
     info.mId = getFileId();
@@ -38,10 +55,18 @@ public final class LineageFile extends TachyonFile {
     return info;
   }
 
+  /**
+   * @return the file state
+   */
   public LineageFileState getState() {
     return mState;
   }
 
+  /**
+   * Sets the file state.
+   *
+   * @param state the new state
+   */
   public void setState(LineageFileState state) {
     mState = state;
   }

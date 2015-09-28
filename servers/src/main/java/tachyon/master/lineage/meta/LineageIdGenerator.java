@@ -20,18 +20,31 @@ import tachyon.master.journal.JournalEntryRepresentable;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 
 /**
- * Generates the lineage id as as sequence number.
+ * Generates the lineage id as sequence number.
  */
 public final class LineageIdGenerator implements JournalEntryRepresentable {
   private long mSequenceNumber;
 
+  /**
+   * Default constructor.
+   */
   public LineageIdGenerator() {}
 
+  /**
+   * Generates a new id for lineage.
+   *
+   * @return the new id for lineage
+   */
   synchronized long generateId() {
     mSequenceNumber = 0;
     return mSequenceNumber;
   }
 
+  /**
+   * Constructs the generator from a journal entry.
+   *
+   * @param entry the journal entry
+   */
   public void fromJournalEntry(LineageIdGeneratorEntry entry) {
     mSequenceNumber = entry.getSequenceNumber();
   }

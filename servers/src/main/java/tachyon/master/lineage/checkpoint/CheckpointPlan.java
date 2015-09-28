@@ -33,14 +33,14 @@ public final class CheckpointPlan {
   }
 
   /**
-   * @return a list of lineages to check point in sequence.
+   * @return a list of lineages to check point in sequence
    */
   public List<Long> getLineagesToCheckpoint() {
     return mToCheckPoint;
   }
 
   /**
-   * @return true if the chekcpoint plan is empty, false otherwise.
+   * @return true if the chekcpoint plan is empty, false otherwise
    */
   public boolean isEmpty() {
     return mToCheckPoint.isEmpty();
