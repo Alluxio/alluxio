@@ -82,7 +82,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
     }
   }
 
-  /** Grants access to private members to testers of this class. */
+  @Override
   public void grantAccess(Tester<FileOutStream> tester) {
     tester.receiveAccess(new PrivateAccess());
   }

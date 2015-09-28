@@ -53,8 +53,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
   private BlockStore mBlockStore;
-  /** Configuration values */
-  private TachyonConf mTachyonConf;
   /** WorkerSource for collecting worker metrics */
   private WorkerSource mWorkerSource;
   /** Metrics reporter that listens on block events and increases metrics counters */
@@ -69,6 +67,18 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   /** Id of this worker */
   private long mWorkerId;
 
+  class PrivateAccess {
+    private PrivateAccess() {}
+
+    public void setHeartbeatReporter(BlockHeartbeatReporter reporter) {
+      mHeartbeatReporter = reporter;
+    }
+
+    public void setMetricsReporter(BlockMetricsReporter reporter) {
+      mMetricsReporter = reporter;
+    }
+  }
+
   /**
    * Creates a BlockDataManager based on the configuration values.
    *
@@ -82,8 +92,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
       WorkerBlockMasterClient workerBlockMasterClient,
       WorkerFileSystemMasterClient workerFileSystemMasterClient, BlockStore blockStore)
       throws IOException {
-    // TODO(jiri): We may not need to assign the conf to a variable.
-    mTachyonConf = WorkerContext.getConf();
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mBlockStore = blockStore;
     mWorkerSource = workerSource;
@@ -97,27 +105,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
   }
 
-  class PrivateAccess {
-    private PrivateAccess() {}
-
-    public void setBlockStore(BlockStore blockStore) {
-      mBlockStore = blockStore;
-    }
-
-    public void setHeartbeatReporter(BlockHeartbeatReporter reporter) {
-      mHeartbeatReporter = reporter;
-    }
-
-    public void setMetricsReporter(BlockMetricsReporter reporter) {
-      mMetricsReporter = reporter;
-    }
-
-    public void setTachyonConf(TachyonConf conf) {
-      mTachyonConf = conf;
-    }
-  }
-
-  /** Grants access to private members to testers of this class. */
+  @Override
   public void grantAccess(Tester<BlockDataManager> tester) {
     tester.receiveAccess(new PrivateAccess());
   }

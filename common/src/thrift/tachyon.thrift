@@ -95,8 +95,6 @@ struct Command {
   2: list<i64> mData
 }
 
-struct MountOpts {}
-
 exception BlockInfoException {
   1: string message
 }
@@ -235,7 +233,7 @@ service FileSystemMasterService {
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
    * path. The path should not exist and should not be nested under any existing mount point.
    */
-  bool mount(1: string tachyonPath, 2: string ufsPath, 3: MountOpts opts)
+  bool mount(1: string tachyonPath, 2: string ufsPath)
     throws (1: TachyonException te)
 
   /**
