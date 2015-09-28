@@ -49,7 +49,8 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
-import tachyon.client.lineage.TachyonLineageFileSystem;
+import tachyon.client.lineage.TachyonLineage;
+import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
@@ -1167,11 +1168,7 @@ public class TFsShell implements Closeable {
   }
 
   private int createLineage(String[] argv) throws IOException {
-    TachyonLineageFileSystem tlfs = acquireTachyonLineageFileSystem();
-    if (tlfs == null) {
-      return -1;
-    }
-
+    TachyonLineage tl = TachyonLineage.get();
     // TODO(yupeng) more validation
     List<TachyonURI> inputFiles = Lists.newArrayList();
     if (!argv[1].equals("noInput")) {
@@ -1196,7 +1193,7 @@ public class TFsShell implements Closeable {
     CommandLineJob job = new CommandLineJob(cmd, new JobConf(outputPath));
     long lineageId;
     try {
-      lineageId = tlfs.createLineage(inputFiles, outputFiles, job);
+      lineageId = tl.createLineage(inputFiles, outputFiles, job);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -1205,14 +1202,13 @@ public class TFsShell implements Closeable {
   }
 
   private int deleteLineage(String[] argv) throws IOException {
-    TachyonLineageFileSystem tlfs = acquireTachyonLineageFileSystem();
-    if (tlfs == null) {
-      return -1;
-    }
+    TachyonLineage tl = TachyonLineage.get();
     long lineageId = Long.parseLong(argv[1]);
     boolean cascade = Boolean.parseBoolean(argv[2]);
+    DeleteLineageOptions options =
+        new DeleteLineageOptions.Builder(new TachyonConf()).setCascade(cascade).build();
     try {
-      tlfs.deleteLineage(lineageId, cascade);
+      tl.deleteLineage(lineageId, options);
     } catch (Exception e) {
       e.printStackTrace();
       System.out.println("Lineage '" + lineageId + "' could not be unpinned.");
@@ -1222,24 +1218,11 @@ public class TFsShell implements Closeable {
   }
 
   private int listLineages() throws IOException {
-    TachyonLineageFileSystem tlfs = acquireTachyonLineageFileSystem();
-    if (tlfs == null) {
-      return -1;
-    }
-
-    List<LineageInfo> infos = tlfs.listLineages();
+    TachyonLineage tl = TachyonLineage.get();
+    List<LineageInfo> infos = tl.listLineages();
     for (LineageInfo info : infos) {
       System.out.println(info);
     }
     return 0;
-  }
-
-  private TachyonLineageFileSystem acquireTachyonLineageFileSystem() {
-    System.out.println("Lineage Info:");
-    if (!(mTfs instanceof TachyonLineageFileSystem)) {
-      System.out.println("Lineage operations require lineaged to be enabled.");
-      return null;
-    }
-    return (TachyonLineageFileSystem) mTfs;
   }
 }
