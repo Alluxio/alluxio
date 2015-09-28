@@ -37,6 +37,9 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.conf.TachyonConf;
+import tachyon.test.Testable;
+import tachyon.test.Tester;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -51,7 +54,8 @@ import tachyon.worker.WorkerClient;
  * under storage system.
  */
 @PublicApi
-public final class FileOutStream extends OutputStream implements Cancelable {
+public final class FileOutStream extends OutputStream implements Cancelable,
+    Testable<FileOutStream> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mFileId;
@@ -61,6 +65,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
   private final long mNonce;
+  private String mUfsPath;
 
   private boolean mCanceled;
   private boolean mClosed;
@@ -68,6 +73,19 @@ public final class FileOutStream extends OutputStream implements Cancelable {
   private boolean mShouldCacheCurrentBlock;
   private BufferedBlockOutStream mCurrentBlockOutStream;
   private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
+
+  public class PrivateAccess {
+    private PrivateAccess() {}
+
+    public long getNonce() {
+      return mNonce;
+    }
+  }
+
+  /** Grants access to private members to testers of this class. */
+  public void grantAccess(Tester<FileOutStream> tester) {
+    tester.receiveAccess(new PrivateAccess());
+  }
 
   /**
    * Creates a new file output stream.
@@ -86,10 +104,10 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isPersist()) {
       FileInfo fileInfo = getFileInfo(mFileId);
-      String ufsPath = fileInfo.getUfsPath();
-      String fileName = PathUtils.temporaryFileName(fileId, mNonce, ufsPath);
+      mUfsPath = fileInfo.getUfsPath();
+      String fileName = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(fileName, ClientContext.getConf());
-      String parentPath = (new TachyonURI(ufsPath)).getParent().getPath();
+      String parentPath = (new TachyonURI(mUfsPath)).getParent().getPath();
       if (!ufs.exists(parentPath)) {
         if (!ufs.mkdirs(parentPath, true)) {
           throw new IOException("Failed to create " + parentPath);
@@ -97,6 +115,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       }
       mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
     } else {
+      mUfsPath = null;
       mUnderStorageOutputStream = null;
     }
     mClosed = false;
@@ -122,12 +141,10 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     Boolean canComplete = false;
     if (mUnderStorageType.isPersist()) {
-      FileInfo fileInfo = getFileInfo(mFileId);
-      String ufsPath = fileInfo.getUfsPath();
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
-        String fileName = PathUtils.temporaryFileName(mFileId, mNonce, ufsPath);
+        String fileName = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
         UnderFileSystem underFsClient = UnderFileSystem.get(fileName, ClientContext.getConf());
         underFsClient.delete(fileName, false);
       } else {
@@ -136,7 +153,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
         WorkerClient workerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
         try {
           // TODO(yupeng): Investigate if this RPC can be moved to master.
-          workerClient.persistFile(mFileId, mNonce, ufsPath);
+          workerClient.persistFile(mFileId, mNonce, mUfsPath);
         } finally {
           BlockStoreContext.INSTANCE.releaseWorkerClient(workerClient);
         }
@@ -288,10 +305,5 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     } finally {
       mContext.releaseMasterClient(client);
     }
-  }
-
-  // TODO(jiri): This is for testing only. Apply the Tester/Testable idiom here.
-  public long getNonce() {
-    return mNonce;
   }
 }
