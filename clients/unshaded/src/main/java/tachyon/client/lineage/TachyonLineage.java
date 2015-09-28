@@ -64,7 +64,7 @@ public final class TachyonLineage extends AbstractLineageClient {
   }
 
   @Override
-  public List<LineageInfo> listLineages() throws IOException {
-    return super.listLineages();
+  public List<LineageInfo> getLineageInfoList() throws IOException {
+    return super.getLineageInfoList();
   }
 }

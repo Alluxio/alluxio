@@ -73,11 +73,11 @@ public abstract class AbstractLineageClient implements LineageClient {
   }
 
   @Override
-  public List<LineageInfo> listLineages() throws IOException {
+  public List<LineageInfo> getLineageInfoList() throws IOException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
 
     try {
-      List<LineageInfo> result = masterClient.listLineages();
+      List<LineageInfo> result = masterClient.getLineageInfoList();
       return result;
     } finally {
       mContext.releaseMasterClient(masterClient);

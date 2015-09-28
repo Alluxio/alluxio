@@ -143,12 +143,12 @@ public final class LineageMasterClient extends MasterClientBase {
     throw new IOException("Failed after " + retry + " retries.");
   }
 
-  public synchronized List<LineageInfo> listLineages() throws IOException {
+  public synchronized List<LineageInfo> getLineageInfoList() throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.listLineages();
+        return mClient.getLineageInfoList();
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

@@ -50,6 +50,7 @@ public interface CheckpointScheduler {
    * This method returns null if the scheduler fails to propose a feasible plan to find the lineages
    * to checkpoint. If the checkpoint plan has no lineages, it indicates that the scheduler has no
    * actions to take and the requirement is already met.
+   * </p>
    *
    * @param store a readonly view of the lineage store
    * @return a scheduling plan (possibly empty) to checkpoint the lineages, or null if no plan is

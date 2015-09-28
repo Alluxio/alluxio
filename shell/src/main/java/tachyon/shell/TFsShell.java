@@ -1235,7 +1235,7 @@ public class TFsShell implements Closeable {
 
   private int listLineages() throws IOException {
     TachyonLineage tl = TachyonLineage.get();
-    List<LineageInfo> infos = tl.listLineages();
+    List<LineageInfo> infos = tl.getLineageInfoList();
     for (LineageInfo info : infos) {
       System.out.println(info);
     }

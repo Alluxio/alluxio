@@ -71,5 +71,5 @@ interface LineageClient {
    * @return the information about lineages
    * @throws IOException if the master cannot list the lineage info
    */
-  public List<LineageInfo> listLineages() throws IOException;
+  public List<LineageInfo> getLineageInfoList() throws IOException;
 }
