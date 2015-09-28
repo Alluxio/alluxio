@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
@@ -37,6 +36,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.InvalidPathException;
 
@@ -79,30 +79,12 @@ public class TFsShellUtilsTest {
     TFS, LOCAL
   }
 
-  public static Comparator<File> createFilePathComparator() {
-    return new Comparator<File>() {
-      public int compare(File file1, File file2) {
-        // ascending order
-        return file1.getAbsoluteFile().compareTo(file2.getAbsoluteFile());
-      }
-    };
-  }
-
-  public static Comparator<TachyonURI> createTachyonURIComparator() {
-    return new Comparator<TachyonURI>() {
-      public int compare(TachyonURI tUri1, TachyonURI tUri2) {
-        // ascending order
-        return tUri1.getPath().compareTo(tUri2.getPath());
-      }
-    };
-  }
-
-  public String resetTachyonFileHierarchy() throws IOException, TException {
+  public String resetTachyonFileHierarchy() throws IOException, TachyonException {
     return resetTachyonFileHierarchy(mTfs);
   }
 
-  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs) throws IOException,
-      TException {
+  public static String resetTachyonFileHierarchy(TachyonFileSystem tfs)
+      throws IOException, TachyonException {
     /**
      * Generate such local structure /testWildCards
      *                                ├── foo |
@@ -117,15 +99,15 @@ public class TFsShellUtilsTest {
       fd = tfs.open(new TachyonURI("/testWildCars"));
     } catch (IOException ioe) {
       fd = null;
-    } catch (InvalidPathException e) {
+    } catch (TachyonException e) {
       fd = null;
     }
     if (fd != null) {
       tfs.delete(fd);
     }
-    tfs.mkdirs(new TachyonURI("/testWildCards"));
-    tfs.mkdirs(new TachyonURI("/testWildCards/foo"));
-    tfs.mkdirs(new TachyonURI("/testWildCards/bar"));
+    tfs.mkdir(new TachyonURI("/testWildCards"));
+    tfs.mkdir(new TachyonURI("/testWildCards/foo"));
+    tfs.mkdir(new TachyonURI("/testWildCards/bar"));
 
     TachyonFSTestUtils.createByteFile(tfs, "/testWildCards/foo/foobar1", TachyonStorageType.STORE,
         UnderStorageType.NO_PERSIST, 10);
@@ -185,7 +167,7 @@ public class TFsShellUtilsTest {
     return ret;
   }
 
-  public String resetFsHierarchy(FsType fsType) throws IOException, TException {
+  public String resetFsHierarchy(FsType fsType) throws IOException, TachyonException {
     if (fsType == FsType.TFS) {
       return resetTachyonFileHierarchy();
     } else if (fsType == FsType.LOCAL) {
@@ -196,7 +178,7 @@ public class TFsShellUtilsTest {
   }
 
   @Test
-  public void getPathTest() throws IOException, TException {
+  public void getPathTest() throws IOException, TachyonException, TException {
     for (FsType fsType : FsType.values()) {
       String rootDir = resetFsHierarchy(fsType);
 

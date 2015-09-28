@@ -26,13 +26,17 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.DeleteOptions;
+import tachyon.client.file.options.LoadMetadataOptions;
+import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
@@ -62,7 +66,8 @@ public class JournalIntegrationTest {
   @Test
   public void AddBlockTest() throws Exception {
     TachyonURI uri = new TachyonURI("/xyz");
-    ClientOptions options = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
+    OutStreamOptions options =
+        new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
     FileOutStream os = mTfs.getOutStream(uri, options);
     for (int k = 0; k < 1000; k ++) {
       os.write(k);
@@ -108,14 +113,17 @@ public class JournalIntegrationTest {
    */
   @Test
   public void AddCheckpointTest() throws Exception {
-    ClientOptions options =
-        new ClientOptions.Builder(mMasterTachyonConf).setStorageTypes(TachyonStorageType
-            .NO_STORE, UnderStorageType.PERSIST).build();
-    TachyonFSTestUtils.createByteFile(mTfs, "/xyz", options, 10);
+    OutStreamOptions options =
+        new OutStreamOptions.Builder(mMasterTachyonConf)
+            .setTachyonStorageType(TachyonStorageType.NO_STORE)
+            .setUnderStorageType(UnderStorageType.PERSIST).build();
+    TachyonFSTestUtils.createByteFile(mTfs, "/xyz", 10, options);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     TachyonURI ckPath = new TachyonURI("/xyz_ck");
     // TODO(cc): What's the counterpart in the new client API for this?
-    mTfs.loadFileInfoFromUfs(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()), true);
+    LoadMetadataOptions recursive =
+        new LoadMetadataOptions.Builder(new TachyonConf()).setRecursive(true).build();
+    mTfs.loadMetadata(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()), recursive);
     FileInfo ckFileInfo = mTfs.getInfo(mTfs.open(ckPath));
     mLocalTachyonCluster.stopTFS();
     AddCheckpointTestUtil(fInfo, ckFileInfo);
@@ -152,9 +160,9 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    TachyonConf conf = new TachyonConf();
-    conf.set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(Constants.KB));
-    mLocalTachyonCluster.start(conf);
+    MasterContext.getConf().set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES, Integer.toString(
+        Constants.KB));
+    mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
@@ -167,8 +175,9 @@ public class JournalIntegrationTest {
   @Test
   public void CompletedEditLogDeletionTest() throws Exception {
     for (int i = 0; i < 124; i ++) {
-      mTfs.getOutStream(new TachyonURI("/a" + i), new ClientOptions.Builder(mMasterTachyonConf)
-        .setBlockSize((i + 10) / 10 * 64).build()).close();
+      mTfs.getOutStream(new TachyonURI("/a" + i),
+          new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + 10) / 10 * 64).build())
+          .close();
     }
     mLocalTachyonCluster.stopTFS();
 
@@ -191,20 +200,23 @@ public class JournalIntegrationTest {
    */
   @Test
   public void DeleteTest() throws Exception {
+    MkdirOptions recMkdir = new MkdirOptions.Builder(new TachyonConf()).setRecursive(true).build();
+    DeleteOptions recDelete =
+        new DeleteOptions.Builder(new TachyonConf()).setRecursive(true).build();
     for (int i = 0; i < 10; i ++) {
       String dirPath = "/i" + i;
-      mTfs.mkdirs(new TachyonURI(dirPath), TachyonFileSystem.RECURSIVE);
+      mTfs.mkdir(new TachyonURI(dirPath), recMkdir);
       for (int j = 0; j < 10; j ++) {
-        ClientOptions option =
-            new ClientOptions.Builder(mMasterTachyonConf).setBlockSize((i + j + 1) * 64).build();
+        OutStreamOptions option =
+            new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + j + 1) * 64).build();
         String filePath = dirPath + "/j" + j;
         mTfs.getOutStream(new TachyonURI(filePath), option).close();
         if (j >= 5) {
-          mTfs.delete(mTfs.open(new TachyonURI(filePath)), TachyonFileSystem.RECURSIVE);
+          mTfs.delete(mTfs.open(new TachyonURI(filePath)), recDelete);
         }
       }
       if (i >= 5) {
-        mTfs.delete(mTfs.open(new TachyonURI(dirPath)), TachyonFileSystem.RECURSIVE);
+        mTfs.delete(mTfs.open(new TachyonURI(dirPath)), recDelete);
       }
     }
     mLocalTachyonCluster.stopTFS();
@@ -245,10 +257,10 @@ public class JournalIntegrationTest {
   @Test
   public void FileFolderTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.mkdirs(new TachyonURI("/i" + i));
+      mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
-        ClientOptions option =
-            new ClientOptions.Builder(mMasterTachyonConf).setBlockSize((i + j + 1) * 64).build();
+        OutStreamOptions option =
+            new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + j + 1) * 64).build();
         mTfs.getOutStream(new TachyonURI("/i" + i + "/j" + j), option).close();
       }
     }
@@ -279,7 +291,8 @@ public class JournalIntegrationTest {
    */
   @Test
   public void FileTest() throws Exception {
-    ClientOptions option = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
+    OutStreamOptions option =
+        new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
     TachyonURI filePath = new TachyonURI("/xyz");
     mTfs.getOutStream(filePath, option).close();
     FileInfo fInfo = mTfs.getInfo(mTfs.open(filePath));
@@ -306,15 +319,19 @@ public class JournalIntegrationTest {
    */
   @Test
   public void PinTest() throws Exception {
-    mTfs.mkdirs(new TachyonURI("/myFolder"));
+    SetStateOptions setPinned =
+        new SetStateOptions.Builder(new TachyonConf()).setPinned(true).build();
+    SetStateOptions setUnpinned =
+        new SetStateOptions.Builder(new TachyonConf()).setPinned(false).build();
+    mTfs.mkdir(new TachyonURI("/myFolder"));
     TachyonFile folder = mTfs.open(new TachyonURI("/myFolder"));
-    mTfs.setPin(folder, true);
+    mTfs.setState(folder, setPinned);
 
     TachyonURI file0Path = new TachyonURI("/myFolder/file0");
-    ClientOptions op = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
+    OutStreamOptions op = new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
     mTfs.getOutStream(file0Path, op).close();
     TachyonFile file0 = mTfs.open(file0Path);
-    mTfs.setPin(file0, false);
+    mTfs.setState(file0, setUnpinned);
 
     TachyonURI file1Path = new TachyonURI("/myFolder/file1");
     mTfs.getOutStream(file1Path, op).close();
@@ -357,7 +374,7 @@ public class JournalIntegrationTest {
   @Test
   public void FolderTest() throws Exception {
     TachyonURI folderPath = new TachyonURI("/xyz");
-    mTfs.mkdirs(folderPath);
+    mTfs.mkdir(folderPath);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(folderPath));
     mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
@@ -385,8 +402,8 @@ public class JournalIntegrationTest {
   @Test
   public void ManyFileTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      ClientOptions option = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(
-          (i + 1) * 64).build();
+      OutStreamOptions option =
+          new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + 1) * 64).build();
       mTfs.getOutStream(new TachyonURI("/a" + i), option).close();
     }
     mLocalTachyonCluster.stopTFS();
@@ -415,8 +432,8 @@ public class JournalIntegrationTest {
   @Test
   public void MultiEditLogTest() throws Exception {
     for (int i = 0; i < 124; i ++) {
-      ClientOptions op = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(
-          (i + 10) / 10 * 64).build();
+      OutStreamOptions op =
+          new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + 10) / 10 * 64).build();
       mTfs.getOutStream(new TachyonURI("/a" + i), op);
     }
     mLocalTachyonCluster.stopTFS();
@@ -499,10 +516,10 @@ public class JournalIntegrationTest {
   @Test
   public void RenameTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.mkdirs(new TachyonURI("/i" + i));
+      mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
-        ClientOptions option = new ClientOptions.Builder(mMasterTachyonConf).setBlockSize(
-            (i + j + 1) * 64).build();
+        OutStreamOptions option =
+            new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + j + 1) * 64).build();
         TachyonURI path = new TachyonURI("/i" + i + "/j" + j);
         mTfs.getOutStream(path, option).close();
         mTfs.rename(mTfs.open(path), new TachyonURI("/i" + i + "/jj" + j));

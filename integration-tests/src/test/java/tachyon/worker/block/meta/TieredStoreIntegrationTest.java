@@ -28,17 +28,19 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 
@@ -54,7 +56,8 @@ public class TieredStoreIntegrationTest {
   private TachyonConf mWorkerConf;
   private TachyonFileSystem mTFS;
   private int mWorkerToMasterHeartbeatIntervalMs;
-
+  private SetStateOptions mSetPinned;
+  private SetStateOptions mSetUnpinned;
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -65,16 +68,18 @@ public class TieredStoreIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = MasterContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    mSetPinned = new SetStateOptions.Builder(mWorkerConf).setPinned(true).build();
+    mSetUnpinned = new SetStateOptions.Builder(mWorkerConf).setPinned(false).build();
   }
 
   // Tests that deletes go through despite failing initially due to concurrent read
@@ -87,9 +92,9 @@ public class TieredStoreIntegrationTest {
 
     Assert.assertTrue(mTFS.getInfo(file).getInMemoryPercentage() == 100);
     // Open the file
-    ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.STORE)
-            .build();
+    InStreamOptions options =
+        new InStreamOptions.Builder(new TachyonConf()).setTachyonStorageType(
+            TachyonStorageType.STORE).build();
     FileInStream in = mTFS.getInStream(file, options);
     Assert.assertEquals(0, in.read());
 
@@ -102,7 +107,7 @@ public class TieredStoreIntegrationTest {
     try {
       mTFS.open(new TachyonURI("/test1"));
       Assert.fail("file should not exist: /test1");
-    } catch (InvalidPathException e) {
+    } catch (TachyonException e) {
       // This is expected, since the file should not exist.
     }
 
@@ -132,7 +137,7 @@ public class TieredStoreIntegrationTest {
             UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // Pin the file
-    mTFS.setPin(file, true);
+    mTFS.setState(file, mSetPinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the pin with master
@@ -153,14 +158,14 @@ public class TieredStoreIntegrationTest {
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // Pin the file
-    mTFS.setPin(file1, true);
+    mTFS.setState(file1, mSetPinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getInfo(file1).isIsPinned());
 
     // Unpin the file
-    mTFS.setPin(file1, false);
+    mTFS.setState(file1, mSetUnpinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the unpin
@@ -216,8 +221,11 @@ public class TieredStoreIntegrationTest {
       Assert.assertEquals(100, file2Info.getInMemoryPercentage());
     }
 
-    FileInStream is = mTFS.getInStream(toPromote, new ClientOptions.Builder(mWorkerConf)
-        .setTachyonStoreType(TachyonStorageType.PROMOTE).build());
+    FileInStream is =
+        mTFS.getInStream(
+            toPromote,
+            new InStreamOptions.Builder(mWorkerConf).setTachyonStorageType(
+                TachyonStorageType.PROMOTE).build());
     byte[] buf = new byte[toPromoteLen];
     int len = is.read(buf);
     is.close();

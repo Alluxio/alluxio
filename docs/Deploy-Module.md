@@ -68,7 +68,8 @@ refer to [this doc](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSG
 
 Download [key pair](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Be sure to chmod private ssh key to **0600**.
 
-Set name of keypair to **Keypair** and path to the pem key to **Key_Path** in `conf/ec2.yml`.
+Update `conf/ec2.yml` (if `conf/ec2.yml` does not exist yet, create it by copying from `conf/ec2.yml.template`). Set the name of keypair set
+(e.g., shown in EC2 management console) to the value of field **Keypair** and the path to the pem key to the value of field **Key_Path**.
 
 Install aws vagrant plugin(To date, version 0.5.0 is tested):
 

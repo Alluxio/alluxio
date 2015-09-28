@@ -105,6 +105,7 @@ public final class InodeDirectory extends Inode {
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
+    ret.ttl = Constants.NO_TTL;
     return ret;
   }
 
