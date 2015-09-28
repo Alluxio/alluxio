@@ -257,8 +257,7 @@ public final class FileSystemMaster extends MasterBase {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       if (persistFileInternal(fileId, length, opTimeMs)) {
-        writeJournalEntry(
-            new PersistFileEntry(fileId, length, opTimeMs));
+        writeJournalEntry(new PersistFileEntry(fileId, length, opTimeMs));
         flushJournal();
       }
     }
@@ -492,6 +491,11 @@ public final class FileSystemMaster extends MasterBase {
     Inode handle = inode;
     while (handle.getParentId() != InodeTree.NO_PARENT) {
       handle = mInodeTree.getInodeById(handle.getParentId());
+      TachyonURI path = mInodeTree.getPath(handle);
+      if (mMountTable.isMountPoint(path)) {
+        // Stop propagating the persisted status at mount points.
+        break;
+      }
       if (handle.isPersisted()) {
         // Stop if a persisted directory is encountered.
         break;
@@ -499,11 +503,6 @@ public final class FileSystemMaster extends MasterBase {
       handle.setPersisted(true);
       if (!replayed) {
         writeJournalEntry(new PersistDirectoryEntry(inode.getId(), inode.isPersisted()));
-      }
-      TachyonURI path = mInodeTree.getPath(handle);
-      if (mMountTable.isMountPoint(path)) {
-        // Stop propagating the persisted status at mount points.
-        break;
       }
     }
   }
@@ -973,8 +972,8 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    */
-  public boolean rename(long fileId, TachyonURI dstPath)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+  public boolean rename(long fileId, TachyonURI dstPath) throws FileAlreadyExistException,
+      FileDoesNotExistException, InvalidPathException, IOException {
     MasterContext.getMasterSource().incRenameOps();
     synchronized (mInodeTree) {
       Inode srcInode = mInodeTree.getInodeById(fileId);
@@ -1000,23 +999,11 @@ public final class FileSystemMaster extends MasterBase {
       if (mMountTable.isMountPoint(dstPath)) {
         return false;
       }
-
-      // Rename a path to one of its subpaths is not allowed. Check for that, by making sure
+      // Renaming a path to one of its subpaths is not allowed. Check for that, by making sure
       // srcComponents isn't a prefix of dstComponents.
-      String[] srcComponents = PathUtils.getPathComponents(srcPath.toString());
-      String[] dstComponents = PathUtils.getPathComponents(dstPath.toString());
-      if (srcComponents.length < dstComponents.length) {
-        boolean isPrefix = true;
-        for (int i = 0; i < srcComponents.length; i ++) {
-          if (!srcComponents[i].equals(dstComponents[i])) {
-            isPrefix = false;
-            break;
-          }
-        }
-        if (isPrefix) {
-          throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
-              + dstPath);
-        }
+      if (PathUtils.hasPrefix(dstPath.getPath(), srcPath.getPath())) {
+        throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
+            + dstPath);
       }
 
       TachyonURI dstParentURI = dstPath.getParent();
@@ -1031,9 +1018,9 @@ public final class FileSystemMaster extends MasterBase {
         return false;
       }
 
-      InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
-
       // Make sure destination path does not exist
+      InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
+      String[] dstComponents = PathUtils.getPathComponents(dstPath.getPath());
       if (dstParentDirectory.getChild(dstComponents[dstComponents.length - 1]) != null) {
         return false;
       }
@@ -1333,7 +1320,7 @@ public final class FileSystemMaster extends MasterBase {
         // operations from being persisted in the UFS.
         long fileId = inode.getId();
         long opTimeMs = System.currentTimeMillis();
-        deleteFileInternal(fileId, true /* recursive */, false /* replayed */, opTimeMs);
+        deleteFileInternal(fileId, true /* recursive */, true /* replayed */, opTimeMs);
         writeJournalEntry(new DeleteFileEntry(fileId, true /* recursive */, opTimeMs));
         writeJournalEntry(new DeleteMountPointEntry(tachyonPath));
         flushJournal();
