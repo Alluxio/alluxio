@@ -250,10 +250,10 @@ public class FileSystemMasterIntegrationTest {
     long fileId =
         mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isIsPersisted());
+    Assert.assertFalse(fileInfo.isPersisted);
     mFsMaster.persistFile(fileId, 1);
     fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertTrue(fileInfo.isIsPersisted());
+    Assert.assertTrue(fileInfo.isPersisted);
   }
 
   @After

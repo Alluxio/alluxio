@@ -258,7 +258,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Internal implementation of persisting a file to ufs
+   * Internal implementation of persisting a file to ufs.
    *
    * @return true if the operation should be written to the journal
    */
@@ -371,9 +371,9 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // This function should only be called from within synchronized (mInodeTree) blocks.
   private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException,
       InvalidPathException {
+    // This function should only be called from within synchronized (mInodeTree) blocks.
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.inMemoryPercentage = getInMemoryPercentage(inode);
     TachyonURI path = mInodeTree.getPath(inode);
@@ -456,9 +456,9 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // This function should only be called from within synchronized (mInodeTree) blocks.
   void completeFileInternal(List<Long> blockIds, long fileId, long fileLength, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException {
+    // This function should only be called from within synchronized (mInodeTree) blocks.
     mDependencyMap.addFileCheckpoint(fileId);
     InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
     inodeFile.setBlockIds(blockIds);
@@ -469,7 +469,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Propagates the persisted status to all parents of the given inode.
+   * Propagates the persisted status to all parents of the given inode in the same mount partition.
    *
    * @param inode the inode to start the propagation at
    * @throws FileDoesNotExistException if a non-existent file is encountered
@@ -542,10 +542,10 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // This function should only be called from within synchronized (mInodeTree) blocks.
   InodeTree.CreatePathResult createFileInternal(TachyonURI path, long blockSizeBytes,
       boolean recursive, long opTimeMs, long ttl) throws InvalidPathException,
       FileAlreadyExistException, BlockInfoException {
+    // This function should only be called from within synchronized (mInodeTree) blocks.
     InodeTree.CreatePathResult createResult =
         mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs, ttl);
     // If the create succeeded, the list of created inodes will not be empty.
@@ -777,11 +777,10 @@ public final class FileSystemMaster extends MasterBase {
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
    * @return a new {@link FileBlockInfo} for the block
    */
-  // This function should only be called from within synchronized (mInodeTree) blocks.
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo) throws
       InvalidPathException {
+    // This function should only be called from within synchronized (mInodeTree) blocks.
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
-
     fileBlockInfo.blockInfo = blockInfo;
     fileBlockInfo.ufsLocations = new ArrayList<NetAddress>();
 
@@ -1116,9 +1115,9 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // This function should only be called from within synchronized (mInodeTree) blocks.
   private void setPinnedInternal(long fileId, boolean pinned, long opTimeMs)
       throws FileDoesNotExistException {
+    // This function should only be called from within synchronized (mInodeTree) blocks.
     Inode inode = mInodeTree.getInodeById(fileId);
     mInodeTree.setPinned(inode, pinned, opTimeMs);
   }
