@@ -100,7 +100,7 @@ interface TachyonFileSystemCore {
   /**
    * Loads metadata about a file in UFS to Tachyon. No data will be transferred.
    *
-   * @param path the path to create the file in Tachyon
+   * @param path the path for which to load metadat from UFS
    * @param options method options
    * @return the file id of the resulting file in Tachyon
    * @throws IOException if a non-Tachyon exception occurs

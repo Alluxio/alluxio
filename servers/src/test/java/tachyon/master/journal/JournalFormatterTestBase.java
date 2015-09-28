@@ -39,7 +39,7 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.file.journal.AddCheckpointEntry;
+import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
 import tachyon.master.file.journal.DependencyEntry;
@@ -163,7 +163,7 @@ public abstract class JournalFormatterTestBase {
 
   @Test
   public void addCheckpointEntryTest() throws IOException {
-    entryTest(new AddCheckpointEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS));
+    entryTest(new PersistFileEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS));
   }
 
   @Test

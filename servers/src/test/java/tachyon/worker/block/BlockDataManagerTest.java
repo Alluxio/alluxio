@@ -28,7 +28,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
@@ -136,7 +135,7 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     Mockito.when(ufs.rename(srcPath,dstPath)).thenReturn(true);
     Mockito.when(ufs.getFileSize(dstPath)).thenReturn(fileSize);
     mHarness.mManager.addCheckpoint(fileId, nonce);
-    Mockito.verify(mHarness.mFileSystemMasterClient).addCheckpoint(fileId, fileSize);
+    Mockito.verify(mHarness.mFileSystemMasterClient).persistFile(fileId, fileSize);
   }
 
   @Test

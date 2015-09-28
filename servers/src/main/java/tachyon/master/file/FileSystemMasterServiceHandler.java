@@ -52,9 +52,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean addCheckpoint(long fileId, long length)
+  public boolean persistFile(long fileId, long length)
       throws BlockInfoException, FileDoesNotExistException, SuspectedFileSizeException {
-    return mFileSystemMaster.addCheckpoint(fileId, length);
+    return mFileSystemMaster.persistFile(fileId, length);
   }
 
   @Override
@@ -109,9 +109,13 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean deleteFile(long fileId, boolean recursive) throws TachyonException,
-      FileDoesNotExistException {
-    return mFileSystemMaster.deleteFile(fileId, recursive);
+  public boolean deleteFile(long fileId, boolean recursive) throws FileDoesNotExistException,
+      InvalidPathException, TachyonException {
+    try {
+      return mFileSystemMaster.deleteFile(fileId, recursive);
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
+    }
   }
 
   @Override
@@ -176,12 +180,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   public boolean mount(String tachyonPath, String ufsPath, MountOpts opts) throws TachyonException {
     try {
       return mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
-    } catch (FileAlreadyExistException faee) {
-      throw new TachyonException(faee.getMessage());
-    } catch (InvalidPathException ipe) {
-      throw new TachyonException(ipe.getMessage());
-    } catch (IOException ioe) {
-      throw new TachyonException(ioe.getMessage());
+    } catch (FileAlreadyExistException e) {
+      throw new TachyonException(e.getMessage());
+    } catch (InvalidPathException e) {
+      throw new TachyonException(e.getMessage());
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
     }
   }
 
@@ -189,10 +193,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   public boolean unmount(String tachyonPath) throws TachyonException {
     try {
       return mFileSystemMaster.unmount(new TachyonURI(tachyonPath));
-    } catch (FileDoesNotExistException fdnee) {
-      throw new TachyonException(fdnee.getMessage());
-    } catch (InvalidPathException ipe) {
-      throw new TachyonException(ipe.getMessage());
+    } catch (FileDoesNotExistException e) {
+      throw new TachyonException(e.getMessage());
+    } catch (InvalidPathException e) {
+      throw new TachyonException(e.getMessage());
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
     }
   }
 }

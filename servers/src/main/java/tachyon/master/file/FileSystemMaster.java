@@ -44,7 +44,7 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.journal.AddCheckpointEntry;
+import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -82,10 +82,8 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.FormatUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * The master that handles all file system metadata management.
@@ -180,8 +178,8 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new IOException("failed to complete file " + ((CompleteFileEntry) entry).getFileId());
       }
-    } else if (entry instanceof AddCheckpointEntry) {
-      addCheckpointFromEntry((AddCheckpointEntry) entry);
+    } else if (entry instanceof PersistFileEntry) {
+      persistFileFromEntry((PersistFileEntry) entry);
     } else if (entry instanceof SetPinnedEntry) {
       setPinnedFromEntry((SetPinnedEntry) entry);
     } else if (entry instanceof DeleteFileEntry) {
@@ -237,22 +235,22 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Adds a file checkpoint in ufs. Called via RPC.
+   * Persists a file in UFS.
    *
-   * @param fileId the file id associated with the ufs checkpoint
+   * @param fileId the file id
    * @param length the length of the file
    * @return true on success
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    * @throws FileDoesNotExistException
    */
-  public boolean addCheckpoint(long fileId, long length) throws SuspectedFileSizeException,
+  public boolean persistFile(long fileId, long length) throws SuspectedFileSizeException,
       BlockInfoException, FileDoesNotExistException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
-      if (addCheckpointInternal(fileId, length, opTimeMs)) {
+      if (persistFileInternal(fileId, length, opTimeMs)) {
         writeJournalEntry(
-            new AddCheckpointEntry(fileId, length, opTimeMs));
+            new PersistFileEntry(fileId, length, opTimeMs));
         flushJournal();
       }
     }
@@ -260,11 +258,11 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Internal implementation of completing the ufs checkpoint of the file.
+   * Internal implementation of persisting a file to ufs
    *
    * @return true if the operation should be written to the journal
    */
-  boolean addCheckpointInternal(long fileId, long length, long opTimeMs)
+  boolean persistFileInternal(long fileId, long length, long opTimeMs)
       throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
 
     Inode inode = mInodeTree.getInodeById(fileId);
@@ -314,9 +312,9 @@ public final class FileSystemMaster extends MasterBase {
     return needLog;
   }
 
-  private void addCheckpointFromEntry(AddCheckpointEntry entry) {
+  private void persistFileFromEntry(PersistFileEntry entry) {
     try {
-      addCheckpointInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
+      persistFileInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
     } catch (SuspectedFileSizeException sfse) {
@@ -470,18 +468,25 @@ public final class FileSystemMaster extends MasterBase {
     propagatePersisted(inodeFile);
   }
 
+  /**
+   * Propagates the persisted status to all parents of the given inode.
+   *
+   * @param inode the inode to start the propagation at
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   * @throws InvalidPathException if an invalid path is encountered
+   */
   private void propagatePersisted(Inode inode) throws FileDoesNotExistException,
       InvalidPathException {
     if (!inode.isPersisted()) {
       return;
     }
     Inode handle = inode;
-    while (handle.getParentId() != -1) {
+    while (handle.getParentId() != InodeTree.NO_PARENT) {
       handle = mInodeTree.getInodeById(handle.getParentId());
       handle.setPersisted(true);
       TachyonURI path = mInodeTree.getPath(handle);
       if (mMountTable.isMountPoint(path)) {
-        // Stop propagating the persisted status at mountpoints.
+        // Stop propagating the persisted status at mount points.
         break;
       }
     }
@@ -599,11 +604,12 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the file id to delete
    * @param recursive if true, will delete all its children.
    * @return true if the file was deleted, false otherwise.
-   * @throws TachyonException
-   * @throws FileDoesNotExistException
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if an I/O error is encountered
    */
   public boolean deleteFile(long fileId, boolean recursive) throws FileDoesNotExistException,
-      TachyonException {
+      InvalidPathException, IOException {
     MasterContext.getMasterSource().incDeleteFileOps();
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
@@ -625,20 +631,26 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  boolean deleteFileInternal(long fileId, boolean recursive, boolean propagate,
-      long opTimeMs) throws TachyonException, FileDoesNotExistException {
+  /**
+   * Implements file deletion.
+   *
+   * @param fileId the file id
+   * @param recursive if the file id identifies a directory, this flag specifies whether the
+   *        directory content should be deleted recursively
+   * @param persisted whether the operation should be persisted to UFS
+   * @param opTimeMs the time of the operation
+   * @return
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if an I/O error is encountered
+   */
+  boolean deleteFileInternal(long fileId, boolean recursive, boolean persisted,
+      long opTimeMs) throws FileDoesNotExistException, InvalidPathException, IOException {
+    // This function should only be called from within synchronized (mInodeTree) blocks.
+    //
+    // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
+    // journaled will result in an inconsistency between Tachyon and UFS.
     Inode inode = mInodeTree.getInodeById(fileId);
-    TachyonURI path = mInodeTree.getPath(inode);
-    LOG.debug("Deleting " + path);
-    return deleteInodeInternal(inode, recursive, propagate, opTimeMs);
-  }
-
-  // This function should only be called from within synchronized (mInodeTree) blocks.
-  //
-  // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
-  // journaled will result in an inconsistency between Tachyon and UFS.
-  private boolean deleteInodeInternal(Inode inode, boolean recursive, boolean propagate,
-      long opTimeMs) throws TachyonException, FileDoesNotExistException {
     if (inode == null) {
       return true;
     }
@@ -665,24 +677,15 @@ public final class FileSystemMaster extends MasterBase {
 
       // TODO(jiri): What should the Tachyon behavior be when a UFS delete operation fails?
       // Currently, it will result in an inconsistency between Tachyon and UFS.
-      if (propagate && delInode.isPersisted()) {
+      if (persisted && delInode.isPersisted()) {
         // Delete the file in the under file system.
-        String ufsPath;
-        try {
-          ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
-        } catch (InvalidPathException e) {
-          throw new TachyonException(e.getMessage());
-        }
+        String ufsPath = mMountTable.resolve(mInodeTree.getPath(delInode)).toString();
         UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-        try {
-          if (!ufs.exists(ufsPath)) {
-            LOG.warn("File does not exist the underfs: " + ufsPath);
-          } else if (!ufs.delete(ufsPath, true)) {
-            LOG.error("Failed to delete " + ufsPath);
-            return false;
-          }
-        } catch (IOException e) {
-          throw new TachyonException(e.getMessage());
+        if (!ufs.exists(ufsPath)) {
+          LOG.warn("File does not exist the underfs: " + ufsPath);
+        } else if (!ufs.delete(ufsPath, true)) {
+          LOG.error("Failed to delete " + ufsPath);
+          return false;
         }
       }
 
@@ -949,11 +952,12 @@ public final class FileSystemMaster extends MasterBase {
    * @param fileId the source file to rename.
    * @param dstPath the destination path to rename the file to.
    * @return true if the rename was successful
-   * @throws InvalidPathException
-   * @throws FileDoesNotExistException
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if an I/O error occurs
    */
   public boolean rename(long fileId, TachyonURI dstPath)
-      throws InvalidPathException, FileDoesNotExistException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     MasterContext.getMasterSource().incRenameOps();
     synchronized (mInodeTree) {
       Inode srcInode = mInodeTree.getInodeById(fileId);
@@ -1031,16 +1035,28 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  // This function should only be called from within synchronized (mInodeTree) blocks.
-  boolean renameInternal(long fileId, TachyonURI dstPath, boolean propagate, long opTimeMs)
+  /**
+   * Implements renaming.
+   *
+   * @param fileId the file id of the rename source
+   * @param dstPath the path to the rename destionation
+   * @param persisted whether the operation should be persisted to UFS
+   * @param opTimeMs the time of the operation
+   * @return
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if an I/O error is encountered
+   */
+  boolean renameInternal(long fileId, TachyonURI dstPath, boolean persisted, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, IOException {
+    // This function should only be called from within synchronized (mInodeTree) blocks.
     Inode srcInode = mInodeTree.getInodeById(fileId);
     TachyonURI srcPath = mInodeTree.getPath(srcInode);
     LOG.debug("Renaming " + srcPath + " to " + dstPath);
 
     // If the source file is persisted, rename it in the UFS.
     FileInfo fileInfo = getFileInfoInternal(srcInode);
-    if (propagate && fileInfo.isPersisted) {
+    if (persisted && fileInfo.isPersisted) {
       String ufsSrcPath = mMountTable.resolve(srcPath).toString();
       String ufsDstPath = mMountTable.resolve(dstPath).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
@@ -1249,10 +1265,9 @@ public final class FileSystemMaster extends MasterBase {
     try {
       long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
       long fileSizeByte = ufs.getFileSize(ufsPath.toString());
-      long fileId = createFile(path, ufsBlockSizeByte, recursive);
-      if (fileId != -1) {
-        addCheckpoint(fileId, fileSizeByte);
-      }
+      // Metadata loaded from UFS has no TTL set.
+      long fileId = createFile(path, ufsBlockSizeByte, recursive, Constants.NO_TTL);
+      persistFile(fileId, fileSizeByte);
       return fileId;
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
@@ -1290,7 +1305,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   public boolean unmount(TachyonURI tachyonPath) throws FileDoesNotExistException,
-      InvalidPathException, TachyonException {
+      InvalidPathException, IOException {
     synchronized (mInodeTree) {
       if (unmountInternal(tachyonPath)) {
         Inode inode = mInodeTree.getInodeByPath(tachyonPath);
@@ -1338,8 +1353,10 @@ public final class FileSystemMaster extends MasterBase {
                 deleteFile(iFile.getId(), false);
               } catch (FileDoesNotExistException e) {
                 LOG.error("file does not exit " + iFile.toString());
-              } catch (TachyonException e) {
-                LOG.error("tachyon exception for ttl check" + iFile.toString());
+              } catch (InvalidPathException e) {
+                LOG.error("invalid path for ttl check " + iFile.toString());
+              } catch (IOException e) {
+                LOG.error("IO exception for ttl check" + iFile.toString());
               }
             }
           }

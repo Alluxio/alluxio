@@ -66,19 +66,19 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Adds a checkpoint.
+   * Persists a file.
    *
    * @param fileId the file id
    * @param length the checkpoint length
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean addCheckpoint(long fileId, long length) throws IOException {
+  public synchronized boolean persistFile(long fileId, long length) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.addCheckpoint(fileId, length);
+        return mClient.persistFile(fileId, length);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
