@@ -15,6 +15,7 @@
 
 package tachyon.util.io;
 
+import java.nio.file.Path;
 import java.util.LinkedList;
 
 import org.junit.Assert;
@@ -181,6 +182,22 @@ public class PathUtilsTest {
   }
 
   @Test
+  public void temporaryFileNameTest() {
+    Assert.assertEquals(PathUtils.temporaryFileName(1,1,"/"),PathUtils.temporaryFileName(1,1,"/"));
+    Assert.assertNotEquals(PathUtils.temporaryFileName(1, 1, "/"),
+        PathUtils.temporaryFileName(1, 2, "/"));
+    Assert.assertNotEquals(PathUtils.temporaryFileName(2, 1, "/"),
+        PathUtils.temporaryFileName(1, 1, "/"));
+    Assert.assertNotEquals(PathUtils.temporaryFileName(1, 1, "/"),
+        PathUtils.temporaryFileName(1, 1, "/a"));
+  }
+
+  @Test
+  public void uniqPathTest() {
+    Assert.assertNotEquals(PathUtils.uniqPath(), PathUtils.uniqPath());
+  }
+
+  @Test
   public void validatePathTest() throws InvalidPathException {
     // check valid paths
     PathUtils.validatePath("/foo/bar");
@@ -204,10 +221,5 @@ public class PathUtilsTest {
         // this is expected
       }
     }
-  }
-
-  @Test
-  public void uniqPathTest() {
-    Assert.assertNotEquals(PathUtils.uniqPath(), PathUtils.uniqPath());
   }
 }
