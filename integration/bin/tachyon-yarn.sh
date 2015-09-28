@@ -4,7 +4,7 @@
 #  tachyon-yarn.sh <deployTachyonHome> <numWorkers> <jarLocal> <jarHdfs>
 
 function printUsage {
-  echo "Usage: tachyon-yarn.sh <tachyonHome> <jarHdfsPath>"
+  echo "Usage: tachyon-yarn.sh <deployTachyonHome> <numWorkers> <jarLocal> <jarHdfs>"
   echo -e "  deployTachyonHome \tHome directory of Tachyon deployment on YARN slave machines"
   echo -e "  numWorkers        \tNumber of Tachyon workers to launch"
   echo -e "  jarLocal          \tpath on local filesystem to tachyon jar"
