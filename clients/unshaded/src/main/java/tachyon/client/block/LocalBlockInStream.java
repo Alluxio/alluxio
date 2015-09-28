@@ -17,7 +17,7 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
+import java.net.InetSocketAddress;
 import java.nio.channels.FileChannel;
 
 import com.google.common.base.Preconditions;
@@ -34,13 +34,8 @@ import tachyon.worker.WorkerClient;
  * thread and are not thread safe.
  */
 public final class LocalBlockInStream extends BufferedBlockInStream {
-  private final long mBlockId;
-  private final BlockStoreContext mContext;
+  private final Closer mCloser;
   private final WorkerClient mWorkerClient;
-  private final ByteBuffer mData;
-
-  private boolean mClosed;
-  private long mBytesReadLocal = 0L;
 
   /**
    * Creates a new local block input stream.
@@ -48,29 +43,23 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @throws IOException if I/O error occurs
    */
-  public LocalBlockInStream(long blockId) throws IOException {
-    mBlockId = blockId;
-    mClosed = false;
-    mContext = BlockStoreContext.INSTANCE;
+  public LocalBlockInStream(long blockId, long blockSize, InetSocketAddress location)
+      throws IOException {
+    super(blockId, blockSize, location);
+    mCloser = Closer.create();
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-    String blockPath = mWorkerClient.lockBlock(blockId);
 
-    if (blockPath == null) {
-      // TODO(calvin): Handle this error case better.
-      mContext.releaseWorkerClient(mWorkerClient);
-      throw new IOException("Block is not available on local machine");
-    }
-
-    // Map the data to the blockData byte buffer
-    Closer closer = Closer.create();
     try {
-      RandomAccessFile localFile = closer.register(new RandomAccessFile(blockPath, "r"));
-      long fileLength = localFile.length();
-      FileChannel localFileChannel = closer.register(localFile.getChannel());
-      mData = localFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileLength);
-    } finally {
-      closer.close();
+      String blockPath = mWorkerClient.lockBlock(blockId);
+      if (blockPath == null) {
+        throw new IOException("Block " + mBlockId + " is not available on local machine.");
+      }
+      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "r"));
+      FileChannel localFileChannel = mCloser.register(localFile.getChannel());
+    } catch (IOException e) {
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw e;
     }
   }
 

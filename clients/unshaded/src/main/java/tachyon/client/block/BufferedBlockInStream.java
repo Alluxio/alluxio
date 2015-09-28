@@ -17,6 +17,7 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
@@ -25,9 +26,7 @@ import tachyon.client.BoundedStream;
 import tachyon.client.ClientContext;
 import tachyon.client.Seekable;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Provides a stream API to read a block from Tachyon. An instance extending this class can be
@@ -38,18 +37,21 @@ import tachyon.util.network.NetworkAddressUtils;
  * Tachyon Stream interfaces.
  */
 public abstract class BufferedBlockInStream extends InputStream implements BoundedStream, Seekable {
-  private final long mBlockId;
-  private final long mBlockSize;
-  private final BlockStoreContext mContext;
+  protected final long mBlockId;
+  protected final long mBlockSize;
+  protected final InetSocketAddress mLocation;
+  protected final BlockStoreContext mContext;
 
-  private ByteBuffer mBuffer;
-  private boolean mClosed;
-  private long mBufferPos;
-  private long mPos;
+  protected ByteBuffer mBuffer;
+  protected boolean mClosed;
+  protected long mBufferPos;
+  protected long mPos;
 
-  public BufferedBlockInStream(long blockId, long blockSize) {
+  // TODO: Get the block lock here when the remote instream locks at a stream level
+  public BufferedBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
     mBlockId = blockId;
     mBlockSize = blockSize;
+    mLocation = location;
     mBuffer = allocateBuffer();
     mClosed = false;
     mContext = BlockStoreContext.INSTANCE;
@@ -65,9 +67,17 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
   }
 
   @Override
+  public void close() {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+  }
+
+  @Override
   public int read() throws IOException {
     checkIfClosed();
-    if (mPos == mBlockSize) {
+    if (remaining() == 0) {
       close();
       return -1;
     }
@@ -75,7 +85,7 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
       updateBuffer();
     }
     mPos ++;
-    incrementBytesReadMetric(1);
+    mBufferPos ++;
     return BufferUtils.byteToInt(mBuffer.get());
   }
 
@@ -92,17 +102,28 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
         ("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
     if (len == 0) {
       return 0;
+    } else if (remaining() == 0) { // End of block
+      return -1;
     }
 
     int toRead = (int) Math.min(len, remaining());
-    if (len > mBuffer.remaining()) {
-      return directRead(b, off, toRead);
-    } else {
+    if (remainingInBuf() > toRead) { // data is fully contained in the buffer
       mBuffer.get(b, off, toRead);
       mPos += toRead;
-      incrementBytesReadMetric(toRead);
+      mBufferPos += toRead;
       return toRead;
     }
+
+    if (toRead > mBuffer.limit() / 2) { // directly read if request is > one-half buffer size
+      return directRead(b, off, toRead);
+    }
+
+    // For a read <= half the buffer size, fill the buffer first, then read from the buffer.
+    updateBuffer();
+    mBuffer.get(b, off, toRead);
+    mPos += toRead;
+    mBufferPos += toRead;
+    return toRead;
   }
 
   @Override
@@ -135,9 +156,7 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
     return mPos - mBufferPos + mBuffer.remaining();
   }
 
-  protected abstract void updateBuffer();
+  protected abstract void updateBuffer() throws IOException;
 
-  protected abstract void incrementBytesReadMetric(int bytes);
-
-  protected abstract int directRead(byte[] b, int off, int len);
+  protected abstract int directRead(byte[] b, int off, int len) throws IOException;
 }
