@@ -293,7 +293,7 @@ service LineageMasterService {
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
     throws (1: LineageDoesNotExistException lnee, 2: LineageDeletionException lde)
   
-  list<LineageInfo> listLineages()
+  list<LineageInfo> getLineageInfoList()
   
   i64 recreateFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
     throws (1: InvalidPathException ipe, 2: LineageDoesNotExistException ldee)

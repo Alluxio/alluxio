@@ -86,7 +86,7 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
-  public List<LineageInfo> listLineages() throws TException {
-    return mLineageMaster.listLineages();
+  public List<LineageInfo> getLineageInfoList() throws TException {
+    return mLineageMaster.getLineageInfoList();
   }
 }

@@ -103,6 +103,12 @@ public final class LineageMaster extends MasterBase {
     return PathUtils.concatPath(baseDirectory, Constants.LINEAGE_MASTER_SERVICE_NAME);
   }
 
+  /**
+   * Creates the lineage master.
+   *
+   * @param fileSystemMaster the file system master
+   * @param journal the journal
+   */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("lineage-master-%d", true)));
@@ -151,11 +157,10 @@ public final class LineageMaster extends MasterBase {
               new CheckpointSchedulingExcecutor(this),
               mTachyonConf.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
-          getExecutorService()
-              .submit(new HeartbeatThread("Recompute service",
-                  new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
-                      mFileSystemMaster),
-                  mTachyonConf.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
+          getExecutorService().submit(new HeartbeatThread("Recompute service",
+              new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
+                  mFileSystemMaster),
+              mTachyonConf.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
 
@@ -175,10 +180,24 @@ public final class LineageMaster extends MasterBase {
     mLineageStore.streamToJournalCheckpoint(outputStream);
   }
 
+  /**
+   * @return a lineage store view wrapping the contained lineage store
+   */
   public LineageStoreView getLineageStoreView() {
     return new LineageStoreView(mLineageStore);
   }
 
+  /**
+   * Creates a lineage. It creates a new file for each output file.
+   *
+   * @param inputFiles the input files
+   * @param outputFiles the output files
+   * @param job the job
+   * @return the id of the created lineage
+   * @throws InvalidPathException if the path to the input file is invalid
+   * @throws FileAlreadyExistException if the output file already exists
+   * @throws BlockInfoException if fails to create the output file
+   */
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // validate input files exist
@@ -207,6 +226,15 @@ public final class LineageMaster extends MasterBase {
     return lineageId;
   }
 
+  /**
+   * Deletes a lineage.
+   *
+   * @param lineageId id the of lineage
+   * @param cascade the flag if to delete all the downstream lineages
+   * @return true if the lineage is deleted, false otherwise
+   * @throws LineageDoesNotExistException the lineage does not exist
+   * @throws LineageDeletionException the lineage deletion fails
+   */
   public boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     Lineage lineage = mLineageStore.getLineage(lineageId);
@@ -246,8 +274,14 @@ public final class LineageMaster extends MasterBase {
     return -1;
   }
 
-  public void asyncCompleteFile(long fileId)
-      throws FileDoesNotExistException, BlockInfoException {
+  /**
+   * Completes an output file in Tachyon.
+   *
+   * @param fileId id of the file
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws BlockInfoException if the completion fails
+   */
+  public void asyncCompleteFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
     LOG.info("Async complete file " + fileId);
     mLineageStore.completeFile(fileId);
     // complete file in Tachyon.
@@ -283,7 +317,10 @@ public final class LineageMaster extends MasterBase {
     return new LineageCommand(CommandType.Persist, filesToCheckpoint);
   }
 
-  public List<LineageInfo> listLineages() {
+  /**
+   * @return the list of all the {@link LineageInfo}s.
+   */
+  public List<LineageInfo> getLineageInfoList() {
     List<LineageInfo> lineages = Lists.newArrayList();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
@@ -361,6 +398,11 @@ public final class LineageMaster extends MasterBase {
     return files;
   }
 
+  /**
+   * Request a list of files as being persisted
+   *
+   * @param fileIds the id of the files
+   */
   public synchronized void requestFilePersistence(List<Long> fileIds) {
     if (!fileIds.isEmpty()) {
       LOG.info("Request file persistency: " + fileIds);
@@ -378,6 +420,12 @@ public final class LineageMaster extends MasterBase {
     }
   }
 
+  /**
+   * Commits the given list of files as persisted in under file system on a worker.
+   *
+   * @param workerId the worker id
+   * @param persistedFiles the persisted files
+   */
   public synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
     Preconditions.checkNotNull(persistedFiles);
 
