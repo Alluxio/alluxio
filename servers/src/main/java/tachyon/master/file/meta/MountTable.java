@@ -54,14 +54,14 @@ public final class MountTable {
       throws InvalidPathException {
     String tachyonPath = tachyonUri.getPath();
     LOG.info("Mounting " + ufsUri + " at " + tachyonPath);
+    if (mMountTable.containsKey(tachyonPath)) {
+      LOG.warn("Mount point " + tachyonPath + " already exists.");
+      return false;
+    }
     for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
       String path = entry.getKey();
-      if (tachyonPath.equals(path)) {
-        LOG.warn("Mount point " + tachyonPath + " already exists.");
-        return false;
-      }
       if (!path.equals(ROOT) && PathUtils.hasPrefix(tachyonPath, path)) {
-        LOG.warn("Cannot nest mount point " + tachyonPath + " under existing mount point" + path
+        LOG.warn("Cannot nest mount point " + tachyonPath + " under an existing mount point" + path
             + ".");
         return false;
       }

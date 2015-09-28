@@ -147,6 +147,7 @@ public class PathUtilsTest {
   public void hasPrefixTest() throws InvalidPathException {
     Assert.assertTrue(PathUtils.hasPrefix("/", "/"));
     Assert.assertTrue(PathUtils.hasPrefix("/a", "/a"));
+    Assert.assertTrue(PathUtils.hasPrefix("/a", "/a/"));
     Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
     Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b"));
     Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b/c"));
@@ -183,7 +184,8 @@ public class PathUtilsTest {
 
   @Test
   public void temporaryFileNameTest() {
-    Assert.assertEquals(PathUtils.temporaryFileName(1,1,"/"),PathUtils.temporaryFileName(1,1,"/"));
+    Assert.assertEquals(PathUtils.temporaryFileName(1, 1, "/"),
+        PathUtils.temporaryFileName(1, 1, "/"));
     Assert.assertNotEquals(PathUtils.temporaryFileName(1, 1, "/"),
         PathUtils.temporaryFileName(1, 2, "/"));
     Assert.assertNotEquals(PathUtils.temporaryFileName(2, 1, "/"),
