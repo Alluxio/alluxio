@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterContext;
 import tachyon.underfs.UnderFileSystem;
 
@@ -233,7 +234,7 @@ public final class JournalWriter {
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
-        throw new IOException("Cannot write entry after closing the stream.");
+        throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
           new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);
@@ -299,7 +300,7 @@ public final class JournalWriter {
     @Override
     public synchronized void writeEntry(JournalEntry entry) throws IOException {
       if (mIsClosed) {
-        throw new IOException("Cannot write entry after closing the stream.");
+        throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
           new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);

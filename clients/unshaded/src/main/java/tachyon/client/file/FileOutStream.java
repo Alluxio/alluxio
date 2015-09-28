@@ -30,12 +30,12 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.Cancelable;
 import tachyon.client.ClientContext;
-import tachyon.client.ClientOptions;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerClient;
@@ -62,6 +62,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
   private boolean mCanceled;
   private boolean mClosed;
+  private String mHostname;
   private boolean mShouldCacheCurrentBlock;
   private BufferedBlockOutStream mCurrentBlockOutStream;
   private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
@@ -73,7 +74,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
    * @param options the client options
    * @throws IOException if an I/O error occurs
    */
-  public FileOutStream(long fileId, ClientOptions options) throws IOException {
+  public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
     mBlockSize = options.getBlockSize();
     mTachyonStorageType = options.getTachyonStorageType();
@@ -95,6 +96,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
     }
     mClosed = false;
     mCanceled = false;
+    mHostname = options.getHostname();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
   }
 
@@ -187,6 +189,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     if (mUnderStorageType.isPersist()) {
       mUnderStorageOutputStream.write(b);
+      ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
   }
 
@@ -226,6 +229,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     if (mUnderStorageType.isPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
+      ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
   }
 
@@ -238,7 +242,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     if (mTachyonStorageType.isStore()) {
       mCurrentBlockOutStream =
-          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, null);
+          mContext.getTachyonBlockStore().getOutStream(getNextBlockId(), mBlockSize, mHostname);
       mShouldCacheCurrentBlock = true;
     }
   }

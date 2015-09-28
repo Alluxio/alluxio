@@ -34,7 +34,7 @@ import tachyon.Constants;
  * into individual encoded messages.
  */
 @ChannelHandler.Sharable
-public class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
+public final class RPCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   @Override

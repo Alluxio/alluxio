@@ -37,7 +37,6 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.
@@ -240,19 +239,20 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the file path
    * @param blockSizeBytes the file size
    * @param recursive whether parent directories should be created if not present yet
+   * @param ttl TTL for file expiration
    * @return the file id
    * @throws InvalidPathException if the given path is invalid
    * @throws BlockInfoException if the block index is invalid
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive)
+  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
       throws IOException, BlockInfoException, InvalidPathException, FileAlreadyExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createFile(path, blockSizeBytes, recursive);
+        return mClient.createFile(path, blockSizeBytes, recursive, ttl);
       } catch (BlockInfoException e) {
         throw e;
       } catch (InvalidPathException e) {
@@ -272,19 +272,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param path the file path
    * @param ufsPath the under file system path
-   * @param blockSizeByte the file size
    * @param recursive whether parent directories should be loaded if not present yet
    * @return the file id
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws IOException, FileDoesNotExistException {
+  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, boolean recursive)
+      throws IOException, FileDoesNotExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.loadFileInfoFromUfs(path, ufsPath, blockSizeByte, recursive);
+        return mClient.loadFileInfoFromUfs(path, ufsPath, recursive);
       } catch (FileDoesNotExistException e) {
         throw e;
       } catch (TException e) {
@@ -455,7 +454,7 @@ public final class FileSystemMasterClient extends MasterClientBase {
     }
     throw new IOException("Failed after " + retry + " retries.");
   }
-  
+
   /**
    * Reports a lost file.
    *

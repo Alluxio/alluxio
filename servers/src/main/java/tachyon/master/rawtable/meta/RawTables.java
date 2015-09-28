@@ -18,7 +18,8 @@ package tachyon.master.rawtable.meta;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import tachyon.master.IndexedSet;
+import tachyon.IndexedSet;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.thrift.TableDoesNotExistException;
@@ -117,7 +118,8 @@ public class RawTables implements JournalCheckpointStreamable {
     RawTable table = mTables.getFirstByField(mIdIndex, tableId);
 
     if (table == null) {
-      throw new TableDoesNotExistException("The raw table " + tableId + " does not exist.");
+      throw new TableDoesNotExistException(
+          ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(tableId));
     }
 
     table.setMetadata(metadata);

@@ -40,6 +40,7 @@ public final class LocalBlockInStream extends BlockInStream {
   private final ByteBuffer mData;
 
   private boolean mClosed;
+  private long mBytesReadLocal = 0L;
 
   /**
    * Creates a new local block input stream.
@@ -78,6 +79,9 @@ public final class LocalBlockInStream extends BlockInStream {
     if (mClosed) {
       return;
     }
+    if (mBytesReadLocal > 0) {
+      ClientContext.getClientMetrics().incBlocksReadLocal(1);
+    }
     mWorkerClient.unlockBlock(mBlockId);
     mContext.releaseWorkerClient(mWorkerClient);
     // TODO(calvin): Evaluate if this is necessary.
@@ -92,6 +96,8 @@ public final class LocalBlockInStream extends BlockInStream {
       close();
       return -1;
     }
+    mBytesReadLocal ++;
+    ClientContext.getClientMetrics().incBytesReadLocal(1);
     return BufferUtils.byteToInt(mData.get());
   }
 
@@ -117,6 +123,8 @@ public final class LocalBlockInStream extends BlockInStream {
       return -1;
     }
     mData.get(b, off, ret);
+    mBytesReadLocal += ret;
+    ClientContext.getClientMetrics().incBytesReadLocal(ret);
     return ret;
   }
 
@@ -149,7 +157,7 @@ public final class LocalBlockInStream extends BlockInStream {
     return ret;
   }
 
-  private void checkIfClosed() throws IOException {
+  private void checkIfClosed() {
     Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
   }
 }

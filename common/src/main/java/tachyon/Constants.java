@@ -18,7 +18,7 @@ package tachyon;
 /**
  * System wide constants
  */
-public class Constants {
+public final class Constants {
   public static final int KB = 1024;
   public static final int MB = KB * 1024;
   public static final int GB = MB * 1024;
@@ -94,11 +94,6 @@ public class Constants {
   // specific configuration properties. It will be used as key in the MR Configuration.
   public static final String TACHYON_CONF_SITE = "tachyon.conf.site";
 
-  public static final String DEFAULT_HOME = "/mnt/tachyon_default_home";
-  public static final String DEFAULT_DATA_FOLDER = "/tachyon/data";
-  public static final String DEFAULT_JOURNAL_FOLDER = DEFAULT_HOME + "/journal/";
-  public static final String[] DEFAULT_STORAGE_TIER_DIR_QUOTA = "512MB,64GB,1TB".split(",");
-
   public static final String TACHYON_HOME = "tachyon.home";
   public static final String TACHYON_DEBUG = "tachyon.debug";
   public static final String TACHYON_LOGGER_TYPE = "tachyon.logger.type";
@@ -150,6 +145,8 @@ public class Constants {
   public static final String MASTER_WEB_PORT = "tachyon.master.web.port";
   public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
+  public static final String MASTER_TTLCHECKER_INTERVAL_MS
+      = "tachyon.master.ttlchecker.interval.ms";
   public static final String MASTER_MAX_WORKER_THREADS = "tachyon.master.max.worker.threads";
   public static final String MASTER_MIN_WORKER_THREADS = "tachyon.master.min.worker.threads";
   public static final String MASTER_WORKER_TIMEOUT_MS = "tachyon.master.worker.timeout.ms";
@@ -180,24 +177,25 @@ public class Constants {
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
   public static final String WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
       "tachyon.worker.per.thread.checkpoint.cap.mb.sec";
-  public static final String WORKER_NETTY_BOSS_THREADS =
+  public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
       "tachyon.worker.network.netty.boss.threads";
-  public static final String WORKER_NETTY_WORKER_THREADS =
+  public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
       "tachyon.worker.network.netty.worker.threads";
   public static final String WORKER_NETWORK_NETTY_CHANNEL = "tachyon.worker.network.netty.channel";
-  public static final String WORKER_NETTY_FILE_TRANSFER_TYPE =
+  public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       "tachyon.worker.network.netty.file.transfer";
-  public static final String WORKER_NETTY_WATERMARK_HIGH =
+  public static final String WORKER_NETWORK_NETTY_WATERMARK_HIGH =
       "tachyon.worker.network.netty.watermark.high";
-  public static final String WORKER_NETTY_WATERMARK_LOW =
+  public static final String WORKER_NETWORK_NETTY_WATERMARK_LOW =
       "tachyon.worker.network.netty.watermark.low";
-  public static final String WORKER_NETTY_BACKLOG = "tachyon.worker.network.netty.backlog";
-  public static final String WORKER_NETTY_SEND_BUFFER = "tachyon.worker.network.netty.buffer.send";
-  public static final String WORKER_NETTY_RECEIVE_BUFFER =
+  public static final String WORKER_NETWORK_NETTY_BACKLOG = "tachyon.worker.network.netty.backlog";
+  public static final String WORKER_NETWORK_NETTY_SEND_BUFFER =
+      "tachyon.worker.network.netty.buffer.send";
+  public static final String WORKER_NETWORK_NETTY_RECEIVE_BUFFER =
       "tachyon.worker.network.netty.buffer.receive";
-  public static final String WORKER_NETTY_SHUTDOWN_QUIET_PERIOD =
+  public static final String WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD =
       "tachyon.worker.network.netty.shutdown.quiet.period";
-  public static final String WORKER_NETTY_SHUTDOWN_TIMEOUT =
+  public static final String WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT =
       "tachyon.worker.network.netty.shutdown.timeout";
   public static final String WORKER_ALLOCATE_STRATEGY_CLASS =
       "tachyon.worker.allocate.strategy.class";
@@ -208,6 +206,7 @@ public class Constants {
       "tachyon.worker.evict.strategy.lrfu.attenuation.factor";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
+  public static final String WORKER_BLOCK_LOCK_COUNT = "tachyon.worker.block.lock.count";
   /**
    * This format is used as a template to generate the property name for a given level.
    * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level)}
@@ -226,6 +225,18 @@ public class Constants {
    */
   public static final String WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT =
       "tachyon.worker.tieredstore.level%d.dirs.quota";
+  /**
+   * This format is used as a template to generate the property name for a given level.
+   * e.g., {@code String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, level)}
+   */
+  public static final String WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT =
+      "tachyon.worker.tieredstore.level%d.reserved.ratio";
+
+  public static final String WORKER_SPACE_RESERVER_INTERVAL_MS =
+      "tachyon.worker.space.reserver.interval.ms";
+
+  public static final String WORKER_SPACE_RESERVER_ENABLE =
+      "tachyon.worker.space.reserver.enable";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
@@ -252,8 +263,14 @@ public class Constants {
       "tachyon.user.file.understoragetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final String USER_REMOTE_BLOCK_WRITER = "tachyon.user.remote.block.writer.class";
-  public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
-  public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
+  public static final String USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS =
+      "tachyon.user.remote.block.worker.client.threads";
+  public static final String USER_LOCAL_BLOCK_WORKER_CLIENT_THREADS =
+      "tachyon.user.local.block.worker.client.threads";
+  public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
+      "tachyon.user.block.master.client.threads";
+  public static final String USER_FILE_MASTER_CLIENT_THREADS =
+      "tachyon.user.file.master.client.threads";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
@@ -278,4 +295,9 @@ public class Constants {
   public static final int BYTES_WRITTEN_LOCAL_INDEX = 8;
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
+
+  // ttl related
+  public static final long NO_TTL = -1;
+
+  private Constants() {} // prevent instantiation
 }

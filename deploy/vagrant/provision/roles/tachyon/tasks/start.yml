@@ -1,4 +1,0 @@
-- name: start tachyon
-  script: start.sh
-
-# vim :set filetype=ansible.yaml:

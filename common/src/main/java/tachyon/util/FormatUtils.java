@@ -18,8 +18,6 @@ package tachyon.util;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 
-import org.slf4j.Logger;
-
 import tachyon.Constants;
 
 /**
@@ -28,9 +26,9 @@ import tachyon.Constants;
  * specific string format, parsing a specific string format back to objects and printing or logging
  * according to a specific format.
  */
-public class FormatUtils {
+public final class FormatUtils {
   /**
-   * Parse a list of <code>Objects</code> into a <code>String</code>.
+   * Parses a list of <code>Objects</code> into a <code>String</code>.
    *
    * @param objs a list of Objects to convert to a String
    * @return comma-separated concatenation of the string representation returned by Object#toString
@@ -55,7 +53,7 @@ public class FormatUtils {
   }
 
   /**
-   * Parse a <code>ByteBuffer</code> into a <code>String</code>. In particular, the function prints
+   * Parses a <code>ByteBuffer</code> into a <code>String</code>. In particular, the function prints
    * the content of the buffer in 4-byte increments as space separated integers.
    *
    * @param buf buffer to use
@@ -72,7 +70,7 @@ public class FormatUtils {
   }
 
   /**
-   * Format time elapsed since the given start time (in milliseconds).
+   * Formats time elapsed since the given start time (in milliseconds).
    *
    * @param startTimeMs start time in milliseconds
    * @param message prefix for the message to be printed
@@ -83,7 +81,7 @@ public class FormatUtils {
   }
 
   /**
-   * Format time elapsed since the given start time (in nanoseconds).
+   * Formats time elapsed since the given start time (in nanoseconds).
    *
    * @param startTimeNs start time in nanoseconds
    * @param message prefix for the message to be printed
@@ -94,7 +92,7 @@ public class FormatUtils {
   }
 
   /**
-   * Return a human-readable version of bytes 10GB 2048KB etc.
+   * Returns a human-readable version of bytes 10GB 2048KB etc.
    *
    * @param bytes the number of bytes
    * @return human readable version
@@ -125,7 +123,7 @@ public class FormatUtils {
   }
 
   /**
-   * Parse a String size to Bytes.
+   * Parses a String size to Bytes.
    *
    * @param spaceSize the size of a space, e.g. 10GB, 5TB, 1024
    * @return the space size in bytes
@@ -165,4 +163,6 @@ public class FormatUtils {
       throw new IllegalArgumentException("Fail to parse " + ori + " to bytes");
     }
   }
+
+  private FormatUtils() {} // prevent instantiation
 }

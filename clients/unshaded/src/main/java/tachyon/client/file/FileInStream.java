@@ -27,14 +27,16 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.BoundedStream;
-import tachyon.client.ClientOptions;
+import tachyon.client.ClientContext;
 import tachyon.client.Seekable;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
+import tachyon.client.file.options.InStreamOptions;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileInfo;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
@@ -81,7 +83,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @param info the file information
    * @param options the client options
    */
-  public FileInStream(FileInfo info, ClientOptions options) {
+  public FileInStream(FileInfo info, InStreamOptions options) {
     mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
     mBlockIds = info.getBlockIds();
@@ -117,7 +119,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       try {
         mCurrentCacheStream.write(data);
       } catch (IOException ioe) {
-        // TODO(yupeng): Log debug maybe?
+        LOG.warn("Block of ID " + getCurrentBlockId() + " could not be cached into Tachyon", ioe);
         mShouldCacheCurrentBlock = false;
       }
     }
@@ -153,7 +155,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException ioe) {
-          LOG.warn("Failed to write into TachyonStorage, the block " + getBlockCurrentBlockId()
+          LOG.warn("Failed to write into TachyonStorage, the block " + getCurrentBlockId()
               + " will not be in TachyonStorage", ioe);
           mShouldCacheCurrentBlock = false;
         }
@@ -217,7 +219,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @throws IOException if the next BlockInStream cannot be obtained
    */
   private void checkAndAdvanceBlockInStream() throws IOException {
-    long currentBlockId = getBlockCurrentBlockId();
+    long currentBlockId = getCurrentBlockId();
     if (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0) {
       updateBlockInStream(currentBlockId);
       closeCacheStream();
@@ -225,7 +227,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
         try {
           // TODO(calvin): Specify the location to be local.
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
+                     NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
           LOG.warn("Failed to get TachyonStore stream, the block " + currentBlockId
               + " will not be in TachyonStorage", ioe);
@@ -256,7 +259,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   /**
    * @return the current block id based on mPos, -1 if at the end of the file
    */
-  private long getBlockCurrentBlockId() {
+  private long getCurrentBlockId() {
     if (mPos == mFileLength) {
       return -1;
     }
@@ -273,10 +276,10 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @throws IOException if the stream at the specified position cannot be opened
    */
   private void seekBlockInStream(long newPos) throws IOException {
-    long oldBlockId = getBlockCurrentBlockId();
+    long oldBlockId = getCurrentBlockId();
     mPos = newPos;
     closeCacheStream();
-    long currentBlockId = getBlockCurrentBlockId();
+    long currentBlockId = getCurrentBlockId();
 
     if (oldBlockId != currentBlockId) {
       updateBlockInStream(currentBlockId);
@@ -284,9 +287,10 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         try {
           mCurrentCacheStream =
-              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1, null);
+              mContext.getTachyonBlockStore().getOutStream(currentBlockId, -1,
+                      NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
         } catch (IOException ioe) {
-          LOG.warn("Failed to write to TachyonStore stream, block " + getBlockCurrentBlockId()
+          LOG.warn("Failed to write to TachyonStore stream, block " + getCurrentBlockId()
               + " will not be in TachyonStorage.", ioe);
           mShouldCacheCurrentBlock = false;
         }

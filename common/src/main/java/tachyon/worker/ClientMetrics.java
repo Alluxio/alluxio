@@ -24,7 +24,7 @@ import tachyon.Constants;
 /**
  * ClientMetrics is used to pass client metrics from client to worker by session heartbeat.
  */
-public class ClientMetrics {
+public final class ClientMetrics {
   private List<Long> mMetrics;
 
   public ClientMetrics() {
