@@ -5,6 +5,9 @@ source "${SCRIPT_DIR}/common.sh"
 TACHYON_WORKER_JAVA_OPTS="${TACHYON_WORKER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 
+echo Mount ramdisk on worker
+${TACHYON_HOME}/bin/tachyon-mount.sh SudoMount
+
 mkdir -p "${TACHYON_LOGS_DIR}"
 
 "${JAVA}" -cp "${CLASSPATH}" \
