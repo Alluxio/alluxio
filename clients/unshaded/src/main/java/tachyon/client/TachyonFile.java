@@ -28,6 +28,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -64,7 +65,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonFile(TachyonFS tfs, long fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
-    mTFS = TachyonFileSystem.get();
+    mTFS = TachyonFileSystemFactory.get();
     mFileId = fid;
     mTachyonConf = tachyonConf;
   }
@@ -266,7 +267,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
     if (writeType.isThrough()) {
-      optionsBuilder.setUnderStorageType(UnderStorageType.PERSIST);
+      optionsBuilder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);
     } else {
       optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
     }

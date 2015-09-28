@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
@@ -50,6 +52,7 @@ import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
+import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
@@ -78,6 +81,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
+import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
@@ -100,6 +104,7 @@ public final class FileSystemMaster extends MasterBase {
 
   /** The service that tries to check inodefiles with ttl set */
   private Future<?> mTTLCheckerService;
+
   /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
@@ -171,6 +176,8 @@ public final class FileSystemMaster extends MasterBase {
       renameFromEntry((RenameEntry) entry);
     } else if (entry instanceof InodeDirectoryIdGeneratorEntry) {
       mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
+    } else if (entry instanceof ReinitializeFileEntry) {
+      resetBlockFileFromEntry((ReinitializeFileEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -499,6 +506,35 @@ public final class FileSystemMaster extends MasterBase {
     }
     MasterContext.getMasterSource().incFilesCreated(created.size());
     return createResult;
+  }
+
+  /**
+   * Reinitializes the blocks of an existing open file.
+   *
+   * @param path the path to the file
+   * @param blockSizeBytes the new block size
+   * @param ttl the ttl
+   * @return the file id
+   * @throws InvalidPathException if the path is invalid
+   */
+  public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
+      throws InvalidPathException {
+    // TODO(yupeng): add validation
+    synchronized (mInodeTree) {
+      long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
+      writeJournalEntry(new ReinitializeFileEntry(path.getPath(), blockSizeBytes, ttl));
+      flushJournal();
+      return id;
+    }
+  }
+
+  private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
+    try {
+      mInodeTree.reinitializeFile(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
+          entry.getTTL());
+    } catch (InvalidPathException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -1065,10 +1101,24 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the white list. Called by the internal web ui.
+   * @return the white list. Called by the internal web ui
    */
   public List<String> getWhiteList() {
     return mWhitelist.getList();
+  }
+
+  /**
+   * @return all the files lost on the workers
+   */
+  public List<Long> getLostFiles() {
+    Set<Long> lostFiles = Sets.newHashSet();
+    for (long blockId : mBlockMaster.getLostBlocks()) {
+      // the file id is the container id of the block id
+      long containerId = BlockId.getContainerId(blockId);
+      long fileId = IdUtils.createFileId(containerId);
+      lostFiles.add(fileId);
+    }
+    return new ArrayList<Long>(lostFiles);
   }
 
   // TODO(gene): The following methods are for lineage, which is not fully functional yet.
@@ -1106,19 +1156,35 @@ public final class FileSystemMaster extends MasterBase {
         LOG.warn("Reported file is a directory " + inode);
         return;
       }
-      InodeFile iFile = (InodeFile) inode;
 
-      if (mDependencyMap.addLostFile(fileId) == null) {
-        LOG.error("There is no dependency info for " + iFile + " . No recovery on that");
-      } else {
-        LOG.info("Reported file loss. Tachyon will recompute it: " + iFile);
+      List<Long> blockIds = Lists.newArrayList();
+      for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(fileId)) {
+        blockIds.add(fileBlockInfo.blockInfo.blockId);
       }
+      mBlockMaster.reportLostBlocks(blockIds);
+      LOG.info(
+          "Reported file loss of blocks" + blockIds + ". Tachyon will recompute it: " + fileId);
     }
   }
 
   public List<Integer> getPriorityDependencyList() {
     synchronized (mDependencyMap) {
       return mDependencyMap.getPriorityDependencyList();
+    }
+  }
+
+  /**
+   * Resets a file. It first free the whole file, and then reinitializes it.
+   *
+   * @param fileId the id of the file
+   * @throws FileDoesNotExistException if the file doesn't exist
+   */
+  public void resetFile(long fileId) throws FileDoesNotExistException {
+    synchronized (mInodeTree) {
+      // free the file first
+      free(fileId, false);
+      InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
+      inodeFile.reinit();
     }
   }
 

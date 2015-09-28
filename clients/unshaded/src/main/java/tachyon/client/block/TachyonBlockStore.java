@@ -22,7 +22,6 @@ import com.google.common.base.Preconditions;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
-import tachyon.client.ClientOptions;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;

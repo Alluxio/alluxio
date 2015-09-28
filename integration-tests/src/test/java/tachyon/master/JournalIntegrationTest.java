@@ -116,7 +116,7 @@ public class JournalIntegrationTest {
     OutStreamOptions options =
         new OutStreamOptions.Builder(mMasterTachyonConf)
             .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     TachyonFSTestUtils.createByteFile(mTfs, "/xyz", 10, options);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     TachyonURI ckPath = new TachyonURI("/xyz_ck");

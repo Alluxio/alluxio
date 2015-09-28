@@ -34,6 +34,7 @@ import tachyon.exception.OutOfSpaceException;
 import tachyon.test.Testable;
 import tachyon.test.Tester;
 import tachyon.thrift.FailedToCheckpointException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
@@ -135,6 +136,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   }
 
   /** Grants access to private members to testers of this class. */
+  @Override
   public void grantAccess(Tester<BlockDataManager> tester) {
     tester.receiveAccess(new PrivateAccess());
   }
@@ -567,5 +569,17 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    */
   public void updatePinList(Set<Long> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
+  }
+
+  /**
+   * Gets the file information.
+   *
+   * @param fileId the file id
+   * @return the file info
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
+   */
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, IOException {
+    return mFileSystemMasterClient.getFileInfo(fileId);
   }
 }
