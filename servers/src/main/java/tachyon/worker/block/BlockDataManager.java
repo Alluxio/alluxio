@@ -22,6 +22,7 @@ import java.util.Set;
 import org.apache.thrift.TException;
 
 import tachyon.Sessions;
+import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
@@ -149,37 +150,41 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   }
 
   /**
-   * Add the checkpoint information of a file. The information is from the session
-   * <code>sessionId</code>.
+   * Completes the process of persisting a file by renaming it to its final destination.
    *
    * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
-   * only if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation of
-   * checkpointing is that through {@link tachyon.client.WriteType} operations write to
+   * only if {@link UnderStorageType#isPersist()} ()} is true. The current implementation of
+   * persistence is that through {@link tachyon.client.UnderStorageType} operations write to
    * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
    *
    * @param fileId a file id
    * @param nonce a nonce used for temporary file creation
+   * @param path the UFS path of the file
    * @throws TException if the file does not exist or cannot be renamed
    * @throws IOException if the update to the master fails
    */
-  public void addCheckpoint(long fileId, long nonce) throws TException, IOException {
-    FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
-    String dstPath = fileInfo.getUfsPath();
-    String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
-    UnderFileSystem ufs = UnderFileSystem.get(srcPath, WorkerContext.getConf());
+  public void persistFile(long fileId, long nonce, String path) throws TException, IOException {
+    String tmpPath = PathUtils.temporaryFileName(fileId, nonce, path);
+    UnderFileSystem ufs = UnderFileSystem.get(tmpPath, WorkerContext.getConf());
     try {
-      if (!ufs.rename(srcPath, dstPath)) {
-        throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
+      if (!ufs.exists(tmpPath)) {
+        // Location of the temporary file has changed, recompute it.
+        FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
+        path = fileInfo.getUfsPath();
+        tmpPath = PathUtils.temporaryFileName(fileId, nonce, path);
+      }
+      if (!ufs.rename(tmpPath, path)) {
+        throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + path);
       }
     } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath + ": "
+      throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + path + ": "
           + ioe);
     }
     long fileSize;
     try {
-      fileSize = ufs.getFileSize(dstPath);
+      fileSize = ufs.getFileSize(path);
     } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
+      throw new FailedToCheckpointException("Failed to getFileSize " + path);
     }
     mFileSystemMasterClient.persistFile(fileId, fileSize);
   }

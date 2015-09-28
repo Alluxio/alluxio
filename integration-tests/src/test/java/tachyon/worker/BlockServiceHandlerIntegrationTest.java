@@ -94,7 +94,7 @@ public class BlockServiceHandlerIntegrationTest {
             mLocalTachyonCluster.getMasterPort()), mExecutorService, mWorkerTachyonConf);
   }
 
-  // Tests that checkpointing a file successfully informs master of the update
+  // Tests that persisting a file successfully informs master of the update
   @Test
   public void addCheckpointTest() throws Exception {
     FileOutStream os = mTfs.getOutStream(new TachyonURI("/testFile"));
@@ -108,7 +108,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
-    mWorkerServiceHandler.addCheckpoint(file.getFileId(), os.getNonce());
+    mWorkerServiceHandler.persistFile(file.getFileId(), os.getNonce(), ufsPath);
 
     // No space should be used in Tachyon, but the file should be complete
     Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());

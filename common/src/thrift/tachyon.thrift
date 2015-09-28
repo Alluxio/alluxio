@@ -283,7 +283,7 @@ service RawTableMasterService {
 service WorkerService {
   void accessBlock(1: i64 blockId)
 
-  void addCheckpoint(1: i64 fileId, 2: i64 nonce)
+  void persistFile(1: i64 fileId, 2: i64 nonce, 3: string path)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: FailedToCheckpointException eF, 4: BlockInfoException eB)
 
