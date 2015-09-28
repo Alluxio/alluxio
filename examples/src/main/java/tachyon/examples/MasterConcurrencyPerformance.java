@@ -111,6 +111,7 @@ public final class MasterConcurrencyPerformance {
 
     @Override
     public void run() {
+      mState = State.RUNNING;
       mStartTimeMs = System.currentTimeMillis();
       for (TachyonURI path : mPaths) {
         try {
@@ -166,7 +167,7 @@ public final class MasterConcurrencyPerformance {
     List<ClientThread> clients = Lists.newArrayListWithExpectedSize(nClients);
     for (int client = 0; client < nClients; client ++) {
       int files = client == 0 ? nFiles - nFilesEachThread * (nClients - 1) : nFilesEachThread;
-      List<TachyonURI> paths = Lists.newArrayListWithExpectedSize(nFiles);
+      List<TachyonURI> paths = Lists.newArrayListWithExpectedSize(files);
       for (int file = 0; file < files; file ++) {
         paths.add(new TachyonURI(PathUtils.concatPath("/", client, file)));
       }
