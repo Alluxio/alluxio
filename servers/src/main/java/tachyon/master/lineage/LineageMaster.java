@@ -105,7 +105,7 @@ public final class LineageMaster extends MasterBase {
 
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("lineage-master-%d", true)));
 
     mTachyonConf = MasterContext.getConf();
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
@@ -215,7 +215,7 @@ public final class LineageMaster extends MasterBase {
           "the lineage " + lineageId + " to delete does not exist");
     }
 
-    // there should not be child lineage if cascade
+    // there should not be child lineage if not cascade
     if (!cascade && !mLineageStore.getChildren(lineage).isEmpty()) {
       throw new LineageDeletionException(
           "the lineage " + lineageId + " to delete has children lineages");
@@ -232,7 +232,7 @@ public final class LineageMaster extends MasterBase {
    * @param path the path to the file
    * @param blockSizeBytes the block size
    * @param ttl the TTL
-   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise.
+   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
    */
   public long recreateFile(String path, long blockSizeBytes, long ttl)
@@ -266,8 +266,8 @@ public final class LineageMaster extends MasterBase {
    * TODO(yupeng) run the heartbeat in a thread?
    *
    * @param workerId the id of the worker that heartbeats
-   * @return the command for checkpointing the blocks of a file.
-   * @throws FileDoesNotExistException
+   * @return the command for checkpointing the blocks of a file
+   * @throws FileDoesNotExistException if the file does not exist
    */
   public LineageCommand lineageWorkerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException {
@@ -332,8 +332,8 @@ public final class LineageMaster extends MasterBase {
    * Polls the files to send to the given worker for checkpoint
    *
    * @param workerId the worker id
-   * @return the list of files.
-   * @throws FileDoesNotExistException
+   * @return the list of files
+   * @throws FileDoesNotExistException if the file does not exist
    */
   public synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
       throws FileDoesNotExistException {

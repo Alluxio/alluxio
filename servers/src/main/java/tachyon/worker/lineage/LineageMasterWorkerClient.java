@@ -66,8 +66,8 @@ public final class LineageMasterWorkerClient extends ClientBase {
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the persisted files
-   * @return the command for checkpointing the blocks of a file.
-   * @throws IOException
+   * @return the command for checkpointing the blocks of a file
+   * @throws IOException if file persistence fails
    */
   public synchronized LineageCommand workerLineageHeartbeat(long workerId,
       List<Long> persistedFiles) throws IOException {

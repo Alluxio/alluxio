@@ -28,7 +28,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystemFactory;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;

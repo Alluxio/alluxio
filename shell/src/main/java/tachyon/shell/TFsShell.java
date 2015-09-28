@@ -42,7 +42,7 @@ import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystemFactory;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.InStreamOptions;
@@ -335,7 +335,7 @@ public class TFsShell implements Closeable {
   public int copyWildcardToLocal(List<TachyonURI> srcPaths, File dstFile) throws IOException {
     if (dstFile.exists() && !dstFile.isDirectory()) {
       System.out.println(
-          "The destination cannot be an existent file when the src contains " + "wildcards.");
+          "The destination cannot be an existent file when the src contains wildcards.");
       return -1;
     }
     if (!dstFile.exists()) {
@@ -754,17 +754,33 @@ public class TFsShell implements Closeable {
    * @return The number of argument of the input command
    */
   public int getNumOfArgs(String cmd) {
-    if (cmd.equals("getUsedBytes") || cmd.equals("getCapacityBytes")
+    if (cmd.equals("getUsedBytes")
+        || cmd.equals("getCapacityBytes")
         || cmd.equals("listLineages")) {
       return 0;
-    } else if (cmd.equals("cat") || cmd.equals("count") || cmd.equals("ls") || cmd.equals("lsr")
-        || cmd.equals("mkdir") || cmd.equals("rm") || cmd.equals("rmr") || cmd.equals("tail")
-        || cmd.equals("touch") || cmd.equals("load") || cmd.equals("fileinfo")
-        || cmd.equals("location") || cmd.equals("report") || cmd.equals("pin")
-        || cmd.equals("unpin") || cmd.equals("free") || cmd.equals("du")) {
+    } else if (cmd.equals("cat")
+        || cmd.equals("count")
+        || cmd.equals("ls")
+        || cmd.equals("lsr")
+        || cmd.equals("mkdir")
+        || cmd.equals("rm")
+        || cmd.equals("rmr")
+        || cmd.equals("tail")
+        || cmd.equals("touch")
+        || cmd.equals("load")
+        || cmd.equals("fileinfo")
+        || cmd.equals("location")
+        || cmd.equals("report")
+        || cmd.equals("pin")
+        || cmd.equals("unpin")
+        || cmd.equals("free")
+        || cmd.equals("du")) {
       return 1;
-    } else if (cmd.equals("copyFromLocal") || cmd.equals("copyToLocal") || cmd.equals("request")
-        || cmd.equals("mv") || cmd.equals("deleteLineage")) {
+    } else if (cmd.equals("copyFromLocal")
+        || cmd.equals("copyToLocal")
+        || cmd.equals("request")
+        || cmd.equals("mv")
+        || cmd.equals("deleteLineage")) {
       return 2;
     } else if (cmd.equals("createLineage")) {
       return 3;

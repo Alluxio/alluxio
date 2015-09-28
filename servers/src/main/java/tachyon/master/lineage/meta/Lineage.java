@@ -44,8 +44,8 @@ public final class Lineage implements JournalEntryRepresentable {
    * Creates a new lineage.
    *
    * @param id the lineage id
-   * @param inputFiles the input files.
-   * @param outputFiles the output files.
+   * @param inputFiles the input files
+   * @param outputFiles the output files
    * @param job the job
    */
   public Lineage(long id, List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job) {
@@ -56,9 +56,9 @@ public final class Lineage implements JournalEntryRepresentable {
    * A method for lineage only. TODO(yupeng): hide this method
    *
    * @param id the lineage id
-   * @param inputFiles the input files.
-   * @param inputFiles the input files.
-   * @param outputFiles the output files.
+   * @param inputFiles the input files
+   * @param inputFiles the input files
+   * @param outputFiles the output files
    * @param job the job
    * @param creationTimeMs the creation time
    */
@@ -71,6 +71,9 @@ public final class Lineage implements JournalEntryRepresentable {
     mCreationTimeMs = creationTimeMs;
   }
 
+  /**
+   * @return the {@link LineageInfo} for RPC
+   */
   public synchronized LineageInfo generateLineageInfo() {
     LineageInfo info = new LineageInfo();
     info.mId = mId;
@@ -92,26 +95,47 @@ public final class Lineage implements JournalEntryRepresentable {
     return info;
   }
 
+  /**
+   * @return the input files.
+   */
   public synchronized List<TachyonFile> getInputFiles() {
     return Collections.unmodifiableList(mInputFiles);
   }
 
+  /**
+   * @return the output files
+   */
   public synchronized List<LineageFile> getOutputFiles() {
     return Collections.unmodifiableList(mOutputFiles);
   }
 
+  /**
+   * @return the job
+   */
   public Job getJob() {
     return mJob;
   }
 
+  /**
+   * @return the lineage id
+   */
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the creation time
+   */
   public long getCreationTime() {
     return mCreationTimeMs;
   }
 
+  /**
+   * Updates the state of the lineage's output file.
+   *
+   * @param fileId the id of the output file
+   * @param newState the new state
+   */
   public synchronized void updateOutputFileState(long fileId, LineageFileState newState) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
@@ -120,6 +144,9 @@ public final class Lineage implements JournalEntryRepresentable {
     }
   }
 
+  /**
+   * @return true if the lineage needs recompute, false otherwise
+   */
   public synchronized boolean needRecompute() {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() == LineageFileState.LOST) {
@@ -129,6 +156,9 @@ public final class Lineage implements JournalEntryRepresentable {
     return false;
   }
 
+  /**
+   * @return true if all the output files are completed, false otherwise
+   */
   public synchronized boolean isCompleted() {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() != LineageFileState.COMPLETED) {
@@ -138,6 +168,9 @@ public final class Lineage implements JournalEntryRepresentable {
     return true;
   }
 
+  /**
+   * @return true if all the output files are persisted, false otherwise
+   */
   public synchronized boolean isPersisted() {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() != LineageFileState.PERSISTED) {
@@ -147,6 +180,9 @@ public final class Lineage implements JournalEntryRepresentable {
     return true;
   }
 
+  /**
+   * @return true if at least one of the output files is being persisted, false otherwise
+   */
   public synchronized boolean isInCheckpointing() {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getState() == LineageFileState.PERSISENCE_REQUESTED) {
@@ -156,6 +192,9 @@ public final class Lineage implements JournalEntryRepresentable {
     return false;
   }
 
+  /**
+   * @return all the output files that are lost on the workers.
+   */
   public synchronized List<Long> getLostFiles() {
     List<Long> result = Lists.newArrayList();
     for (LineageFile outputFile : mOutputFiles) {
@@ -166,6 +205,12 @@ public final class Lineage implements JournalEntryRepresentable {
     return result;
   }
 
+  /**
+   * Gets the state of the lineage's output file.
+   *
+   * @param fileId the id of the output file
+   * @return the output file state
+   */
   public synchronized LineageFileState getOutputFileState(long fileId) {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {

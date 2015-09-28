@@ -24,10 +24,18 @@ public class JobConf implements Serializable {
   private static final long serialVersionUID = 1258775437399802121L;
   private final String mOutputFilePath;
 
+  /**
+   * Constructs the job configuration.
+   *
+   * @param outputFilePath
+   */
   public JobConf(String outputFilePath) {
     mOutputFilePath = outputFilePath;
   }
 
+  /**
+   * @return the path file that redirects the job's stdout into
+   */
   public String getOutputFilePath() {
     return mOutputFilePath;
   }

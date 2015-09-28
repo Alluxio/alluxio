@@ -21,7 +21,7 @@ public final class IdUtils {
   private IdUtils() {} // prevent instantiation
 
   /**
-   * @return a file id based on the given container id.
+   * @return a file id based on the given container id
    */
   public static long createFileId(long containerId) {
     return BlockId.createBlockId(containerId, BlockId.getMaxSequenceNumber());

@@ -34,21 +34,21 @@ public final class LineageStoreView {
   }
 
   /**
-   * Gets all the root lineages in the lineage store.
+   * @return the list of all root lineages
    */
   public List<Lineage> getRootLineage() {
     return mLineageStore.getRootLineages();
   }
 
   /**
-   * @return the children lineages of a given lineage in the store.
+   * @return the children lineages of a given lineage in the store
    */
   public List<Lineage> getChildren(Lineage lineage) {
     return mLineageStore.getChildren(lineage);
   }
 
   /**
-   * @return all the lineages in topological order.
+   * @return all the lineages in topological order
    */
   public List<Lineage> getAllLineagesInTopologicalOrder() {
     return mLineageStore.getAllInTopologicalOrder();

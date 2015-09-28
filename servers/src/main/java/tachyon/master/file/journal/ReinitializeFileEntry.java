@@ -23,12 +23,12 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class ReinitializeBlockEntry implements JournalEntry {
+public final class ReinitializeFileEntry implements JournalEntry {
   private final String mPath;
   private final long mBlockSizeBytes;
   private final long mTTL;
 
-  public ReinitializeBlockEntry(String path, long blockSizeBytes, long ttl) {
+  public ReinitializeFileEntry(String path, long blockSizeBytes, long ttl) {
     mPath = Preconditions.checkNotNull(path);
     mBlockSizeBytes = blockSizeBytes;
     mTTL = ttl;
@@ -48,7 +48,7 @@ public class ReinitializeBlockEntry implements JournalEntry {
 
   @Override
   public JournalEntryType getType() {
-    return JournalEntryType.REINITIALIZE_BLOCK;
+    return JournalEntryType.REINITIALIZE_FILE;
   }
 
   @Override

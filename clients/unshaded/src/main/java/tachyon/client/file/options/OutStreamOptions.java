@@ -46,19 +46,6 @@ public final class OutStreamOptions {
     }
 
     /**
-     * Creates a new builder from {@link OutStreamOptions}.
-     *
-     * @param options the options
-     */
-    public Builder(OutStreamOptions options) {
-      mBlockSize = options.getBlockSize();
-      mHostname = options.getHostname();
-      mTachyonStorageType = options.getTachyonStorageType();
-      mTTL = options.getTTL();
-      mUnderStorageType = options.getUnderStorageType();
-    }
-
-    /**
      * @param blockSize the block size to use
      * @return the builder
      */

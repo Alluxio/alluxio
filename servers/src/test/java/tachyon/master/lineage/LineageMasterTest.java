@@ -52,7 +52,7 @@ public final class LineageMasterTest {
   public void before() throws Exception {
     Journal journal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
-    mLineageMaster = new LineageMaster(journal, mFileSystemMaster);
+    mLineageMaster = new LineageMaster(mFileSystemMaster, journal);
     mLineageMaster.start(true);
     mJob = new CommandLineJob("test", new JobConf("output"));
   }

@@ -17,7 +17,6 @@ package tachyon.worker.lineage;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -38,7 +37,9 @@ import tachyon.exception.NotFoundException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.util.BufferUtils;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
 import tachyon.worker.block.io.BlockReader;
 
@@ -48,17 +49,16 @@ import tachyon.worker.block.io.BlockReader;
 public final class LineageDataManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  UnderFileSystem mUfs;
-
+  private final UnderFileSystem mUfs;
   /** Block data manager for access block info */
   private final BlockDataManager mBlockDataManager;
   private final List<Long> mPersistedFiles;
   private final TachyonConf mTachyonConf;
 
-  public LineageDataManager(BlockDataManager blockDataManager, TachyonConf tachyonConf) {
+  public LineageDataManager(BlockDataManager blockDataManager) {
     mBlockDataManager = Preconditions.checkNotNull(blockDataManager);
     mPersistedFiles = Lists.newArrayList();
-    mTachyonConf = Preconditions.checkNotNull(tachyonConf);
+    mTachyonConf = WorkerContext.getConf();
     // Create Under FileSystem Client
     String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
@@ -67,18 +67,17 @@ public final class LineageDataManager {
   /**
    * Persists the blocks of a file into the under file system.
    *
-   * @param fileId the id of the file.
-   * @param blockIds the list of block ids.
-   * @throws IOException
+   * @param fileId the id of the file
+   * @param blockIds the list of block ids
+   * @throws IOException if the file persistence fails
    */
-  public synchronized void persistFile(long fileId, List<Long> blockIds)
-      throws IOException {
+  public synchronized void persistFile(long fileId, List<Long> blockIds) throws IOException {
     String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
     FileInfo fileInfo;
     try {
       fileInfo = mBlockDataManager.getFileInfo(fileId);
     } catch (FileDoesNotExistException e) {
-      LOG.warn("Fail to get file info for file " + fileId, e);
+      LOG.error("Fail to get file info for file " + fileId, e);
       throw new IOException(e);
     }
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
@@ -113,7 +112,7 @@ public final class LineageDataManager {
 
         // write content out
         ReadableByteChannel inputChannel = reader.getChannel();
-        fastCopy(inputChannel, outputChannel);
+        BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
       } finally {
         try {
@@ -130,25 +129,7 @@ public final class LineageDataManager {
     mPersistedFiles.add(fileId);
   }
 
-
-  private static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
-      throws IOException {
-    final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
-
-    while (src.read(buffer) != -1) {
-      buffer.flip();
-      dest.write(buffer);
-      buffer.compact();
-    }
-
-    buffer.flip();
-
-    while (buffer.hasRemaining()) {
-      dest.write(buffer);
-    }
-  }
-
-  public synchronized List<Long> fetchPersistedFiles() {
+  public synchronized List<Long> popPersistedFiles() {
     List<Long> toReturn = Lists.newArrayList();
     toReturn.addAll(mPersistedFiles);
     mPersistedFiles.clear();

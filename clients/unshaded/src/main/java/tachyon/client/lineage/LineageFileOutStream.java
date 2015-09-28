@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
 import tachyon.client.UnderStorageType;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.FileOutStream;
@@ -43,7 +44,11 @@ public class LineageFileOutStream extends FileOutStream {
 
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
     // change the under storage type to async
-    OutStreamOptions.Builder builder = new OutStreamOptions.Builder(options);
+    OutStreamOptions.Builder builder = new OutStreamOptions.Builder(ClientContext.getConf());
+    builder.setBlockSize(options.getBlockSize());
+    builder.setHostname(options.getHostname());
+    builder.setTachyonStorageType(options.getTachyonStorageType());
+    builder.setTTL(options.getTTL());
     builder.setUnderStorageType(UnderStorageType.ASYNC_PERSIST);
     return builder.build();
   }

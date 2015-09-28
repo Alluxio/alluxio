@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.dag;
+package tachyon.collections;
 
 import java.util.List;
 
@@ -21,46 +21,48 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 /**
- * A DAG node.
+ * A Directed Acyclic Graph (DAG) node.
  *
- * @param <T> payload.
+ * @param <T> payload
  */
-public class DAGNode<T> {
+public class DirectedAcyclicGraphNode<T> {
   private final T mPayload;
-  private final List<DAGNode<T>> mParents;
-  private final List<DAGNode<T>> mChildren;
+  private final List<DirectedAcyclicGraphNode<T>> mParents;
+  private final List<DirectedAcyclicGraphNode<T>> mChildren;
 
-  public DAGNode(T payload, List<DAGNode<T>> parents, List<DAGNode<T>> children) {
+  public DirectedAcyclicGraphNode(T payload, List<DirectedAcyclicGraphNode<T>> parents,
+      List<DirectedAcyclicGraphNode<T>> children) {
     mPayload = Preconditions.checkNotNull(payload);
     mParents = Preconditions.checkNotNull(parents);
     mChildren = Preconditions.checkNotNull(children);
   }
 
-  public DAGNode(T payload) {
-    this(payload, Lists.<DAGNode<T>>newArrayList(), Lists.<DAGNode<T>>newArrayList());
+  public DirectedAcyclicGraphNode(T payload) {
+    this(payload, Lists.<DirectedAcyclicGraphNode<T>>newArrayList(),
+        Lists.<DirectedAcyclicGraphNode<T>>newArrayList());
   }
 
   public T getPayload() {
     return mPayload;
   }
 
-  public List<DAGNode<T>> getParents() {
+  public List<DirectedAcyclicGraphNode<T>> getParents() {
     return mParents;
   }
 
-  public List<DAGNode<T>> getChildren() {
+  public List<DirectedAcyclicGraphNode<T>> getChildren() {
     return mChildren;
   }
 
-  public void addParent(DAGNode<T> parent) {
+  public void addParent(DirectedAcyclicGraphNode<T> parent) {
     mParents.add(parent);
   }
 
-  public void addChild(DAGNode<T> child) {
+  public void addChild(DirectedAcyclicGraphNode<T> child) {
     mChildren.add(child);
   }
 
-  public void removeChild(DAGNode<T> child) {
+  public void removeChild(DirectedAcyclicGraphNode<T> child) {
     Preconditions.checkState(mChildren.contains(child));
     mChildren.remove(child);
   }

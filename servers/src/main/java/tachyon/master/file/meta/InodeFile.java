@@ -101,7 +101,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Sets the block size
+   * Sets the block size.
    */
   public void setBlockSize(long blockSizeBytes) {
     // TODO(yupeng): add validation

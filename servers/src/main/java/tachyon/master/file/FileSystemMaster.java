@@ -52,7 +52,7 @@ import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
-import tachyon.master.file.journal.ReinitializeBlockEntry;
+import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
@@ -115,7 +115,7 @@ public final class FileSystemMaster extends MasterBase {
 
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
     super(journal,
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("lineage-master-%d", true)));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("file-system-master-%d", true)));
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -176,8 +176,8 @@ public final class FileSystemMaster extends MasterBase {
       renameFromEntry((RenameEntry) entry);
     } else if (entry instanceof InodeDirectoryIdGeneratorEntry) {
       mDirectoryIdGenerator.fromJournalEntry((InodeDirectoryIdGeneratorEntry) entry);
-    } else if (entry instanceof ReinitializeBlockEntry) {
-      resetBlockSizeFromEntry((ReinitializeBlockEntry) entry);
+    } else if (entry instanceof ReinitializeFileEntry) {
+      resetBlockFileFromEntry((ReinitializeFileEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -515,20 +515,20 @@ public final class FileSystemMaster extends MasterBase {
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
    * @return the file id
-   * @throws InvalidPathException
+   * @throws InvalidPathException if the path is invalid
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException {
     // TODO(yupeng): add validation
     synchronized (mInodeTree) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
-      writeJournalEntry(new ReinitializeBlockEntry(path.getPath(), blockSizeBytes, ttl));
+      writeJournalEntry(new ReinitializeFileEntry(path.getPath(), blockSizeBytes, ttl));
       flushJournal();
       return id;
     }
   }
 
-  private void resetBlockSizeFromEntry(ReinitializeBlockEntry entry) {
+  private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
     try {
       mInodeTree.reinitializeFile(new TachyonURI(entry.getPath()), entry.getBlockSizeBytes(),
           entry.getTTL());
@@ -1101,14 +1101,14 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the white list. Called by the internal web ui.
+   * @return the white list. Called by the internal web ui
    */
   public List<String> getWhiteList() {
     return mWhitelist.getList();
   }
 
   /**
-   * @return all the files lost on the workers.
+   * @return all the files lost on the workers
    */
   public List<Long> getLostFiles() {
     Set<Long> lostFiles = Sets.newHashSet();
@@ -1176,7 +1176,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Resets a file. It first free the whole file, and then reinitializes it.
    *
-   * @param fileId
+   * @param fileId the id of the file
    * @throws FileDoesNotExistException if the file doesn't exist
    */
   public void resetFile(long fileId) throws FileDoesNotExistException {

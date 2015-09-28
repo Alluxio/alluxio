@@ -56,18 +56,17 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    * A file is created when its lineage is added. This method reinitializes the created file. But
    * it's no-op if the file is already completed.
    *
-   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise.
-   * @throws LineageDoesNotExistException if the lineage does not exist.
+   * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
+   * @throws LineageDoesNotExistException if the lineage does not exist
+   * @throws IOException if the recreation fails
    */
   private long recreate(TachyonURI path, OutStreamOptions options)
-      throws LineageDoesNotExistException {
+      throws LineageDoesNotExistException, IOException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
           masterClient.recreateFile(path.getPath(), options.getBlockSize(), options.getTTL());
       return fileId;
-    } catch (IOException e) {
-      throw new RuntimeException("recreation failed", e);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
