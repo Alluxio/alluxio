@@ -28,6 +28,8 @@ import tachyon.util.io.PathUtils;
 
 /** This class is used for keeping track of Tachyon mount points. It is thread safe. */
 public final class MountTable {
+  public static final String ROOT = "/";
+
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Map<String, TachyonURI> mMountTable;
@@ -58,6 +60,11 @@ public final class MountTable {
         LOG.warn("Mount point " + tachyonPath + " already exists.");
         return false;
       }
+      if (!path.equals(ROOT) && PathUtils.hasPrefix(tachyonPath, path)) {
+        LOG.warn("Cannot nest mount point " + tachyonPath + " under existing mount point" + path
+            + ".");
+        return false;
+      }
     }
     mMountTable.put(tachyonPath, ufsUri);
     return true;
@@ -72,14 +79,11 @@ public final class MountTable {
   public synchronized boolean delete(TachyonURI uri) throws InvalidPathException {
     String path = uri.getPath();
     LOG.info("Unmounting " + path);
+    if (path.equals(ROOT)) {
+      LOG.warn("Cannot unmount the root mount point.");
+      return false;
+    }
     if (mMountTable.containsKey(path)) {
-      for (Map.Entry<String, TachyonURI> entry : mMountTable.entrySet()) {
-        String tachyonPath = entry.getKey();
-        if (!path.equals(tachyonPath) && PathUtils.hasPrefix(tachyonPath, path)) {
-          LOG.warn("Mount point " + path + " has nested mount points.");
-          return false;
-        }
-      }
       mMountTable.remove(path);
       return true;
     }
@@ -88,7 +92,7 @@ public final class MountTable {
   }
 
   /**
-   * Returns the deepest mount point the given path is nested under.
+   * Returns the mount point the given path is nested under.
    *
    * @param uri a Tachyon path URI
    * @return mount point the given Tachyon path is nested under
