@@ -29,7 +29,6 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
@@ -470,30 +469,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
       try {
         mClient.reportLostFile(fileId);
       } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
-
-  /**
-   * Requests files in a dependency.
-   *
-   * @param depId the dependency id
-   * @throws DependencyDoesNotExistException if the dependency does not exist
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized void requestFilesInDependency(int depId) throws IOException,
-      DependencyDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        mClient.requestFilesInDependency(depId);
-      } catch (DependencyDoesNotExistException e) {
         throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);

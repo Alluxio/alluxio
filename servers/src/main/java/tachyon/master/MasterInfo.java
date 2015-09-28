@@ -27,8 +27,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.file.meta.InodeFile;
-import tachyon.thrift.DependencyDoesNotExistException;
-import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -78,18 +76,6 @@ public final class MasterInfo {
   public List<FileBlockInfo> getFileBlockList(long fileId)
       throws InvalidPathException, FileDoesNotExistException {
     return mFileSystemMaster.getFileBlockInfoList(fileId);
-  }
-
-  /**
-   * Gets the dependency info associated with the given id.
-   *
-   * @param dependencyId id of the dependency
-   * @return the dependency info
-   * @throws DependencyDoesNotExistException when the dependency does not exist
-   */
-  public DependencyInfo getClientDependencyInfo(int dependencyId)
-      throws DependencyDoesNotExistException {
-    return mFileSystemMaster.getClientDependencyInfo(dependencyId);
   }
 
   /**

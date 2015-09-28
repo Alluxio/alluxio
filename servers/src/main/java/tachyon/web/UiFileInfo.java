@@ -65,7 +65,6 @@ public final class UiFileInfo {
   }
 
   private final long mId;
-  private final int mDependencyId;
   private final String mName;
   private final String mAbsolutePath;
   private final String mCheckpointPath;
@@ -86,7 +85,6 @@ public final class UiFileInfo {
 
   public UiFileInfo(FileInfo fileInfo) {
     mId = fileInfo.getFileId();
-    mDependencyId = fileInfo.getDependencyId();
     mName = fileInfo.getName();
     mAbsolutePath = fileInfo.getPath();
     mCheckpointPath = fileInfo.getUfsPath();
@@ -106,7 +104,6 @@ public final class UiFileInfo {
 
   public UiFileInfo(LocalFileInfo fileInfo) {
     mId = -1;
-    mDependencyId = -1;
     mName = fileInfo.mName;
     mAbsolutePath = fileInfo.mAbsolutePath;
     mCheckpointPath = "";
@@ -163,10 +160,6 @@ public final class UiFileInfo {
 
   public String getModificationTime() {
     return Utils.convertMsToDate(mLastModificationTimeMs);
-  }
-
-  public int getDependencyId() {
-    return mDependencyId;
   }
 
   public List<String> getFileLocations() {

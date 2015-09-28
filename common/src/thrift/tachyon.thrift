@@ -45,6 +45,10 @@ struct FileBlockInfo {
   3: list<NetAddress> ufsLocations
 }
 
+// deprecated
+struct DependencyInfo {
+}
+
 struct FileInfo {
   1: i64 fileId
   2: string name
@@ -58,18 +62,9 @@ struct FileInfo {
   10: bool isPinned
   11: bool isCacheable
   12: list<i64> blockIds
-  13: i32 dependencyId
   14: i32 inMemoryPercentage
   15: i64 lastModificationTimeMs
   16: i64 ttl
-}
-
-// Information about lineage.
-struct DependencyInfo {
-  1: i32 id
-  2: list<i64> parents
-  3: list<i64> children
-  4: list<binary> data
 }
 
 // Information about raw tables.
@@ -138,10 +133,6 @@ exception TachyonException {
   1: string message
 }
 
-exception DependencyDoesNotExistException {
-  1: string message
-}
-
 service BlockMasterService {
   i64 workerGetWorkerId(1: NetAddress workerNetAddress)
 
@@ -168,8 +159,6 @@ service BlockMasterService {
 
 service FileSystemMasterService {
   set<i64> workerGetPinIdList()
-
-  list<i32> workerGetPriorityDependencyList()
 
   i64 getFileId(1: string path)
     throws (1: InvalidPathException ipe)
@@ -223,21 +212,8 @@ service FileSystemMasterService {
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
-  // Lineage Features
-  i32 createDependency(1: list<string> parents, 2: list<string> children,
-      3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
-      7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
-    throws (1: InvalidPathException ipe, 2: FileDoesNotExistException fdnee,
-      3: FileAlreadyExistException faee, 4: BlockInfoException bie, 5: TachyonException te)
-
-  DependencyInfo getDependencyInfo(1: i32 dependencyId)
-    throws (1: DependencyDoesNotExistException ddnee)
-
   void reportLostFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee)
-
-  void requestFilesInDependency(1: i32 depId)
-    throws (1: DependencyDoesNotExistException ddnee)
 }
 
 service RawTableMasterService {
