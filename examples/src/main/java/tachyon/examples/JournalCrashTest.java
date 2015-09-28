@@ -30,7 +30,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
+import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
@@ -63,9 +65,7 @@ public class JournalCrashTest {
     /**
      * Keep creating empty raw table.
      */
-    // TODO: add it back when supporting raw table
-    //CREATE_TABLE,
-    // TODO: add more op types to test
+    CREATE_TABLE,
   }
 
   /**
@@ -134,12 +134,11 @@ public class JournalCrashTest {
               throw e;
             }
             sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"));
+          } else if (ClientOpType.CREATE_TABLE == mOpType) {
+            if (sOldTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
+              break;
+            }
           }
-          //else if (ClientOpType.CREATE_TABLE == mOpType) {
-          //  if (mTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
-          //    break;
-          //  }
-          //}
         } catch (Exception e) {
           // Since master may crash/restart for several times, so this exception is expected.
           // Ignore the exception and still keep requesting to master.
@@ -170,6 +169,8 @@ public class JournalCrashTest {
   private static String sTestDir;
   /** The Tachyon Client. This can be shared by all the threads. */
   private static TachyonFileSystem sTfs = null;
+  /** Old Tachyon client, only be used for raw table functionality */
+  private static TachyonFS sOldTfs = null;
   /** The total time to run this test. */
   private static long sTotalTimeMs;
 
@@ -266,6 +267,7 @@ public class JournalCrashTest {
 
       System.out.println("Round " + rounds + " : Launch Clients...");
       sTfs = TachyonFileSystem.get();
+      sOldTfs = TachyonFS.get(ClientContext.getConf());
       try {
         sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
       } catch (Exception ioe) {
