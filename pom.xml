@@ -558,8 +558,13 @@
     <!-- profile that Tachyon developers should use -->
     <profile>
       <id>dev</id>
+      <modules>
+        <module>integration</module>
+      </modules>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
+        <yarn.version>${hadoop.version}</yarn.version>
+      </properties>
     </profile>
   </profiles>
 </project>
