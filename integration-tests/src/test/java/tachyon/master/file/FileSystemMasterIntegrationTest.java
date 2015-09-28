@@ -15,7 +15,6 @@
 
 package tachyon.master.file;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,16 +39,12 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.SuspectedFileSizeException;
-import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -256,7 +251,7 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertFalse(fileInfo.isIsPersisted());
-    mFsMaster.addCheckpoint(fileId, 1);
+    mFsMaster.persistFile(fileId, 1);
     fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertTrue(fileInfo.isIsPersisted());
   }
@@ -538,7 +533,7 @@ public class FileSystemMasterIntegrationTest {
     long fileId =
         mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     long opTimeMs = System.currentTimeMillis();
-    mFsMaster.addCheckpointInternal(fileId, 1, opTimeMs);
+    mFsMaster.persistFileInternal(fileId, 1, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.lastModificationTimeMs);
   }
@@ -639,7 +634,7 @@ public class FileSystemMasterIntegrationTest {
   public void notFileCheckpointTest() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.mkdirs(new TachyonURI("/testFile"), true);
-    mFsMaster.addCheckpoint(mFsMaster.getFileId(new TachyonURI("/testFile")), 0);
+    mFsMaster.persistFile(mFsMaster.getFileId(new TachyonURI("/testFile")), 0);
   }
 
   @Test

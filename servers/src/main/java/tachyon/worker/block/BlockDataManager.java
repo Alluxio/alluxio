@@ -61,7 +61,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
 
   /** WorkerBlockMasterClient, only used to inform the master of a new block in commitBlock */
   private WorkerBlockMasterClient mBlockMasterClient;
-  /** WorkerFileSystemMasterClient, only used to inform master of a new file in addCheckpoint */
+  /** WorkerFileSystemMasterClient, only used to inform master of a new file in persistFile */
   private WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** Session metadata, used to keep track of session heartbeats */
   private Sessions mSessions;
@@ -181,7 +181,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     } catch (IOException ioe) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
-    mFileSystemMasterClient.addCheckpoint(fileId, fileSize);
+    mFileSystemMasterClient.persistFile(fileId, fileSize);
   }
 
   /**

@@ -42,7 +42,7 @@ import com.google.common.collect.Maps;
 import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.file.journal.AddCheckpointEntry;
+import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -290,7 +290,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getBoolean("persisted"));
           }
           case ADD_CHECKPOINT: {
-            return new AddCheckpointEntry(
+            return new PersistFileEntry(
                 entry.getLong("fileId"),
                 entry.getLong("length"),
                 entry.getLong("operationTimeMs"));

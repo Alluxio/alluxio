@@ -163,12 +163,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     }
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * To add the data into Tachyon space perform an operation with the cache option specified, for
-   * example the load command of the Tachyon Shell.
-   */
   @Override
   public long loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws IOException, TachyonException {

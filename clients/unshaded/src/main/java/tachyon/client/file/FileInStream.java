@@ -180,7 +180,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return;
     }
     Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos <= mFileLength, "Seek position is past EOF: " + pos
+    Preconditions.checkArgument(pos < mFileLength, "Seek position is past EOF: " + pos
         + ", fileSize = " + mFileLength);
 
     seekBlockInStream(pos);

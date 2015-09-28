@@ -60,7 +60,6 @@ public final class FileOutStream extends OutputStream implements Cancelable {
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
-  private final WorkerClient mWorkerClient;
   private final long mNonce;
 
   private boolean mCanceled;
@@ -97,9 +96,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
         }
       }
       mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
-      mWorkerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
     } else {
-      mWorkerClient = null;
       mUnderStorageOutputStream = null;
     }
     mClosed = false;
@@ -136,11 +133,12 @@ public final class FileOutStream extends OutputStream implements Cancelable {
       } else {
         mUnderStorageOutputStream.flush();
         mUnderStorageOutputStream.close();
+        WorkerClient workerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
         try {
           // TODO(yupeng): Investigate if this RPC can be moved to master.
-          mWorkerClient.addCheckpoint(mFileId, mNonce);
+          workerClient.addCheckpoint(mFileId, mNonce);
         } finally {
-          BlockStoreContext.INSTANCE.releaseWorkerClient(mWorkerClient);
+          BlockStoreContext.INSTANCE.releaseWorkerClient(workerClient);
         }
         canComplete = true;
       }

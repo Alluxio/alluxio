@@ -23,12 +23,12 @@ import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class AddCheckpointEntry implements JournalEntry {
+public class PersistFileEntry implements JournalEntry {
   private final long mFileId;
   private final long mLength;
   private final long mOpTimeMs;
 
-  public AddCheckpointEntry(long fileId, long length, long opTimeMs) {
+  public PersistFileEntry(long fileId, long length, long opTimeMs) {
     mFileId = fileId;
     mLength = length;
     mOpTimeMs = opTimeMs;

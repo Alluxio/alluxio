@@ -127,7 +127,9 @@ public final class PathUtils {
   }
 
   /**
-   * Checks whether the given path contains the given prefix.
+   * Checks whether the given path contains the given prefix. The comparison happens at a component
+   * granularity; for example, {@code hasPrefix(/dir/file, /dir)} should evaluate to true, while
+   * {@code hasPrefix(/dir/file, /d)} should evaluate to false.
    *
    * @param path a path
    * @param prefix a prefix
@@ -180,7 +182,7 @@ public final class PathUtils {
    * @return a deterministic temporary file name
    */
   public static final String temporaryFileName(long fileId, long nonce, String path) {
-    return path + ".tachyon." + fileId + "." + nonce + ".tmp";
+    return path + ".tachyon." + fileId + "." + String.format("0x%16s", nonce) + ".tmp";
   }
 
   /**
