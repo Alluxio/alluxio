@@ -58,7 +58,7 @@ public final class MasterConcurrencyPerformance {
     sOperationRegistry.put(OperationType.CREATE_EMPTY_FILE, new OperationCallable() {
       @Override
       public void call(TachyonURI path) throws Exception {
-        tfs.createEmptyFile(path);
+        tfs.create(path);
       }
     });
   }
