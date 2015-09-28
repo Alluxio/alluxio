@@ -20,8 +20,6 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.master.block.BlockId;
-import tachyon.master.file.meta.InodeDirectory;
-import tachyon.master.file.meta.InodeFile;
 
 /**
  * Abstract class for serving inode tests.
@@ -40,6 +38,7 @@ public abstract class AbstractInodeTest {
   }
 
   protected InodeFile createInodeFile(long id) {
-    return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis());
+    return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis(),
+        Constants.NO_TTL);
   }
 }

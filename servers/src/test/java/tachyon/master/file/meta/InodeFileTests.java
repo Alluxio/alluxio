@@ -19,7 +19,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.master.file.meta.InodeFile;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
@@ -33,7 +32,8 @@ public final class InodeFileTests extends AbstractInodeTest {
     InodeFile inode1 = createInodeFile(1);
     // self equal
     Assert.assertEquals(inode1, inode1);
-    InodeFile inode2 = new InodeFile("test2", 1, 0, 1000, System.currentTimeMillis());
+    InodeFile inode2 = new InodeFile("test2", 1, 0, 1000, System.currentTimeMillis(),
+        Constants.NO_TTL);
     // equal with same id
     Assert.assertEquals(inode1, inode2);
     InodeFile inode3 = createInodeFile(3);

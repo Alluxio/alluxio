@@ -19,12 +19,11 @@ import java.io.IOException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 
 /**
  * Abstract implementation of {@link tachyon.client.TachyonFSCore} APIs.
- * As of 0.8, merged into {@link TachyonFileSystem}
+ * As of 0.8, merged into {@link tachyon.client.file.AbstractTachyonFileSystem}
  */
 @Deprecated
 abstract class AbstractTachyonFS implements TachyonFSCore {

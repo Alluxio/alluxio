@@ -27,13 +27,14 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.master.IndexedSet;
+import tachyon.IndexedSet;
 import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeEntry;
@@ -105,6 +106,24 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
+   * Return the number of total inodes.
+   *
+   * @return the number of total inodes
+   */
+  public int getSize() {
+    return mInodes.size();
+  }
+
+  /**
+   * Return the number of pinned inodes.
+   *
+   * @return the number of pinned inodes
+   */
+  public int getPinnedSize() {
+    return mPinnedInodeFileIds.size();
+  }
+
+  /**
    * @param id the id to get the inode for
    * @return the inode with the given id
    * @throws FileDoesNotExistException
@@ -170,7 +189,31 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
-    return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis());
+    return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis(),
+        Constants.NO_TTL);
+  }
+
+  /**
+   * Creates a file or directory at the given path.
+   *
+   * @param path the path
+   * @param blockSizeBytes block size in bytes, if it is to create a file, the blockSizeBytes should
+   *        not be fewer than 1, otherwise, it is ignored, can be set to 0
+   * @param recursive if it is true, create any necessary but nonexistent parent directories of the
+   *        path, otherwise, throw InvalidPathException if there some necessary parent directories
+   *        is nonexistent
+   * @param ttl ttl for file expiration
+   * @param directory if it is true, create a directory, otherwise, create a file
+   * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
+   *         path creation.
+   * @throws FileAlreadyExistException
+   * @throws BlockInfoException
+   * @throws InvalidPathException
+   */
+  public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
+      boolean directory, long ttl)
+          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
+    return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis(), ttl);
   }
 
   /**
@@ -184,6 +227,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *        is nonexistent
    * @param directory if it is true, create a directory, otherwise, create a file
    * @param creationTimeMs the time to create the inode
+   * @param ttl time to live for file expiration
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation.
    * @throws FileAlreadyExistException when there is already a file at path if we want to create a
@@ -194,7 +238,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *         parent directories is actually a file
    */
   public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory, long creationTimeMs)
+      boolean directory, long creationTimeMs, long ttl)
           throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
@@ -269,7 +313,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           currentInodeDirectory.getId(), creationTimeMs);
     } else {
       lastInode = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
-          currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs);
+          currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs, ttl);
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
         mPinnedInodeFileIds.add(lastInode.getId());
@@ -443,6 +487,26 @@ public final class InodeTree implements JournalCheckpointStreamable {
     if (inode.isFile() && inode.isPinned()) {
       mPinnedInodeFileIds.add(inode.getId());
     }
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mRoot, mIdIndex, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
+        mDirectoryIdGenerator, mCachedInode);
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object instanceof InodeTree) {
+      InodeTree that = (InodeTree) object;
+      return Objects.equal(mRoot, that.mRoot) && Objects.equal(mIdIndex, that.mIdIndex)
+          && Objects.equal(mInodes, that.mInodes)
+          && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
+          && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
+          && Objects.equal(mDirectoryIdGenerator, that.mDirectoryIdGenerator)
+          && Objects.equal(mCachedInode, that.mCachedInode);
+    }
+    return false;
   }
 
   private TraversalResult traverseToInode(String[] pathComponents) throws InvalidPathException {

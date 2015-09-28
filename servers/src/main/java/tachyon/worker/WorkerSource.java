@@ -27,6 +27,7 @@ import tachyon.worker.block.BlockDataManager;
  */
 public class WorkerSource implements Source {
   private static final String WORKER_SOURCE_NAME = "worker";
+  private boolean mGaugesRegistered = false;
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
   private final Counter mBlocksAccessed =
       mMetricRegistry.counter(MetricRegistry.name("BlocksAccessed"));
@@ -132,6 +133,9 @@ public class WorkerSource implements Source {
   }
 
   public void registerGauges(final BlockDataManager blockDataManager) {
+    if (mGaugesRegistered) {
+      return;
+    }
     mMetricRegistry.register(MetricRegistry.name("CapacityTotal"), new Gauge<Long>() {
       @Override
       public Long getValue() {
@@ -160,5 +164,6 @@ public class WorkerSource implements Source {
         return blockDataManager.getStoreMeta().getNumberOfBlocks();
       }
     });
+    mGaugesRegistered = true;
   }
 }

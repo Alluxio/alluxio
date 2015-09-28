@@ -36,6 +36,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Sets;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
@@ -138,7 +139,7 @@ public abstract class JournalFormatterTestBase {
     }
     entryTest(new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
         TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, TEST_FILE_NAME,
-        blocks));
+        blocks, Constants.NO_TTL));
   }
 
   @Test

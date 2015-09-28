@@ -57,10 +57,6 @@ public final class ClientPool implements Closeable {
   @Override
   public void close() throws IOException {
     synchronized (mClients) {
-      for (TachyonFileSystem fs : mClients) {
-        fs.close();
-      }
-
       mClients.clear();
     }
   }

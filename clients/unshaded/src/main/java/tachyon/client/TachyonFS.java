@@ -39,7 +39,6 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -63,7 +62,7 @@ import tachyon.worker.WorkerClient;
  * Under the hood, this class maintains a MasterClientBase to talk to the master server and
  * WorkerClients to interact with different Tachyon workers.
  *
- * As of 0.8, replaced by {@link TachyonFileSystem}
+ * As of 0.8, replaced by {@link tachyon.client.file.TachyonFileSystem}
  */
 @PublicApi
 @Deprecated
@@ -340,10 +339,10 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeByte > 0) {
-        return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive);
+        return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive,
+            Constants.NO_TTL);
       } else {
-        return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(),
-                                                   blockSizeByte, recursive);
+        return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(), recursive);
       }
     } catch (TException e) {
       throw new IOException(e);

@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
@@ -262,7 +263,8 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getBoolean("isComplete"),
                 entry.getBoolean("isCacheable"),
                 entry.getString("ufsPath"),
-                entry.get("blocks", new TypeReference<List<Long>>() {}));
+                entry.get("blocks", new TypeReference<List<Long>>() {}),
+                entry.getLong("ttl"));
           }
           case INODE_DIRECTORY: {
             return new InodeDirectoryEntry(
@@ -355,7 +357,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getByteBuffer("metadata"));
           }
           default:
-            throw new IOException("Unknown entry type: " + entry.mType);
+            throw new IOException("Unknown journal entry type: " + entry.mType);
         }
       }
 

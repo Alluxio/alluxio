@@ -31,15 +31,16 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.BlockMasterClient;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
@@ -72,18 +73,17 @@ public class BlockServiceHandlerIntegrationTest {
 
   @After
   public final void after() throws Exception {
-    mTfs.close();
     mBlockMasterClient.close();
     mLocalTachyonCluster.stop();
   }
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = MasterContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
@@ -97,8 +97,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that checkpointing a file successfully informs master of the update
   @Test
   public void addCheckpointTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
+    mTfs.getOutStream(new TachyonURI("/testFile"));
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
 
@@ -119,8 +118,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that caching a block successfully persists the block if the block exists
   @Test
   public void cacheBlockTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
+    mTfs.getOutStream(new TachyonURI("/testFile"));
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
@@ -148,8 +146,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that cancelling a block will remove the temporary file
   @Test
   public void cancelBlockTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
+    mTfs.getOutStream(new TachyonURI("/testFile"));
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
 
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
@@ -172,8 +169,9 @@ public class BlockServiceHandlerIntegrationTest {
   public void lockBlockTest() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
 
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
-        .setTachyonStoreType(TachyonStorageType.STORE).build();
+    OutStreamOptions options =
+        new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
+            .setTachyonStorageType(TachyonStorageType.STORE).build();
     FileOutStream out = mTfs.getOutStream(new TachyonURI("/testFile"), options);
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
 
@@ -201,8 +199,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that lock block returns error on failure
   @Test
   public void lockBlockFailureTest() throws Exception {
-    ClientOptions options = new ClientOptions.Builder(new TachyonConf()).build();
-    mTfs.getOutStream(new TachyonURI("/testFile"), options);
+    mTfs.getOutStream(new TachyonURI("/testFile"));
     TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
 

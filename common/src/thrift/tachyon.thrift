@@ -61,6 +61,7 @@ struct FileInfo {
   13: i32 dependencyId
   14: i32 inMemoryPercentage
   15: i64 lastModificationTimeMs
+  16: i64 ttl
 }
 
 // Information about lineage.
@@ -144,9 +145,9 @@ exception DependencyDoesNotExistException {
 service BlockMasterService {
   i64 workerGetWorkerId(1: NetAddress workerNetAddress)
 
-  i64 workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers, 3: list<i64> usedBytesOnTiers,
-      4: map<i64, list<i64>> currentBlocksOnTiers)
-    throws (1: BlockInfoException bie)
+  void workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers,
+      3: list<i64> usedBytesOnTiers, 4: map<i64, list<i64>> currentBlocksOnTiers)
+    throws (1: TachyonException te)
 
   Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,
       3: list<i64> removedBlockIds, 4: map<i64, list<i64>> addedBlocksOnTiers)
@@ -191,17 +192,11 @@ service FileSystemMasterService {
   // TODO(gene): Is this necessary?
   string getUfsAddress()
 
-  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive)
+  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
-  bool completeFileCheckpoint(1: i64 workerId, 2: i64 fileId, 3: i64 length,
-      4: string checkpointPath)
-    throws (1: FileDoesNotExistException fdnee, 2: SuspectedFileSizeException sfse,
-      3: BlockInfoException bie)
-
-  i64 loadFileInfoFromUfs(1: string path, 2: string ufsPath, 3: i64 blockSizeBytes,
-      4: bool recursive)
+  i64 loadFileInfoFromUfs(1: string path, 2: string ufsPath, 3: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
