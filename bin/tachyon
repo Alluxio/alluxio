@@ -19,8 +19,6 @@ function printUsage {
   echo -e "  journalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon journalCrashTest -help' for more help."
   echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
   echo -e "  masterConcurrencyPerf\t Performance tests for concurrent master operations."
-  echo -e "                       \t NOTE: This command will restart a new Tachyon cluster locally with one master and one worker,"
-  echo -e "                       \t and underfs storage directory will be deleted and recreated, journal directory will be reformatted."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
@@ -142,18 +140,6 @@ function journalCrashTest {
 }
 
 function masterConcurrencyPerf {
-  $LAUNCHER $bin/tachyon-stop.sh
-  sleep 3
-
-  TACHYON_UNDERFS_ADDRESS=${TACHYON_UNDERFS_ADDRESS:-${TACHYON_HOME}/underFSStorage}
-  echo "Deleting $TACHYON_UNDERFS_ADDRESS"
-  rm -rf $TACHYON_UNDERFS_ADDRESS
-  mkdir $TACHYON_UNDERFS_ADDRESS
-
-  $LAUNCHER $bin/tachyon-start.sh local -f
-  sleep 3
-  echo "Tachyon cluster is running..."
-
   MASTER_ADDRESS=$TACHYON_MASTER_ADDRESS
   if [ -z $TACHYON_MASTER_ADDRESS ] ; then
     MASTER_ADDRESS=localhost
