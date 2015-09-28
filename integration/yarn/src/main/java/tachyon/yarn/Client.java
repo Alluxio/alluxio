@@ -60,7 +60,7 @@ import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
 /**
- * Client to submit Tachyon application to Hadoop YARN ResourceManager (RM).
+ * The client to submit the application to run Tachyon to YARN ResourceManager.
  *
  * <p>
  * Launch Tachyon on YARN:
@@ -68,40 +68,40 @@ import tachyon.util.CommonUtils;
  * <code>
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -jar
  * hdfs://HDFSMaster:port/path/to/tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar
- * -num_workers NumTachyonWorkers
+ * -num_workers NumTachyonWorkers -tachyon_home /path/to/tachyon/deployment
  * </code>
  *
  * <p>
- * Check help:
+ * Get help and a full list of options:
  * </p>
  * <code>
  * $ yarn jar tachyon-assemblies-0.8.0-SNAPSHOT-jar-with-dependencies.jar tachyon.yarn.Client -help
  * </code>
  */
 public final class Client {
-  /** Main class to invoke application master */
-  private final String mAppMasterMainClass = ApplicationMaster.class.getName();
-  /** Yarn client to talk to resource manager */
+  /** Main class to invoke ApplicationMaster. */
+  private final String mAmMainClass = ApplicationMaster.class.getName();
+  /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
-  /** Yarn configuration */
+  /** Yarn configuration. */
   private YarnConfiguration mYarnConf = new YarnConfiguration();
-  /** Container context to launch application master */
+  /** Container context to launch application master. */
   private ContainerLaunchContext mAmContainer;
-  /** Application master specific info to register a new Application with RM/ASM */
+  /** ApplicationMaster specific info to register a new Application. */
   private ApplicationSubmissionContext mAppContext;
-  /** Application name */
+  /** Application name. */
   private String mAppName;
-  /** Application master priority */
+  /** ApplicationMaster priority. */
   private int mAmPriority;
-  /** Queue for App master */
+  /** Queue for ApplicationMaster. */
   private String mAmQueue;
-  /** Amount of memory resource to request for to run the App Master */
-  private int mAmMemory;
-  /** Number of virtual core resource to request for to run the App Master */
+  /** Amount of memory resource to request for to run the ApplicationMaster. */
+  private int mAmMemoryInMB;
+  /** Number of virtual core resource to request for to run the ApplicationMaster. */
   private int mAmVCores;
-  /** Application master jar file on HDFS */
-  private String mHDFSAppMasterJar;
-  /** Number of tachyon workers. */
+  /** ApplicationMaster jar file on HDFS. */
+  private String mAppMasterJarHdfs;
+  /** Number of Tachyon workers. */
   private int mNumWorkers;
   /** Tachyon home path on YARN containers. */
   private String mTachyonHome;
@@ -119,14 +119,15 @@ public final class Client {
     mOptions.addOption("queue", true, "RM Queue in which this application is to be submitted");
     mOptions.addOption("user", true, "User to run the application as");
     mOptions.addOption("master_memory", true,
-        "Amount of memory in MB to be requested to run the application master");
+        "Amount of memory in MB to be requested to run the ApplicationMaster");
     mOptions.addOption("master_vcores", true, "Amount of virtual cores to be requested to run the "
-        + "application master");
-    mOptions.addOption("jar", true, "Jar file containing the application master");
-    mOptions.addOption("tachyon_home", true, "Path to Tachyon home dir on YARN slave machines");
+        + "Application Master");
+    mOptions.addOption("jar", true, "Jar file containing the Application Master");
+    mOptions.addOption("tachyon_home", true,
+        "Path of the home dir of Tachyon deployment on YARN slave machines");
     mOptions.addOption("master_address", true, "Address to run Tachyon master");
     mOptions.addOption("help", false, "Print usage");
-    mOptions.addOption("num_workers", true, "Number of tachyon workers to launch");
+    mOptions.addOption("num_workers", true, "Number of Tachyon workers to launch");
   }
 
   /**
@@ -194,19 +195,20 @@ public final class Client {
       return false;
     }
 
-    mHDFSAppMasterJar = cliParser.getOptionValue("jar");
+    mAppMasterJarHdfs = cliParser.getOptionValue("jar");
     mTachyonHome = cliParser.getOptionValue("tachyon_home");
     mMasterAddress = cliParser.getOptionValue("master_address");
 
     mAppName = cliParser.getOptionValue("appname", "Tachyon");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
     mAmQueue = cliParser.getOptionValue("queue", "default");
-    mAmMemory = Integer.parseInt(cliParser.getOptionValue("master_memory", "256"));
+    mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("master_memory", "256"));
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("master_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
 
-    Preconditions.checkArgument(mAmMemory > 0, "Invalid memory specified for application master, "
-        + "exiting. Specified memory=" + mAmMemory);
+    Preconditions.checkArgument(mAmMemoryInMB > 0,
+        "Invalid memory specified for application master, " + "exiting. Specified memory="
+            + mAmMemoryInMB);
     Preconditions.checkArgument(mAmVCores > 0,
         "Invalid virtual cores specified for application master, exiting."
             + " Specified virtual cores=" + mAmVCores);
@@ -256,9 +258,9 @@ public final class Client {
     int maxMem = appResponse.getMaximumResourceCapability().getMemory();
     int maxVCores = appResponse.getMaximumResourceCapability().getVirtualCores();
 
-    Preconditions.checkArgument(mAmMemory <= maxMem,
-        "ApplicationMaster memory specified above max threshold of cluster, specified=" + mAmMemory
-            + ", max=" + maxMem);
+    Preconditions.checkArgument(mAmMemoryInMB <= maxMem,
+        "ApplicationMaster memory specified above max threshold of cluster, specified="
+            + mAmMemoryInMB + ", max=" + maxMem);
     Preconditions.checkArgument(mAmVCores <= maxVCores,
         "ApplicationMaster virtual cores specified above max threshold of cluster, specified="
             + mAmVCores + ", max=" + maxVCores);
@@ -267,8 +269,7 @@ public final class Client {
   private void setupContainerLaunchContext() throws IOException {
     final String amCommand =
         new CommandBuilder(Environment.JAVA_HOME.$$() + "/bin/java").addArg("-Xmx256M")
-            .addArg(mAppMasterMainClass).addArg(mNumWorkers).addArg(mTachyonHome)
-            .addArg(mMasterAddress)
+            .addArg(mAmMainClass).addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
@@ -287,9 +288,9 @@ public final class Client {
   }
 
   private void setupAppMasterJar(LocalResource appMasterJar) throws IOException {
-    Path jarPath = new Path(mHDFSAppMasterJar); // known path to jar file on HDFS
-    FileStatus jarStat = FileSystem.get(mYarnConf).getFileStatus(jarPath);
-    appMasterJar.setResource(ConverterUtils.getYarnUrlFromPath(jarPath));
+    Path jarHdfsPath = new Path(mAppMasterJarHdfs); // known path to jar file on HDFS
+    FileStatus jarStat = FileSystem.get(mYarnConf).getFileStatus(jarHdfsPath);
+    appMasterJar.setResource(ConverterUtils.getYarnUrlFromPath(jarHdfsPath));
     appMasterJar.setSize(jarStat.getLen());
     appMasterJar.setTimestamp(jarStat.getModificationTime());
     appMasterJar.setType(LocalResourceType.FILE);
@@ -315,7 +316,7 @@ public final class Client {
 
     // Set up resource type requirements
     // For now, both memory and vcores are supported, so we set memory and vcores requirements
-    Resource capability = Resource.newInstance(mAmMemory, mAmVCores);
+    Resource capability = Resource.newInstance(mAmMemoryInMB, mAmVCores);
     mAppContext.setResource(capability);
 
     // Set the queue to which this application is to be submitted in the RM
