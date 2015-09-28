@@ -955,7 +955,6 @@ public final class FileSystemMaster extends MasterBase {
     for (Inode inode : createResult.getModified()) {
       writeJournalEntry(new InodeLastModificationTimeEntry(inode.getId(),
           inode.getLastModificationTimeMs()));
-      // writeJournalEntry(new PersistDirectoryEntry(inode.getId(), inode.isPersisted()));
     }
     for (Inode inode : createResult.getCreated()) {
       writeJournalEntry(inode.toJournalEntry());

@@ -111,6 +111,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
         throw new IOException("Failed to create " + parentPath);
       }
+      // TODO(jiri): Implement collection of temporary files left behind by dead clients.
       mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
     } else {
       mUfsPath = null;
