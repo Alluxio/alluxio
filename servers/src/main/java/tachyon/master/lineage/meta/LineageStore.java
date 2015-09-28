@@ -25,7 +25,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.client.file.TachyonFile;
-import tachyon.dag.DAG;
+import tachyon.collections.DirectedAcyclicGraph;
 import tachyon.job.Job;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
@@ -39,25 +39,43 @@ import tachyon.thrift.LineageDoesNotExistException;
  */
 public final class LineageStore implements JournalCheckpointStreamable {
   private final LineageIdGenerator mLineageIdGenerator;
-  private final DAG<Lineage> mLineageDAG;
+  private final DirectedAcyclicGraph<Lineage> mLineageDAG;
 
   /** Indices for lineages */
   /** Index of the output files of lineage to lineage */
   private Map<Long, Lineage> mOutputFileIndex;
   private Map<Long, Lineage> mIdIndex;
 
+  /**
+   * Constructs the lineage store.
+   *
+   * @param lineageIdGenerator the lineage id generator
+   */
   public LineageStore(LineageIdGenerator lineageIdGenerator) {
     mLineageIdGenerator = lineageIdGenerator;
-    mLineageDAG = new DAG<Lineage>();
+    mLineageDAG = new DirectedAcyclicGraph<Lineage>();
     mOutputFileIndex = Maps.newHashMap();
     mIdIndex = Maps.newHashMap();
   }
 
+  /**
+   * Constructs the lineage store from the journal.
+   *
+   * @param entry the journal entry
+   */
   public synchronized void addLineageFromJournal(LineageEntry entry) {
     Lineage lineage = entry.toLineage();
     addLineageInternal(lineage);
   }
 
+  /**
+   * Creates a lineage.
+   *
+   * @param inputFiles the input files
+   * @param outputFiles the output files
+   * @param job the job
+   * @return the id of the created lineage
+   */
   public synchronized long createLineage(List<TachyonFile> inputFiles,
       List<LineageFile> outputFiles, Job job) {
     long lineageId = mLineageIdGenerator.generateId();
@@ -82,12 +100,22 @@ public final class LineageStore implements JournalCheckpointStreamable {
     mIdIndex.put(lineage.getId(), lineage);
   }
 
+  /**
+   * Completes an output file.
+   *
+   * @param fileId the file id
+   */
   public synchronized void completeFile(long fileId) {
     Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.COMPLETED);
   }
 
+  /**
+   * Deletes a lineage.
+   *
+   * @param lineageId the lineage id
+   */
   public synchronized void deleteLineage(long lineageId) {
     Preconditions.checkState(mIdIndex.containsKey(lineageId),
         "lineage id " + lineageId + " does not exist");
@@ -106,16 +134,33 @@ public final class LineageStore implements JournalCheckpointStreamable {
     }
   }
 
+  /**
+   * Requests an output file as being persisted.
+   *
+   * @param fileId the file id
+   */
   public synchronized void requestFilePersistence(long fileId) {
     Preconditions.checkState(mOutputFileIndex.containsKey(fileId));
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.PERSISENCE_REQUESTED);
   }
 
+  /**
+   * Gets the lineage.
+   *
+   * @param lineageId the lineage id
+   * @return the lineage
+   */
   public synchronized Lineage getLineage(long lineageId) {
     return mIdIndex.get(lineageId);
   }
 
+  /**
+   * Gets all the children of a given lineage
+   *
+   * @param lineage the lineage
+   * @return the lineage's children
+   */
   public synchronized List<Lineage> getChildren(Lineage lineage) {
     Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
         "lineage id " + lineage.getId() + " does not exist");
@@ -123,6 +168,12 @@ public final class LineageStore implements JournalCheckpointStreamable {
     return mLineageDAG.getChildren(lineage);
   }
 
+  /**
+   * Gets all the parents of a given lineage
+   *
+   * @param lineage the lineage
+   * @return the lineage's parents
+   */
   public synchronized List<Lineage> getParents(Lineage lineage) {
     Preconditions.checkState(mIdIndex.containsKey(lineage.getId()),
         "lineage id " + lineage.getId() + " does not exist");
@@ -130,6 +181,12 @@ public final class LineageStore implements JournalCheckpointStreamable {
     return mLineageDAG.getParents(lineage);
   }
 
+  /**
+   * Reports an output file as lost.
+   *
+   * @param fileId the file id
+   * @return the lineage containing the output file
+   */
   public synchronized Lineage reportLostFile(long fileId) {
     Lineage lineage = mOutputFileIndex.get(fileId);
     // TODO(yupeng) push the persisted info to FS master
@@ -140,21 +197,35 @@ public final class LineageStore implements JournalCheckpointStreamable {
   }
 
   /**
-   * Gets all the root lineages.
+   * @return the list of all root lineages
    */
   public synchronized List<Lineage> getRootLineages() {
     return mLineageDAG.getRoots();
   }
 
+  /**
+   * Commits a file as persisted
+   *
+   * @param fileId the file id
+   */
   public synchronized void commitFilePersistence(Long fileId) {
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.PERSISTED);
   }
 
+  /**
+   * Sorts a given set of lineages topologically.
+   *
+   * @param lineages lineages to sort
+   * @return the lineages after sort
+   */
   public synchronized List<Lineage> sortLineageTopologically(Set<Lineage> lineages) {
     return mLineageDAG.sortTopologically(lineages);
   }
 
+  /**
+   * @return all the lineages in topological order
+   */
   public synchronized List<Lineage> getAllInTopologicalOrder() {
     return mLineageDAG.getAllInTopologicalOrder();
   }
@@ -171,7 +242,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
   /**
    * @param fileId the fild id
    * @return the lineage state of the given file
-   * @throws LineageDoesNotExistException
+   * @throws LineageDoesNotExistException if the file does not belong to any lineage
    */
   public synchronized LineageFileState getLineageFileState(long fileId)
       throws LineageDoesNotExistException {

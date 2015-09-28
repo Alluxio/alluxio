@@ -38,7 +38,7 @@ public class RecomputePlan {
   }
 
   /**
-   * @return a list of lineages to recompute.
+   * @return a list of lineages to recompute
    */
   public List<Lineage> getLineageToRecompute() {
     return mToRecompute;

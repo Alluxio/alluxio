@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.dag;
+package tachyon.collections;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -27,15 +27,15 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * A DAG. This class is NOT thread-safe.
+ * A Directed Acyclic Graph (DAG). This class is NOT thread-safe.
  *
  * @param <T> the payload of each node.
  */
-public class DAG<T> {
-  private final List<DAGNode<T>> mRoots;
-  private final Map<T, DAGNode<T>> mIndex;
+public class DirectedAcyclicGraph<T> {
+  private final List<DirectedAcyclicGraphNode<T>> mRoots;
+  private final Map<T, DirectedAcyclicGraphNode<T>> mIndex;
 
-  public DAG() {
+  public DirectedAcyclicGraph() {
     mRoots = Lists.newArrayList();
     mIndex = Maps.newHashMap();
   }
@@ -50,7 +50,7 @@ public class DAG<T> {
     Preconditions.checkState(!contains(payload), "the payload already exists in the DAG");
 
     // construct the new node
-    DAGNode<T> newNode = new DAGNode<T>(payload);
+    DirectedAcyclicGraphNode<T> newNode = new DirectedAcyclicGraphNode<T>(payload);
     mIndex.put(payload, newNode);
 
     if (parents.isEmpty()) {
@@ -61,7 +61,7 @@ public class DAG<T> {
       for (T parent : parents) {
         Preconditions.checkState(contains(parent),
             "the parent payload " + parent + " does not exist in the DAG");
-        DAGNode<T> parentNode = mIndex.get(parent);
+        DirectedAcyclicGraphNode<T> parentNode = mIndex.get(parent);
         parentNode.addChild(newNode);
         newNode.addParent(parentNode);
       }
@@ -69,17 +69,17 @@ public class DAG<T> {
   }
 
   /**
-   * Deletes a leaf DAG node that carries the given payload
+   * Deletes a leaf DAG node that carries the given payload.
    *
-   * @param payload the payload of the node to delete.
+   * @param payload the payload of the node to delete
    */
   public void deleteLeaf(T payload) {
     Preconditions.checkState(contains(payload), "the node does not exist");
-    DAGNode<T> node = mIndex.get(payload);
+    DirectedAcyclicGraphNode<T> node = mIndex.get(payload);
     Preconditions.checkState(node.getChildren().isEmpty(), "the node is not a leaf");
 
     // delete from parent
-    for (DAGNode<T> parent : node.getParents()) {
+    for (DirectedAcyclicGraphNode<T> parent : node.getParents()) {
       parent.removeChild(node);
     }
 
@@ -92,44 +92,44 @@ public class DAG<T> {
   }
 
   /**
-   * @return true if there a node in the DAG contains the given value as payload, false otherwise.
+   * @return true if there a node in the DAG contains the given value as payload, false otherwise
    */
   public boolean contains(T payload) {
     return mIndex.containsKey(payload);
   }
 
   /**
-   * @return the children's payloads, null if the given payload doesn't exist in the DAG.
+   * @return the children's payloads, null if the given payload doesn't exist in the DAG
    */
   public List<T> getChildren(T payload) {
     List<T> children = Lists.newArrayList();
     if (!mIndex.containsKey(payload)) {
       return children;
     }
-    DAGNode<T> node = mIndex.get(payload);
-    for (DAGNode<T> child : node.getChildren()) {
+    DirectedAcyclicGraphNode<T> node = mIndex.get(payload);
+    for (DirectedAcyclicGraphNode<T> child : node.getChildren()) {
       children.add(child.getPayload());
     }
     return children;
   }
 
   /**
-   * @return the parents' payloads, null if the given payload doesn't exist in the DAG.
+   * @return the parents' payloads, null if the given payload doesn't exist in the DAG
    */
   public List<T> getParents(T payload) {
     List<T> parents = Lists.newArrayList();
     if (!mIndex.containsKey(payload)) {
       return parents;
     }
-    DAGNode<T> node = mIndex.get(payload);
-    for (DAGNode<T> parent : node.getParents()) {
+    DirectedAcyclicGraphNode<T> node = mIndex.get(payload);
+    for (DirectedAcyclicGraphNode<T> parent : node.getParents()) {
       parents.add(parent.getPayload());
     }
     return parents;
   }
 
   /**
-   * @return true if the payload is in the root of the DAG, false otherwise.
+   * @return true if the payload is in the root of the DAG, false otherwise
    */
   public boolean isRoot(T payload) {
     if (!contains(payload)) {
@@ -139,11 +139,11 @@ public class DAG<T> {
   }
 
   /**
-   * @return all the root payloads.
+   * @return all the root payloads
    */
   public List<T> getRoots() {
     List<T> roots = Lists.newArrayList();
-    for (DAGNode<T> root : mRoots) {
+    for (DirectedAcyclicGraphNode<T> root : mRoots) {
       roots.add(root.getPayload());
     }
     return roots;
@@ -160,9 +160,10 @@ public class DAG<T> {
     List<T> result = Lists.newArrayList();
 
     Set<T> input = Sets.newHashSet(payloads);
-    Deque<DAGNode<T>> toVisit = new ArrayDeque<DAGNode<T>>(mRoots);
+    Deque<DirectedAcyclicGraphNode<T>> toVisit =
+        new ArrayDeque<DirectedAcyclicGraphNode<T>>(mRoots);
     while (!toVisit.isEmpty()) {
-      DAGNode<T> visit = toVisit.removeFirst();
+      DirectedAcyclicGraphNode<T> visit = toVisit.removeFirst();
       T payload = visit.getPayload();
       if (input.remove(payload)) {
         result.add(visit.getPayload());
@@ -176,7 +177,7 @@ public class DAG<T> {
   }
 
   /**
-   * @return the payloads of all the nodes in toplogical order.
+   * @return the payloads of all the nodes in toplogical order
    */
   public List<T> getAllInTopologicalOrder() {
     return sortTopologically(mIndex.keySet());

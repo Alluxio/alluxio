@@ -337,7 +337,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
    * @return the file id
-   * @throws InvalidPathException
+   * @throws InvalidPathException if the paht is invalid
    */
   public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException {

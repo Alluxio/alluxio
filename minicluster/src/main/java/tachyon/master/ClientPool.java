@@ -24,7 +24,7 @@ import java.util.List;
 import com.google.common.base.Supplier;
 
 import tachyon.client.file.TachyonFileSystem;
-import tachyon.client.file.TachyonFileSystemFactory;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 
 /**
