@@ -134,7 +134,7 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     Mockito.when(UnderFileSystem.get(srcPath, WorkerContext.getConf())).thenReturn(ufs);
     Mockito.when(ufs.rename(srcPath,dstPath)).thenReturn(true);
     Mockito.when(ufs.getFileSize(dstPath)).thenReturn(fileSize);
-    mHarness.mManager.addCheckpoint(fileId, nonce);
+    mHarness.mManager.persistFile(fileId, nonce, dstPath);
     Mockito.verify(mHarness.mFileSystemMasterClient).persistFile(fileId, fileSize);
   }
 

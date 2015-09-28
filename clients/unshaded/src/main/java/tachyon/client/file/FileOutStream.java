@@ -122,11 +122,11 @@ public final class FileOutStream extends OutputStream implements Cancelable {
 
     Boolean canComplete = false;
     if (mUnderStorageType.isPersist()) {
+      FileInfo fileInfo = getFileInfo(mFileId);
+      String ufsPath = fileInfo.getUfsPath();
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
-        FileInfo fileInfo = getFileInfo(mFileId);
-        String ufsPath = fileInfo.getUfsPath();
         String fileName = PathUtils.temporaryFileName(mFileId, mNonce, ufsPath);
         UnderFileSystem underFsClient = UnderFileSystem.get(fileName, ClientContext.getConf());
         underFsClient.delete(fileName, false);
@@ -136,7 +136,7 @@ public final class FileOutStream extends OutputStream implements Cancelable {
         WorkerClient workerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
         try {
           // TODO(yupeng): Investigate if this RPC can be moved to master.
-          workerClient.addCheckpoint(mFileId, mNonce);
+          workerClient.persistFile(mFileId, mNonce, ufsPath);
         } finally {
           BlockStoreContext.INSTANCE.releaseWorkerClient(workerClient);
         }

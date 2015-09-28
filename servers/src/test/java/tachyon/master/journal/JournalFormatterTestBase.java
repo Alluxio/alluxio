@@ -162,7 +162,7 @@ public abstract class JournalFormatterTestBase {
   }
 
   @Test
-  public void addCheckpointEntryTest() throws IOException {
+  public void persistFileEntryTest() throws IOException {
     entryTest(new PersistFileEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS));
   }
 

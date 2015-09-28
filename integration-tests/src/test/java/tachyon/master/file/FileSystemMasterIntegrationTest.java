@@ -245,17 +245,6 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @Test
-  public void addCheckpointTest() throws Exception {
-    long fileId =
-        mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertFalse(fileInfo.isPersisted);
-    mFsMaster.persistFile(fileId, 1);
-    fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertTrue(fileInfo.isPersisted);
-  }
-
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
@@ -636,6 +625,18 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdirs(new TachyonURI("/testFile"), true);
     mFsMaster.persistFile(mFsMaster.getFileId(new TachyonURI("/testFile")), 0);
   }
+
+  @Test
+  public void persistFileTest() throws Exception {
+    long fileId =
+        mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertFalse(fileInfo.isPersisted);
+    mFsMaster.persistFile(fileId, 1);
+    fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertTrue(fileInfo.isPersisted);
+  }
+
 
   @Test
   public void renameExistingDstTest() throws Exception {
