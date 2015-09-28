@@ -20,9 +20,9 @@ import java.util.Vector;
 import com.google.common.base.Preconditions;
 
 /**
- * A shell command.
+ * This class is used to build a string representing a shell command by adding arguments.
  *
- * TODO: to share this class into util.
+ * TODO(binfan): to share this class into util.
  */
 public class CommandBuilder {
   private String mBase;

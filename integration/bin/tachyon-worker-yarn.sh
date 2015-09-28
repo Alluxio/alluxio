@@ -11,7 +11,6 @@ mkdir -p "${TACHYON_LOGS_DIR}"
 
 echo Launch Tachyon worker
 "${JAVA}" -cp "${CLASSPATH}" \
-  ${TACHYON_WORKER_JAVA_OPTS}  \
   -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties \
   -Dtachyon.accesslogger.type="WORKER_ACCESS_LOGGER" \
   -Dtachyon.home="${TACHYON_HOME}" \
@@ -22,4 +21,5 @@ echo Launch Tachyon worker
   -Dtachyon.worker.tieredstore.level0.alias=MEM \
   -Dtachyon.worker.tieredstore.level0.dirs.path="/mnt/ramdisk" \
   -Dtachyon.worker.tieredstore.level0.dirs.quota="${TACHYON_WORKER_MEMORY_SIZE}" \
+  ${TACHYON_WORKER_JAVA_OPTS} \
   tachyon.worker.TachyonWorker > "${TACHYON_LOGS_DIR}"/worker.out 2>&1

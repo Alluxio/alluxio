@@ -158,8 +158,8 @@ public final class Client {
    * Main run function for the client
    *
    * @return true if application completed successfully
-   * @throws IOException
-   * @throws YarnException
+   * @throws IOException if errors occur from ResourceManager
+   * @throws YarnException if errors occur from ResourceManager
    */
   public boolean run() throws IOException, YarnException {
     submitApplication();
@@ -178,7 +178,7 @@ public final class Client {
    *
    * @param args Parsed command line options
    * @return Whether the parseArgs was successful to run the client
-   * @throws ParseException
+   * @throws ParseException if an error occurs when parsing the argument
    */
   private boolean parseArgs(String[] args) throws ParseException {
     Preconditions.checkArgument(args.length > 0, "No args specified for client to initialize");
@@ -221,43 +221,33 @@ public final class Client {
    * alpha API.
    */
   private void submitApplication() throws YarnException, IOException {
-    // TODO: setup credential
+    // TODO(binfan): setup credential
 
-    //
     // Initialize a YarnClient
-    //
     mYarnClient = YarnClient.createYarnClient();
     mYarnClient.init(mYarnConf);
     mYarnClient.start();
 
-    //
     // Create an application, get and check the information about the cluster
-    //
     YarnClientApplication app = mYarnClient.createApplication();
     // Get a response of this application, containing information about the cluster
     GetNewApplicationResponse appResponse = app.getNewApplicationResponse();
     // Check the cluster has enough resource to launch the application master
     checkClusterResource(appResponse);
 
-    //
     // Set up the container launch context for the application master
-    //
     mAmContainer = Records.newRecord(ContainerLaunchContext.class);
     setupContainerLaunchContext();
 
-    //
     // Finally, set-up ApplicationSubmissionContext for the application
-    //
     mAppContext = app.getApplicationSubmissionContext();
     setupApplicationSubmissionContext();
 
-    //
     // Submit the application to the applications manager.
-    //
     // Ignore the response as either a valid response object is returned on success
     // or an exception thrown to denote some form of a failure
     mAppId = mAppContext.getApplicationId();
-    System.out.println("Submitting application of id " + mAppId + " to ASM");
+    System.out.println("Submitting application of id " + mAppId + " to ResourceManager");
     mYarnClient.submitApplication(mAppContext);
   }
 
@@ -267,11 +257,11 @@ public final class Client {
     int maxVCores = appResponse.getMaximumResourceCapability().getVirtualCores();
 
     Preconditions.checkArgument(mAmMemory <= maxMem,
-        "AM memory specified above max threshold of cluster, specified=" + mAmMemory + ", max="
-            + maxMem);
+        "ApplicationMaster memory specified above max threshold of cluster, specified=" + mAmMemory
+            + ", max=" + maxMem);
     Preconditions.checkArgument(mAmVCores <= maxVCores,
-        "AM virtual cores specified above max threshold of cluster, specified=" + mAmVCores
-            + ", max=" + maxVCores);
+        "ApplicationMaster virtual cores specified above max threshold of cluster, specified="
+            + mAmVCores + ", max=" + maxVCores);
   }
 
   private void setupContainerLaunchContext() throws IOException {
@@ -282,7 +272,7 @@ public final class Client {
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
-    System.out.println("AM command: " + amCommand);
+    System.out.println("ApplicationMaster command: " + amCommand);
     mAmContainer.setCommands(Collections.singletonList(amCommand));
 
     // Setup jar for ApplicationMaster
@@ -342,8 +332,8 @@ public final class Client {
    * Monitors the submitted application for completion.
    *
    * @return true if application completed successfully
-   * @throws YarnException
-   * @throws IOException
+   * @throws YarnException if errors occur when obtaining application report from ResourceManager
+   * @throws IOException if errors occur when obtaining application report from ResourceManager
    */
   private boolean monitorApplication() throws YarnException, IOException {
     DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
