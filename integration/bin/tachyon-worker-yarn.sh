@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
 TACHYON_WORKER_JAVA_OPTS="${TACHYON_WORKER_JAVA_OPTS:-${TACHYON_JAVA_OPTS}}"
 
-echo Mount ramdisk
+echo Mount ramdisk on worker
 ${TACHYON_HOME}/bin/tachyon-mount.sh SudoMount
 
 mkdir -p "${TACHYON_LOGS_DIR}"
