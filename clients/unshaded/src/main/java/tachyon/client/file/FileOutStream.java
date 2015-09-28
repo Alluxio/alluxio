@@ -103,15 +103,13 @@ public final class FileOutStream extends OutputStream implements Cancelable,
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
     if (mUnderStorageType.isPersist()) {
-      FileInfo fileInfo = getFileInfo(mFileId);
+      FileInfo fileInfo = getFileInfo();
       mUfsPath = fileInfo.getUfsPath();
       String fileName = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
       UnderFileSystem ufs = UnderFileSystem.get(fileName, ClientContext.getConf());
       String parentPath = (new TachyonURI(mUfsPath)).getParent().getPath();
-      if (!ufs.exists(parentPath)) {
-        if (!ufs.mkdirs(parentPath, true)) {
-          throw new IOException("Failed to create " + parentPath);
-        }
+      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
+        throw new IOException("Failed to create " + parentPath);
       }
       mUnderStorageOutputStream = ufs.create(fileName, (int) mBlockSize);
     } else {
@@ -144,9 +142,14 @@ public final class FileOutStream extends OutputStream implements Cancelable,
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
-        String fileName = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
-        UnderFileSystem underFsClient = UnderFileSystem.get(fileName, ClientContext.getConf());
-        underFsClient.delete(fileName, false);
+        String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+        UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
+        if (!ufs.exists(tmpPath)) {
+          FileInfo fileInfo = getFileInfo();
+          mUfsPath = fileInfo.getUfsPath();
+          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+        }
+        ufs.delete(tmpPath, false);
       } else {
         mUnderStorageOutputStream.flush();
         mUnderStorageOutputStream.close();
@@ -296,10 +299,10 @@ public final class FileOutStream extends OutputStream implements Cancelable,
     }
   }
 
-  private FileInfo getFileInfo(long fileId) throws IOException {
+  private FileInfo getFileInfo() throws IOException {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
-      return client.getFileInfo(fileId);
+      return client.getFileInfo(mFileId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e.getMessage());
     } finally {
