@@ -16,7 +16,6 @@
 package tachyon.master.file;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
@@ -26,8 +25,6 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.master.MasterContext;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.DependencyDoesNotExistException;
-import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -48,11 +45,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   @Override
   public Set<Long> workerGetPinIdList() {
     return mFileSystemMaster.getPinIdList();
-  }
-
-  @Override
-  public List<Integer> workerGetPriorityDependencyList() {
-    return mFileSystemMaster.getPriorityDependencyList();
   }
 
   @Override
@@ -163,27 +155,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public int createDependency(List<String> parents, List<String> children, String commandPrefix,
-      List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
-      int dependencyType, long childrenBlockSizeByte) throws InvalidPathException,
-      FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException {
-    // TODO(gene): Implement lineage.
-    return 0;
-  }
-
-  @Override
-  public DependencyInfo getDependencyInfo(int dependencyId) throws DependencyDoesNotExistException {
-    return mFileSystemMaster.getClientDependencyInfo(dependencyId);
-  }
-
-  @Override
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
     mFileSystemMaster.reportLostFile(fileId);
   }
-
-  @Override
-  public void requestFilesInDependency(int depId) throws DependencyDoesNotExistException {
-    mFileSystemMaster.requestFilesInDependency(depId);
-  }
-
 }

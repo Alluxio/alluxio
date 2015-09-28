@@ -40,20 +40,17 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import tachyon.TachyonURI;
-import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
-import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
-import tachyon.master.file.meta.DependencyType;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 
@@ -288,29 +285,6 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("length"),
                 new TachyonURI(entry.getString("checkpointPath")),
                 entry.getLong("operationTimeMs"));
-          }
-          case DEPENDENCY: {
-            return new DependencyEntry(
-                entry.getInt("id"),
-                entry.get("parentFiles", new TypeReference<List<Long>>() {
-                }),
-                entry.get("childrenFiles", new TypeReference<List<Long>>() {
-                }),
-                entry.getString("commandPrefix"),
-                entry.getByteBufferList("data"),
-                entry.getString("comment"),
-                entry.getString("framework"),
-                entry.getString("frameworkVersion"),
-                entry.get("dependencyType", DependencyType.class),
-                entry.get("parentDependencies", new TypeReference<List<Integer>>() {
-                }),
-                entry.get("childrenDependencies", new TypeReference<List<Integer>>() {
-                }),
-                entry.getLong("creationTimeMs"),
-                entry.get("uncheckpointedFiles", new TypeReference<List<Long>>() {
-                }),
-                entry.get("lostFileIds", new TypeReference<Set<Long>>() {
-                }));
           }
           case COMPLETE_FILE: {
             return new CompleteFileEntry(

@@ -198,7 +198,6 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     Assert.assertEquals(inodeDirectory.isPinned(), info.isIsPinned());
     Assert.assertFalse(info.isIsCacheable());
     Assert.assertNull(info.getBlockIds());
-    Assert.assertEquals(-1, info.getDependencyId());
     Assert.assertEquals(inodeDirectory.getLastModificationTimeMs(),
         info.getLastModificationTimeMs());
   }

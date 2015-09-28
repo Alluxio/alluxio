@@ -46,14 +46,11 @@ import tachyon.master.block.BlockMaster;
 import tachyon.master.file.journal.AddCheckpointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
-import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
-import tachyon.master.file.meta.Dependency;
-import tachyon.master.file.meta.DependencyMap;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
@@ -65,8 +62,6 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
-import tachyon.thrift.DependencyDoesNotExistException;
-import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -91,8 +86,6 @@ public final class FileSystemMaster extends MasterBase {
 
   /** This manages the file system inode structure. This must be journaled. */
   private final InodeTree mInodeTree;
-  /** This manages metadata for lineage. This must be journaled. */
-  private final DependencyMap mDependencyMap = new DependencyMap();
   /** This generates unique directory ids. This must be journaled. */
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
@@ -144,21 +137,6 @@ public final class FileSystemMaster extends MasterBase {
       } catch (FileDoesNotExistException fdnee) {
         throw new RuntimeException(fdnee);
       }
-    } else if (entry instanceof DependencyEntry) {
-      DependencyEntry dependencyEntry = (DependencyEntry) entry;
-      Dependency dependency = new Dependency(dependencyEntry.mId, dependencyEntry.mParentFiles,
-          dependencyEntry.mChildrenFiles, dependencyEntry.mCommandPrefix, dependencyEntry.mData,
-          dependencyEntry.mComment, dependencyEntry.mFramework, dependencyEntry.mFrameworkVersion,
-          dependencyEntry.mDependencyType, dependencyEntry.mParentDependencies,
-          dependencyEntry.mCreationTimeMs);
-      for (int childDependencyId : dependencyEntry.mChildrenDependencies) {
-        dependency.addChildrenDependency(childDependencyId);
-      }
-      for (long lostFileId : dependencyEntry.mLostFileIds) {
-        dependency.addLostFile(lostFileId);
-      }
-      dependency.resetUncheckpointedChildrenFiles(dependencyEntry.mUncheckpointedFiles);
-      mDependencyMap.addDependency(dependency);
     } else if (entry instanceof CompleteFileEntry) {
       completeFileFromEntry((CompleteFileEntry) entry);
     } else if (entry instanceof AddCheckpointEntry) {
@@ -179,7 +157,6 @@ public final class FileSystemMaster extends MasterBase {
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     mInodeTree.streamToJournalCheckpoint(outputStream);
-    mDependencyMap.streamToJournalCheckpoint(outputStream);
     outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
   }
 
@@ -271,19 +248,7 @@ public final class FileSystemMaster extends MasterBase {
     if (!file.hasCheckpointed()) {
       file.setUfsPath(checkpointPath.toString());
       needLog = true;
-
-      synchronized (mDependencyMap) {
-        Dependency dep = mDependencyMap.getFromFileId(fileId);
-        if (dep != null) {
-          dep.childCheckpointed(fileId);
-          if (dep.hasCheckpointed()) {
-            mDependencyMap.removeUncheckpointedDependency(dep);
-            mDependencyMap.removePriorityDependency(dep);
-          }
-        }
-      }
     }
-    mDependencyMap.addFileCheckpoint(fileId);
     file.setLastModificationTimeMs(opTimeMs);
     file.setComplete(length);
     MasterContext.getMasterSource().incFilesCheckpointed();
@@ -429,7 +394,6 @@ public final class FileSystemMaster extends MasterBase {
 
   void completeFileInternal(List<Long> blockIds, long fileId, long fileLength,
       long opTimeMs) throws FileDoesNotExistException {
-    mDependencyMap.addFileCheckpoint(fileId);
     InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
     inodeFile.setBlockIds(blockIds);
     inodeFile.setComplete(fileLength);
@@ -1071,55 +1035,8 @@ public final class FileSystemMaster extends MasterBase {
     return mWhitelist.getList();
   }
 
-  // TODO(gene): The following methods are for lineage, which is not fully functional yet.
-  public void createDependency() {
-    // TODO(gene): Implement lineage.
-  }
-
-  public DependencyInfo getClientDependencyInfo(int dependencyId)
-      throws DependencyDoesNotExistException {
-    Dependency dependency = mDependencyMap.getFromDependencyId(dependencyId);
-    if (dependency == null) {
-      throw new DependencyDoesNotExistException("No dependency with id " + dependencyId);
-    }
-    return dependency.generateClientDependencyInfo();
-  }
-
-  public void requestFilesInDependency(int dependencyId) {
-    synchronized (mDependencyMap) {
-      Dependency dependency = mDependencyMap.getFromDependencyId(dependencyId);
-      if (dependency != null) {
-        LOG.info("Request files in dependency " + dependency);
-        if (dependency.hasLostFile()) {
-          mDependencyMap.recomputeDependency(dependencyId);
-        }
-      } else {
-        LOG.error("There is no dependency with id " + dependencyId);
-      }
-    }
-  }
-
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
-    synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeById(fileId);
-      if (inode.isDirectory()) {
-        LOG.warn("Reported file is a directory " + inode);
-        return;
-      }
-      InodeFile iFile = (InodeFile) inode;
-
-      if (mDependencyMap.addLostFile(fileId) == null) {
-        LOG.error("There is no dependency info for " + iFile + " . No recovery on that");
-      } else {
-        LOG.info("Reported file loss. Tachyon will recompute it: " + iFile);
-      }
-    }
-  }
-
-  public List<Integer> getPriorityDependencyList() {
-    synchronized (mDependencyMap) {
-      return mDependencyMap.getPriorityDependencyList();
-    }
+    throw new UnsupportedOperationException("report lost file not supported");
   }
 
   /**

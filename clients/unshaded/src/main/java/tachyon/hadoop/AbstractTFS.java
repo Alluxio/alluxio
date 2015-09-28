@@ -43,7 +43,6 @@ import tachyon.client.TachyonFile;
 import tachyon.client.UfsUtils;
 import tachyon.client.WriteType;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
@@ -147,43 +146,11 @@ abstract class AbstractTFS extends FileSystem {
     }
 
     if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
-      TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-      mTFS.createFile(path, blockSize);
-      String depPath = path.getPath();
-      depPath = depPath.substring(depPath.indexOf(FIRST_COM_PATH) + FIRST_COM_PATH.length());
-      depPath = depPath.substring(0, depPath.indexOf(TachyonURI.SEPARATOR));
-      int depId = Integer.parseInt(depPath);
-      LOG.info("create(" + cPath + ") : " + depPath + " " + depId);
-      depPath = path.getPath();
-      depPath = depPath.substring(depPath.indexOf("part-") + 5);
-      int index = Integer.parseInt(depPath);
-      DependencyInfo info = mTFS.getClientDependencyInfo(depId);
-      long fileId = info.getChildren().get(index).intValue();
-      LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
-
-      TachyonFile file = mTFS.getFile(fileId);
-      file.setUFSConf(getConf());
-      return new FSDataOutputStream(file.getOutStream(WriteType.ASYNC_THROUGH), mStatistics);
+      throw new UnsupportedOperationException("operation not supported");
     }
 
     if (cPath.toString().contains(RECOMPUTE_PATH) && !cPath.toString().contains("SUCCESS")) {
-      TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-      mTFS.createFile(path, blockSize);
-      String depPath = path.getPath();
-      depPath = depPath.substring(depPath.indexOf(RECOMPUTE_PATH) + RECOMPUTE_PATH.length());
-      depPath = depPath.substring(0, depPath.indexOf(TachyonURI.SEPARATOR));
-      int depId = Integer.parseInt(depPath);
-      LOG.info("create(" + cPath + ") : " + depPath + " " + depId);
-      depPath = path.getPath();
-      depPath = depPath.substring(depPath.indexOf("part-") + 5);
-      int index = Integer.parseInt(depPath);
-      DependencyInfo info = mTFS.getClientDependencyInfo(depId);
-      long fileId = info.getChildren().get(index).intValue();
-      LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
-
-      TachyonFile file = mTFS.getFile(fileId);
-      file.setUFSConf(getConf());
-      return new FSDataOutputStream(file.getOutStream(WriteType.ASYNC_THROUGH), mStatistics);
+      throw new UnsupportedOperationException("operation not supported");
     }
 
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
@@ -392,8 +359,6 @@ abstract class AbstractTFS extends FileSystem {
   public TachyonFS getTachyonFS() {
     return mTFS;
   }
-
-  @Override
   public URI getUri() {
     return mUri;
   }

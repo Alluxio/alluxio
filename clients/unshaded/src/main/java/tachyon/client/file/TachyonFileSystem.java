@@ -28,8 +28,8 @@ import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.GetInfoOptions;
-import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OpenOptions;
@@ -38,7 +38,6 @@ import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 
@@ -212,14 +211,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
 
   // TODO: Move this to lineage client
   public void requestFilesInDependency(int depId) throws IOException, TachyonException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      masterClient.requestFilesInDependency(depId);
-    } catch (DependencyDoesNotExistException e) {
-      throw new TachyonException(e, TachyonExceptionType.DEPENDENCY_DOES_NOT_EXIST);
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**

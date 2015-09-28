@@ -41,7 +41,6 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -486,7 +485,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized DependencyInfo getClientDependencyInfo(int depId) throws IOException {
-    return mFSMasterClient.getDependencyInfo(depId);
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
@@ -989,11 +988,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized void requestFilesInDependency(int depId) throws IOException {
-    try {
-      mFSMasterClient.requestFilesInDependency(depId);
-    } catch (DependencyDoesNotExistException e) {
-      throw new IOException(e);
-    }
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
