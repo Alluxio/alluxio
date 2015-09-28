@@ -30,23 +30,34 @@ public class PathUtilsTest {
   public final ExpectedException mException = ExpectedException.none();
 
   @Test
-  public void getPathComponentsNoExceptionTest() throws InvalidPathException {
-    Assert.assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
-    Assert.assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
-    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
-        PathUtils.getPathComponents("/foo/bar"));
-    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
-        PathUtils.getPathComponents("/foo/bar/"));
-    Assert.assertArrayEquals(new String[] {"", "bar"},
-        PathUtils.getPathComponents("/foo/../bar"));
-    Assert.assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
-        PathUtils.getPathComponents("/foo//bar/a/b/c"));
+  public void cleanPathNoExceptionTest() throws InvalidPathException {
+    // test clean path
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar"));
+
+    // test trailing slash
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar/"));
+
+    // test redundant slashes
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar"));
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar//"));
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo///////bar//////"));
+
+    // test dots gets resolved
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/./bar"));
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/././bar"));
+    Assert.assertEquals("/foo", PathUtils.cleanPath("/foo/bar/.."));
+    Assert.assertEquals("/bar", PathUtils.cleanPath("/foo/../bar"));
+    Assert.assertEquals("/", PathUtils.cleanPath("/foo/bar/../.."));
+
+    // the following seems strange
+    // TODO(jiri): Instead of returning null, throw InvalidPathException.
+    Assert.assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
   }
 
   @Test
-  public void getPathComponentsExceptionTest() throws InvalidPathException {
+  public void cleanPathExceptionTest() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
-    PathUtils.getPathComponents("/\\   foo / bar");
+    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/\\   foo / bar"));
   }
 
   @Test
@@ -93,37 +104,6 @@ public class PathUtilsTest {
   }
 
   @Test
-  public void cleanPathNoExceptionTest() throws InvalidPathException {
-    // test clean path
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar"));
-
-    // test trailing slash
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/bar/"));
-
-    // test redundant slashes
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo//bar//"));
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo///////bar//////"));
-
-    // test dots gets resolved
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/./bar"));
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/foo/././bar"));
-    Assert.assertEquals("/foo", PathUtils.cleanPath("/foo/bar/.."));
-    Assert.assertEquals("/bar", PathUtils.cleanPath("/foo/../bar"));
-    Assert.assertEquals("/", PathUtils.cleanPath("/foo/bar/../.."));
-
-    // the following seems strange
-    // TODO(jiri): Instead of returning null, throw InvalidPathException.
-    Assert.assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
-  }
-
-  @Test
-  public void cleanPathExceptionTest() throws InvalidPathException {
-    mException.expect(InvalidPathException.class);
-    Assert.assertEquals("/foo/bar", PathUtils.cleanPath("/\\   foo / bar"));
-  }
-
-  @Test
   public void getParentTest() throws InvalidPathException {
     // get a parent that is non-root
     Assert.assertEquals("/foo", PathUtils.getParent("/foo/bar"));
@@ -140,6 +120,45 @@ public class PathUtilsTest {
     Assert.assertEquals("/", PathUtils.getParent("/"));
     Assert.assertEquals("/", PathUtils.getParent("/foo/bar/../../"));
     Assert.assertEquals("/", PathUtils.getParent("/foo/../bar/../"));
+  }
+
+  @Test
+  public void getPathComponentsNoExceptionTest() throws InvalidPathException {
+    Assert.assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
+    Assert.assertArrayEquals(new String[] {"", "bar"}, PathUtils.getPathComponents("/bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
+        PathUtils.getPathComponents("/foo/bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar"},
+        PathUtils.getPathComponents("/foo/bar/"));
+    Assert.assertArrayEquals(new String[] {"", "bar"},
+        PathUtils.getPathComponents("/foo/../bar"));
+    Assert.assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
+        PathUtils.getPathComponents("/foo//bar/a/b/c"));
+  }
+
+  @Test
+  public void getPathComponentsExceptionTest() throws InvalidPathException {
+    mException.expect(InvalidPathException.class);
+    PathUtils.getPathComponents("/\\   foo / bar");
+  }
+
+  @Test
+  public void hasPrefixTest() throws InvalidPathException {
+    Assert.assertTrue(PathUtils.hasPrefix("/", "/"));
+    Assert.assertTrue(PathUtils.hasPrefix("/a", "/a"));
+    Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
+    Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b"));
+    Assert.assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b/c"));
+    Assert.assertFalse(PathUtils.hasPrefix("/", "/a"));
+    Assert.assertFalse(PathUtils.hasPrefix("/", "/a/b/c"));
+    Assert.assertFalse(PathUtils.hasPrefix("/a", "/a/b/c"));
+    Assert.assertFalse(PathUtils.hasPrefix("/a/b", "/a/b/c"));
+    Assert.assertFalse(PathUtils.hasPrefix("/a/b/c", "/aa"));
+    Assert.assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/bb"));
+    Assert.assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/b/cc"));
+    Assert.assertFalse(PathUtils.hasPrefix("/aa/b/c", "/a"));
+    Assert.assertFalse(PathUtils.hasPrefix("/a/bb/c", "/a/b"));
+    Assert.assertFalse(PathUtils.hasPrefix("/a/b/cc", "/a/b/c"));
   }
 
   @Test
