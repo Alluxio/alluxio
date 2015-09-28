@@ -51,13 +51,13 @@ public class ResourcePoolTest {
 
     @Override
     protected Integer createNewResource() {
-      mPort++;
+      mPort ++;
       return Integer.valueOf(mPort);
     }
   }
 
   @Test
-  public void testResourcePoolNormal() {
+  public void resourcePoolNormalTest() {
     TestResourcePool testPool = new TestResourcePool(2);
     int resource1 = testPool.acquire();
     testPool.release(resource1);
@@ -66,7 +66,7 @@ public class ResourcePoolTest {
   }
 
   @Test
-  public void testResourcePoolBlocking() throws InterruptedException {
+  public void resourcePoolBlockingTest() throws InterruptedException {
     mThrown.expect(RuntimeException.class);
     LinkedBlockingQueue queue = PowerMockito.mock(LinkedBlockingQueue.class);
     TestResourcePool testPool = new TestResourcePool(2, queue);
