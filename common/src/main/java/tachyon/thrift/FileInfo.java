@@ -45,15 +45,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("length", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeBytes", org.apache.thrift.protocol.TType.I64, (short)6);
   private static final org.apache.thrift.protocol.TField CREATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("creationTimeMs", org.apache.thrift.protocol.TType.I64, (short)7);
-  private static final org.apache.thrift.protocol.TField IS_COMPLETE_FIELD_DESC = new org.apache.thrift.protocol.TField("isComplete", org.apache.thrift.protocol.TType.BOOL, (short)8);
+  private static final org.apache.thrift.protocol.TField IS_COMPLETED_FIELD_DESC = new org.apache.thrift.protocol.TField("isCompleted", org.apache.thrift.protocol.TType.BOOL, (short)8);
   private static final org.apache.thrift.protocol.TField IS_FOLDER_FIELD_DESC = new org.apache.thrift.protocol.TField("isFolder", org.apache.thrift.protocol.TType.BOOL, (short)9);
   private static final org.apache.thrift.protocol.TField IS_PINNED_FIELD_DESC = new org.apache.thrift.protocol.TField("isPinned", org.apache.thrift.protocol.TType.BOOL, (short)10);
   private static final org.apache.thrift.protocol.TField IS_CACHEABLE_FIELD_DESC = new org.apache.thrift.protocol.TField("isCacheable", org.apache.thrift.protocol.TType.BOOL, (short)11);
-  private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)12);
-  private static final org.apache.thrift.protocol.TField DEPENDENCY_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("dependencyId", org.apache.thrift.protocol.TType.I32, (short)13);
-  private static final org.apache.thrift.protocol.TField IN_MEMORY_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemoryPercentage", org.apache.thrift.protocol.TType.I32, (short)14);
-  private static final org.apache.thrift.protocol.TField LAST_MODIFICATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("lastModificationTimeMs", org.apache.thrift.protocol.TType.I64, (short)15);
-  private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)16);
+  private static final org.apache.thrift.protocol.TField IS_PERSISTED_FIELD_DESC = new org.apache.thrift.protocol.TField("isPersisted", org.apache.thrift.protocol.TType.BOOL, (short)12);
+  private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)13);
+  private static final org.apache.thrift.protocol.TField DEPENDENCY_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("dependencyId", org.apache.thrift.protocol.TType.I32, (short)14);
+  private static final org.apache.thrift.protocol.TField IN_MEMORY_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemoryPercentage", org.apache.thrift.protocol.TType.I32, (short)15);
+  private static final org.apache.thrift.protocol.TField LAST_MODIFICATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("lastModificationTimeMs", org.apache.thrift.protocol.TType.I64, (short)16);
+  private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)17);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -68,10 +69,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   public long length; // required
   public long blockSizeBytes; // required
   public long creationTimeMs; // required
-  public boolean isComplete; // required
+  public boolean isCompleted; // required
   public boolean isFolder; // required
   public boolean isPinned; // required
   public boolean isCacheable; // required
+  public boolean isPersisted; // required
   public List<Long> blockIds; // required
   public int dependencyId; // required
   public int inMemoryPercentage; // required
@@ -87,15 +89,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     LENGTH((short)5, "length"),
     BLOCK_SIZE_BYTES((short)6, "blockSizeBytes"),
     CREATION_TIME_MS((short)7, "creationTimeMs"),
-    IS_COMPLETE((short)8, "isComplete"),
+    IS_COMPLETED((short)8, "isCompleted"),
     IS_FOLDER((short)9, "isFolder"),
     IS_PINNED((short)10, "isPinned"),
     IS_CACHEABLE((short)11, "isCacheable"),
-    BLOCK_IDS((short)12, "blockIds"),
-    DEPENDENCY_ID((short)13, "dependencyId"),
-    IN_MEMORY_PERCENTAGE((short)14, "inMemoryPercentage"),
-    LAST_MODIFICATION_TIME_MS((short)15, "lastModificationTimeMs"),
-    TTL((short)16, "ttl");
+    IS_PERSISTED((short)12, "isPersisted"),
+    BLOCK_IDS((short)13, "blockIds"),
+    DEPENDENCY_ID((short)14, "dependencyId"),
+    IN_MEMORY_PERCENTAGE((short)15, "inMemoryPercentage"),
+    LAST_MODIFICATION_TIME_MS((short)16, "lastModificationTimeMs"),
+    TTL((short)17, "ttl");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -124,23 +127,25 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return BLOCK_SIZE_BYTES;
         case 7: // CREATION_TIME_MS
           return CREATION_TIME_MS;
-        case 8: // IS_COMPLETE
-          return IS_COMPLETE;
+        case 8: // IS_COMPLETED
+          return IS_COMPLETED;
         case 9: // IS_FOLDER
           return IS_FOLDER;
         case 10: // IS_PINNED
           return IS_PINNED;
         case 11: // IS_CACHEABLE
           return IS_CACHEABLE;
-        case 12: // BLOCK_IDS
+        case 12: // IS_PERSISTED
+          return IS_PERSISTED;
+        case 13: // BLOCK_IDS
           return BLOCK_IDS;
-        case 13: // DEPENDENCY_ID
+        case 14: // DEPENDENCY_ID
           return DEPENDENCY_ID;
-        case 14: // IN_MEMORY_PERCENTAGE
+        case 15: // IN_MEMORY_PERCENTAGE
           return IN_MEMORY_PERCENTAGE;
-        case 15: // LAST_MODIFICATION_TIME_MS
+        case 16: // LAST_MODIFICATION_TIME_MS
           return LAST_MODIFICATION_TIME_MS;
-        case 16: // TTL
+        case 17: // TTL
           return TTL;
         default:
           return null;
@@ -186,14 +191,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __LENGTH_ISSET_ID = 1;
   private static final int __BLOCKSIZEBYTES_ISSET_ID = 2;
   private static final int __CREATIONTIMEMS_ISSET_ID = 3;
-  private static final int __ISCOMPLETE_ISSET_ID = 4;
+  private static final int __ISCOMPLETED_ISSET_ID = 4;
   private static final int __ISFOLDER_ISSET_ID = 5;
   private static final int __ISPINNED_ISSET_ID = 6;
   private static final int __ISCACHEABLE_ISSET_ID = 7;
-  private static final int __DEPENDENCYID_ISSET_ID = 8;
-  private static final int __INMEMORYPERCENTAGE_ISSET_ID = 9;
-  private static final int __LASTMODIFICATIONTIMEMS_ISSET_ID = 10;
-  private static final int __TTL_ISSET_ID = 11;
+  private static final int __ISPERSISTED_ISSET_ID = 8;
+  private static final int __DEPENDENCYID_ISSET_ID = 9;
+  private static final int __INMEMORYPERCENTAGE_ISSET_ID = 10;
+  private static final int __LASTMODIFICATIONTIMEMS_ISSET_ID = 11;
+  private static final int __TTL_ISSET_ID = 12;
   private short __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -212,13 +218,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.CREATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("creationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.IS_COMPLETE, new org.apache.thrift.meta_data.FieldMetaData("isComplete", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_COMPLETED, new org.apache.thrift.meta_data.FieldMetaData("isCompleted", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.IS_FOLDER, new org.apache.thrift.meta_data.FieldMetaData("isFolder", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.IS_PINNED, new org.apache.thrift.meta_data.FieldMetaData("isPinned", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.IS_CACHEABLE, new org.apache.thrift.meta_data.FieldMetaData("isCacheable", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.IS_PERSISTED, new org.apache.thrift.meta_data.FieldMetaData("isPersisted", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.BLOCK_IDS, new org.apache.thrift.meta_data.FieldMetaData("blockIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
@@ -246,10 +254,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     long length,
     long blockSizeBytes,
     long creationTimeMs,
-    boolean isComplete,
+    boolean isCompleted,
     boolean isFolder,
     boolean isPinned,
     boolean isCacheable,
+    boolean isPersisted,
     List<Long> blockIds,
     int dependencyId,
     int inMemoryPercentage,
@@ -268,14 +277,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     setBlockSizeBytesIsSet(true);
     this.creationTimeMs = creationTimeMs;
     setCreationTimeMsIsSet(true);
-    this.isComplete = isComplete;
-    setIsCompleteIsSet(true);
+    this.isCompleted = isCompleted;
+    setIsCompletedIsSet(true);
     this.isFolder = isFolder;
     setIsFolderIsSet(true);
     this.isPinned = isPinned;
     setIsPinnedIsSet(true);
     this.isCacheable = isCacheable;
     setIsCacheableIsSet(true);
+    this.isPersisted = isPersisted;
+    setIsPersistedIsSet(true);
     this.blockIds = blockIds;
     this.dependencyId = dependencyId;
     setDependencyIdIsSet(true);
@@ -305,10 +316,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.length = other.length;
     this.blockSizeBytes = other.blockSizeBytes;
     this.creationTimeMs = other.creationTimeMs;
-    this.isComplete = other.isComplete;
+    this.isCompleted = other.isCompleted;
     this.isFolder = other.isFolder;
     this.isPinned = other.isPinned;
     this.isCacheable = other.isCacheable;
+    this.isPersisted = other.isPersisted;
     if (other.isSetBlockIds()) {
       List<Long> __this__blockIds = new ArrayList<Long>(other.blockIds);
       this.blockIds = __this__blockIds;
@@ -336,14 +348,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.blockSizeBytes = 0;
     setCreationTimeMsIsSet(false);
     this.creationTimeMs = 0;
-    setIsCompleteIsSet(false);
-    this.isComplete = false;
+    setIsCompletedIsSet(false);
+    this.isCompleted = false;
     setIsFolderIsSet(false);
     this.isFolder = false;
     setIsPinnedIsSet(false);
     this.isPinned = false;
     setIsCacheableIsSet(false);
     this.isCacheable = false;
+    setIsPersistedIsSet(false);
+    this.isPersisted = false;
     this.blockIds = null;
     setDependencyIdIsSet(false);
     this.dependencyId = 0;
@@ -519,27 +533,27 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CREATIONTIMEMS_ISSET_ID, value);
   }
 
-  public boolean isIsComplete() {
-    return this.isComplete;
+  public boolean isIsCompleted() {
+    return this.isCompleted;
   }
 
-  public FileInfo setIsComplete(boolean isComplete) {
-    this.isComplete = isComplete;
-    setIsCompleteIsSet(true);
+  public FileInfo setIsCompleted(boolean isCompleted) {
+    this.isCompleted = isCompleted;
+    setIsCompletedIsSet(true);
     return this;
   }
 
-  public void unsetIsComplete() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISCOMPLETE_ISSET_ID);
+  public void unsetIsCompleted() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISCOMPLETED_ISSET_ID);
   }
 
-  /** Returns true if field isComplete is set (has been assigned a value) and false otherwise */
-  public boolean isSetIsComplete() {
-    return EncodingUtils.testBit(__isset_bitfield, __ISCOMPLETE_ISSET_ID);
+  /** Returns true if field isCompleted is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsCompleted() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISCOMPLETED_ISSET_ID);
   }
 
-  public void setIsCompleteIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISCOMPLETE_ISSET_ID, value);
+  public void setIsCompletedIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISCOMPLETED_ISSET_ID, value);
   }
 
   public boolean isIsFolder() {
@@ -609,6 +623,29 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
 
   public void setIsCacheableIsSet(boolean value) {
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISCACHEABLE_ISSET_ID, value);
+  }
+
+  public boolean isIsPersisted() {
+    return this.isPersisted;
+  }
+
+  public FileInfo setIsPersisted(boolean isPersisted) {
+    this.isPersisted = isPersisted;
+    setIsPersistedIsSet(true);
+    return this;
+  }
+
+  public void unsetIsPersisted() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISPERSISTED_ISSET_ID);
+  }
+
+  /** Returns true if field isPersisted is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsPersisted() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISPERSISTED_ISSET_ID);
+  }
+
+  public void setIsPersistedIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISPERSISTED_ISSET_ID, value);
   }
 
   public int getBlockIdsSize() {
@@ -800,11 +837,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
-    case IS_COMPLETE:
+    case IS_COMPLETED:
       if (value == null) {
-        unsetIsComplete();
+        unsetIsCompleted();
       } else {
-        setIsComplete((Boolean)value);
+        setIsCompleted((Boolean)value);
       }
       break;
 
@@ -829,6 +866,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         unsetIsCacheable();
       } else {
         setIsCacheable((Boolean)value);
+      }
+      break;
+
+    case IS_PERSISTED:
+      if (value == null) {
+        unsetIsPersisted();
+      } else {
+        setIsPersisted((Boolean)value);
       }
       break;
 
@@ -898,8 +943,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case CREATION_TIME_MS:
       return Long.valueOf(getCreationTimeMs());
 
-    case IS_COMPLETE:
-      return Boolean.valueOf(isIsComplete());
+    case IS_COMPLETED:
+      return Boolean.valueOf(isIsCompleted());
 
     case IS_FOLDER:
       return Boolean.valueOf(isIsFolder());
@@ -909,6 +954,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
 
     case IS_CACHEABLE:
       return Boolean.valueOf(isIsCacheable());
+
+    case IS_PERSISTED:
+      return Boolean.valueOf(isIsPersisted());
 
     case BLOCK_IDS:
       return getBlockIds();
@@ -950,14 +998,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetBlockSizeBytes();
     case CREATION_TIME_MS:
       return isSetCreationTimeMs();
-    case IS_COMPLETE:
-      return isSetIsComplete();
+    case IS_COMPLETED:
+      return isSetIsCompleted();
     case IS_FOLDER:
       return isSetIsFolder();
     case IS_PINNED:
       return isSetIsPinned();
     case IS_CACHEABLE:
       return isSetIsCacheable();
+    case IS_PERSISTED:
+      return isSetIsPersisted();
     case BLOCK_IDS:
       return isSetBlockIds();
     case DEPENDENCY_ID:
@@ -1048,12 +1098,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
-    boolean this_present_isComplete = true;
-    boolean that_present_isComplete = true;
-    if (this_present_isComplete || that_present_isComplete) {
-      if (!(this_present_isComplete && that_present_isComplete))
+    boolean this_present_isCompleted = true;
+    boolean that_present_isCompleted = true;
+    if (this_present_isCompleted || that_present_isCompleted) {
+      if (!(this_present_isCompleted && that_present_isCompleted))
         return false;
-      if (this.isComplete != that.isComplete)
+      if (this.isCompleted != that.isCompleted)
         return false;
     }
 
@@ -1081,6 +1131,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (!(this_present_isCacheable && that_present_isCacheable))
         return false;
       if (this.isCacheable != that.isCacheable)
+        return false;
+    }
+
+    boolean this_present_isPersisted = true;
+    boolean that_present_isPersisted = true;
+    if (this_present_isPersisted || that_present_isPersisted) {
+      if (!(this_present_isPersisted && that_present_isPersisted))
+        return false;
+      if (this.isPersisted != that.isPersisted)
         return false;
     }
 
@@ -1171,10 +1230,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (present_creationTimeMs)
       list.add(creationTimeMs);
 
-    boolean present_isComplete = true;
-    list.add(present_isComplete);
-    if (present_isComplete)
-      list.add(isComplete);
+    boolean present_isCompleted = true;
+    list.add(present_isCompleted);
+    if (present_isCompleted)
+      list.add(isCompleted);
 
     boolean present_isFolder = true;
     list.add(present_isFolder);
@@ -1190,6 +1249,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     list.add(present_isCacheable);
     if (present_isCacheable)
       list.add(isCacheable);
+
+    boolean present_isPersisted = true;
+    list.add(present_isPersisted);
+    if (present_isPersisted)
+      list.add(isPersisted);
 
     boolean present_blockIds = true && (isSetBlockIds());
     list.add(present_blockIds);
@@ -1297,12 +1361,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetIsComplete()).compareTo(other.isSetIsComplete());
+    lastComparison = Boolean.valueOf(isSetIsCompleted()).compareTo(other.isSetIsCompleted());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetIsComplete()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isComplete, other.isComplete);
+    if (isSetIsCompleted()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isCompleted, other.isCompleted);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1333,6 +1397,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     }
     if (isSetIsCacheable()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isCacheable, other.isCacheable);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetIsPersisted()).compareTo(other.isSetIsPersisted());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetIsPersisted()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isPersisted, other.isPersisted);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1447,8 +1521,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     sb.append(this.creationTimeMs);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("isComplete:");
-    sb.append(this.isComplete);
+    sb.append("isCompleted:");
+    sb.append(this.isCompleted);
     first = false;
     if (!first) sb.append(", ");
     sb.append("isFolder:");
@@ -1461,6 +1535,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (!first) sb.append(", ");
     sb.append("isCacheable:");
     sb.append(this.isCacheable);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("isPersisted:");
+    sb.append(this.isPersisted);
     first = false;
     if (!first) sb.append(", ");
     sb.append("blockIds:");
@@ -1587,10 +1665,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // IS_COMPLETE
+          case 8: // IS_COMPLETED
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.isComplete = iprot.readBool();
-              struct.setIsCompleteIsSet(true);
+              struct.isCompleted = iprot.readBool();
+              struct.setIsCompletedIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1619,7 +1697,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 12: // BLOCK_IDS
+          case 12: // IS_PERSISTED
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.isPersisted = iprot.readBool();
+              struct.setIsPersistedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 13: // BLOCK_IDS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list16 = iprot.readListBegin();
@@ -1637,7 +1723,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 13: // DEPENDENCY_ID
+          case 14: // DEPENDENCY_ID
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.dependencyId = iprot.readI32();
               struct.setDependencyIdIsSet(true);
@@ -1645,7 +1731,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 14: // IN_MEMORY_PERCENTAGE
+          case 15: // IN_MEMORY_PERCENTAGE
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.inMemoryPercentage = iprot.readI32();
               struct.setInMemoryPercentageIsSet(true);
@@ -1653,7 +1739,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 15: // LAST_MODIFICATION_TIME_MS
+          case 16: // LAST_MODIFICATION_TIME_MS
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.lastModificationTimeMs = iprot.readI64();
               struct.setLastModificationTimeMsIsSet(true);
@@ -1661,7 +1747,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 16: // TTL
+          case 17: // TTL
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.ttl = iprot.readI64();
               struct.setTtlIsSet(true);
@@ -1711,8 +1797,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       oprot.writeFieldBegin(CREATION_TIME_MS_FIELD_DESC);
       oprot.writeI64(struct.creationTimeMs);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(IS_COMPLETE_FIELD_DESC);
-      oprot.writeBool(struct.isComplete);
+      oprot.writeFieldBegin(IS_COMPLETED_FIELD_DESC);
+      oprot.writeBool(struct.isCompleted);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(IS_FOLDER_FIELD_DESC);
       oprot.writeBool(struct.isFolder);
@@ -1722,6 +1808,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(IS_CACHEABLE_FIELD_DESC);
       oprot.writeBool(struct.isCacheable);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(IS_PERSISTED_FIELD_DESC);
+      oprot.writeBool(struct.isPersisted);
       oprot.writeFieldEnd();
       if (struct.blockIds != null) {
         oprot.writeFieldBegin(BLOCK_IDS_FIELD_DESC);
@@ -1786,7 +1875,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetCreationTimeMs()) {
         optionals.set(6);
       }
-      if (struct.isSetIsComplete()) {
+      if (struct.isSetIsCompleted()) {
         optionals.set(7);
       }
       if (struct.isSetIsFolder()) {
@@ -1798,22 +1887,25 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetIsCacheable()) {
         optionals.set(10);
       }
-      if (struct.isSetBlockIds()) {
+      if (struct.isSetIsPersisted()) {
         optionals.set(11);
       }
-      if (struct.isSetDependencyId()) {
+      if (struct.isSetBlockIds()) {
         optionals.set(12);
       }
-      if (struct.isSetInMemoryPercentage()) {
+      if (struct.isSetDependencyId()) {
         optionals.set(13);
       }
-      if (struct.isSetLastModificationTimeMs()) {
+      if (struct.isSetInMemoryPercentage()) {
         optionals.set(14);
       }
-      if (struct.isSetTtl()) {
+      if (struct.isSetLastModificationTimeMs()) {
         optionals.set(15);
       }
-      oprot.writeBitSet(optionals, 16);
+      if (struct.isSetTtl()) {
+        optionals.set(16);
+      }
+      oprot.writeBitSet(optionals, 17);
       if (struct.isSetFileId()) {
         oprot.writeI64(struct.fileId);
       }
@@ -1835,8 +1927,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetCreationTimeMs()) {
         oprot.writeI64(struct.creationTimeMs);
       }
-      if (struct.isSetIsComplete()) {
-        oprot.writeBool(struct.isComplete);
+      if (struct.isSetIsCompleted()) {
+        oprot.writeBool(struct.isCompleted);
       }
       if (struct.isSetIsFolder()) {
         oprot.writeBool(struct.isFolder);
@@ -1846,6 +1938,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       if (struct.isSetIsCacheable()) {
         oprot.writeBool(struct.isCacheable);
+      }
+      if (struct.isSetIsPersisted()) {
+        oprot.writeBool(struct.isPersisted);
       }
       if (struct.isSetBlockIds()) {
         {
@@ -1873,7 +1968,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(16);
+      BitSet incoming = iprot.readBitSet(17);
       if (incoming.get(0)) {
         struct.fileId = iprot.readI64();
         struct.setFileIdIsSet(true);
@@ -1903,8 +1998,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.setCreationTimeMsIsSet(true);
       }
       if (incoming.get(7)) {
-        struct.isComplete = iprot.readBool();
-        struct.setIsCompleteIsSet(true);
+        struct.isCompleted = iprot.readBool();
+        struct.setIsCompletedIsSet(true);
       }
       if (incoming.get(8)) {
         struct.isFolder = iprot.readBool();
@@ -1919,6 +2014,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.setIsCacheableIsSet(true);
       }
       if (incoming.get(11)) {
+        struct.isPersisted = iprot.readBool();
+        struct.setIsPersistedIsSet(true);
+      }
+      if (incoming.get(12)) {
         {
           org.apache.thrift.protocol.TList _list21 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
           struct.blockIds = new ArrayList<Long>(_list21.size);
@@ -1931,19 +2030,19 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         }
         struct.setBlockIdsIsSet(true);
       }
-      if (incoming.get(12)) {
+      if (incoming.get(13)) {
         struct.dependencyId = iprot.readI32();
         struct.setDependencyIdIsSet(true);
       }
-      if (incoming.get(13)) {
+      if (incoming.get(14)) {
         struct.inMemoryPercentage = iprot.readI32();
         struct.setInMemoryPercentageIsSet(true);
       }
-      if (incoming.get(14)) {
+      if (incoming.get(15)) {
         struct.lastModificationTimeMs = iprot.readI64();
         struct.setLastModificationTimeMsIsSet(true);
       }
-      if (incoming.get(15)) {
+      if (incoming.get(16)) {
         struct.ttl = iprot.readI64();
         struct.setTtlIsSet(true);
       }

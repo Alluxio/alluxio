@@ -287,7 +287,12 @@ public final class LineageMaster extends MasterBase {
     LOG.info("Async complete file " + fileId);
     mLineageStore.completeFile(fileId);
     // complete file in Tachyon.
-    mFileSystemMaster.completeFile(fileId);
+    try {
+      mFileSystemMaster.completeFile(fileId);
+    } catch (InvalidPathException e) {
+      // should not happen
+      throw new RuntimeException(e);
+    }
     writeJournalEntry(new AsyncCompleteFileEntry(fileId));
     flushJournal();
   }
@@ -304,9 +309,10 @@ public final class LineageMaster extends MasterBase {
    * @param workerId the id of the worker that heartbeats
    * @return the command for checkpointing the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path is invalid
    */
   public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
-      List<Long> persistedFiles) throws FileDoesNotExistException {
+      List<Long> persistedFiles) throws FileDoesNotExistException, InvalidPathException {
     // notify checkpoint manager the persisted files
     persistFiles(workerId, persistedFiles);
 
@@ -373,9 +379,10 @@ public final class LineageMaster extends MasterBase {
    * @param workerId the worker id
    * @return the list of files
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the path is invalid
    */
   public synchronized List<CheckpointFile> pollToCheckpoint(long workerId)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, InvalidPathException {
     List<CheckpointFile> files = Lists.newArrayList();
     if (!mWorkerToCheckpointFile.containsKey(workerId)) {
       return files;
@@ -456,6 +463,9 @@ public final class LineageMaster extends MasterBase {
         }
       }
     } catch (FileDoesNotExistException e) {
+      // should not happen
+      throw new RuntimeException(e);
+    } catch (InvalidPathException e) {
       // should not happen
       throw new RuntimeException(e);
     }

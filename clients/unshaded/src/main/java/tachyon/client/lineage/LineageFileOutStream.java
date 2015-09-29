@@ -84,7 +84,7 @@ public class LineageFileOutStream extends FileOutStream {
     if (canComplete) {
       LineageMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        LOG.info("async complete file" + mFileId + " request at " + mUnderStorageFile);
+        LOG.info("async complete file" + mFileId);
         masterClient.asyncCompleteFile(mFileId);
       } finally {
         mContext.releaseMasterClient(masterClient);

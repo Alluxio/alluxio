@@ -49,6 +49,9 @@ import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
 public final class InodeTree implements JournalCheckpointStreamable {
+  /** Value to be used for an inode with no parent. */
+  public static final long NO_PARENT = -1;
+
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Only the root inode should have the empty string as its name. */
   private static final String ROOT_INODE_NAME = "";
@@ -97,8 +100,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   public void initializeRoot() {
     if (mRoot == null) {
-      mRoot = new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), -1,
-          System.currentTimeMillis());
+      mRoot =
+          new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT,
+              System.currentTimeMillis());
       mInodes.add(mRoot);
 
       mCachedInode = mRoot;

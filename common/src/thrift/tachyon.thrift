@@ -53,15 +53,16 @@ struct FileInfo {
   5: i64 length
   6: i64 blockSizeBytes
   7: i64 creationTimeMs
-  8: bool isComplete
+  8: bool isCompleted
   9: bool isFolder
   10: bool isPinned
   11: bool isCacheable
-  12: list<i64> blockIds
-  13: i32 dependencyId
-  14: i32 inMemoryPercentage
-  15: i64 lastModificationTimeMs
-  16: i64 ttl
+  12: bool isPersisted
+  13: list<i64> blockIds
+  14: i32 dependencyId
+  15: i32 inMemoryPercentage
+  16: i64 lastModificationTimeMs
+  17: i64 ttl
 }
 
 // Information about lineage.
@@ -240,12 +241,9 @@ service FileSystemMasterService {
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
-  i64 loadFileInfoFromUfs(1: string path, 2: string ufsPath, 3: bool recursive)
-    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
-      3: SuspectedFileSizeException sfse, 4: TachyonException te)
-
   void completeFile(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
+    throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
+      3: InvalidPathException ipe)
 
   bool deleteFile(1: i64 fileId, 2: bool recursive)
     throws (1: TachyonException te)
@@ -263,9 +261,31 @@ service FileSystemMasterService {
   bool free(1: i64 fileId, 2: bool recursive)
     throws (1: FileDoesNotExistException fdnee)
 
-  bool addCheckpoint(1: i64 workerId, 2: i64 fileId, 3: i64 length, 4: string checkpointPath)
+  bool persistFile(1: i64 fileId, 2: i64 length)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
+
+  /**
+   * Loads metadata for the file identified by the given Tachyon path from UFS into Tachyon.
+   */
+  i64 loadFileInfoFromUfs(1: string ufsPath, 2: bool recursive)
+    throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
+    3: FileAlreadyExistException faee, 4: InvalidPathException ipe,
+    5: SuspectedFileSizeException sfse, 6: TachyonException te)
+
+  /**
+   * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
+   * path. The path should not exist and should not be nested under any existing mount point.
+   */
+  bool mount(1: string tachyonPath, 2: string ufsPath)
+    throws (1: TachyonException te)
+
+  /**
+   * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
+   * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
+   * will be persisted before they are removed from the Tachyon namespace.
+   */
+  bool unmount(1: string tachyonPath) throws (1: TachyonException te)
 
   // Lineage Features
   i32 createDependency(1: list<string> parents, 2: list<string> children,
@@ -326,7 +346,7 @@ service RawTableMasterService {
 service WorkerService {
   void accessBlock(1: i64 blockId)
 
-  void addCheckpoint(1: i64 sessionId, 2: i64 fileId)
+  void persistFile(1: i64 fileId, 2: i64 nonce, 3: string path)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: FailedToCheckpointException eF, 4: BlockInfoException eB)
 
@@ -346,12 +366,6 @@ service WorkerService {
    * the location and space information related, then reclaim space allocated to the block.
    */
   void cancelBlock(1: i64 sessionId, 2: i64 blockId)
-
-  /**
-   * Used to get session's temporary folder on under file system, and the path of the session's temporary
-   * folder will be returned.
-   */
-  string getSessionUfsTempFolder(1: i64 sessionId)
 
   /**
    * Lock the file in Tachyon's space while the session is reading it, and the path of the block file

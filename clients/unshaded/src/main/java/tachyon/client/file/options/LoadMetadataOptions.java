@@ -34,9 +34,8 @@ public final class LoadMetadataOptions {
     }
 
     /**
-     * @param recursive the recursive flag value to use; if the object whose metadata is to be
-     *        loaded is a directory, the flag specifies whether metadata for the directory content
-     *        should be loaded as well
+     * @param recursive the recursive flag value to use; it specifies whether parent directories
+     *        should be created if they do not already exist
      * @return the builder
      */
     public Builder setRecursive(boolean recursive) {
@@ -68,8 +67,8 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * @return the recursive flag value; if the object whose metadata is to be loaded is a directory,
-   *         the flag specifies whether metadata for the directory content should be loaded as well
+   * @return the recursive flag value; it specifies whether parent directories should be created if
+   *         they do not already exist
    */
   public boolean isRecursive() {
     return mRecursive;
