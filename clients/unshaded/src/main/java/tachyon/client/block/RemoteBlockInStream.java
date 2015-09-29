@@ -64,10 +64,25 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     mBufferPos = mPos;
   }
 
+  /**
+   * Increments the number of bytes read metric.
+   *
+   * @param bytes number of bytes to record as read
+   */
   private void incrementBytesReadMetric(int bytes) {
     ClientContext.getClientMetrics().incBytesReadRemote(bytes);
   }
 
+  /**
+   * Reads a portion of the block from the remote worker. This method does not modify mPos or
+   * mBufferPos.
+   *
+   * @param b the byte array to write the data to
+   * @param off the offset in the array to write to
+   * @param len the length of data to write into the array
+   * @return the number of bytes successfully read
+   * @throws IOException if an error occurs reading the data
+   */
   private int readFromRemote(byte[] b, int off, int len) throws IOException {
     // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
     // read up to the end of the block.

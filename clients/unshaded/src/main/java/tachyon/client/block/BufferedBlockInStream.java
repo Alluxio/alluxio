@@ -29,8 +29,9 @@ import tachyon.util.io.BufferUtils;
 
 /**
  * Provides a stream API to read a block from Tachyon. An instance extending this class can be
- * obtained by calling {@link TachyonBlockStore#getInStream}. Multiple BlockInStreams can be opened
- * for a block. This class is not thread safe and should only be used by one thread.
+ * obtained by calling {@link TachyonBlockStore#getInStream}. The buffer size of the stream can be
+ * set through configuration. Multiple BufferedBlockInStreams can be opened for a block. This class
+ * is not thread safe and should only be used by one thread.
  *
  * This class provides the same methods as a Java {@link InputStream} with additional methods from
  * Tachyon Stream interfaces.
@@ -57,6 +58,14 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   /** Current position of the stream, relative to the start of the block. */
   protected long mPos;
 
+  /**
+   * Helper for creating a BufferedBlockInStream. This sets the necessary variables and creates
+   * the initial buffer which is empty and invalid.
+   *
+   * @param blockId block id for this stream
+   * @param blockSize size of the block in bytes
+   * @param location worker address to read the block from
+   */
   // TODO: Get the block lock here when the remote instream locks at a stream level
   public BufferedBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
     mBlockId = blockId;
@@ -66,15 +75,6 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     mBufferPos = INVALID_BUFFER_POS; // No data in buffer
     mClosed = false;
     mContext = BlockStoreContext.INSTANCE;
-  }
-
-  private ByteBuffer allocateBuffer() {
-    TachyonConf conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE));
-  }
-
-  protected void checkIfClosed() {
-    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
   }
 
   @Override
@@ -176,7 +176,43 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     return mBuffer.remaining();
   }
 
+  /**
+   * Initializes the internal buffer based on the user's specified size. Any reads above half
+   * this size will not be buffered.
+   *
+   * @return a heap buffer of user configured size
+   */
+  private ByteBuffer allocateBuffer() {
+    TachyonConf conf = ClientContext.getConf();
+    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE));
+  }
+
+  /**
+   * Convenience method to ensure the stream is not closed.
+   */
+  protected void checkIfClosed() {
+    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
+  }
+
+  /**
+   * Directly reads data to the given byte array. The data will not go through the internal
+   * buffer. This method should not modify mPos but should update the any metrics collection for
+   * bytes read.
+   *
+   * @param b the byte array to write the data to
+   * @param off the offset in the array to write to
+   * @param len the length of data to write into the array
+   * @return the number of bytes successfully read
+   * @throws IOException if an error occurs reading the data
+   */
   protected abstract int directRead(byte[] b, int off, int len) throws IOException;
 
+  /**
+   * Updates the buffer so it is ready to be read from. After calling this method, the buffer should
+   * be positioned at 0 and mBufferPos should be equal to mPos. This method should not modify mPos
+   * but should update the any metrics collection for bytes read.
+   *
+   * @throws IOException if an error occurs reading the data
+   */
   protected abstract void updateBuffer() throws IOException;
 }
