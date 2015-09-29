@@ -214,7 +214,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying worker RPC fails
    */
   synchronized void addCheckpoint(long fid) throws IOException {
-    throw new UnsupportedOperationException("AddCheckpoint is not unsupported");
+    throw new UnsupportedOperationException("addCheckpoint() is no longer unsupported");
   }
 
   /**
@@ -269,11 +269,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   synchronized void completeFile(long fid) throws IOException {
-    try {
-      mFSMasterClient.completeFile(fid);
-    } catch (TException e) {
-      throw new IOException(e);
-    }
+    throw new UnsupportedOperationException("completeFile() is no longer unsupported");
   }
 
   /**
@@ -315,8 +311,11 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeByte > 0) {
+        // NOTE: The old API will no longer support persisting files.
+        boolean persisted =
+            mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.class).isThrough();
         return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive,
-            Constants.NO_TTL);
+            Constants.NO_TTL, persisted);
       } else {
         return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), recursive);
       }

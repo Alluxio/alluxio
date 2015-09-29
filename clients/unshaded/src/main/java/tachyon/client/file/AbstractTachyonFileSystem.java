@@ -71,7 +71,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     try {
       long fileId =
           masterClient.createFile(path.getPath(), options.getBlockSize(), options.isRecursive(),
-              options.getTTL());
+              options.getTTL(), options.getUnderStorageType().isPersist());
       return fileId;
     } catch (BlockInfoException e) {
       throw new TachyonException(e, TachyonExceptionType.FILE_ALREADY_EXISTS);

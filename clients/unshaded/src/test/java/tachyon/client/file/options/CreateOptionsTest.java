@@ -26,6 +26,7 @@ import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
 import tachyon.client.ClientContext;
+import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
 
 @RunWith(PowerMockRunner.class)
@@ -37,22 +38,27 @@ public class CreateOptionsTest {
     long blockSize = random.nextLong();
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
+    UnderStorageType ufsType = UnderStorageType.PERSIST;
     CreateOptions options =
         new CreateOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
-            .setRecursive(recursive).setTTL(ttl).build();
+            .setRecursive(recursive).setTTL(ttl).setUnderStorageType(ufsType).build();
     Assert.assertEquals(blockSize, options.getBlockSize());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTTL());
+    Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 
   @Test
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();
+    UnderStorageType ufsType = UnderStorageType.PERSIST;
     conf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, "64MB");
+    conf.set(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, ufsType.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
     CreateOptions options = CreateOptions.defaults();
     Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
     Assert.assertEquals(false, options.isRecursive());
     Assert.assertEquals(0, options.getTTL());
+    Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 }

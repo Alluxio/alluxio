@@ -114,33 +114,6 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notifies the worker that a file has been persisted in a temporary UFS location.
-   *
-   * @param fileId the file id
-   * @param nonce nonce a nonce used for temporary file creation
-   * @param path the UFS path where the file should be eventually stored
-   * @throws IOException
-   */
-  public synchronized void persistFile(long fileId, long nonce, String path) throws IOException {
-    mustConnect();
-
-    try {
-      mClient.persistFile(fileId, nonce, path);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (SuspectedFileSizeException e) {
-      throw new IOException(e);
-    } catch (FailedToCheckpointException e) {
-      throw new IOException(e);
-    } catch (BlockInfoException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  /**
    * Notifies the worker to checkpoint the file asynchronously.
    *
    * @param fileId The id of the file

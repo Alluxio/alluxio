@@ -138,46 +138,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   }
 
   /**
-   * Completes the process of persisting a file by renaming it to its final destination.
-   *
-   * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
-   * only if {@link UnderStorageType#isPersist()} ()} is true. The current implementation of
-   * persistence is that through {@link tachyon.client.UnderStorageType} operations write to
-   * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
-   *
-   * @param fileId a file id
-   * @param nonce a nonce used for temporary file creation
-   * @param ufsPath the UFS path of the file
-   * @throws TException if the file does not exist or cannot be renamed
-   * @throws IOException if the update to the master fails
-   */
-  public void persistFile(long fileId, long nonce, String ufsPath) throws TException, IOException {
-    String tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
-    UnderFileSystem ufs = UnderFileSystem.get(tmpPath, WorkerContext.getConf());
-    try {
-      if (!ufs.exists(tmpPath)) {
-        // Location of the temporary file has changed, recompute it.
-        FileInfo fileInfo = mFileSystemMasterClient.getFileInfo(fileId);
-        ufsPath = fileInfo.getUfsPath();
-        tmpPath = PathUtils.temporaryFileName(fileId, nonce, ufsPath);
-      }
-      if (!ufs.rename(tmpPath, ufsPath)) {
-        throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + ufsPath);
-      }
-    } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to rename " + tmpPath + " to " + ufsPath + ": "
-          + ioe);
-    }
-    long fileSize;
-    try {
-      fileSize = ufs.getFileSize(ufsPath);
-    } catch (IOException ioe) {
-      throw new FailedToCheckpointException("Failed to getFileSize " + ufsPath);
-    }
-    mFileSystemMasterClient.persistFile(fileId, fileSize);
-  }
-
-  /**
    * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
    * {@link SessionCleaner} thread.
    */

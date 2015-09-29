@@ -63,24 +63,6 @@ public final class BlockServiceHandler implements WorkerService.Iface {
     }
   }
 
-  /**
-   * This should be called in order to persist a file that was written directly to the under storage
-   * system via a THROUGH type write. This will update the master with the appropriate metadata
-   * for the new block.
-   *
-   * @param fileId the file id
-   * @param nonce nonce a nonce used for temporary file creation
-   * @param path the UFS path of the file
-   */
-  @Override
-  public void persistFile(long fileId, long nonce, String path) throws TException {
-    try {
-      mWorker.persistFile(fileId, nonce, path);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
-    }
-  }
-
   // TODO(calvin): Make this supported again.
   @Override
   public boolean asyncCheckpoint(long fileId) throws TException {

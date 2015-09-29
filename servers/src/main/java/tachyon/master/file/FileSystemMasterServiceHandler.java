@@ -21,7 +21,10 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
+import tachyon.master.MasterContext;
+import tachyon.master.file.options.CreateFileOptions;
 import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.CreateFileTOptions;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -48,12 +51,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   @Override
   public List<Integer> workerGetPriorityDependencyList() {
     return mFileSystemMaster.getPriorityDependencyList();
-  }
-
-  @Override
-  public boolean persistFile(long fileId, long length)
-      throws BlockInfoException, FileDoesNotExistException, SuspectedFileSizeException {
-    return mFileSystemMaster.persistFile(fileId, length);
   }
 
   @Override
@@ -96,9 +93,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   // TODO: need to add another create option object for passing ttl
   @Override
-  public long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
+  public long createFile(String path, CreateFileTOptions options)
       throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
-    return mFileSystemMaster.createFile(new TachyonURI(path), blockSizeBytes, recursive, ttl);
+    return mFileSystemMaster.createFile(new TachyonURI(path), new CreateFileOptions(options));
   }
 
   @Override

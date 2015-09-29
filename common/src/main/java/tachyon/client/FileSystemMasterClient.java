@@ -30,6 +30,7 @@ import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.CreateFileTOptions;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -247,13 +248,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
-      throws IOException, BlockInfoException, InvalidPathException, FileAlreadyExistException {
+  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive,
+      long ttl, boolean persisted) throws IOException, BlockInfoException, InvalidPathException,
+      FileAlreadyExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createFile(path, blockSizeBytes, recursive, ttl);
+        CreateFileTOptions options = new CreateFileTOptions();
+        options.setBlockSize(blockSizeBytes);
+        options.setRecursive(recursive);
+        options.setTtl(ttl);
+        options.setPersisted(persisted);
+        return mClient.createFile(path, options);
       } catch (BlockInfoException e) {
         throw e;
       } catch (InvalidPathException e) {

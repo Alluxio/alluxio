@@ -138,30 +138,29 @@ public final class FileOutStream extends OutputStream implements Cancelable,
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    Boolean canComplete = false;
+    boolean complete = false;
     if (mUnderStorageType.isPersist()) {
+      String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+      UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
+      if (!ufs.exists(tmpPath)) {
+        // Location of the temporary file has changed, recompute it.
+        FileInfo fileInfo = getFileInfo();
+        mUfsPath = fileInfo.getUfsPath();
+        tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+      }
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
-        String tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
-        if (!ufs.exists(tmpPath)) {
-          FileInfo fileInfo = getFileInfo();
-          mUfsPath = fileInfo.getUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mFileId, mNonce, mUfsPath);
+        if (!ufs.delete(tmpPath, false)) {
+          throw new IOException("Failed to delete " + tmpPath);
         }
-        ufs.delete(tmpPath, false);
       } else {
         mUnderStorageOutputStream.flush();
         mUnderStorageOutputStream.close();
-        WorkerClient workerClient = BlockStoreContext.INSTANCE.acquireWorkerClient();
-        try {
-          // TODO(yupeng): Investigate if this RPC can be moved to master.
-          workerClient.persistFile(mFileId, mNonce, mUfsPath);
-        } finally {
-          BlockStoreContext.INSTANCE.releaseWorkerClient(workerClient);
+        if (!ufs.rename(tmpPath, mUfsPath)) {
+          throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
         }
-        canComplete = true;
+        complete = true;
       }
     }
 
@@ -175,14 +174,14 @@ public final class FileOutStream extends OutputStream implements Cancelable,
           for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
             bos.close();
           }
-          canComplete = true;
+          complete = true;
         }
       } catch (IOException ioe) {
         handleCacheWriteException(ioe);
       }
     }
 
-    if (canComplete) {
+    if (complete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(mFileId);
