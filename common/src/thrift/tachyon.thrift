@@ -95,8 +95,6 @@ struct Command {
   2: list<i64> mData
 }
 
-struct MountOpts {}
-
 exception BlockInfoException {
   1: string message
 }
