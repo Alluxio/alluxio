@@ -233,8 +233,7 @@ public final class BlockWorker {
     // Setup session metadata mapping
     // TODO(calvin): Have a top level register that gets the worker id.
     long workerId = mBlockMasterSync.getWorkerId();
-    String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-    Sessions sessions = new Sessions(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
+    Sessions sessions = new Sessions();
 
     // Give BlockDataManager a pointer to the session metadata mapping
     // TODO(calvin): Fix this hack when we have a top level register.

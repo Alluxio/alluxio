@@ -185,8 +185,8 @@ public class UnderStorageSystemInterfaceIntegrationTest {
         || mUfs.list(testDirNonEmptyChildDir)[0].equals("/testDirNonEmptyChildDirF"));
   }
 
-  // Tests mkdirs correctly creates a directory
-  // Tests mkdirs correctly makes parent directories if createParent is specified
+  // Tests mkdir correctly creates a directory
+  // Tests mkdir correctly makes parent directories if createParent is specified
   @Test
   public void testMkdirs() throws IOException {
     String testDirTop = PathUtils.concatPath(mUnderfsAddress, "testDirTop");

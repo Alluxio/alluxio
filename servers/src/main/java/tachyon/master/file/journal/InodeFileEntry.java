@@ -27,40 +27,39 @@ import tachyon.master.journal.JournalEntryType;
 public class InodeFileEntry extends InodeEntry {
   private final long mBlockSizeBytes;
   private final long mLength;
-  private final boolean mIsComplete;
-  private final boolean mIsCache;
-  private final String mUfsPath;
+  private final boolean mCompleted;
+  private final boolean mCacheable;
   private final List<Long> mBlocks;
   private final long mTTL;
 
-  public InodeFileEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
-      long lastModificationTimeMs, long blockSizeBytes, long length, boolean isComplete,
-      boolean isCache, String ufsPath, List<Long> blocks, long ttl) {
-    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
+  public InodeFileEntry(long creationTimeMs, long id, String name, long parentId,
+      boolean persisted, boolean pinned, long lastModificationTimeMs, long blockSizeBytes,
+      long length, boolean completed, boolean cacheable, List<Long> blocks, long ttl) {
+    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs);
     mBlockSizeBytes = blockSizeBytes;
     mLength = length;
-    mIsComplete = isComplete;
-    mIsCache = isCache;
-    mUfsPath = ufsPath;
+    mCompleted = completed;
+    mCacheable = cacheable;
     mBlocks = Preconditions.checkNotNull(blocks);
     mTTL = ttl;
   }
 
   public InodeFile toInodeFile() {
-    InodeFile inode = new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
-        mCreationTimeMs, mTTL);
+    InodeFile inode =
+        new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
+            mCreationTimeMs, mTTL);
 
     // Set flags.
-    if (mIsComplete) {
-      inode.setComplete(mLength);
+    if (mCompleted) {
+      inode.setCompleted(mLength);
     }
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
-    inode.setPinned(mIsPinned);
-    inode.setCache(mIsCache);
+    inode.setPersisted(mPersisted);
+    inode.setPinned(mPinned);
+    inode.setCacheable(mCacheable);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);
-    inode.setUfsPath(mUfsPath);
 
     return inode;
   }
@@ -75,9 +74,8 @@ public class InodeFileEntry extends InodeEntry {
     Map<String, Object> parameters = super.getParameters();
     parameters.put("blockSizeBytes", mBlockSizeBytes);
     parameters.put("length", mLength);
-    parameters.put("isComplete", mIsComplete);
-    parameters.put("isCacheable", mIsCache);
-    parameters.put("ufsPath", mUfsPath);
+    parameters.put("completed", mCompleted);
+    parameters.put("cacheable", mCacheable);
     parameters.put("blocks", mBlocks);
     parameters.put("ttl", mTTL);
     return parameters;
