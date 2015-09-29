@@ -18,9 +18,9 @@ package tachyon.client.block;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
@@ -47,11 +47,12 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   public LocalBlockInStream(long blockId, long blockSize, InetSocketAddress location)
       throws IOException {
     super(blockId, blockSize, location);
+
     mCloser = Closer.create();
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-
     FileChannel localFileChannel = null;
+
     try {
       String blockPath = mWorkerClient.lockBlock(blockId);
       if (blockPath == null) {
@@ -69,12 +70,45 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
 
   @Override
   public void close() throws IOException {
-    super.close();
+    if (mClosed) {
+      return;
+    }
     try {
       mWorkerClient.unlockBlock(mBlockId);
     } finally {
       mContext.releaseWorkerClient(mWorkerClient);
       mCloser.close();
     }
+
+    // TODO(calvin): Perhaps verify something was read from this stream
+    ClientContext.getClientMetrics().incBlocksReadLocal(1);
+    mClosed = true;
+  }
+
+  @Override
+  public int directRead(byte[] b, int off, int len) throws IOException {
+    // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
+    // read up to the end of the block.
+    int toRead = (int) Math.min(len, remaining());
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, len);
+    buf.get(b, off, len);
+    BufferUtils.cleanDirectBuffer(buf);
+    mPos += toRead;
+    incrementBytesReadMetric(toRead);
+    return toRead;  }
+
+  @Override
+  public void updateBuffer() throws IOException {
+    int toRead = (int) Math.min(mBuffer.limit(), remaining());
+    if (mBuffer.isDirect()) { // Buffer may not be direct on initialization
+      BufferUtils.cleanDirectBuffer(mBuffer);
+    }
+    mBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, toRead);
+    mBufferPos = mPos;
+    incrementBytesReadMetric(toRead);
+  }
+
+  private void incrementBytesReadMetric(int bytes) {
+    ClientContext.getClientMetrics().incBytesReadLocal(bytes);
   }
 }
