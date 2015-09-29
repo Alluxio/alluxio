@@ -223,7 +223,7 @@ elif [ "$COMMAND" == "formatWorker" ]; then
   CLASS=tachyon.Format
   PARAMETER=worker
 elif [ "$COMMAND" == "tfs" ]; then
-  CLASS=tachyon.shell.TFsShell
+  CLASS=tachyon.shell.TfsShell
 elif [ "$COMMAND" == "loadufs" ]; then
   CLASS=tachyon.client.UfsUtils
 elif [ "$COMMAND" == "runTest" ]; then

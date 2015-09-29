@@ -46,7 +46,7 @@ import tachyon.thrift.InvalidPathException;
  * Note that the test case for validatePath() is already covered in getFilePath. Hence only
  * getFilePathTest is specified.
  */
-public class TFsShellUtilsTest {
+public class TfsShellUtilsTest {
   private static final int SIZE_BYTES = Constants.MB * 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
@@ -70,7 +70,7 @@ public class TFsShellUtilsTest {
             Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
-      String result = TFsShellUtils.getFilePath(path, new TachyonConf());
+      String result = TfsShellUtils.getFilePath(path, new TachyonConf());
       Assert.assertEquals(expected, result);
     }
   }
@@ -151,13 +151,13 @@ public class TFsShellUtilsTest {
   public List<String> getPaths(String path, FsType fsType) throws IOException, TException {
     List<String> ret = null;
     if (fsType == FsType.TFS) {
-      List<TachyonURI> tPaths = TFsShellUtils.getTachyonURIs(mTfs, new TachyonURI(path));
+      List<TachyonURI> tPaths = TfsShellUtils.getTachyonURIs(mTfs, new TachyonURI(path));
       ret = new ArrayList<String>(tPaths.size());
       for (TachyonURI tPath : tPaths) {
         ret.add(tPath.getPath());
       }
     } else if (fsType == FsType.LOCAL) {
-      List<File> tPaths = TFsShellUtils.getFiles(path);
+      List<File> tPaths = TfsShellUtils.getFiles(path);
       ret = new ArrayList<String>(tPaths.size());
       for (File tPath : tPaths) {
         ret.add(tPath.getPath());
@@ -214,21 +214,21 @@ public class TFsShellUtilsTest {
 
   @Test
   public void matchTest() {
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*"), true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*/"), true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*/c"), true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*/*"), true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "/a/*/*/"), true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/a/*/*/"), true);
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/a/*/*"), true);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c", "/a/*"), true);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c", "/a/*/"), true);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c", "/a/*/c"), true);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c", "/a/*/*"), true);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c", "/a/*/*/"), true);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c/", "/a/*/*/"), true);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c/", "/a/*/*"), true);
 
-    Assert.assertEquals(TFsShellUtils.match("/foo/bar/foobar/", "/foo*/*"), true);
-    Assert.assertEquals(TFsShellUtils.match("/foo/bar/foobar/", "/*/*/foobar"), true);
+    Assert.assertEquals(TfsShellUtils.match("/foo/bar/foobar/", "/foo*/*"), true);
+    Assert.assertEquals(TfsShellUtils.match("/foo/bar/foobar/", "/*/*/foobar"), true);
 
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c/", "/b/*"), false);
-    Assert.assertEquals(TFsShellUtils.match("/", "/*/*"), false);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c/", "/b/*"), false);
+    Assert.assertEquals(TfsShellUtils.match("/", "/*/*"), false);
 
-    Assert.assertEquals(TFsShellUtils.match("/a/b/c", "*"), true);
-    Assert.assertEquals(TFsShellUtils.match("/", "/*"), true);
+    Assert.assertEquals(TfsShellUtils.match("/a/b/c", "*"), true);
+    Assert.assertEquals(TfsShellUtils.match("/", "/*"), true);
   }
 }

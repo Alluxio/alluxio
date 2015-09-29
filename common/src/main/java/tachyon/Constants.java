@@ -103,8 +103,7 @@ public final class Constants {
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String LOGS_DIR = "tachyon.logs.dir";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
-  public static final String UNDERFS_DATA_FOLDER = "tachyon.data.folder";
-  public static final String UNDERFS_WORKERS_FOLDER = "tachyon.workers.folder";
+  public static final String UNDERFS_DATA_FOLDER = "tachyon.underfs.data.folder";
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String UNDERFS_HADOOP_CONFIGURATION = "tachyon.underfs.hadoop.configuration";
   public static final String ASYNC_ENABLED = "tachyon.async.enabled";
