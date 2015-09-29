@@ -144,7 +144,7 @@ public final class LineageMaster extends MasterBase {
       persistFilesFromEntry((PersistFilesEntry) entry);
     } else if (entry instanceof RequestFilePersistenceEntry) {
       requestFilePersistenceFromEntry((RequestFilePersistenceEntry) entry);
-    } else if(entry instanceof DeleteLineageEntry) {
+    } else if (entry instanceof DeleteLineageEntry) {
       deleteLineageFromEntry((DeleteLineageEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
@@ -241,7 +241,7 @@ public final class LineageMaster extends MasterBase {
    */
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
-    deleteLineageInternal(lineageId,cascade);
+    deleteLineageInternal(lineageId, cascade);
     writeJournalEntry(new DeleteLineageEntry(lineageId, cascade));
     flushJournal();
     return true;
