@@ -209,11 +209,6 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     }
   }
 
-  // TODO: Move this to lineage client
-  public void requestFilesInDependency(int depId) throws IOException, TachyonException {
-    throw new UnsupportedOperationException("operation not supported");
-  }
-
   /**
    * Convenience method for {@link #setState(TachyonFile, SetStateOptions)} with default options.
    */
