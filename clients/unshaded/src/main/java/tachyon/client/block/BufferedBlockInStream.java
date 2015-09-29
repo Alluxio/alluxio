@@ -67,10 +67,12 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     if (mClosed) {
       return;
     }
+    // TODO(calvin): Evaluate if we should check some data was read before doing this.
+    incrementBlocksReadMetric();
     mClosed = true;
   }
 
@@ -155,6 +157,8 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
   protected long remainingInBuf() {
     return mPos - mBufferPos + mBuffer.remaining();
   }
+
+  protected abstract void incrementBlocksReadMetric();
 
   protected abstract void updateBuffer() throws IOException;
 
