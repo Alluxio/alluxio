@@ -46,6 +46,11 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   }
 
   @Override
+  protected void incrementBlocksReadMetric() {
+    ClientContext.getClientMetrics().incBlocksReadRemote(1);
+  }
+
+  @Override
   protected void updateBuffer() throws IOException {
     int toRead = (int) Math.min(mBuffer.limit(), remaining());
     mBuffer.clear();

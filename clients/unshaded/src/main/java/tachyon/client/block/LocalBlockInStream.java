@@ -35,6 +35,7 @@ import tachyon.worker.WorkerClient;
  */
 public final class LocalBlockInStream extends BufferedBlockInStream {
   private final Closer mCloser;
+  private final FileChannel mLocalFileChannel;
   private final WorkerClient mWorkerClient;
 
   /**
@@ -50,103 +51,30 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
+    FileChannel localFileChannel = null;
     try {
       String blockPath = mWorkerClient.lockBlock(blockId);
       if (blockPath == null) {
         throw new IOException("Block " + mBlockId + " is not available on local machine.");
       }
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "r"));
-      FileChannel localFileChannel = mCloser.register(localFile.getChannel());
+      localFileChannel = mCloser.register(localFile.getChannel());
     } catch (IOException e) {
       mContext.releaseWorkerClient(mWorkerClient);
       throw e;
     }
+
+    mLocalFileChannel = localFileChannel;
   }
 
   @Override
   public void close() throws IOException {
-    if (mClosed) {
-      return;
+    super.close();
+    try {
+      mWorkerClient.unlockBlock(mBlockId);
+    } finally {
+      mContext.releaseWorkerClient(mWorkerClient);
+      mCloser.close();
     }
-    if (mBytesReadLocal > 0) {
-      ClientContext.getClientMetrics().incBlocksReadLocal(1);
-    }
-    mWorkerClient.unlockBlock(mBlockId);
-    mContext.releaseWorkerClient(mWorkerClient);
-    // TODO(calvin): Evaluate if this is necessary.
-    BufferUtils.cleanDirectBuffer(mData);
-    mClosed = true;
-  }
-
-  @Override
-  public int read() throws IOException {
-    checkIfClosed();
-    if (mData.remaining() == 0) {
-      close();
-      return -1;
-    }
-    mBytesReadLocal ++;
-    ClientContext.getClientMetrics().incBytesReadLocal(1);
-    return BufferUtils.byteToInt(mData.get());
-  }
-
-  @Override
-  public int read(byte[] b) throws IOException {
-    checkIfClosed();
-    return read(b, 0, b.length);
-  }
-
-  @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    checkIfClosed();
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
-        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
-    if (len == 0) {
-      return 0;
-    }
-
-    int ret = Math.min(len, mData.remaining());
-    if (ret == 0) {
-      close();
-      return -1;
-    }
-    mData.get(b, off, ret);
-    mBytesReadLocal += ret;
-    ClientContext.getClientMetrics().incBytesReadLocal(ret);
-    return ret;
-  }
-
-  @Override
-  public long remaining() {
-    return mData.remaining();
-  }
-
-  @Override
-  public void seek(long pos) throws IOException {
-    checkIfClosed();
-    Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos <= mData.limit(), "Seek position is past buffer limit: " + pos
-        + ", Buffer Size = " + mData.limit());
-    mData.position((int) pos);
-  }
-
-  @Override
-  public long skip(long n) throws IOException {
-    checkIfClosed();
-    if (n <= 0) {
-      return 0;
-    }
-
-    int ret = mData.remaining();
-    if (ret > n) {
-      ret = (int) n;
-    }
-    mData.position(mData.position() + ret);
-    return ret;
-  }
-
-  private void checkIfClosed() throws IOException {
-    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
   }
 }
