@@ -176,7 +176,8 @@ public final class LineageMaster extends MasterBase {
   }
 
   @Override
-  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+  public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
+      throws IOException {
     mLineageStore.streamToJournalCheckpoint(outputStream);
   }
 
@@ -198,8 +199,8 @@ public final class LineageMaster extends MasterBase {
    * @throws FileAlreadyExistException if the output file already exists
    * @throws BlockInfoException if fails to create the output file
    */
-  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
-      throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+  public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
+      Job job) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // validate input files exist
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
@@ -235,7 +236,7 @@ public final class LineageMaster extends MasterBase {
    * @throws LineageDoesNotExistException the lineage does not exist
    * @throws LineageDeletionException the lineage deletion fails
    */
-  public boolean deleteLineage(long lineageId, boolean cascade)
+  public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
     Lineage lineage = mLineageStore.getLineage(lineageId);
     if (lineage == null) {
@@ -263,7 +264,7 @@ public final class LineageMaster extends MasterBase {
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
    */
-  public long recreateFile(String path, long blockSizeBytes, long ttl)
+  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
       throws InvalidPathException, LineageDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new TachyonURI(path));
     LineageFileState state = mLineageStore.getLineageFileState(fileId);
@@ -281,7 +282,8 @@ public final class LineageMaster extends MasterBase {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws BlockInfoException if the completion fails
    */
-  public void asyncCompleteFile(long fileId) throws FileDoesNotExistException, BlockInfoException {
+  public synchronized void asyncCompleteFile(long fileId)
+      throws FileDoesNotExistException, BlockInfoException {
     LOG.info("Async complete file " + fileId);
     mLineageStore.completeFile(fileId);
     // complete file in Tachyon.
@@ -303,8 +305,8 @@ public final class LineageMaster extends MasterBase {
    * @return the command for checkpointing the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    */
-  public LineageCommand lineageWorkerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException {
+  public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
+      List<Long> persistedFiles) throws FileDoesNotExistException {
     // notify checkpoint manager the persisted files
     persistFiles(workerId, persistedFiles);
 
@@ -320,7 +322,7 @@ public final class LineageMaster extends MasterBase {
   /**
    * @return the list of all the {@link LineageInfo}s.
    */
-  public List<LineageInfo> getLineageInfoList() {
+  public synchronized List<LineageInfo> getLineageInfoList() {
     List<LineageInfo> lineages = Lists.newArrayList();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
@@ -341,12 +343,12 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * It takes a checkpoint plan and waits for the lineage checkpointing service to checkpoint the
+   * It takes a checkpoint plan and queues for the lineage checkpointing service to checkpoint the
    * lineages in the plan.
    *
    * @param plan the plan for checkpointing
    */
-  public synchronized void waitForCheckpoint(CheckpointPlan plan) {
+  public synchronized void queueForCheckpoint(CheckpointPlan plan) {
     for (long lineageId : plan.getLineagesToCheckpoint()) {
       Lineage lineage = mLineageStore.getLineage(lineageId);
       // register the lineage file to checkpoint

@@ -38,11 +38,11 @@ import org.slf4j.LoggerFactory;
 public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, LineageInfo._Fields>, java.io.Serializable, Cloneable, Comparable<LineageInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("LineageInfo");
 
-  private static final org.apache.thrift.protocol.TField M_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mId", org.apache.thrift.protocol.TType.I64, (short)1);
-  private static final org.apache.thrift.protocol.TField M_INPUT_FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("mInputFiles", org.apache.thrift.protocol.TType.LIST, (short)2);
-  private static final org.apache.thrift.protocol.TField M_OUTPUT_FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("mOutputFiles", org.apache.thrift.protocol.TType.LIST, (short)3);
-  private static final org.apache.thrift.protocol.TField M_JOB_FIELD_DESC = new org.apache.thrift.protocol.TField("mJob", org.apache.thrift.protocol.TType.STRUCT, (short)4);
-  private static final org.apache.thrift.protocol.TField M_CREATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("mCreationTimeMs", org.apache.thrift.protocol.TType.I64, (short)5);
+  private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField INPUT_FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("inputFiles", org.apache.thrift.protocol.TType.LIST, (short)2);
+  private static final org.apache.thrift.protocol.TField OUTPUT_FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("outputFiles", org.apache.thrift.protocol.TType.LIST, (short)3);
+  private static final org.apache.thrift.protocol.TField JOB_FIELD_DESC = new org.apache.thrift.protocol.TField("job", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+  private static final org.apache.thrift.protocol.TField CREATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("creationTimeMs", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField PARENTS_FIELD_DESC = new org.apache.thrift.protocol.TField("parents", org.apache.thrift.protocol.TType.LIST, (short)6);
   private static final org.apache.thrift.protocol.TField CHILDREN_FIELD_DESC = new org.apache.thrift.protocol.TField("children", org.apache.thrift.protocol.TType.LIST, (short)7);
 
@@ -52,21 +52,21 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
     schemes.put(TupleScheme.class, new LineageInfoTupleSchemeFactory());
   }
 
-  public long mId; // required
-  public List<Long> mInputFiles; // required
-  public List<LineageFileInfo> mOutputFiles; // required
-  public CommandLineJobInfo mJob; // required
-  public long mCreationTimeMs; // required
+  public long id; // required
+  public List<Long> inputFiles; // required
+  public List<LineageFileInfo> outputFiles; // required
+  public CommandLineJobInfo job; // required
+  public long creationTimeMs; // required
   public List<Long> parents; // required
   public List<Long> children; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    M_ID((short)1, "mId"),
-    M_INPUT_FILES((short)2, "mInputFiles"),
-    M_OUTPUT_FILES((short)3, "mOutputFiles"),
-    M_JOB((short)4, "mJob"),
-    M_CREATION_TIME_MS((short)5, "mCreationTimeMs"),
+    ID((short)1, "id"),
+    INPUT_FILES((short)2, "inputFiles"),
+    OUTPUT_FILES((short)3, "outputFiles"),
+    JOB((short)4, "job"),
+    CREATION_TIME_MS((short)5, "creationTimeMs"),
     PARENTS((short)6, "parents"),
     CHILDREN((short)7, "children");
 
@@ -83,16 +83,16 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // M_ID
-          return M_ID;
-        case 2: // M_INPUT_FILES
-          return M_INPUT_FILES;
-        case 3: // M_OUTPUT_FILES
-          return M_OUTPUT_FILES;
-        case 4: // M_JOB
-          return M_JOB;
-        case 5: // M_CREATION_TIME_MS
-          return M_CREATION_TIME_MS;
+        case 1: // ID
+          return ID;
+        case 2: // INPUT_FILES
+          return INPUT_FILES;
+        case 3: // OUTPUT_FILES
+          return OUTPUT_FILES;
+        case 4: // JOB
+          return JOB;
+        case 5: // CREATION_TIME_MS
+          return CREATION_TIME_MS;
         case 6: // PARENTS
           return PARENTS;
         case 7: // CHILDREN
@@ -137,23 +137,23 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
   }
 
   // isset id assignments
-  private static final int __MID_ISSET_ID = 0;
-  private static final int __MCREATIONTIMEMS_ISSET_ID = 1;
+  private static final int __ID_ISSET_ID = 0;
+  private static final int __CREATIONTIMEMS_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.M_ID, new org.apache.thrift.meta_data.FieldMetaData("mId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.M_INPUT_FILES, new org.apache.thrift.meta_data.FieldMetaData("mInputFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.INPUT_FILES, new org.apache.thrift.meta_data.FieldMetaData("inputFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
-    tmpMap.put(_Fields.M_OUTPUT_FILES, new org.apache.thrift.meta_data.FieldMetaData("mOutputFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.OUTPUT_FILES, new org.apache.thrift.meta_data.FieldMetaData("outputFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LineageFileInfo.class))));
-    tmpMap.put(_Fields.M_JOB, new org.apache.thrift.meta_data.FieldMetaData("mJob", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.JOB, new org.apache.thrift.meta_data.FieldMetaData("job", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CommandLineJobInfo.class)));
-    tmpMap.put(_Fields.M_CREATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("mCreationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CREATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("creationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.PARENTS, new org.apache.thrift.meta_data.FieldMetaData("parents", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
@@ -169,22 +169,22 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
   }
 
   public LineageInfo(
-    long mId,
-    List<Long> mInputFiles,
-    List<LineageFileInfo> mOutputFiles,
-    CommandLineJobInfo mJob,
-    long mCreationTimeMs,
+    long id,
+    List<Long> inputFiles,
+    List<LineageFileInfo> outputFiles,
+    CommandLineJobInfo job,
+    long creationTimeMs,
     List<Long> parents,
     List<Long> children)
   {
     this();
-    this.mId = mId;
-    setMIdIsSet(true);
-    this.mInputFiles = mInputFiles;
-    this.mOutputFiles = mOutputFiles;
-    this.mJob = mJob;
-    this.mCreationTimeMs = mCreationTimeMs;
-    setMCreationTimeMsIsSet(true);
+    this.id = id;
+    setIdIsSet(true);
+    this.inputFiles = inputFiles;
+    this.outputFiles = outputFiles;
+    this.job = job;
+    this.creationTimeMs = creationTimeMs;
+    setCreationTimeMsIsSet(true);
     this.parents = parents;
     this.children = children;
   }
@@ -194,22 +194,22 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
    */
   public LineageInfo(LineageInfo other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.mId = other.mId;
-    if (other.isSetMInputFiles()) {
-      List<Long> __this__mInputFiles = new ArrayList<Long>(other.mInputFiles);
-      this.mInputFiles = __this__mInputFiles;
+    this.id = other.id;
+    if (other.isSetInputFiles()) {
+      List<Long> __this__inputFiles = new ArrayList<Long>(other.inputFiles);
+      this.inputFiles = __this__inputFiles;
     }
-    if (other.isSetMOutputFiles()) {
-      List<LineageFileInfo> __this__mOutputFiles = new ArrayList<LineageFileInfo>(other.mOutputFiles.size());
-      for (LineageFileInfo other_element : other.mOutputFiles) {
-        __this__mOutputFiles.add(new LineageFileInfo(other_element));
+    if (other.isSetOutputFiles()) {
+      List<LineageFileInfo> __this__outputFiles = new ArrayList<LineageFileInfo>(other.outputFiles.size());
+      for (LineageFileInfo other_element : other.outputFiles) {
+        __this__outputFiles.add(new LineageFileInfo(other_element));
       }
-      this.mOutputFiles = __this__mOutputFiles;
+      this.outputFiles = __this__outputFiles;
     }
-    if (other.isSetMJob()) {
-      this.mJob = new CommandLineJobInfo(other.mJob);
+    if (other.isSetJob()) {
+      this.job = new CommandLineJobInfo(other.job);
     }
-    this.mCreationTimeMs = other.mCreationTimeMs;
+    this.creationTimeMs = other.creationTimeMs;
     if (other.isSetParents()) {
       List<Long> __this__parents = new ArrayList<Long>(other.parents);
       this.parents = __this__parents;
@@ -226,163 +226,163 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
 
   @Override
   public void clear() {
-    setMIdIsSet(false);
-    this.mId = 0;
-    this.mInputFiles = null;
-    this.mOutputFiles = null;
-    this.mJob = null;
-    setMCreationTimeMsIsSet(false);
-    this.mCreationTimeMs = 0;
+    setIdIsSet(false);
+    this.id = 0;
+    this.inputFiles = null;
+    this.outputFiles = null;
+    this.job = null;
+    setCreationTimeMsIsSet(false);
+    this.creationTimeMs = 0;
     this.parents = null;
     this.children = null;
   }
 
-  public long getMId() {
-    return this.mId;
+  public long getId() {
+    return this.id;
   }
 
-  public LineageInfo setMId(long mId) {
-    this.mId = mId;
-    setMIdIsSet(true);
+  public LineageInfo setId(long id) {
+    this.id = id;
+    setIdIsSet(true);
     return this;
   }
 
-  public void unsetMId() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MID_ISSET_ID);
+  public void unsetId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ID_ISSET_ID);
   }
 
-  /** Returns true if field mId is set (has been assigned a value) and false otherwise */
-  public boolean isSetMId() {
-    return EncodingUtils.testBit(__isset_bitfield, __MID_ISSET_ID);
+  /** Returns true if field id is set (has been assigned a value) and false otherwise */
+  public boolean isSetId() {
+    return EncodingUtils.testBit(__isset_bitfield, __ID_ISSET_ID);
   }
 
-  public void setMIdIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MID_ISSET_ID, value);
+  public void setIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
   }
 
-  public int getMInputFilesSize() {
-    return (this.mInputFiles == null) ? 0 : this.mInputFiles.size();
+  public int getInputFilesSize() {
+    return (this.inputFiles == null) ? 0 : this.inputFiles.size();
   }
 
-  public java.util.Iterator<Long> getMInputFilesIterator() {
-    return (this.mInputFiles == null) ? null : this.mInputFiles.iterator();
+  public java.util.Iterator<Long> getInputFilesIterator() {
+    return (this.inputFiles == null) ? null : this.inputFiles.iterator();
   }
 
-  public void addToMInputFiles(long elem) {
-    if (this.mInputFiles == null) {
-      this.mInputFiles = new ArrayList<Long>();
+  public void addToInputFiles(long elem) {
+    if (this.inputFiles == null) {
+      this.inputFiles = new ArrayList<Long>();
     }
-    this.mInputFiles.add(elem);
+    this.inputFiles.add(elem);
   }
 
-  public List<Long> getMInputFiles() {
-    return this.mInputFiles;
+  public List<Long> getInputFiles() {
+    return this.inputFiles;
   }
 
-  public LineageInfo setMInputFiles(List<Long> mInputFiles) {
-    this.mInputFiles = mInputFiles;
+  public LineageInfo setInputFiles(List<Long> inputFiles) {
+    this.inputFiles = inputFiles;
     return this;
   }
 
-  public void unsetMInputFiles() {
-    this.mInputFiles = null;
+  public void unsetInputFiles() {
+    this.inputFiles = null;
   }
 
-  /** Returns true if field mInputFiles is set (has been assigned a value) and false otherwise */
-  public boolean isSetMInputFiles() {
-    return this.mInputFiles != null;
+  /** Returns true if field inputFiles is set (has been assigned a value) and false otherwise */
+  public boolean isSetInputFiles() {
+    return this.inputFiles != null;
   }
 
-  public void setMInputFilesIsSet(boolean value) {
+  public void setInputFilesIsSet(boolean value) {
     if (!value) {
-      this.mInputFiles = null;
+      this.inputFiles = null;
     }
   }
 
-  public int getMOutputFilesSize() {
-    return (this.mOutputFiles == null) ? 0 : this.mOutputFiles.size();
+  public int getOutputFilesSize() {
+    return (this.outputFiles == null) ? 0 : this.outputFiles.size();
   }
 
-  public java.util.Iterator<LineageFileInfo> getMOutputFilesIterator() {
-    return (this.mOutputFiles == null) ? null : this.mOutputFiles.iterator();
+  public java.util.Iterator<LineageFileInfo> getOutputFilesIterator() {
+    return (this.outputFiles == null) ? null : this.outputFiles.iterator();
   }
 
-  public void addToMOutputFiles(LineageFileInfo elem) {
-    if (this.mOutputFiles == null) {
-      this.mOutputFiles = new ArrayList<LineageFileInfo>();
+  public void addToOutputFiles(LineageFileInfo elem) {
+    if (this.outputFiles == null) {
+      this.outputFiles = new ArrayList<LineageFileInfo>();
     }
-    this.mOutputFiles.add(elem);
+    this.outputFiles.add(elem);
   }
 
-  public List<LineageFileInfo> getMOutputFiles() {
-    return this.mOutputFiles;
+  public List<LineageFileInfo> getOutputFiles() {
+    return this.outputFiles;
   }
 
-  public LineageInfo setMOutputFiles(List<LineageFileInfo> mOutputFiles) {
-    this.mOutputFiles = mOutputFiles;
+  public LineageInfo setOutputFiles(List<LineageFileInfo> outputFiles) {
+    this.outputFiles = outputFiles;
     return this;
   }
 
-  public void unsetMOutputFiles() {
-    this.mOutputFiles = null;
+  public void unsetOutputFiles() {
+    this.outputFiles = null;
   }
 
-  /** Returns true if field mOutputFiles is set (has been assigned a value) and false otherwise */
-  public boolean isSetMOutputFiles() {
-    return this.mOutputFiles != null;
+  /** Returns true if field outputFiles is set (has been assigned a value) and false otherwise */
+  public boolean isSetOutputFiles() {
+    return this.outputFiles != null;
   }
 
-  public void setMOutputFilesIsSet(boolean value) {
+  public void setOutputFilesIsSet(boolean value) {
     if (!value) {
-      this.mOutputFiles = null;
+      this.outputFiles = null;
     }
   }
 
-  public CommandLineJobInfo getMJob() {
-    return this.mJob;
+  public CommandLineJobInfo getJob() {
+    return this.job;
   }
 
-  public LineageInfo setMJob(CommandLineJobInfo mJob) {
-    this.mJob = mJob;
+  public LineageInfo setJob(CommandLineJobInfo job) {
+    this.job = job;
     return this;
   }
 
-  public void unsetMJob() {
-    this.mJob = null;
+  public void unsetJob() {
+    this.job = null;
   }
 
-  /** Returns true if field mJob is set (has been assigned a value) and false otherwise */
-  public boolean isSetMJob() {
-    return this.mJob != null;
+  /** Returns true if field job is set (has been assigned a value) and false otherwise */
+  public boolean isSetJob() {
+    return this.job != null;
   }
 
-  public void setMJobIsSet(boolean value) {
+  public void setJobIsSet(boolean value) {
     if (!value) {
-      this.mJob = null;
+      this.job = null;
     }
   }
 
-  public long getMCreationTimeMs() {
-    return this.mCreationTimeMs;
+  public long getCreationTimeMs() {
+    return this.creationTimeMs;
   }
 
-  public LineageInfo setMCreationTimeMs(long mCreationTimeMs) {
-    this.mCreationTimeMs = mCreationTimeMs;
-    setMCreationTimeMsIsSet(true);
+  public LineageInfo setCreationTimeMs(long creationTimeMs) {
+    this.creationTimeMs = creationTimeMs;
+    setCreationTimeMsIsSet(true);
     return this;
   }
 
-  public void unsetMCreationTimeMs() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MCREATIONTIMEMS_ISSET_ID);
+  public void unsetCreationTimeMs() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CREATIONTIMEMS_ISSET_ID);
   }
 
-  /** Returns true if field mCreationTimeMs is set (has been assigned a value) and false otherwise */
-  public boolean isSetMCreationTimeMs() {
-    return EncodingUtils.testBit(__isset_bitfield, __MCREATIONTIMEMS_ISSET_ID);
+  /** Returns true if field creationTimeMs is set (has been assigned a value) and false otherwise */
+  public boolean isSetCreationTimeMs() {
+    return EncodingUtils.testBit(__isset_bitfield, __CREATIONTIMEMS_ISSET_ID);
   }
 
-  public void setMCreationTimeMsIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MCREATIONTIMEMS_ISSET_ID, value);
+  public void setCreationTimeMsIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CREATIONTIMEMS_ISSET_ID, value);
   }
 
   public int getParentsSize() {
@@ -465,43 +465,43 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case M_ID:
+    case ID:
       if (value == null) {
-        unsetMId();
+        unsetId();
       } else {
-        setMId((Long)value);
+        setId((Long)value);
       }
       break;
 
-    case M_INPUT_FILES:
+    case INPUT_FILES:
       if (value == null) {
-        unsetMInputFiles();
+        unsetInputFiles();
       } else {
-        setMInputFiles((List<Long>)value);
+        setInputFiles((List<Long>)value);
       }
       break;
 
-    case M_OUTPUT_FILES:
+    case OUTPUT_FILES:
       if (value == null) {
-        unsetMOutputFiles();
+        unsetOutputFiles();
       } else {
-        setMOutputFiles((List<LineageFileInfo>)value);
+        setOutputFiles((List<LineageFileInfo>)value);
       }
       break;
 
-    case M_JOB:
+    case JOB:
       if (value == null) {
-        unsetMJob();
+        unsetJob();
       } else {
-        setMJob((CommandLineJobInfo)value);
+        setJob((CommandLineJobInfo)value);
       }
       break;
 
-    case M_CREATION_TIME_MS:
+    case CREATION_TIME_MS:
       if (value == null) {
-        unsetMCreationTimeMs();
+        unsetCreationTimeMs();
       } else {
-        setMCreationTimeMs((Long)value);
+        setCreationTimeMs((Long)value);
       }
       break;
 
@@ -526,20 +526,20 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case M_ID:
-      return Long.valueOf(getMId());
+    case ID:
+      return Long.valueOf(getId());
 
-    case M_INPUT_FILES:
-      return getMInputFiles();
+    case INPUT_FILES:
+      return getInputFiles();
 
-    case M_OUTPUT_FILES:
-      return getMOutputFiles();
+    case OUTPUT_FILES:
+      return getOutputFiles();
 
-    case M_JOB:
-      return getMJob();
+    case JOB:
+      return getJob();
 
-    case M_CREATION_TIME_MS:
-      return Long.valueOf(getMCreationTimeMs());
+    case CREATION_TIME_MS:
+      return Long.valueOf(getCreationTimeMs());
 
     case PARENTS:
       return getParents();
@@ -558,16 +558,16 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
     }
 
     switch (field) {
-    case M_ID:
-      return isSetMId();
-    case M_INPUT_FILES:
-      return isSetMInputFiles();
-    case M_OUTPUT_FILES:
-      return isSetMOutputFiles();
-    case M_JOB:
-      return isSetMJob();
-    case M_CREATION_TIME_MS:
-      return isSetMCreationTimeMs();
+    case ID:
+      return isSetId();
+    case INPUT_FILES:
+      return isSetInputFiles();
+    case OUTPUT_FILES:
+      return isSetOutputFiles();
+    case JOB:
+      return isSetJob();
+    case CREATION_TIME_MS:
+      return isSetCreationTimeMs();
     case PARENTS:
       return isSetParents();
     case CHILDREN:
@@ -589,48 +589,48 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
     if (that == null)
       return false;
 
-    boolean this_present_mId = true;
-    boolean that_present_mId = true;
-    if (this_present_mId || that_present_mId) {
-      if (!(this_present_mId && that_present_mId))
+    boolean this_present_id = true;
+    boolean that_present_id = true;
+    if (this_present_id || that_present_id) {
+      if (!(this_present_id && that_present_id))
         return false;
-      if (this.mId != that.mId)
-        return false;
-    }
-
-    boolean this_present_mInputFiles = true && this.isSetMInputFiles();
-    boolean that_present_mInputFiles = true && that.isSetMInputFiles();
-    if (this_present_mInputFiles || that_present_mInputFiles) {
-      if (!(this_present_mInputFiles && that_present_mInputFiles))
-        return false;
-      if (!this.mInputFiles.equals(that.mInputFiles))
+      if (this.id != that.id)
         return false;
     }
 
-    boolean this_present_mOutputFiles = true && this.isSetMOutputFiles();
-    boolean that_present_mOutputFiles = true && that.isSetMOutputFiles();
-    if (this_present_mOutputFiles || that_present_mOutputFiles) {
-      if (!(this_present_mOutputFiles && that_present_mOutputFiles))
+    boolean this_present_inputFiles = true && this.isSetInputFiles();
+    boolean that_present_inputFiles = true && that.isSetInputFiles();
+    if (this_present_inputFiles || that_present_inputFiles) {
+      if (!(this_present_inputFiles && that_present_inputFiles))
         return false;
-      if (!this.mOutputFiles.equals(that.mOutputFiles))
-        return false;
-    }
-
-    boolean this_present_mJob = true && this.isSetMJob();
-    boolean that_present_mJob = true && that.isSetMJob();
-    if (this_present_mJob || that_present_mJob) {
-      if (!(this_present_mJob && that_present_mJob))
-        return false;
-      if (!this.mJob.equals(that.mJob))
+      if (!this.inputFiles.equals(that.inputFiles))
         return false;
     }
 
-    boolean this_present_mCreationTimeMs = true;
-    boolean that_present_mCreationTimeMs = true;
-    if (this_present_mCreationTimeMs || that_present_mCreationTimeMs) {
-      if (!(this_present_mCreationTimeMs && that_present_mCreationTimeMs))
+    boolean this_present_outputFiles = true && this.isSetOutputFiles();
+    boolean that_present_outputFiles = true && that.isSetOutputFiles();
+    if (this_present_outputFiles || that_present_outputFiles) {
+      if (!(this_present_outputFiles && that_present_outputFiles))
         return false;
-      if (this.mCreationTimeMs != that.mCreationTimeMs)
+      if (!this.outputFiles.equals(that.outputFiles))
+        return false;
+    }
+
+    boolean this_present_job = true && this.isSetJob();
+    boolean that_present_job = true && that.isSetJob();
+    if (this_present_job || that_present_job) {
+      if (!(this_present_job && that_present_job))
+        return false;
+      if (!this.job.equals(that.job))
+        return false;
+    }
+
+    boolean this_present_creationTimeMs = true;
+    boolean that_present_creationTimeMs = true;
+    if (this_present_creationTimeMs || that_present_creationTimeMs) {
+      if (!(this_present_creationTimeMs && that_present_creationTimeMs))
+        return false;
+      if (this.creationTimeMs != that.creationTimeMs)
         return false;
     }
 
@@ -659,30 +659,30 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_mId = true;
-    list.add(present_mId);
-    if (present_mId)
-      list.add(mId);
+    boolean present_id = true;
+    list.add(present_id);
+    if (present_id)
+      list.add(id);
 
-    boolean present_mInputFiles = true && (isSetMInputFiles());
-    list.add(present_mInputFiles);
-    if (present_mInputFiles)
-      list.add(mInputFiles);
+    boolean present_inputFiles = true && (isSetInputFiles());
+    list.add(present_inputFiles);
+    if (present_inputFiles)
+      list.add(inputFiles);
 
-    boolean present_mOutputFiles = true && (isSetMOutputFiles());
-    list.add(present_mOutputFiles);
-    if (present_mOutputFiles)
-      list.add(mOutputFiles);
+    boolean present_outputFiles = true && (isSetOutputFiles());
+    list.add(present_outputFiles);
+    if (present_outputFiles)
+      list.add(outputFiles);
 
-    boolean present_mJob = true && (isSetMJob());
-    list.add(present_mJob);
-    if (present_mJob)
-      list.add(mJob);
+    boolean present_job = true && (isSetJob());
+    list.add(present_job);
+    if (present_job)
+      list.add(job);
 
-    boolean present_mCreationTimeMs = true;
-    list.add(present_mCreationTimeMs);
-    if (present_mCreationTimeMs)
-      list.add(mCreationTimeMs);
+    boolean present_creationTimeMs = true;
+    list.add(present_creationTimeMs);
+    if (present_creationTimeMs)
+      list.add(creationTimeMs);
 
     boolean present_parents = true && (isSetParents());
     list.add(present_parents);
@@ -705,52 +705,52 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetMId()).compareTo(other.isSetMId());
+    lastComparison = Boolean.valueOf(isSetId()).compareTo(other.isSetId());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMId()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mId, other.mId);
+    if (isSetId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.id, other.id);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMInputFiles()).compareTo(other.isSetMInputFiles());
+    lastComparison = Boolean.valueOf(isSetInputFiles()).compareTo(other.isSetInputFiles());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMInputFiles()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mInputFiles, other.mInputFiles);
+    if (isSetInputFiles()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.inputFiles, other.inputFiles);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMOutputFiles()).compareTo(other.isSetMOutputFiles());
+    lastComparison = Boolean.valueOf(isSetOutputFiles()).compareTo(other.isSetOutputFiles());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMOutputFiles()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mOutputFiles, other.mOutputFiles);
+    if (isSetOutputFiles()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.outputFiles, other.outputFiles);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMJob()).compareTo(other.isSetMJob());
+    lastComparison = Boolean.valueOf(isSetJob()).compareTo(other.isSetJob());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMJob()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mJob, other.mJob);
+    if (isSetJob()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.job, other.job);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMCreationTimeMs()).compareTo(other.isSetMCreationTimeMs());
+    lastComparison = Boolean.valueOf(isSetCreationTimeMs()).compareTo(other.isSetCreationTimeMs());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMCreationTimeMs()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mCreationTimeMs, other.mCreationTimeMs);
+    if (isSetCreationTimeMs()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.creationTimeMs, other.creationTimeMs);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -795,36 +795,36 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
     StringBuilder sb = new StringBuilder("LineageInfo(");
     boolean first = true;
 
-    sb.append("mId:");
-    sb.append(this.mId);
+    sb.append("id:");
+    sb.append(this.id);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mInputFiles:");
-    if (this.mInputFiles == null) {
+    sb.append("inputFiles:");
+    if (this.inputFiles == null) {
       sb.append("null");
     } else {
-      sb.append(this.mInputFiles);
+      sb.append(this.inputFiles);
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mOutputFiles:");
-    if (this.mOutputFiles == null) {
+    sb.append("outputFiles:");
+    if (this.outputFiles == null) {
       sb.append("null");
     } else {
-      sb.append(this.mOutputFiles);
+      sb.append(this.outputFiles);
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mJob:");
-    if (this.mJob == null) {
+    sb.append("job:");
+    if (this.job == null) {
       sb.append("null");
     } else {
-      sb.append(this.mJob);
+      sb.append(this.job);
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mCreationTimeMs:");
-    sb.append(this.mCreationTimeMs);
+    sb.append("creationTimeMs:");
+    sb.append(this.creationTimeMs);
     first = false;
     if (!first) sb.append(", ");
     sb.append("parents:");
@@ -849,8 +849,8 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
-    if (mJob != null) {
-      mJob.validate();
+    if (job != null) {
+      job.validate();
     }
   }
 
@@ -890,64 +890,64 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
           break;
         }
         switch (schemeField.id) {
-          case 1: // M_ID
+          case 1: // ID
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.mId = iprot.readI64();
-              struct.setMIdIsSet(true);
+              struct.id = iprot.readI64();
+              struct.setIdIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // M_INPUT_FILES
+          case 2: // INPUT_FILES
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list72 = iprot.readListBegin();
-                struct.mInputFiles = new ArrayList<Long>(_list72.size);
+                struct.inputFiles = new ArrayList<Long>(_list72.size);
                 long _elem73;
                 for (int _i74 = 0; _i74 < _list72.size; ++_i74)
                 {
                   _elem73 = iprot.readI64();
-                  struct.mInputFiles.add(_elem73);
+                  struct.inputFiles.add(_elem73);
                 }
                 iprot.readListEnd();
               }
-              struct.setMInputFilesIsSet(true);
+              struct.setInputFilesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // M_OUTPUT_FILES
+          case 3: // OUTPUT_FILES
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list75 = iprot.readListBegin();
-                struct.mOutputFiles = new ArrayList<LineageFileInfo>(_list75.size);
+                struct.outputFiles = new ArrayList<LineageFileInfo>(_list75.size);
                 LineageFileInfo _elem76;
                 for (int _i77 = 0; _i77 < _list75.size; ++_i77)
                 {
                   _elem76 = new LineageFileInfo();
                   _elem76.read(iprot);
-                  struct.mOutputFiles.add(_elem76);
+                  struct.outputFiles.add(_elem76);
                 }
                 iprot.readListEnd();
               }
-              struct.setMOutputFilesIsSet(true);
+              struct.setOutputFilesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // M_JOB
+          case 4: // JOB
             if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-              struct.mJob = new CommandLineJobInfo();
-              struct.mJob.read(iprot);
-              struct.setMJobIsSet(true);
+              struct.job = new CommandLineJobInfo();
+              struct.job.read(iprot);
+              struct.setJobIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 5: // M_CREATION_TIME_MS
+          case 5: // CREATION_TIME_MS
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.mCreationTimeMs = iprot.readI64();
-              struct.setMCreationTimeMsIsSet(true);
+              struct.creationTimeMs = iprot.readI64();
+              struct.setCreationTimeMsIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1003,14 +1003,14 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(M_ID_FIELD_DESC);
-      oprot.writeI64(struct.mId);
+      oprot.writeFieldBegin(ID_FIELD_DESC);
+      oprot.writeI64(struct.id);
       oprot.writeFieldEnd();
-      if (struct.mInputFiles != null) {
-        oprot.writeFieldBegin(M_INPUT_FILES_FIELD_DESC);
+      if (struct.inputFiles != null) {
+        oprot.writeFieldBegin(INPUT_FILES_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.mInputFiles.size()));
-          for (long _iter84 : struct.mInputFiles)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.inputFiles.size()));
+          for (long _iter84 : struct.inputFiles)
           {
             oprot.writeI64(_iter84);
           }
@@ -1018,11 +1018,11 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
         }
         oprot.writeFieldEnd();
       }
-      if (struct.mOutputFiles != null) {
-        oprot.writeFieldBegin(M_OUTPUT_FILES_FIELD_DESC);
+      if (struct.outputFiles != null) {
+        oprot.writeFieldBegin(OUTPUT_FILES_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.mOutputFiles.size()));
-          for (LineageFileInfo _iter85 : struct.mOutputFiles)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.outputFiles.size()));
+          for (LineageFileInfo _iter85 : struct.outputFiles)
           {
             _iter85.write(oprot);
           }
@@ -1030,13 +1030,13 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
         }
         oprot.writeFieldEnd();
       }
-      if (struct.mJob != null) {
-        oprot.writeFieldBegin(M_JOB_FIELD_DESC);
-        struct.mJob.write(oprot);
+      if (struct.job != null) {
+        oprot.writeFieldBegin(JOB_FIELD_DESC);
+        struct.job.write(oprot);
         oprot.writeFieldEnd();
       }
-      oprot.writeFieldBegin(M_CREATION_TIME_MS_FIELD_DESC);
-      oprot.writeI64(struct.mCreationTimeMs);
+      oprot.writeFieldBegin(CREATION_TIME_MS_FIELD_DESC);
+      oprot.writeI64(struct.creationTimeMs);
       oprot.writeFieldEnd();
       if (struct.parents != null) {
         oprot.writeFieldBegin(PARENTS_FIELD_DESC);
@@ -1080,19 +1080,19 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
     public void write(org.apache.thrift.protocol.TProtocol prot, LineageInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetMId()) {
+      if (struct.isSetId()) {
         optionals.set(0);
       }
-      if (struct.isSetMInputFiles()) {
+      if (struct.isSetInputFiles()) {
         optionals.set(1);
       }
-      if (struct.isSetMOutputFiles()) {
+      if (struct.isSetOutputFiles()) {
         optionals.set(2);
       }
-      if (struct.isSetMJob()) {
+      if (struct.isSetJob()) {
         optionals.set(3);
       }
-      if (struct.isSetMCreationTimeMs()) {
+      if (struct.isSetCreationTimeMs()) {
         optionals.set(4);
       }
       if (struct.isSetParents()) {
@@ -1102,32 +1102,32 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
         optionals.set(6);
       }
       oprot.writeBitSet(optionals, 7);
-      if (struct.isSetMId()) {
-        oprot.writeI64(struct.mId);
+      if (struct.isSetId()) {
+        oprot.writeI64(struct.id);
       }
-      if (struct.isSetMInputFiles()) {
+      if (struct.isSetInputFiles()) {
         {
-          oprot.writeI32(struct.mInputFiles.size());
-          for (long _iter88 : struct.mInputFiles)
+          oprot.writeI32(struct.inputFiles.size());
+          for (long _iter88 : struct.inputFiles)
           {
             oprot.writeI64(_iter88);
           }
         }
       }
-      if (struct.isSetMOutputFiles()) {
+      if (struct.isSetOutputFiles()) {
         {
-          oprot.writeI32(struct.mOutputFiles.size());
-          for (LineageFileInfo _iter89 : struct.mOutputFiles)
+          oprot.writeI32(struct.outputFiles.size());
+          for (LineageFileInfo _iter89 : struct.outputFiles)
           {
             _iter89.write(oprot);
           }
         }
       }
-      if (struct.isSetMJob()) {
-        struct.mJob.write(oprot);
+      if (struct.isSetJob()) {
+        struct.job.write(oprot);
       }
-      if (struct.isSetMCreationTimeMs()) {
-        oprot.writeI64(struct.mCreationTimeMs);
+      if (struct.isSetCreationTimeMs()) {
+        oprot.writeI64(struct.creationTimeMs);
       }
       if (struct.isSetParents()) {
         {
@@ -1154,44 +1154,44 @@ public class LineageInfo implements org.apache.thrift.TBase<LineageInfo, Lineage
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
-        struct.mId = iprot.readI64();
-        struct.setMIdIsSet(true);
+        struct.id = iprot.readI64();
+        struct.setIdIsSet(true);
       }
       if (incoming.get(1)) {
         {
           org.apache.thrift.protocol.TList _list92 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-          struct.mInputFiles = new ArrayList<Long>(_list92.size);
+          struct.inputFiles = new ArrayList<Long>(_list92.size);
           long _elem93;
           for (int _i94 = 0; _i94 < _list92.size; ++_i94)
           {
             _elem93 = iprot.readI64();
-            struct.mInputFiles.add(_elem93);
+            struct.inputFiles.add(_elem93);
           }
         }
-        struct.setMInputFilesIsSet(true);
+        struct.setInputFilesIsSet(true);
       }
       if (incoming.get(2)) {
         {
           org.apache.thrift.protocol.TList _list95 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.mOutputFiles = new ArrayList<LineageFileInfo>(_list95.size);
+          struct.outputFiles = new ArrayList<LineageFileInfo>(_list95.size);
           LineageFileInfo _elem96;
           for (int _i97 = 0; _i97 < _list95.size; ++_i97)
           {
             _elem96 = new LineageFileInfo();
             _elem96.read(iprot);
-            struct.mOutputFiles.add(_elem96);
+            struct.outputFiles.add(_elem96);
           }
         }
-        struct.setMOutputFilesIsSet(true);
+        struct.setOutputFilesIsSet(true);
       }
       if (incoming.get(3)) {
-        struct.mJob = new CommandLineJobInfo();
-        struct.mJob.read(iprot);
-        struct.setMJobIsSet(true);
+        struct.job = new CommandLineJobInfo();
+        struct.job.read(iprot);
+        struct.setJobIsSet(true);
       }
       if (incoming.get(4)) {
-        struct.mCreationTimeMs = iprot.readI64();
-        struct.setMCreationTimeMsIsSet(true);
+        struct.creationTimeMs = iprot.readI64();
+        struct.setCreationTimeMsIsSet(true);
       }
       if (incoming.get(5)) {
         {

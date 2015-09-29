@@ -80,11 +80,11 @@ final class LineageWorkerMasterSyncExecutor implements HeartbeatExecutor {
     } catch (IOException e) {
       LOG.error("Failed to heartbeat to master", e);
     }
-    Preconditions.checkState(command.mCommandType == CommandType.Persist);
+    Preconditions.checkState(command.commandType == CommandType.Persist);
 
-    for (CheckpointFile checkpointFile : command.mCheckpointFiles) {
-      mFixedExecutionService.execute(new FilePersister(mLineageDataManager, checkpointFile.mFileId,
-          checkpointFile.mBlockIds));
+    for (CheckpointFile checkpointFile : command.checkpointFiles) {
+      mFixedExecutionService.execute(new FilePersister(mLineageDataManager, checkpointFile.fileId,
+          checkpointFile.blockIds));
     }
   }
 

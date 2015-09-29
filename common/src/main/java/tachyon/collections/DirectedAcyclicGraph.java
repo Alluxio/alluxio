@@ -47,6 +47,7 @@ public class DirectedAcyclicGraph<T> {
    * @param parents the parents of the created node
    */
   public void add(T payload, List<T> parents) {
+    // this checks the payload doesn't exist in the graph, and therefore prevents cycles
     Preconditions.checkState(!contains(payload), "the payload already exists in the DAG");
 
     // construct the new node
@@ -99,7 +100,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * @return the children's payloads, null if the given payload doesn't exist in the DAG
+   * @return the children's payloads, an empty list if the given payload doesn't exist in the DAG
    */
   public List<T> getChildren(T payload) {
     List<T> children = Lists.newArrayList();
@@ -114,7 +115,7 @@ public class DirectedAcyclicGraph<T> {
   }
 
   /**
-   * @return the parents' payloads, null if the given payload doesn't exist in the DAG
+   * @return the parents' payloads, an empty list if the given payload doesn't exist in the DAG
    */
   public List<T> getParents(T payload) {
     List<T> parents = Lists.newArrayList();

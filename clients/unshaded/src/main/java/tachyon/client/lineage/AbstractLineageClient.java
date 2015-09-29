@@ -65,7 +65,7 @@ public abstract class AbstractLineageClient implements LineageClient {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
-      LOG.info(result ? "Succeeded to " : "Failed to" + "delete lineage " + lineageId);
+      LOG.info(result ? "Succeeded to " : "Failed to " + "delete lineage " + lineageId);
       return result;
     } finally {
       mContext.releaseMasterClient(masterClient);

@@ -76,13 +76,13 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
           try {
             mFileSystemMaster.resetFile(fileId);
           } catch (FileDoesNotExistException e) {
-            // TODO error handling
+            LOG.error("the lost file " + fileId + " is invalid", e);
           }
         }
 
         boolean success = lineage.getJob().run();
         if (!success) {
-          // error handling
+          LOG.error("Failed to recompute job " + lineage.getJob());
         }
       }
     }

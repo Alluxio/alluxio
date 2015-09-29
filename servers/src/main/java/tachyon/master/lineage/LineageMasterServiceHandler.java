@@ -74,9 +74,9 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
   }
 
   @Override
-  public long recreateFile(String path, long blockSizeBytes, long ttl)
+  public long reinitializeFile(String path, long blockSizeBytes, long ttl)
       throws InvalidPathException, LineageDoesNotExistException {
-    return mLineageMaster.recreateFile(path, blockSizeBytes, ttl);
+    return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
   }
 
   @Override

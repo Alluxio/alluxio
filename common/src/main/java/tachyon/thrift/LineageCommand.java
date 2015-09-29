@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, LineageCommand._Fields>, java.io.Serializable, Cloneable, Comparable<LineageCommand> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("LineageCommand");
 
-  private static final org.apache.thrift.protocol.TField M_COMMAND_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("mCommandType", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField M_CHECKPOINT_FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("mCheckpointFiles", org.apache.thrift.protocol.TType.LIST, (short)2);
+  private static final org.apache.thrift.protocol.TField COMMAND_TYPE_FIELD_DESC = new org.apache.thrift.protocol.TField("commandType", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField CHECKPOINT_FILES_FIELD_DESC = new org.apache.thrift.protocol.TField("checkpointFiles", org.apache.thrift.protocol.TType.LIST, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -51,8 +51,8 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
    * 
    * @see CommandType
    */
-  public CommandType mCommandType; // required
-  public List<CheckpointFile> mCheckpointFiles; // required
+  public CommandType commandType; // required
+  public List<CheckpointFile> checkpointFiles; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -60,8 +60,8 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
      * 
      * @see CommandType
      */
-    M_COMMAND_TYPE((short)1, "mCommandType"),
-    M_CHECKPOINT_FILES((short)2, "mCheckpointFiles");
+    COMMAND_TYPE((short)1, "commandType"),
+    CHECKPOINT_FILES((short)2, "checkpointFiles");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -76,10 +76,10 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // M_COMMAND_TYPE
-          return M_COMMAND_TYPE;
-        case 2: // M_CHECKPOINT_FILES
-          return M_CHECKPOINT_FILES;
+        case 1: // COMMAND_TYPE
+          return COMMAND_TYPE;
+        case 2: // CHECKPOINT_FILES
+          return CHECKPOINT_FILES;
         default:
           return null;
       }
@@ -123,9 +123,9 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.M_COMMAND_TYPE, new org.apache.thrift.meta_data.FieldMetaData("mCommandType", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.COMMAND_TYPE, new org.apache.thrift.meta_data.FieldMetaData("commandType", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, CommandType.class)));
-    tmpMap.put(_Fields.M_CHECKPOINT_FILES, new org.apache.thrift.meta_data.FieldMetaData("mCheckpointFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CHECKPOINT_FILES, new org.apache.thrift.meta_data.FieldMetaData("checkpointFiles", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT            , "CheckpointFile"))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -136,27 +136,27 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
   }
 
   public LineageCommand(
-    CommandType mCommandType,
-    List<CheckpointFile> mCheckpointFiles)
+    CommandType commandType,
+    List<CheckpointFile> checkpointFiles)
   {
     this();
-    this.mCommandType = mCommandType;
-    this.mCheckpointFiles = mCheckpointFiles;
+    this.commandType = commandType;
+    this.checkpointFiles = checkpointFiles;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public LineageCommand(LineageCommand other) {
-    if (other.isSetMCommandType()) {
-      this.mCommandType = other.mCommandType;
+    if (other.isSetCommandType()) {
+      this.commandType = other.commandType;
     }
-    if (other.isSetMCheckpointFiles()) {
-      List<CheckpointFile> __this__mCheckpointFiles = new ArrayList<CheckpointFile>(other.mCheckpointFiles.size());
-      for (CheckpointFile other_element : other.mCheckpointFiles) {
-        __this__mCheckpointFiles.add(other_element);
+    if (other.isSetCheckpointFiles()) {
+      List<CheckpointFile> __this__checkpointFiles = new ArrayList<CheckpointFile>(other.checkpointFiles.size());
+      for (CheckpointFile other_element : other.checkpointFiles) {
+        __this__checkpointFiles.add(other_element);
       }
-      this.mCheckpointFiles = __this__mCheckpointFiles;
+      this.checkpointFiles = __this__checkpointFiles;
     }
   }
 
@@ -166,96 +166,96 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
 
   @Override
   public void clear() {
-    this.mCommandType = null;
-    this.mCheckpointFiles = null;
+    this.commandType = null;
+    this.checkpointFiles = null;
   }
 
   /**
    * 
    * @see CommandType
    */
-  public CommandType getMCommandType() {
-    return this.mCommandType;
+  public CommandType getCommandType() {
+    return this.commandType;
   }
 
   /**
    * 
    * @see CommandType
    */
-  public LineageCommand setMCommandType(CommandType mCommandType) {
-    this.mCommandType = mCommandType;
+  public LineageCommand setCommandType(CommandType commandType) {
+    this.commandType = commandType;
     return this;
   }
 
-  public void unsetMCommandType() {
-    this.mCommandType = null;
+  public void unsetCommandType() {
+    this.commandType = null;
   }
 
-  /** Returns true if field mCommandType is set (has been assigned a value) and false otherwise */
-  public boolean isSetMCommandType() {
-    return this.mCommandType != null;
+  /** Returns true if field commandType is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommandType() {
+    return this.commandType != null;
   }
 
-  public void setMCommandTypeIsSet(boolean value) {
+  public void setCommandTypeIsSet(boolean value) {
     if (!value) {
-      this.mCommandType = null;
+      this.commandType = null;
     }
   }
 
-  public int getMCheckpointFilesSize() {
-    return (this.mCheckpointFiles == null) ? 0 : this.mCheckpointFiles.size();
+  public int getCheckpointFilesSize() {
+    return (this.checkpointFiles == null) ? 0 : this.checkpointFiles.size();
   }
 
-  public java.util.Iterator<CheckpointFile> getMCheckpointFilesIterator() {
-    return (this.mCheckpointFiles == null) ? null : this.mCheckpointFiles.iterator();
+  public java.util.Iterator<CheckpointFile> getCheckpointFilesIterator() {
+    return (this.checkpointFiles == null) ? null : this.checkpointFiles.iterator();
   }
 
-  public void addToMCheckpointFiles(CheckpointFile elem) {
-    if (this.mCheckpointFiles == null) {
-      this.mCheckpointFiles = new ArrayList<CheckpointFile>();
+  public void addToCheckpointFiles(CheckpointFile elem) {
+    if (this.checkpointFiles == null) {
+      this.checkpointFiles = new ArrayList<CheckpointFile>();
     }
-    this.mCheckpointFiles.add(elem);
+    this.checkpointFiles.add(elem);
   }
 
-  public List<CheckpointFile> getMCheckpointFiles() {
-    return this.mCheckpointFiles;
+  public List<CheckpointFile> getCheckpointFiles() {
+    return this.checkpointFiles;
   }
 
-  public LineageCommand setMCheckpointFiles(List<CheckpointFile> mCheckpointFiles) {
-    this.mCheckpointFiles = mCheckpointFiles;
+  public LineageCommand setCheckpointFiles(List<CheckpointFile> checkpointFiles) {
+    this.checkpointFiles = checkpointFiles;
     return this;
   }
 
-  public void unsetMCheckpointFiles() {
-    this.mCheckpointFiles = null;
+  public void unsetCheckpointFiles() {
+    this.checkpointFiles = null;
   }
 
-  /** Returns true if field mCheckpointFiles is set (has been assigned a value) and false otherwise */
-  public boolean isSetMCheckpointFiles() {
-    return this.mCheckpointFiles != null;
+  /** Returns true if field checkpointFiles is set (has been assigned a value) and false otherwise */
+  public boolean isSetCheckpointFiles() {
+    return this.checkpointFiles != null;
   }
 
-  public void setMCheckpointFilesIsSet(boolean value) {
+  public void setCheckpointFilesIsSet(boolean value) {
     if (!value) {
-      this.mCheckpointFiles = null;
+      this.checkpointFiles = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case M_COMMAND_TYPE:
+    case COMMAND_TYPE:
       if (value == null) {
-        unsetMCommandType();
+        unsetCommandType();
       } else {
-        setMCommandType((CommandType)value);
+        setCommandType((CommandType)value);
       }
       break;
 
-    case M_CHECKPOINT_FILES:
+    case CHECKPOINT_FILES:
       if (value == null) {
-        unsetMCheckpointFiles();
+        unsetCheckpointFiles();
       } else {
-        setMCheckpointFiles((List<CheckpointFile>)value);
+        setCheckpointFiles((List<CheckpointFile>)value);
       }
       break;
 
@@ -264,11 +264,11 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case M_COMMAND_TYPE:
-      return getMCommandType();
+    case COMMAND_TYPE:
+      return getCommandType();
 
-    case M_CHECKPOINT_FILES:
-      return getMCheckpointFiles();
+    case CHECKPOINT_FILES:
+      return getCheckpointFiles();
 
     }
     throw new IllegalStateException();
@@ -281,10 +281,10 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
     }
 
     switch (field) {
-    case M_COMMAND_TYPE:
-      return isSetMCommandType();
-    case M_CHECKPOINT_FILES:
-      return isSetMCheckpointFiles();
+    case COMMAND_TYPE:
+      return isSetCommandType();
+    case CHECKPOINT_FILES:
+      return isSetCheckpointFiles();
     }
     throw new IllegalStateException();
   }
@@ -302,21 +302,21 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
     if (that == null)
       return false;
 
-    boolean this_present_mCommandType = true && this.isSetMCommandType();
-    boolean that_present_mCommandType = true && that.isSetMCommandType();
-    if (this_present_mCommandType || that_present_mCommandType) {
-      if (!(this_present_mCommandType && that_present_mCommandType))
+    boolean this_present_commandType = true && this.isSetCommandType();
+    boolean that_present_commandType = true && that.isSetCommandType();
+    if (this_present_commandType || that_present_commandType) {
+      if (!(this_present_commandType && that_present_commandType))
         return false;
-      if (!this.mCommandType.equals(that.mCommandType))
+      if (!this.commandType.equals(that.commandType))
         return false;
     }
 
-    boolean this_present_mCheckpointFiles = true && this.isSetMCheckpointFiles();
-    boolean that_present_mCheckpointFiles = true && that.isSetMCheckpointFiles();
-    if (this_present_mCheckpointFiles || that_present_mCheckpointFiles) {
-      if (!(this_present_mCheckpointFiles && that_present_mCheckpointFiles))
+    boolean this_present_checkpointFiles = true && this.isSetCheckpointFiles();
+    boolean that_present_checkpointFiles = true && that.isSetCheckpointFiles();
+    if (this_present_checkpointFiles || that_present_checkpointFiles) {
+      if (!(this_present_checkpointFiles && that_present_checkpointFiles))
         return false;
-      if (!this.mCheckpointFiles.equals(that.mCheckpointFiles))
+      if (!this.checkpointFiles.equals(that.checkpointFiles))
         return false;
     }
 
@@ -327,15 +327,15 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_mCommandType = true && (isSetMCommandType());
-    list.add(present_mCommandType);
-    if (present_mCommandType)
-      list.add(mCommandType.getValue());
+    boolean present_commandType = true && (isSetCommandType());
+    list.add(present_commandType);
+    if (present_commandType)
+      list.add(commandType.getValue());
 
-    boolean present_mCheckpointFiles = true && (isSetMCheckpointFiles());
-    list.add(present_mCheckpointFiles);
-    if (present_mCheckpointFiles)
-      list.add(mCheckpointFiles);
+    boolean present_checkpointFiles = true && (isSetCheckpointFiles());
+    list.add(present_checkpointFiles);
+    if (present_checkpointFiles)
+      list.add(checkpointFiles);
 
     return list.hashCode();
   }
@@ -348,22 +348,22 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetMCommandType()).compareTo(other.isSetMCommandType());
+    lastComparison = Boolean.valueOf(isSetCommandType()).compareTo(other.isSetCommandType());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMCommandType()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mCommandType, other.mCommandType);
+    if (isSetCommandType()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.commandType, other.commandType);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMCheckpointFiles()).compareTo(other.isSetMCheckpointFiles());
+    lastComparison = Boolean.valueOf(isSetCheckpointFiles()).compareTo(other.isSetCheckpointFiles());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMCheckpointFiles()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mCheckpointFiles, other.mCheckpointFiles);
+    if (isSetCheckpointFiles()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.checkpointFiles, other.checkpointFiles);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -388,19 +388,19 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
     StringBuilder sb = new StringBuilder("LineageCommand(");
     boolean first = true;
 
-    sb.append("mCommandType:");
-    if (this.mCommandType == null) {
+    sb.append("commandType:");
+    if (this.commandType == null) {
       sb.append("null");
     } else {
-      sb.append(this.mCommandType);
+      sb.append(this.commandType);
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mCheckpointFiles:");
-    if (this.mCheckpointFiles == null) {
+    sb.append("checkpointFiles:");
+    if (this.checkpointFiles == null) {
       sb.append("null");
     } else {
-      sb.append(this.mCheckpointFiles);
+      sb.append(this.checkpointFiles);
     }
     first = false;
     sb.append(")");
@@ -446,29 +446,29 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
           break;
         }
         switch (schemeField.id) {
-          case 1: // M_COMMAND_TYPE
+          case 1: // COMMAND_TYPE
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.mCommandType = tachyon.thrift.CommandType.findByValue(iprot.readI32());
-              struct.setMCommandTypeIsSet(true);
+              struct.commandType = tachyon.thrift.CommandType.findByValue(iprot.readI32());
+              struct.setCommandTypeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // M_CHECKPOINT_FILES
+          case 2: // CHECKPOINT_FILES
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list56 = iprot.readListBegin();
-                struct.mCheckpointFiles = new ArrayList<CheckpointFile>(_list56.size);
+                struct.checkpointFiles = new ArrayList<CheckpointFile>(_list56.size);
                 CheckpointFile _elem57;
                 for (int _i58 = 0; _i58 < _list56.size; ++_i58)
                 {
                   _elem57 = new CheckpointFile();
                   _elem57.read(iprot);
-                  struct.mCheckpointFiles.add(_elem57);
+                  struct.checkpointFiles.add(_elem57);
                 }
                 iprot.readListEnd();
               }
-              struct.setMCheckpointFilesIsSet(true);
+              struct.setCheckpointFilesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -488,16 +488,16 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.mCommandType != null) {
-        oprot.writeFieldBegin(M_COMMAND_TYPE_FIELD_DESC);
-        oprot.writeI32(struct.mCommandType.getValue());
+      if (struct.commandType != null) {
+        oprot.writeFieldBegin(COMMAND_TYPE_FIELD_DESC);
+        oprot.writeI32(struct.commandType.getValue());
         oprot.writeFieldEnd();
       }
-      if (struct.mCheckpointFiles != null) {
-        oprot.writeFieldBegin(M_CHECKPOINT_FILES_FIELD_DESC);
+      if (struct.checkpointFiles != null) {
+        oprot.writeFieldBegin(CHECKPOINT_FILES_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.mCheckpointFiles.size()));
-          for (CheckpointFile _iter59 : struct.mCheckpointFiles)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.checkpointFiles.size()));
+          for (CheckpointFile _iter59 : struct.checkpointFiles)
           {
             _iter59.write(oprot);
           }
@@ -523,20 +523,20 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
     public void write(org.apache.thrift.protocol.TProtocol prot, LineageCommand struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetMCommandType()) {
+      if (struct.isSetCommandType()) {
         optionals.set(0);
       }
-      if (struct.isSetMCheckpointFiles()) {
+      if (struct.isSetCheckpointFiles()) {
         optionals.set(1);
       }
       oprot.writeBitSet(optionals, 2);
-      if (struct.isSetMCommandType()) {
-        oprot.writeI32(struct.mCommandType.getValue());
+      if (struct.isSetCommandType()) {
+        oprot.writeI32(struct.commandType.getValue());
       }
-      if (struct.isSetMCheckpointFiles()) {
+      if (struct.isSetCheckpointFiles()) {
         {
-          oprot.writeI32(struct.mCheckpointFiles.size());
-          for (CheckpointFile _iter60 : struct.mCheckpointFiles)
+          oprot.writeI32(struct.checkpointFiles.size());
+          for (CheckpointFile _iter60 : struct.checkpointFiles)
           {
             _iter60.write(oprot);
           }
@@ -549,22 +549,22 @@ public class LineageCommand implements org.apache.thrift.TBase<LineageCommand, L
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
-        struct.mCommandType = tachyon.thrift.CommandType.findByValue(iprot.readI32());
-        struct.setMCommandTypeIsSet(true);
+        struct.commandType = tachyon.thrift.CommandType.findByValue(iprot.readI32());
+        struct.setCommandTypeIsSet(true);
       }
       if (incoming.get(1)) {
         {
           org.apache.thrift.protocol.TList _list61 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.mCheckpointFiles = new ArrayList<CheckpointFile>(_list61.size);
+          struct.checkpointFiles = new ArrayList<CheckpointFile>(_list61.size);
           CheckpointFile _elem62;
           for (int _i63 = 0; _i63 < _list61.size; ++_i63)
           {
             _elem62 = new CheckpointFile();
             _elem62.read(iprot);
-            struct.mCheckpointFiles.add(_elem62);
+            struct.checkpointFiles.add(_elem62);
           }
         }
-        struct.setMCheckpointFilesIsSet(true);
+        struct.setCheckpointFilesIsSet(true);
       }
     }
   }

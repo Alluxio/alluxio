@@ -65,6 +65,7 @@ public abstract class ClientBase implements Closeable {
    * @param address the address
    * @param executorService the executor service
    * @param tachyonConf the Tachyon configuration
+   * @param mode the mode of the client for display
    */
   public ClientBase(InetSocketAddress address, ExecutorService executorService,
       TachyonConf tachyonConf, String mode) {

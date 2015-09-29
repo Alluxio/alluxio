@@ -1227,7 +1227,7 @@ public class TFsShell implements Closeable {
       tl.deleteLineage(lineageId, options);
     } catch (Exception e) {
       e.printStackTrace();
-      System.out.println("Lineage '" + lineageId + "' could not be unpinned.");
+      System.out.println("Lineage '" + lineageId + "' could not be deleted.");
     }
     System.out.println("Lineage " + lineageId + " has been deleted.");
     return 0;
