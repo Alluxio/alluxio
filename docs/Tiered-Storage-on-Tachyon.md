@@ -142,7 +142,7 @@ Here is the explanation of the example configuration:
 path to the ramdisk.
 * `tachyon.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`.
 * `tachyon.worker.tieredstore.level0.reserved.ratio=0.2` sets the ratio of space to be reserved on
-top layer to be 0.1.
+top layer to be 0.2.
 * `tachyon.worker.tieredstore.level1.alias=HDD` configures the second tier to be HDD.
 * `tachyon.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate
 file paths for the HDD tier.

@@ -334,12 +334,13 @@ number.
 <tr>
   <td>tachyon.worker.space.reserver.enable</td>
   <td>false</td>
-  <td>Whether enabling space reserver service.</td>
+  <td>Whether enabling space reserver service or not.</td>
 </tr>
 <tr>
   <td>tachyon.worker.space.reserver.interval.ms</td>
   <td>1000</td>
-  <td>The period of space reserver service.</td>
+  <td>The period of space reserver service, which keeps certain portion of available space on each
+  layer. Specified in milliseconds.</td>
 </tr>
 <tr>
   <td>tachyon.worker.allocate.strategy.class</td>
