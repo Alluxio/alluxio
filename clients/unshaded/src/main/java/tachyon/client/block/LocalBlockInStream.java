@@ -108,6 +108,11 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     incrementBytesReadMetric(toRead);
   }
 
+  /**
+   * Increments the number of bytes read metric.
+   *
+   * @param bytes number of bytes to record as read
+   */
   private void incrementBytesReadMetric(int bytes) {
     ClientContext.getClientMetrics().incBytesReadLocal(bytes);
   }
