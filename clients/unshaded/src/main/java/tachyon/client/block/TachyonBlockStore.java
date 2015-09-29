@@ -17,6 +17,7 @@ package tachyon.client.block;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
 
@@ -96,8 +97,16 @@ public final class TachyonBlockStore implements Closeable {
         // TODO(calvin): Maybe this shouldn't be an exception.
         throw new IOException("No block " + blockId + " is not available in Tachyon");
       }
-      return BufferedBlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
-          .getWorkerAddress());
+      // TODO(calvin): Investigate making this a Factory method
+      NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
+      InetSocketAddress workerAddr =
+          new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
+      if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
+          workerAddr.getHostName())) {
+        return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+      } else {
+        return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+      }
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
