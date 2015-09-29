@@ -188,8 +188,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     // Make container requests for workers to ResourceManager
     for (int i = 0; i < mNumWorkers; i ++) {
-      ContainerRequest containerAsk =
-          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */, priority);
+      ContainerRequest containerAsk = new ContainerRequest(workerResource, null /* any hosts */,
+          null /* any racks */, priority);
       LOG.info("Making resource request for Tachyon worker " + i + " on any nodes");
       mRMClient.addContainerRequest(containerAsk);
     }
