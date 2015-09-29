@@ -537,5 +537,13 @@
         <hadoop.version>2.6.0</hadoop.version>
       </properties>
     </profile>
+
+    <!-- profile that Tachyon developers should use -->
+    <profile>
+      <id>dev</id>
+      <properties>
+        <hadoop.version>2.6.0</hadoop.version>
+      </properties>
+    </profile>
   </profiles>
 </project>

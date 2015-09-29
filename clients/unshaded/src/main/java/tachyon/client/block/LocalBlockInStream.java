@@ -157,7 +157,7 @@ public final class LocalBlockInStream extends BlockInStream {
     return ret;
   }
 
-  private void checkIfClosed() throws IOException {
+  private void checkIfClosed() {
     Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
   }
 }

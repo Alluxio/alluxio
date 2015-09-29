@@ -35,6 +35,8 @@ public abstract class Inode implements JournalEntryRepresentable {
    */
   private boolean mPinned = false;
 
+  private boolean mPersisted = false;
+
   /**
    * The last modification time of this inode, in milliseconds.
    */
@@ -155,6 +157,13 @@ public abstract class Inode implements JournalEntryRepresentable {
   }
 
   /**
+   * @return true if the file has persisted, false otherwise
+   */
+  public synchronized boolean isPersisted() {
+    return mPersisted;
+  }
+
+  /**
    * Restores a deleted inode.
    */
   public synchronized void restore() {
@@ -186,6 +195,15 @@ public abstract class Inode implements JournalEntryRepresentable {
    */
   public synchronized void setParentId(long parentId) {
     mParentId = parentId;
+  }
+
+  /**
+   * Sets the persisted flag for the file.
+   *
+   * @param persisted if true, the file is persisted
+   */
+  public synchronized void setPersisted(boolean persisted) {
+    mPersisted = persisted;
   }
 
   /**
