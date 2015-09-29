@@ -80,7 +80,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       throw new FileDoesNotExistException(path.toString());
     }
     FileInfo fileInfo = tFS.getInfo(tFile);
-    if (fileInfo.isComplete) {
+    if (fileInfo.isCompleted) {
       InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)
           .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       FileInStream is = tFS.getInStream(tFile, readNoCache);
@@ -226,6 +226,10 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
             "Error: non-existing file " + fdne.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
+      } catch (InvalidPathException ipe) {
+        request.setAttribute("InvalidPathException",
+            "Error: invalid path " + ipe.getMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       }
       fileInfos.add(toAdd);
     }

@@ -27,9 +27,11 @@ import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
@@ -98,14 +100,13 @@ interface TachyonFileSystemCore {
   /**
    * Loads metadata about a file in UFS to Tachyon. No data will be transferred.
    *
-   * @param path the path to create the file in Tachyon
-   * @param ufsPath the UFS path of the file that will back the Tachyon file
+   * @param path the path for which to load metadat from UFS
    * @param options method options
    * @return the file id of the resulting file in Tachyon
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if a Tachyon exception occurs
    */
-  long loadMetadata(TachyonURI path, TachyonURI ufsPath, LoadMetadataOptions options)
+  long loadMetadata(TachyonURI path, LoadMetadataOptions options)
       throws IOException, TachyonException;
 
   /**
@@ -118,6 +119,21 @@ interface TachyonFileSystemCore {
    * @throws TachyonException if a Tachyon exception occurs
    */
   boolean mkdir(TachyonURI path, MkdirOptions options) throws IOException, TachyonException;
+
+  /**
+   * Mounts a UFS subtree to the given Tachyon path. The Tachyon path is expected not to exist as
+   * the method creates it. This method does not transfer any data or metadata from the UFS. It
+   * simply establishes the connection between the given Tachyon path and UFS path.
+   *
+   * @param tachyonPath a Tachyon path
+   * @param ufsPath a UFS path
+   * @param options method options
+   * @return true if the UFS subtree was mounted successfully, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
+  boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath, MountOptions options)
+      throws IOException, TachyonException;
 
   /**
    * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
@@ -153,4 +169,18 @@ interface TachyonFileSystemCore {
    * @throws TachyonException if a Tachyon exception occurs
    */
   void setState(TachyonFile file, SetStateOptions options) throws IOException, TachyonException;
+
+  /**
+   * Unmounts a UFS subtree identified by the given Tachyon path. The Tachyon path match a
+   * previously mounted path. The contents of the subtree rooted at this path are removed from
+   * Tachyon but the corresponding UFS subtree is left untouched.
+   *
+   * @param tachyonPath a Tachyon path
+   * @param options method options
+   * @return true if the UFS subtree was unmounted successfully, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
+  boolean unmount(TachyonURI tachyonPath, UnmountOptions options) throws IOException,
+      TachyonException;
 }

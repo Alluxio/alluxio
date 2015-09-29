@@ -23,6 +23,7 @@ import tachyon.conf.TachyonConf;
 @PublicApi
 public final class CreateOptions {
   public static class Builder {
+    // TODO(calvin): Should this just be an int?
     private long mBlockSize;
     private boolean mRecursive;
     private long mTTL;

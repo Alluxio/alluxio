@@ -28,7 +28,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
@@ -36,7 +35,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.local.LocalUnderFileSystem;
 import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
@@ -45,7 +46,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({WorkerBlockMasterClient.class, WorkerFileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
-    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class})
+    BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, TachyonConf.class,
+    UnderFileSystem.class})
 public class BlockDataManagerTest implements Tester<BlockDataManager> {
   private TestHarness mHarness;
   private BlockDataManager.PrivateAccess mPrivateAccess;
@@ -65,7 +67,6 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
     Random mRandom;
     Sessions mSessions;
     TachyonConf mTachyonConf;
-    UnderFileSystem mUfs;
     long mWorkerId;
     WorkerSource mWorkerSource;
 
@@ -79,7 +80,6 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
       mSessions = PowerMockito.mock(Sessions.class);
       mTachyonConf = PowerMockito.mock(TachyonConf.class);
-      mUfs = PowerMockito.mock(UnderFileSystem.class);
       mWorkerId = mRandom.nextLong();
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
@@ -92,8 +92,6 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       mManager.grantAccess(BlockDataManagerTest.this); // initializes mPrivateAccess
       mPrivateAccess.setHeartbeatReporter(mHeartbeatReporter);
       mPrivateAccess.setMetricsReporter(mMetricsReporter);
-      mPrivateAccess.setTachyonConf(mTachyonConf);
-      mPrivateAccess.setUnderFileSystem(mUfs);
     }
   }
 
@@ -122,24 +120,21 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
   public void addCheckpointTest() throws Exception {
     long fileId = mHarness.mRandom.nextLong();
     long fileSize = mHarness.mRandom.nextLong();
-    long sessionId = mHarness.mRandom.nextLong();
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.setPath("/foo/bar");
-    String srcPath = "/tmp/" + fileId;
-    String parentPath = "/tmp/foo";
+    long nonce = mHarness.mRandom.nextLong();
     String dstPath = "/tmp/foo/bar";
+    String srcPath = PathUtils.temporaryFileName(fileId, nonce, dstPath);
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.setUfsPath(dstPath);
+    LocalUnderFileSystem ufs = PowerMockito.mock(LocalUnderFileSystem.class);
 
-    // TODO(jiri): Add test cases for error cases.
-    Mockito.when(mHarness.mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER)).thenReturn("/tmp");
-    Mockito.when(mHarness.mSessions.getSessionUfsTempFolder(sessionId)).thenReturn("/tmp");
+    // TODO(jiri): Test error cases.
     Mockito.when(mHarness.mFileSystemMasterClient.getFileInfo(fileId)).thenReturn(fileInfo);
-    Mockito.when(mHarness.mUfs.exists(parentPath)).thenReturn(true);
-    Mockito.when(mHarness.mUfs.mkdirs(parentPath, true)).thenReturn(true);
-    Mockito.when(mHarness.mUfs.rename(srcPath, dstPath)).thenReturn(true);
-    Mockito.when(mHarness.mUfs.getFileSize(dstPath)).thenReturn(fileSize);
-    mHarness.mManager.addCheckpoint(sessionId, fileId);
-    Mockito.verify(mHarness.mFileSystemMasterClient).addCheckpoint(mHarness.mWorkerId, fileId,
-        fileSize, dstPath);
+    PowerMockito.mockStatic(UnderFileSystem.class);
+    Mockito.when(UnderFileSystem.get(srcPath, WorkerContext.getConf())).thenReturn(ufs);
+    Mockito.when(ufs.rename(srcPath,dstPath)).thenReturn(true);
+    Mockito.when(ufs.getFileSize(dstPath)).thenReturn(fileSize);
+    mHarness.mManager.persistFile(fileId, nonce, dstPath);
+    Mockito.verify(mHarness.mFileSystemMasterClient).persistFile(fileId, fileSize);
   }
 
   @Test
