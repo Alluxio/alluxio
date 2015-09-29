@@ -21,10 +21,9 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
-import tachyon.client.BoundedStream;
 import tachyon.client.ClientContext;
-import tachyon.client.Seekable;
 import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
 
@@ -36,7 +35,7 @@ import tachyon.util.io.BufferUtils;
  * This class provides the same methods as a Java {@link InputStream} with additional methods from
  * Tachyon Stream interfaces.
  */
-public abstract class BufferedBlockInStream extends InputStream implements BoundedStream, Seekable {
+public abstract class BufferedBlockInStream extends BlockInStream {
   protected final long mBlockId;
   protected final long mBlockSize;
   protected final InetSocketAddress mLocation;
@@ -98,8 +97,8 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
   public int read(byte[] b, int off, int len) throws IOException {
     checkIfClosed();
     Preconditions.checkArgument(b != null, "Read buffer cannot be null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String.format
-        ("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
     if (len == 0) {
       return 0;
     } else if (remaining() == 0) { // End of block

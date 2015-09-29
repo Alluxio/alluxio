@@ -95,7 +95,8 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     BufferUtils.cleanDirectBuffer(buf);
     mPos += toRead;
     incrementBytesReadMetric(toRead);
-    return toRead;  }
+    return toRead;
+  }
 
   @Override
   public void updateBuffer() throws IOException {
