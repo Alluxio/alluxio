@@ -93,7 +93,6 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, len);
     buf.get(b, off, len);
     BufferUtils.cleanDirectBuffer(buf);
-    mPos += toRead;
     incrementBytesReadMetric(toRead);
     return toRead;
   }
