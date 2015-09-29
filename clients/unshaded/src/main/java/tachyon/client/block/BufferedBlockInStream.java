@@ -59,7 +59,7 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
 
   private ByteBuffer allocateBuffer() {
     TachyonConf conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE));
+    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }
 
   protected void checkIfClosed() {
@@ -71,8 +71,6 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
     if (mClosed) {
       return;
     }
-    // TODO(calvin): Evaluate if we should check some data was read before doing this.
-    incrementBlocksReadMetric();
     mClosed = true;
   }
 
@@ -158,9 +156,7 @@ public abstract class BufferedBlockInStream extends InputStream implements Bound
     return mPos - mBufferPos + mBuffer.remaining();
   }
 
-  protected abstract void incrementBlocksReadMetric();
+  protected abstract int directRead(byte[] b, int off, int len) throws IOException;
 
   protected abstract void updateBuffer() throws IOException;
-
-  protected abstract int directRead(byte[] b, int off, int len) throws IOException;
 }

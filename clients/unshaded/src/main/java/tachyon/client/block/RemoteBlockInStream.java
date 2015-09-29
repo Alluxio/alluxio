@@ -41,13 +41,19 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   }
 
   @Override
-  protected int directRead(byte[] b, int off, int len) throws IOException {
-    return readFromRemote(b, off, len);
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+
+    // TODO(calvin): Perhaps verify that something was read from this stream
+    ClientContext.getClientMetrics().incBlocksReadRemote(1);
+    mClosed = true;
   }
 
   @Override
-  protected void incrementBlocksReadMetric() {
-    ClientContext.getClientMetrics().incBlocksReadRemote(1);
+  protected int directRead(byte[] b, int off, int len) throws IOException {
+    return readFromRemote(b, off, len);
   }
 
   @Override
@@ -56,7 +62,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     mBuffer.clear();
     readFromRemote(mBuffer.array(), (int) mPos, toRead);
     mBufferPos = mPos;
-    incrementBytesReadMetric(toRead);
   }
 
   private void incrementBytesReadMetric(int bytes) {
@@ -66,8 +71,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   private int readFromRemote(byte[] b, int off, int len) throws IOException {
     // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
     // read up to the end of the block.
-    int lengthToRead = (int) Math.min(len, remaining());
-    int bytesLeft = lengthToRead;
+    int toRead = (int) Math.min(len, remaining());
+    int bytesLeft = toRead;
     while (bytesLeft > 0) {
       // TODO(calvin): Fix needing to recreate reader each time.
       RemoteBlockReader reader =
@@ -81,6 +86,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       incrementBytesReadMetric(bytesRead);
     }
 
-    return lengthToRead;
+    return toRead;
   }
 }
