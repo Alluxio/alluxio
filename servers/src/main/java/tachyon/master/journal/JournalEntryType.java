@@ -46,8 +46,9 @@ public enum JournalEntryType {
 
   // Lineage master entries
   ASYNC_COMPLETE_FILE,
-  PERSIST_FILES,
+  DELETE_LINEAGE,
   LINEAGE,
   LINEAGE_ID_GENERATOR,
+  PERSIST_FILES,
   REQUEST_FILE_PERSISTENCE,
 }
