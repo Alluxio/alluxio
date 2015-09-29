@@ -45,7 +45,7 @@ public class LineageMasterService {
 
     public List<LineageInfo> getLineageInfoList() throws org.apache.thrift.TException;
 
-    public long recreateFile(String path, long blockSizeBytes, long ttl) throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException;
+    public long reinitializeFile(String path, long blockSizeBytes, long ttl) throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException;
 
     public void asyncCompleteFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
 
@@ -61,7 +61,7 @@ public class LineageMasterService {
 
     public void getLineageInfoList(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void recreateFile(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void reinitializeFile(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void asyncCompleteFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -178,25 +178,25 @@ public class LineageMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getLineageInfoList failed: unknown result");
     }
 
-    public long recreateFile(String path, long blockSizeBytes, long ttl) throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException
+    public long reinitializeFile(String path, long blockSizeBytes, long ttl) throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException
     {
-      send_recreateFile(path, blockSizeBytes, ttl);
-      return recv_recreateFile();
+      send_reinitializeFile(path, blockSizeBytes, ttl);
+      return recv_reinitializeFile();
     }
 
-    public void send_recreateFile(String path, long blockSizeBytes, long ttl) throws org.apache.thrift.TException
+    public void send_reinitializeFile(String path, long blockSizeBytes, long ttl) throws org.apache.thrift.TException
     {
-      recreateFile_args args = new recreateFile_args();
+      reinitializeFile_args args = new reinitializeFile_args();
       args.setPath(path);
       args.setBlockSizeBytes(blockSizeBytes);
       args.setTtl(ttl);
-      sendBase("recreateFile", args);
+      sendBase("reinitializeFile", args);
     }
 
-    public long recv_recreateFile() throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException
+    public long recv_reinitializeFile() throws InvalidPathException, LineageDoesNotExistException, org.apache.thrift.TException
     {
-      recreateFile_result result = new recreateFile_result();
-      receiveBase(result, "recreateFile");
+      reinitializeFile_result result = new reinitializeFile_result();
+      receiveBase(result, "reinitializeFile");
       if (result.isSetSuccess()) {
         return result.success;
       }
@@ -206,7 +206,7 @@ public class LineageMasterService {
       if (result.ldee != null) {
         throw result.ldee;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "recreateFile failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "reinitializeFile failed: unknown result");
     }
 
     public void asyncCompleteFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
@@ -379,18 +379,18 @@ public class LineageMasterService {
       }
     }
 
-    public void recreateFile(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void reinitializeFile(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      recreateFile_call method_call = new recreateFile_call(path, blockSizeBytes, ttl, resultHandler, this, ___protocolFactory, ___transport);
+      reinitializeFile_call method_call = new reinitializeFile_call(path, blockSizeBytes, ttl, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class recreateFile_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class reinitializeFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
       private long blockSizeBytes;
       private long ttl;
-      public recreateFile_call(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public reinitializeFile_call(String path, long blockSizeBytes, long ttl, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
         this.blockSizeBytes = blockSizeBytes;
@@ -398,8 +398,8 @@ public class LineageMasterService {
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("recreateFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        recreateFile_args args = new recreateFile_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("reinitializeFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        reinitializeFile_args args = new reinitializeFile_args();
         args.setPath(path);
         args.setBlockSizeBytes(blockSizeBytes);
         args.setTtl(ttl);
@@ -413,7 +413,7 @@ public class LineageMasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_recreateFile();
+        return (new Client(prot)).recv_reinitializeFile();
       }
     }
 
@@ -500,7 +500,7 @@ public class LineageMasterService {
       processMap.put("createLineage", new createLineage());
       processMap.put("deleteLineage", new deleteLineage());
       processMap.put("getLineageInfoList", new getLineageInfoList());
-      processMap.put("recreateFile", new recreateFile());
+      processMap.put("reinitializeFile", new reinitializeFile());
       processMap.put("asyncCompleteFile", new asyncCompleteFile());
       processMap.put("workerLineageHeartbeat", new workerLineageHeartbeat());
       return processMap;
@@ -584,23 +584,23 @@ public class LineageMasterService {
       }
     }
 
-    public static class recreateFile<I extends Iface> extends org.apache.thrift.ProcessFunction<I, recreateFile_args> {
-      public recreateFile() {
-        super("recreateFile");
+    public static class reinitializeFile<I extends Iface> extends org.apache.thrift.ProcessFunction<I, reinitializeFile_args> {
+      public reinitializeFile() {
+        super("reinitializeFile");
       }
 
-      public recreateFile_args getEmptyArgsInstance() {
-        return new recreateFile_args();
+      public reinitializeFile_args getEmptyArgsInstance() {
+        return new reinitializeFile_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public recreateFile_result getResult(I iface, recreateFile_args args) throws org.apache.thrift.TException {
-        recreateFile_result result = new recreateFile_result();
+      public reinitializeFile_result getResult(I iface, reinitializeFile_args args) throws org.apache.thrift.TException {
+        reinitializeFile_result result = new reinitializeFile_result();
         try {
-          result.success = iface.recreateFile(args.path, args.blockSizeBytes, args.ttl);
+          result.success = iface.reinitializeFile(args.path, args.blockSizeBytes, args.ttl);
           result.setSuccessIsSet(true);
         } catch (InvalidPathException ipe) {
           result.ipe = ipe;
@@ -673,7 +673,7 @@ public class LineageMasterService {
       processMap.put("createLineage", new createLineage());
       processMap.put("deleteLineage", new deleteLineage());
       processMap.put("getLineageInfoList", new getLineageInfoList());
-      processMap.put("recreateFile", new recreateFile());
+      processMap.put("reinitializeFile", new reinitializeFile());
       processMap.put("asyncCompleteFile", new asyncCompleteFile());
       processMap.put("workerLineageHeartbeat", new workerLineageHeartbeat());
       return processMap;
@@ -866,20 +866,20 @@ public class LineageMasterService {
       }
     }
 
-    public static class recreateFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, recreateFile_args, Long> {
-      public recreateFile() {
-        super("recreateFile");
+    public static class reinitializeFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, reinitializeFile_args, Long> {
+      public reinitializeFile() {
+        super("reinitializeFile");
       }
 
-      public recreateFile_args getEmptyArgsInstance() {
-        return new recreateFile_args();
+      public reinitializeFile_args getEmptyArgsInstance() {
+        return new reinitializeFile_args();
       }
 
       public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Long>() { 
           public void onComplete(Long o) {
-            recreateFile_result result = new recreateFile_result();
+            reinitializeFile_result result = new reinitializeFile_result();
             result.success = o;
             result.setSuccessIsSet(true);
             try {
@@ -893,7 +893,7 @@ public class LineageMasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            recreateFile_result result = new recreateFile_result();
+            reinitializeFile_result result = new reinitializeFile_result();
             if (e instanceof InvalidPathException) {
                         result.ipe = (InvalidPathException) e;
                         result.setIpeIsSet(true);
@@ -924,8 +924,8 @@ public class LineageMasterService {
         return false;
       }
 
-      public void start(I iface, recreateFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.recreateFile(args.path, args.blockSizeBytes, args.ttl,resultHandler);
+      public void start(I iface, reinitializeFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
+        iface.reinitializeFile(args.path, args.blockSizeBytes, args.ttl,resultHandler);
       }
     }
 
@@ -4202,8 +4202,8 @@ public class LineageMasterService {
 
   }
 
-  public static class recreateFile_args implements org.apache.thrift.TBase<recreateFile_args, recreateFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<recreateFile_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("recreateFile_args");
+  public static class reinitializeFile_args implements org.apache.thrift.TBase<reinitializeFile_args, reinitializeFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<reinitializeFile_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("reinitializeFile_args");
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeBytes", org.apache.thrift.protocol.TType.I64, (short)2);
@@ -4211,8 +4211,8 @@ public class LineageMasterService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new recreateFile_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new recreateFile_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new reinitializeFile_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new reinitializeFile_argsTupleSchemeFactory());
     }
 
     public String path; // required
@@ -4297,13 +4297,13 @@ public class LineageMasterService {
       tmpMap.put(_Fields.TTL, new org.apache.thrift.meta_data.FieldMetaData("ttl", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(recreateFile_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(reinitializeFile_args.class, metaDataMap);
     }
 
-    public recreateFile_args() {
+    public reinitializeFile_args() {
     }
 
-    public recreateFile_args(
+    public reinitializeFile_args(
       String path,
       long blockSizeBytes,
       long ttl)
@@ -4319,7 +4319,7 @@ public class LineageMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public recreateFile_args(recreateFile_args other) {
+    public reinitializeFile_args(reinitializeFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
       if (other.isSetPath()) {
         this.path = other.path;
@@ -4328,8 +4328,8 @@ public class LineageMasterService {
       this.ttl = other.ttl;
     }
 
-    public recreateFile_args deepCopy() {
-      return new recreateFile_args(this);
+    public reinitializeFile_args deepCopy() {
+      return new reinitializeFile_args(this);
     }
 
     @Override
@@ -4345,7 +4345,7 @@ public class LineageMasterService {
       return this.path;
     }
 
-    public recreateFile_args setPath(String path) {
+    public reinitializeFile_args setPath(String path) {
       this.path = path;
       return this;
     }
@@ -4369,7 +4369,7 @@ public class LineageMasterService {
       return this.blockSizeBytes;
     }
 
-    public recreateFile_args setBlockSizeBytes(long blockSizeBytes) {
+    public reinitializeFile_args setBlockSizeBytes(long blockSizeBytes) {
       this.blockSizeBytes = blockSizeBytes;
       setBlockSizeBytesIsSet(true);
       return this;
@@ -4392,7 +4392,7 @@ public class LineageMasterService {
       return this.ttl;
     }
 
-    public recreateFile_args setTtl(long ttl) {
+    public reinitializeFile_args setTtl(long ttl) {
       this.ttl = ttl;
       setTtlIsSet(true);
       return this;
@@ -4476,12 +4476,12 @@ public class LineageMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof recreateFile_args)
-        return this.equals((recreateFile_args)that);
+      if (that instanceof reinitializeFile_args)
+        return this.equals((reinitializeFile_args)that);
       return false;
     }
 
-    public boolean equals(recreateFile_args that) {
+    public boolean equals(reinitializeFile_args that) {
       if (that == null)
         return false;
 
@@ -4538,7 +4538,7 @@ public class LineageMasterService {
     }
 
     @Override
-    public int compareTo(recreateFile_args other) {
+    public int compareTo(reinitializeFile_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -4592,7 +4592,7 @@ public class LineageMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("recreateFile_args(");
+      StringBuilder sb = new StringBuilder("reinitializeFile_args(");
       boolean first = true;
 
       sb.append("path:");
@@ -4637,15 +4637,15 @@ public class LineageMasterService {
       }
     }
 
-    private static class recreateFile_argsStandardSchemeFactory implements SchemeFactory {
-      public recreateFile_argsStandardScheme getScheme() {
-        return new recreateFile_argsStandardScheme();
+    private static class reinitializeFile_argsStandardSchemeFactory implements SchemeFactory {
+      public reinitializeFile_argsStandardScheme getScheme() {
+        return new reinitializeFile_argsStandardScheme();
       }
     }
 
-    private static class recreateFile_argsStandardScheme extends StandardScheme<recreateFile_args> {
+    private static class reinitializeFile_argsStandardScheme extends StandardScheme<reinitializeFile_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, recreateFile_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, reinitializeFile_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -4690,7 +4690,7 @@ public class LineageMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, recreateFile_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, reinitializeFile_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -4711,16 +4711,16 @@ public class LineageMasterService {
 
     }
 
-    private static class recreateFile_argsTupleSchemeFactory implements SchemeFactory {
-      public recreateFile_argsTupleScheme getScheme() {
-        return new recreateFile_argsTupleScheme();
+    private static class reinitializeFile_argsTupleSchemeFactory implements SchemeFactory {
+      public reinitializeFile_argsTupleScheme getScheme() {
+        return new reinitializeFile_argsTupleScheme();
       }
     }
 
-    private static class recreateFile_argsTupleScheme extends TupleScheme<recreateFile_args> {
+    private static class reinitializeFile_argsTupleScheme extends TupleScheme<reinitializeFile_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, recreateFile_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, reinitializeFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetPath()) {
@@ -4745,7 +4745,7 @@ public class LineageMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, recreateFile_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, reinitializeFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
@@ -4765,8 +4765,8 @@ public class LineageMasterService {
 
   }
 
-  public static class recreateFile_result implements org.apache.thrift.TBase<recreateFile_result, recreateFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<recreateFile_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("recreateFile_result");
+  public static class reinitializeFile_result implements org.apache.thrift.TBase<reinitializeFile_result, reinitializeFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<reinitializeFile_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("reinitializeFile_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)1);
@@ -4774,8 +4774,8 @@ public class LineageMasterService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new recreateFile_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new recreateFile_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new reinitializeFile_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new reinitializeFile_resultTupleSchemeFactory());
     }
 
     public long success; // required
@@ -4859,13 +4859,13 @@ public class LineageMasterService {
       tmpMap.put(_Fields.LDEE, new org.apache.thrift.meta_data.FieldMetaData("ldee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(recreateFile_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(reinitializeFile_result.class, metaDataMap);
     }
 
-    public recreateFile_result() {
+    public reinitializeFile_result() {
     }
 
-    public recreateFile_result(
+    public reinitializeFile_result(
       long success,
       InvalidPathException ipe,
       LineageDoesNotExistException ldee)
@@ -4880,7 +4880,7 @@ public class LineageMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public recreateFile_result(recreateFile_result other) {
+    public reinitializeFile_result(reinitializeFile_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetIpe()) {
@@ -4891,8 +4891,8 @@ public class LineageMasterService {
       }
     }
 
-    public recreateFile_result deepCopy() {
-      return new recreateFile_result(this);
+    public reinitializeFile_result deepCopy() {
+      return new reinitializeFile_result(this);
     }
 
     @Override
@@ -4907,7 +4907,7 @@ public class LineageMasterService {
       return this.success;
     }
 
-    public recreateFile_result setSuccess(long success) {
+    public reinitializeFile_result setSuccess(long success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -4930,7 +4930,7 @@ public class LineageMasterService {
       return this.ipe;
     }
 
-    public recreateFile_result setIpe(InvalidPathException ipe) {
+    public reinitializeFile_result setIpe(InvalidPathException ipe) {
       this.ipe = ipe;
       return this;
     }
@@ -4954,7 +4954,7 @@ public class LineageMasterService {
       return this.ldee;
     }
 
-    public recreateFile_result setLdee(LineageDoesNotExistException ldee) {
+    public reinitializeFile_result setLdee(LineageDoesNotExistException ldee) {
       this.ldee = ldee;
       return this;
     }
@@ -5039,12 +5039,12 @@ public class LineageMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof recreateFile_result)
-        return this.equals((recreateFile_result)that);
+      if (that instanceof reinitializeFile_result)
+        return this.equals((reinitializeFile_result)that);
       return false;
     }
 
-    public boolean equals(recreateFile_result that) {
+    public boolean equals(reinitializeFile_result that) {
       if (that == null)
         return false;
 
@@ -5101,7 +5101,7 @@ public class LineageMasterService {
     }
 
     @Override
-    public int compareTo(recreateFile_result other) {
+    public int compareTo(reinitializeFile_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -5155,7 +5155,7 @@ public class LineageMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("recreateFile_result(");
+      StringBuilder sb = new StringBuilder("reinitializeFile_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -5204,15 +5204,15 @@ public class LineageMasterService {
       }
     }
 
-    private static class recreateFile_resultStandardSchemeFactory implements SchemeFactory {
-      public recreateFile_resultStandardScheme getScheme() {
-        return new recreateFile_resultStandardScheme();
+    private static class reinitializeFile_resultStandardSchemeFactory implements SchemeFactory {
+      public reinitializeFile_resultStandardScheme getScheme() {
+        return new reinitializeFile_resultStandardScheme();
       }
     }
 
-    private static class recreateFile_resultStandardScheme extends StandardScheme<recreateFile_result> {
+    private static class reinitializeFile_resultStandardScheme extends StandardScheme<reinitializeFile_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, recreateFile_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, reinitializeFile_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -5259,7 +5259,7 @@ public class LineageMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, recreateFile_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, reinitializeFile_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -5284,16 +5284,16 @@ public class LineageMasterService {
 
     }
 
-    private static class recreateFile_resultTupleSchemeFactory implements SchemeFactory {
-      public recreateFile_resultTupleScheme getScheme() {
-        return new recreateFile_resultTupleScheme();
+    private static class reinitializeFile_resultTupleSchemeFactory implements SchemeFactory {
+      public reinitializeFile_resultTupleScheme getScheme() {
+        return new reinitializeFile_resultTupleScheme();
       }
     }
 
-    private static class recreateFile_resultTupleScheme extends TupleScheme<recreateFile_result> {
+    private static class reinitializeFile_resultTupleScheme extends TupleScheme<reinitializeFile_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, recreateFile_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, reinitializeFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -5318,7 +5318,7 @@ public class LineageMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, recreateFile_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, reinitializeFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {

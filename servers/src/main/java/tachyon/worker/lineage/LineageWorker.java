@@ -78,7 +78,7 @@ public final class LineageWorker {
     mFilePersistenceService = mSyncExecutorService.submit(new HeartbeatThread(
         "Lineage worker master sync", new LineageWorkerMasterSyncExecutor(mLineageDataManager,
             mLineageMasterWorkerClient, mWorkerId),
-        mTachyonConf.getInt(Constants.WORKER_LINEAGE_SYNC_INTERVAL_MS)));
+        mTachyonConf.getInt(Constants.WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS)));
   }
 
   public void stop() {

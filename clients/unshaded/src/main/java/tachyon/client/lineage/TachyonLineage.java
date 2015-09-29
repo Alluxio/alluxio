@@ -16,18 +16,13 @@
 package tachyon.client.lineage;
 
 import java.io.IOException;
-import java.util.List;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.lineage.options.DeleteLineageOptions;
-import tachyon.job.Job;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.LineageDeletionException;
 import tachyon.thrift.LineageDoesNotExistException;
-import tachyon.thrift.LineageInfo;
 
 /**
  * A LineageClient implementation. This class does not access the master client directly but goes
@@ -51,20 +46,11 @@ public final class TachyonLineage extends AbstractLineageClient {
     super();
   }
 
-  @Override
-  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
-      throws FileDoesNotExistException, IOException {
-    return super.createLineage(inputFiles, outputFiles, job);
-  }
-
-  @Override
-  public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
+  /**
+   * Convenience method for {@link #deleteLineage(long, DeleteLineageOptions)} with default options.
+   */
+  public boolean deleteLineage(long lineageId)
       throws IOException, LineageDoesNotExistException, LineageDeletionException {
-    return super.deleteLineage(lineageId, options);
-  }
-
-  @Override
-  public List<LineageInfo> getLineageInfoList() throws IOException {
-    return super.getLineageInfoList();
+    return super.deleteLineage(lineageId, DeleteLineageOptions.defaults());
   }
 }

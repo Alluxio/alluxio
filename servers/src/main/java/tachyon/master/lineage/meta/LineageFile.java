@@ -50,8 +50,8 @@ public final class LineageFile extends TachyonFile {
    */
   public LineageFileInfo generateLineageFileInfo() {
     LineageFileInfo info = new LineageFileInfo();
-    info.mId = getFileId();
-    info.mState = mState.toString();
+    info.id = getFileId();
+    info.state = mState.toString();
     return info;
   }
 

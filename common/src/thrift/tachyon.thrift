@@ -96,13 +96,13 @@ struct Command {
 }
 
 struct LineageCommand {
-  1: CommandType mCommandType
-  2: list<CheckpointFile> mCheckpointFiles 
+  1: CommandType commandType
+  2: list<CheckpointFile> checkpointFiles 
 }
 
 struct CheckpointFile {
-  1: i64 mFileId
-  2: list<i64> mBlockIds
+  1: i64 fileId
+  2: list<i64> blockIds
 }
 
 struct JobConfInfo {
@@ -115,17 +115,17 @@ struct CommandLineJobInfo {
 }
 
 struct LineageFileInfo {
-  1: i64 mId
-  2: string mState
-  3: string mUnderFilePath
+  1: i64 id
+  2: string state
+  3: string underFilePath
 }
 
 struct LineageInfo {
-  1: i64 mId
-  2: list<i64> mInputFiles
-  3: list<LineageFileInfo> mOutputFiles
-  4: CommandLineJobInfo mJob
-  5: i64 mCreationTimeMs
+  1: i64 id
+  2: list<i64> inputFiles
+  3: list<LineageFileInfo> outputFiles
+  4: CommandLineJobInfo job
+  5: i64 creationTimeMs
   6: list<i64> parents
   7: list<i64> children
 }
@@ -295,7 +295,7 @@ service LineageMasterService {
   
   list<LineageInfo> getLineageInfoList()
   
-  i64 recreateFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
+  i64 reinitializeFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
     throws (1: InvalidPathException ipe, 2: LineageDoesNotExistException ldee)
   
   void asyncCompleteFile(1: i64 fileId)

@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo, LineageFileInfo._Fields>, java.io.Serializable, Cloneable, Comparable<LineageFileInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("LineageFileInfo");
 
-  private static final org.apache.thrift.protocol.TField M_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mId", org.apache.thrift.protocol.TType.I64, (short)1);
-  private static final org.apache.thrift.protocol.TField M_STATE_FIELD_DESC = new org.apache.thrift.protocol.TField("mState", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField M_UNDER_FILE_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("mUnderFilePath", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField STATE_FIELD_DESC = new org.apache.thrift.protocol.TField("state", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField UNDER_FILE_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("underFilePath", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -48,15 +48,15 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
     schemes.put(TupleScheme.class, new LineageFileInfoTupleSchemeFactory());
   }
 
-  public long mId; // required
-  public String mState; // required
-  public String mUnderFilePath; // required
+  public long id; // required
+  public String state; // required
+  public String underFilePath; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    M_ID((short)1, "mId"),
-    M_STATE((short)2, "mState"),
-    M_UNDER_FILE_PATH((short)3, "mUnderFilePath");
+    ID((short)1, "id"),
+    STATE((short)2, "state"),
+    UNDER_FILE_PATH((short)3, "underFilePath");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -71,12 +71,12 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // M_ID
-          return M_ID;
-        case 2: // M_STATE
-          return M_STATE;
-        case 3: // M_UNDER_FILE_PATH
-          return M_UNDER_FILE_PATH;
+        case 1: // ID
+          return ID;
+        case 2: // STATE
+          return STATE;
+        case 3: // UNDER_FILE_PATH
+          return UNDER_FILE_PATH;
         default:
           return null;
       }
@@ -117,16 +117,16 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
   }
 
   // isset id assignments
-  private static final int __MID_ISSET_ID = 0;
+  private static final int __ID_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.M_ID, new org.apache.thrift.meta_data.FieldMetaData("mId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.M_STATE, new org.apache.thrift.meta_data.FieldMetaData("mState", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.STATE, new org.apache.thrift.meta_data.FieldMetaData("state", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.M_UNDER_FILE_PATH, new org.apache.thrift.meta_data.FieldMetaData("mUnderFilePath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.UNDER_FILE_PATH, new org.apache.thrift.meta_data.FieldMetaData("underFilePath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(LineageFileInfo.class, metaDataMap);
@@ -136,15 +136,15 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
   }
 
   public LineageFileInfo(
-    long mId,
-    String mState,
-    String mUnderFilePath)
+    long id,
+    String state,
+    String underFilePath)
   {
     this();
-    this.mId = mId;
-    setMIdIsSet(true);
-    this.mState = mState;
-    this.mUnderFilePath = mUnderFilePath;
+    this.id = id;
+    setIdIsSet(true);
+    this.state = state;
+    this.underFilePath = underFilePath;
   }
 
   /**
@@ -152,12 +152,12 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
    */
   public LineageFileInfo(LineageFileInfo other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.mId = other.mId;
-    if (other.isSetMState()) {
-      this.mState = other.mState;
+    this.id = other.id;
+    if (other.isSetState()) {
+      this.state = other.state;
     }
-    if (other.isSetMUnderFilePath()) {
-      this.mUnderFilePath = other.mUnderFilePath;
+    if (other.isSetUnderFilePath()) {
+      this.underFilePath = other.underFilePath;
     }
   }
 
@@ -167,106 +167,106 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
 
   @Override
   public void clear() {
-    setMIdIsSet(false);
-    this.mId = 0;
-    this.mState = null;
-    this.mUnderFilePath = null;
+    setIdIsSet(false);
+    this.id = 0;
+    this.state = null;
+    this.underFilePath = null;
   }
 
-  public long getMId() {
-    return this.mId;
+  public long getId() {
+    return this.id;
   }
 
-  public LineageFileInfo setMId(long mId) {
-    this.mId = mId;
-    setMIdIsSet(true);
+  public LineageFileInfo setId(long id) {
+    this.id = id;
+    setIdIsSet(true);
     return this;
   }
 
-  public void unsetMId() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MID_ISSET_ID);
+  public void unsetId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ID_ISSET_ID);
   }
 
-  /** Returns true if field mId is set (has been assigned a value) and false otherwise */
-  public boolean isSetMId() {
-    return EncodingUtils.testBit(__isset_bitfield, __MID_ISSET_ID);
+  /** Returns true if field id is set (has been assigned a value) and false otherwise */
+  public boolean isSetId() {
+    return EncodingUtils.testBit(__isset_bitfield, __ID_ISSET_ID);
   }
 
-  public void setMIdIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MID_ISSET_ID, value);
+  public void setIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
   }
 
-  public String getMState() {
-    return this.mState;
+  public String getState() {
+    return this.state;
   }
 
-  public LineageFileInfo setMState(String mState) {
-    this.mState = mState;
+  public LineageFileInfo setState(String state) {
+    this.state = state;
     return this;
   }
 
-  public void unsetMState() {
-    this.mState = null;
+  public void unsetState() {
+    this.state = null;
   }
 
-  /** Returns true if field mState is set (has been assigned a value) and false otherwise */
-  public boolean isSetMState() {
-    return this.mState != null;
+  /** Returns true if field state is set (has been assigned a value) and false otherwise */
+  public boolean isSetState() {
+    return this.state != null;
   }
 
-  public void setMStateIsSet(boolean value) {
+  public void setStateIsSet(boolean value) {
     if (!value) {
-      this.mState = null;
+      this.state = null;
     }
   }
 
-  public String getMUnderFilePath() {
-    return this.mUnderFilePath;
+  public String getUnderFilePath() {
+    return this.underFilePath;
   }
 
-  public LineageFileInfo setMUnderFilePath(String mUnderFilePath) {
-    this.mUnderFilePath = mUnderFilePath;
+  public LineageFileInfo setUnderFilePath(String underFilePath) {
+    this.underFilePath = underFilePath;
     return this;
   }
 
-  public void unsetMUnderFilePath() {
-    this.mUnderFilePath = null;
+  public void unsetUnderFilePath() {
+    this.underFilePath = null;
   }
 
-  /** Returns true if field mUnderFilePath is set (has been assigned a value) and false otherwise */
-  public boolean isSetMUnderFilePath() {
-    return this.mUnderFilePath != null;
+  /** Returns true if field underFilePath is set (has been assigned a value) and false otherwise */
+  public boolean isSetUnderFilePath() {
+    return this.underFilePath != null;
   }
 
-  public void setMUnderFilePathIsSet(boolean value) {
+  public void setUnderFilePathIsSet(boolean value) {
     if (!value) {
-      this.mUnderFilePath = null;
+      this.underFilePath = null;
     }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case M_ID:
+    case ID:
       if (value == null) {
-        unsetMId();
+        unsetId();
       } else {
-        setMId((Long)value);
+        setId((Long)value);
       }
       break;
 
-    case M_STATE:
+    case STATE:
       if (value == null) {
-        unsetMState();
+        unsetState();
       } else {
-        setMState((String)value);
+        setState((String)value);
       }
       break;
 
-    case M_UNDER_FILE_PATH:
+    case UNDER_FILE_PATH:
       if (value == null) {
-        unsetMUnderFilePath();
+        unsetUnderFilePath();
       } else {
-        setMUnderFilePath((String)value);
+        setUnderFilePath((String)value);
       }
       break;
 
@@ -275,14 +275,14 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case M_ID:
-      return Long.valueOf(getMId());
+    case ID:
+      return Long.valueOf(getId());
 
-    case M_STATE:
-      return getMState();
+    case STATE:
+      return getState();
 
-    case M_UNDER_FILE_PATH:
-      return getMUnderFilePath();
+    case UNDER_FILE_PATH:
+      return getUnderFilePath();
 
     }
     throw new IllegalStateException();
@@ -295,12 +295,12 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
     }
 
     switch (field) {
-    case M_ID:
-      return isSetMId();
-    case M_STATE:
-      return isSetMState();
-    case M_UNDER_FILE_PATH:
-      return isSetMUnderFilePath();
+    case ID:
+      return isSetId();
+    case STATE:
+      return isSetState();
+    case UNDER_FILE_PATH:
+      return isSetUnderFilePath();
     }
     throw new IllegalStateException();
   }
@@ -318,30 +318,30 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
     if (that == null)
       return false;
 
-    boolean this_present_mId = true;
-    boolean that_present_mId = true;
-    if (this_present_mId || that_present_mId) {
-      if (!(this_present_mId && that_present_mId))
+    boolean this_present_id = true;
+    boolean that_present_id = true;
+    if (this_present_id || that_present_id) {
+      if (!(this_present_id && that_present_id))
         return false;
-      if (this.mId != that.mId)
-        return false;
-    }
-
-    boolean this_present_mState = true && this.isSetMState();
-    boolean that_present_mState = true && that.isSetMState();
-    if (this_present_mState || that_present_mState) {
-      if (!(this_present_mState && that_present_mState))
-        return false;
-      if (!this.mState.equals(that.mState))
+      if (this.id != that.id)
         return false;
     }
 
-    boolean this_present_mUnderFilePath = true && this.isSetMUnderFilePath();
-    boolean that_present_mUnderFilePath = true && that.isSetMUnderFilePath();
-    if (this_present_mUnderFilePath || that_present_mUnderFilePath) {
-      if (!(this_present_mUnderFilePath && that_present_mUnderFilePath))
+    boolean this_present_state = true && this.isSetState();
+    boolean that_present_state = true && that.isSetState();
+    if (this_present_state || that_present_state) {
+      if (!(this_present_state && that_present_state))
         return false;
-      if (!this.mUnderFilePath.equals(that.mUnderFilePath))
+      if (!this.state.equals(that.state))
+        return false;
+    }
+
+    boolean this_present_underFilePath = true && this.isSetUnderFilePath();
+    boolean that_present_underFilePath = true && that.isSetUnderFilePath();
+    if (this_present_underFilePath || that_present_underFilePath) {
+      if (!(this_present_underFilePath && that_present_underFilePath))
+        return false;
+      if (!this.underFilePath.equals(that.underFilePath))
         return false;
     }
 
@@ -352,20 +352,20 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_mId = true;
-    list.add(present_mId);
-    if (present_mId)
-      list.add(mId);
+    boolean present_id = true;
+    list.add(present_id);
+    if (present_id)
+      list.add(id);
 
-    boolean present_mState = true && (isSetMState());
-    list.add(present_mState);
-    if (present_mState)
-      list.add(mState);
+    boolean present_state = true && (isSetState());
+    list.add(present_state);
+    if (present_state)
+      list.add(state);
 
-    boolean present_mUnderFilePath = true && (isSetMUnderFilePath());
-    list.add(present_mUnderFilePath);
-    if (present_mUnderFilePath)
-      list.add(mUnderFilePath);
+    boolean present_underFilePath = true && (isSetUnderFilePath());
+    list.add(present_underFilePath);
+    if (present_underFilePath)
+      list.add(underFilePath);
 
     return list.hashCode();
   }
@@ -378,32 +378,32 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetMId()).compareTo(other.isSetMId());
+    lastComparison = Boolean.valueOf(isSetId()).compareTo(other.isSetId());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMId()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mId, other.mId);
+    if (isSetId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.id, other.id);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMState()).compareTo(other.isSetMState());
+    lastComparison = Boolean.valueOf(isSetState()).compareTo(other.isSetState());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMState()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mState, other.mState);
+    if (isSetState()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.state, other.state);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMUnderFilePath()).compareTo(other.isSetMUnderFilePath());
+    lastComparison = Boolean.valueOf(isSetUnderFilePath()).compareTo(other.isSetUnderFilePath());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMUnderFilePath()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mUnderFilePath, other.mUnderFilePath);
+    if (isSetUnderFilePath()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.underFilePath, other.underFilePath);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -428,23 +428,23 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
     StringBuilder sb = new StringBuilder("LineageFileInfo(");
     boolean first = true;
 
-    sb.append("mId:");
-    sb.append(this.mId);
+    sb.append("id:");
+    sb.append(this.id);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mState:");
-    if (this.mState == null) {
+    sb.append("state:");
+    if (this.state == null) {
       sb.append("null");
     } else {
-      sb.append(this.mState);
+      sb.append(this.state);
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mUnderFilePath:");
-    if (this.mUnderFilePath == null) {
+    sb.append("underFilePath:");
+    if (this.underFilePath == null) {
       sb.append("null");
     } else {
-      sb.append(this.mUnderFilePath);
+      sb.append(this.underFilePath);
     }
     first = false;
     sb.append(")");
@@ -492,26 +492,26 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
           break;
         }
         switch (schemeField.id) {
-          case 1: // M_ID
+          case 1: // ID
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.mId = iprot.readI64();
-              struct.setMIdIsSet(true);
+              struct.id = iprot.readI64();
+              struct.setIdIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // M_STATE
+          case 2: // STATE
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.mState = iprot.readString();
-              struct.setMStateIsSet(true);
+              struct.state = iprot.readString();
+              struct.setStateIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // M_UNDER_FILE_PATH
+          case 3: // UNDER_FILE_PATH
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.mUnderFilePath = iprot.readString();
-              struct.setMUnderFilePathIsSet(true);
+              struct.underFilePath = iprot.readString();
+              struct.setUnderFilePathIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -531,17 +531,17 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(M_ID_FIELD_DESC);
-      oprot.writeI64(struct.mId);
+      oprot.writeFieldBegin(ID_FIELD_DESC);
+      oprot.writeI64(struct.id);
       oprot.writeFieldEnd();
-      if (struct.mState != null) {
-        oprot.writeFieldBegin(M_STATE_FIELD_DESC);
-        oprot.writeString(struct.mState);
+      if (struct.state != null) {
+        oprot.writeFieldBegin(STATE_FIELD_DESC);
+        oprot.writeString(struct.state);
         oprot.writeFieldEnd();
       }
-      if (struct.mUnderFilePath != null) {
-        oprot.writeFieldBegin(M_UNDER_FILE_PATH_FIELD_DESC);
-        oprot.writeString(struct.mUnderFilePath);
+      if (struct.underFilePath != null) {
+        oprot.writeFieldBegin(UNDER_FILE_PATH_FIELD_DESC);
+        oprot.writeString(struct.underFilePath);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -562,24 +562,24 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
     public void write(org.apache.thrift.protocol.TProtocol prot, LineageFileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetMId()) {
+      if (struct.isSetId()) {
         optionals.set(0);
       }
-      if (struct.isSetMState()) {
+      if (struct.isSetState()) {
         optionals.set(1);
       }
-      if (struct.isSetMUnderFilePath()) {
+      if (struct.isSetUnderFilePath()) {
         optionals.set(2);
       }
       oprot.writeBitSet(optionals, 3);
-      if (struct.isSetMId()) {
-        oprot.writeI64(struct.mId);
+      if (struct.isSetId()) {
+        oprot.writeI64(struct.id);
       }
-      if (struct.isSetMState()) {
-        oprot.writeString(struct.mState);
+      if (struct.isSetState()) {
+        oprot.writeString(struct.state);
       }
-      if (struct.isSetMUnderFilePath()) {
-        oprot.writeString(struct.mUnderFilePath);
+      if (struct.isSetUnderFilePath()) {
+        oprot.writeString(struct.underFilePath);
       }
     }
 
@@ -588,16 +588,16 @@ public class LineageFileInfo implements org.apache.thrift.TBase<LineageFileInfo,
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
-        struct.mId = iprot.readI64();
-        struct.setMIdIsSet(true);
+        struct.id = iprot.readI64();
+        struct.setIdIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.mState = iprot.readString();
-        struct.setMStateIsSet(true);
+        struct.state = iprot.readString();
+        struct.setStateIsSet(true);
       }
       if (incoming.get(2)) {
-        struct.mUnderFilePath = iprot.readString();
-        struct.setMUnderFilePathIsSet(true);
+        struct.underFilePath = iprot.readString();
+        struct.setUnderFilePathIsSet(true);
       }
     }
   }

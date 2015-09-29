@@ -216,8 +216,8 @@ public final class Constants {
       "tachyon.worker.evict.strategy.lrfu.attenuation.factor";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
-  public static final String WORKER_LINEAGE_SYNC_INTERVAL_MS =
-      "tachyon.worker.lineage.interval.ms";
+  public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
+      "tachyon.worker.lineage.heartbeat.interval.ms";
 
   public static final String WORKER_BLOCK_LOCK_COUNT = "tachyon.worker.block.lock.count";
   /**

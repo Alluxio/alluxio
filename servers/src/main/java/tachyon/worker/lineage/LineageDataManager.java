@@ -37,7 +37,7 @@ import tachyon.exception.NotFoundException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.BufferUtils;
+import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockDataManager;
@@ -90,7 +90,7 @@ public final class LineageDataManager {
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
-    for (long blockId : Lists.newArrayList(blockIds)) {
+    for (long blockId : blockIds) {
       long lockId;
       try {
         lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);

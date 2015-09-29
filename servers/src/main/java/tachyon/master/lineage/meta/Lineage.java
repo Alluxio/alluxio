@@ -76,22 +76,22 @@ public final class Lineage implements JournalEntryRepresentable {
    */
   public synchronized LineageInfo generateLineageInfo() {
     LineageInfo info = new LineageInfo();
-    info.mId = mId;
+    info.id = mId;
     List<Long> inputFiles = Lists.newArrayList();
     for (TachyonFile file : mInputFiles) {
       inputFiles.add(file.getFileId());
     }
-    info.mInputFiles = inputFiles;
+    info.inputFiles = inputFiles;
 
     List<LineageFileInfo> outputFiles = Lists.newArrayList();
     for (LineageFile lineageFile : mOutputFiles) {
       outputFiles.add(lineageFile.generateLineageFileInfo());
     }
-    info.mOutputFiles = outputFiles;
+    info.outputFiles = outputFiles;
 
     // TODO(yupeng) allow other types of jobs
-    info.mJob = ((CommandLineJob) mJob).generateCommandLineJobInfo();
-    info.mCreationTimeMs = mCreationTimeMs;
+    info.job = ((CommandLineJob) mJob).generateCommandLineJobInfo();
+    info.creationTimeMs = mCreationTimeMs;
     return info;
   }
 
@@ -140,6 +140,7 @@ public final class Lineage implements JournalEntryRepresentable {
     for (LineageFile outputFile : mOutputFiles) {
       if (outputFile.getFileId() == fileId) {
         outputFile.setState(newState);
+        return;
       }
     }
   }

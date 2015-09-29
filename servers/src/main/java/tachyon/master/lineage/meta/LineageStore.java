@@ -23,6 +23,7 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.collections.DirectedAcyclicGraph;
@@ -119,8 +120,16 @@ public final class LineageStore implements JournalCheckpointStreamable {
   public synchronized void deleteLineage(long lineageId) {
     Preconditions.checkState(mIdIndex.containsKey(lineageId),
         "lineage id " + lineageId + " does not exist");
-    Lineage toDelete = mIdIndex.get(lineageId);
 
+    deleteLineage(lineageId, Sets.<Long>newHashSet());
+  }
+
+  private void deleteLineage(long lineageId, Set<Long> deleted) {
+    if (deleted.contains(lineageId)) {
+      return;
+    }
+
+    Lineage toDelete = mIdIndex.get(lineageId);
     // delete children first
     for (Lineage childLineage : mLineageDAG.getChildren(toDelete)) {
       deleteLineage(childLineage.getId());
@@ -129,6 +138,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
     // delete the given node
     mLineageDAG.deleteLeaf(toDelete);
     mIdIndex.remove(lineageId);
+    deleted.add(lineageId);
     for (TachyonFile outputFile : toDelete.getOutputFiles()) {
       mOutputFileIndex.remove(outputFile.getFileId());
     }
@@ -209,6 +219,9 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * @param fileId the file id
    */
   public synchronized void commitFilePersistence(Long fileId) {
+    Preconditions.checkState(mOutputFileIndex.containsKey(fileId),
+        "file id " + fileId + " does not belong to any lineage");
+
     Lineage lineage = mOutputFileIndex.get(fileId);
     lineage.updateOutputFileState(fileId, LineageFileState.PERSISTED);
   }

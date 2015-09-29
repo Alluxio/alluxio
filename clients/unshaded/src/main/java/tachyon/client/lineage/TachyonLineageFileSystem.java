@@ -60,12 +60,12 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws IOException if the recreation fails
    */
-  private long recreate(TachyonURI path, OutStreamOptions options)
+  private long reinitializeFile(TachyonURI path, OutStreamOptions options)
       throws LineageDoesNotExistException, IOException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
-          masterClient.recreateFile(path.getPath(), options.getBlockSize(), options.getTTL());
+          masterClient.reintializeFile(path.getPath(), options.getBlockSize(), options.getTTL());
       return fileId;
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -81,12 +81,12 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
       throws IOException, TachyonException {
     long fileId;
     try {
-      fileId = recreate(path, options);
+      fileId = reinitializeFile(path, options);
     } catch (LineageDoesNotExistException e) {
       // not a lineage file
       return super.getOutStream(path, options);
     }
-    if (fileId < 0) {
+    if (fileId == -1) {
       return new DummyFileOutputStream(fileId, options);
     }
     return new LineageFileOutStream(fileId, options);
