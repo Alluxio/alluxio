@@ -30,7 +30,7 @@ import tachyon.client.BoundedStream;
 import tachyon.client.ClientContext;
 import tachyon.client.Seekable;
 import tachyon.client.TachyonStorageType;
-import tachyon.client.block.BufferedBlockInStream;
+import tachyon.client.block.BlockInStream;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.block.LocalBlockInStream;
 import tachyon.client.file.options.InStreamOptions;
@@ -73,7 +73,7 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   /** Current position of the stream */
   private long mPos;
   /** Current BlockInStream backing this stream */
-  private BufferedBlockInStream mCurrentBlockInStream;
+  private BlockInStream mCurrentBlockInStream;
   /** Current BlockOutStream writing the data into Tachyon, this may be null */
   private BufferedBlockOutStream mCurrentCacheStream;
 
