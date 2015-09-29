@@ -285,7 +285,6 @@ public final class LineageMaster extends MasterBase {
   public synchronized void asyncCompleteFile(long fileId)
       throws FileDoesNotExistException, BlockInfoException {
     LOG.info("Async complete file " + fileId);
-    mLineageStore.completeFile(fileId);
     // complete file in Tachyon.
     try {
       mFileSystemMaster.completeFile(fileId);
@@ -293,6 +292,7 @@ public final class LineageMaster extends MasterBase {
       // should not happen
       throw new RuntimeException(e);
     }
+    mLineageStore.completeFile(fileId);
     writeJournalEntry(new AsyncCompleteFileEntry(fileId));
     flushJournal();
   }
