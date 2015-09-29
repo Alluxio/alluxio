@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
@@ -44,7 +45,6 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -54,14 +54,15 @@ import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
+import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
 import tachyon.master.file.meta.DependencyMap;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
-import tachyon.master.file.meta.InodeFile;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
+import tachyon.master.file.meta.InodeFile;
 import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
 import tachyon.master.journal.Journal;
@@ -104,6 +105,50 @@ public final class FileSystemMaster extends MasterBase {
 
   /** The service that tries to check inodefiles with ttl set */
   private Future<?> mTTLCheckerService;
+  /** The configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS} */
+  private int mTTLCheckerIntervalMs;
+
+  private class TTLBucket {
+    /**
+     * Each bucket has a time to live interval, this value is the start of the interval, interval
+     * value is the same as the configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
+     */
+    private long mTTLIntervalStartTimeMs;
+    /** A list of InodeFiles whose ttl value is in the range of this bucket's interval. */
+    private List<InodeFile> mFiles;
+
+    public TTLBucket(long startTimeMs) {
+      mTTLIntervalStartTimeMs = startTimeMs;
+      mFiles = new LinkedList<InodeFile>();
+    }
+
+    public long getTTLIntervalStartTimeMs() {
+      return mTTLIntervalStartTimeMs;
+    }
+
+    public void setTTLIntervalStartMs(long startTimeMs) {
+      mTTLIntervalStartTimeMs = startTimeMs;
+    }
+
+    public long getTTLIntervalEndTimeMs() {
+      return mTTLIntervalStartTimeMs + mTTLCheckerIntervalMs;
+    }
+
+    public List<InodeFile> getFiles() {
+      return mFiles;
+    }
+
+    public void addFile(InodeFile file) {
+      mFiles.add(file);
+    }
+  }
+
+  /**
+   * A list of {@link TTLBucket}s, it is maintained by {@link #createFileInternal} and
+   * {@link MasterInodeTTLCheckExecutor}.
+   */
+  private final List<TTLBucket> mTTLBuckets = Lists.newLinkedList();
+
   /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
@@ -226,10 +271,11 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
+      mTTLCheckerIntervalMs = conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS);
       mTTLCheckerService =
           getExecutorService().submit(
-              new HeartbeatThread("InodeFile TTL Check", new MasterInodeTTLCheckExecutor(), conf
-                  .getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+              new HeartbeatThread("InodeFile TTL Check", new MasterInodeTTLCheckExecutor(),
+                  mTTLCheckerIntervalMs));
     }
     super.start(isLeader);
   }
@@ -515,6 +561,7 @@ public final class FileSystemMaster extends MasterBase {
       throw new RuntimeException(fdnee);
     }
   }
+
   /**
    * Creates a file (not a directory) for a given path. Called via RPC.
    *
@@ -528,8 +575,9 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long createFile(TachyonURI path, long blockSizeBytes, boolean recursive)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    return this.createFile(path, blockSizeBytes, recursive, Constants.NO_TTL);
+    return createFile(path, blockSizeBytes, recursive, Constants.NO_TTL);
   }
+
   /**
    * Creates a file (not a directory) for a given path. Called via RPC.
    *
@@ -569,6 +617,33 @@ public final class FileSystemMaster extends MasterBase {
     if (mWhitelist.inList(path.toString())) {
       inode.setCacheable(true);
     }
+
+    if (ttl != Constants.NO_TTL) {
+      long ttlEnd = opTimeMs + ttl;
+      int ttlBucketIndex = Math.min((int) (ttlEnd / mTTLCheckerIntervalMs), mTTLBuckets.size() - 1);
+      if (ttlBucketIndex < 0) {
+        // There is no existing bucket, add a new bucket, the interval this new bucket is the
+        // interval where ttlEnd resides in.
+        mTTLBuckets.add(new TTLBucket(ttlBucketIndex * mTTLCheckerIntervalMs));
+        ttlBucketIndex = 0;
+      }
+
+      TTLBucket bucket = mTTLBuckets.get(ttlBucketIndex);
+      if (ttlEnd < bucket.getTTLIntervalStartTimeMs()) {
+        // ttlEnd is smaller than current bucket's ttl interval start time, a new bucket should be
+        // created and inserted just before current bucket.
+        bucket = new TTLBucket(ttlBucketIndex * mTTLCheckerIntervalMs);
+        mTTLBuckets.add(ttlBucketIndex, bucket);
+      } else if (ttlEnd >= bucket.getTTLIntervalEndTimeMs()) {
+        // ttlEnd exceeds current bucket's interval end, a new bucket should be created and appended
+        // to current bucket.
+        int nextIndex = ttlBucketIndex + 1;
+        bucket = new TTLBucket(nextIndex * mTTLCheckerIntervalMs);
+        mTTLBuckets.add(nextIndex, bucket);
+      }
+      bucket.addFile(inode);
+    }
+
     MasterContext.getMasterSource().incFilesCreated(created.size());
     return createResult;
   }
@@ -1340,33 +1415,35 @@ public final class FileSystemMaster extends MasterBase {
     return mMountTable.delete(tachyonPath);
   }
 
-
   /**
    * MasterInodeTTL periodic check.
    */
-  public final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
-    // TODO: current implementation needs to be improved by using a more efficient datastructure
-    // such as hourly bucketized inodefilelist
+  private final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat()  {
       synchronized (mInodeTree) {
-        List<Inode> inodes = mInodeTree.getInodeChildrenRecursive(mInodeTree.getRoot());
-        for (Inode inode : inodes) {
-          if (inode.isFile() && !inode.isPinned()) {
-            InodeFile iFile = (InodeFile) inode;
-            long ttl = iFile.getTTL();
-            if (ttl > 0 && System.currentTimeMillis() - iFile.getCreationTimeMs() > ttl * 1000) {
+        if (mTTLBuckets.size() > 0 && mTTLBuckets.get(0).getTTLIntervalStartTimeMs() < 0) {
+          // The ttl interval start of this bucket is smaller than 0, so all files in this bucket
+          // should no longer live.
+          for (InodeFile file : mTTLBuckets.get(0).getFiles()) {
+            if (!file.isDeleted() && !file.isPinned()) {
               try {
-                deleteFile(iFile.getId(), false);
+                deleteFile(file.getId(), false);
               } catch (FileDoesNotExistException e) {
-                LOG.error("file does not exit " + iFile.toString());
+                LOG.error("file does not exit " + file.toString());
               } catch (InvalidPathException e) {
-                LOG.error("invalid path for ttl check " + iFile.toString());
+                LOG.error("invalid path for ttl check " + file.toString());
               } catch (IOException e) {
-                LOG.error("IO exception for ttl check" + iFile.toString());
+                LOG.error("IO exception for ttl check" + file.toString());
               }
             }
           }
+          mTTLBuckets.remove(0);
+        }
+
+        // Subtract elapsed time from start time of all buckets.
+        for (TTLBucket bucket : mTTLBuckets) {
+          bucket.setTTLIntervalStartMs(bucket.getTTLIntervalStartTimeMs() - mTTLCheckerIntervalMs);
         }
       }
     }
