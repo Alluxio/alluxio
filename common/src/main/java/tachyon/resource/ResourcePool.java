@@ -37,14 +37,24 @@ public abstract class ResourcePool<T> {
   /**
    * Creates a {@link ResourcePool} instance with the specified capacity.
    *
-   * @param maxCapacity the maximum of resources in this pool
+   * @param maxCapacity The maximum of resources in this pool.
    */
   public ResourcePool(int maxCapacity) {
+    this(maxCapacity, new LinkedBlockingQueue<T>(maxCapacity));
+  }
+
+  /**
+   * Internal constructor that can provide an object to be used for the internal queue.
+   *
+   * @param maxCapacity The maximum of resources in this pool.
+   * @param resources Blocking queue to use.
+   */
+  protected ResourcePool(int maxCapacity, BlockingQueue<T> resources) {
     Preconditions.checkArgument(maxCapacity > 0, "Capacity must be non-negative");
     mCapacityLock = new Object();
     mMaxCapacity = maxCapacity;
     mCurrentCapacity = 0;
-    mResources = new LinkedBlockingQueue<T>(maxCapacity);
+    mResources = resources;
   }
 
   /**
