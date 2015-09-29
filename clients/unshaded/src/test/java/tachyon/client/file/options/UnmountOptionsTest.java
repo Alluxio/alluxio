@@ -13,32 +13,20 @@
  * the License.
  */
 
-package tachyon.master.journal;
+package tachyon.client.file.options;
 
-/**
- * The types of entries that can be represented in the journal.
- */
-public enum JournalEntryType {
-  // Block master entries
-  BLOCK_CONTAINER_ID_GENERATOR,
-  BLOCK_INFO,
+import org.junit.Test;
 
-  // File system master entries
-  INODE_FILE,
-  INODE_DIRECTORY,
-  INODE_MTIME,
-  INODE_PERSISTED,
-  ADD_MOUNTPOINT,
-  DELETE_MOUNTPOINT,
-  ADD_CHECKPOINT,
-  COMPLETE_FILE,
-  FREE,
-  SET_PINNED,
-  DELETE_FILE,
-  RENAME,
-  INODE_DIRECTORY_ID_GENERATOR,
+import tachyon.conf.TachyonConf;
 
-  // Raw table master entries
-  RAW_TABLE,
-  UPDATE_METADATA,
+public class UnmountOptionsTest {
+  @Test
+  public void builderTest() {
+    new UnmountOptions.Builder(new TachyonConf()).build();
+  }
+
+  @Test
+  public void defaultsTest() {
+    UnmountOptions options = UnmountOptions.defaults();
+  }
 }

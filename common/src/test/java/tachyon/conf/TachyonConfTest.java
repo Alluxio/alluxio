@@ -91,10 +91,6 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals(ufsAddress + "/tachyon/data", value);
 
-    value = sDefaultTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(ufsAddress + "/tachyon/workers", value);
-
     boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     Assert.assertEquals(false, booleanValue);
 

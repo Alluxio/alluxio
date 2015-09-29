@@ -23,24 +23,15 @@ import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class AddCheckpointEntry implements JournalEntry {
-  private final long mWorkerId;
+public class PersistFileEntry implements JournalEntry {
   private final long mFileId;
   private final long mLength;
-  private final String mCheckpointPath;
   private final long mOpTimeMs;
 
-  public AddCheckpointEntry(long workerId, long fileId, long length, TachyonURI checkpointPath,
-      long opTimeMs) {
-    mWorkerId = workerId;
+  public PersistFileEntry(long fileId, long length, long opTimeMs) {
     mFileId = fileId;
     mLength = length;
-    mCheckpointPath = checkpointPath.toString();
     mOpTimeMs = opTimeMs;
-  }
-
-  public long getWorkerId() {
-    return mWorkerId;
   }
 
   public long getFileId() {
@@ -49,10 +40,6 @@ public class AddCheckpointEntry implements JournalEntry {
 
   public long getFileLength() {
     return mLength;
-  }
-
-  public TachyonURI getCheckpointPath() {
-    return new TachyonURI(mCheckpointPath);
   }
 
   public long getOperationTimeMs() {
@@ -67,10 +54,8 @@ public class AddCheckpointEntry implements JournalEntry {
   @Override
   public Map<String, Object> getParameters() {
     Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(5);
-    parameters.put("workerId", mWorkerId);
     parameters.put("fileId", mFileId);
     parameters.put("length", mLength);
-    parameters.put("checkpointPath", mCheckpointPath);
     parameters.put("operationTimeMs", mOpTimeMs);
     return parameters;
   }

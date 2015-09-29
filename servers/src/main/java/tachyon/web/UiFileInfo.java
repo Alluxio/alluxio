@@ -67,7 +67,6 @@ public final class UiFileInfo {
   private final long mId;
   private final String mName;
   private final String mAbsolutePath;
-  private final String mCheckpointPath;
   private final long mBlockSizeBytes;
   private final long mSize;
   private final long mCreationTimeMs;
@@ -87,7 +86,6 @@ public final class UiFileInfo {
     mId = fileInfo.getFileId();
     mName = fileInfo.getName();
     mAbsolutePath = fileInfo.getPath();
-    mCheckpointPath = fileInfo.getUfsPath();
     mBlockSizeBytes = fileInfo.getBlockSizeBytes();
     mSize = fileInfo.getLength();
     mCreationTimeMs = fileInfo.getCreationTimeMs();
@@ -106,7 +104,6 @@ public final class UiFileInfo {
     mId = -1;
     mName = fileInfo.mName;
     mAbsolutePath = fileInfo.mAbsolutePath;
-    mCheckpointPath = "";
     mBlockSizeBytes = 0;
     mSize = fileInfo.mSize;
     mCreationTimeMs = fileInfo.mCreationTimeMs;
@@ -145,10 +142,6 @@ public final class UiFileInfo {
 
   public List<List<UiBlockInfo>> getBlocksOnTier() {
     return mBlocksOnTier;
-  }
-
-  public String getCheckpointPath() {
-    return mCheckpointPath;
   }
 
   public String getCreationTime() {
