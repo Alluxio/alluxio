@@ -62,6 +62,7 @@ import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
+import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.journal.PersistFilesEntry;
@@ -394,6 +395,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
           case ASYNC_COMPLETE_FILE: {
             return new AsyncCompleteFileEntry(
                 entry.getLong("fileId"));
+          }
+          case DELETE_LINEAGE: {
+            return new DeleteLineageEntry(
+                entry.getLong("lineageId"),
+                entry.getBoolean("cascade"));
           }
           case PERSIST_FILES: {
             return new PersistFilesEntry(

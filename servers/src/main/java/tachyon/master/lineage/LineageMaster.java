@@ -47,6 +47,7 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.lineage.checkpoint.CheckpointPlan;
 import tachyon.master.lineage.checkpoint.CheckpointSchedulingExcecutor;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
+import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
 import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
 import tachyon.master.lineage.journal.PersistFilesEntry;
@@ -143,6 +144,8 @@ public final class LineageMaster extends MasterBase {
       persistFilesFromEntry((PersistFilesEntry) entry);
     } else if (entry instanceof RequestFilePersistenceEntry) {
       requestFilePersistenceFromEntry((RequestFilePersistenceEntry) entry);
+    } else if(entry instanceof DeleteLineageEntry) {
+      deleteLineageFromEntry((DeleteLineageEntry) entry);
     } else {
       throw new IOException(ExceptionMessage.UNEXPECETD_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -238,6 +241,14 @@ public final class LineageMaster extends MasterBase {
    */
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
+    deleteLineageInternal(lineageId,cascade);
+    writeJournalEntry(new DeleteLineageEntry(lineageId, cascade));
+    flushJournal();
+    return true;
+  }
+
+  private boolean deleteLineageInternal(long lineageId, boolean cascade)
+      throws LineageDoesNotExistException, LineageDeletionException {
     Lineage lineage = mLineageStore.getLineage(lineageId);
     if (lineage == null) {
       throw new LineageDoesNotExistException(
@@ -253,6 +264,16 @@ public final class LineageMaster extends MasterBase {
     LOG.info("Delete lineage " + lineageId);
     mLineageStore.deleteLineage(lineageId);
     return true;
+  }
+
+  private void deleteLineageFromEntry(DeleteLineageEntry entry) {
+    try {
+      deleteLineageInternal(entry.getLineageId(), entry.isCascade());
+    } catch (LineageDoesNotExistException e) {
+      LOG.error("Failed to delete lineage " + entry.getLineageId(), e);
+    } catch (LineageDeletionException e) {
+      LOG.error("Failed to delete lineage " + entry.getLineageId(), e);
+    }
   }
 
   /**
