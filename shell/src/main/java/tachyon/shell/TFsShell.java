@@ -575,6 +575,7 @@ public class TFsShell implements Closeable {
 
   public static Comparator<TachyonURI> createTachyonURIComparator() {
     return new Comparator<TachyonURI>() {
+      @Override
       public int compare(TachyonURI tUri1, TachyonURI tUri2) {
         // ascending order
         return tUri1.getPath().compareTo(tUri2.getPath());
@@ -815,18 +816,6 @@ public class TFsShell implements Closeable {
     }
   }
 
-  public int request(String[] argv) throws IOException {
-    TachyonURI path = new TachyonURI(argv[1]);
-    int depId = Integer.parseInt(argv[2]);
-    try {
-      mTfs.requestFilesInDependency(depId);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
-    System.out.println("Dependency with ID " + depId + " has been requested.");
-    return 0;
-  }
-
   /**
    * Removes the file specified by argv.
    *
@@ -1018,8 +1007,6 @@ public class TFsShell implements Closeable {
           } else {
             return copyToLocal(srcPath, dstFile);
           }
-        } else if (cmd.equals("request")) {
-          return request(argv);
         } else if (cmd.equals("mv")) {
           return rename(argv);
         }

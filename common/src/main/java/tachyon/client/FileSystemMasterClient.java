@@ -17,7 +17,6 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -29,7 +28,6 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -476,41 +474,5 @@ public final class FileSystemMasterClient extends MasterClientBase {
       }
     }
     throw new IOException("Failed after " + retry + " retries.");
-  }
-
-  /**
-   * Creates a dependency.
-   *
-   * Not implemented.
-   *
-   * @param parents the dependency parents
-   * @param children the dependency children
-   * @param commandPrefix the prefix of the dependency command
-   * @param data the dependency data
-   * @param comment a comment
-   * @param framework the framework
-   * @param frameworkVersion the framework version
-   * @param dependencyType the dependency type
-   * @param childrenBlockSizeByte the children block size (in bytes)
-   * @return the dependency id
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized int user_createDependency(List<String> parents, List<String> children,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
-    throw new UnsupportedOperationException("not implemented");
-  }
-
-  /**
-   * Gets dependency information for a dependency.
-   *
-   * Not implemented.
-   *
-   * @param dependencyId the dependency id
-   * @return the dependency information
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized DependencyInfo getDependencyInfo(int dependencyId) throws IOException {
-    throw new UnsupportedOperationException("not implemented");
   }
 }
