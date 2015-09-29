@@ -127,7 +127,6 @@
                       <% } %>
                     </th>
                     <th><%= fileInfo.getId() %></th>
-                    <th><%= fileInfo.getCheckpointPath() %></th>
                     <th><% for (String location : fileInfo.getFileLocations()) { %>
                           <%= location %> <br/>
                         <% } %>

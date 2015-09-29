@@ -32,10 +32,12 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.MountOptions;
 import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.UnmountOptions;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.FileDoesNotExistException;
@@ -159,7 +161,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
-   * Convenience method for {@link #listStatus(TachyonFile, ListStatusOptions)} with default
+  * Convenience method for {@link #listStatus(TachyonFile, ListStatusOptions)} with default
    * options.
    */
   public List<FileInfo> listStatus(TachyonFile file) throws IOException, TachyonException {
@@ -167,12 +169,12 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
-   * Convenience method for {@link #loadMetadata(TachyonURI, TachyonURI, LoadMetadataOptions)} with
+   * Convenience method for {@link #loadMetadata(TachyonURI, LoadMetadataOptions)} with
    * default options.
    */
-  public long loadMetadata(TachyonURI path, TachyonURI ufsPath) throws IOException,
+  public long loadMetadata(TachyonURI path) throws IOException,
       TachyonException {
-    return loadMetadata(path, ufsPath, LoadMetadataOptions.defaults());
+    return loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
   /**
@@ -180,6 +182,15 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    */
   public boolean mkdir(TachyonURI path) throws IOException, TachyonException {
     return mkdir(path, MkdirOptions.defaults());
+  }
+
+  /**
+   * Convenience method for {@link #mount(TachyonURI, TachyonURI, MountOptions)} with default
+   * options.
+   */
+  public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException,
+      TachyonException {
+    return mount(tachyonPath, ufsPath, MountOptions.defaults());
   }
 
   /**
@@ -197,6 +208,20 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     return rename(src, dst, RenameOptions.defaults());
   }
 
+  /**
+   * Convenience method for {@link #setState(TachyonFile, SetStateOptions)} with default options.
+   */
+  public void setState(TachyonFile file) throws IOException, TachyonException {
+    setState(file, SetStateOptions.defaults());
+  }
+
+  /**
+   * Convenience method for {@link #unmount(TachyonURI, UnmountOptions)} with default options.
+   */
+  public boolean unmount(TachyonURI tachyonPath) throws IOException, TachyonException {
+    return unmount(tachyonPath, UnmountOptions.defaults());
+  }
+
   // TODO: Move this to lineage client
   public void reportLostFile(TachyonFile file) throws IOException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
@@ -207,12 +232,5 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
-  }
-
-  /**
-   * Convenience method for {@link #setState(TachyonFile, SetStateOptions)} with default options.
-   */
-  public void setState(TachyonFile file) throws IOException, TachyonException {
-    setState(file, SetStateOptions.defaults());
   }
 }

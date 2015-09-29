@@ -81,10 +81,7 @@ public class Format {
 
       String ufsDataFolder =
           tachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
-      String ufsWorkerFolder =
-          tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-      if (!formatFolder("UNDERFS_DATA_FOLDER", ufsDataFolder, tachyonConf)
-          || !formatFolder("UNDERFS_WORKERS_FOLDER", ufsWorkerFolder, tachyonConf)) {
+      if (!formatFolder("UNDERFS_DATA_FOLDER", ufsDataFolder, tachyonConf)) {
         System.exit(-1);
       }
 
