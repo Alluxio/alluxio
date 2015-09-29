@@ -114,14 +114,13 @@ public final class Client {
 
   public Client() {
     mOptions = new Options();
-    mOptions.addOption("appname", true, "Application Name. Default value Tachyon");
+    mOptions.addOption("appname", true, "Application Name, by default Tachyon");
     mOptions.addOption("priority", true, "Application Priority. Default 0");
     mOptions.addOption("queue", true, "RM Queue in which this application is to be submitted");
-    mOptions.addOption("user", true, "User to run the application as");
     mOptions.addOption("master_memory", true,
-        "Amount of memory in MB to be requested to run the ApplicationMaster");
-    mOptions.addOption("master_vcores", true, "Amount of virtual cores to be requested to run the "
-        + "Application Master");
+        "Amount of memory in MB to request to run ApplicationMaster");
+    mOptions.addOption("master_vcores", true,
+        "Amount of virtual cores to request to run ApplicationMaster");
     mOptions.addOption("jar", true, "Jar file containing the Application Master");
     mOptions.addOption("tachyon_home", true,
         "Path of the home dir of Tachyon deployment on YARN slave machines");
@@ -232,9 +231,9 @@ public final class Client {
 
     // Create an application, get and check the information about the cluster
     YarnClientApplication app = mYarnClient.createApplication();
-    // Get a response of this application, containing information about the cluster
+    // Get a response of this application, containing information of the cluster
     GetNewApplicationResponse appResponse = app.getNewApplicationResponse();
-    // Check the cluster has enough resource to launch the application master
+    // Check if the cluster has enough resource to launch the ApplicationMaster
     checkClusterResource(appResponse);
 
     // Set up the container launch context for the application master
