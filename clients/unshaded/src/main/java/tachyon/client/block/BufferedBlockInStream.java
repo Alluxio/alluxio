@@ -36,14 +36,25 @@ import tachyon.util.io.BufferUtils;
  * Tachyon Stream interfaces.
  */
 public abstract class BufferedBlockInStream extends BlockInStream {
+  /** Value to set mBufferPos to mark the buffer as invalid. */
+  private static final long INVALID_BUFFER_POS = -1L;
+
+  /** The id of the block to which this instream provides access. */
   protected final long mBlockId;
+  /** The size in bytes of the block. */
   protected final long mBlockSize;
+  /** The address of the worker to read the data from. */
   protected final InetSocketAddress mLocation;
+  /** The block store context which provides block worker clients. */
   protected final BlockStoreContext mContext;
 
+  /** Internal buffer to improve small read performance. */
   protected ByteBuffer mBuffer;
+  /** Flag indicating if the stream is closed, can only go from false to true. */
   protected boolean mClosed;
+  /** Current position of the buffer's next byte, relative to the start of the block */
   protected long mBufferPos;
+  /** Current position of the stream, relative to the start of the block. */
   protected long mPos;
 
   // TODO: Get the block lock here when the remote instream locks at a stream level
@@ -52,13 +63,14 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     mBlockSize = blockSize;
     mLocation = location;
     mBuffer = allocateBuffer();
+    mBufferPos = INVALID_BUFFER_POS; // No data in buffer
     mClosed = false;
     mContext = BlockStoreContext.INSTANCE;
   }
 
   private ByteBuffer allocateBuffer() {
     TachyonConf conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE));
   }
 
   protected void checkIfClosed() {
@@ -80,7 +92,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       close();
       return -1;
     }
-    if (mBuffer.remaining() == 0) {
+    if (remainingInBuffer() == 0) {
       updateBuffer();
     }
     mPos ++;
@@ -106,7 +118,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     }
 
     int toRead = (int) Math.min(len, remaining());
-    if (remainingInBuf() > toRead) { // data is fully contained in the buffer
+    if (remainingInBuffer() > toRead) { // data is fully contained in the buffer
       mBuffer.get(b, off, toRead);
       mPos += toRead;
       mBufferPos += toRead;
@@ -114,7 +126,10 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     }
 
     if (toRead > mBuffer.limit() / 2) { // directly read if request is > one-half buffer size
-      return directRead(b, off, toRead);
+      mBufferPos = INVALID_BUFFER_POS; // Invalidate the buffer
+      int bytesRead = directRead(b, off, toRead);
+      mPos += bytesRead;
+      return bytesRead;
     }
 
     // For a read <= half the buffer size, fill the buffer first, then read from the buffer.
@@ -136,6 +151,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
     Preconditions.checkArgument(pos <= mBlockSize, "Seek position is past end of block: "
         + mBlockSize);
+    mBufferPos = INVALID_BUFFER_POS;
     mPos = pos;
   }
 
@@ -147,12 +163,17 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     }
 
     long toSkip = Math.min(remaining(), n);
+    mBufferPos = INVALID_BUFFER_POS;
     mPos += toSkip;
     return toSkip;
   }
 
-  protected long remainingInBuf() {
-    return mPos - mBufferPos + mBuffer.remaining();
+  protected long remainingInBuffer() {
+    if (mBufferPos == INVALID_BUFFER_POS) {
+      return 0;
+    }
+
+    return mBuffer.remaining();
   }
 
   protected abstract int directRead(byte[] b, int off, int len) throws IOException;

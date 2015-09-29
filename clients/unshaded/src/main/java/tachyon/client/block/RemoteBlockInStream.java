@@ -60,7 +60,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   protected void updateBuffer() throws IOException {
     int toRead = (int) Math.min(mBuffer.limit(), remaining());
     mBuffer.clear();
-    readFromRemote(mBuffer.array(), (int) mPos, toRead);
+    readFromRemote(mBuffer.array(), 0, toRead);
     mBufferPos = mPos;
   }
 
@@ -81,7 +81,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       int bytesRead = data.remaining();
       data.get(b, off, bytesRead);
       reader.close();
-      mPos += bytesRead;
       bytesLeft -= bytesRead;
       incrementBytesReadMetric(bytesRead);
     }
