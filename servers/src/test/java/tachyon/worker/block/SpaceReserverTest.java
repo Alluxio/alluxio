@@ -49,9 +49,9 @@ public class SpaceReserverTest {
       StorageLevelAlias.HDD};
   private static final String[][] TIER_PATH = {{"/ramdisk"}, {"/disk1"}};
   private static final long[][] TIER_CAPACITY_BYTES = {{1000}, {3000}};
-  BlockStore mBlockStore;
-  SpaceReserver mSpaceReserver;
-  ExecutorService mExecutorService = Executors.newFixedThreadPool(1);
+  private BlockStore mBlockStore;
+  private SpaceReserver mSpaceReserver;
+  private ExecutorService mExecutorService = Executors.newFixedThreadPool(1);
 
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
