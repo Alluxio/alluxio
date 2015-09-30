@@ -38,7 +38,7 @@ import tachyon.util.io.PathUtils;
 /**
  * Integration tests for <code>tachyon.client.BlockInStream</code>.
  */
-public class BlockInStreamIntegrationTest {
+public class BufferedBlockInStreamIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
