@@ -65,7 +65,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
     Assert.assertEquals(null, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-    Assert.assertEquals(0, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 }

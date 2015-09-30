@@ -43,6 +43,7 @@ public final class OutStreamOptions {
           conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.class);
       mUnderStorageType =
           conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
+      mTTL = Constants.NO_TTL;
     }
 
     /**
