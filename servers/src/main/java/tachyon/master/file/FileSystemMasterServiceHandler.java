@@ -100,9 +100,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException,
-      InvalidPathException {
-    mFileSystemMaster.completeFile(fileId);
+  public void completeFile(long fileId, long fileLength) throws BlockInfoException,
+      FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
+    mFileSystemMaster.completeFile(fileId, fileLength);
   }
 
   @Override

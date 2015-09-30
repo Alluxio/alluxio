@@ -119,7 +119,7 @@ public final class FileSystemMasterTest {
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
     CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
@@ -130,7 +130,7 @@ public final class FileSystemMasterTest {
   @Test
   public void createFileWithTTLTest() throws Exception {
     CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).setTTL(1).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
@@ -143,7 +143,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isDirectoryTest() throws Exception {
     CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertFalse(mFileSystemMaster.isDirectory(fileId));
@@ -154,7 +154,7 @@ public final class FileSystemMasterTest {
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
     CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // add in-memory block
@@ -163,7 +163,7 @@ public final class FileSystemMasterTest {
     // add SSD block
     blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 2, blockId, Constants.KB);
-    mFileSystemMaster.completeFile(fileId);
+    mFileSystemMaster.completeFile(fileId, 2 * Constants.KB);
 
     createFileWithSingleBlock(ROOT_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(ROOT_FILE_URI), mFileSystemMaster.getInMemoryFiles());
@@ -172,7 +172,7 @@ public final class FileSystemMasterTest {
   @Test
   public void renameTest() throws Exception {
     CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
 
@@ -196,7 +196,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage("Could not find path: /nested/test");
 
     CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB).build();
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB).build();
     long fileId = mFileSystemMaster.create(TEST_URI, options);
 
     // nested dir
@@ -209,7 +209,7 @@ public final class FileSystemMasterTest {
     mThrown.expectMessage("Failed to rename: /nested/test is a prefix of /nested/test/file");
 
     CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(NESTED_URI, options);
     mFileSystemMaster.rename(fileId, NESTED_FILE_URI);
@@ -242,12 +242,12 @@ public final class FileSystemMasterTest {
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
     CreateOptions options =
-        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
             .setRecursive(true).build();
     long fileId = mFileSystemMaster.create(uri, options);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
-    mFileSystemMaster.completeFile(fileId);
+    mFileSystemMaster.completeFile(fileId, Constants.KB);
     return blockId;
   }
 }

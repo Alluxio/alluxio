@@ -207,25 +207,15 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * The file is complete. Sets the complete flag true, and sets the length.
-   *
-   * @param length the length of the complete file
-   */
-  public synchronized void setCompleted(long length) {
-    mCompleted = true;
-    mLength = length;
-  }
-
-  /**
    * Sets the length of the file. Cannot set the length if the file is complete or the length is
    * negative.
    *
    * @param length The new length of the file, cannot be negative
-   * @throws SuspectedFileSizeException
    * @throws BlockInfoException
+   * @throws SuspectedFileSizeException
    */
-  public synchronized void setLength(long length)
-      throws SuspectedFileSizeException, BlockInfoException {
+  public synchronized void complete(long length) throws BlockInfoException,
+      SuspectedFileSizeException {
     if (mCompleted) {
       throw new SuspectedFileSizeException("InodeFile has been completed.");
     }
@@ -239,7 +229,16 @@ public final class InodeFile extends Inode {
       getNewBlockId();
       length -= blockSize;
     }
-    setCompleted(mLength);
+    mCompleted = true;
+  }
+
+  /**
+   * @param length the length to use
+   */
+  // TODO(jiri): This should only be used when replaying the journal.
+  public synchronized void setCompleted(long length) {
+    mCompleted = true;
+    mLength = length;
   }
 
   @Override

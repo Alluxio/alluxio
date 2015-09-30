@@ -135,11 +135,11 @@ public class TfsShellTest {
         TachyonFSTestUtils.createByteFile(mTfs, "/testFile", TachyonStorageType.NO_STORE,
             UnderStorageType.PERSIST, 10);
     FileInfo fileInfo = mTfs.getInfo(file);
-    Assert.assertFalse(fileInfo.getInMemoryPercentage() == 100);
+    Assert.assertEquals(0, fileInfo.getInMemoryPercentage());
     // Testing loading of a single file
     mFsShell.run(new String[] {"load", "/testFile"});
     fileInfo = mTfs.getInfo(file);
-    Assert.assertTrue(fileInfo.getInMemoryPercentage() == 100);
+    Assert.assertEquals(100, fileInfo.getInMemoryPercentage());
   }
 
   @Test
@@ -150,14 +150,14 @@ public class TfsShellTest {
         TachyonStorageType.STORE, UnderStorageType.NO_PERSIST, 10);
     FileInfo fileInfoA = mTfs.getInfo(fileA);
     FileInfo fileInfoB = mTfs.getInfo(fileB);
-    Assert.assertFalse(fileInfoA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(fileInfoB.getInMemoryPercentage() == 100);
+    Assert.assertEquals(0, fileInfoA.getInMemoryPercentage());
+    Assert.assertEquals(100, fileInfoB.getInMemoryPercentage());
     // Testing loading of a directory
     mFsShell.run(new String[] {"load", "/testRoot"});
     fileInfoA = mTfs.getInfo(fileA);
     fileInfoB = mTfs.getInfo(fileB);
-    Assert.assertTrue(fileInfoA.getInMemoryPercentage() == 100);
-    Assert.assertTrue(fileInfoB.getInMemoryPercentage() == 100);
+    Assert.assertEquals(100, fileInfoA.getInMemoryPercentage());
+    Assert.assertEquals(100, fileInfoB.getInMemoryPercentage());
   }
 
   @Test
@@ -666,7 +666,7 @@ public class TfsShellTest {
     mFsShell.run(new String[] {"free", "/testFile"});
     TachyonConf tachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     CommonUtils.sleepMs(tachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS));
-    Assert.assertFalse(mTfs.getInfo(file).getInMemoryPercentage() == 100);
+    Assert.assertEquals(mTfs.getInfo(file).getInMemoryPercentage(), 0);
   }
 
   @Test

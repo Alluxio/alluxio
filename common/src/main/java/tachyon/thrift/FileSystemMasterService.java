@@ -59,7 +59,7 @@ public class FileSystemMasterService {
 
     public long create(String path, CreateTOptions options) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
 
-    public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public void completeFile(long fileId, long fileLength) throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     public boolean deleteFile(long fileId, boolean recursive) throws TachyonException, org.apache.thrift.TException;
 
@@ -129,7 +129,7 @@ public class FileSystemMasterService {
 
     public void create(String path, CreateTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void completeFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void completeFile(long fileId, long fileLength, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void deleteFile(long fileId, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -442,16 +442,17 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "create failed: unknown result");
     }
 
-    public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public void completeFile(long fileId, long fileLength) throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
-      send_completeFile(fileId);
+      send_completeFile(fileId, fileLength);
       recv_completeFile();
     }
 
-    public void send_completeFile(long fileId) throws org.apache.thrift.TException
+    public void send_completeFile(long fileId, long fileLength) throws org.apache.thrift.TException
     {
       completeFile_args args = new completeFile_args();
       args.setFileId(fileId);
+      args.setFileLength(fileLength);
       sendBase("completeFile", args);
     }
 
@@ -1163,24 +1164,27 @@ public class FileSystemMasterService {
       }
     }
 
-    public void completeFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void completeFile(long fileId, long fileLength, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      completeFile_call method_call = new completeFile_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
+      completeFile_call method_call = new completeFile_call(fileId, fileLength, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class completeFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long fileId;
-      public completeFile_call(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private long fileLength;
+      public completeFile_call(long fileId, long fileLength, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
+        this.fileLength = fileLength;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("completeFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         completeFile_args args = new completeFile_args();
         args.setFileId(fileId);
+        args.setFileLength(fileLength);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1920,7 +1924,7 @@ public class FileSystemMasterService {
       public completeFile_result getResult(I iface, completeFile_args args) throws org.apache.thrift.TException {
         completeFile_result result = new completeFile_result();
         try {
-          iface.completeFile(args.fileId);
+          iface.completeFile(args.fileId, args.fileLength);
         } catch (BlockInfoException bie) {
           result.bie = bie;
         } catch (FileDoesNotExistException fdnee) {
@@ -2935,7 +2939,7 @@ public class FileSystemMasterService {
       }
 
       public void start(I iface, completeFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.completeFile(args.fileId,resultHandler);
+        iface.completeFile(args.fileId, args.fileLength,resultHandler);
       }
     }
 
@@ -12279,6 +12283,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeFile_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField FILE_LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("fileLength", org.apache.thrift.protocol.TType.I64, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -12287,10 +12292,12 @@ public class FileSystemMasterService {
     }
 
     public long fileId; // required
+    public long fileLength; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId");
+      FILE_ID((short)1, "fileId"),
+      FILE_LENGTH((short)2, "fileLength");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -12307,6 +12314,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
+          case 2: // FILE_LENGTH
+            return FILE_LENGTH;
           default:
             return null;
         }
@@ -12348,11 +12357,14 @@ public class FileSystemMasterService {
 
     // isset id assignments
     private static final int __FILEID_ISSET_ID = 0;
+    private static final int __FILELENGTH_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.FILE_LENGTH, new org.apache.thrift.meta_data.FieldMetaData("fileLength", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(completeFile_args.class, metaDataMap);
@@ -12362,11 +12374,14 @@ public class FileSystemMasterService {
     }
 
     public completeFile_args(
-      long fileId)
+      long fileId,
+      long fileLength)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
+      this.fileLength = fileLength;
+      setFileLengthIsSet(true);
     }
 
     /**
@@ -12375,6 +12390,7 @@ public class FileSystemMasterService {
     public completeFile_args(completeFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
+      this.fileLength = other.fileLength;
     }
 
     public completeFile_args deepCopy() {
@@ -12385,6 +12401,8 @@ public class FileSystemMasterService {
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
+      setFileLengthIsSet(false);
+      this.fileLength = 0;
     }
 
     public long getFileId() {
@@ -12410,6 +12428,29 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
     }
 
+    public long getFileLength() {
+      return this.fileLength;
+    }
+
+    public completeFile_args setFileLength(long fileLength) {
+      this.fileLength = fileLength;
+      setFileLengthIsSet(true);
+      return this;
+    }
+
+    public void unsetFileLength() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FILELENGTH_ISSET_ID);
+    }
+
+    /** Returns true if field fileLength is set (has been assigned a value) and false otherwise */
+    public boolean isSetFileLength() {
+      return EncodingUtils.testBit(__isset_bitfield, __FILELENGTH_ISSET_ID);
+    }
+
+    public void setFileLengthIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILELENGTH_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case FILE_ID:
@@ -12420,6 +12461,14 @@ public class FileSystemMasterService {
         }
         break;
 
+      case FILE_LENGTH:
+        if (value == null) {
+          unsetFileLength();
+        } else {
+          setFileLength((Long)value);
+        }
+        break;
+
       }
     }
 
@@ -12427,6 +12476,9 @@ public class FileSystemMasterService {
       switch (field) {
       case FILE_ID:
         return Long.valueOf(getFileId());
+
+      case FILE_LENGTH:
+        return Long.valueOf(getFileLength());
 
       }
       throw new IllegalStateException();
@@ -12441,6 +12493,8 @@ public class FileSystemMasterService {
       switch (field) {
       case FILE_ID:
         return isSetFileId();
+      case FILE_LENGTH:
+        return isSetFileLength();
       }
       throw new IllegalStateException();
     }
@@ -12467,6 +12521,15 @@ public class FileSystemMasterService {
           return false;
       }
 
+      boolean this_present_fileLength = true;
+      boolean that_present_fileLength = true;
+      if (this_present_fileLength || that_present_fileLength) {
+        if (!(this_present_fileLength && that_present_fileLength))
+          return false;
+        if (this.fileLength != that.fileLength)
+          return false;
+      }
+
       return true;
     }
 
@@ -12478,6 +12541,11 @@ public class FileSystemMasterService {
       list.add(present_fileId);
       if (present_fileId)
         list.add(fileId);
+
+      boolean present_fileLength = true;
+      list.add(present_fileLength);
+      if (present_fileLength)
+        list.add(fileLength);
 
       return list.hashCode();
     }
@@ -12496,6 +12564,16 @@ public class FileSystemMasterService {
       }
       if (isSetFileId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetFileLength()).compareTo(other.isSetFileLength());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetFileLength()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileLength, other.fileLength);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -12522,6 +12600,10 @@ public class FileSystemMasterService {
 
       sb.append("fileId:");
       sb.append(this.fileId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("fileLength:");
+      sb.append(this.fileLength);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -12576,6 +12658,14 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // FILE_LENGTH
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.fileLength = iprot.readI64();
+                struct.setFileLengthIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -12593,6 +12683,9 @@ public class FileSystemMasterService {
         oprot.writeStructBegin(STRUCT_DESC);
         oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
         oprot.writeI64(struct.fileId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(FILE_LENGTH_FIELD_DESC);
+        oprot.writeI64(struct.fileLength);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -12615,19 +12708,29 @@ public class FileSystemMasterService {
         if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetFileLength()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetFileId()) {
           oprot.writeI64(struct.fileId);
+        }
+        if (struct.isSetFileLength()) {
+          oprot.writeI64(struct.fileLength);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, completeFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.fileId = iprot.readI64();
           struct.setFileIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.fileLength = iprot.readI64();
+          struct.setFileLengthIsSet(true);
         }
       }
     }

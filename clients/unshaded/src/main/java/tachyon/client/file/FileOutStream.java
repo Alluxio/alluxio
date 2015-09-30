@@ -69,6 +69,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
 
   private boolean mCanceled;
   private boolean mClosed;
+  private long mFileLength;
   private String mHostname;
   private boolean mShouldCacheCurrentBlock;
   private BufferedBlockOutStream mCurrentBlockOutStream;
@@ -96,6 +97,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
    */
   public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
+    mFileLength = 0;
     mNonce = ClientContext.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
@@ -184,7 +186,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
     if (complete) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
-        masterClient.completeFile(mFileId);
+        masterClient.completeFile(mFileId, mFileLength);
       } catch (TException e) {
         throw new IOException(e);
       } finally {
@@ -219,6 +221,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
       mUnderStorageOutputStream.write(b);
       ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
+    mFileLength ++;
   }
 
   @Override
@@ -259,6 +262,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
       mUnderStorageOutputStream.write(b, off, len);
       ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
+    mFileLength += len;
   }
 
   private void getNextBlock() throws IOException {

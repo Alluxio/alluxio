@@ -209,7 +209,7 @@ service FileSystemMasterService {
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
-  void completeFile(1: i64 fileId)
+  void completeFile(1: i64 fileId, 2: i64 fileLength)
     throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
       3: InvalidPathException ipe)
 

@@ -28,6 +28,7 @@ import org.apache.zookeeper.Op;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -255,9 +256,9 @@ public class FileSystemMasterIntegrationTest {
     mExecutorService.shutdown();
   }
 
-  @Before
+  @BeforeClass
   public static final void beforeClass() {
-    sSmallCreate = new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(64).build();
+    sSmallCreate = new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(64).build();
     sRecursiveCreate =
         new CreateOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
     sRecursiveMkdir = new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();

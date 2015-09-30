@@ -272,17 +272,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Marks a file as completed.
    *
    * @param fileId the file id
+   * @param fileLength the file length
    * @throws FileDoesNotExistException if the file does not exist
    * @throws BlockInfoException if the block index is invalid
    * @throws IOException if an I/O error occurs
    */
-  public synchronized void completeFile(long fileId) throws IOException, FileDoesNotExistException,
-      BlockInfoException {
+  public synchronized void completeFile(long fileId, long fileLength) throws IOException,
+      FileDoesNotExistException, BlockInfoException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        mClient.completeFile(fileId);
+        mClient.completeFile(fileId, fileLength);
         return;
       } catch (FileDoesNotExistException e) {
         throw e;

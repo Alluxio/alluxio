@@ -168,7 +168,11 @@ public final class FileSystemMaster extends MasterBase {
     } else if (entry instanceof CompleteFileEntry) {
       try {
         completeFileFromEntry((CompleteFileEntry) entry);
+      } catch (BlockInfoException e) {
+        throw new RuntimeException(e);
       } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
+      } catch (SuspectedFileSizeException e) {
         throw new RuntimeException(e);
       }
     } else if (entry instanceof SetPinnedEntry) {
@@ -324,12 +328,13 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Marks a file as completed. After a file is complete, it cannot be written to. Called via RPC.
    *
-   * @param fileId the file id to complete.
+   * @param fileId the file id
+   * @param fileLength the file length
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    */
-  public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException,
-      InvalidPathException {
+  public void completeFile(long fileId, long fileLength) throws BlockInfoException,
+      FileDoesNotExistException, InvalidPathException, SuspectedFileSizeException {
     synchronized (mInodeTree) {
       long opTimeMs = System.currentTimeMillis();
       Inode inode = mInodeTree.getInodeById(fileId);
@@ -346,11 +351,9 @@ public final class FileSystemMaster extends MasterBase {
       }
 
       // Verify that all the blocks (except the last one) is the same size as the file block size.
-      long fileLength = 0;
       long fileBlockSize = fileInode.getBlockSizeBytes();
       for (int i = 0; i < blockInfoList.size(); i ++) {
         BlockInfo blockInfo = blockInfoList.get(i);
-        fileLength += blockInfo.getLength();
         if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {
           throw new BlockInfoException("Block index " + i
               + " has a block size smaller than the file block size ("
@@ -366,12 +369,13 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   void completeFileInternal(List<Long> blockIds, long fileId, long fileLength, boolean replayed,
-      long opTimeMs) throws FileDoesNotExistException, InvalidPathException {
+      long opTimeMs) throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
+      SuspectedFileSizeException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     mDependencyMap.addFileCheckpoint(fileId);
     InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
     inodeFile.setBlockIds(blockIds);
-    inodeFile.setCompleted(fileLength);
+    inodeFile.complete(fileLength);
 
     // TODO(jiri): Do we need this?
     long currLength = fileLength;
@@ -384,7 +388,8 @@ public final class FileSystemMaster extends MasterBase {
     inodeFile.setLastModificationTimeMs(opTimeMs);
   }
 
-  private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
+  private void completeFileFromEntry(CompleteFileEntry entry) throws BlockInfoException,
+      InvalidPathException, SuspectedFileSizeException {
     try {
       completeFileInternal(entry.getBlockIds(), entry.getFileId(), entry.getFileLength(), true,
           entry.getOperationTimeMs());
@@ -798,6 +803,7 @@ public final class FileSystemMaster extends MasterBase {
                 .setPersisted(options.isPersisted()).setRecursive(options.isRecursive()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
         for (Inode created : createResult.getCreated()) {
+          // TODO(jiri): Move this to the client.
           if (created.isPersisted()) {
             String ufsPath = mMountTable.resolve(mInodeTree.getPath(created)).getPath();
             UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());

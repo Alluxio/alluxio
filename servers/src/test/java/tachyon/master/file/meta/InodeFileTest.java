@@ -51,29 +51,32 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   @Test
-  public void setLengthTest() throws Exception {
+  public void completeTest() throws Exception {
     InodeFile inodeFile = createInodeFile(1);
-    inodeFile.setLength(LENGTH);
+    Assert.assertFalse(inodeFile.isCompleted());
+    Assert.assertEquals(0, inodeFile.getLength());
+    inodeFile.complete(LENGTH);
     Assert.assertEquals(LENGTH, inodeFile.getLength());
+    Assert.assertTrue(inodeFile.isCompleted());
   }
 
   @Test
-  public void setNegativeLengthTest() throws Exception {
+  public void completeNegativeLengthTest() throws Exception {
     mThrown.expect(SuspectedFileSizeException.class);
     mThrown.expectMessage("InodeFile new length " + -1 + " is negative.");
 
     InodeFile inodeFile = createInodeFile(1);
-    inodeFile.setLength(-1);
+    inodeFile.complete(-1);
   }
 
   @Test
-  public void setLengthAfterCompleteTest() throws Exception {
+  public void completeTwiceTest() throws Exception {
     mThrown.expect(SuspectedFileSizeException.class);
     mThrown.expectMessage("InodeFile has been completed.");
 
     InodeFile inodeFile = createInodeFile(1);
-    inodeFile.setLength(LENGTH);
-    inodeFile.setLength(LENGTH);
+    inodeFile.complete(LENGTH);
+    inodeFile.complete(LENGTH);
   }
 
   @Test
@@ -107,14 +110,5 @@ public final class InodeFileTest extends AbstractInodeTest {
       Assert.assertEquals(String.format("blockIndex %d is out of range. File blocks: %d",
           NUM_BLOCKS, NUM_BLOCKS), e.getMessage());
     }
-  }
-
-  @Test
-  public void setCompleteTest() {
-    InodeFile inode1 = createInodeFile(1);
-    Assert.assertFalse(inode1.isCompleted());
-
-    inode1.setCompleted(LENGTH);
-    Assert.assertTrue(inode1.isCompleted());
   }
 }
