@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.IndexedSet;
+import tachyon.collections.IndexedSet;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
 
@@ -38,7 +38,7 @@ import tachyon.master.journal.JournalOutputStream;
 public class DependencyMap implements JournalCheckpointStreamable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final tachyon.IndexedSet.FieldIndex<Dependency> mIdIndex =
+  private final IndexedSet.FieldIndex<Dependency> mIdIndex =
       new IndexedSet.FieldIndex<Dependency>() {
         @Override
         public Object getFieldValue(Dependency o) {

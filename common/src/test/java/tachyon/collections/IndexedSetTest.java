@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.collections;
 
 import java.util.ArrayList;
 import java.util.Collections;
