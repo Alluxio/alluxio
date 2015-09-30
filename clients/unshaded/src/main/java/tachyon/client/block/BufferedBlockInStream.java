@@ -121,7 +121,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       return toRead;
     }
 
-    if (toRead > mBuffer.limit() / 2) { // directly read if request is > one-half buffer size
+    if (toRead > mBuffer.capacity() / 2) { // directly read if request is > one-half buffer size
       mBufferIsValid = false;
       int bytesRead = directRead(b, off, toRead);
       mPos += bytesRead;
@@ -227,9 +227,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * @throws IOException if an error occurs reading the data
    */
   private void updateBuffer() throws IOException {
-    int toRead = (int) Math.min(mBuffer.limit(), remaining());
+    int toRead = (int) Math.min(mBuffer.capacity(), remaining());
     bufferedRead(toRead);
-    Preconditions.checkState(mBuffer.remaining() == toRead);
+    Preconditions.checkState(mBuffer.remaining() >= toRead);
     mBufferIsValid = true;
     incrementBytesReadMetric(toRead);
   }
