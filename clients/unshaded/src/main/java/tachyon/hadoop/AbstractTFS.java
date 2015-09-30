@@ -332,7 +332,8 @@ abstract class AbstractTFS extends FileSystem {
   public TachyonFS getTachyonFS() {
     return mTFS;
   }
-  
+
+  @Override
   public URI getUri() {
     return mUri;
   }
