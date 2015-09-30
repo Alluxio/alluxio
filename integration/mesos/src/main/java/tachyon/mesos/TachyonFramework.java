@@ -128,7 +128,7 @@ public class TachyonFramework {
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
               .setCommand(
                   Protos.CommandInfo.newBuilder().setValue(PathUtils
-                      .concatPath(tachyonHome, "integration", "bin", "tachyon-master.sh")));
+                      .concatPath(tachyonHome, "integration", "bin", "tachyon-master-mesos.sh")));
           targetCpu = masterCpu;
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
@@ -142,7 +142,7 @@ public class TachyonFramework {
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
               .setCommand(
                   Protos.CommandInfo.newBuilder().setValue(PathUtils
-                      .concatPath(tachyonHome, "integration", "bin", "tachyon-worker.sh"))
+                      .concatPath(tachyonHome, "integration", "bin", "tachyon-worker-mesos.sh"))
                       .setEnvironment(Protos.Environment.newBuilder()
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
