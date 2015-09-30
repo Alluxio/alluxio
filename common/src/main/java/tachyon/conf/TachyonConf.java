@@ -229,7 +229,7 @@ public final class TachyonConf {
 
   // Public accessor methods
 
-  // TODO(binfan): this method should be hide and only used during initialization and tests.
+  // TODO(binfan): this method should be hidden and only used during initialization and tests.
   public void set(String key, String value) {
     mProperties.put(key, value);
   }
