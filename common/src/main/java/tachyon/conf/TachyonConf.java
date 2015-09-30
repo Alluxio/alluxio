@@ -41,26 +41,27 @@ import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * <p>
- * Configuration of Tachyon. It sets various Tachyon parameters as key-value pairs. This class
- * contains all the runtime configuration properties.
+ * All the runtime configuration properties of Tachyon. This class works like a dictionary and
+ * serves each Tachyon configuration property as a key-value pair.
  *
  * <p>
- * Here is the order for this class to decide where to load the properties:
+ * Tachyon configuration properties are loaded into this class in the following order with
+ * decreasing priority:
  * <ol>
- * <li>System properties</li>
- * <li>Environment variables via <code>tachyon-env.sh</code> or from OS settings</li>
- * <li>Site specific properties <code>tachyon-site.properties</code> file</li>
- * <li>Default properties via <code>tachyon-default.properties</code> file</li>
+ * <li>Java system properties;</li>
+ * <li>Environment variables via <code>tachyon-env.sh</code> or from OS settings;</li>
+ * <li>Site specific properties via <code>tachyon-site.properties</code> file;</li>
+ * <li>Default properties via <code>tachyon-default.properties</code> file.</li>
  * </ol>
  *
  * <p>
  * The default properties are defined in a property file <code>tachyon-default.properties</code>
- * distributed with Tachyon jar. Tachyon users can override these default properties by creating
- * <code>tachyon-site.properties</code> and put it under java CLASSPATH when running Tachyon (e.g.,
- * tachyon/conf/)
+ * distributed with Tachyon jar. Tachyon users can override values of these default properties by
+ * creating <code>tachyon-site.properties</code> and putting it under java <code>CLASSPATH</code>
+ * when running Tachyon (e.g., ${TACHYON_HOME}/conf/)
  *
  * <p>
- * A developer can create an instance of this class by <code>new TachyonConf()</code>, which will
+ * Developers can create an instance of this class by <code>new TachyonConf()</code>, which will
  * load values from any Java system properties set as well.
  *
  * <p>
