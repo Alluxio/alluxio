@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, CreateTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<CreateTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("CreateTOptions");
 
-  private static final org.apache.thrift.protocol.TField BLOCK_SIZE_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSize", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeBytes", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField PERSISTED_FIELD_DESC = new org.apache.thrift.protocol.TField("persisted", org.apache.thrift.protocol.TType.BOOL, (short)2);
   private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)3);
   private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)4);
@@ -49,14 +49,14 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     schemes.put(TupleScheme.class, new CreateTOptionsTupleSchemeFactory());
   }
 
-  public long blockSize; // optional
+  public long blockSizeBytes; // optional
   public boolean persisted; // optional
   public boolean recursive; // optional
   public long ttl; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    BLOCK_SIZE((short)1, "blockSize"),
+    BLOCK_SIZE_BYTES((short)1, "blockSizeBytes"),
     PERSISTED((short)2, "persisted"),
     RECURSIVE((short)3, "recursive"),
     TTL((short)4, "ttl");
@@ -74,8 +74,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // BLOCK_SIZE
-          return BLOCK_SIZE;
+        case 1: // BLOCK_SIZE_BYTES
+          return BLOCK_SIZE_BYTES;
         case 2: // PERSISTED
           return PERSISTED;
         case 3: // RECURSIVE
@@ -122,16 +122,16 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
   }
 
   // isset id assignments
-  private static final int __BLOCKSIZE_ISSET_ID = 0;
+  private static final int __BLOCKSIZEBYTES_ISSET_ID = 0;
   private static final int __PERSISTED_ISSET_ID = 1;
   private static final int __RECURSIVE_ISSET_ID = 2;
   private static final int __TTL_ISSET_ID = 3;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL};
+  private static final _Fields optionals[] = {_Fields.BLOCK_SIZE_BYTES,_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.TTL};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.BLOCK_SIZE, new org.apache.thrift.meta_data.FieldMetaData("blockSize", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.BLOCK_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("blockSizeBytes", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.PERSISTED, new org.apache.thrift.meta_data.FieldMetaData("persisted", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
@@ -151,7 +151,7 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
    */
   public CreateTOptions(CreateTOptions other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.blockSize = other.blockSize;
+    this.blockSizeBytes = other.blockSizeBytes;
     this.persisted = other.persisted;
     this.recursive = other.recursive;
     this.ttl = other.ttl;
@@ -163,8 +163,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
 
   @Override
   public void clear() {
-    setBlockSizeIsSet(false);
-    this.blockSize = 0;
+    setBlockSizeBytesIsSet(false);
+    this.blockSizeBytes = 0;
     setPersistedIsSet(false);
     this.persisted = false;
     setRecursiveIsSet(false);
@@ -173,27 +173,27 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     this.ttl = 0;
   }
 
-  public long getBlockSize() {
-    return this.blockSize;
+  public long getBlockSizeBytes() {
+    return this.blockSizeBytes;
   }
 
-  public CreateTOptions setBlockSize(long blockSize) {
-    this.blockSize = blockSize;
-    setBlockSizeIsSet(true);
+  public CreateTOptions setBlockSizeBytes(long blockSizeBytes) {
+    this.blockSizeBytes = blockSizeBytes;
+    setBlockSizeBytesIsSet(true);
     return this;
   }
 
-  public void unsetBlockSize() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __BLOCKSIZE_ISSET_ID);
+  public void unsetBlockSizeBytes() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __BLOCKSIZEBYTES_ISSET_ID);
   }
 
-  /** Returns true if field blockSize is set (has been assigned a value) and false otherwise */
-  public boolean isSetBlockSize() {
-    return EncodingUtils.testBit(__isset_bitfield, __BLOCKSIZE_ISSET_ID);
+  /** Returns true if field blockSizeBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetBlockSizeBytes() {
+    return EncodingUtils.testBit(__isset_bitfield, __BLOCKSIZEBYTES_ISSET_ID);
   }
 
-  public void setBlockSizeIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKSIZE_ISSET_ID, value);
+  public void setBlockSizeBytesIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKSIZEBYTES_ISSET_ID, value);
   }
 
   public boolean isPersisted() {
@@ -267,11 +267,11 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case BLOCK_SIZE:
+    case BLOCK_SIZE_BYTES:
       if (value == null) {
-        unsetBlockSize();
+        unsetBlockSizeBytes();
       } else {
-        setBlockSize((Long)value);
+        setBlockSizeBytes((Long)value);
       }
       break;
 
@@ -304,8 +304,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case BLOCK_SIZE:
-      return Long.valueOf(getBlockSize());
+    case BLOCK_SIZE_BYTES:
+      return Long.valueOf(getBlockSizeBytes());
 
     case PERSISTED:
       return Boolean.valueOf(isPersisted());
@@ -327,8 +327,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     }
 
     switch (field) {
-    case BLOCK_SIZE:
-      return isSetBlockSize();
+    case BLOCK_SIZE_BYTES:
+      return isSetBlockSizeBytes();
     case PERSISTED:
       return isSetPersisted();
     case RECURSIVE:
@@ -352,12 +352,12 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     if (that == null)
       return false;
 
-    boolean this_present_blockSize = true && this.isSetBlockSize();
-    boolean that_present_blockSize = true && that.isSetBlockSize();
-    if (this_present_blockSize || that_present_blockSize) {
-      if (!(this_present_blockSize && that_present_blockSize))
+    boolean this_present_blockSizeBytes = true && this.isSetBlockSizeBytes();
+    boolean that_present_blockSizeBytes = true && that.isSetBlockSizeBytes();
+    if (this_present_blockSizeBytes || that_present_blockSizeBytes) {
+      if (!(this_present_blockSizeBytes && that_present_blockSizeBytes))
         return false;
-      if (this.blockSize != that.blockSize)
+      if (this.blockSizeBytes != that.blockSizeBytes)
         return false;
     }
 
@@ -395,10 +395,10 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_blockSize = true && (isSetBlockSize());
-    list.add(present_blockSize);
-    if (present_blockSize)
-      list.add(blockSize);
+    boolean present_blockSizeBytes = true && (isSetBlockSizeBytes());
+    list.add(present_blockSizeBytes);
+    if (present_blockSizeBytes)
+      list.add(blockSizeBytes);
 
     boolean present_persisted = true && (isSetPersisted());
     list.add(present_persisted);
@@ -426,12 +426,12 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetBlockSize()).compareTo(other.isSetBlockSize());
+    lastComparison = Boolean.valueOf(isSetBlockSizeBytes()).compareTo(other.isSetBlockSizeBytes());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetBlockSize()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockSize, other.blockSize);
+    if (isSetBlockSizeBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockSizeBytes, other.blockSizeBytes);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -486,9 +486,9 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     StringBuilder sb = new StringBuilder("CreateTOptions(");
     boolean first = true;
 
-    if (isSetBlockSize()) {
-      sb.append("blockSize:");
-      sb.append(this.blockSize);
+    if (isSetBlockSizeBytes()) {
+      sb.append("blockSizeBytes:");
+      sb.append(this.blockSizeBytes);
       first = false;
     }
     if (isSetPersisted()) {
@@ -554,10 +554,10 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
           break;
         }
         switch (schemeField.id) {
-          case 1: // BLOCK_SIZE
+          case 1: // BLOCK_SIZE_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.blockSize = iprot.readI64();
-              struct.setBlockSizeIsSet(true);
+              struct.blockSizeBytes = iprot.readI64();
+              struct.setBlockSizeBytesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -601,9 +601,9 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.isSetBlockSize()) {
-        oprot.writeFieldBegin(BLOCK_SIZE_FIELD_DESC);
-        oprot.writeI64(struct.blockSize);
+      if (struct.isSetBlockSizeBytes()) {
+        oprot.writeFieldBegin(BLOCK_SIZE_BYTES_FIELD_DESC);
+        oprot.writeI64(struct.blockSizeBytes);
         oprot.writeFieldEnd();
       }
       if (struct.isSetPersisted()) {
@@ -639,7 +639,7 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
     public void write(org.apache.thrift.protocol.TProtocol prot, CreateTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetBlockSize()) {
+      if (struct.isSetBlockSizeBytes()) {
         optionals.set(0);
       }
       if (struct.isSetPersisted()) {
@@ -652,8 +652,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
         optionals.set(3);
       }
       oprot.writeBitSet(optionals, 4);
-      if (struct.isSetBlockSize()) {
-        oprot.writeI64(struct.blockSize);
+      if (struct.isSetBlockSizeBytes()) {
+        oprot.writeI64(struct.blockSizeBytes);
       }
       if (struct.isSetPersisted()) {
         oprot.writeBool(struct.persisted);
@@ -671,8 +671,8 @@ public class CreateTOptions implements org.apache.thrift.TBase<CreateTOptions, C
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
-        struct.blockSize = iprot.readI64();
-        struct.setBlockSizeIsSet(true);
+        struct.blockSizeBytes = iprot.readI64();
+        struct.setBlockSizeBytesIsSet(true);
       }
       if (incoming.get(1)) {
         struct.persisted = iprot.readBool();

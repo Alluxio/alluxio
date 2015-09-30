@@ -303,22 +303,22 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path The path of the file
    * @param ufsPath The path of the file in the under file system. If this is empty, the file does
    *        not exist in the under file system yet.
-   * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
+   * @param blockSizeBytes The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
    * @throws IOException if the underlying master RPC fails
    */
   @Override
-  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
+  public synchronized long createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeBytes,
       boolean recursive) throws IOException {
     validateUri(path);
     try {
-      if (blockSizeByte > 0) {
+      if (blockSizeBytes > 0) {
         UnderStorageType underStorageType =
             mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.class).isThrough()
                 ? UnderStorageType.PERSIST : UnderStorageType.NO_PERSIST;
         CreateOptions options =
-            new CreateOptions.Builder(ClientContext.getConf()).setBlockSize(blockSizeByte)
+            new CreateOptions.Builder(ClientContext.getConf()).setBlockSizeBytes(blockSizeBytes)
                 .setRecursive(recursive).setUnderStorageType(underStorageType).build();
         return mFSMasterClient.create(path.getPath(), options);
       } else {

@@ -31,38 +31,85 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
+  public static class Builder extends Inode.Builder {
+    private long mBlockContainerId;
+    private long mBlockSize;
+    private long mTTL;
+
+    public Builder() {
+      super();
+      mDirectory = false;
+    }
+
+    public Builder setBlockContainerId(long blockContainerId) {
+      mBlockContainerId = blockContainerId;
+      mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
+      return this;
+    }
+
+    public Builder setBlockSize(long blockSize) {
+      mBlockSize = blockSize;
+      return this;
+    }
+
+    @Override
+    public Builder setCreationTimeMs(long creationTimeMs) {
+      // needed to prevent upcast when chaining
+      return (Builder) super.setCreationTimeMs(creationTimeMs);
+    }
+
+    @Override
+    public Builder setId(long id) {
+      // id is computed based on block container id
+      return this;
+    }
+
+    @Override
+    public Builder setParentId(long parentId) {
+      // needed to prevent upcast when chaining
+      return (Builder) super.setParentId(parentId);
+    }
+
+    @Override
+    public Builder setPersisted(boolean persisted) {
+      // needed to prevent upcast when chaining
+      return (Builder) super.setPersisted(persisted);
+    }
+
+    @Override
+    public Builder setName(String name) {
+      // needed to prevent upcast when chaining
+      return (Builder) super.setName(name);
+    }
+
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link InodeFile}.
+     *
+     * @return a {@link InodeFile} instance
+     */
+    public InodeFile build() {
+      return new InodeFile(this);
+    }
+  }
+
   private final long mBlockContainerId;
   private final long mBlockSizeBytes;
-
-  // list of block ids.
-  private List<Long> mBlocks;
-
-  // length of inode file in bytes.
-  private long mLength = 0;
-
-  private boolean mCompleted = false;
+  private List<Long> mBlocks = new ArrayList<Long>(3); // list of block ids
   private boolean mCacheable = false;
+  private boolean mCompleted = false;
+  private long mLength = 0; // length of inode file in bytes
   private long mTTL;
 
-  /**
-   * Creates a new InodeFile.
-   *
-   * @param name The name of the file
-   * @param blockContainerId The block container id for this file. All blocks for this file will
-   *        belong to this block container.
-   * @param parentId The inode id of the parent of the file
-   * @param blockSizeBytes The block size of the file, in bytes
-   * @param creationTimeMs The creation time of the file, in milliseconds
-   * @param ttl The TTL for file expiration
-   */
-  public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
-      long creationTimeMs, long ttl) {
-    super(name, BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), parentId,
-        false, creationTimeMs);
-    mBlocks = new ArrayList<Long>(3);
-    mBlockContainerId = blockContainerId;
-    mBlockSizeBytes = blockSizeBytes;
-    mTTL = ttl;
+  private InodeFile(InodeFile.Builder builder) {
+    super(builder);
+    mBlockContainerId = builder.mBlockContainerId;
+    mBlockSizeBytes = builder.mBlockSize;
+    mTTL = builder.mTTL;
   }
 
   @Override
@@ -143,14 +190,15 @@ public final class InodeFile extends Inode {
     return mCompleted;
   }
 
+  /**
+   * @param blockIds the block ids to use
+   */
   public synchronized void setBlockIds(List<Long> blockIds) {
     mBlocks = Preconditions.checkNotNull(blockIds);
   }
 
   /**
-   * Sets whether the file is cacheable or not.
-   *
-   * @param cacheable If true, the file is cacheable
+   * @param cacheable the cacheable value to use
    */
   public synchronized void setCacheable(boolean cacheable) {
     // TODO(gene). This related logic is not complete right. Fix this.
@@ -212,8 +260,6 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * Get the ttl of the inode file
-   *
    * @return the ttl of the file
    */
   public synchronized long getTTL() {

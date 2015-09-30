@@ -27,7 +27,7 @@ import tachyon.thrift.MkdirTOptions;
 public final class CreateOptions {
   public static class Builder {
     // TODO(calvin): Should this just be an int?
-    private long mBlockSize;
+    private long mBlockSizeBytes;
     private boolean mRecursive;
     private long mTTL;
     private UnderStorageType mUnderStorageType;
@@ -38,7 +38,7 @@ public final class CreateOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mBlockSizeBytes = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
       mRecursive = false;
       mTTL = Constants.NO_TTL;
       mUnderStorageType =
@@ -46,11 +46,11 @@ public final class CreateOptions {
     }
 
     /**
-     * @param blockSize the block size to use
+     * @param blockSizeBytes the block size to use
      * @return the builder
      */
-    public Builder setBlockSize(long blockSize) {
-      mBlockSize = blockSize;
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
       return this;
     }
 
@@ -100,13 +100,13 @@ public final class CreateOptions {
     return new Builder(ClientContext.getConf()).build();
   }
 
-  private final long mBlockSize;
+  private final long mBlockSizeBytes;
   private final boolean mRecursive;
   private final long mTTL;
   private final UnderStorageType mUnderStorageType;
 
   private CreateOptions(CreateOptions.Builder builder) {
-    mBlockSize = builder.mBlockSize;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
     mUnderStorageType = builder.mUnderStorageType;
@@ -115,8 +115,8 @@ public final class CreateOptions {
   /**
    * @return the block size
    */
-  public long getBlockSize() {
-    return mBlockSize;
+  public long getBlockSizeBytes() {
+    return mBlockSizeBytes;
   }
 
   /**
@@ -144,7 +144,7 @@ public final class CreateOptions {
 
   public CreateTOptions toThrift() {
     CreateTOptions options = new CreateTOptions();
-    options.setBlockSize(mBlockSize);
+    options.setBlockSizeBytes(mBlockSizeBytes);
     options.setPersisted(mUnderStorageType.isPersist());
     options.setRecursive(mRecursive);
     options.setTtl(mTTL);

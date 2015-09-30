@@ -21,9 +21,9 @@ import tachyon.master.MasterContext;
 
 public class CreatePathOptions {
   public static class Builder {
-    private long mBlockSize;
+    private long mBlockSizeBytes;
     private boolean mDirectory;
-    private long mOperationTime;
+    private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
     private long mTTL;
@@ -34,20 +34,20 @@ public class CreatePathOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mBlockSizeBytes = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
       mDirectory = false;
-      mOperationTime = System.currentTimeMillis();
+      mOperationTimeMs = System.currentTimeMillis();
       mRecursive = false;
       mPersisted = false;
       mTTL = Constants.NO_TTL;
     }
 
     /**
-     * @param blockSize the block size to use
+     * @param blockSizeBytes the block size to use
      * @return the builder
      */
-    public Builder setBlockSize(long blockSize) {
-      mBlockSize = blockSize;
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
       return this;
     }
 
@@ -61,11 +61,11 @@ public class CreatePathOptions {
     }
 
     /**
-     * @param operationTime TODO
+     * @param operationTimeMs TODO
      * @return the builder
      */
-    public Builder setOperationTime(long operationTime) {
-      mOperationTime = operationTime;
+    public Builder setOperationTimeMs(long operationTimeMs) {
+      mOperationTimeMs = operationTimeMs;
       return this;
     }
 
@@ -115,17 +115,17 @@ public class CreatePathOptions {
     return new Builder(MasterContext.getConf()).build();
   }
 
-  private final long mBlockSize;
+  private final long mBlockSizeBytes;
   private final boolean mDirectory;
-  private final long mOperationTime;
+  private final long mOperationTimeMs;
   private final boolean mPersisted;
   private final boolean mRecursive;
   private final long mTTL;
 
   private CreatePathOptions(CreatePathOptions.Builder builder) {
-    mBlockSize = builder.mBlockSize;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
     mDirectory = builder.mDirectory;
-    mOperationTime = builder.mOperationTime;
+    mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
@@ -134,8 +134,8 @@ public class CreatePathOptions {
   /**
    * @return the block size
    */
-  public long getBlockSize() {
-    return mBlockSize;
+  public long getBlockSizeBytes() {
+    return mBlockSizeBytes;
   }
 
   /**
@@ -148,8 +148,8 @@ public class CreatePathOptions {
   /**
    * @return TODO
    */
-  public long getOperationTime() {
-    return mOperationTime;
+  public long getOperationTimeMs() {
+    return mOperationTimeMs;
   }
 
   /**

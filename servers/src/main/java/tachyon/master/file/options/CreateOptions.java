@@ -22,8 +22,8 @@ import tachyon.thrift.CreateTOptions;
 
 public final class CreateOptions {
   public static class Builder {
-    private long mBlockSize;
-    private long mOperationTime;
+    private long mBlockSizeBytes;
+    private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
     private long mTTL;
@@ -34,8 +34,8 @@ public final class CreateOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
-      mOperationTime = System.currentTimeMillis();
+      mBlockSizeBytes = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;
       mTTL = Constants.NO_TTL;
@@ -46,7 +46,7 @@ public final class CreateOptions {
      * @return the builder
      */
     public Builder setBlockSize(long blockSize) {
-      mBlockSize = blockSize;
+      mBlockSizeBytes = blockSize;
       return this;
     }
 
@@ -60,11 +60,11 @@ public final class CreateOptions {
     }
 
     /**
-     * @param operationTime TODO
+     * @param operationTimeMs TODO
      * @return the builder
      */
-    public Builder setOperationTime(long operationTime) {
-      mOperationTime = operationTime;
+    public Builder setOperationTimeMs(long operationTimeMs) {
+      mOperationTimeMs = operationTimeMs;
       return this;
     }
 
@@ -98,8 +98,8 @@ public final class CreateOptions {
     }
   }
 
-  private long mBlockSize;
-  private long mOperationTime;
+  private long mBlockSizeBytes;
+  private long mOperationTimeMs;
   private boolean mPersisted;
   private boolean mRecursive;
   private long mTTL;
@@ -112,8 +112,8 @@ public final class CreateOptions {
   }
 
   private CreateOptions(CreateOptions.Builder builder) {
-    mBlockSize = builder.mBlockSize;
-    mOperationTime = builder.mOperationTime;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
+    mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
@@ -125,8 +125,8 @@ public final class CreateOptions {
    * @param options Thrift options
    */
   public CreateOptions(CreateTOptions options) {
-    mBlockSize = options.getBlockSize();
-    mOperationTime = System.currentTimeMillis();
+    mBlockSizeBytes = options.getBlockSizeBytes();
+    mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTTL = options.getTtl();
@@ -137,15 +137,15 @@ public final class CreateOptions {
    *
    * @return
    */
-  public long getBlockSize() {
-    return mBlockSize;
+  public long getBlockSizeBytes() {
+    return mBlockSizeBytes;
   }
 
   /**
    * @return TODO
    */
-  public long getOperationTime() {
-    return mOperationTime;
+  public long getOperationTimeMs() {
+    return mOperationTimeMs;
   }
 
   /**

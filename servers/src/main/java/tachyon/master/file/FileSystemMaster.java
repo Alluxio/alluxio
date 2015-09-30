@@ -547,9 +547,10 @@ public final class FileSystemMaster extends MasterBase {
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     CreatePathOptions createPathOptions =
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSize(options.getBlockSize())
-            .setDirectory(false).setPersisted(options.isPersisted())
-            .setRecursive(options.isRecursive()).setTTL(options.getTTL()).build();
+        new CreatePathOptions.Builder(MasterContext.getConf())
+            .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
+            .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
+            .setTTL(options.getTTL()).build();
     InodeTree.CreatePathResult createResult =
         mInodeTree.createPath(path, createPathOptions);
     // If the create succeeded, the list of created inodes will not be empty.

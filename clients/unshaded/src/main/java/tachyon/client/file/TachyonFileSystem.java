@@ -143,8 +143,9 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options) throws IOException,
       TachyonException {
     CreateOptions createOptions =
-        (new CreateOptions.Builder(ClientContext.getConf())).setBlockSize(options.getBlockSize())
-            .setRecursive(true).setTTL(options.getTTL()).build();
+        (new CreateOptions.Builder(ClientContext.getConf()))
+            .setBlockSizeBytes(options.getBlockSizeBytes()).setRecursive(true)
+            .setTTL(options.getTTL()).build();
     long fileId = create(path, createOptions);
     return new FileOutStream(fileId, options);
   }

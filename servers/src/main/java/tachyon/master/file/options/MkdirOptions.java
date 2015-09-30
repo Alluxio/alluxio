@@ -21,17 +21,17 @@ import tachyon.thrift.MkdirTOptions;
 
 public final class MkdirOptions {
   public static class Builder {
-    private long mOperationTime;
+    private long mOperationTimeMs;
     private boolean mPersisted;
     private boolean mRecursive;
 
     /**
-     * Creates a new builder for {@link CreateOptions}.
+     * Creates a new builder for {@link MkdirOptions}.
      *
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mOperationTime = System.currentTimeMillis();
+      mOperationTimeMs = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;
     }
@@ -46,11 +46,11 @@ public final class MkdirOptions {
     }
 
     /**
-     * @param operationTime TODO
+     * @param operationTimeMs TODO
      * @return the builder
      */
-    public Builder setOperationTime(long operationTime) {
-      mOperationTime = operationTime;
+    public Builder setOperationTimeMs(long operationTimeMs) {
+      mOperationTimeMs = operationTimeMs;
       return this;
     }
 
@@ -65,9 +65,9 @@ public final class MkdirOptions {
     }
 
     /**
-     * Builds a new instance of {@link CreateOptions}.
+     * Builds a new instance of {@link MkdirOptions}.
      *
-     * @return a {@link CreateOptions} instance
+     * @return a {@link MkdirOptions} instance
      */
     public MkdirOptions build() {
       return new MkdirOptions(this);
@@ -81,23 +81,23 @@ public final class MkdirOptions {
     return new Builder(MasterContext.getConf()).build();
   }
 
-  private long mOperationTime;
+  private long mOperationTimeMs;
   private boolean mPersisted;
   private boolean mRecursive;
 
   private MkdirOptions(MkdirOptions.Builder builder) {
-    mOperationTime = builder.mOperationTime;
+    mOperationTimeMs = builder.mOperationTimeMs;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
   }
 
   /**
-   * Creates a new instance of {@link CreateOptions} from {@link CreateOptions}.
+   * Creates a new instance of {@link MkdirOptions} from {@link MkdirOptions}.
    *
    * @param options Thrift options
    */
   public MkdirOptions(MkdirTOptions options) {
-    mOperationTime = System.currentTimeMillis();
+    mOperationTimeMs = System.currentTimeMillis();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
   }
@@ -105,8 +105,8 @@ public final class MkdirOptions {
   /**
    * @return TODO
    */
-  public long getOperationTime() {
-    return mOperationTime;
+  public long getOperationTimeMs() {
+    return mOperationTimeMs;
   }
 
   /**

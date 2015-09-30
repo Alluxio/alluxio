@@ -22,20 +22,67 @@ import tachyon.thrift.FileInfo;
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode implements JournalEntryRepresentable {
-  private final long mCreationTimeMs;
-  protected final boolean mIsFolder;
+  public abstract static class Builder {
+    private long mCreationTimeMs;
+    protected boolean mDirectory;
+    protected long mId;
+    private String mName;
+    private long mParentId;
+    private boolean mPersisted;
 
+    public Builder() {
+      mCreationTimeMs = System.currentTimeMillis();
+      mDirectory = false;
+      mId = 0;
+      mName = null;
+      mParentId = InodeTree.NO_PARENT;
+    }
+
+    public Builder setCreationTimeMs(long creationTimeMs) {
+      mCreationTimeMs = creationTimeMs;
+      return this;
+    }
+
+    public Builder setId(long id) {
+      mId = id;
+      return this;
+    }
+
+    public Builder setName(String name) {
+      mName = name;
+      return this;
+    }
+
+    public Builder setParentId(long parentId) {
+      mParentId = parentId;
+      return this;
+    }
+
+    public Builder setPersisted(boolean persisted) {
+      mPersisted = persisted;
+      return this;
+    }
+
+    /**
+     * Builds a new instance of {@link Inode}.
+     *
+     * @return a {@link Inode} instance
+     */
+    public abstract Inode build();
+  }
+
+  private final long mCreationTimeMs;
+  private final boolean mDirectory;
   private final long mId;
   private String mName;
   private long mParentId;
+  private boolean mPersisted;
 
   /**
    * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
    * files and folders will inherit this flag from their parents.
    */
   private boolean mPinned = false;
-
-  private boolean mPersisted = false;
 
   /**
    * The last modification time of this inode, in milliseconds.
@@ -47,22 +94,14 @@ public abstract class Inode implements JournalEntryRepresentable {
    */
   private boolean mDeleted = false;
 
-  /**
-   * Creates an inode.
-   *
-   * @param name the name of the inode.
-   * @param id the id of the inode, which is globally unique.
-   * @param parentId the id of the parent inode. -1 if there is no parent.
-   * @param isFolder if the inode presents a folder
-   * @param creationTimeMs the creation time of the inode, in milliseconds.
-   */
-  protected Inode(String name, long id, long parentId, boolean isFolder, long creationTimeMs) {
-    mCreationTimeMs = creationTimeMs;
-    mIsFolder = isFolder;
-    mId = id;
-    mName = name;
-    mParentId = parentId;
-    mLastModificationTimeMs = creationTimeMs;
+  protected Inode(Builder builder) {
+    mCreationTimeMs = builder.mCreationTimeMs;
+    mDirectory = builder.mDirectory;
+    mLastModificationTimeMs = builder.mCreationTimeMs;
+    mId = builder.mId;
+    mName = builder.mName;
+    mPersisted = builder.mPersisted;
+    mParentId = builder.mParentId;
   }
 
   /**
@@ -139,14 +178,14 @@ public abstract class Inode implements JournalEntryRepresentable {
    * @return true if the inode is a directory, false otherwise
    */
   public boolean isDirectory() {
-    return mIsFolder;
+    return mDirectory;
   }
 
   /**
    * @return true if the inode is a file, false otherwise
    */
   public boolean isFile() {
-    return !mIsFolder;
+    return !mDirectory;
   }
 
   /**

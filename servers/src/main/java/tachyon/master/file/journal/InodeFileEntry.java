@@ -46,8 +46,9 @@ public class InodeFileEntry extends InodeEntry {
 
   public InodeFile toInodeFile() {
     InodeFile inode =
-        new InodeFile(mName, BlockId.getContainerId(mId), mParentId, mBlockSizeBytes,
-            mCreationTimeMs, mTTL);
+        new InodeFile.Builder().setName(mName).setBlockContainerId(BlockId.getContainerId(mId))
+            .setParentId(mParentId).setBlockSize(mBlockSizeBytes)
+            .setCreationTimeMs(mCreationTimeMs).setTTL(mTTL).setPersisted(mPersisted).build();
 
     // Set flags.
     if (mCompleted) {
@@ -56,7 +57,6 @@ public class InodeFileEntry extends InodeEntry {
     if (mBlocks != null) {
       inode.setBlockIds(mBlocks);
     }
-    inode.setPersisted(mPersisted);
     inode.setPinned(mPinned);
     inode.setCacheable(mCacheable);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);

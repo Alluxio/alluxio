@@ -104,8 +104,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public void initializeRoot() {
     if (mRoot == null) {
       mRoot =
-          new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT,
-              System.currentTimeMillis());
+          new InodeDirectory.Builder().setName(ROOT_INODE_NAME)
+              .setId(mDirectoryIdGenerator.getNewDirectoryId()).setParentId(NO_PARENT).build();
       mInodes.add(mRoot);
 
       mCachedInode = mRoot;
@@ -197,8 +197,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path.toString());
     }
-    if (!options.isDirectory() && options.getBlockSize() < 1) {
-      throw new BlockInfoException("Invalid block size " + options.getBlockSize());
+    if (!options.isDirectory() && options.getBlockSizeBytes() < 1) {
+      throw new BlockInfoException("Invalid block size " + options.getBlockSizeBytes());
     }
 
     LOG.debug("createPath {}", FormatUtils.parametersToString(path));
@@ -240,11 +240,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
     modifiedInodes.add(currentInodeDirectory);
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
-      Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
-          currentInodeDirectory.getId(), options.getOperationTime());
+      Inode dir =
+          new InodeDirectory.Builder().setName(pathComponents[k])
+              .setId(mDirectoryIdGenerator.getNewDirectoryId())
+              .setParentId(currentInodeDirectory.getId())
+              .setPersisted(options.isPersisted())
+              .setCreationTimeMs(options.getOperationTimeMs()).build();
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
-      currentInodeDirectory.setLastModificationTimeMs(options.getOperationTime());
+      currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
       createdInodes.add(dir);
       mInodes.add(dir);
       currentInodeDirectory = (InodeDirectory) dir;
@@ -262,13 +266,17 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throw new FileAlreadyExistException(path.toString());
     }
     if (options.isDirectory()) {
-      lastInode = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
-          currentInodeDirectory.getId(), options.getOperationTime());
+      lastInode =
+          new InodeDirectory.Builder().setName(name)
+              .setId(mDirectoryIdGenerator.getNewDirectoryId())
+              .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
+              .build();
     } else {
       lastInode =
-          new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
-              currentInodeDirectory.getId(), options.getBlockSize(), options.getOperationTime(),
-              options.getTTL());
+          new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
+              .setBlockSize(options.getBlockSizeBytes()).setTTL(options.getTTL()).setName(name)
+              .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
+              .setCreationTimeMs(options.getOperationTimeMs()).build();
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
         mPinnedInodeFileIds.add(lastInode.getId());
@@ -279,7 +287,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     createdInodes.add(lastInode);
     mInodes.add(lastInode);
     currentInodeDirectory.addChild(lastInode);
-    currentInodeDirectory.setLastModificationTimeMs(options.getOperationTime());
+    currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
     return new CreatePathResult(modifiedInodes, createdInodes);

@@ -168,7 +168,7 @@ service BlockMasterService {
 }
 
 struct CreateTOptions {
-  1: optional i64 blockSize
+  1: optional i64 blockSizeBytes
   2: optional bool persisted
   3: optional bool recursive
   4: optional i64 ttl
