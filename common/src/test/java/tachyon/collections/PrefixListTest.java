@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.collections;
 
 import org.junit.Assert;
 import org.junit.Test;

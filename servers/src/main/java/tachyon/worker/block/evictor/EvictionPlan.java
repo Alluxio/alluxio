@@ -19,7 +19,7 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.worker.block.BlockStoreLocation;
 
 /**

@@ -28,7 +28,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
