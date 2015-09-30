@@ -37,9 +37,6 @@ import tachyon.util.io.BufferUtils;
  * Tachyon Stream interfaces.
  */
 public abstract class BufferedBlockInStream extends BlockInStream {
-  /** Value to set mBufferPos to mark the buffer as invalid. */
-  private static final long INVALID_BUFFER_POS = -1L;
-
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;
   /** Flag indicating if the buffer has valid data. */
