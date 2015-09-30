@@ -18,9 +18,6 @@ package tachyon.master.file.meta;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
@@ -33,8 +30,6 @@ import tachyon.thrift.FileInfo;
  * Tachyon file system's directory representation in the file system master.
  */
 public final class InodeDirectory extends Inode {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
     @Override
     public Object getFieldValue(Inode o) {
@@ -94,17 +89,18 @@ public final class InodeDirectory extends Inode {
     ret.fileId = getId();
     ret.name = getName();
     ret.path = path;
-    ret.ufsPath = "";
     ret.length = 0;
     ret.blockSizeBytes = 0;
     ret.creationTimeMs = getCreationTimeMs();
-    ret.isComplete = true;
+    ret.isCompleted = true;
     ret.isFolder = true;
     ret.isPinned = isPinned();
     ret.isCacheable = false;
+    ret.isPersisted = isPersisted();
     ret.blockIds = null;
     ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
+    ret.ttl = Constants.NO_TTL;
     return ret;
   }
 
@@ -179,6 +175,6 @@ public final class InodeDirectory extends Inode {
   @Override
   public synchronized JournalEntry toJournalEntry() {
     return new InodeDirectoryEntry(getCreationTimeMs(), getId(), getName(), getParentId(),
-        isPinned(), getLastModificationTimeMs(), getChildrenIds());
+        isPersisted(), isPinned(), getLastModificationTimeMs(), getChildrenIds());
   }
 }

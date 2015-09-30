@@ -67,19 +67,6 @@ public final class TachyonConf {
 
   private final Properties mProperties = new Properties();
 
-  public static void assertValidPort(final int port, TachyonConf tachyonConf) {
-    Preconditions.checkNotNull(tachyonConf);
-    Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
-
-    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
-      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
-    }
-  }
-
-  public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
-    assertValidPort(address.getPort(), tachyonConf);
-  }
-
   /**
    * Copy constructor to merge the properties of the incoming <code>TachyonConf</code>.
    *

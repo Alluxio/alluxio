@@ -64,18 +64,18 @@ public final class BlockServiceHandler implements WorkerService.Iface {
   }
 
   /**
-   * This should be called in order to commit a file that was written directly to the under storage
+   * This should be called in order to persist a file that was written directly to the under storage
    * system via a THROUGH type write. This will update the master with the appropriate metadata
    * for the new block.
    *
-   * @param sessionId the id of the client requesting the checkpoint
-   * @param fileId the id of the file that was written to the under storage system
-   * @throws TException if the underlying worker RPC fails
+   * @param fileId the file id
+   * @param nonce nonce a nonce used for temporary file creation
+   * @param path the UFS path of the file
    */
   @Override
-  public void addCheckpoint(long sessionId, long fileId) throws TException {
+  public void persistFile(long fileId, long nonce, String path) throws TException {
     try {
-      mWorker.addCheckpoint(sessionId, fileId);
+      mWorker.persistFile(fileId, nonce, path);
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
@@ -135,17 +135,6 @@ public final class BlockServiceHandler implements WorkerService.Iface {
     } catch (IOException ioe) {
       throw new TException(ioe);
     }
-  }
-
-  /**
-   * Used to get session's temporary folder on under file system, and the path of the session's
-   * temporary folder will be returned.
-   *
-   * @param sessionId the id of the session requesting the ufs location
-   */
-  @Override
-  public String getSessionUfsTempFolder(long sessionId) {
-    return mWorker.getSessionUfsTmpFolder(sessionId);
   }
 
   /**
