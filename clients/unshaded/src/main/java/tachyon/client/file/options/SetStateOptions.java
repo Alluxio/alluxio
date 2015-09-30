@@ -33,7 +33,8 @@ public class SetStateOptions {
 
     /**
      * @param pinned the pinned flag value to use; it specifies whether the object should be kept in
-     *        memory
+     *        memory, if ttl(time to live) is set, the file will be deleted after expiration no
+     *        matter this value is true or false
      * @return the builder
      */
     public Builder setPinned(boolean pinned) {

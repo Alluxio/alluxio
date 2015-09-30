@@ -242,6 +242,11 @@ number.
   <td></td>
   <td>Kerberos principal for Tachyon master.</td>
 </tr>
+<tr>
+  <td>tachyon.master.ttlchecker.interval.ms=3600000
+  <td>3600000</td>
+  <td>Time interval(in milliseconds) to periodically delete the files with expired ttl value.</td>
+</tr>
 </table>
 
 ## Worker Configuration

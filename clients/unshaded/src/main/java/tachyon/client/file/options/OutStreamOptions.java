@@ -83,8 +83,9 @@ public final class OutStreamOptions {
     }
 
     /**
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in seconds) the
-     *        created file should be kept around before it is automatically deleted
+     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+     *        created file should be kept around before it is automatically deleted, no matter
+     *        whether the file is pinned
      * @return the builder
      */
     public Builder setTTL(long ttl) {
@@ -145,7 +146,7 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
+   * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
    *         should be kept around before it is automatically deleted
    */
   public long getTTL() {
