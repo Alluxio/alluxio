@@ -395,4 +395,3 @@ public class TableDoesNotExistException extends TException implements org.apache
   }
 
 }
-
