@@ -13,13 +13,13 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.collections;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for tachyon.Pair
+ * Unit tests for tachyon.collections.Pair
  */
 public class PairTest {
   private static final String STR_TYPE = "test";
