@@ -201,6 +201,8 @@ public final class InodeFile extends Inode {
     sb.append(", Completed: ").append(mCompleted);
     sb.append(", Cacheable: ").append(mCacheable);
     sb.append(", mBlocks: ").append(mBlocks);
+    sb.append(", mTTL: ").append(mTTL);
+    sb.append(")");
     return sb.toString();
   }
 
