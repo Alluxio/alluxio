@@ -52,16 +52,14 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   }
 
   @Override
-  protected int directRead(byte[] b, int off, int len) throws IOException {
-    return readFromRemote(b, off, len);
+  protected void bufferedRead(int len) throws IOException {
+    mBuffer.clear();
+    readFromRemote(mBuffer.array(), 0, len);
   }
 
   @Override
-  protected void updateBuffer() throws IOException {
-    int toRead = (int) Math.min(mBuffer.limit(), remaining());
-    mBuffer.clear();
-    readFromRemote(mBuffer.array(), 0, toRead);
-    mBufferPos = mPos;
+  protected int directRead(byte[] b, int off, int len) throws IOException {
+    return readFromRemote(b, off, len);
   }
 
   /**
@@ -69,7 +67,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    *
    * @param bytes number of bytes to record as read
    */
-  private void incrementBytesReadMetric(int bytes) {
+  @Override
+  protected void incrementBytesReadMetric(int bytes) {
     ClientContext.getClientMetrics().incBytesReadRemote(bytes);
   }
 

@@ -20,7 +20,12 @@ import java.io.InputStream;
 import tachyon.client.BoundedStream;
 import tachyon.client.Seekable;
 
-
+/**
+ * This class represents a stream to a block in the Tachyon system. The data source of the block
+ * could be a local Tachyon worker, a remote Tachyon worker, or the under storage system. All
+ * block streams provide data access to a sequential region of data of the block size of the block.
+ */
+// TODO: Resolve the confusion between BufferedBlockInStream (Tachyon-only stream) and BlockInStream
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
 
 }
