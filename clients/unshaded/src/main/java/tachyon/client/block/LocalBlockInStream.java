@@ -90,12 +90,12 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     if (mBuffer.isDirect()) { // Buffer may not be direct on initialization
       BufferUtils.cleanDirectBuffer(mBuffer);
     }
-    mBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, len);
+    mBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, getPosition(), len);
   }
 
   @Override
   public int directRead(byte[] b, int off, int len) throws IOException {
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, len);
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, getPosition(), len);
     buf.get(b, off, len);
     BufferUtils.cleanDirectBuffer(buf);
     return len;

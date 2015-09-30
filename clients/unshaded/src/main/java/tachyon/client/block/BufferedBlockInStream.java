@@ -40,6 +40,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   /** Value to set mBufferPos to mark the buffer as invalid. */
   private static final long INVALID_BUFFER_POS = -1L;
 
+  /** Current position of the stream, relative to the start of the block. */
+  private long mPos;
+
   /** The id of the block to which this instream provides access. */
   protected final long mBlockId;
   /** The size in bytes of the block. */
@@ -55,8 +58,6 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected boolean mClosed;
   /** Current position of the buffer's next byte, relative to the start of the block */
   protected long mBufferPos;
-  /** Current position of the stream, relative to the start of the block. */
-  protected long mPos;
 
   /**
    * Basic constructor for a BufferedBlockInStream. This sets the necessary variables and creates
@@ -167,6 +168,13 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     mBufferPos = INVALID_BUFFER_POS;
     mPos += toSkip;
     return toSkip;
+  }
+
+  /**
+   * @return the current position of the stream
+   */
+  protected long getPosition() {
+    return mPos;
   }
 
   /**
