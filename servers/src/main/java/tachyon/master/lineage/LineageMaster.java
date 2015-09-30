@@ -182,6 +182,7 @@ public final class LineageMaster extends MasterBase {
   public synchronized void streamToJournalCheckpoint(JournalOutputStream outputStream)
       throws IOException {
     mLineageStore.streamToJournalCheckpoint(outputStream);
+    outputStream.writeEntry(mLineageIdGenerator.toJournalEntry());
   }
 
   /**
@@ -204,7 +205,7 @@ public final class LineageMaster extends MasterBase {
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    // validate input files exist
+    // TODO: validate input files exist
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
@@ -215,6 +216,7 @@ public final class LineageMaster extends MasterBase {
     List<LineageFile> outputTachyonFiles = Lists.newArrayList();
     for (TachyonURI outputFile : outputFiles) {
       long fileId;
+      // TODO: delete the placeholder files if the creation fails.
       // create the file initialized with block size 1 as placeholder
       fileId = mFileSystemMaster.createFile(outputFile, 1, true);
       outputTachyonFiles.add(new LineageFile(fileId));
