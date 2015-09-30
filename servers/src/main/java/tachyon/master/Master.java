@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import org.apache.thrift.TProcessor;
 
-import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalInputStream;

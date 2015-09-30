@@ -27,6 +27,7 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
+import tachyon.worker.ClientMetrics;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Tachyon
@@ -34,8 +35,7 @@ import tachyon.util.ThreadFactoryUtils;
  * thread safe.
  */
 public final class ClientContext {
-  private static final int CAPACITY = 10000;
-
+  
   private static ExecutorService sExecutorService;
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
@@ -44,6 +44,8 @@ public final class ClientContext {
   private static TachyonConf sTachyonConf;
 
   private static InetSocketAddress sMasterAddress;
+
+  private static ClientMetrics sClientMetrics;
 
   private static Random sRandom;
 
@@ -75,8 +77,10 @@ public final class ClientContext {
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
-    sRandom = new Random();
+    sClientMetrics = new ClientMetrics();
 
+    sRandom = new Random();
+    getInt(Constants.USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS);
     sExecutorService = Executors.newFixedThreadPool(CAPACITY,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   }
@@ -86,6 +90,13 @@ public final class ClientContext {
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
+  }
+
+  /**
+   * @return the ClientMetrics for this client
+   */
+  public static ClientMetrics getClientMetrics() {
+    return sClientMetrics;
   }
 
   /**

@@ -27,7 +27,7 @@ import tachyon.network.protocol.databuffer.DataNettyBuffer;
 /**
  * This represents the response of a {@link RPCBlockReadRequest}.
  */
-public class RPCBlockReadResponse extends RPCResponse {
+public final class RPCBlockReadResponse extends RPCResponse {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
@@ -43,6 +43,7 @@ public class RPCBlockReadResponse extends RPCResponse {
     mStatus = status;
   }
 
+  @Override
   public Type getType() {
     return Type.RPC_BLOCK_READ_RESPONSE;
   }
@@ -64,7 +65,7 @@ public class RPCBlockReadResponse extends RPCResponse {
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCBlockReadResponse} object and return it.
+   * Decodes the input {@link ByteBuf} into a {@link RPCBlockReadResponse} object and returns it.
    *
    * @param in the input {@link ByteBuf}
    * @return The decoded RPCBlockReadResponse object

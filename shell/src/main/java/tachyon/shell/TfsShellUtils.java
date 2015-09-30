@@ -27,6 +27,7 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -35,9 +36,9 @@ import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 
 /**
- * Class for convenience methods used by {@link TFsShell}.
+ * Class for convenience methods used by {@link TfsShell}.
  */
-public class TFsShellUtils {
+public class TfsShellUtils {
   /**
    * Removes Constants.HEADER / Constants.HEADER_FT and hostname:port information from a path,
    * leaving only the local file path.
@@ -127,9 +128,7 @@ public class TFsShellUtils {
     List<FileInfo> files = null;
     try {
       files = tachyonClient.listStatus(tachyonClient.open(parentDir));
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
     for (FileInfo file : files) {

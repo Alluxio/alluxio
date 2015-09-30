@@ -23,12 +23,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import tachyon.Constants;
 import tachyon.StorageLevelAlias;
-import tachyon.conf.TachyonConf;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
-import tachyon.worker.WorkerContext;
 import tachyon.worker.block.TieredBlockStoreTestUtils;
 
 public class BlockMetaTest {
