@@ -42,19 +42,12 @@ public enum BlockStoreContext {
 
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
-  private final ExecutorService mRemoteBlockWorkerExecutor;
 
   /**
    * Creates a new block store context.
    */
   BlockStoreContext() {
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    // TODO(calvin): Get the capacity from configuration.
-    final int CAPACITY = 10;
-    mRemoteBlockWorkerExecutor =
-        Executors.newFixedThreadPool(CAPACITY,
-            ThreadFactoryUtils.build("remote-block-worker-heartbeat-%d", true));
-
     NetAddress localWorkerAddress =
         getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
@@ -165,8 +158,8 @@ public enum BlockStoreContext {
       throw new RuntimeException("No Tachyon worker available for host: " + hostname);
     }
     long clientId = ClientContext.getRandomNonNegativeLong();
-    return new WorkerClient(workerAddress, mRemoteBlockWorkerExecutor, ClientContext.getConf(),
-        clientId, false, new ClientMetrics());
+    return new WorkerClient(workerAddress, ClientContext.getExecutorService(),
+        ClientContext.getConf(), clientId, false, new ClientMetrics());
   }
 
   /**
