@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
-import tachyon.master.MasterContext;
-import tachyon.master.file.options.CreateFileOptions;
+import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.CreateOptions;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.CreateFileTOptions;
+import tachyon.thrift.CreateTOptions;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -33,6 +33,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.MkdirTOptions;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 
@@ -93,9 +94,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   // TODO: need to add another create option object for passing ttl
   @Override
-  public long createFile(String path, CreateFileTOptions options)
+  public long create(String path, CreateTOptions options)
       throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
-    return mFileSystemMaster.createFile(new TachyonURI(path), new CreateFileOptions(options));
+    return mFileSystemMaster.create(new TachyonURI(path), new CreateOptions(options));
   }
 
   @Override
@@ -130,9 +131,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean createDirectory(String path, boolean recursive) throws FileAlreadyExistException,
-      InvalidPathException {
-    mFileSystemMaster.mkdir(new TachyonURI(path), recursive);
+  public boolean mkdir(String path, MkdirTOptions options)
+      throws FileAlreadyExistException, InvalidPathException {
+    mFileSystemMaster.mkdir(new TachyonURI(path), new MkdirOptions(options));
     return true;
   }
 

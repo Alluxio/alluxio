@@ -39,8 +39,11 @@ import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
@@ -311,11 +314,13 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeByte > 0) {
-        // NOTE: The old API will no longer support persisting files.
-        boolean persisted =
-            mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.class).isThrough();
-        return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive,
-            Constants.NO_TTL, persisted);
+        UnderStorageType underStorageType =
+            mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.class).isThrough()
+                ? UnderStorageType.PERSIST : UnderStorageType.NO_PERSIST;
+        CreateOptions options =
+            new CreateOptions.Builder(ClientContext.getConf()).setBlockSize(blockSizeByte)
+                .setRecursive(recursive).setUnderStorageType(underStorageType).build();
+        return mFSMasterClient.create(path.getPath(), options);
       } else {
         return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), recursive);
       }
@@ -855,7 +860,13 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.createDirectory(path.getPath(), recursive);
+      UnderStorageType underStorageType =
+          mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.class).isThrough()
+              ? UnderStorageType.PERSIST : UnderStorageType.NO_PERSIST;
+      MkdirOptions options =
+          new MkdirOptions.Builder(ClientContext.getConf()).setRecursive(recursive)
+              .setUnderStorageType(underStorageType).build();
+      return mFSMasterClient.mkdir(path.getPath(), options);
     } catch (TException e) {
       throw new IOException(e);
     }

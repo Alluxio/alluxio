@@ -15,14 +15,18 @@
 
 package tachyon.client.file.options;
 
+import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
+import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
+import tachyon.thrift.MkdirTOptions;
 
 @PublicApi
 public final class MkdirOptions {
   public static class Builder {
     private boolean mRecursive;
+    private UnderStorageType mUnderStorageType;
 
     /**
      * Creates a new builder for {@link MkdirOptions}.
@@ -31,8 +35,9 @@ public final class MkdirOptions {
      */
     public Builder(TachyonConf conf) {
       mRecursive = false;
+      mUnderStorageType =
+          conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
     }
-
 
     /**
      * @param recursive the recursive flag value to use; it specifies whether parent directories
@@ -41,6 +46,15 @@ public final class MkdirOptions {
      */
     public Builder setRecursive(boolean recursive) {
       mRecursive = recursive;
+      return this;
+    }
+
+    /**
+     * @param underStorageType the under storage type to use
+     * @return the builder
+     */
+    public Builder setUnderStorageType(UnderStorageType underStorageType) {
+      mUnderStorageType = underStorageType;
       return this;
     }
 
@@ -62,9 +76,11 @@ public final class MkdirOptions {
   }
 
   private final boolean mRecursive;
+  private final UnderStorageType mUnderStorageType;
 
   private MkdirOptions(MkdirOptions.Builder builder) {
     mRecursive = builder.mRecursive;
+    mUnderStorageType = builder.mUnderStorageType;
   }
 
   /**
@@ -73,5 +89,19 @@ public final class MkdirOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @return the under storage type
+   */
+  public UnderStorageType getUnderStorageType() {
+    return mUnderStorageType;
+  }
+
+  public MkdirTOptions toThrift() {
+    MkdirTOptions options = new MkdirTOptions();
+    options.setPersisted(mUnderStorageType.isPersist());
+    options.setRecursive(mRecursive);
+    return options;
   }
 }

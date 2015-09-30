@@ -57,7 +57,7 @@ public class FileSystemMasterService {
 
     public String getUfsAddress() throws org.apache.thrift.TException;
 
-    public long createFile(String path, CreateFileTOptions options) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
+    public long create(String path, CreateTOptions options) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
 
     public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
@@ -67,7 +67,7 @@ public class FileSystemMasterService {
 
     public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException;
 
-    public boolean createDirectory(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException;
+    public boolean mkdir(String path, MkdirTOptions options) throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException;
 
     public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException, org.apache.thrift.TException;
 
@@ -127,7 +127,7 @@ public class FileSystemMasterService {
 
     public void getUfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void createFile(String path, CreateFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void create(String path, CreateTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void completeFile(long fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -137,7 +137,7 @@ public class FileSystemMasterService {
 
     public void setPinned(long fileId, boolean pinned, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void createDirectory(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void mkdir(String path, MkdirTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void free(long fileId, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -406,24 +406,24 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsAddress failed: unknown result");
     }
 
-    public long createFile(String path, CreateFileTOptions options) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long create(String path, CreateTOptions options) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
-      send_createFile(path, options);
-      return recv_createFile();
+      send_create(path, options);
+      return recv_create();
     }
 
-    public void send_createFile(String path, CreateFileTOptions options) throws org.apache.thrift.TException
+    public void send_create(String path, CreateTOptions options) throws org.apache.thrift.TException
     {
-      createFile_args args = new createFile_args();
+      create_args args = new create_args();
       args.setPath(path);
       args.setOptions(options);
-      sendBase("createFile", args);
+      sendBase("create", args);
     }
 
-    public long recv_createFile() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long recv_create() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
-      createFile_result result = new createFile_result();
-      receiveBase(result, "createFile");
+      create_result result = new create_result();
+      receiveBase(result, "create");
       if (result.isSetSuccess()) {
         return result.success;
       }
@@ -439,7 +439,7 @@ public class FileSystemMasterService {
       if (result.te != null) {
         throw result.te;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createFile failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "create failed: unknown result");
     }
 
     public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
@@ -555,24 +555,24 @@ public class FileSystemMasterService {
       return;
     }
 
-    public boolean createDirectory(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean mkdir(String path, MkdirTOptions options) throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException
     {
-      send_createDirectory(path, recursive);
-      return recv_createDirectory();
+      send_mkdir(path, options);
+      return recv_mkdir();
     }
 
-    public void send_createDirectory(String path, boolean recursive) throws org.apache.thrift.TException
+    public void send_mkdir(String path, MkdirTOptions options) throws org.apache.thrift.TException
     {
-      createDirectory_args args = new createDirectory_args();
+      mkdir_args args = new mkdir_args();
       args.setPath(path);
-      args.setRecursive(recursive);
-      sendBase("createDirectory", args);
+      args.setOptions(options);
+      sendBase("mkdir", args);
     }
 
-    public boolean recv_createDirectory() throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean recv_mkdir() throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException
     {
-      createDirectory_result result = new createDirectory_result();
-      receiveBase(result, "createDirectory");
+      mkdir_result result = new mkdir_result();
+      receiveBase(result, "mkdir");
       if (result.isSetSuccess()) {
         return result.success;
       }
@@ -582,7 +582,7 @@ public class FileSystemMasterService {
       if (result.ipe != null) {
         throw result.ipe;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createDirectory failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "mkdir failed: unknown result");
     }
 
     public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException, org.apache.thrift.TException
@@ -1125,25 +1125,25 @@ public class FileSystemMasterService {
       }
     }
 
-    public void createFile(String path, CreateFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void create(String path, CreateTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      createFile_call method_call = new createFile_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
+      create_call method_call = new create_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class createFile_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class create_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
-      private CreateFileTOptions options;
-      public createFile_call(String path, CreateFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private CreateTOptions options;
+      public create_call(String path, CreateTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
         this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("createFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        createFile_args args = new createFile_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("create", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        create_args args = new create_args();
         args.setPath(path);
         args.setOptions(options);
         args.write(prot);
@@ -1156,7 +1156,7 @@ public class FileSystemMasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_createFile();
+        return (new Client(prot)).recv_create();
       }
     }
 
@@ -1297,27 +1297,27 @@ public class FileSystemMasterService {
       }
     }
 
-    public void createDirectory(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void mkdir(String path, MkdirTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      createDirectory_call method_call = new createDirectory_call(path, recursive, resultHandler, this, ___protocolFactory, ___transport);
+      mkdir_call method_call = new mkdir_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class createDirectory_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class mkdir_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
-      private boolean recursive;
-      public createDirectory_call(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private MkdirTOptions options;
+      public mkdir_call(String path, MkdirTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
-        this.recursive = recursive;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("createDirectory", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        createDirectory_args args = new createDirectory_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("mkdir", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        mkdir_args args = new mkdir_args();
         args.setPath(path);
-        args.setRecursive(recursive);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1328,7 +1328,7 @@ public class FileSystemMasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_createDirectory();
+        return (new Client(prot)).recv_mkdir();
       }
     }
 
@@ -1643,12 +1643,12 @@ public class FileSystemMasterService {
       processMap.put("getFileBlockInfoList", new getFileBlockInfoList());
       processMap.put("getNewBlockIdForFile", new getNewBlockIdForFile());
       processMap.put("getUfsAddress", new getUfsAddress());
-      processMap.put("createFile", new createFile());
+      processMap.put("create", new create());
       processMap.put("completeFile", new completeFile());
       processMap.put("deleteFile", new deleteFile());
       processMap.put("renameFile", new renameFile());
       processMap.put("setPinned", new setPinned());
-      processMap.put("createDirectory", new createDirectory());
+      processMap.put("mkdir", new mkdir());
       processMap.put("free", new free());
       processMap.put("loadFileInfoFromUfs", new loadFileInfoFromUfs());
       processMap.put("mount", new mount());
@@ -1870,23 +1870,23 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class createFile<I extends Iface> extends org.apache.thrift.ProcessFunction<I, createFile_args> {
-      public createFile() {
-        super("createFile");
+    public static class create<I extends Iface> extends org.apache.thrift.ProcessFunction<I, create_args> {
+      public create() {
+        super("create");
       }
 
-      public createFile_args getEmptyArgsInstance() {
-        return new createFile_args();
+      public create_args getEmptyArgsInstance() {
+        return new create_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public createFile_result getResult(I iface, createFile_args args) throws org.apache.thrift.TException {
-        createFile_result result = new createFile_result();
+      public create_result getResult(I iface, create_args args) throws org.apache.thrift.TException {
+        create_result result = new create_result();
         try {
-          result.success = iface.createFile(args.path, args.options);
+          result.success = iface.create(args.path, args.options);
           result.setSuccessIsSet(true);
         } catch (FileAlreadyExistException faee) {
           result.faee = faee;
@@ -2007,23 +2007,23 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class createDirectory<I extends Iface> extends org.apache.thrift.ProcessFunction<I, createDirectory_args> {
-      public createDirectory() {
-        super("createDirectory");
+    public static class mkdir<I extends Iface> extends org.apache.thrift.ProcessFunction<I, mkdir_args> {
+      public mkdir() {
+        super("mkdir");
       }
 
-      public createDirectory_args getEmptyArgsInstance() {
-        return new createDirectory_args();
+      public mkdir_args getEmptyArgsInstance() {
+        return new mkdir_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public createDirectory_result getResult(I iface, createDirectory_args args) throws org.apache.thrift.TException {
-        createDirectory_result result = new createDirectory_result();
+      public mkdir_result getResult(I iface, mkdir_args args) throws org.apache.thrift.TException {
+        mkdir_result result = new mkdir_result();
         try {
-          result.success = iface.createDirectory(args.path, args.recursive);
+          result.success = iface.mkdir(args.path, args.options);
           result.setSuccessIsSet(true);
         } catch (FileAlreadyExistException faee) {
           result.faee = faee;
@@ -2271,12 +2271,12 @@ public class FileSystemMasterService {
       processMap.put("getFileBlockInfoList", new getFileBlockInfoList());
       processMap.put("getNewBlockIdForFile", new getNewBlockIdForFile());
       processMap.put("getUfsAddress", new getUfsAddress());
-      processMap.put("createFile", new createFile());
+      processMap.put("create", new create());
       processMap.put("completeFile", new completeFile());
       processMap.put("deleteFile", new deleteFile());
       processMap.put("renameFile", new renameFile());
       processMap.put("setPinned", new setPinned());
-      processMap.put("createDirectory", new createDirectory());
+      processMap.put("mkdir", new mkdir());
       processMap.put("free", new free());
       processMap.put("loadFileInfoFromUfs", new loadFileInfoFromUfs());
       processMap.put("mount", new mount());
@@ -2795,20 +2795,20 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class createFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, createFile_args, Long> {
-      public createFile() {
-        super("createFile");
+    public static class create<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, create_args, Long> {
+      public create() {
+        super("create");
       }
 
-      public createFile_args getEmptyArgsInstance() {
-        return new createFile_args();
+      public create_args getEmptyArgsInstance() {
+        return new create_args();
       }
 
       public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Long>() { 
           public void onComplete(Long o) {
-            createFile_result result = new createFile_result();
+            create_result result = new create_result();
             result.success = o;
             result.setSuccessIsSet(true);
             try {
@@ -2822,7 +2822,7 @@ public class FileSystemMasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            createFile_result result = new createFile_result();
+            create_result result = new create_result();
             if (e instanceof FileAlreadyExistException) {
                         result.faee = (FileAlreadyExistException) e;
                         result.setFaeeIsSet(true);
@@ -2863,8 +2863,8 @@ public class FileSystemMasterService {
         return false;
       }
 
-      public void start(I iface, createFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.createFile(args.path, args.options,resultHandler);
+      public void start(I iface, create_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
+        iface.create(args.path, args.options,resultHandler);
       }
     }
 
@@ -3116,20 +3116,20 @@ public class FileSystemMasterService {
       }
     }
 
-    public static class createDirectory<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, createDirectory_args, Boolean> {
-      public createDirectory() {
-        super("createDirectory");
+    public static class mkdir<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, mkdir_args, Boolean> {
+      public mkdir() {
+        super("mkdir");
       }
 
-      public createDirectory_args getEmptyArgsInstance() {
-        return new createDirectory_args();
+      public mkdir_args getEmptyArgsInstance() {
+        return new mkdir_args();
       }
 
       public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Boolean>() { 
           public void onComplete(Boolean o) {
-            createDirectory_result result = new createDirectory_result();
+            mkdir_result result = new mkdir_result();
             result.success = o;
             result.setSuccessIsSet(true);
             try {
@@ -3143,7 +3143,7 @@ public class FileSystemMasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            createDirectory_result result = new createDirectory_result();
+            mkdir_result result = new mkdir_result();
             if (e instanceof FileAlreadyExistException) {
                         result.faee = (FileAlreadyExistException) e;
                         result.setFaeeIsSet(true);
@@ -3174,8 +3174,8 @@ public class FileSystemMasterService {
         return false;
       }
 
-      public void start(I iface, createDirectory_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.createDirectory(args.path, args.recursive,resultHandler);
+      public void start(I iface, mkdir_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
+        iface.mkdir(args.path, args.options,resultHandler);
       }
     }
 
@@ -11005,20 +11005,20 @@ public class FileSystemMasterService {
 
   }
 
-  public static class createFile_args implements org.apache.thrift.TBase<createFile_args, createFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<createFile_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createFile_args");
+  public static class create_args implements org.apache.thrift.TBase<create_args, create_args._Fields>, java.io.Serializable, Cloneable, Comparable<create_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("create_args");
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new createFile_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new createFile_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new create_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new create_argsTupleSchemeFactory());
     }
 
     public String path; // required
-    public CreateFileTOptions options; // required
+    public CreateTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -11088,17 +11088,17 @@ public class FileSystemMasterService {
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CreateFileTOptions.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CreateTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createFile_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(create_args.class, metaDataMap);
     }
 
-    public createFile_args() {
+    public create_args() {
     }
 
-    public createFile_args(
+    public create_args(
       String path,
-      CreateFileTOptions options)
+      CreateTOptions options)
     {
       this();
       this.path = path;
@@ -11108,17 +11108,17 @@ public class FileSystemMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public createFile_args(createFile_args other) {
+    public create_args(create_args other) {
       if (other.isSetPath()) {
         this.path = other.path;
       }
       if (other.isSetOptions()) {
-        this.options = new CreateFileTOptions(other.options);
+        this.options = new CreateTOptions(other.options);
       }
     }
 
-    public createFile_args deepCopy() {
-      return new createFile_args(this);
+    public create_args deepCopy() {
+      return new create_args(this);
     }
 
     @Override
@@ -11131,7 +11131,7 @@ public class FileSystemMasterService {
       return this.path;
     }
 
-    public createFile_args setPath(String path) {
+    public create_args setPath(String path) {
       this.path = path;
       return this;
     }
@@ -11151,11 +11151,11 @@ public class FileSystemMasterService {
       }
     }
 
-    public CreateFileTOptions getOptions() {
+    public CreateTOptions getOptions() {
       return this.options;
     }
 
-    public createFile_args setOptions(CreateFileTOptions options) {
+    public create_args setOptions(CreateTOptions options) {
       this.options = options;
       return this;
     }
@@ -11189,7 +11189,7 @@ public class FileSystemMasterService {
         if (value == null) {
           unsetOptions();
         } else {
-          setOptions((CreateFileTOptions)value);
+          setOptions((CreateTOptions)value);
         }
         break;
 
@@ -11227,12 +11227,12 @@ public class FileSystemMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof createFile_args)
-        return this.equals((createFile_args)that);
+      if (that instanceof create_args)
+        return this.equals((create_args)that);
       return false;
     }
 
-    public boolean equals(createFile_args that) {
+    public boolean equals(create_args that) {
       if (that == null)
         return false;
 
@@ -11275,7 +11275,7 @@ public class FileSystemMasterService {
     }
 
     @Override
-    public int compareTo(createFile_args other) {
+    public int compareTo(create_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -11319,7 +11319,7 @@ public class FileSystemMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("createFile_args(");
+      StringBuilder sb = new StringBuilder("create_args(");
       boolean first = true;
 
       sb.append("path:");
@@ -11365,15 +11365,15 @@ public class FileSystemMasterService {
       }
     }
 
-    private static class createFile_argsStandardSchemeFactory implements SchemeFactory {
-      public createFile_argsStandardScheme getScheme() {
-        return new createFile_argsStandardScheme();
+    private static class create_argsStandardSchemeFactory implements SchemeFactory {
+      public create_argsStandardScheme getScheme() {
+        return new create_argsStandardScheme();
       }
     }
 
-    private static class createFile_argsStandardScheme extends StandardScheme<createFile_args> {
+    private static class create_argsStandardScheme extends StandardScheme<create_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, createFile_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, create_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -11393,7 +11393,7 @@ public class FileSystemMasterService {
               break;
             case 2: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new CreateFileTOptions();
+                struct.options = new CreateTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
               } else { 
@@ -11411,7 +11411,7 @@ public class FileSystemMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, createFile_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, create_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -11431,16 +11431,16 @@ public class FileSystemMasterService {
 
     }
 
-    private static class createFile_argsTupleSchemeFactory implements SchemeFactory {
-      public createFile_argsTupleScheme getScheme() {
-        return new createFile_argsTupleScheme();
+    private static class create_argsTupleSchemeFactory implements SchemeFactory {
+      public create_argsTupleScheme getScheme() {
+        return new create_argsTupleScheme();
       }
     }
 
-    private static class createFile_argsTupleScheme extends TupleScheme<createFile_args> {
+    private static class create_argsTupleScheme extends TupleScheme<create_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, createFile_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, create_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetPath()) {
@@ -11459,7 +11459,7 @@ public class FileSystemMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, createFile_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, create_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
@@ -11467,7 +11467,7 @@ public class FileSystemMasterService {
           struct.setPathIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.options = new CreateFileTOptions();
+          struct.options = new CreateTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
         }
@@ -11476,8 +11476,8 @@ public class FileSystemMasterService {
 
   }
 
-  public static class createFile_result implements org.apache.thrift.TBase<createFile_result, createFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<createFile_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createFile_result");
+  public static class create_result implements org.apache.thrift.TBase<create_result, create_result._Fields>, java.io.Serializable, Cloneable, Comparable<create_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("create_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
@@ -11487,8 +11487,8 @@ public class FileSystemMasterService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new createFile_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new createFile_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new create_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new create_resultTupleSchemeFactory());
     }
 
     public long success; // required
@@ -11584,13 +11584,13 @@ public class FileSystemMasterService {
       tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createFile_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(create_result.class, metaDataMap);
     }
 
-    public createFile_result() {
+    public create_result() {
     }
 
-    public createFile_result(
+    public create_result(
       long success,
       FileAlreadyExistException faee,
       BlockInfoException bie,
@@ -11609,7 +11609,7 @@ public class FileSystemMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public createFile_result(createFile_result other) {
+    public create_result(create_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetFaee()) {
@@ -11626,8 +11626,8 @@ public class FileSystemMasterService {
       }
     }
 
-    public createFile_result deepCopy() {
-      return new createFile_result(this);
+    public create_result deepCopy() {
+      return new create_result(this);
     }
 
     @Override
@@ -11644,7 +11644,7 @@ public class FileSystemMasterService {
       return this.success;
     }
 
-    public createFile_result setSuccess(long success) {
+    public create_result setSuccess(long success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -11667,7 +11667,7 @@ public class FileSystemMasterService {
       return this.faee;
     }
 
-    public createFile_result setFaee(FileAlreadyExistException faee) {
+    public create_result setFaee(FileAlreadyExistException faee) {
       this.faee = faee;
       return this;
     }
@@ -11691,7 +11691,7 @@ public class FileSystemMasterService {
       return this.bie;
     }
 
-    public createFile_result setBie(BlockInfoException bie) {
+    public create_result setBie(BlockInfoException bie) {
       this.bie = bie;
       return this;
     }
@@ -11715,7 +11715,7 @@ public class FileSystemMasterService {
       return this.sfse;
     }
 
-    public createFile_result setSfse(SuspectedFileSizeException sfse) {
+    public create_result setSfse(SuspectedFileSizeException sfse) {
       this.sfse = sfse;
       return this;
     }
@@ -11739,7 +11739,7 @@ public class FileSystemMasterService {
       return this.te;
     }
 
-    public createFile_result setTe(TachyonException te) {
+    public create_result setTe(TachyonException te) {
       this.te = te;
       return this;
     }
@@ -11850,12 +11850,12 @@ public class FileSystemMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof createFile_result)
-        return this.equals((createFile_result)that);
+      if (that instanceof create_result)
+        return this.equals((create_result)that);
       return false;
     }
 
-    public boolean equals(createFile_result that) {
+    public boolean equals(create_result that) {
       if (that == null)
         return false;
 
@@ -11940,7 +11940,7 @@ public class FileSystemMasterService {
     }
 
     @Override
-    public int compareTo(createFile_result other) {
+    public int compareTo(create_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -12014,7 +12014,7 @@ public class FileSystemMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("createFile_result(");
+      StringBuilder sb = new StringBuilder("create_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -12079,15 +12079,15 @@ public class FileSystemMasterService {
       }
     }
 
-    private static class createFile_resultStandardSchemeFactory implements SchemeFactory {
-      public createFile_resultStandardScheme getScheme() {
-        return new createFile_resultStandardScheme();
+    private static class create_resultStandardSchemeFactory implements SchemeFactory {
+      public create_resultStandardScheme getScheme() {
+        return new create_resultStandardScheme();
       }
     }
 
-    private static class createFile_resultStandardScheme extends StandardScheme<createFile_result> {
+    private static class create_resultStandardScheme extends StandardScheme<create_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, createFile_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, create_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -12152,7 +12152,7 @@ public class FileSystemMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, createFile_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, create_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -12187,16 +12187,16 @@ public class FileSystemMasterService {
 
     }
 
-    private static class createFile_resultTupleSchemeFactory implements SchemeFactory {
-      public createFile_resultTupleScheme getScheme() {
-        return new createFile_resultTupleScheme();
+    private static class create_resultTupleSchemeFactory implements SchemeFactory {
+      public create_resultTupleScheme getScheme() {
+        return new create_resultTupleScheme();
       }
     }
 
-    private static class createFile_resultTupleScheme extends TupleScheme<createFile_result> {
+    private static class create_resultTupleScheme extends TupleScheme<create_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, createFile_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, create_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -12233,7 +12233,7 @@ public class FileSystemMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, createFile_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, create_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
@@ -16094,25 +16094,25 @@ public class FileSystemMasterService {
 
   }
 
-  public static class createDirectory_args implements org.apache.thrift.TBase<createDirectory_args, createDirectory_args._Fields>, java.io.Serializable, Cloneable, Comparable<createDirectory_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createDirectory_args");
+  public static class mkdir_args implements org.apache.thrift.TBase<mkdir_args, mkdir_args._Fields>, java.io.Serializable, Cloneable, Comparable<mkdir_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("mkdir_args");
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new createDirectory_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new createDirectory_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new mkdir_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new mkdir_argsTupleSchemeFactory());
     }
 
     public String path; // required
-    public boolean recursive; // required
+    public MkdirTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       PATH((short)1, "path"),
-      RECURSIVE((short)2, "recursive");
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -16129,8 +16129,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 1: // PATH
             return PATH;
-          case 2: // RECURSIVE
-            return RECURSIVE;
+          case 2: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -16171,59 +16171,56 @@ public class FileSystemMasterService {
     }
 
     // isset id assignments
-    private static final int __RECURSIVE_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MkdirTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createDirectory_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mkdir_args.class, metaDataMap);
     }
 
-    public createDirectory_args() {
+    public mkdir_args() {
     }
 
-    public createDirectory_args(
+    public mkdir_args(
       String path,
-      boolean recursive)
+      MkdirTOptions options)
     {
       this();
       this.path = path;
-      this.recursive = recursive;
-      setRecursiveIsSet(true);
+      this.options = options;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public createDirectory_args(createDirectory_args other) {
-      __isset_bitfield = other.__isset_bitfield;
+    public mkdir_args(mkdir_args other) {
       if (other.isSetPath()) {
         this.path = other.path;
       }
-      this.recursive = other.recursive;
+      if (other.isSetOptions()) {
+        this.options = new MkdirTOptions(other.options);
+      }
     }
 
-    public createDirectory_args deepCopy() {
-      return new createDirectory_args(this);
+    public mkdir_args deepCopy() {
+      return new mkdir_args(this);
     }
 
     @Override
     public void clear() {
       this.path = null;
-      setRecursiveIsSet(false);
-      this.recursive = false;
+      this.options = null;
     }
 
     public String getPath() {
       return this.path;
     }
 
-    public createDirectory_args setPath(String path) {
+    public mkdir_args setPath(String path) {
       this.path = path;
       return this;
     }
@@ -16243,27 +16240,28 @@ public class FileSystemMasterService {
       }
     }
 
-    public boolean isRecursive() {
-      return this.recursive;
+    public MkdirTOptions getOptions() {
+      return this.options;
     }
 
-    public createDirectory_args setRecursive(boolean recursive) {
-      this.recursive = recursive;
-      setRecursiveIsSet(true);
+    public mkdir_args setOptions(MkdirTOptions options) {
+      this.options = options;
       return this;
     }
 
-    public void unsetRecursive() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+    public void unsetOptions() {
+      this.options = null;
     }
 
-    /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
-    public boolean isSetRecursive() {
-      return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
     }
 
-    public void setRecursiveIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -16276,11 +16274,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case RECURSIVE:
+      case OPTIONS:
         if (value == null) {
-          unsetRecursive();
+          unsetOptions();
         } else {
-          setRecursive((Boolean)value);
+          setOptions((MkdirTOptions)value);
         }
         break;
 
@@ -16292,8 +16290,8 @@ public class FileSystemMasterService {
       case PATH:
         return getPath();
 
-      case RECURSIVE:
-        return Boolean.valueOf(isRecursive());
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -16308,8 +16306,8 @@ public class FileSystemMasterService {
       switch (field) {
       case PATH:
         return isSetPath();
-      case RECURSIVE:
-        return isSetRecursive();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -16318,12 +16316,12 @@ public class FileSystemMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof createDirectory_args)
-        return this.equals((createDirectory_args)that);
+      if (that instanceof mkdir_args)
+        return this.equals((mkdir_args)that);
       return false;
     }
 
-    public boolean equals(createDirectory_args that) {
+    public boolean equals(mkdir_args that) {
       if (that == null)
         return false;
 
@@ -16336,12 +16334,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_recursive = true;
-      boolean that_present_recursive = true;
-      if (this_present_recursive || that_present_recursive) {
-        if (!(this_present_recursive && that_present_recursive))
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
           return false;
-        if (this.recursive != that.recursive)
+        if (!this.options.equals(that.options))
           return false;
       }
 
@@ -16357,16 +16355,16 @@ public class FileSystemMasterService {
       if (present_path)
         list.add(path);
 
-      boolean present_recursive = true;
-      list.add(present_recursive);
-      if (present_recursive)
-        list.add(recursive);
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
 
     @Override
-    public int compareTo(createDirectory_args other) {
+    public int compareTo(mkdir_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -16383,12 +16381,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetRecursive()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -16410,7 +16408,7 @@ public class FileSystemMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("createDirectory_args(");
+      StringBuilder sb = new StringBuilder("mkdir_args(");
       boolean first = true;
 
       sb.append("path:");
@@ -16421,8 +16419,12 @@ public class FileSystemMasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("recursive:");
-      sb.append(this.recursive);
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -16431,6 +16433,9 @@ public class FileSystemMasterService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -16443,23 +16448,21 @@ public class FileSystemMasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
       }
     }
 
-    private static class createDirectory_argsStandardSchemeFactory implements SchemeFactory {
-      public createDirectory_argsStandardScheme getScheme() {
-        return new createDirectory_argsStandardScheme();
+    private static class mkdir_argsStandardSchemeFactory implements SchemeFactory {
+      public mkdir_argsStandardScheme getScheme() {
+        return new mkdir_argsStandardScheme();
       }
     }
 
-    private static class createDirectory_argsStandardScheme extends StandardScheme<createDirectory_args> {
+    private static class mkdir_argsStandardScheme extends StandardScheme<mkdir_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, createDirectory_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, mkdir_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -16477,10 +16480,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // RECURSIVE
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.recursive = iprot.readBool();
-                struct.setRecursiveIsSet(true);
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new MkdirTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -16496,7 +16500,7 @@ public class FileSystemMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, createDirectory_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, mkdir_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -16505,44 +16509,46 @@ public class FileSystemMasterService {
           oprot.writeString(struct.path);
           oprot.writeFieldEnd();
         }
-        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
-        oprot.writeBool(struct.recursive);
-        oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class createDirectory_argsTupleSchemeFactory implements SchemeFactory {
-      public createDirectory_argsTupleScheme getScheme() {
-        return new createDirectory_argsTupleScheme();
+    private static class mkdir_argsTupleSchemeFactory implements SchemeFactory {
+      public mkdir_argsTupleScheme getScheme() {
+        return new mkdir_argsTupleScheme();
       }
     }
 
-    private static class createDirectory_argsTupleScheme extends TupleScheme<createDirectory_args> {
+    private static class mkdir_argsTupleScheme extends TupleScheme<mkdir_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, createDirectory_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, mkdir_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetPath()) {
           optionals.set(0);
         }
-        if (struct.isSetRecursive()) {
+        if (struct.isSetOptions()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
         }
-        if (struct.isSetRecursive()) {
-          oprot.writeBool(struct.recursive);
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, createDirectory_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, mkdir_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
@@ -16550,16 +16556,17 @@ public class FileSystemMasterService {
           struct.setPathIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.recursive = iprot.readBool();
-          struct.setRecursiveIsSet(true);
+          struct.options = new MkdirTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
 
   }
 
-  public static class createDirectory_result implements org.apache.thrift.TBase<createDirectory_result, createDirectory_result._Fields>, java.io.Serializable, Cloneable, Comparable<createDirectory_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createDirectory_result");
+  public static class mkdir_result implements org.apache.thrift.TBase<mkdir_result, mkdir_result._Fields>, java.io.Serializable, Cloneable, Comparable<mkdir_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("mkdir_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
@@ -16567,8 +16574,8 @@ public class FileSystemMasterService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new createDirectory_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new createDirectory_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new mkdir_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new mkdir_resultTupleSchemeFactory());
     }
 
     public boolean success; // required
@@ -16652,13 +16659,13 @@ public class FileSystemMasterService {
       tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createDirectory_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mkdir_result.class, metaDataMap);
     }
 
-    public createDirectory_result() {
+    public mkdir_result() {
     }
 
-    public createDirectory_result(
+    public mkdir_result(
       boolean success,
       FileAlreadyExistException faee,
       InvalidPathException ipe)
@@ -16673,7 +16680,7 @@ public class FileSystemMasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public createDirectory_result(createDirectory_result other) {
+    public mkdir_result(mkdir_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetFaee()) {
@@ -16684,8 +16691,8 @@ public class FileSystemMasterService {
       }
     }
 
-    public createDirectory_result deepCopy() {
-      return new createDirectory_result(this);
+    public mkdir_result deepCopy() {
+      return new mkdir_result(this);
     }
 
     @Override
@@ -16700,7 +16707,7 @@ public class FileSystemMasterService {
       return this.success;
     }
 
-    public createDirectory_result setSuccess(boolean success) {
+    public mkdir_result setSuccess(boolean success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -16723,7 +16730,7 @@ public class FileSystemMasterService {
       return this.faee;
     }
 
-    public createDirectory_result setFaee(FileAlreadyExistException faee) {
+    public mkdir_result setFaee(FileAlreadyExistException faee) {
       this.faee = faee;
       return this;
     }
@@ -16747,7 +16754,7 @@ public class FileSystemMasterService {
       return this.ipe;
     }
 
-    public createDirectory_result setIpe(InvalidPathException ipe) {
+    public mkdir_result setIpe(InvalidPathException ipe) {
       this.ipe = ipe;
       return this;
     }
@@ -16832,12 +16839,12 @@ public class FileSystemMasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof createDirectory_result)
-        return this.equals((createDirectory_result)that);
+      if (that instanceof mkdir_result)
+        return this.equals((mkdir_result)that);
       return false;
     }
 
-    public boolean equals(createDirectory_result that) {
+    public boolean equals(mkdir_result that) {
       if (that == null)
         return false;
 
@@ -16894,7 +16901,7 @@ public class FileSystemMasterService {
     }
 
     @Override
-    public int compareTo(createDirectory_result other) {
+    public int compareTo(mkdir_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -16948,7 +16955,7 @@ public class FileSystemMasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("createDirectory_result(");
+      StringBuilder sb = new StringBuilder("mkdir_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -16997,15 +17004,15 @@ public class FileSystemMasterService {
       }
     }
 
-    private static class createDirectory_resultStandardSchemeFactory implements SchemeFactory {
-      public createDirectory_resultStandardScheme getScheme() {
-        return new createDirectory_resultStandardScheme();
+    private static class mkdir_resultStandardSchemeFactory implements SchemeFactory {
+      public mkdir_resultStandardScheme getScheme() {
+        return new mkdir_resultStandardScheme();
       }
     }
 
-    private static class createDirectory_resultStandardScheme extends StandardScheme<createDirectory_result> {
+    private static class mkdir_resultStandardScheme extends StandardScheme<mkdir_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, createDirectory_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, mkdir_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -17052,7 +17059,7 @@ public class FileSystemMasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, createDirectory_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, mkdir_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -17077,16 +17084,16 @@ public class FileSystemMasterService {
 
     }
 
-    private static class createDirectory_resultTupleSchemeFactory implements SchemeFactory {
-      public createDirectory_resultTupleScheme getScheme() {
-        return new createDirectory_resultTupleScheme();
+    private static class mkdir_resultTupleSchemeFactory implements SchemeFactory {
+      public mkdir_resultTupleScheme getScheme() {
+        return new mkdir_resultTupleScheme();
       }
     }
 
-    private static class createDirectory_resultTupleScheme extends TupleScheme<createDirectory_result> {
+    private static class mkdir_resultTupleScheme extends TupleScheme<mkdir_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, createDirectory_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, mkdir_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -17111,7 +17118,7 @@ public class FileSystemMasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, createDirectory_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, mkdir_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {

@@ -30,6 +30,7 @@ import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
+import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -135,7 +136,7 @@ public class RawTableMaster extends MasterBase {
     validateMetadataSize(metadata);
 
     // Create a directory at path to hold the columns
-    mFileSystemMaster.mkdir(path, true);
+    mFileSystemMaster.mkdir(path, MkdirOptions.defaults());
     long id = mFileSystemMaster.getFileId(path);
 
     // Add the table
@@ -148,7 +149,7 @@ public class RawTableMaster extends MasterBase {
 
     // Create directories in the table directory as columns
     for (int k = 0; k < columns; k ++) {
-      mFileSystemMaster.mkdir(columnPath(path, k), true);
+      mFileSystemMaster.mkdir(columnPath(path, k), MkdirOptions.defaults());
     }
 
     writeJournalEntry(new RawTableEntry(id, columns, metadata));

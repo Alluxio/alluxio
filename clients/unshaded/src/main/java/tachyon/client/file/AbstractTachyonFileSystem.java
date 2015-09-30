@@ -69,9 +69,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   public long create(TachyonURI path, CreateOptions options) throws IOException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      long fileId =
-          masterClient.createFile(path.getPath(), options.getBlockSize(), options.isRecursive(),
-              options.getTTL(), options.getUnderStorageType().isPersist());
+      long fileId = masterClient.create(path.getPath(), options);
       return fileId;
     } catch (BlockInfoException e) {
       throw new TachyonException(e, TachyonExceptionType.FILE_ALREADY_EXISTS);
@@ -183,7 +181,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   public boolean mkdir(TachyonURI path, MkdirOptions options) throws IOException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      boolean result = masterClient.createDirectory(path.getPath(), options.isRecursive());
+      boolean result = masterClient.mkdir(path.getPath(), options);
       if (result) {
         LOG.info("Created directory " + path.getPath());
       }

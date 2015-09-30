@@ -167,11 +167,16 @@ service BlockMasterService {
   BlockInfo getBlockInfo(1: i64 blockId) throws (1: BlockInfoException bie)
 }
 
-struct CreateFileTOptions {
+struct CreateTOptions {
   1: optional i64 blockSize
+  2: optional bool persisted
+  3: optional bool recursive
+  4: optional i64 ttl
+}
+
+struct MkdirTOptions {
+  1: optional bool persisted
   2: optional bool recursive
-  3: optional i64 ttl
-  4: optional bool persisted
 }
 
 service FileSystemMasterService {
@@ -200,7 +205,7 @@ service FileSystemMasterService {
   // TODO(gene): Is this necessary?
   string getUfsAddress()
 
-  i64 createFile(1: string path, 2: CreateFileTOptions options)
+  i64 create(1: string path, 2: CreateTOptions options)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
@@ -218,7 +223,7 @@ service FileSystemMasterService {
   void setPinned(1: i64 fileId, 2: bool pinned)
     throws (1: FileDoesNotExistException fdnee)
 
-  bool createDirectory(1: string path, 2: bool recursive)
+  bool mkdir(1: string path, 2: MkdirTOptions options)
     throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe)
 
   bool free(1: i64 fileId, 2: bool recursive)

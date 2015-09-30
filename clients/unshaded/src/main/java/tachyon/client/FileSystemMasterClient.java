@@ -28,9 +28,10 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.MkdirOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.CreateFileTOptions;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -239,28 +240,20 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Creates a new file.
    *
    * @param path the file path
-   * @param blockSizeBytes the file size
-   * @param recursive whether parent directories should be created if not present yet
-   * @param ttl TTL for file expiration
+   * @param options method options
    * @return the file id
    * @throws InvalidPathException if the given path is invalid
    * @throws BlockInfoException if the block index is invalid
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive,
-      long ttl, boolean persisted) throws IOException, BlockInfoException, InvalidPathException,
-      FileAlreadyExistException {
+  public synchronized long create(String path, CreateOptions options) throws IOException,
+      BlockInfoException, InvalidPathException, FileAlreadyExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        CreateFileTOptions options = new CreateFileTOptions();
-        options.setBlockSize(blockSizeBytes);
-        options.setRecursive(recursive);
-        options.setTtl(ttl);
-        options.setPersisted(persisted);
-        return mClient.createFile(path, options);
+        return mClient.create(path, options.toThrift());
       } catch (BlockInfoException e) {
         throw e;
       } catch (InvalidPathException e) {
@@ -385,19 +378,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Creates a new directory.
    *
    * @param path the directory path
-   * @param recursive whether parent directories should be created if they don't exist yet
+   * @param options method options
    * @return whether operation succeeded or not
    * @throws InvalidPathException if the given path is invalid
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException,
+  public synchronized boolean mkdir(String path, MkdirOptions options) throws IOException,
       FileAlreadyExistException, InvalidPathException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createDirectory(path, recursive);
+        return mClient.mkdir(path, options.toThrift());
       } catch (InvalidPathException e) {
         throw e;
       } catch (FileAlreadyExistException e) {

@@ -13,24 +13,20 @@
  * the License.
  */
 
-package tachyon.client.file.options;
+package tachyon.master.file.options;
 
 import tachyon.Constants;
-import tachyon.annotation.PublicApi;
-import tachyon.client.ClientContext;
-import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 import tachyon.thrift.CreateTOptions;
-import tachyon.thrift.MkdirTOptions;
 
-@PublicApi
 public final class CreateOptions {
   public static class Builder {
-    // TODO(calvin): Should this just be an int?
     private long mBlockSize;
+    private long mOperationTime;
+    private boolean mPersisted;
     private boolean mRecursive;
     private long mTTL;
-    private UnderStorageType mUnderStorageType;
 
     /**
      * Creates a new builder for {@link CreateOptions}.
@@ -39,10 +35,10 @@ public final class CreateOptions {
      */
     public Builder(TachyonConf conf) {
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mOperationTime = System.currentTimeMillis();
+      mPersisted = false;
       mRecursive = false;
       mTTL = Constants.NO_TTL;
-      mUnderStorageType =
-          conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
     }
 
     /**
@@ -51,6 +47,24 @@ public final class CreateOptions {
      */
     public Builder setBlockSize(long blockSize) {
       mBlockSize = blockSize;
+      return this;
+    }
+
+    /**
+     * @param persisted TODO
+     * @return the builder
+     */
+    public Builder setPersisted(boolean persisted) {
+      mPersisted = persisted;
+      return this;
+    }
+
+    /**
+     * @param operationTime TODO
+     * @return the builder
+     */
+    public Builder setOperationTime(long operationTime) {
+      mOperationTime = operationTime;
       return this;
     }
 
@@ -75,15 +89,6 @@ public final class CreateOptions {
     }
 
     /**
-     * @param underStorageType the under storage type to use
-     * @return the builder
-     */
-    public Builder setUnderStorageType(UnderStorageType underStorageType) {
-      mUnderStorageType = underStorageType;
-      return this;
-    }
-
-    /**
      * Builds a new instance of {@link CreateOptions}.
      *
      * @return a {@link CreateOptions} instance
@@ -93,61 +98,80 @@ public final class CreateOptions {
     }
   }
 
+  private long mBlockSize;
+  private long mOperationTime;
+  private boolean mPersisted;
+  private boolean mRecursive;
+  private long mTTL;
+
   /**
    * @return the default {@link CreateOptions}
    */
   public static CreateOptions defaults() {
-    return new Builder(ClientContext.getConf()).build();
+    return new Builder(MasterContext.getConf()).build();
   }
-
-  private final long mBlockSize;
-  private final boolean mRecursive;
-  private final long mTTL;
-  private final UnderStorageType mUnderStorageType;
 
   private CreateOptions(CreateOptions.Builder builder) {
     mBlockSize = builder.mBlockSize;
+    mOperationTime = builder.mOperationTime;
+    mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
     mTTL = builder.mTTL;
-    mUnderStorageType = builder.mUnderStorageType;
   }
 
   /**
-   * @return the block size
+   * Creates a new instance of {@link CreateOptions} from {@link CreateOptions}.
+   *
+   * @param options Thrift options
+   */
+  public CreateOptions(CreateTOptions options) {
+    mBlockSize = options.getBlockSize();
+    mOperationTime = System.currentTimeMillis();
+    mPersisted = options.isPersisted();
+    mRecursive = options.isRecursive();
+    mTTL = options.getTtl();
+  }
+
+  /**
+   * TODO
+   *
+   * @return
    */
   public long getBlockSize() {
     return mBlockSize;
   }
 
   /**
-   * @return the recursive flag value; it specifies whether parent directories should be created if
-   *         they do not already exist
+   * @return TODO
+   */
+  public long getOperationTime() {
+    return mOperationTime;
+  }
+
+  /**
+   * TODO
+   *
+   * @return
+   */
+  public boolean isPersisted() {
+    return mPersisted;
+  }
+
+  /**
+   * TODO
+   *
+   * @return
    */
   public boolean isRecursive() {
     return mRecursive;
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
-   *         should be kept around before it is automatically deleted
+   * TODO
+   *
+   * @return
    */
   public long getTTL() {
     return mTTL;
-  }
-
-  /**
-   * @return the under storage type
-   */
-  public UnderStorageType getUnderStorageType() {
-    return mUnderStorageType;
-  }
-
-  public CreateTOptions toThrift() {
-    CreateTOptions options = new CreateTOptions();
-    options.setBlockSize(mBlockSize);
-    options.setPersisted(mUnderStorageType.isPersist());
-    options.setRecursive(mRecursive);
-    options.setTtl(mTTL);
-    return options;
   }
 }

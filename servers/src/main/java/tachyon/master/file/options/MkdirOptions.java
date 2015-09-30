@@ -15,38 +15,25 @@
 
 package tachyon.master.file.options;
 
-import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.CreateFileTOptions;
+import tachyon.master.MasterContext;
+import tachyon.thrift.MkdirTOptions;
 
-public final class CreateFileOptions {
+public final class MkdirOptions {
   public static class Builder {
-    private long mBlockSize;
     private long mOperationTime;
     private boolean mPersisted;
     private boolean mRecursive;
-    private long mTTL;
 
     /**
-     * Creates a new builder for {@link CreateFileOptions}.
+     * Creates a new builder for {@link CreateOptions}.
      *
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
       mOperationTime = System.currentTimeMillis();
       mPersisted = false;
       mRecursive = false;
-      mTTL = Constants.NO_TTL;
-    }
-
-    /**
-     * @param blockSize the block size to use
-     * @return the builder
-     */
-    public Builder setBlockSize(long blockSize) {
-      mBlockSize = blockSize;
-      return this;
     }
 
     /**
@@ -78,59 +65,41 @@ public final class CreateFileOptions {
     }
 
     /**
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in seconds) the
-     *        created file should be kept around before it is automatically deleted
-     * @return the builder
-     */
-    public Builder setTTL(long ttl) {
-      mTTL = ttl;
-      return this;
-    }
-
-    /**
-     * Builds a new instance of {@link CreateFileOptions}.
+     * Builds a new instance of {@link CreateOptions}.
      *
-     * @return a {@link CreateFileOptions} instance
+     * @return a {@link CreateOptions} instance
      */
-    public CreateFileOptions build() {
-      return new CreateFileOptions(this);
+    public MkdirOptions build() {
+      return new MkdirOptions(this);
     }
   }
 
-  private long mBlockSize;
+  /**
+   * @return the default {@link MkdirOptions}
+   */
+  public static MkdirOptions defaults() {
+    return new Builder(MasterContext.getConf()).build();
+  }
+
   private long mOperationTime;
   private boolean mPersisted;
   private boolean mRecursive;
-  private long mTTL;
 
-  private CreateFileOptions(CreateFileOptions.Builder builder) {
-    mBlockSize = builder.mBlockSize;
+  private MkdirOptions(MkdirOptions.Builder builder) {
+    mOperationTime = builder.mOperationTime;
     mPersisted = builder.mPersisted;
     mRecursive = builder.mRecursive;
-    mTTL = builder.mTTL;
   }
 
   /**
-   * Creates a new instance of {@link CreateFileOptions} from {@link CreateFileOptions}.
+   * Creates a new instance of {@link CreateOptions} from {@link CreateOptions}.
    *
    * @param options Thrift options
-   * @return a {@link CreateFileOptions} instance
    */
-  public CreateFileOptions(CreateFileTOptions options) {
-    mBlockSize = options.getBlockSize();
+  public MkdirOptions(MkdirTOptions options) {
     mOperationTime = System.currentTimeMillis();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
-    mTTL = options.getTtl();
-  }
-
-  /**
-   * TODO
-   *
-   * @return
-   */
-  public long getBlockSize() {
-    return mBlockSize;
   }
 
   /**
@@ -156,14 +125,5 @@ public final class CreateFileOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
-  }
-
-  /**
-   * TODO
-   *
-   * @return
-   */
-  public long getTTL() {
-    return mTTL;
   }
 }

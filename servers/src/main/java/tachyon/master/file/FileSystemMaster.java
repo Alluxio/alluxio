@@ -65,7 +65,8 @@ import tachyon.master.file.meta.InodeDirectoryIdGenerator;
 import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
 import tachyon.master.file.meta.options.CreatePathOptions;
-import tachyon.master.file.options.CreateFileOptions;
+import tachyon.master.file.options.MkdirOptions;
+import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -528,11 +529,11 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistException
    * @throws BlockInfoException
    */
-  public long createFile(TachyonURI path, CreateFileOptions options)
+  public long create(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     MasterContext.getMasterSource().incCreateFileOps();
     synchronized (mInodeTree) {
-      InodeTree.CreatePathResult createResult = createFileInternal(path, options);
+      InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -542,7 +543,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  InodeTree.CreatePathResult createFileInternal(TachyonURI path, CreateFileOptions options)
+  InodeTree.CreatePathResult createInternal(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     CreatePathOptions createPathOptions =
@@ -907,20 +908,19 @@ public final class FileSystemMaster extends MasterBase {
    * Creates a directory for a given path. Called via RPC, and internal masters.
    *
    * @param path the path of the directory
-   * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,
-   *        the parent directories must already exist
+   * @param options method options
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath} for more details
    * @throws FileAlreadyExistException when there is already a file at path
    */
-  public InodeTree.CreatePathResult mkdir(TachyonURI path, boolean recursive)
+  public InodeTree.CreatePathResult mkdir(TachyonURI path, MkdirOptions options)
       throws InvalidPathException, FileAlreadyExistException {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
         CreatePathOptions createPathOptions =
             new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
-                .setPersisted(false).setRecursive(recursive).build();
+                .setPersisted(options.isPersisted()).setRecursive(options.isRecursive()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -1264,10 +1264,10 @@ public final class FileSystemMaster extends MasterBase {
       long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
       long fileSizeByte = ufs.getFileSize(ufsPath.toString());
       // Metadata loaded from UFS has no TTL set.
-      CreateFileOptions options =
-          new CreateFileOptions.Builder(MasterContext.getConf()).setBlockSize(ufsBlockSizeByte)
+      CreateOptions options =
+          new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(ufsBlockSizeByte)
               .setRecursive(recursive).build();
-      long fileId = createFile(path, options);
+      long fileId = create(path, options);
       persistFile(fileId, fileSizeByte);
       return fileId;
     } catch (IOException e) {
@@ -1279,7 +1279,9 @@ public final class FileSystemMaster extends MasterBase {
   public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException, IOException {
     synchronized (mInodeTree) {
-      InodeTree.CreatePathResult createResult = mkdir(tachyonPath, false);
+      MkdirOptions options =
+          new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(false).build();
+      InodeTree.CreatePathResult createResult = mkdir(tachyonPath, options);
       if (mountInternal(tachyonPath, ufsPath)) {
         writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
         flushJournal();
