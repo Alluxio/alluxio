@@ -125,7 +125,7 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.WORKER_ID, new org.apache.thrift.meta_data.FieldMetaData("workerId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.WORKER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("workerAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.WORKER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("workerAddress", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class)));
     tmpMap.put(_Fields.TIER, new org.apache.thrift.meta_data.FieldMetaData("tier", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
@@ -602,4 +602,3 @@ public class BlockLocation implements org.apache.thrift.TBase<BlockLocation, Blo
   }
 
 }
-
