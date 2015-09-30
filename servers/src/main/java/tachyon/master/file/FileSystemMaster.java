@@ -1486,6 +1486,8 @@ public final class FileSystemMaster extends MasterBase {
         for (TTLBucket bucket : expiredBuckets) {
           for (InodeFile file : bucket.getFiles()) {
             if (!file.isDeleted()) {
+              // file.isPinned() is deliberately not checked because ttl will have effect no matter
+              // whether the file is pinned.
               try {
                 deleteFile(file.getId(), false);
               } catch (FileDoesNotExistException e) {
