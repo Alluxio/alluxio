@@ -86,34 +86,23 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   }
 
   @Override
-  public int directRead(byte[] b, int off, int len) throws IOException {
-    // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
-    // read up to the end of the block.
-    int toRead = (int) Math.min(len, remaining());
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, len);
-    buf.get(b, off, len);
-    BufferUtils.cleanDirectBuffer(buf);
-    incrementBytesReadMetric(toRead);
-    return toRead;
-  }
-
-  @Override
-  public void updateBuffer() throws IOException {
-    int toRead = (int) Math.min(mBuffer.limit(), remaining());
+  protected void bufferedRead(int len) throws IOException {
     if (mBuffer.isDirect()) { // Buffer may not be direct on initialization
       BufferUtils.cleanDirectBuffer(mBuffer);
     }
-    mBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, toRead);
-    mBufferPos = mPos;
-    incrementBytesReadMetric(toRead);
+    mBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, len);
   }
 
-  /**
-   * Increments the number of bytes read metric.
-   *
-   * @param bytes number of bytes to record as read
-   */
-  private void incrementBytesReadMetric(int bytes) {
+  @Override
+  public int directRead(byte[] b, int off, int len) throws IOException {
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, mPos, len);
+    buf.get(b, off, len);
+    BufferUtils.cleanDirectBuffer(buf);
+    return len;
+  }
+
+  @Override
+  protected void incrementBytesReadMetric(int bytes) {
     ClientContext.getClientMetrics().incBytesReadLocal(bytes);
   }
 }

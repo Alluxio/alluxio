@@ -129,6 +129,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       mBufferPos = INVALID_BUFFER_POS; // Invalidate the buffer
       int bytesRead = directRead(b, off, toRead);
       mPos += bytesRead;
+      incrementBytesReadMetric(bytesRead);
       return bytesRead;
     }
 
@@ -168,13 +169,35 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     return toSkip;
   }
 
-  protected long remainingInBuffer() {
-    if (mBufferPos == INVALID_BUFFER_POS) {
-      return 0;
-    }
+  /**
+   * Reads from the data source into the buffer. The buffer should be at position 0 and have len
+   * valid bytes available after this method is called. This method should not modify mBufferPos,
+   * mPos, or increment any metrics.
+   *
+   * @param len length of data to fill in the buffer, must always be <= buffer size
+   * @throws IOException
+   */
+  protected abstract void bufferedRead(int len) throws IOException;
 
-    return mBuffer.remaining();
-  }
+  /**
+   * Directly reads data to the given byte array. The data will not go through the internal buffer.
+   * This method should not modify mPos or update any metrics collection for bytes read.
+   *
+   * @param b the byte array to write the data to
+   * @param off the offset in the array to write to
+   * @param len the length of data to write into the array must always be valid within the block
+   * @return the number of bytes successfully read
+   * @throws IOException if an error occurs reading the data
+   */
+  protected abstract int directRead(byte[] b, int off, int len) throws IOException;
+
+  /**
+   * Increments the number of bytes read metric. Inheriting classes should implement this to
+   * increment the correct metric.
+   *
+   * @param bytes number of bytes to record as read
+   */
+  protected abstract void incrementBytesReadMetric(int bytes);
 
   /**
    * Initializes the internal buffer based on the user's specified size. Any reads above half
@@ -190,29 +213,32 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   /**
    * Convenience method to ensure the stream is not closed.
    */
-  protected void checkIfClosed() {
+  private void checkIfClosed() {
     Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
   }
 
   /**
-   * Directly reads data to the given byte array. The data will not go through the internal
-   * buffer. This method should not modify mPos but should update the any metrics collection for
-   * bytes read.
-   *
-   * @param b the byte array to write the data to
-   * @param off the offset in the array to write to
-   * @param len the length of data to write into the array
-   * @return the number of bytes successfully read
-   * @throws IOException if an error occurs reading the data
+   * @return how many bytes are still valid in the buffer.
    */
-  protected abstract int directRead(byte[] b, int off, int len) throws IOException;
+  protected long remainingInBuffer() {
+    if (mBufferPos == INVALID_BUFFER_POS) {
+      return 0;
+    }
+
+    return mBuffer.remaining();
+  }
 
   /**
-   * Updates the buffer so it is ready to be read from. After calling this method, the buffer should
-   * be positioned at 0 and mBufferPos should be equal to mPos. This method should not modify mPos
-   * but should update the any metrics collection for bytes read.
+   * Updates the buffer so it is ready to be read from. After calling this method, the buffer will
+   * be positioned at 0 and mBufferPos will be equal to mPos. Inheriting classes should implement
+   * bufferedRead(int) for their read specific logic.
    *
    * @throws IOException if an error occurs reading the data
    */
-  protected abstract void updateBuffer() throws IOException;
+  private void updateBuffer() throws IOException {
+    int toRead = (int) Math.min(mBuffer.limit(), remaining());
+    bufferedRead(toRead);
+    mBufferPos = mPos;
+    incrementBytesReadMetric(toRead);
+  }
 }
