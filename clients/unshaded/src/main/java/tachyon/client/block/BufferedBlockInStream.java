@@ -48,8 +48,6 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected final long mBlockSize;
   /** The address of the worker to read the data from. */
   protected final InetSocketAddress mLocation;
-  /** The block store context which provides block worker clients. */
-  protected final BlockStoreContext mContext;
 
   /** Internal buffer to improve small read performance. */
   protected ByteBuffer mBuffer;
@@ -72,7 +70,6 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     mBuffer = allocateBuffer();
     mBufferIsValid = false; // No data in buffer
     mClosed = false;
-    mContext = BlockStoreContext.INSTANCE;
   }
 
   @Override
@@ -229,7 +226,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   private void updateBuffer() throws IOException {
     int toRead = (int) Math.min(mBuffer.capacity(), remaining());
     bufferedRead(toRead);
-    Preconditions.checkState(mBuffer.remaining() >= toRead);
+    Preconditions.checkState(mBuffer.remaining() == toRead);
     mBufferIsValid = true;
     incrementBytesReadMetric(toRead);
   }
