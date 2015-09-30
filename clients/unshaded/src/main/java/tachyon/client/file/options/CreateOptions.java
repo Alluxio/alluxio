@@ -34,7 +34,7 @@ public final class CreateOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mTTL = 0;
+      mTTL = Constants.NO_TTL;
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
       mRecursive = false;
     }
