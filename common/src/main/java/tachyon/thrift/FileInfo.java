@@ -192,36 +192,36 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.NAME, new org.apache.thrift.meta_data.FieldMetaData("name", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.LENGTH, new org.apache.thrift.meta_data.FieldMetaData("length", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.LENGTH, new org.apache.thrift.meta_data.FieldMetaData("length", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.BLOCK_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("blockSizeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.BLOCK_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("blockSizeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.CREATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("creationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CREATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("creationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.IS_COMPLETE, new org.apache.thrift.meta_data.FieldMetaData("isComplete", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_COMPLETE, new org.apache.thrift.meta_data.FieldMetaData("isComplete", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.IS_FOLDER, new org.apache.thrift.meta_data.FieldMetaData("isFolder", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_FOLDER, new org.apache.thrift.meta_data.FieldMetaData("isFolder", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.IS_PINNED, new org.apache.thrift.meta_data.FieldMetaData("isPinned", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_PINNED, new org.apache.thrift.meta_data.FieldMetaData("isPinned", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.IS_CACHEABLE, new org.apache.thrift.meta_data.FieldMetaData("isCacheable", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_CACHEABLE, new org.apache.thrift.meta_data.FieldMetaData("isCacheable", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.BLOCK_IDS, new org.apache.thrift.meta_data.FieldMetaData("blockIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+    tmpMap.put(_Fields.BLOCK_IDS, new org.apache.thrift.meta_data.FieldMetaData("blockIds", org.apache.thrift.TFieldRequirementType.DEFAULT,
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST,
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
-    tmpMap.put(_Fields.DEPENDENCY_ID, new org.apache.thrift.meta_data.FieldMetaData("dependencyId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.DEPENDENCY_ID, new org.apache.thrift.meta_data.FieldMetaData("dependencyId", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.IN_MEMORY_PERCENTAGE, new org.apache.thrift.meta_data.FieldMetaData("inMemoryPercentage", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IN_MEMORY_PERCENTAGE, new org.apache.thrift.meta_data.FieldMetaData("inMemoryPercentage", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.LAST_MODIFICATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("lastModificationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.LAST_MODIFICATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("lastModificationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
@@ -1449,7 +1449,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -1457,7 +1457,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.fileId = iprot.readI64();
               struct.setFileIdIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1465,7 +1465,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.name = iprot.readString();
               struct.setNameIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1473,7 +1473,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.path = iprot.readString();
               struct.setPathIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1481,7 +1481,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.ufsPath = iprot.readString();
               struct.setUfsPathIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1489,7 +1489,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.length = iprot.readI64();
               struct.setLengthIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1497,7 +1497,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.blockSizeBytes = iprot.readI64();
               struct.setBlockSizeBytesIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1505,7 +1505,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.creationTimeMs = iprot.readI64();
               struct.setCreationTimeMsIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1513,7 +1513,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.isComplete = iprot.readBool();
               struct.setIsCompleteIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1521,7 +1521,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.isFolder = iprot.readBool();
               struct.setIsFolderIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1529,7 +1529,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.isPinned = iprot.readBool();
               struct.setIsPinnedIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1537,7 +1537,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.isCacheable = iprot.readBool();
               struct.setIsCacheableIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1555,7 +1555,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
                 iprot.readListEnd();
               }
               struct.setBlockIdsIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1563,7 +1563,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.dependencyId = iprot.readI32();
               struct.setDependencyIdIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1571,7 +1571,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.inMemoryPercentage = iprot.readI32();
               struct.setInMemoryPercentageIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1579,7 +1579,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.lastModificationTimeMs = iprot.readI64();
               struct.setLastModificationTimeMsIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -1852,4 +1852,3 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   }
 
 }
-
