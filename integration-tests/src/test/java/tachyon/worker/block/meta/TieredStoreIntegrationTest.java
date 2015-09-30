@@ -186,13 +186,13 @@ public class TieredStoreIntegrationTest {
   public void promoteBlock() throws Exception {
     TachyonFile file1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", TachyonStorageType.STORE,
-            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 6);
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 6);
     TachyonFile file2 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", TachyonStorageType.STORE,
-            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 2);
     TachyonFile file3 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", TachyonStorageType.STORE,
-            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
