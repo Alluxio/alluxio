@@ -89,14 +89,14 @@ public final class WorkerClient implements Closeable {
       TachyonConf conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
-    mTachyonConf = conf;
+    mTachyonConf = Preconditions.checkNotNull(conf);
     mSessionId = sessionId;
     mIsLocal = isLocal;
-    mClientMetrics = clientMetrics;
+    mClientMetrics = Preconditions.checkNotNull(clientMetrics);
   }
 
   /**
-   * Update the latest block access time on the worker.
+   * Updates the latest block access time on the worker.
    *
    * @param blockId The id of the block
    * @throws IOException
@@ -114,16 +114,18 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker that the checkpoint file of the file has been added.
+   * Notifies the worker that a file has been persisted in a temporary UFS location.
    *
-   * @param fileId The id of the checkpointed file
+   * @param fileId the file id
+   * @param nonce nonce a nonce used for temporary file creation
+   * @param path the UFS path where the file should be eventually stored
    * @throws IOException
    */
-  public synchronized void addCheckpoint(long fileId) throws IOException {
+  public synchronized void persistFile(long fileId, long nonce, String path) throws IOException {
     mustConnect();
 
     try {
-      mClient.addCheckpoint(mSessionId, fileId);
+      mClient.persistFile(fileId, nonce, path);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
@@ -139,7 +141,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker to checkpoint the file asynchronously.
+   * Notifies the worker to checkpoint the file asynchronously.
    *
    * @param fileId The id of the file
    * @return true if success, false otherwise
@@ -159,7 +161,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify the worker the block is cached.
+   * Notifies the worker the block is cached.
    *
    * @param blockId The id of the block
    * @throws IOException
@@ -180,7 +182,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notify worker that the block has been cancelled
+   * Notifies worker that the block has been cancelled
    *
    * @param blockId The Id of the block to be cancelled
    * @throws IOException
@@ -197,7 +199,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Close the connection to worker. Shutdown the heartbeat thread.
+   * Closes the connection to worker. Shutdown the heartbeat thread.
    */
   @Override
   public synchronized void close() {
@@ -218,7 +220,7 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Open the connection to the worker. And start the heartbeat thread.
+   * Opens the connection to the worker. And start the heartbeat thread.
    *
    * @return true if succeed, false otherwise
    * @throws IOException
@@ -279,23 +281,6 @@ public final class WorkerClient implements Closeable {
 
   public synchronized long getSessionId() {
     return mSessionId;
-  }
-
-  /**
-   * Gets the session temporary folder in the under file system of the specified session.
-   *
-   * @return The session temporary folder in the under file system
-   * @throws IOException
-   */
-  public synchronized String getSessionUfsTempFolder() throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.getSessionUfsTempFolder(mSessionId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
   }
 
   /**
@@ -381,7 +366,7 @@ public final class WorkerClient implements Closeable {
     try {
       return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
     } catch (OutOfSpaceException e) {
-      throw new IOException(e);
+      throw new IOException("Failed to request " + initialBytes, e);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (TException e) {

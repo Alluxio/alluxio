@@ -30,11 +30,7 @@ import tachyon.thrift.InvalidPathException;
 /**
  * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.
  */
-public class PathUtils {
-
-  private PathUtils() {
-    // util class
-  }
+public final class PathUtils {
 
   /**
    * Checks and normalizes the given path.
@@ -50,7 +46,7 @@ public class PathUtils {
   }
 
   /**
-   * Join each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
+   * Joins each element in paths in order, separated by {@code TachyonURI.SEPARATOR}.
    * <p>
    * For example,
    *
@@ -96,7 +92,7 @@ public class PathUtils {
   }
 
   /**
-   * Get the parent of the file at a path.
+   * Gets the parent of the file at a path.
    *
    * @param path The path
    * @return the parent path of the file; this is "/" if the given path is the root.
@@ -114,7 +110,7 @@ public class PathUtils {
   }
 
   /**
-   * Get the path components of the given path.
+   * Gets the path components of the given path.
    *
    * @param path The path to split
    * @return the path split into components
@@ -131,7 +127,30 @@ public class PathUtils {
   }
 
   /**
-   * Check if the given path is the root.
+   * Checks whether the given path contains the given prefix. The comparison happens at a component
+   * granularity; for example, {@code hasPrefix(/dir/file, /dir)} should evaluate to true, while
+   * {@code hasPrefix(/dir/file, /d)} should evaluate to false.
+   *
+   * @param path a path
+   * @param prefix a prefix
+   * @return whether the given path has the given prefix
+   */
+  public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
+    String[] pathComponents = getPathComponents(path);
+    String[] prefixComponents = getPathComponents(prefix);
+    if (pathComponents.length < prefixComponents.length) {
+      return false;
+    }
+    for (int i = 0; i < prefixComponents.length; i ++) {
+      if (!pathComponents[i].equals(prefixComponents[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks if the given path is the root.
    *
    * @param path The path to check
    * @return true if the path is the root
@@ -142,7 +161,7 @@ public class PathUtils {
   }
 
   /**
-   * Check if the given path is properly formed.
+   * Checks if the given path is properly formed.
    *
    * @param path The path to check
    * @throws InvalidPathException If the path is not properly formed
@@ -155,6 +174,18 @@ public class PathUtils {
   }
 
   /**
+   * Generates a deterministic temporary file name for the a path and a file id and a nonce.
+   *
+   * @param fileId a file id
+   * @param nonce a nonce token
+   * @param path a file path
+   * @return a deterministic temporary file name
+   */
+  public static final String temporaryFileName(long fileId, long nonce, String path) {
+    return path + ".tachyon." + fileId + "." + String.format("0x%16s", nonce) + ".tmp";
+  }
+
+  /**
    * Creates a unique path based off the caller.
    *
    * @return unique path based off the caller
@@ -164,4 +195,6 @@ public class PathUtils {
     long time = System.nanoTime();
     return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
   }
+
+  private PathUtils() {} // prevent instantiation
 }

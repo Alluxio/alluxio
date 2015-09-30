@@ -27,7 +27,7 @@ import tachyon.network.protocol.databuffer.DataByteBuffer;
 /**
  * This represents the request to write a block to a DataServer.
  */
-public class RPCBlockWriteRequest extends RPCRequest {
+public final class RPCBlockWriteRequest extends RPCRequest {
   private final long mSessionId;
   private final long mBlockId;
   private final long mOffset;
@@ -49,7 +49,7 @@ public class RPCBlockWriteRequest extends RPCRequest {
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCBlockWriteRequest} object and return it.
+   * Decodes the input {@link ByteBuf} into a {@link RPCBlockWriteRequest} object and returns it.
    *
    * @param in the input {@link ByteBuf}
    * @return The decoded RPCBlockWriteRequest object

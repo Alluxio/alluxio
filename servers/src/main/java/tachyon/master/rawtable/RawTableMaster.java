@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.file.FileSystemMaster;
@@ -94,7 +95,7 @@ public class RawTableMaster extends MasterBase {
         throw new IOException(tdnee);
       }
     } else {
-      throw new IOException("Unknown entry type " + entry.getType());
+      throw new IOException("Unknown raw table entry type: " + entry.getType());
     }
   }
 
@@ -134,7 +135,7 @@ public class RawTableMaster extends MasterBase {
     validateMetadataSize(metadata);
 
     // Create a directory at path to hold the columns
-    mFileSystemMaster.mkdirs(path, true);
+    mFileSystemMaster.mkdir(path, true);
     long id = mFileSystemMaster.getFileId(path);
 
     // Add the table
@@ -147,7 +148,7 @@ public class RawTableMaster extends MasterBase {
 
     // Create directories in the table directory as columns
     for (int k = 0; k < columns; k ++) {
-      mFileSystemMaster.mkdirs(columnPath(path, k), true);
+      mFileSystemMaster.mkdir(columnPath(path, k), true);
     }
 
     writeJournalEntry(new RawTableEntry(id, columns, metadata));
@@ -167,7 +168,8 @@ public class RawTableMaster extends MasterBase {
   public void updateRawTableMetadata(long tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException {
     if (!mFileSystemMaster.isDirectory(tableId)) {
-      throw new TableDoesNotExistException("Table with id " + tableId + " does not exist.");
+      throw new TableDoesNotExistException(
+          ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(tableId));
     }
     mRawTables.updateMetadata(tableId, metadata);
 
@@ -211,15 +213,18 @@ public class RawTableMaster extends MasterBase {
    * @return the table info
    * @throws TableDoesNotExistException when no table has the id
    */
-  public RawTableInfo getClientRawTableInfo(long id) throws TableDoesNotExistException {
+  public RawTableInfo getClientRawTableInfo(long id) throws InvalidPathException,
+      TableDoesNotExistException {
     if (!mRawTables.contains(id)) {
-      throw new TableDoesNotExistException("Table with id " + id + " does not exist.");
+      throw new TableDoesNotExistException(
+          ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
     }
 
     try {
       FileInfo fileInfo = mFileSystemMaster.getFileInfo(id);
       if (!fileInfo.isFolder) {
-        throw new TableDoesNotExistException("Table with id " + id + " does not exist.");
+        throw new TableDoesNotExistException(
+            ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
       }
 
       RawTableInfo ret = new RawTableInfo();
@@ -230,9 +235,8 @@ public class RawTableMaster extends MasterBase {
       ret.metadata = mRawTables.getMetadata(ret.id);
       return ret;
     } catch (FileDoesNotExistException fne) {
-      throw new TableDoesNotExistException("Table with id " + id + " does not exist.");
-    } catch (InvalidPathException e) {
-      throw new TableDoesNotExistException("Table id " + id + " is invalid.");
+      throw new TableDoesNotExistException(
+          ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
     }
   }
 

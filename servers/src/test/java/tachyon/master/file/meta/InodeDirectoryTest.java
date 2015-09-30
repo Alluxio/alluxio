@@ -23,9 +23,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.master.file.meta.Inode;
-import tachyon.master.file.meta.InodeDirectory;
-import tachyon.master.file.meta.InodeFile;
+import tachyon.thrift.FileInfo;
 
 /**
  * Unit tests for tachyon.InodeDirectory.
@@ -181,6 +179,28 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     }
     LOG.info(String.format("getChild(String name) called sequentially %d times, cost %d ms", nFiles,
         System.currentTimeMillis() - start));
+  }
+
+  @Test
+  public void generateClientFileInfoTest() {
+    InodeDirectory inodeDirectory = createInodeDirectory();
+    String path = "/test/path";
+    FileInfo info = inodeDirectory.generateClientFileInfo(path);
+    Assert.assertEquals(inodeDirectory.getId(), info.getFileId());
+    Assert.assertEquals(inodeDirectory.getName(), info.getName());
+    Assert.assertEquals(path, info.getPath());
+    Assert.assertEquals(null, info.getUfsPath());
+    Assert.assertEquals(0, info.getLength());
+    Assert.assertEquals(0, info.getBlockSizeBytes());
+    Assert.assertEquals(inodeDirectory.getCreationTimeMs(), info.getCreationTimeMs());
+    Assert.assertTrue(info.isIsCompleted());
+    Assert.assertTrue(info.isIsFolder());
+    Assert.assertEquals(inodeDirectory.isPinned(), info.isIsPinned());
+    Assert.assertFalse(info.isIsCacheable());
+    Assert.assertNull(info.getBlockIds());
+    Assert.assertEquals(-1, info.getDependencyId());
+    Assert.assertEquals(inodeDirectory.getLastModificationTimeMs(),
+        info.getLastModificationTimeMs());
   }
 
 }

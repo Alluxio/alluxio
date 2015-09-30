@@ -74,8 +74,7 @@ public class JournalShutdownIntegrationTest {
         while (true) {
           if (mOpType == 0) {
             try {
-              mTfs.getOutStream(new TachyonURI(TEST_FILE_DIR + mSuccessNum),
-                  ClientOptions.defaults()).close();
+              mTfs.getOutStream(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
             } catch (IOException ioe) {
               break;
             }
@@ -88,7 +87,7 @@ public class JournalShutdownIntegrationTest {
           // The create operation may succeed at the master side but still returns false due to the
           // shutdown. So the mSuccessNum may be less than the actual success number.
           mSuccessNum ++;
-          CommonUtils.sleepMs(null, 100);
+          CommonUtils.sleepMs(100);
         }
       } catch (Exception e) {
         // Something crashed. Stop the thread.
@@ -178,10 +177,10 @@ public class JournalShutdownIntegrationTest {
   @Test
   public void singleMasterJournalCrashIntegrationTest() throws Exception {
     LocalTachyonCluster cluster = setupSingleMasterCluster();
-    CommonUtils.sleepMs(null, TEST_TIME_MS);
+    CommonUtils.sleepMs(TEST_TIME_MS);
     // Shutdown the cluster
     cluster.stopTFS();
-    CommonUtils.sleepMs(null, TEST_TIME_MS);
+    CommonUtils.sleepMs(TEST_TIME_MS);
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdown();
     mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS);
@@ -196,11 +195,11 @@ public class JournalShutdownIntegrationTest {
     LocalTachyonClusterMultiMaster cluster = setupMultiMasterCluster();
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills ++) {
-      CommonUtils.sleepMs(null, TEST_TIME_MS);
+      CommonUtils.sleepMs(TEST_TIME_MS);
       Assert.assertTrue(cluster.killLeader());
     }
     cluster.stopTFS();
-    CommonUtils.sleepMs(null, TEST_TIME_MS);
+    CommonUtils.sleepMs(TEST_TIME_MS);
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdown();
     while (!mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS)) {}

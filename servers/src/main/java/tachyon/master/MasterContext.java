@@ -30,12 +30,27 @@ public final class MasterContext {
   private static TachyonConf sTachyonConf = new TachyonConf();
 
   /**
+   * The MasterSource for collecting master metrics.
+   */
+  private static MasterSource sMasterSource = new MasterSource();
+
+  /**
    * Returns the one and only static {@link tachyon.conf.TachyonConf} object which is shared among
    * all classes within the master process.
    *
-   * @return the tachyonConf for the worker process
+   * @return the tachyonConf for the master process
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
+  }
+
+  /**
+   * Returns the one and only static {@link tachyon.master.MasterSource} object which is shared
+   * among all classes within the master process.
+   *
+   * @return the MasterSource for the master process
+   */
+  public static MasterSource getMasterSource() {
+    return sMasterSource;
   }
 }
