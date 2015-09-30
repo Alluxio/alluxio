@@ -64,22 +64,15 @@ public final class LocalTachyonCluster {
   private static ClientContext.PrivateReinitializer sReinitializer;
 
   private BlockWorker mWorker = null;
-
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
   private int mQuotaUnitBytes;
-
   private String mTachyonHome;
-
   private String mWorkerDataFolder;
-
   private Thread mWorkerThread = null;
   private String mLocalhostName = null;
-
   private LocalTachyonMaster mMaster;
-
   private TachyonConf mMasterConf;
-
   private TachyonConf mWorkerConf;
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
@@ -120,10 +113,6 @@ public final class LocalTachyonCluster {
     return mTachyonHome;
   }
 
-  public String getTempFolderInUnderFs() {
-    return mMasterConf.get(Constants.UNDERFS_ADDRESS);
-  }
-
   public BlockWorker getWorker() {
     return mWorker;
   }
@@ -156,6 +145,7 @@ public final class LocalTachyonCluster {
     mMasterConf.set(Constants.MASTER_HOSTNAME, mLocalhostName);
     mMasterConf.set(Constants.MASTER_PORT, Integer.toString(0));
     mMasterConf.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
+    mMasterConf.set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, Integer.toString(1000));
 
     mMaster = LocalTachyonMaster.create(mTachyonHome);
     mMaster.start();
@@ -197,8 +187,8 @@ public final class LocalTachyonCluster {
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     for (int level = 1; level < maxLevel; level ++) {
-      String tierLevelDirPath = String.format(
-          Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
@@ -234,39 +224,26 @@ public final class LocalTachyonCluster {
   }
 
   /**
-   * Start both a master and a worker using the default configuration.
+   * Starts both a master and a worker using the configurations in {@link MasterContext} and
+   * {@link WorkerContext} respectively.
    *
    * @throws IOException when the operation fails
    */
   public void start() throws IOException {
-    start(new TachyonConf());
-  }
-
-  /**
-   * Start both a master and a worker using the given configuration.
-   *
-   * @param conf Tachyon configuration
-   * @throws IOException when the operation fails
-   */
-  // TODO(cc): Since we have MasterContext now, remove the parameter.
-  public void start(TachyonConf conf) throws IOException {
     mTachyonHome =
         File.createTempFile("Tachyon", "U" + System.currentTimeMillis()).getAbsolutePath();
     // Delete the temp dir by ufs, otherwise, permission problem may be encountered.
-    UnderFileSystemUtils.deleteDir(mTachyonHome, conf);
+    UnderFileSystemUtils.deleteDir(mTachyonHome, MasterContext.getConf());
     mWorkerDataFolder = "/datastore";
     mLocalhostName = NetworkAddressUtils.getLocalHostName(100);
 
     // Disable hdfs client caching to avoid file system close() affecting other clients
     System.setProperty("fs.hdfs.impl.disable.cache", "true");
 
-    MasterContext.getConf().merge(conf);
     startMaster();
 
     UnderFileSystemUtils.mkdirIfNotExists(
         mMasterConf.get(Constants.UNDERFS_DATA_FOLDER), mMasterConf);
-    UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER), mMasterConf);
     CommonUtils.sleepMs(10);
 
     startWorker();

@@ -37,7 +37,8 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeFile inode1 = createInodeFile(1);
     // self equal
     Assert.assertEquals(inode1, inode1);
-    InodeFile inode2 = new InodeFile("test2", 1, 0, 1000, System.currentTimeMillis());
+    InodeFile inode2 = new InodeFile("test2", 1, 0, 1000, System.currentTimeMillis(),
+        Constants.NO_TTL);
     // equal with same id
     Assert.assertEquals(inode1, inode2);
     InodeFile inode3 = createInodeFile(3);
@@ -69,7 +70,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void setLengthAfterCompleteTest() throws Exception {
     mThrown.expect(SuspectedFileSizeException.class);
-    mThrown.expectMessage("InodeFile length was set previously.");
+    mThrown.expectMessage("InodeFile has been completed.");
 
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
@@ -112,9 +113,9 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void setCompleteTest() {
     InodeFile inode1 = createInodeFile(1);
-    Assert.assertFalse(inode1.isComplete());
+    Assert.assertFalse(inode1.isCompleted());
 
-    inode1.setComplete(LENGTH);
-    Assert.assertTrue(inode1.isComplete());
+    inode1.setCompleted(LENGTH);
+    Assert.assertTrue(inode1.isCompleted());
   }
 }
