@@ -395,4 +395,3 @@ public class OutOfSpaceException extends TException implements org.apache.thrift
   }
 
 }
-
