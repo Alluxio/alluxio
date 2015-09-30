@@ -42,6 +42,8 @@ public abstract class BufferedBlockInStream extends BlockInStream {
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;
+  /** Flag indicating if the buffer has valid data. */
+  private boolean mBufferIsValid;
 
   /** The id of the block to which this instream provides access. */
   protected final long mBlockId;
@@ -56,8 +58,6 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected ByteBuffer mBuffer;
   /** Flag indicating if the stream is closed, can only go from false to true. */
   protected boolean mClosed;
-  /** Current position of the buffer's next byte, relative to the start of the block */
-  protected long mBufferPos;
 
   /**
    * Basic constructor for a BufferedBlockInStream. This sets the necessary variables and creates
@@ -73,7 +73,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     mBlockSize = blockSize;
     mLocation = location;
     mBuffer = allocateBuffer();
-    mBufferPos = INVALID_BUFFER_POS; // No data in buffer
+    mBufferIsValid = false; // No data in buffer
     mClosed = false;
     mContext = BlockStoreContext.INSTANCE;
   }
@@ -93,11 +93,10 @@ public abstract class BufferedBlockInStream extends BlockInStream {
       close();
       return -1;
     }
-    if (remainingInBuffer() == 0) {
+    if (!mBufferIsValid || mBuffer.remaining() == 0) {
       updateBuffer();
     }
     mPos ++;
-    mBufferPos ++;
     return BufferUtils.byteToInt(mBuffer.get());
   }
 
@@ -119,15 +118,14 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     }
 
     int toRead = (int) Math.min(len, remaining());
-    if (remainingInBuffer() > toRead) { // data is fully contained in the buffer
+    if (mBufferIsValid && mBuffer.remaining() > toRead) { // data is fully contained in the buffer
       mBuffer.get(b, off, toRead);
       mPos += toRead;
-      mBufferPos += toRead;
       return toRead;
     }
 
     if (toRead > mBuffer.limit() / 2) { // directly read if request is > one-half buffer size
-      mBufferPos = INVALID_BUFFER_POS; // Invalidate the buffer
+      mBufferIsValid = false;
       int bytesRead = directRead(b, off, toRead);
       mPos += bytesRead;
       incrementBytesReadMetric(bytesRead);
@@ -138,7 +136,6 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     updateBuffer();
     mBuffer.get(b, off, toRead);
     mPos += toRead;
-    mBufferPos += toRead;
     return toRead;
   }
 
@@ -153,7 +150,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
     Preconditions.checkArgument(pos <= mBlockSize, "Seek position is past end of block: "
         + mBlockSize);
-    mBufferPos = INVALID_BUFFER_POS;
+    mBufferIsValid = false;
     mPos = pos;
   }
 
@@ -165,7 +162,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     }
 
     long toSkip = Math.min(remaining(), n);
-    mBufferPos = INVALID_BUFFER_POS;
+    mBufferIsValid = false;
     mPos += toSkip;
     return toSkip;
   }
@@ -226,19 +223,8 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   }
 
   /**
-   * @return how many bytes are still valid in the buffer.
-   */
-  protected long remainingInBuffer() {
-    if (mBufferPos == INVALID_BUFFER_POS) {
-      return 0;
-    }
-
-    return mBuffer.remaining();
-  }
-
-  /**
    * Updates the buffer so it is ready to be read from. After calling this method, the buffer will
-   * be positioned at 0 and mBufferPos will be equal to mPos. Inheriting classes should implement
+   * be positioned at 0 and mBufferIsValid will be true. Inheriting classes should implement
    * bufferedRead(int) for their read specific logic.
    *
    * @throws IOException if an error occurs reading the data
@@ -246,7 +232,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   private void updateBuffer() throws IOException {
     int toRead = (int) Math.min(mBuffer.limit(), remaining());
     bufferedRead(toRead);
-    mBufferPos = mPos;
+    mBufferIsValid = true;
     incrementBytesReadMetric(toRead);
   }
 }
