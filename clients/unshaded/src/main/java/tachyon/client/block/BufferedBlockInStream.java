@@ -59,7 +59,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   protected long mPos;
 
   /**
-   * Helper for creating a BufferedBlockInStream. This sets the necessary variables and creates
+   * Basic constructor for a BufferedBlockInStream. This sets the necessary variables and creates
    * the initial buffer which is empty and invalid.
    *
    * @param blockId block id for this stream
@@ -175,7 +175,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * mPos, or increment any metrics.
    *
    * @param len length of data to fill in the buffer, must always be <= buffer size
-   * @throws IOException
+   * @throws IOException if the read failed to buffer the requested number of bytes
    */
   protected abstract void bufferedRead(int len) throws IOException;
 
