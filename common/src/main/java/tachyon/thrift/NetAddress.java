@@ -123,11 +123,11 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.HOST, new org.apache.thrift.meta_data.FieldMetaData("host", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.HOST, new org.apache.thrift.meta_data.FieldMetaData("host", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.RPC_PORT, new org.apache.thrift.meta_data.FieldMetaData("rpcPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.RPC_PORT, new org.apache.thrift.meta_data.FieldMetaData("rpcPort", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.DATA_PORT, new org.apache.thrift.meta_data.FieldMetaData("dataPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.DATA_PORT, new org.apache.thrift.meta_data.FieldMetaData("dataPort", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(NetAddress.class, metaDataMap);
@@ -484,7 +484,7 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -492,7 +492,7 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.host = iprot.readString();
               struct.setHostIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -500,7 +500,7 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.rpcPort = iprot.readI32();
               struct.setRpcPortIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -508,7 +508,7 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.dataPort = iprot.readI32();
               struct.setDataPortIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -597,4 +597,3 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
   }
 
 }
-
