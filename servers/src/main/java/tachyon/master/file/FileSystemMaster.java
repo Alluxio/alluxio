@@ -44,7 +44,6 @@ import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -53,7 +52,6 @@ import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
-import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.Dependency;
@@ -151,14 +149,6 @@ public final class FileSystemMaster extends MasterBase {
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
-    } else if (entry instanceof PersistDirectoryEntry) {
-      PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) entry;
-      try {
-        Inode inode = mInodeTree.getInodeById(typedEntry.getId());
-        inode.setPersisted(typedEntry.isPersisted());
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      }
     } else if (entry instanceof DependencyEntry) {
       DependencyEntry dependencyEntry = (DependencyEntry) entry;
       Dependency dependency =
@@ -181,8 +171,6 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
-    } else if (entry instanceof PersistFileEntry) {
-      persistFileFromEntry((PersistFileEntry) entry);
     } else if (entry instanceof SetPinnedEntry) {
       setPinnedFromEntry((SetPinnedEntry) entry);
     } else if (entry instanceof DeleteFileEntry) {
@@ -242,95 +230,6 @@ public final class FileSystemMaster extends MasterBase {
     super.stop();
     if (mTTLCheckerService != null) {
       mTTLCheckerService.cancel(true);
-    }
-  }
-
-  /**
-   * Persists a file in UFS.
-   *
-   * @param fileId the file id
-   * @param length the length of the file
-   * @return true on success
-   * @throws SuspectedFileSizeException
-   * @throws BlockInfoException
-   * @throws FileDoesNotExistException
-   */
-  public boolean persistFile(long fileId, long length) throws SuspectedFileSizeException,
-      BlockInfoException, FileDoesNotExistException {
-    synchronized (mInodeTree) {
-      long opTimeMs = System.currentTimeMillis();
-      if (persistFileInternal(fileId, length, opTimeMs)) {
-        writeJournalEntry(new PersistFileEntry(fileId, length, opTimeMs));
-        flushJournal();
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Internal implementation of persisting a file to ufs.
-   *
-   * @return true if the operation should be written to the journal
-   */
-  boolean persistFileInternal(long fileId, long length, long opTimeMs)
-      throws SuspectedFileSizeException, BlockInfoException, FileDoesNotExistException {
-
-    Inode inode = mInodeTree.getInodeById(fileId);
-    if (inode.isDirectory()) {
-      throw new FileDoesNotExistException(ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
-    }
-
-    InodeFile file = (InodeFile) inode;
-    boolean needLog = false;
-
-    if (file.isCompleted()) {
-      if (file.getLength() != length) {
-        throw new SuspectedFileSizeException(fileId + ". Original Size: " + file.getLength()
-            + ". New Size: " + length);
-      }
-    } else {
-      file.setLength(length);
-      // Commit all the file blocks (without locations) so the metadata for the block exists.
-      long currLength = length;
-      for (long blockId : file.getBlockIds()) {
-        long blockSize = Math.min(currLength, file.getBlockSizeBytes());
-        mBlockMaster.commitBlockInUFS(blockId, blockSize);
-        currLength -= blockSize;
-      }
-
-      needLog = true;
-    }
-
-    if (!file.isPersisted()) {
-      file.setPersisted(true);
-      needLog = true;
-
-      Dependency dep = mDependencyMap.getFromFileId(fileId);
-      if (dep != null) {
-        dep.childCheckpointed(fileId);
-        if (dep.hasCheckpointed()) {
-          mDependencyMap.removeUncheckpointedDependency(dep);
-          mDependencyMap.removePriorityDependency(dep);
-        }
-      }
-      mDependencyMap.addFileCheckpoint(fileId);
-    }
-    file.setLastModificationTimeMs(opTimeMs);
-    file.setCompleted(length);
-    MasterContext.getMasterSource().incFilesCheckpointed();
-    // TODO(calvin): This probably should always be true since the last mod time is updated.
-    return needLog;
-  }
-
-  private void persistFileFromEntry(PersistFileEntry entry) {
-    try {
-      persistFileInternal(entry.getFileId(), entry.getFileLength(), entry.getOperationTimeMs());
-    } catch (FileDoesNotExistException fdnee) {
-      throw new RuntimeException(fdnee);
-    } catch (SuspectedFileSizeException sfse) {
-      throw new RuntimeException(sfse);
-    } catch (BlockInfoException bie) {
-      throw new RuntimeException(bie);
     }
   }
 
@@ -473,41 +372,16 @@ public final class FileSystemMaster extends MasterBase {
     InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
     inodeFile.setBlockIds(blockIds);
     inodeFile.setCompleted(fileLength);
-    inodeFile.setLastModificationTimeMs(opTimeMs);
-    // Mark all parent directories that have a UFS counterpart as persisted.
-    propagatePersisted(inodeFile, replayed);
-  }
 
-  /**
-   * Propagates the persisted status to all parents of the given inode in the same mount partition.
-   *
-   * @param inode the inode to start the propagation at
-   * @param replayed whether the invocation is a result of replaying the journal
-   * @throws FileDoesNotExistException if a non-existent file is encountered
-   * @throws InvalidPathException if an invalid path is encountered
-   */
-  private void propagatePersisted(Inode inode, boolean replayed) throws FileDoesNotExistException,
-      InvalidPathException {
-    if (!inode.isPersisted()) {
-      return;
+    // TODO(jiri): Do we need this?
+    long currLength = fileLength;
+    for (long blockId : inodeFile.getBlockIds()) {
+      long blockSize = Math.min(currLength, inodeFile.getBlockSizeBytes());
+      mBlockMaster.commitBlockInUFS(blockId, blockSize);
+      currLength -= blockSize;
     }
-    Inode handle = inode;
-    while (handle.getParentId() != InodeTree.NO_PARENT) {
-      handle = mInodeTree.getInodeById(handle.getParentId());
-      TachyonURI path = mInodeTree.getPath(handle);
-      if (mMountTable.isMountPoint(path)) {
-        // Stop propagating the persisted status at mount points.
-        break;
-      }
-      if (handle.isPersisted()) {
-        // Stop if a persisted directory is encountered.
-        break;
-      }
-      handle.setPersisted(true);
-      if (!replayed) {
-        writeJournalEntry(new PersistDirectoryEntry(inode.getId(), inode.isPersisted()));
-      }
-    }
+
+    inodeFile.setLastModificationTimeMs(opTimeMs);
   }
 
   private void completeFileFromEntry(CompleteFileEntry entry) throws InvalidPathException {
@@ -1079,7 +953,6 @@ public final class FileSystemMaster extends MasterBase {
     ((InodeDirectory) dstParentInode).addChild(srcInode);
     dstParentInode.setLastModificationTimeMs(opTimeMs);
     MasterContext.getMasterSource().incFilesRenamed();
-    propagatePersisted(srcInode, replayed);
 
     return true;
   }
@@ -1267,9 +1140,10 @@ public final class FileSystemMaster extends MasterBase {
       // Metadata loaded from UFS has no TTL set.
       CreateOptions options =
           new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(ufsBlockSizeByte)
-              .setRecursive(recursive).build();
+              .setRecursive(recursive).setPersisted(true).build();
       long fileId = create(path, options);
-      persistFile(fileId, fileSizeByte);
+      // TODO(jiri): Do we need this?
+      // completeFile(fileId, fileSizeByte);
       return fileId;
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));

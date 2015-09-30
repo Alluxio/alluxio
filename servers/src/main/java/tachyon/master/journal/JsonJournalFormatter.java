@@ -42,7 +42,6 @@ import com.google.common.collect.Maps;
 import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
@@ -52,7 +51,6 @@ import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
-import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
@@ -283,17 +281,6 @@ public final class JsonJournalFormatter implements JournalFormatter {
             return new InodeLastModificationTimeEntry(
                 entry.getLong("id"),
                 entry.getLong("lastModificationTimeMs"));
-          }
-          case INODE_PERSISTED: {
-            return new PersistDirectoryEntry(
-                entry.getLong("id"),
-                entry.getBoolean("persisted"));
-          }
-          case ADD_CHECKPOINT: {
-            return new PersistFileEntry(
-                entry.getLong("fileId"),
-                entry.getLong("length"),
-                entry.getLong("operationTimeMs"));
           }
           case ADD_MOUNTPOINT: {
             return new AddMountPointEntry(

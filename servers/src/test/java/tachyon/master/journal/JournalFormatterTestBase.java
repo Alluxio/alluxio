@@ -42,7 +42,6 @@ import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.DeleteMountPointEntry;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
 import tachyon.master.file.journal.DependencyEntry;
@@ -50,7 +49,6 @@ import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
-import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
 import tachyon.master.file.meta.DependencyType;
@@ -159,16 +157,6 @@ public abstract class JournalFormatterTestBase {
   @Test
   public void inodeLastModificationTimeEntryTest() throws IOException {
     entryTest(new InodeLastModificationTimeEntry(TEST_FILE_ID, TEST_OP_TIME_MS));
-  }
-
-  @Test
-  public void persistedDirectoryEntryTest() throws IOException {
-    entryTest(new PersistDirectoryEntry(TEST_FILE_ID, true));
-  }
-
-  @Test
-  public void persistFileEntryTest() throws IOException {
-    entryTest(new PersistFileEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS));
   }
 
   @Test
