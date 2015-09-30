@@ -80,8 +80,9 @@ public final class ClientContext {
     sClientMetrics = new ClientMetrics();
 
     sRandom = new Random();
-    getInt(Constants.USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS);
-    sExecutorService = Executors.newFixedThreadPool(CAPACITY,
+
+    sExecutorService = Executors.newFixedThreadPool(
+        sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   }
 
@@ -136,7 +137,8 @@ public final class ClientContext {
 
       sRandom = new Random();
       sExecutorService.shutdown();
-      sExecutorService = Executors.newFixedThreadPool(CAPACITY,
+      sExecutorService = Executors.newFixedThreadPool(
+          sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
           ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
 
       // the initialization is done lazily because BlockStoreContext and FileSystemContext need
