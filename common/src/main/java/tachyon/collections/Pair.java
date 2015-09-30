@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.collections;
 
 /**
  * A pair representation defined by two elements (of type First and type Second).
