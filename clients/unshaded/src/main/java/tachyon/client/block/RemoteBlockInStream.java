@@ -73,8 +73,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   }
 
   /**
-   * Reads a portion of the block from the remote worker. This method does not modify mPos or
-   * mBufferPos.
+   * Reads a portion of the block from the remote worker.
    *
    * @param b the byte array to write the data to
    * @param off the offset in the array to write to
