@@ -36,7 +36,6 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
    * the block is committed at the end of the file completion.
    */
   private static final int CAPACITY = 10000;
-  private final ExecutorService mExecutorService;
   private final NetAddress mWorkerNetAddress;
 
   /**
@@ -47,15 +46,12 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   public BlockWorkerClientPool(NetAddress workerAddress) {
     // TODO(calvin): Get the capacity from configuration.
     super(CAPACITY);
-    mExecutorService = Executors.newFixedThreadPool(CAPACITY, ThreadFactoryUtils.build(
-        "block-worker-heartbeat-%d", true));
     mWorkerNetAddress = workerAddress;
   }
 
   @Override
   public void close() {
     // TODO(calvin): Consider collecting all the clients and shutting them down.
-    mExecutorService.shutdown();
   }
 
   @Override
@@ -67,7 +63,7 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
   @Override
   protected WorkerClient createNewResource() {
     long clientId = ClientContext.getRandomNonNegativeLong();
-    return new WorkerClient(mWorkerNetAddress, mExecutorService, ClientContext.getConf(),
-        clientId, true, new ClientMetrics());
+    return new WorkerClient(mWorkerNetAddress, ClientContext.getExecutorService(),
+        ClientContext.getConf(), clientId, true, new ClientMetrics());
   }
 }
