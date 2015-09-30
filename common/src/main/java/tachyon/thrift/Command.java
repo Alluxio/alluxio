@@ -48,7 +48,7 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
   }
 
   /**
-   * 
+   *
    * @see CommandType
    */
   public CommandType mCommandType; // required
@@ -57,7 +57,7 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     /**
-     * 
+     *
      * @see CommandType
      */
     M_COMMAND_TYPE((short)1, "mCommandType"),
@@ -123,10 +123,10 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.M_COMMAND_TYPE, new org.apache.thrift.meta_data.FieldMetaData("mCommandType", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.M_COMMAND_TYPE, new org.apache.thrift.meta_data.FieldMetaData("mCommandType", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, CommandType.class)));
-    tmpMap.put(_Fields.M_DATA, new org.apache.thrift.meta_data.FieldMetaData("mData", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+    tmpMap.put(_Fields.M_DATA, new org.apache.thrift.meta_data.FieldMetaData("mData", org.apache.thrift.TFieldRequirementType.DEFAULT,
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST,
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Command.class, metaDataMap);
@@ -168,7 +168,7 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
   }
 
   /**
-   * 
+   *
    * @see CommandType
    */
   public CommandType getMCommandType() {
@@ -176,7 +176,7 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
   }
 
   /**
-   * 
+   *
    * @see CommandType
    */
   public Command setMCommandType(CommandType mCommandType) {
@@ -439,7 +439,7 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
       while (true)
       {
         schemeField = iprot.readFieldBegin();
-        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+        if (schemeField.type == org.apache.thrift.protocol.TType.STOP) {
           break;
         }
         switch (schemeField.id) {
@@ -447,7 +447,7 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.mCommandType = tachyon.thrift.CommandType.findByValue(iprot.readI32());
               struct.setMCommandTypeIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -465,7 +465,7 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
                 iprot.readListEnd();
               }
               struct.setMDataIsSet(true);
-            } else { 
+            } else {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
@@ -565,4 +565,3 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
   }
 
 }
-
