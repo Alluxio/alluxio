@@ -229,6 +229,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   private void updateBuffer() throws IOException {
     int toRead = (int) Math.min(mBuffer.limit(), remaining());
     bufferedRead(toRead);
+    Preconditions.checkState(mBuffer.remaining() == toRead);
     mBufferIsValid = true;
     incrementBytesReadMetric(toRead);
   }
