@@ -38,8 +38,17 @@ public enum JournalEntryType {
   DELETE_FILE,
   RENAME,
   INODE_DIRECTORY_ID_GENERATOR,
+  REINITIALIZE_FILE,
 
   // Raw table master entries
   RAW_TABLE,
   UPDATE_METADATA,
+
+  // Lineage master entries
+  ASYNC_COMPLETE_FILE,
+  DELETE_LINEAGE,
+  LINEAGE,
+  LINEAGE_ID_GENERATOR,
+  PERSIST_FILES,
+  REQUEST_FILE_PERSISTENCE,
 }

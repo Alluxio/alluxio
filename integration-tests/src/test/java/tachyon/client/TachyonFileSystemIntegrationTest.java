@@ -85,7 +85,7 @@ public class TachyonFileSystemIntegrationTest {
     sWriteBoth =
         new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     sReadCache =
         new InStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE).build();

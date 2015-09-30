@@ -93,7 +93,7 @@ public class CapacityUsageIntegrationTest {
     final String fileName2 = "/file" + i + "_2";
     TachyonFile file1 =
         createAndWriteFile(new TachyonURI(fileName1), TachyonStorageType.STORE,
-            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES);
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES);
     FileInfo fileInfo1 = mTFS.getInfo(file1);
     Assert.assertTrue(fileInfo1.getInMemoryPercentage() == 100);
     // Deleting file1, command will be sent by master to worker asynchronously
@@ -101,7 +101,7 @@ public class CapacityUsageIntegrationTest {
     // Meanwhile creating file2. If creation arrives earlier than deletion, it will evict file1
     TachyonFile file2 =
         createAndWriteFile(new TachyonURI(fileName2), TachyonStorageType.STORE,
-            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 4);
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 4);
     FileInfo fileInfo2 = mTFS.getInfo(file2);
     Assert.assertTrue(fileInfo2.getInMemoryPercentage() == 100);
     mTFS.delete(file2);
