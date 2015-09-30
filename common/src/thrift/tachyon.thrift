@@ -224,7 +224,7 @@ service FileSystemMasterService {
     throws (1: FileDoesNotExistException fdnee)
 
   bool mkdir(1: string path, 2: MkdirTOptions options)
-    throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe)
+    throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe, 3: TachyonException te)
 
   bool free(1: i64 fileId, 2: bool recursive)
     throws (1: FileDoesNotExistException fdnee)

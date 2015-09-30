@@ -145,6 +145,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     CreateOptions createOptions =
         (new CreateOptions.Builder(ClientContext.getConf()))
             .setBlockSizeBytes(options.getBlockSizeBytes()).setRecursive(true)
+            .setUnderStorageType(options.getUnderStorageType())
             .setTTL(options.getTTL()).build();
     long fileId = create(path, createOptions);
     return new FileOutStream(fileId, options);

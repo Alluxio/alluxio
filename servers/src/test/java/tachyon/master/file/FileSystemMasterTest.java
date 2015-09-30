@@ -29,9 +29,9 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileDoesNotExistException;
@@ -118,7 +118,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+            .setRecursive(true).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
@@ -126,7 +129,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void createFileWithTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true, 1);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+            .setRecursive(true).setTTL(1).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.fileId, fileId);
     CommonUtils.sleepMs(5000);
@@ -136,7 +142,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void isDirectoryTest() throws Exception {
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+            .setRecursive(true).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     Assert.assertFalse(mFileSystemMaster.isDirectory(fileId));
     Assert.assertTrue(mFileSystemMaster.isDirectory(mFileSystemMaster.getFileId(NESTED_URI)));
   }
@@ -144,7 +153,10 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+            .setRecursive(true).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
@@ -159,7 +171,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void renameTest() throws Exception {
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+            .setRecursive(true).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
 
     // move a nested file to root
     Assert.assertFalse(mFileSystemMaster.rename(fileId, ROOT_URI));
@@ -180,7 +195,9 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Could not find path: /nested/test");
 
-    long fileId = mFileSystemMaster.createFile(TEST_URI, Constants.KB, false);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB).build();
+    long fileId = mFileSystemMaster.create(TEST_URI, options);
 
     // nested dir
     Assert.assertFalse(mFileSystemMaster.rename(fileId, NESTED_FILE_URI));
@@ -191,7 +208,10 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Failed to rename: /nested/test is a prefix of /nested/test/file");
 
-    long fileId = mFileSystemMaster.createFile(NESTED_URI, Constants.KB, true);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+            .setRecursive(true).build();
+    long fileId = mFileSystemMaster.create(NESTED_URI, options);
     mFileSystemMaster.rename(fileId, NESTED_FILE_URI);
   }
 
@@ -221,7 +241,10 @@ public final class FileSystemMasterTest {
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
-    long fileId = mFileSystemMaster.createFile(uri, Constants.KB, true);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(Constants.KB)
+            .setRecursive(true).build();
+    long fileId = mFileSystemMaster.create(uri, options);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
     mFileSystemMaster.completeFile(fileId);

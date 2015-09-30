@@ -40,9 +40,9 @@ public class CreateOptionsTest {
     long ttl = random.nextLong();
     UnderStorageType ufsType = UnderStorageType.PERSIST;
     CreateOptions options =
-        new CreateOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
+        new CreateOptions.Builder(new TachyonConf()).setBlockSizeBytes(blockSize)
             .setRecursive(recursive).setTTL(ttl).setUnderStorageType(ufsType).build();
-    Assert.assertEquals(blockSize, options.getBlockSize());
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
@@ -56,9 +56,9 @@ public class CreateOptionsTest {
     conf.set(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, ufsType.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
     CreateOptions options = CreateOptions.defaults();
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
+    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals(false, options.isRecursive());
-    Assert.assertEquals(0, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 }

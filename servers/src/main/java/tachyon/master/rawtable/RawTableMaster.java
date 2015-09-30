@@ -136,7 +136,11 @@ public class RawTableMaster extends MasterBase {
     validateMetadataSize(metadata);
 
     // Create a directory at path to hold the columns
-    mFileSystemMaster.mkdir(path, MkdirOptions.defaults());
+    try {
+      mFileSystemMaster.mkdir(path, MkdirOptions.defaults());
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
+    }
     long id = mFileSystemMaster.getFileId(path);
 
     // Add the table
@@ -149,7 +153,11 @@ public class RawTableMaster extends MasterBase {
 
     // Create directories in the table directory as columns
     for (int k = 0; k < columns; k ++) {
-      mFileSystemMaster.mkdir(columnPath(path, k), MkdirOptions.defaults());
+      try {
+        mFileSystemMaster.mkdir(columnPath(path, k), MkdirOptions.defaults());
+      } catch (IOException e) {
+        throw new TachyonException(e.getMessage());
+      }
     }
 
     writeJournalEntry(new RawTableEntry(id, columns, metadata));

@@ -132,8 +132,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   @Override
   public boolean mkdir(String path, MkdirTOptions options)
-      throws FileAlreadyExistException, InvalidPathException {
-    mFileSystemMaster.mkdir(new TachyonURI(path), new MkdirOptions(options));
+      throws FileAlreadyExistException, InvalidPathException, TachyonException {
+    try {
+      mFileSystemMaster.mkdir(new TachyonURI(path), new MkdirOptions(options));
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
+    }
     return true;
   }
 

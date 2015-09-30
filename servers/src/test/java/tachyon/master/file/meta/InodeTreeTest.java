@@ -21,6 +21,7 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,8 +33,10 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.journal.InodeEntry;
+import tachyon.master.file.meta.options.CreatePathOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.ReadWriteJournal;
@@ -51,6 +54,10 @@ public final class InodeTreeTest {
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
   private static final TachyonURI NESTED_URI = new TachyonURI("/nested/test");
   private static final TachyonURI NESTED_FILE_URI = new TachyonURI("/nested/test/file");
+  private static CreatePathOptions sFileOptions;
+  private static CreatePathOptions sDirectoryOptions;
+  private static CreatePathOptions sNestedFileOptions;
+  private static CreatePathOptions sNestedDirectoryOptions;
   private InodeTree mTree;
 
   @Rule
@@ -58,6 +65,22 @@ public final class InodeTreeTest {
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  @BeforeClass
+  public static void beforeClass() {
+    sFileOptions =
+        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .build();
+    sDirectoryOptions =
+        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setDirectory(true).build();
+    sNestedFileOptions =
+        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).build();
+    sNestedDirectoryOptions =
+        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setDirectory(true).setRecursive(true).build();
+  }
 
   @Before
   public void before() throws IOException {
@@ -83,13 +106,13 @@ public final class InodeTreeTest {
   @Test
   public void createDirectoryTest() throws Exception {
     // create directory
-    mTree.createPath(TEST_URI, Constants.KB, false, true);
+    mTree.createPath(TEST_URI, sDirectoryOptions);
     Inode test = mTree.getInodeByPath(TEST_URI);
     Assert.assertEquals(TEST_PATH, test.getName());
     Assert.assertTrue(test.isDirectory());
 
     // create nested directory
-    mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     Inode nested = mTree.getInodeByPath(NESTED_URI);
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
@@ -99,8 +122,7 @@ public final class InodeTreeTest {
   @Test
   public void createFileUnderPinnedDirectoryTest() throws Exception {
     // create nested directory
-    InodeTree.CreatePathResult createResult =
-        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     List<Inode> created = createResult.getCreated();
     Inode nested = created.get(created.size() - 1);
 
@@ -108,7 +130,7 @@ public final class InodeTreeTest {
     mTree.setPinned(nested, true);
 
     // create nested file under pinned folder
-    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
 
     // the nested file is pinned
     Assert.assertEquals(1, mTree.getPinIdSet().size());
@@ -117,7 +139,7 @@ public final class InodeTreeTest {
   @Test
   public void createFileTest() throws Exception {
     // created nested file
-    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
     Inode nestedFile = mTree.getInodeByPath(NESTED_FILE_URI);
     Assert.assertEquals("file", nestedFile.getName());
     Assert.assertEquals(2, nestedFile.getParentId());
@@ -133,7 +155,7 @@ public final class InodeTreeTest {
 
     // create nested directory
     InodeTree.CreatePathResult createResult =
-        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+        mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     List<Inode> modified = createResult.getModified();
     List<Inode> created = createResult.getCreated();
     // 1 modified directory
@@ -150,14 +172,14 @@ public final class InodeTreeTest {
     CommonUtils.sleepMs(10);
 
     // creating the directory path again results in no new inodes.
-    createResult = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     modified = createResult.getModified();
     created = createResult.getCreated();
     Assert.assertEquals(0, modified.size());
     Assert.assertEquals(0, created.size());
 
     // create a file
-    createResult = mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    createResult = mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
     modified = createResult.getModified();
     created = createResult.getCreated();
     // test directory was modified
@@ -174,7 +196,7 @@ public final class InodeTreeTest {
     mThrown.expect(FileAlreadyExistException.class);
     mThrown.expectMessage("/");
 
-    mTree.createPath(new TachyonURI("/"), Constants.KB, false, true);
+    mTree.createPath(new TachyonURI("/"), sFileOptions);
   }
 
   @Test
@@ -182,7 +204,9 @@ public final class InodeTreeTest {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size 0");
 
-    mTree.createPath(TEST_URI, 0, false, false);
+    CreatePathOptions options =
+        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(0).build();
+    mTree.createPath(TEST_URI, options);
   }
 
   @Test
@@ -190,7 +214,9 @@ public final class InodeTreeTest {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size -1");
 
-    mTree.createPath(TEST_URI, -1, false, false);
+    CreatePathOptions options =
+        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(-1).build();
+    mTree.createPath(TEST_URI, options);
   }
 
   @Test
@@ -198,7 +224,7 @@ public final class InodeTreeTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("File /nested/test creation failed. Component 1(nested) does not exist");
 
-    mTree.createPath(NESTED_URI, Constants.KB, false, false);
+    mTree.createPath(NESTED_URI, sFileOptions);
   }
 
   @Test
@@ -206,8 +232,8 @@ public final class InodeTreeTest {
     mThrown.expect(FileAlreadyExistException.class);
     mThrown.expectMessage("/nested/test");
 
-    mTree.createPath(NESTED_URI, Constants.KB, true, false);
-    mTree.createPath(NESTED_URI, Constants.KB, true, false);
+    mTree.createPath(NESTED_URI, sNestedFileOptions);
+    mTree.createPath(NESTED_URI, sNestedFileOptions);
   }
 
   @Test
@@ -216,8 +242,8 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Could not traverse to parent directory of path /nested/test/test."
         + " Component test is not a directory.");
 
-    mTree.createPath(NESTED_URI, Constants.KB, true, false);
-    mTree.createPath(new TachyonURI("/nested/test/test"), Constants.KB, true, false);
+    mTree.createPath(NESTED_URI, sNestedFileOptions);
+    mTree.createPath(new TachyonURI("/nested/test/test"), sNestedFileOptions);
   }
 
   @Test
@@ -233,7 +259,7 @@ public final class InodeTreeTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Could not find path: /nested/test/file");
 
-    mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     mTree.getInodeByPath(NESTED_FILE_URI);
   }
 
@@ -258,12 +284,12 @@ public final class InodeTreeTest {
     Assert.assertEquals(new TachyonURI("/"), mTree.getPath(root));
 
     // test one level
-    InodeTree.CreatePathResult createResult = mTree.createPath(TEST_URI, Constants.KB, false, true);
+    InodeTree.CreatePathResult createResult = mTree.createPath(TEST_URI, sDirectoryOptions);
     List<Inode> created = createResult.getCreated();
     Assert.assertEquals(new TachyonURI("/test"), mTree.getPath(created.get(created.size() - 1)));
 
     // test nesting
-    createResult = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     created = createResult.getCreated();
     Assert.assertEquals(new TachyonURI("/nested/test"),
         mTree.getPath(created.get(created.size() - 1)));
@@ -271,10 +297,10 @@ public final class InodeTreeTest {
 
   @Test
   public void getInodeChildrenRecursiveTest() throws Exception {
-    mTree.createPath(TEST_URI, Constants.KB, false, true);
-    mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    mTree.createPath(TEST_URI, sDirectoryOptions);
+    mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     // add nested file
-    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
 
     // all inodes under root
     List<Inode> inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
@@ -284,8 +310,7 @@ public final class InodeTreeTest {
 
   @Test
   public void deleteInodeTest() throws Exception {
-    InodeTree.CreatePathResult createResult =
-        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     List<Inode> created = createResult.getCreated();
 
     // all inodes under root
@@ -304,18 +329,17 @@ public final class InodeTreeTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
-    Inode testFile = new InodeFile("testFile1", 1, 1, Constants.KB, System.currentTimeMillis(),
-        Constants.NO_TTL);
+
+    Inode testFile = new InodeFile.Builder().setName("testFile1").setId(1).setParentId(1).build();
     mTree.deleteInode(testFile);
   }
 
   @Test
   public void setPinnedTest() throws Exception {
-    InodeTree.CreatePathResult createResult =
-        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     List<Inode> created = createResult.getCreated();
     Inode nested = created.get(created.size() - 1);
-    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
 
     // no inodes pinned
     Assert.assertEquals(0, mTree.getPinIdSet().size());
@@ -338,14 +362,14 @@ public final class InodeTreeTest {
     verifyJournal(mTree, Lists.<Inode>newArrayList(root));
 
     // test nested URI
-    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
     InodeDirectory nested = (InodeDirectory) root.getChild("nested");
     InodeDirectory test = (InodeDirectory) nested.getChild("test");
     Inode file = test.getChild("file");
     verifyJournal(mTree, Lists.newArrayList(root, nested, test, file));
 
     // add a sibling of test and verify journaling is in correct order (breadth first)
-    mTree.createPath(new TachyonURI("/nested/test1/file1"), Constants.KB, true, false);
+    mTree.createPath(new TachyonURI("/nested/test1/file1"), sNestedFileOptions);
     InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
     Inode file1 = test1.getChild("file1");
     verifyJournal(mTree, Lists.newArrayList(root, nested, test, test1, file, file1));
@@ -353,8 +377,8 @@ public final class InodeTreeTest {
 
   @Test
   public void addInodeFromJournalTest() throws Exception {
-    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
-    mTree.createPath(new TachyonURI("/nested/test1/file1"), Constants.KB, true, false);
+    mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
+    mTree.createPath(new TachyonURI("/nested/test1/file1"), sNestedFileOptions);
     InodeDirectory root = mTree.getRoot();
     InodeDirectory nested = (InodeDirectory) root.getChild("nested");
     InodeDirectory test = (InodeDirectory) nested.getChild("test");

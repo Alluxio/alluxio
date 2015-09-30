@@ -42,11 +42,11 @@ public final class CreateOptions {
     }
 
     /**
-     * @param blockSize the block size to use
+     * @param blockSizeBytes the block size to use
      * @return the builder
      */
-    public Builder setBlockSize(long blockSize) {
-      mBlockSizeBytes = blockSize;
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
       return this;
     }
 

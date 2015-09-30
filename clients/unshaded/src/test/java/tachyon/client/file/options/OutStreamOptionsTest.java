@@ -42,10 +42,10 @@ public class OutStreamOptionsTest {
     long ttl = random.nextLong();
     UnderStorageType ufsType = UnderStorageType.PERSIST;
     OutStreamOptions options =
-        new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
+        new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(blockSize)
             .setHostname(hostname).setTachyonStorageType(tachyonType).setTTL(ttl)
             .setUnderStorageType(ufsType).build();
-    Assert.assertEquals(blockSize, options.getBlockSize());
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(hostname, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(ttl, options.getTTL());
@@ -62,10 +62,10 @@ public class OutStreamOptionsTest {
     conf.set(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, ufsType.toString());
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
     OutStreamOptions options = OutStreamOptions.defaults();
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
+    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals(null, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
-    Assert.assertEquals(0, options.getTTL());
+    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
   }
 }

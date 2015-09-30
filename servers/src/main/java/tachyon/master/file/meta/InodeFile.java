@@ -33,7 +33,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 public final class InodeFile extends Inode {
   public static class Builder extends Inode.Builder {
     private long mBlockContainerId;
-    private long mBlockSize;
+    private long mBlockSizeBytes;
     private long mTTL;
 
     public Builder() {
@@ -47,8 +47,8 @@ public final class InodeFile extends Inode {
       return this;
     }
 
-    public Builder setBlockSize(long blockSize) {
-      mBlockSize = blockSize;
+    public Builder setBlockSizeBytes(long blockSizeBytes) {
+      mBlockSizeBytes = blockSizeBytes;
       return this;
     }
 
@@ -60,7 +60,8 @@ public final class InodeFile extends Inode {
 
     @Override
     public Builder setId(long id) {
-      // id is computed based on block container id
+      // id is computed using the block container id
+      // TODO(jiri): Should we throw an exception to warn the caller?
       return this;
     }
 
@@ -108,7 +109,7 @@ public final class InodeFile extends Inode {
   private InodeFile(InodeFile.Builder builder) {
     super(builder);
     mBlockContainerId = builder.mBlockContainerId;
-    mBlockSizeBytes = builder.mBlockSize;
+    mBlockSizeBytes = builder.mBlockSizeBytes;
     mTTL = builder.mTTL;
   }
 

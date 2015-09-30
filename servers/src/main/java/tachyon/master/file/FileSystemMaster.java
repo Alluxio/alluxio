@@ -789,7 +789,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistException when there is already a file at path
    */
   public InodeTree.CreatePathResult mkdir(TachyonURI path, MkdirOptions options)
-      throws InvalidPathException, FileAlreadyExistException {
+      throws InvalidPathException, FileAlreadyExistException, IOException {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
@@ -797,6 +797,13 @@ public final class FileSystemMaster extends MasterBase {
             new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
                 .setPersisted(options.isPersisted()).setRecursive(options.isRecursive()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
+        for (Inode created : createResult.getCreated()) {
+          if (created.isPersisted()) {
+            String ufsPath = mMountTable.resolve(mInodeTree.getPath(created)).getPath();
+            UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+            ufs.mkdirs(ufsPath, false);
+          }
+        }
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         journalCreatePathResult(createResult);
@@ -1139,7 +1146,7 @@ public final class FileSystemMaster extends MasterBase {
       long fileSizeByte = ufs.getFileSize(ufsPath.toString());
       // Metadata loaded from UFS has no TTL set.
       CreateOptions options =
-          new CreateOptions.Builder(MasterContext.getConf()).setBlockSize(ufsBlockSizeByte)
+          new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(ufsBlockSizeByte)
               .setRecursive(recursive).setPersisted(true).build();
       long fileId = create(path, options);
       // TODO(jiri): Do we need this?

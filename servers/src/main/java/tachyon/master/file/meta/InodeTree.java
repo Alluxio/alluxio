@@ -35,8 +35,6 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.IndexedSet;
-import tachyon.conf.TachyonConf;
-import tachyon.master.MasterContext;
 import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeEntry;
@@ -274,7 +272,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     } else {
       lastInode =
           new InodeFile.Builder().setBlockContainerId(mContainerIdGenerator.getNewContainerId())
-              .setBlockSize(options.getBlockSizeBytes()).setTTL(options.getTTL()).setName(name)
+              .setBlockSizeBytes(options.getBlockSizeBytes()).setTTL(options.getTTL()).setName(name)
               .setParentId(currentInodeDirectory.getId()).setPersisted(options.isPersisted())
               .setCreationTimeMs(options.getOperationTimeMs()).build();
       if (currentInodeDirectory.isPinned()) {
