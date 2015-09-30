@@ -54,8 +54,7 @@ import tachyon.worker.WorkerClient;
  * under storage system.
  */
 @PublicApi
-public final class FileOutStream extends OutputStream implements Cancelable,
-    Testable<FileOutStream> {
+public final class FileOutStream extends OutputStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mFileId;
@@ -73,19 +72,6 @@ public final class FileOutStream extends OutputStream implements Cancelable,
   private boolean mShouldCacheCurrentBlock;
   private BufferedBlockOutStream mCurrentBlockOutStream;
   private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
-
-  public class PrivateAccess {
-    private PrivateAccess() {}
-
-    public long getNonce() {
-      return mNonce;
-    }
-  }
-
-  @Override
-  public void grantAccess(Tester<FileOutStream> tester) {
-    tester.receiveAccess(new PrivateAccess());
-  }
 
   /**
    * Creates a new file output stream.
