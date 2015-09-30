@@ -37,8 +37,6 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.test.Testable;
-import tachyon.test.Tester;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -53,7 +51,7 @@ import tachyon.worker.WorkerClient;
  * the under storage system.
  */
 @PublicApi
-public class FileOutStream extends OutputStream implements Cancelable,Testable<FileOutStream> {
+public class FileOutStream extends OutputStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockSize;
@@ -72,19 +70,6 @@ public class FileOutStream extends OutputStream implements Cancelable,Testable<F
   protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
   protected final long mFileId;
-
-  public class PrivateAccess {
-    private PrivateAccess() {}
-
-    public long getNonce() {
-      return mNonce;
-    }
-  }
-
-  @Override
-  public void grantAccess(Tester<FileOutStream> tester) {
-    tester.receiveAccess(new PrivateAccess());
-  }
 
   /**
    * Creates a new file output stream.
