@@ -54,7 +54,8 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   @Override
   protected void bufferedRead(int len) throws IOException {
     mBuffer.clear();
-    readFromRemote(mBuffer.array(), 0, len);
+    int bytesRead = readFromRemote(mBuffer.array(), 0, len);
+    mBuffer.limit(bytesRead);
   }
 
   @Override

@@ -34,9 +34,14 @@ import tachyon.worker.WorkerClient;
  * thread and are not thread safe.
  */
 public final class LocalBlockInStream extends BufferedBlockInStream {
+  /** Helper to manage closables. */
   private final Closer mCloser;
+  /** File channel providing access to the local data. */
   private final FileChannel mLocalFileChannel;
+  /** Client to communicate with the local worker. */
   private final WorkerClient mWorkerClient;
+  /** The block store context which provides block worker clients. */
+  private final BlockStoreContext mContext;
 
   /**
    * Creates a new local block input stream.
@@ -47,6 +52,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   public LocalBlockInStream(long blockId, long blockSize, InetSocketAddress location)
       throws IOException {
     super(blockId, blockSize, location);
+    mContext = BlockStoreContext.INSTANCE;
 
     mCloser = Closer.create();
     mWorkerClient =
