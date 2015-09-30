@@ -200,7 +200,9 @@ public class FileSystemMasterIntegrationTest {
         TachyonURI dstPath = mRootPath2.join(path);
         long fileId = mFsMaster.getFileId(srcPath);
         try {
-          mFsMaster.mkdir(dstPath.getParent(), MkdirOptions.defaults());
+          MkdirOptions options =
+              new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
+          mFsMaster.mkdir(dstPath.getParent(), options);
         } catch (FileAlreadyExistException e) {
           // This is an acceptable exception to get, since we don't know if the parent has been
           // created yet by another thread.
@@ -402,18 +404,16 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void createFilePerfTest() throws Exception {
-    // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
+      MkdirOptions options =
+          new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(true).build();
       mFsMaster.mkdir(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
-          .join("0"), MkdirOptions.defaults());
+          .join("0"), options);
     }
-    // System.out.println(System.currentTimeMillis() - sMs);
-    // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
       mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile").join(
           Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
     }
-    // System.out.println(System.currentTimeMillis() - sMs);
   }
 
   @Test

@@ -803,6 +803,7 @@ public final class FileSystemMaster extends MasterBase {
                 .setPersisted(options.isPersisted()).setRecursive(options.isRecursive()).build();
         InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
         for (Inode created : createResult.getCreated()) {
+          String createdPath = mInodeTree.getPath(created).toString();
           // TODO(jiri): Move this to the client.
           if (created.isPersisted()) {
             String ufsPath = mMountTable.resolve(mInodeTree.getPath(created)).getPath();
@@ -943,11 +944,6 @@ public final class FileSystemMaster extends MasterBase {
       String ufsDstPath = mMountTable.resolve(dstPath).toString();
       UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
       String parentPath = new TachyonURI(ufsDstPath).getParent().toString();
-      // TODO(jiri): The following can be removed once directory creation is persisted onto UFS.
-      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        LOG.error("Failed to create " + parentPath);
-        return false;
-      }
       if (!ufs.rename(ufsSrcPath, ufsDstPath)) {
         LOG.error("Failed to rename " + ufsSrcPath + " to " + ufsDstPath);
         return false;
