@@ -17,10 +17,12 @@ package tachyon.master.file;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -30,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
@@ -108,6 +109,12 @@ public final class FileSystemMaster extends MasterBase {
   /** The configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS} */
   private int mTTLCheckerIntervalMs;
 
+  /**
+   * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time
+   * interval starts at a specific time and lasts for {@link #mTTLCheckerIntervalMs}.
+   *
+   * Not thread-safe. Only for use related to {@link TTLBucketList}.
+   */
   private class TTLBucket {
     /**
      * Each bucket has a time to live interval, this value is the start of the interval, interval
@@ -144,10 +151,88 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * A list of {@link TTLBucket}s, it is maintained by {@link #createFileInternal} and
-   * {@link MasterInodeTTLCheckExecutor}.
+   * A list of non-empty {@link TTLBucket}s sorted by ttl interval start time of each bucket.
+   *
+   * Two adjacent buckets may not have adjacent intervals since there may be no files with ttl value
+   * in the skipped intervals.
+   *
+   * Thread-safety is guaranteed by {@link ConcurrentSkipListSet}.
    */
-  private final List<TTLBucket> mTTLBuckets = Lists.newLinkedList();
+  private class TTLBucketList {
+    /**
+     * List of buckets sorted by interval start time.
+     * SkipList is used for O(logn) insertion and retrieval, see {@link ConcurrentSkipListSet}.
+     */
+    private ConcurrentSkipListSet<TTLBucket> mBucketList;
+
+    public TTLBucketList() {
+      mBucketList = new ConcurrentSkipListSet<TTLBucket>(new Comparator<TTLBucket>() {
+        @Override
+        public int compare(TTLBucket ttlBucket, TTLBucket ttlBucket2) {
+          long startTime1 = ttlBucket.getTTLIntervalStartTimeMs();
+          long startTime2 = ttlBucket2.getTTLIntervalStartTimeMs();
+          if (startTime1 < startTime2) {
+            return -1;
+          }
+          if (startTime1 == startTime2) {
+            return 0;
+          }
+          return 1;
+        }
+      });
+    }
+
+    /**
+     * Inserts an {@link InodeFile} to the appropriate bucket where its ttl end time lies in the
+     * bucket's interval, if no appropriate bucket exists, a new bucket will be created to contain
+     * this file, if ttl value is {@link Constants#NO_TTL}, the file won't be inserted to any
+     * buckets and nothing will happen.
+     *
+     * @param file the file to be inserted
+     */
+    public void insert(InodeFile file) {
+      if (file.getTTL() == Constants.NO_TTL) {
+        return;
+      }
+
+      long ttlEndTimeMs = file.getCreationTimeMs() + file.getTTL();
+      // Gets the last bucket with interval start time less than or equal to the file's life end
+      // time.
+      TTLBucket bucket = mBucketList.floor(new TTLBucket(ttlEndTimeMs));
+      if (bucket == null || bucket.getTTLIntervalEndTimeMs() <= ttlEndTimeMs) {
+        // 1. There is no bucket in the list.
+        // 2. All buckets' interval start time is larger than the file's life end time.
+        // 3. No bucket actually contains ttlEndTimeMs in its interval.
+        // So a new bucket should should be added with ttlEndTimeMs as its interval start.
+        bucket = new TTLBucket(ttlEndTimeMs);
+        mBucketList.add(bucket);
+      }
+      bucket.addFile(file);
+    }
+
+    /**
+     * Retrieves buckets whose ttl interval has expired before the specified time, that is, the
+     * bucket's interval start time should be less than or equal to (specified time - ttl interval).
+     * The returned set is backed by the internal set.
+     *
+     * @param time the expiration time
+     * @return a set of expired buckets or an empty set if no buckets have expired
+     */
+    public Set<TTLBucket> getExpiredBuckets(long time) {
+      return mBucketList.headSet(new TTLBucket(time - mTTLCheckerIntervalMs), true);
+    }
+
+    /**
+     * Remove all buckets in the set.
+     *
+     * @param buckets a set of buckets to be removed
+     */
+    public void removeBuckets(Set<TTLBucket> buckets) {
+      mBucketList.removeAll(buckets);
+    }
+  }
+
+  private final TTLBucketList mTTLBuckets = new TTLBucketList();
 
   /**
    * @param baseDirectory the base journal directory
@@ -618,31 +703,7 @@ public final class FileSystemMaster extends MasterBase {
       inode.setCacheable(true);
     }
 
-    if (ttl != Constants.NO_TTL) {
-      long ttlEnd = opTimeMs + ttl;
-      int ttlBucketIndex = Math.min((int) (ttlEnd / mTTLCheckerIntervalMs), mTTLBuckets.size() - 1);
-      if (ttlBucketIndex < 0) {
-        // There is no existing bucket, add a new bucket, the interval this new bucket is the
-        // interval where ttlEnd resides in.
-        mTTLBuckets.add(new TTLBucket(ttlBucketIndex * mTTLCheckerIntervalMs));
-        ttlBucketIndex = 0;
-      }
-
-      TTLBucket bucket = mTTLBuckets.get(ttlBucketIndex);
-      if (ttlEnd < bucket.getTTLIntervalStartTimeMs()) {
-        // ttlEnd is smaller than current bucket's ttl interval start time, a new bucket should be
-        // created and inserted just before current bucket.
-        bucket = new TTLBucket(ttlBucketIndex * mTTLCheckerIntervalMs);
-        mTTLBuckets.add(ttlBucketIndex, bucket);
-      } else if (ttlEnd >= bucket.getTTLIntervalEndTimeMs()) {
-        // ttlEnd exceeds current bucket's interval end, a new bucket should be created and appended
-        // to current bucket.
-        int nextIndex = ttlBucketIndex + 1;
-        bucket = new TTLBucket(nextIndex * mTTLCheckerIntervalMs);
-        mTTLBuckets.add(nextIndex, bucket);
-      }
-      bucket.addFile(inode);
-    }
+    mTTLBuckets.insert(inode);
 
     MasterContext.getMasterSource().incFilesCreated(created.size());
     return createResult;
@@ -707,7 +768,6 @@ public final class FileSystemMaster extends MasterBase {
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
       writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
       flushJournal();
-      LOG.debug("Deleted " + path);
       return ret;
     }
   }
@@ -1422,11 +1482,10 @@ public final class FileSystemMaster extends MasterBase {
     @Override
     public void heartbeat()  {
       synchronized (mInodeTree) {
-        if (mTTLBuckets.size() > 0 && mTTLBuckets.get(0).getTTLIntervalStartTimeMs() < 0) {
-          // The ttl interval start of this bucket is smaller than 0, so all files in this bucket
-          // should no longer live.
-          for (InodeFile file : mTTLBuckets.get(0).getFiles()) {
-            if (!file.isDeleted() && !file.isPinned()) {
+        Set<TTLBucket> expiredBuckets = mTTLBuckets.getExpiredBuckets(System.currentTimeMillis());
+        for (TTLBucket bucket : expiredBuckets) {
+          for (InodeFile file : bucket.getFiles()) {
+            if (!file.isDeleted()) {
               try {
                 deleteFile(file.getId(), false);
               } catch (FileDoesNotExistException e) {
@@ -1438,13 +1497,9 @@ public final class FileSystemMaster extends MasterBase {
               }
             }
           }
-          mTTLBuckets.remove(0);
         }
 
-        // Subtract elapsed time from start time of all buckets.
-        for (TTLBucket bucket : mTTLBuckets) {
-          bucket.setTTLIntervalStartMs(bucket.getTTLIntervalStartTimeMs() - mTTLCheckerIntervalMs);
-        }
+        mTTLBuckets.removeBuckets(expiredBuckets);
       }
     }
   }
