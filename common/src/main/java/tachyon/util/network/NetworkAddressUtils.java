@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,6 +166,19 @@ public final class NetworkAddressUtils {
     }
   }
 
+  public static void assertValidPort(final int port, TachyonConf tachyonConf) {
+    Preconditions.checkNotNull(tachyonConf);
+    Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
+
+    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
+      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
+    }
+  }
+
+  public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
+    assertValidPort(address.getPort(), tachyonConf);
+  }
+
   /**
    * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
    * service.
@@ -265,7 +279,7 @@ public final class NetworkAddressUtils {
    */
   public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
     int port = getPort(service, conf);
-    TachyonConf.assertValidPort(port, conf);
+    assertValidPort(port, conf);
 
     String host;
     if (conf.containsKey(service.mBindHostKey) && !conf.get(service.mBindHostKey).isEmpty()) {
