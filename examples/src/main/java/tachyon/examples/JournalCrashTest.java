@@ -31,11 +31,11 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ClientContext;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -276,7 +276,7 @@ public class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sTfs = TachyonFileSystem.get();
+      sTfs = TachyonFileSystemFactory.get();
       sOldTfs = TachyonFS.get(ClientContext.getConf());
       try {
         sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));

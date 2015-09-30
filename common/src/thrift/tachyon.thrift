@@ -88,11 +88,47 @@ enum CommandType {
   Register = 2,   	// Ask the worker to re-register.
   Free = 3,		// Ask the worker to free files.
   Delete = 4,		// Ask the worker to delete files.
+  Persist = 5,  // Ask the worker to persist a file for lineage
 }
 
 struct Command {
   1: CommandType mCommandType
   2: list<i64> mData
+}
+
+struct LineageCommand {
+  1: CommandType commandType
+  2: list<CheckpointFile> checkpointFiles 
+}
+
+struct CheckpointFile {
+  1: i64 fileId
+  2: list<i64> blockIds
+}
+
+struct JobConfInfo {
+  1: string outputFile
+}
+
+struct CommandLineJobInfo {
+  1: string command
+  2: JobConfInfo conf 
+}
+
+struct LineageFileInfo {
+  1: i64 id
+  2: string state
+  3: string underFilePath
+}
+
+struct LineageInfo {
+  1: i64 id
+  2: list<i64> inputFiles
+  3: list<LineageFileInfo> outputFiles
+  4: CommandLineJobInfo job
+  5: i64 creationTimeMs
+  6: list<i64> parents
+  7: list<i64> children
 }
 
 exception BlockInfoException {
@@ -140,6 +176,14 @@ exception TachyonException {
 }
 
 exception DependencyDoesNotExistException {
+  1: string message
+}
+
+exception LineageDoesNotExistException {
+  1: string message
+}
+
+exception LineageDeletionException {
   1: string message
 }
 
@@ -258,6 +302,27 @@ service FileSystemMasterService {
 
   void requestFilesInDependency(1: i32 depId)
     throws (1: DependencyDoesNotExistException ddnee)
+}
+
+service LineageMasterService {
+  // for client
+  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job) 
+    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
+      3: SuspectedFileSizeException sfse, 4: TachyonException te)
+  
+  bool deleteLineage(1: i64 lineageId, 2: bool cascade)
+    throws (1: LineageDoesNotExistException lnee, 2: LineageDeletionException lde)
+  
+  list<LineageInfo> getLineageInfoList()
+  
+  i64 reinitializeFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
+    throws (1: InvalidPathException ipe, 2: LineageDoesNotExistException ldee)
+  
+  void asyncCompleteFile(1: i64 fileId)
+    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
+  
+  // for workers
+  LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
 }
 
 service RawTableMasterService {

@@ -19,6 +19,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -283,6 +285,31 @@ public final class BufferUtils {
     FileOutputStream os = new FileOutputStream(path);
     os.write(buffer);
     os.close();
+  }
+
+  /**
+   * An efficient copy between two channels with a fixed-size buffer.
+   *
+   * @param src the source channel
+   * @param dest the destination channel
+   * @throws IOException if the copy fails
+   */
+  public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
+      throws IOException {
+    // TODO: make the buffer size configurable
+    final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
+
+    while (src.read(buffer) != -1) {
+      buffer.flip();
+      dest.write(buffer);
+      buffer.compact();
+    }
+
+    buffer.flip();
+
+    while (buffer.hasRemaining()) {
+      dest.write(buffer);
+    }
   }
 
   private BufferUtils() {} // prevent instantiation

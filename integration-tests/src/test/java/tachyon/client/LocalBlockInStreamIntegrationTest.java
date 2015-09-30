@@ -71,7 +71,7 @@ public class LocalBlockInStreamIntegrationTest {
     sTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
     sWriteBoth =
         new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     sWriteTachyon =
         new OutStreamOptions.Builder(sTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
