@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.Sessions;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;

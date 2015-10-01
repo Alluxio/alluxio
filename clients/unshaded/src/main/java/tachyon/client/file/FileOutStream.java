@@ -37,9 +37,6 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.conf.TachyonConf;
-import tachyon.test.Testable;
-import tachyon.test.Tester;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
@@ -50,42 +47,29 @@ import tachyon.worker.WorkerClient;
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
  * blocks in the file and abstracts the switching between streams. The backing streams can write to
  * Tachyon space in the local machine or remote machines. If the
- * {@link tachyon.client.UnderStorageType} is PERSIST, another stream will write the data to the
- * under storage system.
+ * {@link tachyon.client.UnderStorageType} is SYNC_PERSIST, another stream will write the data to
+ * the under storage system.
  */
 @PublicApi
-public final class FileOutStream extends OutputStream implements Cancelable,
-    Testable<FileOutStream> {
+public class FileOutStream extends OutputStream implements Cancelable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final long mFileId;
   private final long mBlockSize;
-  private final TachyonStorageType mTachyonStorageType;
+  protected final TachyonStorageType mTachyonStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
   private final long mNonce;
   private String mUfsPath;
 
-  private boolean mCanceled;
-  private boolean mClosed;
+  protected boolean mCanceled;
+  protected boolean mClosed;
   private String mHostname;
   private boolean mShouldCacheCurrentBlock;
-  private BufferedBlockOutStream mCurrentBlockOutStream;
-  private List<BufferedBlockOutStream> mPreviousBlockOutStreams;
+  protected BufferedBlockOutStream mCurrentBlockOutStream;
+  protected List<BufferedBlockOutStream> mPreviousBlockOutStreams;
 
-  public class PrivateAccess {
-    private PrivateAccess() {}
-
-    public long getNonce() {
-      return mNonce;
-    }
-  }
-
-  @Override
-  public void grantAccess(Tester<FileOutStream> tester) {
-    tester.receiveAccess(new PrivateAccess());
-  }
+  protected final long mFileId;
 
   /**
    * Creates a new file output stream.
@@ -102,7 +86,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       FileInfo fileInfo = getFileInfo();
       mUfsPath = fileInfo.getUfsPath();
       String fileName = PathUtils.temporaryFileName(fileId, mNonce, mUfsPath);
@@ -139,7 +123,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
     }
 
     Boolean canComplete = false;
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       if (mCanceled) {
         // TODO(yupeng): Handle this special case in under storage integrations.
         mUnderStorageOutputStream.close();
@@ -198,7 +182,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
   @Override
   public void flush() throws IOException {
     // TODO(yupeng): Handle flush for Tachyon storage stream as well.
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.flush();
     }
   }
@@ -216,7 +200,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
       }
     }
 
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b);
       ClientContext.getClientMetrics().incBytesWrittenUfs(1);
     }
@@ -256,7 +240,7 @@ public final class FileOutStream extends OutputStream implements Cancelable,
       }
     }
 
-    if (mUnderStorageType.isPersist()) {
+    if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
       ClientContext.getClientMetrics().incBytesWrittenUfs(len);
     }
@@ -287,8 +271,8 @@ public final class FileOutStream extends OutputStream implements Cancelable,
     }
   }
 
-  private void handleCacheWriteException(IOException ioe) throws IOException {
-    if (!mUnderStorageType.isPersist()) {
+  protected void handleCacheWriteException(IOException ioe) throws IOException {
+    if (!mUnderStorageType.isSyncPersist()) {
       // TODO(yupeng): Handle this exception better.
       throw new IOException("Fail to cache: " + ioe.getMessage(), ioe);
     }

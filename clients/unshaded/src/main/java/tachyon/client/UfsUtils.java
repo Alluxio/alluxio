@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.Pair;
-import tachyon.PrefixList;
+import tachyon.collections.Pair;
+import tachyon.collections.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
