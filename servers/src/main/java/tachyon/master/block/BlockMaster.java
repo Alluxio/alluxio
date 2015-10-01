@@ -651,18 +651,6 @@ public final class BlockMaster extends MasterBase
           }
         }
       }
-
-      // restart the failed workers
-      if (mLostWorkers.size() != 0) {
-        LOG.warn("Restarting failed workers.");
-        try {
-          String tachyonHome = conf.get(Constants.TACHYON_HOME);
-          java.lang.Runtime.getRuntime()
-              .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
-        } catch (IOException e) {
-          LOG.error(e.getMessage());
-        }
-      }
     }
   }
 
