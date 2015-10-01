@@ -23,7 +23,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 

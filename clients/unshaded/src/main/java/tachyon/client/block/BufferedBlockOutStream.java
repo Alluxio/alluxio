@@ -63,11 +63,6 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
     mContext = BlockStoreContext.INSTANCE;
   }
 
-  public ByteBuffer allocateBuffer() {
-    TachyonConf conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
-  }
-
   public long remaining() {
     return mBlockSize - mWrittenBytes;
   }
@@ -137,4 +132,12 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
    * @throws IOException if the write does not succeed
    */
   protected abstract void unBufferedWrite(byte[] b, int off, int len) throws IOException;
+
+  /**
+   * @return a newly allocated byte buffer of the user defined default size.
+   */
+  private ByteBuffer allocateBuffer() {
+    TachyonConf conf = ClientContext.getConf();
+    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+  }
 }

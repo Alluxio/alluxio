@@ -64,22 +64,15 @@ public final class LocalTachyonCluster {
   private static ClientContext.PrivateReinitializer sReinitializer;
 
   private BlockWorker mWorker = null;
-
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
   private int mQuotaUnitBytes;
-
   private String mTachyonHome;
-
   private String mWorkerDataFolder;
-
   private Thread mWorkerThread = null;
   private String mLocalhostName = null;
-
   private LocalTachyonMaster mMaster;
-
   private TachyonConf mMasterConf;
-
   private TachyonConf mWorkerConf;
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
@@ -118,10 +111,6 @@ public final class LocalTachyonCluster {
 
   public String getTachyonHome() {
     return mTachyonHome;
-  }
-
-  public String getTempFolderInUnderFs() {
-    return mMasterConf.get(Constants.UNDERFS_ADDRESS);
   }
 
   public BlockWorker getWorker() {
@@ -198,8 +187,8 @@ public final class LocalTachyonCluster {
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     for (int level = 1; level < maxLevel; level ++) {
-      String tierLevelDirPath = String.format(
-          Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
@@ -255,8 +244,6 @@ public final class LocalTachyonCluster {
 
     UnderFileSystemUtils.mkdirIfNotExists(
         mMasterConf.get(Constants.UNDERFS_DATA_FOLDER), mMasterConf);
-    UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER), mMasterConf);
     CommonUtils.sleepMs(10);
 
     startWorker();

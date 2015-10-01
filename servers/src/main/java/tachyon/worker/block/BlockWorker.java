@@ -47,6 +47,7 @@ import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
+import tachyon.worker.lineage.LineageWorker;
 
 /**
  * The class is responsible for managing all top level components of the Block Worker, including:
@@ -96,6 +97,8 @@ public final class BlockWorker {
   private final UIWebServer mWebServer;
   /** Worker metrics system */
   private MetricsSystem mWorkerMetricsSystem;
+  /** Lineage worker */
+  private LineageWorker mLineageWorker;
   /** Space reserver for the block data manager */
   private SpaceReserver mSpaceReserver = null;
 
@@ -233,13 +236,16 @@ public final class BlockWorker {
     // Setup session metadata mapping
     // TODO(calvin): Have a top level register that gets the worker id.
     long workerId = mBlockMasterSync.getWorkerId();
-    String ufsWorkerFolder = mTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-    Sessions sessions = new Sessions(PathUtils.concatPath(ufsWorkerFolder, workerId), mTachyonConf);
+    Sessions sessions = new Sessions();
 
     // Give BlockDataManager a pointer to the session metadata mapping
     // TODO(calvin): Fix this hack when we have a top level register.
     mBlockDataManager.setSessions(sessions);
     mBlockDataManager.setWorkerId(workerId);
+
+    // Setup the lineage worker
+    LOG.info("Started lineage worker at " + workerId);
+    mLineageWorker = new LineageWorker(mBlockDataManager, workerId);
   }
 
   /**
@@ -270,7 +276,10 @@ public final class BlockWorker {
     // Start the session cleanup checker to perform the periodical checking
     mSyncExecutorService.submit(mSessionCleanerThread);
 
-    // Start the space reserver 
+    // Start the lineage worker
+    mLineageWorker.start();
+
+    // Start the space reserver
     if (mSpaceReserver != null) {
       mSyncExecutorService.submit(mSpaceReserver);
     }
@@ -288,17 +297,18 @@ public final class BlockWorker {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
+    mLineageWorker.stop();
     mBlockMasterSync.stop();
     mPinListSync.stop();
     mSessionCleanerThread.stop();
     mBlockMasterClient.close();
+    if (mSpaceReserver != null) {
+      mSpaceReserver.stop();
+    }
     mFileSystemMasterClient.close();
     mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     mWorkerMetricsSystem.stop();
-    if (mSpaceReserver != null) {
-      mSpaceReserver.stop();
-    }
     try {
       mWebServer.shutdownWebServer();
     } catch (Exception e) {

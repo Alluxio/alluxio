@@ -53,15 +53,16 @@ struct FileInfo {
   5: i64 length
   6: i64 blockSizeBytes
   7: i64 creationTimeMs
-  8: bool isComplete
+  8: bool isCompleted
   9: bool isFolder
   10: bool isPinned
   11: bool isCacheable
-  12: list<i64> blockIds
-  13: i32 dependencyId
-  14: i32 inMemoryPercentage
-  15: i64 lastModificationTimeMs
-  16: i64 ttl
+  12: bool isPersisted
+  13: list<i64> blockIds
+  14: i32 dependencyId
+  15: i32 inMemoryPercentage
+  16: i64 lastModificationTimeMs
+  17: i64 ttl
 }
 
 // Information about lineage.
@@ -87,11 +88,47 @@ enum CommandType {
   Register = 2,   	// Ask the worker to re-register.
   Free = 3,		// Ask the worker to free files.
   Delete = 4,		// Ask the worker to delete files.
+  Persist = 5,  // Ask the worker to persist a file for lineage
 }
 
 struct Command {
   1: CommandType mCommandType
   2: list<i64> mData
+}
+
+struct LineageCommand {
+  1: CommandType commandType
+  2: list<CheckpointFile> checkpointFiles 
+}
+
+struct CheckpointFile {
+  1: i64 fileId
+  2: list<i64> blockIds
+}
+
+struct JobConfInfo {
+  1: string outputFile
+}
+
+struct CommandLineJobInfo {
+  1: string command
+  2: JobConfInfo conf 
+}
+
+struct LineageFileInfo {
+  1: i64 id
+  2: string state
+  3: string underFilePath
+}
+
+struct LineageInfo {
+  1: i64 id
+  2: list<i64> inputFiles
+  3: list<LineageFileInfo> outputFiles
+  4: CommandLineJobInfo job
+  5: i64 creationTimeMs
+  6: list<i64> parents
+  7: list<i64> children
 }
 
 exception BlockInfoException {
@@ -142,34 +179,71 @@ exception DependencyDoesNotExistException {
   1: string message
 }
 
+exception LineageDoesNotExistException {
+  1: string message
+}
+
+exception LineageDeletionException {
+  1: string message
+}
+
 service BlockMasterService {
-  i64 workerGetWorkerId(1: NetAddress workerNetAddress)
-
-  void workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers,
-      3: list<i64> usedBytesOnTiers, 4: map<i64, list<i64>> currentBlocksOnTiers)
-    throws (1: TachyonException te)
-
-  Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,
-      3: list<i64> removedBlockIds, 4: map<i64, list<i64>> addedBlocksOnTiers)
-    throws (1: BlockInfoException bie)
-
-  void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: i32 tier, 4: i64 blockId,
-      5: i64 length)
-    throws (1: BlockInfoException bie)
-
-  list<WorkerInfo> getWorkerInfoList()
+  BlockInfo getBlockInfo(1: i64 blockId) throws (1: BlockInfoException bie)
 
   i64 getCapacityBytes()
 
   i64 getUsedBytes()
 
-  BlockInfo getBlockInfo(1: i64 blockId) throws (1: BlockInfoException bie)
+  list<WorkerInfo> getWorkerInfoList()
+
+  void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: i32 tier, 4: i64 blockId,
+      5: i64 length)
+    throws (1: BlockInfoException bie)
+
+  i64 workerGetWorkerId(1: NetAddress workerNetAddress)
+
+  Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,
+      3: list<i64> removedBlockIds, 4: map<i64, list<i64>> addedBlocksOnTiers)
+    throws (1: BlockInfoException bie)
+
+  void workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers,
+      3: list<i64> usedBytesOnTiers, 4: map<i64, list<i64>> currentBlocksOnTiers)
+    throws (1: TachyonException te)
 }
 
 service FileSystemMasterService {
-  set<i64> workerGetPinIdList()
+  void completeFile(1: i64 fileId)
+    throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
+      3: InvalidPathException ipe)
 
-  list<i32> workerGetPriorityDependencyList()
+  // Lineage Features
+  i32 createDependency(1: list<string> parents, 2: list<string> children,
+      3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
+      7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
+    throws (1: InvalidPathException ipe, 2: FileDoesNotExistException fdnee,
+      3: FileAlreadyExistException faee, 4: BlockInfoException bie, 5: TachyonException te)
+
+  bool createDirectory(1: string path, 2: bool recursive)
+    throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe)
+
+  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
+    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
+      3: SuspectedFileSizeException sfse, 4: TachyonException te)
+
+  bool deleteFile(1: i64 fileId, 2: bool recursive)
+    throws (1: TachyonException te)
+
+  bool free(1: i64 fileId, 2: bool recursive)
+    throws (1: FileDoesNotExistException fdnee)
+
+  DependencyInfo getDependencyInfo(1: i32 dependencyId)
+    throws (1: DependencyDoesNotExistException ddnee)
+
+  FileBlockInfo getFileBlockInfo(1: i64 fileId, 2: i32 fileBlockIndex)
+    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
+
+  list<FileBlockInfo> getFileBlockInfoList(1: i64 fileId)
+    throws (1: FileDoesNotExistException fdnee)
 
   i64 getFileId(1: string path)
     throws (1: InvalidPathException ipe)
@@ -180,64 +254,75 @@ service FileSystemMasterService {
   list<FileInfo> getFileInfoList(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee)
 
-  FileBlockInfo getFileBlockInfo(1: i64 fileId, 2: i32 fileBlockIndex)
-    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
-
-  list<FileBlockInfo> getFileBlockInfoList(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee)
-
   i64 getNewBlockIdForFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
 
   // TODO(gene): Is this necessary?
   string getUfsAddress()
 
-  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
-    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
-      3: SuspectedFileSizeException sfse, 4: TachyonException te)
+  /**
+   * Loads metadata for the file identified by the given Tachyon path from UFS into Tachyon.
+   */
+  i64 loadFileInfoFromUfs(1: string ufsPath, 2: bool recursive)
+    throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
+    3: FileAlreadyExistException faee, 4: InvalidPathException ipe,
+    5: SuspectedFileSizeException sfse, 6: TachyonException te)
 
-  i64 loadFileInfoFromUfs(1: string path, 2: string ufsPath, 3: bool recursive)
-    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
-      3: SuspectedFileSizeException sfse, 4: TachyonException te)
-
-  void completeFile(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
-
-  bool deleteFile(1: i64 fileId, 2: bool recursive)
+  /**
+   * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
+   * path. The path should not exist and should not be nested under any existing mount point.
+   */
+  bool mount(1: string tachyonPath, 2: string ufsPath)
     throws (1: TachyonException te)
+
+  bool persistFile(1: i64 fileId, 2: i64 length)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
+      3: BlockInfoException eB)
 
   bool renameFile(1: i64 fileId, 2: string dstPath)
     throws (1:FileAlreadyExistException faee, 2: FileDoesNotExistException fdnee,
       3: InvalidPathException ipe)
-
-  void setPinned(1: i64 fileId, 2: bool pinned)
-    throws (1: FileDoesNotExistException fdnee)
-
-  bool createDirectory(1: string path, 2: bool recursive)
-    throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe)
-
-  bool free(1: i64 fileId, 2: bool recursive)
-    throws (1: FileDoesNotExistException fdnee)
-
-  bool addCheckpoint(1: i64 workerId, 2: i64 fileId, 3: i64 length, 4: string checkpointPath)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
-      3: BlockInfoException eB)
-
-  // Lineage Features
-  i32 createDependency(1: list<string> parents, 2: list<string> children,
-      3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
-      7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
-    throws (1: InvalidPathException ipe, 2: FileDoesNotExistException fdnee,
-      3: FileAlreadyExistException faee, 4: BlockInfoException bie, 5: TachyonException te)
-
-  DependencyInfo getDependencyInfo(1: i32 dependencyId)
-    throws (1: DependencyDoesNotExistException ddnee)
 
   void reportLostFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee)
 
   void requestFilesInDependency(1: i32 depId)
     throws (1: DependencyDoesNotExistException ddnee)
+
+  void setPinned(1: i64 fileId, 2: bool pinned)
+    throws (1: FileDoesNotExistException fdnee)
+
+  /**
+   * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
+   * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
+   * will be persisted before they are removed from the Tachyon namespace.
+   */
+  bool unmount(1: string tachyonPath) throws (1: TachyonException te)
+
+  set<i64> workerGetPinIdList()
+
+  list<i32> workerGetPriorityDependencyList()
+}
+
+service LineageMasterService {
+  // for client
+  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job) 
+    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
+      3: SuspectedFileSizeException sfse, 4: TachyonException te)
+  
+  bool deleteLineage(1: i64 lineageId, 2: bool cascade)
+    throws (1: LineageDoesNotExistException lnee, 2: LineageDeletionException lde)
+  
+  list<LineageInfo> getLineageInfoList()
+  
+  i64 reinitializeFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
+    throws (1: InvalidPathException ipe, 2: LineageDoesNotExistException ldee)
+  
+  void asyncCompleteFile(1: i64 fileId)
+    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
+  
+  // for workers
+  LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
 }
 
 service RawTableMasterService {
@@ -245,14 +330,14 @@ service RawTableMasterService {
     throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe, 3: TableColumnException tce,
       4: TachyonException te)
 
-  i64 getRawTableId(1: string path)
-    throws (1: InvalidPathException ipe, 2: TableDoesNotExistException tdnee)
-
   RawTableInfo getClientRawTableInfoById(1: i64 id)
     throws (1: TableDoesNotExistException tdnee)
 
   RawTableInfo getClientRawTableInfoByPath(1: string path)
     throws (1: TableDoesNotExistException tdnee, 2: InvalidPathException ipe)
+
+  i64 getRawTableId(1: string path)
+    throws (1: InvalidPathException ipe, 2: TableDoesNotExistException tdnee)
 
   void updateRawTableMetadata(1: i64 tableId, 2: binary metadata)
     throws (1: TableDoesNotExistException tdnee, 2: TachyonException te)
@@ -260,10 +345,6 @@ service RawTableMasterService {
 
 service WorkerService {
   void accessBlock(1: i64 blockId)
-
-  void addCheckpoint(1: i64 sessionId, 2: i64 fileId)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
-      3: FailedToCheckpointException eF, 4: BlockInfoException eB)
 
   bool asyncCheckpoint(1: i64 fileId)
     throws (1: TachyonException e)
@@ -283,18 +364,16 @@ service WorkerService {
   void cancelBlock(1: i64 sessionId, 2: i64 blockId)
 
   /**
-   * Used to get session's temporary folder on under file system, and the path of the session's temporary
-   * folder will be returned.
-   */
-  string getSessionUfsTempFolder(1: i64 sessionId)
-
-  /**
    * Lock the file in Tachyon's space while the session is reading it, and the path of the block file
    * locked will be returned, if the block file is not found, FileDoesNotExistException will be
    * thrown.
    */
   string lockBlock(1: i64 blockId, 2: i64 sessionId)
     throws (1: FileDoesNotExistException eP)
+
+  void persistFile(1: i64 fileId, 2: i64 nonce, 3: string path)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
+      3: FailedToCheckpointException eF, 4: BlockInfoException eB)
 
   /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
@@ -322,15 +401,15 @@ service WorkerService {
     throws (1: FileDoesNotExistException eP)
 
   /**
+   * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
+   * metrics to the worker.
+   */
+  void sessionHeartbeat(1: i64 sessionId, 2: list<i64> metrics)
+
+  /**
    * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
    * block file. return true if successfully unlock the block, return false if the block is not
    * found or failed to delete the block.
    */
   bool unlockBlock(1: i64 blockId, 2: i64 sessionId)
-
-  /**
-   * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
-   * metrics to the worker.
-   */
-  void sessionHeartbeat(1: i64 sessionId, 2: list<i64> metrics)
 }

@@ -25,11 +25,6 @@
     </dependency>
     <dependency>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-integration</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-servers</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -69,6 +64,41 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>mesos</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-integration-mesos</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>yarn</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-integration-yarn</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>dev</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-integration</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>

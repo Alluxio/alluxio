@@ -114,16 +114,18 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * Notifies the worker that the checkpoint file of the file has been added.
+   * Notifies the worker that a file has been persisted in a temporary UFS location.
    *
-   * @param fileId The id of the checkpointed file
+   * @param fileId the file id
+   * @param nonce nonce a nonce used for temporary file creation
+   * @param path the UFS path where the file should be eventually stored
    * @throws IOException
    */
-  public synchronized void addCheckpoint(long fileId) throws IOException {
+  public synchronized void persistFile(long fileId, long nonce, String path) throws IOException {
     mustConnect();
 
     try {
-      mClient.addCheckpoint(mSessionId, fileId);
+      mClient.persistFile(fileId, nonce, path);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
@@ -279,23 +281,6 @@ public final class WorkerClient implements Closeable {
 
   public synchronized long getSessionId() {
     return mSessionId;
-  }
-
-  /**
-   * Gets the session temporary folder in the under file system of the specified session.
-   *
-   * @return The session temporary folder in the under file system
-   * @throws IOException
-   */
-  public synchronized String getSessionUfsTempFolder() throws IOException {
-    mustConnect();
-
-    try {
-      return mClient.getSessionUfsTempFolder(mSessionId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
   }
 
   /**
