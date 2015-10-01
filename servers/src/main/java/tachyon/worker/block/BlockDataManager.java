@@ -25,7 +25,6 @@ import tachyon.Sessions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.InvalidStateException;
 import tachyon.exception.NotFoundException;
@@ -33,6 +32,7 @@ import tachyon.exception.OutOfSpaceException;
 import tachyon.test.Testable;
 import tachyon.test.Tester;
 import tachyon.thrift.FailedToCheckpointException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
@@ -104,6 +104,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
   }
+
 
   @Override
   public void grantAccess(Tester<BlockDataManager> tester) {
@@ -525,5 +526,17 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    */
   public void updatePinList(Set<Long> pinnedInodes) {
     mBlockStore.updatePinnedInodes(pinnedInodes);
+  }
+
+  /**
+   * Gets the file information.
+   *
+   * @param fileId the file id
+   * @return the file info
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
+   */
+  public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, IOException {
+    return mFileSystemMasterClient.getFileInfo(fileId);
   }
 }

@@ -332,6 +332,22 @@ number.
   <td>The capacity of top storage layer.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.tieredstore.level0.reserved.ratio</td>
+  <td>0.1</td>
+  <td>Value is between 0 and 1, it sets the portion of space reserved on top storage layer.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.space.reserver.enable</td>
+  <td>false</td>
+  <td>Whether enabling space reserver service or not.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.space.reserver.interval.ms</td>
+  <td>1000</td>
+  <td>The period of space reserver service, which keeps certain portion of available space on each
+  layer. Specified in milliseconds.</td>
+</tr>
+<tr>
   <td>tachyon.worker.allocate.strategy.class</td>
   <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
   <td>The strategy that worker allocate space among storage directories in certain storage layer. Valid options
