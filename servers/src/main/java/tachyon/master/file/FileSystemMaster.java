@@ -67,6 +67,8 @@ import tachyon.master.file.meta.InodeDirectoryIdGenerator;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
+import tachyon.master.file.meta.TTLBucket;
+import tachyon.master.file.meta.TTLBucketList;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -108,6 +110,8 @@ public final class FileSystemMaster extends MasterBase {
 
   /** The service that tries to check inodefiles with ttl set */
   private Future<?> mTTLCheckerService;
+
+  private final TTLBucketList mTTLBuckets = new TTLBucketList();
 
   /**
    * @param baseDirectory the base journal directory
@@ -235,8 +239,8 @@ public final class FileSystemMaster extends MasterBase {
       }
       mTTLCheckerService =
           getExecutorService().submit(
-              new HeartbeatThread("InodeFile TTL Check", new MasterInodeTTLCheckExecutor(), conf
-                  .getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+              new HeartbeatThread("InodeFile TTL Check", new MasterInodeTTLCheckExecutor(),
+                  conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
   }
@@ -522,6 +526,7 @@ public final class FileSystemMaster extends MasterBase {
       throw new RuntimeException(fdnee);
     }
   }
+
   /**
    * Creates a file (not a directory) for a given path. Called via RPC.
    *
@@ -535,8 +540,9 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long createFile(TachyonURI path, long blockSizeBytes, boolean recursive)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    return this.createFile(path, blockSizeBytes, recursive, Constants.NO_TTL);
+    return createFile(path, blockSizeBytes, recursive, Constants.NO_TTL);
   }
+
   /**
    * Creates a file (not a directory) for a given path. Called via RPC.
    *
@@ -576,6 +582,9 @@ public final class FileSystemMaster extends MasterBase {
     if (mWhitelist.inList(path.toString())) {
       inode.setCacheable(true);
     }
+
+    mTTLBuckets.insert(inode);
+
     MasterContext.getMasterSource().incFilesCreated(created.size());
     return createResult;
   }
@@ -668,7 +677,6 @@ public final class FileSystemMaster extends MasterBase {
       boolean ret = deleteFileInternal(fileId, recursive, false, opTimeMs);
       writeJournalEntry(new DeleteFileEntry(fileId, recursive, opTimeMs));
       flushJournal();
-      LOG.debug("Deleted " + path);
       return ret;
     }
   }
@@ -1396,7 +1404,6 @@ public final class FileSystemMaster extends MasterBase {
     return mMountTable.delete(tachyonPath);
   }
 
-
   /**
    * Resets a file. It first free the whole file, and then reinitializes it.
    *
@@ -1416,30 +1423,30 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * MasterInodeTTL periodic check.
    */
-  public final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
-    // TODO: current implementation needs to be improved by using a more efficient datastructure
-    // such as hourly bucketized inodefilelist
+  private final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat()  {
       synchronized (mInodeTree) {
-        List<Inode> inodes = mInodeTree.getInodeChildrenRecursive(mInodeTree.getRoot());
-        for (Inode inode : inodes) {
-          if (inode.isFile() && !inode.isPinned()) {
-            InodeFile iFile = (InodeFile) inode;
-            long ttl = iFile.getTTL();
-            if (ttl > 0 && System.currentTimeMillis() - iFile.getCreationTimeMs() > ttl * 1000) {
+        Set<TTLBucket> expiredBuckets = mTTLBuckets.getExpiredBuckets(System.currentTimeMillis());
+        for (TTLBucket bucket : expiredBuckets) {
+          for (InodeFile file : bucket.getFiles()) {
+            if (!file.isDeleted()) {
+              // file.isPinned() is deliberately not checked because ttl will have effect no matter
+              // whether the file is pinned.
               try {
-                deleteFile(iFile.getId(), false);
+                deleteFile(file.getId(), false);
               } catch (FileDoesNotExistException e) {
-                LOG.error("file does not exit " + iFile.toString());
+                LOG.error("file does not exit " + file.toString());
               } catch (InvalidPathException e) {
-                LOG.error("invalid path for ttl check " + iFile.toString());
+                LOG.error("invalid path for ttl check " + file.toString());
               } catch (IOException e) {
-                LOG.error("IO exception for ttl check" + iFile.toString());
+                LOG.error("IO exception for ttl check" + file.toString());
               }
             }
           }
         }
+
+        mTTLBuckets.removeBuckets(expiredBuckets);
       }
     }
   }
