@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.MasterClientBase;
+import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.DependencyDoesNotExistException;
@@ -268,33 +269,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Loads a file from the under file system.
-   *
-   * @param path the file path
-   * @param ufsPath the under file system path
-   * @param recursive whether parent directories should be loaded if not present yet
-   * @return the file id
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if an I/O error occurs
-   */
-  public synchronized long loadFileInfoFromUfs(String path, String ufsPath, boolean recursive)
-      throws IOException, FileDoesNotExistException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
-        return mClient.loadFileInfoFromUfs(path, ufsPath, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
-  }
-
-  /**
    * Marks a file as completed.
    *
    * @param fileId the file id
@@ -469,7 +443,9 @@ public final class FileSystemMasterClient extends MasterClientBase {
       connect();
       try {
         mClient.reportLostFile(fileId);
+        return;
       } catch (FileDoesNotExistException e) {
+        LOG.error(e.getMessage(), e);
         throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -537,5 +513,72 @@ public final class FileSystemMasterClient extends MasterClientBase {
    */
   public synchronized DependencyInfo getDependencyInfo(int dependencyId) throws IOException {
     throw new UnsupportedOperationException("not implemented");
+  }
+
+  /**
+   * Loads a file from the under file system.
+   *
+   * @param path the Tachyon path of the file
+   * @param recursive whether parent directories should be loaded if not present yet
+   * @return the file id
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
+   */
+  public synchronized long loadFileInfoFromUfs(String path, boolean recursive)
+      throws IOException, FileDoesNotExistException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return mClient.loadFileInfoFromUfs(path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw e;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  /**
+   * Mounts the given UFS path under the given Tachyon path.
+   *
+   * @param tachyonPath the Tachyon path
+   * @param ufsPath the UFS path
+   * @throws IOException an I/O error occurs
+   */
+  public synchronized boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return mClient.mount(tachyonPath.toString(), ufsPath.toString());
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  /**
+   * Unmounts the given Tachyon path.
+   *
+   * @param tachyonPath the Tachyon path
+   * @throws IOException an I/O error occurs
+   */
+  public synchronized boolean unmount(TachyonURI tachyonPath) throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return mClient.unmount(tachyonPath.toString());
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
   }
 }

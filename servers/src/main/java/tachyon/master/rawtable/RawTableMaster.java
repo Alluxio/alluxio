@@ -115,7 +115,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   /**
-   * Create a raw table. A table is a directory with sub-directories representing columns.
+   * Creates a raw table. A table is a directory with sub-directories representing columns.
    *
    * @param path the path where the table is placed
    * @param columns the number of columns in the table
@@ -135,7 +135,7 @@ public class RawTableMaster extends MasterBase {
     validateMetadataSize(metadata);
 
     // Create a directory at path to hold the columns
-    mFileSystemMaster.mkdirs(path, true);
+    mFileSystemMaster.mkdir(path, true);
     long id = mFileSystemMaster.getFileId(path);
 
     // Add the table
@@ -148,7 +148,7 @@ public class RawTableMaster extends MasterBase {
 
     // Create directories in the table directory as columns
     for (int k = 0; k < columns; k ++) {
-      mFileSystemMaster.mkdirs(columnPath(path, k), true);
+      mFileSystemMaster.mkdir(columnPath(path, k), true);
     }
 
     writeJournalEntry(new RawTableEntry(id, columns, metadata));
@@ -158,7 +158,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   /**
-   * Update the metadata of a table.
+   * Updates the metadata of a table.
    *
    * @param tableId The id of the table to update
    * @param metadata The new metadata to update the table with
@@ -178,7 +178,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   /**
-   * Return the path for the column in the table.
+   * Returns the path for the column in the table.
    *
    * @param tablePath the path of the table
    * @param column column number
@@ -189,7 +189,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   /**
-   * Get the id of the table at the given path.
+   * Gets the id of the table at the given path.
    *
    * @param path The path of the table
    * @return the id of the table
@@ -206,14 +206,15 @@ public class RawTableMaster extends MasterBase {
   }
 
   /**
-   * Get the raw table info associated with the given id, the raw table info format is defined in
+   * Gets the raw table info associated with the given id, the raw table info format is defined in
    * thrift.
    *
    * @param id the id of the table
    * @return the table info
    * @throws TableDoesNotExistException when no table has the id
    */
-  public RawTableInfo getClientRawTableInfo(long id) throws TableDoesNotExistException {
+  public RawTableInfo getClientRawTableInfo(long id) throws InvalidPathException,
+      TableDoesNotExistException {
     if (!mRawTables.contains(id)) {
       throw new TableDoesNotExistException(
           ExceptionMessage.RAW_TABLE_ID_DOES_NOT_EXIST.getMessage(id));
@@ -240,7 +241,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   /**
-   * Get the raw table info of the table at the given path, the raw table info format is defined in
+   * Gets the raw table info of the table at the given path, the raw table info format is defined in
    * thrift.
    *
    * @param path the path of the table
@@ -254,7 +255,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   /**
-   * Validate that the number of columns is in the range from 0 to configured maximum number,
+   * Validates that the number of columns is in the range from 0 to configured maximum number,
    * non-inclusive.
    *
    * @param columns number of columns
@@ -268,7 +269,7 @@ public class RawTableMaster extends MasterBase {
   }
 
   /**
-   * Validate that the size of metadata is smaller than the configured maximum size. This should be
+   * Validates that the size of metadata is smaller than the configured maximum size. This should be
    * called whenever a metadata wants to be set.
    *
    * @param metadata the metadata to be validated

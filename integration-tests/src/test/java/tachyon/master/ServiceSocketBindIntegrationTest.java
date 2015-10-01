@@ -57,7 +57,7 @@ public class ServiceSocketBindIntegrationTest {
     mExecutorService.shutdown();
   }
 
-  private final void startCluster(String bindHost) throws Exception {
+  private void startCluster(String bindHost) throws Exception {
     TachyonConf tachyonConf = MasterContext.getConf();
     for (ServiceType service : ServiceType.values()) {
       tachyonConf.set(service.getBindHostKey(), bindHost);

@@ -57,9 +57,9 @@ public final class BlockMasterSync implements Runnable {
   private final int mHeartbeatIntervalMs;
   /** Milliseconds between heartbeats before a timeout */
   private final int mHeartbeatTimeoutMs;
-
   /** Client for all master communication */
-  private WorkerBlockMasterClient mMasterClient;
+  private final WorkerBlockMasterClient mMasterClient;
+
   /** Flag to indicate if the sync should continue */
   private volatile boolean mRunning;
   /** The id of the worker */
@@ -101,7 +101,7 @@ public final class BlockMasterSync implements Runnable {
     try {
       mWorkerId = mMasterClient.getId(mWorkerAddress);
     } catch (IOException ioe) {
-      LOG.error("Failed to register with master.", ioe);
+      LOG.error("Failed to get new worker id from master.", ioe);
       throw ioe;
     }
   }
@@ -109,14 +109,17 @@ public final class BlockMasterSync implements Runnable {
   /**
    * Registers with the Tachyon master. This should be called before the continuous heartbeat thread
    * begins. The workerId will be set after this method is successful.
+   *
+   * @throws IOException when workerId cannot be found
    */
-  public void registerWithMaster() {
+  private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockDataManager.getStoreMeta();
     try {
       mMasterClient.register(mWorkerId, storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException ioe) {
-      throw new RuntimeException("Failed to register with master.", ioe);
+      LOG.error("Failed to register with master.", ioe);
+      throw ioe;
     }
   }
 
@@ -127,7 +130,12 @@ public final class BlockMasterSync implements Runnable {
   @Override
   public void run() {
     long lastHeartbeatMs = System.currentTimeMillis();
-    registerWithMaster();
+    try {
+      registerWithMaster();
+    } catch (IOException ioe) {
+      // If failed to register when the thread starts, no retry will happen.
+      throw new RuntimeException("Failed to register with master.", ioe);
+    }
     while (mRunning) {
       // Check the time since last heartbeat, and wait until it is within heartbeat interval
       long lastIntervalMs = System.currentTimeMillis() - lastHeartbeatMs;
@@ -159,6 +167,9 @@ public final class BlockMasterSync implements Runnable {
               + cmdFromMaster.toString(), e);
         }
         mMasterClient.resetConnection();
+        // -1 will never be used as legal worker id assigned by master, so re-registration will
+        // be requested from master in next heartbeat.
+        mWorkerId = -1;
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastHeartbeatMs >= mHeartbeatTimeoutMs) {
           throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
@@ -233,6 +244,7 @@ public final class BlockMasterSync implements Runnable {
     public void run() {
       try {
         mBlockDataManager.removeBlock(mSessionId, mBlockId);
+        LOG.info("Block " + mBlockId + " removed at session " + mSessionId);
       } catch (IOException ioe) {
         LOG.warn("Failed master free block cmd for: " + mBlockId + " due to concurrent read.");
       } catch (InvalidStateException e) {

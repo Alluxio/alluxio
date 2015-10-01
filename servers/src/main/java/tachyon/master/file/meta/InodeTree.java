@@ -33,8 +33,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
+import tachyon.collections.IndexedSet;
 import tachyon.TachyonURI;
-import tachyon.IndexedSet;
 import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeEntry;
@@ -49,6 +49,9 @@ import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
 public final class InodeTree implements JournalCheckpointStreamable {
+  /** Value to be used for an inode with no parent. */
+  public static final long NO_PARENT = -1;
+
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Only the root inode should have the empty string as its name. */
   private static final String ROOT_INODE_NAME = "";
@@ -97,8 +100,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   public void initializeRoot() {
     if (mRoot == null) {
-      mRoot = new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), -1,
-          System.currentTimeMillis());
+      mRoot =
+          new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT,
+              System.currentTimeMillis());
       mInodes.add(mRoot);
 
       mCachedInode = mRoot;
@@ -328,6 +332,24 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
     return new CreatePathResult(modifiedInodes, createdInodes);
+  }
+
+  /**
+   * Reinitializes the block size and TTL of an existing open file.
+   *
+   * @param path the path to the file
+   * @param blockSizeBytes the new block size
+   * @param ttl the ttl
+   * @return the file id
+   * @throws InvalidPathException if the paht is invalid
+   */
+  public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
+      throws InvalidPathException {
+    // TODO(yupeng): add validation
+    InodeFile file = (InodeFile) getInodeByPath(path);
+    file.setBlockSize(blockSizeBytes);
+    file.setTTL(ttl);;
+    return file.getId();
   }
 
   /**
