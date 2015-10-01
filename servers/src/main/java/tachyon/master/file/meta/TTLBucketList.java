@@ -60,8 +60,12 @@ public final class TTLBucketList {
       // 1. There is no bucket in the list, or
       // 2. All buckets' interval start time is larger than the file's life end time, or
       // 3. No bucket actually contains ttlEndTimeMs in its interval.
-      // So a new bucket should should be added with ttlEndTimeMs as its interval start.
-      bucket = new TTLBucket(ttlEndTimeMs);
+      // So a new bucket should should be added with an appropriate interval start. Assume the list
+      // of buckets have continuous intervals, and the first interval starts at 0, then ttlEndTimeMs
+      // should be in number (ttlEndTimeMs / interval) interval, so the start time of this interval
+      // should be (ttlEndTimeMs / interval) * interval.
+      long interval = TTLBucket.getTTLIntervalMs();
+      bucket = new TTLBucket(ttlEndTimeMs / interval * interval);
       mBucketList.add(bucket);
     }
     bucket.addFile(file);
