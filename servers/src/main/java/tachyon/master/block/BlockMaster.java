@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
-import tachyon.IndexedSet;
+import tachyon.collections.IndexedSet;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
@@ -64,6 +64,7 @@ import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
@@ -73,8 +74,8 @@ import tachyon.util.io.PathUtils;
 /**
  * This master manages the metadata for all the blocks and block workers in Tachyon.
  */
-public final class BlockMaster extends MasterBase implements ContainerIdGenerable,
-    Testable<BlockMaster> {
+public final class BlockMaster extends MasterBase
+    implements ContainerIdGenerable, Testable<BlockMaster> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Block metadata management. */
@@ -278,7 +279,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
           if (masterBlockInfo == null) {
             continue;
           }
-          for (long workerId : masterBlockInfo.getWorkers()) {
+          for (long workerId : new ArrayList<Long>(masterBlockInfo.getWorkers())) {
             masterBlockInfo.removeWorker(workerId);
             MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
             if (worker != null) {
@@ -466,16 +467,15 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
    * @param totalBytesOnTiers list of total bytes on each tier
    * @param usedBytesOnTiers list of the used byes on each tier
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
-   * @return the worker id
+   * @throws TachyonException if workerId cannot be found
    */
-  // TODO(cc) return value should be void, throw exception when workerId doesn't exist.
-  public long workerRegister(long workerId, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers) {
+  public void workerRegister(long workerId, List<Long> totalBytesOnTiers,
+      List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)
+          throws TachyonException {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
-          LOG.warn("Could not find worker id: " + workerId + " to register.");
-          return -1L;
+          throw new TachyonException("Could not find worker id: " + workerId + " to register.");
         }
         MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
         workerInfo.updateLastUpdatedTimeMs();
@@ -494,7 +494,6 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         LOG.info("registerWorker(): " + workerInfo);
       }
     }
-    return workerId;
   }
 
   /**
@@ -550,6 +549,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
         // Continue to remove the remaining blocks.
         continue;
       }
+      LOG.info("Block " + removedBlockId + " is removed on worker " + workerInfo.getId());
       workerInfo.removeBlock(masterBlockInfo.getBlockId());
       masterBlockInfo.removeWorker(workerInfo.getId());
       if (masterBlockInfo.getNumLocations() == 0) {
@@ -587,6 +587,13 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /**
+   * @return the lost blocks in Tachyon Storage
+   */
+  public Set<Long> getLostBlocks() {
+    return Collections.unmodifiableSet(mLostBlocks);
+  }
+
+  /**
    * Creates a {@link BlockInfo} form a given {@link MasterBlockInfo}, by populating worker
    * locations.
    *
@@ -602,11 +609,22 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
-        locations.add(new BlockLocation(masterBlockLocation.getWorkerId(),
-            workerInfo.getAddress(), masterBlockLocation.getTier()));
+        locations.add(new BlockLocation(masterBlockLocation.getWorkerId(), workerInfo.getAddress(),
+            masterBlockLocation.getTier()));
       }
     }
     return new BlockInfo(masterBlockInfo.getBlockId(), masterBlockInfo.getLength(), locations);
+  }
+
+  /**
+   * Reports the ids of the blocks lost on workers.
+   *
+   * @param blockIds the ids of the lost blocks
+   */
+  public void reportLostBlocks(List<Long> blockIds) {
+    synchronized (mLostBlocks) {
+      mLostBlocks.addAll(blockIds);
+    }
   }
 
   /**
@@ -686,6 +704,7 @@ public final class BlockMaster extends MasterBase implements ContainerIdGenerabl
   }
 
   /** Grants access to private members to testers of this class. */
+  @Override
   public void grantAccess(Tester<BlockMaster> tester) {
     tester.receiveAccess(new PrivateAccess());
   }

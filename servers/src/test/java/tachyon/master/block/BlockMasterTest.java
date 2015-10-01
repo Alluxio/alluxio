@@ -15,6 +15,8 @@
 
 package tachyon.master.block;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -38,6 +40,7 @@ import tachyon.test.Tester;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.TachyonException;
 
 /**
  * Unit tests for tachyon.master.block.BlockMaster.
@@ -93,6 +96,24 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     Assert.assertEquals(
         ImmutableList.of(workerInfo1.generateClientWorkerInfo(),
             workerInfo2.generateClientWorkerInfo()), mMaster.getLostWorkersInfo());
+  }
+
+  @Test
+  public void removeBlocksTest() throws Exception {
+    mMaster.start(true);
+    long worker1 = mMaster.getWorkerId(new NetAddress("test1", 1, 2));
+    long worker2 = mMaster.getWorkerId(new NetAddress("test2", 1, 2));
+    List<Long> workerBlocks = Arrays.asList(1L, 2L, 3L);
+    HashMap<Long, List<Long>> noBlocksInTiers = Maps.newHashMap();
+    mMaster.workerRegister(worker1, Arrays.asList(100L), Arrays.asList(0L), noBlocksInTiers);
+    mMaster.workerRegister(worker2, Arrays.asList(100L), Arrays.asList(0L), noBlocksInTiers);
+    mMaster.commitBlock(worker1, 1L, 1, 1L, 1L);
+    mMaster.commitBlock(worker1, 2L, 1, 2L, 1L);
+    mMaster.commitBlock(worker1, 3L, 1, 3L, 1L);
+    mMaster.commitBlock(worker2, 1L, 1, 1L, 1L);
+    mMaster.commitBlock(worker2, 2L, 1, 2L, 1L);
+    mMaster.commitBlock(worker2, 3L, 1, 3L, 1L);
+    mMaster.removeBlocks(workerBlocks);
   }
 
   @Test
@@ -174,7 +195,7 @@ public class BlockMasterTest implements Tester<BlockMaster> {
   }
 
   private void addWorker(BlockMaster master, long workerId, List<Long> totalBytesOnTiers,
-      List<Long> usedBytesOnTiers) {
+      List<Long> usedBytesOnTiers) throws TachyonException {
     master.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
         Maps.<Long, List<Long>>newHashMap());
   }

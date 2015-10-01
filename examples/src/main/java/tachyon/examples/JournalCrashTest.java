@@ -30,12 +30,16 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.ClientOptions;
+import tachyon.client.ClientContext;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileAlreadyExistException;
+import tachyon.exception.TachyonException;
+import tachyon.exception.TachyonExceptionType;
 import tachyon.util.CommonUtils;
 
 /**
@@ -63,9 +67,7 @@ public class JournalCrashTest {
     /**
      * Keep creating empty raw table.
      */
-    // TODO: add it back when supporting raw table
-    //CREATE_TABLE,
-    // TODO: add more op types to test
+    CREATE_TABLE,
   }
 
   /**
@@ -115,31 +117,36 @@ public class JournalCrashTest {
         try {
           TachyonURI testURI = new TachyonURI(mWorkDir + mSuccessNum);
           if (ClientOpType.CREATE_FILE == mOpType) {
-            sTfs.getOutStream(testURI, sClientOptions).close();
+            sTfs.getOutStream(testURI, sOutStreamOptions).close();
           } else if (ClientOpType.CREATE_DELETE_FILE == mOpType) {
             try {
-              sTfs.getOutStream(testURI, sClientOptions).close();
-            } catch (FileAlreadyExistException e) {
-              // File already exists, ignore it.
+              sTfs.getOutStream(testURI, sOutStreamOptions).close();
+            } catch (TachyonException e) {
+              // If file already exists, ignore it.
+              if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
+                throw e;
+              }
             } catch (Exception e) {
               throw e;
             }
             sTfs.delete(sTfs.open(testURI));
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
             try {
-              sTfs.getOutStream(testURI, sClientOptions).close();
-            } catch (FileAlreadyExistException e) {
-              // File already exists, ignore it.
+              sTfs.getOutStream(testURI, sOutStreamOptions).close();
+            } catch (TachyonException e) {
+              // If file already exists, ignore it.
+              if (e.getType() != TachyonExceptionType.FILE_ALREADY_EXISTS) {
+                throw e;
+              }
             } catch (Exception e) {
               throw e;
             }
             sTfs.rename(sTfs.open(testURI), new TachyonURI(testURI + "-rename"));
+          } else if (ClientOpType.CREATE_TABLE == mOpType) {
+            if (sOldTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
+              break;
+            }
           }
-          //else if (ClientOpType.CREATE_TABLE == mOpType) {
-          //  if (mTfs.createRawTable(new TachyonURI(mWorkDir + mSuccessNum), 1) == -1) {
-          //    break;
-          //  }
-          //}
         } catch (Exception e) {
           // Since master may crash/restart for several times, so this exception is expected.
           // Ignore the exception and still keep requesting to master.
@@ -160,7 +167,7 @@ public class JournalCrashTest {
   private static final int EXIT_SUCCESS = 0;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static ClientOptions sClientOptions = null;
+  private static OutStreamOptions sOutStreamOptions = null;
   private static List<ClientThread> sClientThreadList = null;
   private static int sCreateDeleteClientNum;
   private static int sCreateFileClientNum;
@@ -170,6 +177,8 @@ public class JournalCrashTest {
   private static String sTestDir;
   /** The Tachyon Client. This can be shared by all the threads. */
   private static TachyonFileSystem sTfs = null;
+  /** Old Tachyon client, only be used for raw table functionality */
+  private static TachyonFS sOldTfs = null;
   /** The total time to run this test. */
   private static long sTotalTimeMs;
 
@@ -246,8 +255,10 @@ public class JournalCrashTest {
     stopCluster();
 
     // Set NO_STORE and NO_PERSIST so that this test can work without TachyonWorker.
-    sClientOptions = new ClientOptions.Builder(new TachyonConf())
-        .setStorageTypes(TachyonStorageType.NO_STORE, UnderStorageType.NO_PERSIST).build();
+    sOutStreamOptions =
+        new OutStreamOptions.Builder(new TachyonConf())
+            .setTachyonStorageType(TachyonStorageType.NO_STORE)
+            .setUnderStorageType(UnderStorageType.NO_PERSIST).build();
     // Set the max retry to avoid long pending for client disconnect.
     if (System.getProperty(Constants.MASTER_RETRY_COUNT) == null) {
       System.setProperty(Constants.MASTER_RETRY_COUNT, "10");
@@ -265,7 +276,8 @@ public class JournalCrashTest {
       LOG.info("Round {}: Planning Master Alive Time {}ms.", rounds, aliveTimeMs);
 
       System.out.println("Round " + rounds + " : Launch Clients...");
-      sTfs = TachyonFileSystem.get();
+      sTfs = TachyonFileSystemFactory.get();
+      sOldTfs = TachyonFS.get(ClientContext.getConf());
       try {
         sTfs.delete(sTfs.open(new TachyonURI(sTestDir)));
       } catch (Exception ioe) {

@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.master.file.FileSystemMaster;
@@ -74,8 +73,7 @@ public class JournalShutdownIntegrationTest {
         while (true) {
           if (mOpType == 0) {
             try {
-              mTfs.getOutStream(new TachyonURI(TEST_FILE_DIR + mSuccessNum),
-                  ClientOptions.defaults()).close();
+              mTfs.getOutStream(new TachyonURI(TEST_FILE_DIR + mSuccessNum)).close();
             } catch (IOException ioe) {
               break;
             }

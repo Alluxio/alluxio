@@ -78,6 +78,7 @@ public final class Constants {
   public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_SERVICE_NAME = "FileSystemMaster";
   public static final String RAW_TABLE_MASTER_SERVICE_NAME = "RawTableMaster";
+  public static final String LINEAGE_MASTER_SERVICE_NAME = "LineageMaster";
 
   /**
    * Version 1 [Before 0.5.0] Customized ser/de based. <br>
@@ -103,8 +104,7 @@ public final class Constants {
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String LOGS_DIR = "tachyon.logs.dir";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
-  public static final String UNDERFS_DATA_FOLDER = "tachyon.data.folder";
-  public static final String UNDERFS_WORKERS_FOLDER = "tachyon.workers.folder";
+  public static final String UNDERFS_DATA_FOLDER = "tachyon.underfs.data.folder";
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String UNDERFS_HADOOP_CONFIGURATION = "tachyon.underfs.hadoop.configuration";
   public static final String ASYNC_ENABLED = "tachyon.async.enabled";
@@ -157,6 +157,15 @@ public final class Constants {
   public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
   public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
+  public static final String MASTER_LINEAGE_CHECKPOINT_STRATEGY_CLASS =
+      "tachyon.master.lineage.checkpoint.strategy.class";
+  public static final String MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
+      "tachyon.master.lineage.checkpoint.interval.ms";
+  public static final String MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
+      "tachyon.master.lineage.recompute.interval.ms";
+  public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
+      "tachyon.master.lineage.recompute.log.path";
+
   public static final String WORKER_MEMORY_SIZE = "tachyon.worker.memory.size";
   public static final String WORKER_HOSTNAME = "tachyon.worker.hostname";
   public static final String WORKER_BIND_HOST = "tachyon.worker.bind.host";
@@ -206,6 +215,9 @@ public final class Constants {
       "tachyon.worker.evict.strategy.lrfu.attenuation.factor";
   public static final String WORKER_MAX_TIERED_STORAGE_LEVEL =
       "tachyon.worker.tieredstore.level.max";
+  public static final String WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS =
+      "tachyon.worker.lineage.heartbeat.interval.ms";
+
   public static final String WORKER_BLOCK_LOCK_COUNT = "tachyon.worker.block.lock.count";
   /**
    * This format is used as a template to generate the property name for a given level.
@@ -263,8 +275,6 @@ public final class Constants {
       "tachyon.user.file.understoragetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.remote.block.reader.class";
   public static final String USER_REMOTE_BLOCK_WRITER = "tachyon.user.remote.block.writer.class";
-  public static final String USER_ENABLE_LOCAL_READ = "tachyon.user.localread.enable";
-  public static final String USER_ENABLE_LOCAL_WRITE = "tachyon.user.localwrite.enable";
   public static final String USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS =
       "tachyon.user.remote.block.worker.client.threads";
   public static final String USER_LOCAL_BLOCK_WORKER_CLIENT_THREADS =
@@ -273,6 +283,7 @@ public final class Constants {
       "tachyon.user.block.master.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "tachyon.user.file.master.client.threads";
+  public static final String USER_LINEAGE_ENABLED = "tachyon.user.lineage.enabled";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";

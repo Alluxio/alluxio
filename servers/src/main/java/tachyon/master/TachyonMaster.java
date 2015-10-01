@@ -22,8 +22,8 @@ import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
-import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,10 +34,10 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
-import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.ReadWriteJournal;
+import tachyon.master.lineage.LineageMaster;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
 import tachyon.underfs.UnderFileSystem;
@@ -87,6 +87,8 @@ public class TachyonMaster {
   protected FileSystemMaster mFileSystemMaster;
   /** The master managing all raw table related metadata */
   protected RawTableMaster mRawTableMaster;
+  /** The master managing all lineage related metadata */
+  protected LineageMaster mLineageMaster;
 
   // The read-write journals for the masters
   /** The journal for the block master */
@@ -95,6 +97,8 @@ public class TachyonMaster {
   protected final ReadWriteJournal mFileSystemMasterJournal;
   /** The journal for the raw table master */
   protected final ReadWriteJournal mRawTableMasterJournal;
+  /** The journal for the lineage master */
+  protected final ReadWriteJournal mLineageMasterJournal;
 
   /** The web ui server */
   private UIWebServer mWebServer = null;
@@ -139,8 +143,8 @@ public class TachyonMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      mTServerSocket = new TServerSocket(
-          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
+      mTServerSocket =
+          new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master port
       conf.set(Constants.MASTER_PORT, Integer.toString(mPort));
@@ -160,10 +164,13 @@ public class TachyonMaster {
           new ReadWriteJournal(FileSystemMaster.getJournalDirectory(journalDirectory));
       mRawTableMasterJournal =
           new ReadWriteJournal(RawTableMaster.getJournalDirectory(journalDirectory));
+      mLineageMasterJournal =
+          new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
 
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
       mRawTableMaster = new RawTableMaster(mFileSystemMaster, mRawTableMasterJournal);
+      mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
 
       MasterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
@@ -272,6 +279,8 @@ public class TachyonMaster {
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
       mRawTableMaster.start(isLeader);
+      mLineageMaster.start(isLeader);
+
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -280,6 +289,7 @@ public class TachyonMaster {
 
   protected void stopMasters() {
     try {
+      mLineageMaster.stop();
       mBlockMaster.stop();
       mFileSystemMaster.stop();
       mRawTableMaster.stop();
@@ -289,11 +299,11 @@ public class TachyonMaster {
     }
   }
 
-  private void startServing() throws IOException {
+  private void startServing() {
     startServing("", "");
   }
 
-  protected void startServing(String startMessage, String stopMessage) throws IOException {
+  protected void startServing(String startMessage, String stopMessage) {
     mMasterMetricsSystem.start();
     startServingWebServer();
     LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress + " "
@@ -306,29 +316,26 @@ public class TachyonMaster {
   protected void startServingWebServer() {
     // start web ui
     TachyonConf conf = MasterContext.getConf();
-    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-        ServiceType.MASTER_WEB, conf), this, conf);
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, conf), this, conf);
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
     mWebServer.startWebServer();
   }
 
-  protected void startServingRPCServer() throws IOException {
+  protected void startServingRPCServer() {
     // set up multiplexed thrift processors
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     processor.registerProcessor(mBlockMaster.getServiceName(), mBlockMaster.getProcessor());
     processor.registerProcessor(mFileSystemMaster.getServiceName(),
         mFileSystemMaster.getProcessor());
     processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
-
-    // Return a TTransportFactory based on the authentication type
-    TTransportFactory transportFactory =
-         AuthenticationUtils.getServerTransportFactory(MasterContext.getConf());
+    processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
 
     // create master thrift service with the multiplexed processor.
     mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
         .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-        .processor(processor).transportFactory(transportFactory)
+        .processor(processor).transportFactory(new TFramedTransport.Factory())
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start thrift rpc server

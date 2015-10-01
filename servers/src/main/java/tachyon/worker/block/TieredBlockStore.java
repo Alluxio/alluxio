@@ -34,7 +34,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.AlreadyExistsException;
 import tachyon.exception.ExceptionMessage;
@@ -292,7 +292,7 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public void removeBlock(long sessionId, long blockId) throws InvalidStateException,
       NotFoundException, IOException {
-    removeBlockInternal(sessionId, blockId, BlockStoreLocation.anyTier());
+    removeBlock(sessionId, blockId, BlockStoreLocation.anyTier());
   }
 
   @Override

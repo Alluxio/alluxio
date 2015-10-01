@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.worker.block.meta.StorageDirView;
 
 /**
