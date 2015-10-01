@@ -21,6 +21,8 @@ import tachyon.conf.TachyonConf;
 public class SetStateOptions {
   public static class Builder {
     private Boolean mPinned;
+    // TODO(cc) Have an option to change TTL, would be used in a shell command like "setTTL", should
+    // also update logic of TTLBucketList when ttl value of an existing file is updated.
 
     /**
      * Creates a new builder for {@link SetStateOptions}.
