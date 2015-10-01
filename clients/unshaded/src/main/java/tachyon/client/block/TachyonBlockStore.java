@@ -140,7 +140,12 @@ public final class TachyonBlockStore implements Closeable {
     }
     // Location is local.
     if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location)) {
-      return new LocalBlockOutStream(blockId, blockSize);
+      if (mContext.hasLocalWorker()) {
+        return new LocalBlockOutStream(blockId, blockSize);
+      } else {
+        // No local client, so select a random client.
+        return new RemoteBlockOutStream(blockId, blockSize);
+      }
     }
     // Location is specified and it is remote.
     return new RemoteBlockOutStream(blockId, blockSize, location);
