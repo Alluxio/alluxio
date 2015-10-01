@@ -17,12 +17,10 @@ package tachyon.master.file;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -66,6 +64,8 @@ import tachyon.master.file.meta.InodeDirectoryIdGenerator;
 import tachyon.master.file.meta.InodeFile;
 import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
+import tachyon.master.file.meta.TTLBucket;
+import tachyon.master.file.meta.TTLBucketList;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -106,131 +106,6 @@ public final class FileSystemMaster extends MasterBase {
 
   /** The service that tries to check inodefiles with ttl set */
   private Future<?> mTTLCheckerService;
-  /** The configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS} */
-  private int mTTLCheckerIntervalMs;
-
-  /**
-   * A bucket with all files whose ttl value lies in the bucket's time interval. The bucket's time
-   * interval starts at a specific time and lasts for {@link #mTTLCheckerIntervalMs}.
-   *
-   * Not thread-safe. Only for use related to {@link TTLBucketList}.
-   */
-  private class TTLBucket {
-    /**
-     * Each bucket has a time to live interval, this value is the start of the interval, interval
-     * value is the same as the configuration of {@link Constants#MASTER_TTLCHECKER_INTERVAL_MS}.
-     */
-    private long mTTLIntervalStartTimeMs;
-    /** A list of InodeFiles whose ttl value is in the range of this bucket's interval. */
-    private List<InodeFile> mFiles;
-
-    public TTLBucket(long startTimeMs) {
-      mTTLIntervalStartTimeMs = startTimeMs;
-      mFiles = new LinkedList<InodeFile>();
-    }
-
-    public long getTTLIntervalStartTimeMs() {
-      return mTTLIntervalStartTimeMs;
-    }
-
-    public void setTTLIntervalStartMs(long startTimeMs) {
-      mTTLIntervalStartTimeMs = startTimeMs;
-    }
-
-    public long getTTLIntervalEndTimeMs() {
-      return mTTLIntervalStartTimeMs + mTTLCheckerIntervalMs;
-    }
-
-    public List<InodeFile> getFiles() {
-      return mFiles;
-    }
-
-    public void addFile(InodeFile file) {
-      mFiles.add(file);
-    }
-  }
-
-  /**
-   * A list of non-empty {@link TTLBucket}s sorted by ttl interval start time of each bucket.
-   *
-   * Two adjacent buckets may not have adjacent intervals since there may be no files with ttl value
-   * in the skipped intervals.
-   *
-   * Thread-safety is guaranteed by {@link ConcurrentSkipListSet}.
-   */
-  private class TTLBucketList {
-    /**
-     * List of buckets sorted by interval start time.
-     * SkipList is used for O(logn) insertion and retrieval, see {@link ConcurrentSkipListSet}.
-     */
-    private ConcurrentSkipListSet<TTLBucket> mBucketList;
-
-    public TTLBucketList() {
-      mBucketList = new ConcurrentSkipListSet<TTLBucket>(new Comparator<TTLBucket>() {
-        @Override
-        public int compare(TTLBucket ttlBucket, TTLBucket ttlBucket2) {
-          long startTime1 = ttlBucket.getTTLIntervalStartTimeMs();
-          long startTime2 = ttlBucket2.getTTLIntervalStartTimeMs();
-          if (startTime1 < startTime2) {
-            return -1;
-          }
-          if (startTime1 == startTime2) {
-            return 0;
-          }
-          return 1;
-        }
-      });
-    }
-
-    /**
-     * Inserts an {@link InodeFile} to the appropriate bucket where its ttl end time lies in the
-     * bucket's interval, if no appropriate bucket exists, a new bucket will be created to contain
-     * this file, if ttl value is {@link Constants#NO_TTL}, the file won't be inserted to any
-     * buckets and nothing will happen.
-     *
-     * @param file the file to be inserted
-     */
-    public void insert(InodeFile file) {
-      if (file.getTTL() == Constants.NO_TTL) {
-        return;
-      }
-
-      long ttlEndTimeMs = file.getCreationTimeMs() + file.getTTL();
-      // Gets the last bucket with interval start time less than or equal to the file's life end
-      // time.
-      TTLBucket bucket = mBucketList.floor(new TTLBucket(ttlEndTimeMs));
-      if (bucket == null || bucket.getTTLIntervalEndTimeMs() <= ttlEndTimeMs) {
-        // 1. There is no bucket in the list.
-        // 2. All buckets' interval start time is larger than the file's life end time.
-        // 3. No bucket actually contains ttlEndTimeMs in its interval.
-        // So a new bucket should should be added with ttlEndTimeMs as its interval start.
-        bucket = new TTLBucket(ttlEndTimeMs);
-        mBucketList.add(bucket);
-      }
-      bucket.addFile(file);
-    }
-
-    /**
-     * Retrieves buckets whose ttl interval has expired before the specified time, that is, the
-     * bucket's interval start time should be less than or equal to (specified time - ttl interval).
-     * The returned set is backed by the internal set.
-     *
-     * @param time the expiration time
-     * @return a set of expired buckets or an empty set if no buckets have expired
-     */
-    public Set<TTLBucket> getExpiredBuckets(long time) {
-      return mBucketList.headSet(new TTLBucket(time - mTTLCheckerIntervalMs), true);
-    }
-
-    /**
-     * Remove all buckets in the set.
-     *
-     * @param buckets a set of buckets to be removed
-     */
-    public void removeBuckets(Set<TTLBucket> buckets) {
-      mBucketList.removeAll(buckets);
-    }
-  }
 
   private final TTLBucketList mTTLBuckets = new TTLBucketList();
 
@@ -356,11 +231,10 @@ public final class FileSystemMaster extends MasterBase {
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
-      mTTLCheckerIntervalMs = conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS);
       mTTLCheckerService =
           getExecutorService().submit(
               new HeartbeatThread("InodeFile TTL Check", new MasterInodeTTLCheckExecutor(),
-                  mTTLCheckerIntervalMs));
+                  conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
   }
