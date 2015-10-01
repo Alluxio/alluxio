@@ -27,7 +27,9 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
+import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
@@ -86,6 +88,7 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       TachyonConf conf = PowerMockito.mock(TachyonConf.class);
       Mockito.when(conf.get(Constants.UNDERFS_ADDRESS)).thenReturn("/tmp");
       Mockito.when(conf.get(Constants.UNDERFS_DATA_FOLDER)).thenReturn("/tmp");
+      // TODO(binfan): find a better way to reset conf instance in context for testing
       Whitebox.setInternalState(WorkerContext.class, "sTachyonConf", conf);
 
       mManager =

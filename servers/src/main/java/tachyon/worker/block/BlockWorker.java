@@ -164,7 +164,7 @@ public final class BlockWorker {
             ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
     mBlockMasterClient =
         new WorkerBlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-          WorkerContext.getConf()), mMasterClientExecutorService, WorkerContext.getConf());
+            WorkerContext.getConf()), mMasterClientExecutorService, WorkerContext.getConf());
 
     mFileSystemMasterClient = new WorkerFileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, WorkerContext.getConf()),
@@ -187,7 +187,8 @@ public final class BlockWorker {
             NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, WorkerContext.getConf()),
             mBlockDataManager, WorkerContext.getConf());
     // reset data server port
-    WorkerContext.getConf().set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
+    WorkerContext.getConf().set(Constants.WORKER_DATA_PORT,
+        Integer.toString(mDataServer.getPort()));
 
     // Setup RPC Server
     mServiceHandler = new BlockServiceHandler(mBlockDataManager);
@@ -197,8 +198,8 @@ public final class BlockWorker {
     WorkerContext.getConf().set(Constants.WORKER_PORT, Integer.toString(mPort));
     mThriftServer = createThriftServer();
     mWorkerNetAddress =
-        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, WorkerContext.getConf()),
-            mPort, mDataServer.getPort());
+        new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
+            WorkerContext.getConf()), mPort, mDataServer.getPort());
 
     // Set up web server
     mWebServer =
@@ -226,7 +227,7 @@ public final class BlockWorker {
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
 
     // Setup space reserver
-    if (mTachyonConf.getBoolean(Constants.WORKER_SPACE_RESERVER_ENABLE)) {
+    if (WorkerContext.getConf().getBoolean(Constants.WORKER_SPACE_RESERVER_ENABLE)) {
       mSpaceReserver = new SpaceReserver(mBlockDataManager);
     }
 
@@ -346,7 +347,7 @@ public final class BlockWorker {
   private TServerSocket createThriftServerSocket() {
     try {
       return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC,
-        WorkerContext.getConf()));
+          WorkerContext.getConf()));
     } catch (TTransportException tte) {
       LOG.error(tte.getMessage(), tte);
       throw Throwables.propagate(tte);
