@@ -24,7 +24,7 @@ import org.junit.Assert;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.exception.NotFoundException;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreLocation;

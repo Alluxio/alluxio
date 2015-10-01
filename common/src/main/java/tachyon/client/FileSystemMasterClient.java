@@ -440,7 +440,9 @@ public final class FileSystemMasterClient extends MasterClientBase {
       connect();
       try {
         mClient.reportLostFile(fileId);
+        return;
       } catch (FileDoesNotExistException e) {
+        LOG.error(e.getMessage(), e);
         throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);

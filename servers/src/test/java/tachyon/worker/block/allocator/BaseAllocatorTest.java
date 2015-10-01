@@ -15,12 +15,13 @@
 
 package tachyon.worker.block.allocator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 import tachyon.StorageLevelAlias;
 import tachyon.worker.block.BlockMetadataManager;
@@ -64,14 +65,16 @@ public class BaseAllocatorTest {
   protected BlockStoreLocation mAnyDirInTierLoc2 = BlockStoreLocation.anyDirInTier(2);
   protected BlockStoreLocation mAnyDirInTierLoc3 = BlockStoreLocation.anyDirInTier(3);
 
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
   @Before
   public void before() throws Exception {
     resetManagerView();
   }
 
   protected void resetManagerView() throws Exception {
-    String tachyonHome =
-        File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
+    String tachyonHome = mTestFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(tachyonHome, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
     BlockMetadataManager metaManager = BlockMetadataManager.newBlockMetadataManager();

@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.thrift.TException;
-
 import tachyon.TachyonURI;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -144,6 +142,13 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
+  public long loadFileInfoFromUfs(String tachyonPath, boolean recursive)
+      throws BlockInfoException, FileAlreadyExistException, FileDoesNotExistException,
+    InvalidPathException, SuspectedFileSizeException, TachyonException {
+    return mFileSystemMaster.loadFileInfoFromUfs(new TachyonURI(tachyonPath), recursive);
+  }
+
+  @Override
   public boolean mount(String tachyonPath, String ufsPath) throws TachyonException {
     try {
       return mFileSystemMaster.mount(new TachyonURI(tachyonPath), new TachyonURI(ufsPath));
@@ -169,13 +174,5 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
     } catch (IOException e) {
       throw new TachyonException(e.getMessage());
     }
-  }
-
-  @Override
-  public long loadFileInfoFromUfs(String ufsPath, boolean recursive)
-      throws BlockInfoException, FileDoesNotExistException, FileAlreadyExistException,
-      InvalidPathException, SuspectedFileSizeException, TachyonException, TException {
-    // TODO Auto-generated method stub
-    return 0;
   }
 }
