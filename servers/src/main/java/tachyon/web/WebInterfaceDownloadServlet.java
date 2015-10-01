@@ -35,6 +35,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -104,7 +105,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   private void downloadFile(TachyonURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,
       InvalidPathException, TachyonException {
-    TachyonFileSystem tachyonClient = TachyonFileSystem.get();
+    TachyonFileSystem tachyonClient = TachyonFileSystemFactory.get();
     TachyonFile fd = tachyonClient.open(path);
     FileInfo tFile = tachyonClient.getInfo(fd);
     long len = tFile.getLength();

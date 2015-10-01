@@ -43,9 +43,9 @@ import tachyon.util.network.NetworkAddressUtils;
  * into a given offset of the stream to read.
  *
  * <p>
- * This class wraps the {@link BlockInStream} for each of the blocks in the file and abstracts the
- * switching between streams. The backing streams can read from Tachyon space in the local machine,
- * remote machines, or the under storage system.
+ * This class wraps the {@link tachyon.client.block.BlockInStream} for each of the blocks in the
+ * file and abstracts the switching between streams. The backing streams can read from Tachyon space
+ * in the local machine, remote machines, or the under storage system.
  */
 @PublicApi
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {

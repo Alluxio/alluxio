@@ -75,11 +75,11 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mWriteBoth =
         new OutStreamOptions.Builder(mWorkerTachyonConf)
             .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     mWriteUnderStorage =
         new OutStreamOptions.Builder(mWorkerTachyonConf)
             .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 
   @Test
