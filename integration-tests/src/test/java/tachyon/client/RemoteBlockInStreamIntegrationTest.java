@@ -16,6 +16,7 @@
 package tachyon.client;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -44,6 +45,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.BlockInfo;
+import tachyon.thrift.NetAddress;
 import tachyon.util.io.BufferUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
@@ -122,7 +124,7 @@ public class RemoteBlockInStreamIntegrationTest {
     mWriteUnderStore =
         new OutStreamOptions.Builder(mTachyonConf)
             .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     mReadCache =
         new InStreamOptions.Builder(mTachyonConf).setTachyonStorageType(TachyonStorageType.STORE)
             .build();
@@ -278,9 +280,10 @@ public class RemoteBlockInStreamIntegrationTest {
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
-              .getWorkerAddress());
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
+              workerAddr.getHost(), workerAddr.getDataPort()));
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -309,9 +312,10 @@ public class RemoteBlockInStreamIntegrationTest {
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
-              .getWorkerAddress());
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
+              workerAddr.getHost(), workerAddr.getDataPort()));
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -336,9 +340,10 @@ public class RemoteBlockInStreamIntegrationTest {
 
       long blockId = mTfs.getInfo(f).getBlockIds().get(0);
       BlockInfo info = TachyonBlockStore.get().getInfo(blockId);
+      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), info.getLocations().get(0)
-              .getWorkerAddress());
+          new RemoteBlockInStream(info.getBlockId(), info.getLength(), new InetSocketAddress(
+              workerAddr.getHost(), workerAddr.getDataPort()));
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {

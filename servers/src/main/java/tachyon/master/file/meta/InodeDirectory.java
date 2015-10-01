@@ -21,7 +21,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
-import tachyon.IndexedSet;
+import tachyon.collections.IndexedSet;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.thrift.FileInfo;

@@ -33,6 +33,7 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
@@ -72,7 +73,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, TachyonException {
-    TachyonFileSystem tFS = TachyonFileSystem.get();
+    TachyonFileSystem tFS = TachyonFileSystemFactory.get();
     TachyonFile tFile = tFS.open(path);
     String fileData = null;
     if (tFile == null) {
