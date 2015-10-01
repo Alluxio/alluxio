@@ -40,7 +40,7 @@ public class OutStreamOptionsTest {
     String hostname = "localhost";
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
     long ttl = random.nextLong();
-    UnderStorageType ufsType = UnderStorageType.PERSIST;
+    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
             .setHostname(hostname).setTachyonStorageType(tachyonType).setTTL(ttl)
@@ -55,7 +55,7 @@ public class OutStreamOptionsTest {
   @Test
   public void defaultsTest() {
     TachyonStorageType tachyonType = TachyonStorageType.STORE;
-    UnderStorageType ufsType = UnderStorageType.PERSIST;
+    UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, "64MB");
     conf.set(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, tachyonType.toString());

@@ -28,7 +28,7 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFSTestUtils;
 import tachyon.client.UnderStorageType;
@@ -158,7 +158,7 @@ public class MasterFaultToleranceIntegrationTest {
     int clients = 10;
     OutStreamOptions option =
         new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(1024)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     for (int k = 0; k < clients; k ++) {
       TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
