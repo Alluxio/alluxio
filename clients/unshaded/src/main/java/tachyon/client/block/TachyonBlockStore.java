@@ -18,8 +18,6 @@ package tachyon.client.block;
 import java.io.Closeable;
 import java.io.IOException;
 
-import com.google.common.base.Preconditions;
-
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.client.ClientOptions;
@@ -134,7 +132,6 @@ public final class TachyonBlockStore implements Closeable {
     }
     // Location is local.
     if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location)) {
-      Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
       return new LocalBlockOutStream(blockId, blockSize);
     }
     // Location is specified and it is remote.
