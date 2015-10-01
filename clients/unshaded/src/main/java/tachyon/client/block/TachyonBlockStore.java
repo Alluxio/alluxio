@@ -102,7 +102,7 @@ public final class TachyonBlockStore implements Closeable {
           workerAddr.getHostName()) && mContext.hasLocalWorker()) {
         return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
       } else {
-        return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+        throw new IOException("Local read requested but there is no local worker.");
       }
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -143,8 +143,7 @@ public final class TachyonBlockStore implements Closeable {
       if (mContext.hasLocalWorker()) {
         return new LocalBlockOutStream(blockId, blockSize);
       } else {
-        // No local client, so select a random client.
-        return new RemoteBlockOutStream(blockId, blockSize);
+        throw new IOException("Local write requested but there is no local worker.");
       }
     }
     // Location is specified and it is remote.
