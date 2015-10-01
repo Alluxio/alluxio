@@ -83,6 +83,11 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       mWorkerId = mRandom.nextLong();
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
+      TachyonConf conf = PowerMockito.mock(TachyonConf.class);
+      Mockito.when(conf.get(Constants.UNDERFS_ADDRESS)).thenReturn("/tmp");
+      Mockito.when(conf.get(Constants.UNDERFS_DATA_FOLDER)).thenReturn("/tmp");
+      Whitebox.setInternalState(WorkerContext.class, "sTachyonConf", conf);
+
       mManager =
           new BlockDataManager(mWorkerSource, mBlockMasterClient, mFileSystemMasterClient,
               mBlockStore);

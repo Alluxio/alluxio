@@ -86,7 +86,6 @@ public final class TieredBlockStore implements BlockStore {
   // TODO(bin): Change maxRetry to be configurable.
   private static final int MAX_RETRIES = 3;
 
-  private final TachyonConf mTachyonConf;
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -103,20 +102,19 @@ public final class TieredBlockStore implements BlockStore {
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
   public TieredBlockStore() {
-    mTachyonConf = WorkerContext.getConf();
     mMetaManager = BlockMetadataManager.newBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
-    mAllocator = Allocator.Factory.createAllocator(mTachyonConf, initManagerView);
+    mAllocator = Allocator.Factory.createAllocator(WorkerContext.getConf(), initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
-    mEvictor = Evictor.Factory.createEvictor(mTachyonConf, initManagerView, mAllocator);
+    mEvictor = Evictor.Factory.createEvictor(WorkerContext.getConf(), initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
