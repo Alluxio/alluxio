@@ -87,5 +87,9 @@ cat > /hadoop/etc/hadoop/yarn-site.xml << EOF
 <name>yarn.nodemanager.aux-services</name>
 <value>mapreduce_shuffle</value>
 </property>
+<property>
+<name>yarn.nodemanager.vmem-check-enabled</name>
+<value>false</value>
+</property>
 </configuration>
 EOF
