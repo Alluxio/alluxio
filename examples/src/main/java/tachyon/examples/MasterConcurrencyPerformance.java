@@ -166,7 +166,7 @@ public final class MasterConcurrencyPerformance {
   private static String sTestRootDir = "/tachyonMasterConcurrencyPerf";
 
   /**
-   * Deletes the dir if it already exists, then, create the empty dir.
+   * Deletes the dir if it already exists, then, creates the empty dir.
    *
    * @param dir the dir path
    * @throws IOException
