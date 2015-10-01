@@ -99,7 +99,7 @@ public final class TachyonBlockStore implements Closeable {
       InetSocketAddress workerAddr =
           new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
       if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
-          workerAddr.getHostName())) {
+          workerAddr.getHostName()) && mContext.hasLocalWorker()) {
         return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
       } else {
         return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
