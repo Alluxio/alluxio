@@ -58,6 +58,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
+import tachyon.util.io.PathUtils;
 
 /**
  * The client to submit the application to run Tachyon to YARN ResourceManager.
@@ -80,7 +81,8 @@ import tachyon.util.CommonUtils;
  */
 public final class Client {
   /** Main class to invoke ApplicationMaster. */
-  private final String AM_MAIN_CLASS = ApplicationMaster.class.getName();
+  private static final String AM_MAIN_CLASS = ApplicationMaster.class.getName();
+
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
   /** Yarn configuration. */
@@ -298,15 +300,17 @@ public final class Client {
 
   private void setupAppMasterEnv(Map<String, String> appMasterEnv) {
     String classpath = ApplicationConstants.Environment.CLASSPATH.name();
-    for (String c : mYarnConf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
+    for (String path : mYarnConf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
         YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
-      Apps.addToEnvironment(appMasterEnv, classpath, c.trim(),
+      Apps.addToEnvironment(appMasterEnv, classpath, path.trim(),
           ApplicationConstants.CLASS_PATH_SEPARATOR);
     }
-    Apps.addToEnvironment(appMasterEnv, classpath, Environment.PWD.$() + File.separator + "*",
+    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(Environment.PWD.$(), "*"),
         ApplicationConstants.CLASS_PATH_SEPARATOR);
-    Apps.addToEnvironment(appMasterEnv, classpath, mTachyonHome + "/conf" + File.separator,
-        ApplicationConstants.CLASS_PATH_SEPARATOR);
+    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(mTachyonHome, "conf")
+        + File.separator, ApplicationConstants.CLASS_PATH_SEPARATOR);
+    Apps.addToEnvironment(appMasterEnv, classpath, PathUtils.concatPath(mTachyonHome, "bin")
+        + File.separator, ApplicationConstants.CLASS_PATH_SEPARATOR);
   }
 
   /**
