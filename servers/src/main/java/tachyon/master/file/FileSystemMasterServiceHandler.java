@@ -204,11 +204,13 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public void reportLostFile(long fileId) throws TachyonTException {
+  public void reportLostFile(long fileId) throws TachyonTException, ThriftIOException {
     try {
       mFileSystemMaster.reportLostFile(fileId);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 

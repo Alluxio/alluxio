@@ -88,7 +88,7 @@ public class FileSystemMasterService {
 
     public boolean renameFile(long fileId, String dstPath) throws TachyonTException, org.apache.thrift.TException;
 
-    public void reportLostFile(long fileId) throws TachyonTException, org.apache.thrift.TException;
+    public void reportLostFile(long fileId) throws TachyonTException, ThriftIOException, org.apache.thrift.TException;
 
     public void requestFilesInDependency(int depId) throws TachyonTException, org.apache.thrift.TException;
 
@@ -664,7 +664,7 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "renameFile failed: unknown result");
     }
 
-    public void reportLostFile(long fileId) throws TachyonTException, org.apache.thrift.TException
+    public void reportLostFile(long fileId) throws TachyonTException, ThriftIOException, org.apache.thrift.TException
     {
       send_reportLostFile(fileId);
       recv_reportLostFile();
@@ -677,12 +677,15 @@ public class FileSystemMasterService {
       sendBase("reportLostFile", args);
     }
 
-    public void recv_reportLostFile() throws TachyonTException, org.apache.thrift.TException
+    public void recv_reportLostFile() throws TachyonTException, ThriftIOException, org.apache.thrift.TException
     {
       reportLostFile_result result = new reportLostFile_result();
       receiveBase(result, "reportLostFile");
       if (result.e != null) {
         throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
       }
       return;
     }
@@ -1477,7 +1480,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws TachyonTException, org.apache.thrift.TException {
+      public void getResult() throws TachyonTException, ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2144,6 +2147,8 @@ public class FileSystemMasterService {
           iface.reportLostFile(args.fileId);
         } catch (TachyonTException e) {
           result.e = e;
+        } catch (ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -3368,6 +3373,11 @@ public class FileSystemMasterService {
             if (e instanceof TachyonTException) {
                         result.e = (TachyonTException) e;
                         result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof ThriftIOException) {
+                        result.ioe = (ThriftIOException) e;
+                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -20934,6 +20944,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("reportLostFile_result");
 
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -20942,10 +20953,12 @@ public class FileSystemMasterService {
     }
 
     public TachyonTException e; // required
+    public ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -20962,6 +20975,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 1: // E
             return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -21007,6 +21022,8 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(reportLostFile_result.class, metaDataMap);
     }
@@ -21015,10 +21032,12 @@ public class FileSystemMasterService {
     }
 
     public reportLostFile_result(
-      TachyonTException e)
+      TachyonTException e,
+      ThriftIOException ioe)
     {
       this();
       this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -21027,6 +21046,9 @@ public class FileSystemMasterService {
     public reportLostFile_result(reportLostFile_result other) {
       if (other.isSetE()) {
         this.e = new TachyonTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new ThriftIOException(other.ioe);
       }
     }
 
@@ -21037,6 +21059,7 @@ public class FileSystemMasterService {
     @Override
     public void clear() {
       this.e = null;
+      this.ioe = null;
     }
 
     public TachyonTException getE() {
@@ -21063,6 +21086,30 @@ public class FileSystemMasterService {
       }
     }
 
+    public ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public reportLostFile_result setIoe(ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case E:
@@ -21073,6 +21120,14 @@ public class FileSystemMasterService {
         }
         break;
 
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((ThriftIOException)value);
+        }
+        break;
+
       }
     }
 
@@ -21080,6 +21135,9 @@ public class FileSystemMasterService {
       switch (field) {
       case E:
         return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -21094,6 +21152,8 @@ public class FileSystemMasterService {
       switch (field) {
       case E:
         return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -21120,6 +21180,15 @@ public class FileSystemMasterService {
           return false;
       }
 
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
+          return false;
+      }
+
       return true;
     }
 
@@ -21131,6 +21200,11 @@ public class FileSystemMasterService {
       list.add(present_e);
       if (present_e)
         list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -21149,6 +21223,16 @@ public class FileSystemMasterService {
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -21178,6 +21262,14 @@ public class FileSystemMasterService {
         sb.append("null");
       } else {
         sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -21232,6 +21324,15 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -21250,6 +21351,11 @@ public class FileSystemMasterService {
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -21273,20 +21379,31 @@ public class FileSystemMasterService {
         if (struct.isSetE()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetIoe()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetE()) {
           struct.e.write(oprot);
+        }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, reportLostFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.e = new TachyonTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.ioe = new ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }

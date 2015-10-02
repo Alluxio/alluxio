@@ -230,7 +230,7 @@ service FileSystemMasterService {
     throws (1: TachyonTException e)
 
   void reportLostFile(1: i64 fileId)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   void requestFilesInDependency(1: i32 depId)
     throws (1: TachyonTException e)

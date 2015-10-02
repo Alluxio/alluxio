@@ -48,6 +48,7 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.SuspectedFileSizeException;
+import tachyon.exception.TachyonException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
@@ -368,14 +369,13 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long getFileId(TachyonURI path) throws InvalidPathException {
     synchronized (mInodeTree) {
-      try {
-        Inode inode = mInodeTree.getInodeByPath(path);
-        return inode.getId();
-      } catch (InvalidPathException e) {
+      if (mInodeTree.exists(path)) {
+        return mInodeTree.getInodeByPath(path).getId();
+      } else {
         try {
           return loadMetadata(path, true);
-        } catch (Exception e2) {
-          throw e;
+        } catch (Exception e) {
+          throw new InvalidPathException("Could not find path: " + path);
         }
       }
     }
@@ -838,7 +838,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     long fileId = getFileId(path);
     return getFileBlockInfoList(fileId);
   }
@@ -1309,7 +1309,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  public void reportLostFile(long fileId) throws FileDoesNotExistException {
+  public void reportLostFile(long fileId) throws FileDoesNotExistException, IOException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {
@@ -1335,6 +1335,19 @@ public final class FileSystemMaster extends MasterBase {
     return mDependencyMap.getPriorityDependencyList();
   }
 
+  /**
+   * Loads metadata for the object identified by the given path from UFS into Tachyon.
+   *
+   * @param path the path for which metadata should be loaded
+   * @param recursive whether parent directories should be created if they do not already exist
+   * @return
+   * @throws BlockInfoException if an invalid block size is encountered
+   * @throws FileAlreadyExistsException if the object to be loaded already exists
+   * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
+   * @throws InvalidPathException if invalid path is encountered
+   * @throws SuspectedFileSizeException if invalid file size is encountered
+   * @throws IOException if an I/O error occurs
+   */
   // TODO(jiri): Make it possible to load directories and not just individual files.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
