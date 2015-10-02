@@ -15,26 +15,23 @@
 
 package tachyon.exception;
 
-/**
- * Abstract class for Tachyon exceptions.
- *
- */
-@SuppressWarnings("serial")
-public abstract class AbstractTachyonException extends Exception {
+public class FailedToCheckpointException extends TachyonException {
+  private static final TachyonExceptionType EXCEPTION_TYPE =
+      TachyonExceptionType.FAILED_TO_CHECKPOINT;
 
-  public AbstractTachyonException(String message) {
-    super(message);
+  public FailedToCheckpointException(String message) {
+    super(EXCEPTION_TYPE, message);
   }
 
-  public AbstractTachyonException(String message, Throwable cause) {
-    super(message, cause);
+  public FailedToCheckpointException(String message, Throwable cause) {
+    super(EXCEPTION_TYPE, message, cause);
   }
 
-  public AbstractTachyonException(ExceptionMessage message, Object... params) {
+  public FailedToCheckpointException(ExceptionMessage message, Object... params) {
     this(message.getMessage(params));
   }
 
-  public AbstractTachyonException(ExceptionMessage message, Throwable cause, Object... params) {
+  public FailedToCheckpointException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
 }

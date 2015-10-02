@@ -29,11 +29,11 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.collect.Sets;
 
 import tachyon.StorageLevelAlias;
-import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.BlockAlreadyExistsException;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
-import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.InvalidWorkerStateException;
+import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.util.io.FileUtils;
 import tachyon.worker.block.evictor.Evictor;
 import tachyon.worker.block.meta.BlockMeta;
@@ -130,7 +130,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void lockNonExistingBlockTest() throws Exception {
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION
         .getMessage(BLOCK_ID1, SESSION_ID1));
 
@@ -140,7 +140,7 @@ public final class TieredBlockStoreTests {
   @Test
   public void unlockNonExistingLockTest() throws Exception {
     long badLockId = 1003;
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID.getMessage(badLockId));
 
     mBlockStore.unlockBlock(badLockId);
@@ -183,7 +183,7 @@ public final class TieredBlockStoreTests {
     TieredBlockStoreTestUtils.cache(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
     // Move block from wrong Dir
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION.getMessage(BLOCK_ID2,
         mTestDir2.toBlockStoreLocation()));
     mBlockStore.moveBlock(SESSION_ID2, BLOCK_ID2, mTestDir2.toBlockStoreLocation(),
@@ -238,7 +238,7 @@ public final class TieredBlockStoreTests {
     TieredBlockStoreTestUtils.cache(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
     // Remove block from wrong Dir
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION.getMessage(BLOCK_ID2,
         mTestDir2.toBlockStoreLocation()));
     mBlockStore.removeBlock(SESSION_ID2, BLOCK_ID2, mTestDir2.toBlockStoreLocation());
@@ -311,7 +311,7 @@ public final class TieredBlockStoreTests {
     long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
 
     // Expect an exception because no eviction plan is feasible
-    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
     mBlockStore.createBlockMeta(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
@@ -338,7 +338,7 @@ public final class TieredBlockStoreTests {
     long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID2);
 
     // Expect an exception because no eviction plan is feasible
-    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir2.toBlockStoreLocation());
 
@@ -361,7 +361,7 @@ public final class TieredBlockStoreTests {
     long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
 
     // Expect an exception as no eviction plan is feasible
-    mThrown.expect(OutOfSpaceException.class);
+    mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
         mTestDir1.toBlockStoreLocation());
@@ -375,7 +375,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void getBlockWriterForNonExistingBlockTest() throws Exception {
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.getBlockWriter(SESSION_ID1, BLOCK_ID1);
@@ -383,7 +383,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void abortNonExistingBlockTest() throws Exception {
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.abortBlock(SESSION_ID1, BLOCK_ID1);
@@ -391,7 +391,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void abortBlockNotOwnedBySessionIdTest() throws Exception {
-    mThrown.expect(InvalidStateException.class);
+    mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION.getMessage(TEMP_BLOCK_ID,
         SESSION_ID1, SESSION_ID2));
 
@@ -401,7 +401,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void abortCommitedBlockTest() throws Exception {
-    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expect(BlockAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
@@ -411,7 +411,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void moveNonExistingBlockTest() throws Exception {
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.moveBlock(SESSION_ID1, BLOCK_ID1, mTestDir1.toBlockStoreLocation());
@@ -419,7 +419,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void moveTempBlockTest() throws Exception {
-    mThrown.expect(InvalidStateException.class);
+    mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.MOVE_UNCOMMITTED_BLOCK.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
@@ -430,7 +430,7 @@ public final class TieredBlockStoreTests {
   @Ignore
   @Test
   public void moveBlockToTheLocationWithExistingIdTest() throws Exception {
-    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expect(BlockAlreadyExistsException.class);
     mThrown.expectMessage("Failed to add BlockMeta: blockId " + BLOCK_ID1 + " exists");
 
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
@@ -442,7 +442,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void commitBlockTwiceTest() throws Exception {
-    mThrown.expect(AlreadyExistsException.class);
+    mThrown.expect(BlockAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_ID_COMMITTED.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
@@ -452,7 +452,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void commitNonExistingBlockTest() throws Exception {
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.commitBlock(SESSION_ID1, BLOCK_ID1);
@@ -460,7 +460,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void commitBlockNotOwnedBySessionIdTest() throws Exception {
-    mThrown.expect(InvalidStateException.class);
+    mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION.getMessage(TEMP_BLOCK_ID,
         SESSION_ID1, SESSION_ID2));
 
@@ -470,7 +470,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void removeTempBlockTest() throws Exception {
-    mThrown.expect(InvalidStateException.class);
+    mThrown.expect(InvalidWorkerStateException.class);
     mThrown.expectMessage(ExceptionMessage.REMOVE_UNCOMMITTED_BLOCK.getMessage(TEMP_BLOCK_ID));
 
     TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, TEMP_BLOCK_ID, BLOCK_SIZE, mTestDir1);
@@ -479,7 +479,7 @@ public final class TieredBlockStoreTests {
 
   @Test
   public void removeNonExistingBlockTest() throws Exception {
-    mThrown.expect(NotFoundException.class);
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(BLOCK_ID1));
 
     mBlockStore.removeBlock(SESSION_ID1, BLOCK_ID1);

@@ -107,7 +107,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void createFileWithFileAlreadyExistExceptionTest() throws IOException, TachyonException {
+  public void createFileWithFileAlreadyExistsExceptionTest() throws IOException, TachyonException {
     TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uri, sWriteBoth).close();
     Assert.assertNotNull(sTfs.getInfo(sTfs.open(uri)));
