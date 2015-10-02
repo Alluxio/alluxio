@@ -25,7 +25,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
-import tachyon.thrift.InvalidPathException;
+import tachyon.exception.InvalidPathException;
 
 /**
  * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.

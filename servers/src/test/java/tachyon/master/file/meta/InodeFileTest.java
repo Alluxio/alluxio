@@ -23,8 +23,8 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.SuspectedFileSizeException;
 
 /**
  * Unit tests for tachyon.InodeFile

@@ -50,7 +50,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <!-- To suppress javassist/NotFoundException in MasterFaultToleranceTest -->
+      <!-- To suppress javassist/BlockDoesNotExistException in MasterFaultToleranceTest -->
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
       <scope>test</scope>

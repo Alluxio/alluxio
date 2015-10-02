@@ -15,31 +15,22 @@
 
 package tachyon.exception;
 
-/**
- * Exception used when storage space is insufficient.
- *
- * For example:
- * <ul>
- * <li>worker cannot satisfy the requested space</li>
- * <li>evictor cannot satisfy the space to be available after eviction</li>
- * </ul>
- */
-public final class OutOfSpaceException extends AbstractTachyonException {
-  private static final long serialVersionUID = -5000240143940942071L;
+public class TableMetadataException extends TachyonException {
+  private static final TachyonExceptionType EXCEPTION_TYPE = TachyonExceptionType.TABLE_METADATA;
 
-  public OutOfSpaceException(String message) {
-    super(message);
+  public TableMetadataException(String message) {
+    super(EXCEPTION_TYPE, message);
   }
 
-  public OutOfSpaceException(String message, Throwable cause) {
-    super(message, cause);
+  public TableMetadataException(String message, Throwable cause) {
+    super(EXCEPTION_TYPE, message, cause);
   }
 
-  public OutOfSpaceException(ExceptionMessage message, Object... params) {
-    super(message, params);
+  public TableMetadataException(ExceptionMessage message, Object... params) {
+    this(message.getMessage(params));
   }
 
-  public OutOfSpaceException(ExceptionMessage message, Throwable cause, Object... params) {
-    super(message, cause, params);
+  public TableMetadataException(ExceptionMessage message, Throwable cause, Object... params) {
+    this(message.getMessage(params), cause);
   }
 }

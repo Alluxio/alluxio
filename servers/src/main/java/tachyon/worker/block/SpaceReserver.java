@@ -25,10 +25,10 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.collections.Pair;
 import tachyon.Sessions;
-import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
-import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.BlockAlreadyExistsException;
+import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.InvalidWorkerStateException;
+import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 
@@ -87,13 +87,13 @@ public class SpaceReserver implements Runnable {
         long bytesReserved = bytesReservedOnTier.getSecond();
         try {
           mBlockManager.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
-        } catch (OutOfSpaceException e) {
+        } catch (WorkerOutOfSpaceException e) {
           LOG.warn(e.getMessage());
-        } catch (NotFoundException e) {
+        } catch (BlockDoesNotExistException e) {
           LOG.warn(e.getMessage());
-        } catch (AlreadyExistsException e) {
+        } catch (BlockAlreadyExistsException e) {
           LOG.warn(e.getMessage());
-        } catch (InvalidStateException e) {
+        } catch (InvalidWorkerStateException e) {
           LOG.warn(e.getMessage());
         } catch (IOException e) {
           LOG.warn(e.getMessage());
