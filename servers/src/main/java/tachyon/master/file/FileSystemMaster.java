@@ -361,7 +361,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the file id for a given path. Called via RPC, as well as internal masters.
+   * Returns the file id for a given path. Called via RPC, as well as internal masters. If the given
+   * path does not exist in Tachyon, the method attempts to load it from UFS.
    *
    * @param path the path to get the file id for
    * @return the file id for a given path
@@ -369,8 +370,16 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long getFileId(TachyonURI path) throws InvalidPathException {
     synchronized (mInodeTree) {
-      Inode inode = mInodeTree.getInodeByPath(path);
-      return inode.getId();
+      try {
+        Inode inode = mInodeTree.getInodeByPath(path);
+        return inode.getId();
+      } catch (InvalidPathException e) {
+        try {
+          return loadMetadata(path, true);
+        } catch (Exception e2) {
+          throw e;
+        }
+      }
     }
   }
 
@@ -1322,7 +1331,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   // TODO(jiri): Make it possible to load directories and not just individual files.
-  public long loadFileInfoFromUfs(TachyonURI path, boolean recursive)
+  public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistException, FileDoesNotExistException,
       InvalidPathException, SuspectedFileSizeException, TachyonException {
     TachyonURI ufsPath;
@@ -1334,12 +1343,18 @@ public final class FileSystemMaster extends MasterBase {
       if (!ufs.exists(ufsPath.getPath())) {
         throw new FileDoesNotExistException(ufsPath.getPath());
       }
-      long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
-      long fileSizeByte = ufs.getFileSize(ufsPath.toString());
-      // Metadata loaded from UFS has no TTL set.
-      long fileId = createFile(path, ufsBlockSizeByte, recursive, Constants.NO_TTL);
-      persistFile(fileId, fileSizeByte);
-      return fileId;
+      if (ufs.isFile(ufsPath.getPath())) {
+        long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
+        long fileSizeByte = ufs.getFileSize(ufsPath.toString());
+        // Metadata loaded from UFS has no TTL set.
+        long fileId = createFile(path, ufsBlockSizeByte, recursive, Constants.NO_TTL);
+        persistFile(fileId, fileSizeByte);
+        return fileId;
+      } else {
+        InodeTree.CreatePathResult result = mkdir(path, recursive);
+        List<Inode> created = result.getCreated();
+        return created.get(created.size() - 1).getId();
+      }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
       throw new TachyonException(e.getMessage());

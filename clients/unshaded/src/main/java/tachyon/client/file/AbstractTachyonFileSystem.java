@@ -169,7 +169,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
-          masterClient.loadFileInfoFromUfs(path.getPath(), options.isRecursive());
+          masterClient.loadMetadata(path.getPath(), options.isRecursive());
       LOG.info("Loaded file " + path.getPath() + (options.isRecursive() ? " recursively" : ""));
       return fileId;
     } catch (FileDoesNotExistException e) {
