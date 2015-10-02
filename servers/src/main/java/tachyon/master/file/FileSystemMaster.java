@@ -538,9 +538,9 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistException
    * @throws BlockInfoException
    */
-  public long createFile(TachyonURI path, long blockSizeBytes, boolean recursive)
+  public long create(TachyonURI path, long blockSizeBytes, boolean recursive)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
-    return createFile(path, blockSizeBytes, recursive, Constants.NO_TTL);
+    return create(path, blockSizeBytes, recursive, Constants.NO_TTL);
   }
 
   /**
@@ -555,12 +555,12 @@ public final class FileSystemMaster extends MasterBase {
    * @throws FileAlreadyExistException
    * @throws BlockInfoException
    */
-  public long createFile(TachyonURI path, long blockSizeBytes, boolean recursive, long ttl)
+  public long create(TachyonURI path, long blockSizeBytes, boolean recursive, long ttl)
       throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
     MasterContext.getMasterSource().incCreateFileOps();
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult =
-          createFileInternal(path, blockSizeBytes, recursive, System.currentTimeMillis(), ttl);
+          createInternal(path, blockSizeBytes, recursive, System.currentTimeMillis(), ttl);
       List<Inode> created = createResult.getCreated();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -570,7 +570,7 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  InodeTree.CreatePathResult createFileInternal(TachyonURI path, long blockSizeBytes,
+  InodeTree.CreatePathResult createInternal(TachyonURI path, long blockSizeBytes,
       boolean recursive, long opTimeMs, long ttl) throws InvalidPathException,
       FileAlreadyExistException, BlockInfoException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
@@ -1337,7 +1337,7 @@ public final class FileSystemMaster extends MasterBase {
       long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
       long fileSizeByte = ufs.getFileSize(ufsPath.toString());
       // Metadata loaded from UFS has no TTL set.
-      long fileId = createFile(path, ufsBlockSizeByte, recursive, Constants.NO_TTL);
+      long fileId = create(path, ufsBlockSizeByte, recursive, Constants.NO_TTL);
       persistFile(fileId, fileSizeByte);
       return fileId;
     } catch (IOException e) {

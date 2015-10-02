@@ -218,7 +218,7 @@ public final class LineageMaster extends MasterBase {
       long fileId;
       // TODO: delete the placeholder files if the creation fails.
       // create the file initialized with block size 1 as placeholder
-      fileId = mFileSystemMaster.createFile(outputFile, 1, true);
+      fileId = mFileSystemMaster.create(outputFile, 1, true);
       outputTachyonFiles.add(new LineageFile(fileId));
     }
 
