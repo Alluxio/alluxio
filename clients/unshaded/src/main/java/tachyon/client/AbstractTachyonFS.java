@@ -39,7 +39,9 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   protected final TachyonConf mTachyonConf;
 
   protected AbstractTachyonFS(TachyonConf tachyonConf) {
-    sReinitializerAccesser.receiveAccess(sReinitializer);
+    if (sReinitializer == null) {
+      ClientContext.accessReinitializer(sReinitializerAccesser);
+    }
     sReinitializer.reinitializeWithConf(tachyonConf);
     mTachyonConf = tachyonConf;
   }
