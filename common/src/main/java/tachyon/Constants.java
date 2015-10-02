@@ -285,6 +285,8 @@ public final class Constants {
       "tachyon.user.file.master.client.threads";
   public static final String USER_LINEAGE_ENABLED = "tachyon.user.lineage.enabled";
 
+  public static final String USER_WAITCOMPLETED_POLL = "tachyon.user.waitcompleted.poll.millis";
+
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
 

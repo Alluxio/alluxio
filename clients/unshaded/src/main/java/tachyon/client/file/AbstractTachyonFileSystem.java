@@ -17,6 +17,9 @@ package tachyon.client.file;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import javax.activity.InvalidActivityException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,7 @@ import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.GetInfoOptions;
+import tachyon.client.file.options.IsCompletedOptions;
 import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
@@ -37,6 +41,7 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
+import tachyon.client.file.options.WaitCompletedOptions;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.BlockInfoException;
@@ -44,6 +49,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.InvalidPathException;
+import tachyon.util.CommonUtils;
 
 /**
  * Tachyon File System client. This class should be used to interface with the Tachyon File
@@ -123,6 +129,20 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  /**
+   * Convenience method for {@link #getInfo(TachyonFile, GetInfoOptions)} + {@link
+   * FileInfo#isCompleted}
+   * @param file the file whose completion status is to be queried
+   * @param options {@link IsCompletedOptions} for the call
+   * @return true if the last status known for the file on the master was "completed"
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
+  public boolean isCompleted(TachyonFile file, IsCompletedOptions options) throws IOException,
+    TachyonException {
+    return getInfo(file, GetInfoOptions.defaults()).isCompleted;
   }
 
   /**
@@ -264,5 +284,57 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  // <i>IMPLEMENTATION NOTES</i> As inefficient it might be, this method is implemented
+  // by periodically polling the master about the file status. The
+  // polling period is controlled by the {@link Constants#USER_WAITCOMPLETED_POLL}
+  // java property and defaults to a generous 1 second.
+  @Override
+  public boolean waitCompleted(TachyonURI uri, WaitCompletedOptions options)
+      throws IOException, TachyonException, InterruptedException {
+    final long timeout = options.getTimeout();
+    final TimeUnit tunit = options.getTunit();
+    final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
+    final long pollPeriod = options.getPollPeriodMillis();
+    final IsCompletedOptions opts = IsCompletedOptions.defaults();
+
+    TachyonFile file = null;
+    boolean complete = false ;
+    long timeleft = deadline - System.currentTimeMillis();
+    long toSleep = 0;
+
+    while (!complete && (timeout < 0 || timeleft > 0)) {
+
+      if (file == null) {
+        try {
+          file = open(uri, OpenOptions.defaults());
+        } catch (TachyonException e) {
+          if (e.getType() == TachyonExceptionType.INVALID_PATH) {
+            LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
+                + "created.", uri);
+          } else {
+            throw e;
+          }
+        }
+      }
+
+      if (file != null) {
+        complete = isCompleted(file, opts);
+      }
+
+      if (!complete) {
+        if (timeout < 0 || timeleft > pollPeriod) {
+          toSleep = pollPeriod;
+        } else {
+          toSleep = timeleft;
+        }
+
+        CommonUtils.sleepMs(LOG, toSleep, true);
+        timeleft = deadline - System.currentTimeMillis();
+      }
+    }
+
+    return complete;
   }
 }

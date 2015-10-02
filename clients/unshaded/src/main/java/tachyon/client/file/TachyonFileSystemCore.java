@@ -32,6 +32,7 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
+import tachyon.client.file.options.WaitCompletedOptions;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 
@@ -51,6 +52,7 @@ interface TachyonFileSystemCore {
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if a Tachyon exception occurs
    */
+  // (andrea) why doesn't this method return a file.TachyonFile instance instead?
   long create(TachyonURI path, CreateOptions options) throws IOException, TachyonException;
 
   /**
@@ -183,4 +185,36 @@ interface TachyonFileSystemCore {
    */
   boolean unmount(TachyonURI tachyonPath, UnmountOptions options) throws IOException,
       TachyonException;
+
+
+  /**
+   * Wait for a file to be marked as completed.
+   *
+   * The calling thread will block for <i>at most</i>
+   * {@link WaitCompletedOptions#getTimeout()} time units (as specified via {@link
+   * WaitCompletedOptions#getTunit()}) or until the TachyonFile is reported as complete by the
+   * master. The method will return
+   * the last known completion status of the file (hence, false only if the method
+   * has timed out).  A negative value on the timeout parameter will make the thread block
+   * forever; a zero value will make it check just once and return.
+   *
+   * Note that the file whose uri is specified, might not exist at the moment this method this
+   * call. The method will deliberately block anyway for the specified amount of time, waiting
+   * for the file to be created and eventually completed. Note also that the file might be moved
+   * or deleted while it is waited upon. In such cases the method will throw the a
+   * {@link TachyonException} with the appropriate {@link tachyon.exception.TachyonExceptionType}
+   *
+   * @param f the file whose completion status is to be waitd for.
+   * @param options parameters for this waitCompleted call
+   * @return true if the file is complete when this method returns and false
+   * if the method timed out before the file was complete.
+   *
+   * @throws IOException in case there are problems contacting the Tachyonmaster
+   * for the file status
+   * @throws TachyonException if a Tachyon Exception occurs
+   * @throws InterruptedException if the thread receives an interrupt while
+   * waiting for file completion
+   */
+  boolean waitCompleted(TachyonURI uri, WaitCompletedOptions options)
+    throws IOException, TachyonException, InterruptedException;
 }

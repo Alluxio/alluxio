@@ -16,6 +16,8 @@
 package tachyon.client;
 
 import java.io.IOException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.thrift.TException;
 import org.junit.AfterClass;
@@ -29,17 +31,22 @@ import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.IsCompletedOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.client.file.options.WaitCompletedOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
+import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
 /**
@@ -196,5 +203,120 @@ public class TachyonFileSystemIntegrationTest {
     long oldFileId = f.getFileId();
     Assert.assertTrue(sTfs.rename(f, uniqUri));
     Assert.assertEquals(oldFileId, sTfs.open(uniqUri).getFileId());
+  }
+
+
+  @Test
+  public void waitCompletedTest1() throws IOException, TachyonException, InterruptedException {
+    final String uniqPath = PathUtils.uniqPath();
+    final int numWrites = 4; // random value chosen through a fair dice roll :P
+    final TachyonURI uri = new TachyonURI(uniqPath);
+
+
+    final Runnable writer = new Runnable() {
+      @Override
+      public void run() {
+        FileOutStream os = null;
+        try {
+          os = sTfs.getOutStream(uri, sWriteBoth);
+          final TachyonFile f = sTfs.open(uri);
+          Assert.assertFalse(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+          for (int i = 0; i < numWrites; i++) {
+            os.write(42);
+            CommonUtils.sleepMs(200);
+          }
+          os.close();
+          Assert.assertTrue(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+        } catch (Exception e) {
+          Assert.fail(e.getMessage());
+        }
+      }
+    };
+
+
+    final Runnable waiter = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          boolean completed = sTfs.waitCompleted(uri);
+          Assert.assertTrue(completed);
+          TachyonFile f = sTfs.open(uri);
+          Assert.assertTrue(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+        } catch (Exception e) {
+          e.printStackTrace();
+          Assert.fail(e.getMessage());
+        }
+      }
+    };
+
+    final Thread waitingThread = new Thread(waiter);
+    waitingThread.start();
+
+    final Thread writingThread = new Thread(writer);
+    writingThread.start();
+
+    waitingThread.join();
+    writingThread.join();
+  }
+
+  @Test
+  public void waitCompletedTest2() throws IOException, TachyonException, InterruptedException {
+    final String uniqPath = PathUtils.uniqPath();
+    final int numWrites = 4; // random value chosen through a fair dice roll :P
+    final TachyonURI uri = new TachyonURI(uniqPath);
+
+
+    final Runnable writer = new Runnable() {
+      @Override
+      public void run() {
+        FileOutStream os = null;
+        try {
+          os = sTfs.getOutStream(uri, sWriteBoth);
+          final TachyonFile f = sTfs.open(uri);
+          Assert.assertFalse(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+          // four writes that will take > 600ms due to the sleeps
+          for (int i = 0; i < numWrites; i++) {
+            os.write(42);
+            CommonUtils.sleepMs(200);
+          }
+          os.close();
+          Assert.assertTrue(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+        } catch (Exception e) {
+          Assert.fail(e.getMessage());
+        }
+      }
+    };
+
+
+    final Runnable waiter = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          final TachyonConf conf = ClientContext.getConf();
+          // set the slow defauult polling period to a more sensible value, in order
+          // to speed up the tests artificial waiting times
+          conf.set(Constants.USER_WAITCOMPLETED_POLL, "100");
+          final WaitCompletedOptions opts = (new WaitCompletedOptions.Builder(
+              conf)).setTimeout(300, TimeUnit.MILLISECONDS).build();
+          // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
+          final boolean completed = sTfs.waitCompleted(uri, opts);
+          Assert.assertFalse(completed);
+          TachyonFile f = sTfs.open(uri);
+          Assert.assertFalse(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+        } catch (Exception e) {
+          e.printStackTrace();
+          Assert.fail(e.getMessage());
+        }
+      }
+    };
+
+    final Thread waitingThread = new Thread(waiter);
+    waitingThread.start();
+
+    final Thread writingThread = new Thread(writer);
+    writingThread.start();
+
+    waitingThread.join();
+    writingThread.join();
   }
 }
