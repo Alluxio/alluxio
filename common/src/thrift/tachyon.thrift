@@ -98,7 +98,7 @@ struct Command {
 
 struct LineageCommand {
   1: CommandType commandType
-  2: list<CheckpointFile> checkpointFiles 
+  2: list<CheckpointFile> checkpointFiles
 }
 
 struct CheckpointFile {
@@ -112,7 +112,7 @@ struct JobConfInfo {
 
 struct CommandLineJobInfo {
   1: string command
-  2: JobConfInfo conf 
+  2: JobConfInfo conf
 }
 
 struct LineageFileInfo {
@@ -223,10 +223,10 @@ service FileSystemMasterService {
     throws (1: InvalidPathException ipe, 2: FileDoesNotExistException fdnee,
       3: FileAlreadyExistException faee, 4: BlockInfoException bie, 5: TachyonException te)
 
-  bool createDirectory(1: string path, 2: bool recursive)
+  bool mkdir(1: string path, 2: bool recursive)
     throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe)
 
-  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
+  i64 create(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
 
@@ -306,21 +306,21 @@ service FileSystemMasterService {
 
 service LineageMasterService {
   // for client
-  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job) 
+  i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job)
     throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
       3: SuspectedFileSizeException sfse, 4: TachyonException te)
-  
+
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
     throws (1: LineageDoesNotExistException lnee, 2: LineageDeletionException lde)
-  
+
   list<LineageInfo> getLineageInfoList()
-  
+
   i64 reinitializeFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
     throws (1: InvalidPathException ipe, 2: LineageDoesNotExistException ldee)
-  
+
   void asyncCompleteFile(1: i64 fileId)
     throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
-  
+
   // for workers
   LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
 }

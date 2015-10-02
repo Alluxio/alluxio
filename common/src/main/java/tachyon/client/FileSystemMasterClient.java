@@ -247,13 +247,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
+  public synchronized long create(String path, long blockSizeBytes, boolean recursive, long ttl)
       throws IOException, BlockInfoException, InvalidPathException, FileAlreadyExistException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createFile(path, blockSizeBytes, recursive, ttl);
+        return mClient.create(path, blockSizeBytes, recursive, ttl);
       } catch (BlockInfoException e) {
         throw e;
       } catch (InvalidPathException e) {
@@ -384,13 +384,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException,
+  public synchronized boolean mkdir(String path, boolean recursive) throws IOException,
       FileAlreadyExistException, InvalidPathException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createDirectory(path, recursive);
+        return mClient.mkdir(path, recursive);
       } catch (InvalidPathException e) {
         throw e;
       } catch (FileAlreadyExistException e) {
