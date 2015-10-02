@@ -15,15 +15,12 @@
 
 package tachyon.master.file.meta;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.thrift.InvalidPathException;
+import tachyon.exception.TachyonException;
 
 public class MountTableTest {
   private MountTable mMountTable;
@@ -34,7 +31,7 @@ public class MountTableTest {
   }
 
   @Test
-  public void pathTest() throws InvalidPathException {
+  public void pathTest() throws TachyonException {
     // Test add()
     Assert.assertTrue(mMountTable.add(new TachyonURI("/"), new TachyonURI("/")));
     Assert.assertTrue(mMountTable.add(new TachyonURI("/mnt/foo"), new TachyonURI("/foo")));
@@ -85,7 +82,7 @@ public class MountTableTest {
   }
 
   @Test
-  public void uriTest() throws InvalidPathException {
+  public void uriTest() throws TachyonException {
     // Test add()
     Assert.assertTrue(mMountTable.add(new TachyonURI("tachyon://localhost:1234/"),
         new TachyonURI("hdfs://localhost:5678/")));
