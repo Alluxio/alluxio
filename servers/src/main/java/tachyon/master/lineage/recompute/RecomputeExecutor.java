@@ -25,9 +25,9 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.lineage.meta.Lineage;
-import tachyon.thrift.FileDoesNotExistException;
 
 /**
  * A periodical executor that detects lost files and launches recompute jobs.

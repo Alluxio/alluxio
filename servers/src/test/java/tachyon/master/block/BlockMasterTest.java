@@ -33,6 +33,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import tachyon.StorageLevelAlias;
+import tachyon.exception.TachyonException;
 import tachyon.master.block.meta.MasterWorkerInfo;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
@@ -40,7 +41,6 @@ import tachyon.test.Tester;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.TachyonException;
 
 /**
  * Unit tests for tachyon.master.block.BlockMaster.

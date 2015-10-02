@@ -28,13 +28,12 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileAlreadyExistException;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
-import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.TachyonTException;
+import tachyon.thrift.ThriftIOException;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.
@@ -73,17 +72,17 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param path the path
    * @return the file id for the given path
-   * @throws InvalidPathException if the given path is invalid
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long getFileId(String path) throws IOException, InvalidPathException {
+  public synchronized long getFileId(String path) throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileId(path);
-      } catch (InvalidPathException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -95,18 +94,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return the file info for the given file id
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized FileInfo getFileInfo(long fileId) throws IOException,
-      FileDoesNotExistException {
+      TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileInfo(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -118,18 +117,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return the list of file information for the given file id
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized List<FileInfo> getFileInfoList(long fileId) throws IOException,
-      FileDoesNotExistException {
+      TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileInfoList(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -142,22 +141,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param fileBlockIndex the file block index
    * @return the file block information
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockInfoException if the block index is invalid
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   // TODO(calvin): Not sure if this is necessary.
   public synchronized FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws IOException, FileDoesNotExistException, BlockInfoException {
+      throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileBlockInfo(fileId, fileBlockIndex);
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (BlockInfoException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -169,19 +165,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return the list of file block information for the given file id
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   // TODO(calvin): Not sure if this is necessary.
   public synchronized List<FileBlockInfo> getFileBlockInfoList(long fileId) throws IOException,
-      FileDoesNotExistException {
+      TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileBlockInfoList(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -193,18 +189,17 @@ public final class FileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return a new block id for the given file id
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if an I/O error occurs.
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long getNewBlockIdForFile(long fileId) throws IOException,
-      FileDoesNotExistException {
+  public synchronized long getNewBlockIdForFile(long fileId) throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getNewBlockIdForFile(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -239,24 +234,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param recursive whether parent directories should be created if not present yet
    * @param ttl TTL for file expiration
    * @return the file id
-   * @throws InvalidPathException if the given path is invalid
-   * @throws BlockInfoException if the block index is invalid
-   * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
-      throws IOException, BlockInfoException, InvalidPathException, FileAlreadyExistException {
+          throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.createFile(path, blockSizeBytes, recursive, ttl);
-      } catch (BlockInfoException e) {
-        throw e;
-      } catch (InvalidPathException e) {
-        throw e;
-      } catch (FileAlreadyExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -269,22 +258,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Marks a file as completed.
    *
    * @param fileId the file id
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockInfoException if the block index is invalid
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void completeFile(long fileId) throws IOException, FileDoesNotExistException,
-      BlockInfoException {
+  public synchronized void completeFile(long fileId) throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.completeFile(fileId);
         return;
-      } catch (FileDoesNotExistException e) {
-        throw e;
-      } catch (BlockInfoException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -299,18 +284,20 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param recursive whether to delete the file recursively (when it is a directory)
    * @return whether operation succeeded or not
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized boolean deleteFile(long fileId, boolean recursive) throws IOException,
-      FileDoesNotExistException {
+      TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.deleteFile(fileId, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
+      } catch (ThriftIOException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -325,18 +312,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param dstPath new file path
    * @return whether operation succeeded or not
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized boolean renameFile(long fileId, String dstPath) throws IOException,
-      FileDoesNotExistException {
+      TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.renameFile(fileId, dstPath);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -350,19 +337,19 @@ public final class FileSystemMasterClient extends MasterClientBase {
    *
    * @param fileId the file id
    * @param pinned the pinned status to use
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized void setPinned(long fileId, boolean pinned) throws IOException,
-      FileDoesNotExistException {
+      TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.setPinned(fileId, pinned);
         return;
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -377,21 +364,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the directory path
    * @param recursive whether parent directories should be created if they don't exist yet
    * @return whether operation succeeded or not
-   * @throws InvalidPathException if the given path is invalid
-   * @throws FileAlreadyExistException if the file already exists
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized boolean createDirectory(String path, boolean recursive) throws IOException,
-      FileAlreadyExistException, InvalidPathException {
+      TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.createDirectory(path, recursive);
-      } catch (InvalidPathException e) {
-        throw e;
-      } catch (FileAlreadyExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -406,18 +390,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param fileId the file id
    * @param recursive whether free the file recursively (when it is a directory)
    * @return whether operation succeeded or not
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
   public synchronized boolean free(long fileId, boolean recursive) throws IOException,
-      FileDoesNotExistException {
+      TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.free(fileId, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -430,20 +414,17 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Reports a lost file.
    *
    * @param fileId the file id
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized void reportLostFile(long fileId) throws IOException,
-      FileDoesNotExistException {
+  public synchronized void reportLostFile(long fileId) throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         mClient.reportLostFile(fileId);
-        return;
-      } catch (FileDoesNotExistException e) {
-        LOG.error(e.getMessage(), e);
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -458,18 +439,18 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @param path the Tachyon path of the file
    * @param recursive whether parent directories should be loaded if not present yet
    * @return the file id
-   * @throws FileDoesNotExistException if the file does not exist
+   * @throws TachyonException if a tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
   public synchronized long loadFileInfoFromUfs(String path, boolean recursive)
-      throws IOException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.loadFileInfoFromUfs(path, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
