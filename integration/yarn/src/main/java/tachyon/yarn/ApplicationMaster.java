@@ -58,6 +58,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final int mWorkerCpu;
   private final int mMasterMemInMB;
   private final int mWorkerMemInMB;
+  private final int mRamdiskMemInMB;
   private final int mNumWorkers;
   private final String mTachyonHome;
   private final String mMasterAddress;
@@ -81,7 +82,11 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mMasterCpu = mTachyonConf.getInt(Constants.MASTER_RESOURCE_CPU);
     mMasterMemInMB = (int) mTachyonConf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
     mWorkerCpu = mTachyonConf.getInt(Constants.WORKER_RESOURCE_CPU);
+    // TODO(binfan): request worker container and ramdisk container separately
+    // memory for running worker
     mWorkerMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
+    // memory for running ramdisk
+    mRamdiskMemInMB =(int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
     mNumWorkers = numWorkers;
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
@@ -173,7 +178,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     // Make container request for Tachyon master to ResourceManager
     ContainerRequest masterContainerAsk =
         new ContainerRequest(masterResource, nodes, null /* any racks */, priority);
-    LOG.info("Making resource request for Tachyon master on node " + mMasterAddress);
+    LOG.info("Making resource request for Tachyon master: cpu {} memory {} MB on node {}",
+        masterResource.getVirtualCores(), masterResource.getMemory(), mMasterAddress);
     mRMClient.addContainerRequest(masterContainerAsk);
 
     // Wait until Tachyon master container has been allocated
@@ -183,14 +189,15 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     // Resource requirements for master containers
     Resource workerResource = Records.newRecord(Resource.class);
-    workerResource.setMemory(mWorkerMemInMB);
+    workerResource.setMemory(mWorkerMemInMB + mRamdiskMemInMB);
     workerResource.setVirtualCores(mWorkerCpu);
 
     // Make container requests for workers to ResourceManager
     for (int i = 0; i < mNumWorkers; i ++) {
-      ContainerRequest containerAsk = new ContainerRequest(workerResource, null /* any hosts */,
-          null /* any racks */, priority);
-      LOG.info("Making resource request for Tachyon worker " + i + " on any nodes");
+      ContainerRequest containerAsk =
+          new ContainerRequest(workerResource, null /* any hosts */, null /* any racks */, priority);
+      LOG.info("Making resource request for Tachyon worker {}: cpu {} memory {} MB on any nodes",
+          i, workerResource.getVirtualCores(), workerResource.getMemory());
       mRMClient.addContainerRequest(containerAsk);
     }
 
@@ -257,7 +264,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     Map<String, String> environmentMap = new HashMap<String, String>();
     environmentMap.put("TACHYON_MASTER_ADDRESS", mMasterContainerNetAddress);
     environmentMap.put("TACHYON_WORKER_MEMORY_SIZE",
-        FormatUtils.getSizeFromBytes((long) mWorkerMemInMB * Constants.MB));
+        FormatUtils.getSizeFromBytes((long) mRamdiskMemInMB * Constants.MB));
 
     for (Container container : containers) {
       if (mNumAllocatedWorkerContainers >= mNumWorkers) {

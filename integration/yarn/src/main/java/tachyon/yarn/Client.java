@@ -80,7 +80,7 @@ import tachyon.util.CommonUtils;
  */
 public final class Client {
   /** Main class to invoke ApplicationMaster. */
-  private final String mAmMainClass = ApplicationMaster.class.getName();
+  private final String AM_MAIN_CLASS = ApplicationMaster.class.getName();
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
   /** Yarn configuration. */
@@ -117,9 +117,9 @@ public final class Client {
     mOptions.addOption("appname", true, "Application Name, by default Tachyon");
     mOptions.addOption("priority", true, "Application Priority. Default 0");
     mOptions.addOption("queue", true, "RM Queue in which this application is to be submitted");
-    mOptions.addOption("master_memory", true,
+    mOptions.addOption("am_memory", true,
         "Amount of memory in MB to request to run ApplicationMaster");
-    mOptions.addOption("master_vcores", true,
+    mOptions.addOption("am_vcores", true,
         "Amount of virtual cores to request to run ApplicationMaster");
     mOptions.addOption("jar", true, "Jar file containing the Application Master");
     mOptions.addOption("tachyon_home", true,
@@ -201,8 +201,8 @@ public final class Client {
     mAppName = cliParser.getOptionValue("appname", "Tachyon");
     mAmPriority = Integer.parseInt(cliParser.getOptionValue("priority", "0"));
     mAmQueue = cliParser.getOptionValue("queue", "default");
-    mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("master_memory", "256"));
-    mAmVCores = Integer.parseInt(cliParser.getOptionValue("master_vcores", "1"));
+    mAmMemoryInMB = Integer.parseInt(cliParser.getOptionValue("am_memory", "256"));
+    mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
 
     Preconditions.checkArgument(mAmMemoryInMB > 0,
@@ -268,7 +268,7 @@ public final class Client {
   private void setupContainerLaunchContext() throws IOException {
     final String amCommand =
         new CommandBuilder(Environment.JAVA_HOME.$$() + "/bin/java").addArg("-Xmx256M")
-            .addArg(mAmMainClass).addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
+            .addArg(AM_MAIN_CLASS).addArg(mNumWorkers).addArg(mTachyonHome).addArg(mMasterAddress)
             .addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout")
             .addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr").toString();
 
@@ -297,13 +297,16 @@ public final class Client {
   }
 
   private void setupAppMasterEnv(Map<String, String> appMasterEnv) {
+    String classpath = ApplicationConstants.Environment.CLASSPATH.name();
     for (String c : mYarnConf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
         YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
-      Apps.addToEnvironment(appMasterEnv, ApplicationConstants.Environment.CLASSPATH.name(),
-          c.trim(), ApplicationConstants.CLASS_PATH_SEPARATOR);
+      Apps.addToEnvironment(appMasterEnv, classpath, c.trim(),
+          ApplicationConstants.CLASS_PATH_SEPARATOR);
     }
-    Apps.addToEnvironment(appMasterEnv, ApplicationConstants.Environment.CLASSPATH.name(),
-        Environment.PWD.$() + File.separator + "*", ApplicationConstants.CLASS_PATH_SEPARATOR);
+    Apps.addToEnvironment(appMasterEnv, classpath, Environment.PWD.$() + File.separator + "*",
+        ApplicationConstants.CLASS_PATH_SEPARATOR);
+    Apps.addToEnvironment(appMasterEnv, classpath, mTachyonHome + "/conf" + File.separator,
+        ApplicationConstants.CLASS_PATH_SEPARATOR);
   }
 
   /**
