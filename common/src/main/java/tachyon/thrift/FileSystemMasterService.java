@@ -39,31 +39,31 @@ public class FileSystemMasterService {
 
   public interface Iface {
 
-    public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public void completeFile(long fileId) throws TachyonTException, org.apache.thrift.TException;
 
-    public int createDependency(List<String> parents, List<String> children, String commandPrefix, List<ByteBuffer> data, String comment, String framework, String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException, org.apache.thrift.TException;
+    public int createDependency(List<String> parents, List<String> children, String commandPrefix, List<ByteBuffer> data, String comment, String framework, String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws TachyonTException, org.apache.thrift.TException;
 
-    public boolean createDirectory(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException;
+    public boolean createDirectory(String path, boolean recursive) throws TachyonTException, org.apache.thrift.TException;
 
-    public long createFile(String path, long blockSizeBytes, boolean recursive, long ttl) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
+    public long createFile(String path, long blockSizeBytes, boolean recursive, long ttl) throws TachyonTException, org.apache.thrift.TException;
 
-    public boolean deleteFile(long fileId, boolean recursive) throws TachyonException, org.apache.thrift.TException;
+    public boolean deleteFile(long fileId, boolean recursive) throws TachyonTException, org.apache.thrift.TException;
 
-    public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public boolean free(long fileId, boolean recursive) throws TachyonTException, org.apache.thrift.TException;
 
-    public DependencyInfo getDependencyInfo(int dependencyId) throws DependencyDoesNotExistException, org.apache.thrift.TException;
+    public DependencyInfo getDependencyInfo(int dependencyId) throws TachyonTException, org.apache.thrift.TException;
 
-    public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
+    public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex) throws TachyonTException, org.apache.thrift.TException;
 
-    public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws TachyonTException, org.apache.thrift.TException;
 
-    public long getFileId(String path) throws InvalidPathException, org.apache.thrift.TException;
+    public long getFileId(String path) throws TachyonTException, org.apache.thrift.TException;
 
-    public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public FileInfo getFileInfo(long fileId) throws TachyonTException, org.apache.thrift.TException;
 
-    public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public List<FileInfo> getFileInfoList(long fileId) throws TachyonTException, org.apache.thrift.TException;
 
-    public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
+    public long getNewBlockIdForFile(long fileId) throws TachyonTException, org.apache.thrift.TException;
 
     public String getUfsAddress() throws org.apache.thrift.TException;
 
@@ -73,7 +73,7 @@ public class FileSystemMasterService {
      * @param ufsPath
      * @param recursive
      */
-    public long loadMetadata(String ufsPath, boolean recursive) throws BlockInfoException, FileDoesNotExistException, FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
+    public long loadMetadata(String ufsPath, boolean recursive) throws TachyonTException, org.apache.thrift.TException;
 
     /**
      * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
@@ -82,17 +82,17 @@ public class FileSystemMasterService {
      * @param tachyonPath
      * @param ufsPath
      */
-    public boolean mount(String tachyonPath, String ufsPath) throws TachyonException, org.apache.thrift.TException;
+    public boolean mount(String tachyonPath, String ufsPath) throws TachyonTException, ThriftIOException, org.apache.thrift.TException;
 
-    public boolean persistFile(long fileId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
+    public boolean persistFile(long fileId, long length) throws TachyonTException, org.apache.thrift.TException;
 
-    public boolean renameFile(long fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public boolean renameFile(long fileId, String dstPath) throws TachyonTException, org.apache.thrift.TException;
 
-    public void reportLostFile(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public void reportLostFile(long fileId) throws TachyonTException, org.apache.thrift.TException;
 
-    public void requestFilesInDependency(int depId) throws DependencyDoesNotExistException, org.apache.thrift.TException;
+    public void requestFilesInDependency(int depId) throws TachyonTException, org.apache.thrift.TException;
 
-    public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public void setPinned(long fileId, boolean pinned) throws TachyonTException, org.apache.thrift.TException;
 
     /**
      * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
@@ -101,7 +101,7 @@ public class FileSystemMasterService {
      * 
      * @param tachyonPath
      */
-    public boolean unmount(String tachyonPath) throws TachyonException, org.apache.thrift.TException;
+    public boolean unmount(String tachyonPath) throws TachyonTException, ThriftIOException, org.apache.thrift.TException;
 
     public Set<Long> workerGetPinIdList() throws org.apache.thrift.TException;
 
@@ -181,7 +181,7 @@ public class FileSystemMasterService {
       super(iprot, oprot);
     }
 
-    public void completeFile(long fileId) throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public void completeFile(long fileId) throws TachyonTException, org.apache.thrift.TException
     {
       send_completeFile(fileId);
       recv_completeFile();
@@ -194,23 +194,17 @@ public class FileSystemMasterService {
       sendBase("completeFile", args);
     }
 
-    public void recv_completeFile() throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public void recv_completeFile() throws TachyonTException, org.apache.thrift.TException
     {
       completeFile_result result = new completeFile_result();
       receiveBase(result, "completeFile");
-      if (result.bie != null) {
-        throw result.bie;
-      }
-      if (result.fdnee != null) {
-        throw result.fdnee;
-      }
-      if (result.ipe != null) {
-        throw result.ipe;
+      if (result.e != null) {
+        throw result.e;
       }
       return;
     }
 
-    public int createDependency(List<String> parents, List<String> children, String commandPrefix, List<ByteBuffer> data, String comment, String framework, String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException, org.apache.thrift.TException
+    public int createDependency(List<String> parents, List<String> children, String commandPrefix, List<ByteBuffer> data, String comment, String framework, String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws TachyonTException, org.apache.thrift.TException
     {
       send_createDependency(parents, children, commandPrefix, data, comment, framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
       return recv_createDependency();
@@ -231,32 +225,20 @@ public class FileSystemMasterService {
       sendBase("createDependency", args);
     }
 
-    public int recv_createDependency() throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException, org.apache.thrift.TException
+    public int recv_createDependency() throws TachyonTException, org.apache.thrift.TException
     {
       createDependency_result result = new createDependency_result();
       receiveBase(result, "createDependency");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.ipe != null) {
-        throw result.ipe;
-      }
-      if (result.fdnee != null) {
-        throw result.fdnee;
-      }
-      if (result.faee != null) {
-        throw result.faee;
-      }
-      if (result.bie != null) {
-        throw result.bie;
-      }
-      if (result.te != null) {
-        throw result.te;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createDependency failed: unknown result");
     }
 
-    public boolean createDirectory(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean createDirectory(String path, boolean recursive) throws TachyonTException, org.apache.thrift.TException
     {
       send_createDirectory(path, recursive);
       return recv_createDirectory();
@@ -270,23 +252,20 @@ public class FileSystemMasterService {
       sendBase("createDirectory", args);
     }
 
-    public boolean recv_createDirectory() throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean recv_createDirectory() throws TachyonTException, org.apache.thrift.TException
     {
       createDirectory_result result = new createDirectory_result();
       receiveBase(result, "createDirectory");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.faee != null) {
-        throw result.faee;
-      }
-      if (result.ipe != null) {
-        throw result.ipe;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createDirectory failed: unknown result");
     }
 
-    public long createFile(String path, long blockSizeBytes, boolean recursive, long ttl) throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long createFile(String path, long blockSizeBytes, boolean recursive, long ttl) throws TachyonTException, org.apache.thrift.TException
     {
       send_createFile(path, blockSizeBytes, recursive, ttl);
       return recv_createFile();
@@ -302,29 +281,20 @@ public class FileSystemMasterService {
       sendBase("createFile", args);
     }
 
-    public long recv_createFile() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long recv_createFile() throws TachyonTException, org.apache.thrift.TException
     {
       createFile_result result = new createFile_result();
       receiveBase(result, "createFile");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.faee != null) {
-        throw result.faee;
-      }
-      if (result.bie != null) {
-        throw result.bie;
-      }
-      if (result.sfse != null) {
-        throw result.sfse;
-      }
-      if (result.te != null) {
-        throw result.te;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createFile failed: unknown result");
     }
 
-    public boolean deleteFile(long fileId, boolean recursive) throws TachyonException, org.apache.thrift.TException
+    public boolean deleteFile(long fileId, boolean recursive) throws TachyonTException, org.apache.thrift.TException
     {
       send_deleteFile(fileId, recursive);
       return recv_deleteFile();
@@ -338,20 +308,20 @@ public class FileSystemMasterService {
       sendBase("deleteFile", args);
     }
 
-    public boolean recv_deleteFile() throws TachyonException, org.apache.thrift.TException
+    public boolean recv_deleteFile() throws TachyonTException, org.apache.thrift.TException
     {
       deleteFile_result result = new deleteFile_result();
       receiveBase(result, "deleteFile");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.te != null) {
-        throw result.te;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "deleteFile failed: unknown result");
     }
 
-    public boolean free(long fileId, boolean recursive) throws FileDoesNotExistException, org.apache.thrift.TException
+    public boolean free(long fileId, boolean recursive) throws TachyonTException, org.apache.thrift.TException
     {
       send_free(fileId, recursive);
       return recv_free();
@@ -365,20 +335,20 @@ public class FileSystemMasterService {
       sendBase("free", args);
     }
 
-    public boolean recv_free() throws FileDoesNotExistException, org.apache.thrift.TException
+    public boolean recv_free() throws TachyonTException, org.apache.thrift.TException
     {
       free_result result = new free_result();
       receiveBase(result, "free");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.fdnee != null) {
-        throw result.fdnee;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "free failed: unknown result");
     }
 
-    public DependencyInfo getDependencyInfo(int dependencyId) throws DependencyDoesNotExistException, org.apache.thrift.TException
+    public DependencyInfo getDependencyInfo(int dependencyId) throws TachyonTException, org.apache.thrift.TException
     {
       send_getDependencyInfo(dependencyId);
       return recv_getDependencyInfo();
@@ -391,20 +361,20 @@ public class FileSystemMasterService {
       sendBase("getDependencyInfo", args);
     }
 
-    public DependencyInfo recv_getDependencyInfo() throws DependencyDoesNotExistException, org.apache.thrift.TException
+    public DependencyInfo recv_getDependencyInfo() throws TachyonTException, org.apache.thrift.TException
     {
       getDependencyInfo_result result = new getDependencyInfo_result();
       receiveBase(result, "getDependencyInfo");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.ddnee != null) {
-        throw result.ddnee;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getDependencyInfo failed: unknown result");
     }
 
-    public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex) throws TachyonTException, org.apache.thrift.TException
     {
       send_getFileBlockInfo(fileId, fileBlockIndex);
       return recv_getFileBlockInfo();
@@ -418,23 +388,20 @@ public class FileSystemMasterService {
       sendBase("getFileBlockInfo", args);
     }
 
-    public FileBlockInfo recv_getFileBlockInfo() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public FileBlockInfo recv_getFileBlockInfo() throws TachyonTException, org.apache.thrift.TException
     {
       getFileBlockInfo_result result = new getFileBlockInfo_result();
       receiveBase(result, "getFileBlockInfo");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.fdnee != null) {
-        throw result.fdnee;
-      }
-      if (result.bie != null) {
-        throw result.bie;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileBlockInfo failed: unknown result");
     }
 
-    public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public List<FileBlockInfo> getFileBlockInfoList(long fileId) throws TachyonTException, org.apache.thrift.TException
     {
       send_getFileBlockInfoList(fileId);
       return recv_getFileBlockInfoList();
@@ -447,20 +414,20 @@ public class FileSystemMasterService {
       sendBase("getFileBlockInfoList", args);
     }
 
-    public List<FileBlockInfo> recv_getFileBlockInfoList() throws FileDoesNotExistException, org.apache.thrift.TException
+    public List<FileBlockInfo> recv_getFileBlockInfoList() throws TachyonTException, org.apache.thrift.TException
     {
       getFileBlockInfoList_result result = new getFileBlockInfoList_result();
       receiveBase(result, "getFileBlockInfoList");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.fdnee != null) {
-        throw result.fdnee;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileBlockInfoList failed: unknown result");
     }
 
-    public long getFileId(String path) throws InvalidPathException, org.apache.thrift.TException
+    public long getFileId(String path) throws TachyonTException, org.apache.thrift.TException
     {
       send_getFileId(path);
       return recv_getFileId();
@@ -473,20 +440,20 @@ public class FileSystemMasterService {
       sendBase("getFileId", args);
     }
 
-    public long recv_getFileId() throws InvalidPathException, org.apache.thrift.TException
+    public long recv_getFileId() throws TachyonTException, org.apache.thrift.TException
     {
       getFileId_result result = new getFileId_result();
       receiveBase(result, "getFileId");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.ipe != null) {
-        throw result.ipe;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileId failed: unknown result");
     }
 
-    public FileInfo getFileInfo(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public FileInfo getFileInfo(long fileId) throws TachyonTException, org.apache.thrift.TException
     {
       send_getFileInfo(fileId);
       return recv_getFileInfo();
@@ -499,20 +466,20 @@ public class FileSystemMasterService {
       sendBase("getFileInfo", args);
     }
 
-    public FileInfo recv_getFileInfo() throws FileDoesNotExistException, org.apache.thrift.TException
+    public FileInfo recv_getFileInfo() throws TachyonTException, org.apache.thrift.TException
     {
       getFileInfo_result result = new getFileInfo_result();
       receiveBase(result, "getFileInfo");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.fdnee != null) {
-        throw result.fdnee;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileInfo failed: unknown result");
     }
 
-    public List<FileInfo> getFileInfoList(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public List<FileInfo> getFileInfoList(long fileId) throws TachyonTException, org.apache.thrift.TException
     {
       send_getFileInfoList(fileId);
       return recv_getFileInfoList();
@@ -525,20 +492,20 @@ public class FileSystemMasterService {
       sendBase("getFileInfoList", args);
     }
 
-    public List<FileInfo> recv_getFileInfoList() throws FileDoesNotExistException, org.apache.thrift.TException
+    public List<FileInfo> recv_getFileInfoList() throws TachyonTException, org.apache.thrift.TException
     {
       getFileInfoList_result result = new getFileInfoList_result();
       receiveBase(result, "getFileInfoList");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.fdnee != null) {
-        throw result.fdnee;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileInfoList failed: unknown result");
     }
 
-    public long getNewBlockIdForFile(long fileId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public long getNewBlockIdForFile(long fileId) throws TachyonTException, org.apache.thrift.TException
     {
       send_getNewBlockIdForFile(fileId);
       return recv_getNewBlockIdForFile();
@@ -551,18 +518,15 @@ public class FileSystemMasterService {
       sendBase("getNewBlockIdForFile", args);
     }
 
-    public long recv_getNewBlockIdForFile() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
+    public long recv_getNewBlockIdForFile() throws TachyonTException, org.apache.thrift.TException
     {
       getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
       receiveBase(result, "getNewBlockIdForFile");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.fdnee != null) {
-        throw result.fdnee;
-      }
-      if (result.bie != null) {
-        throw result.bie;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getNewBlockIdForFile failed: unknown result");
     }
@@ -589,7 +553,7 @@ public class FileSystemMasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsAddress failed: unknown result");
     }
 
-    public long loadMetadata(String ufsPath, boolean recursive) throws BlockInfoException, FileDoesNotExistException, FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long loadMetadata(String ufsPath, boolean recursive) throws TachyonTException, org.apache.thrift.TException
     {
       send_loadMetadata(ufsPath, recursive);
       return recv_loadMetadata();
@@ -603,35 +567,20 @@ public class FileSystemMasterService {
       sendBase("loadMetadata", args);
     }
 
-    public long recv_loadMetadata() throws BlockInfoException, FileDoesNotExistException, FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
+    public long recv_loadMetadata() throws TachyonTException, org.apache.thrift.TException
     {
       loadMetadata_result result = new loadMetadata_result();
       receiveBase(result, "loadMetadata");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.bie != null) {
-        throw result.bie;
-      }
-      if (result.fdnee != null) {
-        throw result.fdnee;
-      }
-      if (result.faee != null) {
-        throw result.faee;
-      }
-      if (result.ipe != null) {
-        throw result.ipe;
-      }
-      if (result.sfse != null) {
-        throw result.sfse;
-      }
-      if (result.te != null) {
-        throw result.te;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "loadMetadata failed: unknown result");
     }
 
-    public boolean mount(String tachyonPath, String ufsPath) throws TachyonException, org.apache.thrift.TException
+    public boolean mount(String tachyonPath, String ufsPath) throws TachyonTException, ThriftIOException, org.apache.thrift.TException
     {
       send_mount(tachyonPath, ufsPath);
       return recv_mount();
@@ -645,20 +594,23 @@ public class FileSystemMasterService {
       sendBase("mount", args);
     }
 
-    public boolean recv_mount() throws TachyonException, org.apache.thrift.TException
+    public boolean recv_mount() throws TachyonTException, ThriftIOException, org.apache.thrift.TException
     {
       mount_result result = new mount_result();
       receiveBase(result, "mount");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.te != null) {
-        throw result.te;
+      if (result.e != null) {
+        throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "mount failed: unknown result");
     }
 
-    public boolean persistFile(long fileId, long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
+    public boolean persistFile(long fileId, long length) throws TachyonTException, org.apache.thrift.TException
     {
       send_persistFile(fileId, length);
       return recv_persistFile();
@@ -672,26 +624,20 @@ public class FileSystemMasterService {
       sendBase("persistFile", args);
     }
 
-    public boolean recv_persistFile() throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException
+    public boolean recv_persistFile() throws TachyonTException, org.apache.thrift.TException
     {
       persistFile_result result = new persistFile_result();
       receiveBase(result, "persistFile");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.eP != null) {
-        throw result.eP;
-      }
-      if (result.eS != null) {
-        throw result.eS;
-      }
-      if (result.eB != null) {
-        throw result.eB;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "persistFile failed: unknown result");
     }
 
-    public boolean renameFile(long fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean renameFile(long fileId, String dstPath) throws TachyonTException, org.apache.thrift.TException
     {
       send_renameFile(fileId, dstPath);
       return recv_renameFile();
@@ -705,26 +651,20 @@ public class FileSystemMasterService {
       sendBase("renameFile", args);
     }
 
-    public boolean recv_renameFile() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean recv_renameFile() throws TachyonTException, org.apache.thrift.TException
     {
       renameFile_result result = new renameFile_result();
       receiveBase(result, "renameFile");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.faee != null) {
-        throw result.faee;
-      }
-      if (result.fdnee != null) {
-        throw result.fdnee;
-      }
-      if (result.ipe != null) {
-        throw result.ipe;
+      if (result.e != null) {
+        throw result.e;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "renameFile failed: unknown result");
     }
 
-    public void reportLostFile(long fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public void reportLostFile(long fileId) throws TachyonTException, org.apache.thrift.TException
     {
       send_reportLostFile(fileId);
       recv_reportLostFile();
@@ -737,17 +677,17 @@ public class FileSystemMasterService {
       sendBase("reportLostFile", args);
     }
 
-    public void recv_reportLostFile() throws FileDoesNotExistException, org.apache.thrift.TException
+    public void recv_reportLostFile() throws TachyonTException, org.apache.thrift.TException
     {
       reportLostFile_result result = new reportLostFile_result();
       receiveBase(result, "reportLostFile");
-      if (result.fdnee != null) {
-        throw result.fdnee;
+      if (result.e != null) {
+        throw result.e;
       }
       return;
     }
 
-    public void requestFilesInDependency(int depId) throws DependencyDoesNotExistException, org.apache.thrift.TException
+    public void requestFilesInDependency(int depId) throws TachyonTException, org.apache.thrift.TException
     {
       send_requestFilesInDependency(depId);
       recv_requestFilesInDependency();
@@ -760,17 +700,17 @@ public class FileSystemMasterService {
       sendBase("requestFilesInDependency", args);
     }
 
-    public void recv_requestFilesInDependency() throws DependencyDoesNotExistException, org.apache.thrift.TException
+    public void recv_requestFilesInDependency() throws TachyonTException, org.apache.thrift.TException
     {
       requestFilesInDependency_result result = new requestFilesInDependency_result();
       receiveBase(result, "requestFilesInDependency");
-      if (result.ddnee != null) {
-        throw result.ddnee;
+      if (result.e != null) {
+        throw result.e;
       }
       return;
     }
 
-    public void setPinned(long fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException
+    public void setPinned(long fileId, boolean pinned) throws TachyonTException, org.apache.thrift.TException
     {
       send_setPinned(fileId, pinned);
       recv_setPinned();
@@ -784,17 +724,17 @@ public class FileSystemMasterService {
       sendBase("setPinned", args);
     }
 
-    public void recv_setPinned() throws FileDoesNotExistException, org.apache.thrift.TException
+    public void recv_setPinned() throws TachyonTException, org.apache.thrift.TException
     {
       setPinned_result result = new setPinned_result();
       receiveBase(result, "setPinned");
-      if (result.fdnee != null) {
-        throw result.fdnee;
+      if (result.e != null) {
+        throw result.e;
       }
       return;
     }
 
-    public boolean unmount(String tachyonPath) throws TachyonException, org.apache.thrift.TException
+    public boolean unmount(String tachyonPath) throws TachyonTException, ThriftIOException, org.apache.thrift.TException
     {
       send_unmount(tachyonPath);
       return recv_unmount();
@@ -807,15 +747,18 @@ public class FileSystemMasterService {
       sendBase("unmount", args);
     }
 
-    public boolean recv_unmount() throws TachyonException, org.apache.thrift.TException
+    public boolean recv_unmount() throws TachyonTException, ThriftIOException, org.apache.thrift.TException
     {
       unmount_result result = new unmount_result();
       receiveBase(result, "unmount");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      if (result.te != null) {
-        throw result.te;
+      if (result.e != null) {
+        throw result.e;
+      }
+      if (result.ioe != null) {
+        throw result.ioe;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "unmount failed: unknown result");
     }
@@ -904,7 +847,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws BlockInfoException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public void getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -960,7 +903,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException, org.apache.thrift.TException {
+      public int getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -995,7 +938,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws FileAlreadyExistException, InvalidPathException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1036,7 +979,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws FileAlreadyExistException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
+      public long getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1071,7 +1014,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws TachyonException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1106,7 +1049,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1138,7 +1081,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public DependencyInfo getResult() throws DependencyDoesNotExistException, org.apache.thrift.TException {
+      public DependencyInfo getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1173,7 +1116,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public FileBlockInfo getResult() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException {
+      public FileBlockInfo getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1205,7 +1148,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public List<FileBlockInfo> getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public List<FileBlockInfo> getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1237,7 +1180,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws InvalidPathException, org.apache.thrift.TException {
+      public long getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1269,7 +1212,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public FileInfo getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public FileInfo getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1301,7 +1244,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public List<FileInfo> getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public List<FileInfo> getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1333,7 +1276,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException {
+      public long getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1397,7 +1340,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public long getResult() throws BlockInfoException, FileDoesNotExistException, FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
+      public long getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1432,7 +1375,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws TachyonException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonTException, ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1467,7 +1410,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1502,7 +1445,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1534,7 +1477,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public void getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1566,7 +1509,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws DependencyDoesNotExistException, org.apache.thrift.TException {
+      public void getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1601,7 +1544,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
+      public void getResult() throws TachyonTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1633,7 +1576,7 @@ public class FileSystemMasterService {
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws TachyonException, org.apache.thrift.TException {
+      public boolean getResult() throws TachyonTException, ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1758,12 +1701,8 @@ public class FileSystemMasterService {
         completeFile_result result = new completeFile_result();
         try {
           iface.completeFile(args.fileId);
-        } catch (BlockInfoException bie) {
-          result.bie = bie;
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
-        } catch (InvalidPathException ipe) {
-          result.ipe = ipe;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -1787,16 +1726,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.createDependency(args.parents, args.children, args.commandPrefix, args.data, args.comment, args.framework, args.frameworkVersion, args.dependencyType, args.childrenBlockSizeByte);
           result.setSuccessIsSet(true);
-        } catch (InvalidPathException ipe) {
-          result.ipe = ipe;
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
-        } catch (FileAlreadyExistException faee) {
-          result.faee = faee;
-        } catch (BlockInfoException bie) {
-          result.bie = bie;
-        } catch (TachyonException te) {
-          result.te = te;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -1820,10 +1751,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.createDirectory(args.path, args.recursive);
           result.setSuccessIsSet(true);
-        } catch (FileAlreadyExistException faee) {
-          result.faee = faee;
-        } catch (InvalidPathException ipe) {
-          result.ipe = ipe;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -1847,14 +1776,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.createFile(args.path, args.blockSizeBytes, args.recursive, args.ttl);
           result.setSuccessIsSet(true);
-        } catch (FileAlreadyExistException faee) {
-          result.faee = faee;
-        } catch (BlockInfoException bie) {
-          result.bie = bie;
-        } catch (SuspectedFileSizeException sfse) {
-          result.sfse = sfse;
-        } catch (TachyonException te) {
-          result.te = te;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -1878,8 +1801,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.deleteFile(args.fileId, args.recursive);
           result.setSuccessIsSet(true);
-        } catch (TachyonException te) {
-          result.te = te;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -1903,8 +1826,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.free(args.fileId, args.recursive);
           result.setSuccessIsSet(true);
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -1927,8 +1850,8 @@ public class FileSystemMasterService {
         getDependencyInfo_result result = new getDependencyInfo_result();
         try {
           result.success = iface.getDependencyInfo(args.dependencyId);
-        } catch (DependencyDoesNotExistException ddnee) {
-          result.ddnee = ddnee;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -1951,10 +1874,8 @@ public class FileSystemMasterService {
         getFileBlockInfo_result result = new getFileBlockInfo_result();
         try {
           result.success = iface.getFileBlockInfo(args.fileId, args.fileBlockIndex);
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
-        } catch (BlockInfoException bie) {
-          result.bie = bie;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -1977,8 +1898,8 @@ public class FileSystemMasterService {
         getFileBlockInfoList_result result = new getFileBlockInfoList_result();
         try {
           result.success = iface.getFileBlockInfoList(args.fileId);
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2002,8 +1923,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.getFileId(args.path);
           result.setSuccessIsSet(true);
-        } catch (InvalidPathException ipe) {
-          result.ipe = ipe;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2026,8 +1947,8 @@ public class FileSystemMasterService {
         getFileInfo_result result = new getFileInfo_result();
         try {
           result.success = iface.getFileInfo(args.fileId);
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2050,8 +1971,8 @@ public class FileSystemMasterService {
         getFileInfoList_result result = new getFileInfoList_result();
         try {
           result.success = iface.getFileInfoList(args.fileId);
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2075,10 +1996,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.getNewBlockIdForFile(args.fileId);
           result.setSuccessIsSet(true);
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
-        } catch (BlockInfoException bie) {
-          result.bie = bie;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2122,18 +2041,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.loadMetadata(args.ufsPath, args.recursive);
           result.setSuccessIsSet(true);
-        } catch (BlockInfoException bie) {
-          result.bie = bie;
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
-        } catch (FileAlreadyExistException faee) {
-          result.faee = faee;
-        } catch (InvalidPathException ipe) {
-          result.ipe = ipe;
-        } catch (SuspectedFileSizeException sfse) {
-          result.sfse = sfse;
-        } catch (TachyonException te) {
-          result.te = te;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2157,8 +2066,10 @@ public class FileSystemMasterService {
         try {
           result.success = iface.mount(args.tachyonPath, args.ufsPath);
           result.setSuccessIsSet(true);
-        } catch (TachyonException te) {
-          result.te = te;
+        } catch (TachyonTException e) {
+          result.e = e;
+        } catch (ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -2182,12 +2093,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.persistFile(args.fileId, args.length);
           result.setSuccessIsSet(true);
-        } catch (FileDoesNotExistException eP) {
-          result.eP = eP;
-        } catch (SuspectedFileSizeException eS) {
-          result.eS = eS;
-        } catch (BlockInfoException eB) {
-          result.eB = eB;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2211,12 +2118,8 @@ public class FileSystemMasterService {
         try {
           result.success = iface.renameFile(args.fileId, args.dstPath);
           result.setSuccessIsSet(true);
-        } catch (FileAlreadyExistException faee) {
-          result.faee = faee;
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
-        } catch (InvalidPathException ipe) {
-          result.ipe = ipe;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2239,8 +2142,8 @@ public class FileSystemMasterService {
         reportLostFile_result result = new reportLostFile_result();
         try {
           iface.reportLostFile(args.fileId);
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2263,8 +2166,8 @@ public class FileSystemMasterService {
         requestFilesInDependency_result result = new requestFilesInDependency_result();
         try {
           iface.requestFilesInDependency(args.depId);
-        } catch (DependencyDoesNotExistException ddnee) {
-          result.ddnee = ddnee;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2287,8 +2190,8 @@ public class FileSystemMasterService {
         setPinned_result result = new setPinned_result();
         try {
           iface.setPinned(args.fileId, args.pinned);
-        } catch (FileDoesNotExistException fdnee) {
-          result.fdnee = fdnee;
+        } catch (TachyonTException e) {
+          result.e = e;
         }
         return result;
       }
@@ -2312,8 +2215,10 @@ public class FileSystemMasterService {
         try {
           result.success = iface.unmount(args.tachyonPath);
           result.setSuccessIsSet(true);
-        } catch (TachyonException te) {
-          result.te = te;
+        } catch (TachyonTException e) {
+          result.e = e;
+        } catch (ThriftIOException ioe) {
+          result.ioe = ioe;
         }
         return result;
       }
@@ -2425,19 +2330,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             completeFile_result result = new completeFile_result();
-            if (e instanceof BlockInfoException) {
-                        result.bie = (BlockInfoException) e;
-                        result.setBieIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.ipe = (InvalidPathException) e;
-                        result.setIpeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2493,29 +2388,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             createDependency_result result = new createDependency_result();
-            if (e instanceof InvalidPathException) {
-                        result.ipe = (InvalidPathException) e;
-                        result.setIpeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof FileAlreadyExistException) {
-                        result.faee = (FileAlreadyExistException) e;
-                        result.setFaeeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof BlockInfoException) {
-                        result.bie = (BlockInfoException) e;
-                        result.setBieIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof TachyonException) {
-                        result.te = (TachyonException) e;
-                        result.setTeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2571,14 +2446,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             createDirectory_result result = new createDirectory_result();
-            if (e instanceof FileAlreadyExistException) {
-                        result.faee = (FileAlreadyExistException) e;
-                        result.setFaeeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.ipe = (InvalidPathException) e;
-                        result.setIpeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2634,24 +2504,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             createFile_result result = new createFile_result();
-            if (e instanceof FileAlreadyExistException) {
-                        result.faee = (FileAlreadyExistException) e;
-                        result.setFaeeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof BlockInfoException) {
-                        result.bie = (BlockInfoException) e;
-                        result.setBieIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof SuspectedFileSizeException) {
-                        result.sfse = (SuspectedFileSizeException) e;
-                        result.setSfseIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof TachyonException) {
-                        result.te = (TachyonException) e;
-                        result.setTeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2707,9 +2562,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             deleteFile_result result = new deleteFile_result();
-            if (e instanceof TachyonException) {
-                        result.te = (TachyonException) e;
-                        result.setTeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2765,9 +2620,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             free_result result = new free_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2822,9 +2677,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getDependencyInfo_result result = new getDependencyInfo_result();
-            if (e instanceof DependencyDoesNotExistException) {
-                        result.ddnee = (DependencyDoesNotExistException) e;
-                        result.setDdneeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2879,14 +2734,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getFileBlockInfo_result result = new getFileBlockInfo_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof BlockInfoException) {
-                        result.bie = (BlockInfoException) e;
-                        result.setBieIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2941,9 +2791,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getFileBlockInfoList_result result = new getFileBlockInfoList_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -2999,9 +2849,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getFileId_result result = new getFileId_result();
-            if (e instanceof InvalidPathException) {
-                        result.ipe = (InvalidPathException) e;
-                        result.setIpeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3056,9 +2906,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getFileInfo_result result = new getFileInfo_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3113,9 +2963,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getFileInfoList_result result = new getFileInfoList_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3171,14 +3021,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             getNewBlockIdForFile_result result = new getNewBlockIdForFile_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof BlockInfoException) {
-                        result.bie = (BlockInfoException) e;
-                        result.setBieIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3285,34 +3130,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             loadMetadata_result result = new loadMetadata_result();
-            if (e instanceof BlockInfoException) {
-                        result.bie = (BlockInfoException) e;
-                        result.setBieIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof FileAlreadyExistException) {
-                        result.faee = (FileAlreadyExistException) e;
-                        result.setFaeeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.ipe = (InvalidPathException) e;
-                        result.setIpeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof SuspectedFileSizeException) {
-                        result.sfse = (SuspectedFileSizeException) e;
-                        result.setSfseIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof TachyonException) {
-                        result.te = (TachyonException) e;
-                        result.setTeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3368,9 +3188,14 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             mount_result result = new mount_result();
-            if (e instanceof TachyonException) {
-                        result.te = (TachyonException) e;
-                        result.setTeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof ThriftIOException) {
+                        result.ioe = (ThriftIOException) e;
+                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -3426,19 +3251,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             persistFile_result result = new persistFile_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.eP = (FileDoesNotExistException) e;
-                        result.setEPIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof SuspectedFileSizeException) {
-                        result.eS = (SuspectedFileSizeException) e;
-                        result.setESIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof BlockInfoException) {
-                        result.eB = (BlockInfoException) e;
-                        result.setEBIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3494,19 +3309,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             renameFile_result result = new renameFile_result();
-            if (e instanceof FileAlreadyExistException) {
-                        result.faee = (FileAlreadyExistException) e;
-                        result.setFaeeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.ipe = (InvalidPathException) e;
-                        result.setIpeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3560,9 +3365,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             reportLostFile_result result = new reportLostFile_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3616,9 +3421,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             requestFilesInDependency_result result = new requestFilesInDependency_result();
-            if (e instanceof DependencyDoesNotExistException) {
-                        result.ddnee = (DependencyDoesNotExistException) e;
-                        result.setDdneeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3672,9 +3477,9 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             setPinned_result result = new setPinned_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.fdnee = (FileDoesNotExistException) e;
-                        result.setFdneeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
                         msg = result;
             }
              else 
@@ -3730,9 +3535,14 @@ public class FileSystemMasterService {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
             unmount_result result = new unmount_result();
-            if (e instanceof TachyonException) {
-                        result.te = (TachyonException) e;
-                        result.setTeIsSet(true);
+            if (e instanceof TachyonTException) {
+                        result.e = (TachyonTException) e;
+                        result.setEIsSet(true);
+                        msg = result;
+            }
+            else             if (e instanceof ThriftIOException) {
+                        result.ioe = (ThriftIOException) e;
+                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -4226,9 +4036,7 @@ public class FileSystemMasterService {
   public static class completeFile_result implements org.apache.thrift.TBase<completeFile_result, completeFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<completeFile_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeFile_result");
 
-    private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4236,15 +4044,11 @@ public class FileSystemMasterService {
       schemes.put(TupleScheme.class, new completeFile_resultTupleSchemeFactory());
     }
 
-    public BlockInfoException bie; // required
-    public FileDoesNotExistException fdnee; // required
-    public InvalidPathException ipe; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      BIE((short)1, "bie"),
-      FDNEE((short)2, "fdnee"),
-      IPE((short)3, "ipe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4259,12 +4063,8 @@ public class FileSystemMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // BIE
-            return BIE;
-          case 2: // FDNEE
-            return FDNEE;
-          case 3: // IPE
-            return IPE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -4308,11 +4108,7 @@ public class FileSystemMasterService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(completeFile_result.class, metaDataMap);
@@ -4322,28 +4118,18 @@ public class FileSystemMasterService {
     }
 
     public completeFile_result(
-      BlockInfoException bie,
-      FileDoesNotExistException fdnee,
-      InvalidPathException ipe)
+      TachyonTException e)
     {
       this();
-      this.bie = bie;
-      this.fdnee = fdnee;
-      this.ipe = ipe;
+      this.e = e;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public completeFile_result(completeFile_result other) {
-      if (other.isSetBie()) {
-        this.bie = new BlockInfoException(other.bie);
-      }
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
-      }
-      if (other.isSetIpe()) {
-        this.ipe = new InvalidPathException(other.ipe);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -4353,106 +4139,40 @@ public class FileSystemMasterService {
 
     @Override
     public void clear() {
-      this.bie = null;
-      this.fdnee = null;
-      this.ipe = null;
+      this.e = null;
     }
 
-    public BlockInfoException getBie() {
-      return this.bie;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public completeFile_result setBie(BlockInfoException bie) {
-      this.bie = bie;
+    public completeFile_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetBie() {
-      this.bie = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field bie is set (has been assigned a value) and false otherwise */
-    public boolean isSetBie() {
-      return this.bie != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setBieIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.bie = null;
-      }
-    }
-
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
-    }
-
-    public completeFile_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
-      return this;
-    }
-
-    public void unsetFdnee() {
-      this.fdnee = null;
-    }
-
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
-    }
-
-    public void setFdneeIsSet(boolean value) {
-      if (!value) {
-        this.fdnee = null;
-      }
-    }
-
-    public InvalidPathException getIpe() {
-      return this.ipe;
-    }
-
-    public completeFile_result setIpe(InvalidPathException ipe) {
-      this.ipe = ipe;
-      return this;
-    }
-
-    public void unsetIpe() {
-      this.ipe = null;
-    }
-
-    /** Returns true if field ipe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIpe() {
-      return this.ipe != null;
-    }
-
-    public void setIpeIsSet(boolean value) {
-      if (!value) {
-        this.ipe = null;
+        this.e = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case BIE:
+      case E:
         if (value == null) {
-          unsetBie();
+          unsetE();
         } else {
-          setBie((BlockInfoException)value);
-        }
-        break;
-
-      case FDNEE:
-        if (value == null) {
-          unsetFdnee();
-        } else {
-          setFdnee((FileDoesNotExistException)value);
-        }
-        break;
-
-      case IPE:
-        if (value == null) {
-          unsetIpe();
-        } else {
-          setIpe((InvalidPathException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -4461,14 +4181,8 @@ public class FileSystemMasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case BIE:
-        return getBie();
-
-      case FDNEE:
-        return getFdnee();
-
-      case IPE:
-        return getIpe();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -4481,12 +4195,8 @@ public class FileSystemMasterService {
       }
 
       switch (field) {
-      case BIE:
-        return isSetBie();
-      case FDNEE:
-        return isSetFdnee();
-      case IPE:
-        return isSetIpe();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -4504,30 +4214,12 @@ public class FileSystemMasterService {
       if (that == null)
         return false;
 
-      boolean this_present_bie = true && this.isSetBie();
-      boolean that_present_bie = true && that.isSetBie();
-      if (this_present_bie || that_present_bie) {
-        if (!(this_present_bie && that_present_bie))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.bie.equals(that.bie))
-          return false;
-      }
-
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
-          return false;
-        if (!this.fdnee.equals(that.fdnee))
-          return false;
-      }
-
-      boolean this_present_ipe = true && this.isSetIpe();
-      boolean that_present_ipe = true && that.isSetIpe();
-      if (this_present_ipe || that_present_ipe) {
-        if (!(this_present_ipe && that_present_ipe))
-          return false;
-        if (!this.ipe.equals(that.ipe))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -4538,20 +4230,10 @@ public class FileSystemMasterService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_bie = true && (isSetBie());
-      list.add(present_bie);
-      if (present_bie)
-        list.add(bie);
-
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
-
-      boolean present_ipe = true && (isSetIpe());
-      list.add(present_ipe);
-      if (present_ipe)
-        list.add(ipe);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -4564,32 +4246,12 @@ public class FileSystemMasterService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetBie()).compareTo(other.isSetBie());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetBie()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bie, other.bie);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetIpe()).compareTo(other.isSetIpe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIpe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipe, other.ipe);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4614,27 +4276,11 @@ public class FileSystemMasterService {
       StringBuilder sb = new StringBuilder("completeFile_result(");
       boolean first = true;
 
-      sb.append("bie:");
-      if (this.bie == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.bie);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.fdnee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("ipe:");
-      if (this.ipe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ipe);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -4680,29 +4326,11 @@ public class FileSystemMasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // BIE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.bie = new BlockInfoException();
-                struct.bie.read(iprot);
-                struct.setBieIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // FDNEE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // IPE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ipe = new InvalidPathException();
-                struct.ipe.read(iprot);
-                struct.setIpeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -4722,19 +4350,9 @@ public class FileSystemMasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.bie != null) {
-          oprot.writeFieldBegin(BIE_FIELD_DESC);
-          struct.bie.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ipe != null) {
-          oprot.writeFieldBegin(IPE_FIELD_DESC);
-          struct.ipe.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -4755,45 +4373,23 @@ public class FileSystemMasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, completeFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetBie()) {
+        if (struct.isSetE()) {
           optionals.set(0);
         }
-        if (struct.isSetFdnee()) {
-          optionals.set(1);
-        }
-        if (struct.isSetIpe()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
-        if (struct.isSetBie()) {
-          struct.bie.write(oprot);
-        }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
-        }
-        if (struct.isSetIpe()) {
-          struct.ipe.write(oprot);
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, completeFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.bie = new BlockInfoException();
-          struct.bie.read(iprot);
-          struct.setBieIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.ipe = new InvalidPathException();
-          struct.ipe.read(iprot);
-          struct.setIpeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -6144,11 +5740,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createDependency_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
-    private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)3);
-    private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)4);
-    private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)5);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -6157,20 +5749,12 @@ public class FileSystemMasterService {
     }
 
     public int success; // required
-    public InvalidPathException ipe; // required
-    public FileDoesNotExistException fdnee; // required
-    public FileAlreadyExistException faee; // required
-    public BlockInfoException bie; // required
-    public TachyonException te; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      IPE((short)1, "ipe"),
-      FDNEE((short)2, "fdnee"),
-      FAEE((short)3, "faee"),
-      BIE((short)4, "bie"),
-      TE((short)5, "te");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -6187,16 +5771,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // IPE
-            return IPE;
-          case 2: // FDNEE
-            return FDNEE;
-          case 3: // FAEE
-            return FAEE;
-          case 4: // BIE
-            return BIE;
-          case 5: // TE
-            return TE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -6244,15 +5820,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-      tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.FAEE, new org.apache.thrift.meta_data.FieldMetaData("faee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createDependency_result.class, metaDataMap);
@@ -6263,20 +5831,12 @@ public class FileSystemMasterService {
 
     public createDependency_result(
       int success,
-      InvalidPathException ipe,
-      FileDoesNotExistException fdnee,
-      FileAlreadyExistException faee,
-      BlockInfoException bie,
-      TachyonException te)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.ipe = ipe;
-      this.fdnee = fdnee;
-      this.faee = faee;
-      this.bie = bie;
-      this.te = te;
+      this.e = e;
     }
 
     /**
@@ -6285,20 +5845,8 @@ public class FileSystemMasterService {
     public createDependency_result(createDependency_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetIpe()) {
-        this.ipe = new InvalidPathException(other.ipe);
-      }
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
-      }
-      if (other.isSetFaee()) {
-        this.faee = new FileAlreadyExistException(other.faee);
-      }
-      if (other.isSetBie()) {
-        this.bie = new BlockInfoException(other.bie);
-      }
-      if (other.isSetTe()) {
-        this.te = new TachyonException(other.te);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -6310,11 +5858,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = 0;
-      this.ipe = null;
-      this.fdnee = null;
-      this.faee = null;
-      this.bie = null;
-      this.te = null;
+      this.e = null;
     }
 
     public int getSuccess() {
@@ -6340,123 +5884,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public InvalidPathException getIpe() {
-      return this.ipe;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public createDependency_result setIpe(InvalidPathException ipe) {
-      this.ipe = ipe;
+    public createDependency_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetIpe() {
-      this.ipe = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field ipe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIpe() {
-      return this.ipe != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setIpeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.ipe = null;
-      }
-    }
-
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
-    }
-
-    public createDependency_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
-      return this;
-    }
-
-    public void unsetFdnee() {
-      this.fdnee = null;
-    }
-
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
-    }
-
-    public void setFdneeIsSet(boolean value) {
-      if (!value) {
-        this.fdnee = null;
-      }
-    }
-
-    public FileAlreadyExistException getFaee() {
-      return this.faee;
-    }
-
-    public createDependency_result setFaee(FileAlreadyExistException faee) {
-      this.faee = faee;
-      return this;
-    }
-
-    public void unsetFaee() {
-      this.faee = null;
-    }
-
-    /** Returns true if field faee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFaee() {
-      return this.faee != null;
-    }
-
-    public void setFaeeIsSet(boolean value) {
-      if (!value) {
-        this.faee = null;
-      }
-    }
-
-    public BlockInfoException getBie() {
-      return this.bie;
-    }
-
-    public createDependency_result setBie(BlockInfoException bie) {
-      this.bie = bie;
-      return this;
-    }
-
-    public void unsetBie() {
-      this.bie = null;
-    }
-
-    /** Returns true if field bie is set (has been assigned a value) and false otherwise */
-    public boolean isSetBie() {
-      return this.bie != null;
-    }
-
-    public void setBieIsSet(boolean value) {
-      if (!value) {
-        this.bie = null;
-      }
-    }
-
-    public TachyonException getTe() {
-      return this.te;
-    }
-
-    public createDependency_result setTe(TachyonException te) {
-      this.te = te;
-      return this;
-    }
-
-    public void unsetTe() {
-      this.te = null;
-    }
-
-    /** Returns true if field te is set (has been assigned a value) and false otherwise */
-    public boolean isSetTe() {
-      return this.te != null;
-    }
-
-    public void setTeIsSet(boolean value) {
-      if (!value) {
-        this.te = null;
+        this.e = null;
       }
     }
 
@@ -6470,43 +5918,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case IPE:
+      case E:
         if (value == null) {
-          unsetIpe();
+          unsetE();
         } else {
-          setIpe((InvalidPathException)value);
-        }
-        break;
-
-      case FDNEE:
-        if (value == null) {
-          unsetFdnee();
-        } else {
-          setFdnee((FileDoesNotExistException)value);
-        }
-        break;
-
-      case FAEE:
-        if (value == null) {
-          unsetFaee();
-        } else {
-          setFaee((FileAlreadyExistException)value);
-        }
-        break;
-
-      case BIE:
-        if (value == null) {
-          unsetBie();
-        } else {
-          setBie((BlockInfoException)value);
-        }
-        break;
-
-      case TE:
-        if (value == null) {
-          unsetTe();
-        } else {
-          setTe((TachyonException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -6518,20 +5934,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Integer.valueOf(getSuccess());
 
-      case IPE:
-        return getIpe();
-
-      case FDNEE:
-        return getFdnee();
-
-      case FAEE:
-        return getFaee();
-
-      case BIE:
-        return getBie();
-
-      case TE:
-        return getTe();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -6546,16 +5950,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case IPE:
-        return isSetIpe();
-      case FDNEE:
-        return isSetFdnee();
-      case FAEE:
-        return isSetFaee();
-      case BIE:
-        return isSetBie();
-      case TE:
-        return isSetTe();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -6582,48 +5978,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_ipe = true && this.isSetIpe();
-      boolean that_present_ipe = true && that.isSetIpe();
-      if (this_present_ipe || that_present_ipe) {
-        if (!(this_present_ipe && that_present_ipe))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.ipe.equals(that.ipe))
-          return false;
-      }
-
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
-          return false;
-        if (!this.fdnee.equals(that.fdnee))
-          return false;
-      }
-
-      boolean this_present_faee = true && this.isSetFaee();
-      boolean that_present_faee = true && that.isSetFaee();
-      if (this_present_faee || that_present_faee) {
-        if (!(this_present_faee && that_present_faee))
-          return false;
-        if (!this.faee.equals(that.faee))
-          return false;
-      }
-
-      boolean this_present_bie = true && this.isSetBie();
-      boolean that_present_bie = true && that.isSetBie();
-      if (this_present_bie || that_present_bie) {
-        if (!(this_present_bie && that_present_bie))
-          return false;
-        if (!this.bie.equals(that.bie))
-          return false;
-      }
-
-      boolean this_present_te = true && this.isSetTe();
-      boolean that_present_te = true && that.isSetTe();
-      if (this_present_te || that_present_te) {
-        if (!(this_present_te && that_present_te))
-          return false;
-        if (!this.te.equals(that.te))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -6639,30 +5999,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_ipe = true && (isSetIpe());
-      list.add(present_ipe);
-      if (present_ipe)
-        list.add(ipe);
-
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
-
-      boolean present_faee = true && (isSetFaee());
-      list.add(present_faee);
-      if (present_faee)
-        list.add(faee);
-
-      boolean present_bie = true && (isSetBie());
-      list.add(present_bie);
-      if (present_bie)
-        list.add(bie);
-
-      boolean present_te = true && (isSetTe());
-      list.add(present_te);
-      if (present_te)
-        list.add(te);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -6685,52 +6025,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetIpe()).compareTo(other.isSetIpe());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetIpe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipe, other.ipe);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetFaee()).compareTo(other.isSetFaee());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFaee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.faee, other.faee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetBie()).compareTo(other.isSetBie());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetBie()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bie, other.bie);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetTe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.te, other.te);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -6759,43 +6059,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("ipe:");
-      if (this.ipe == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.ipe);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.fdnee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("faee:");
-      if (this.faee == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.faee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("bie:");
-      if (this.bie == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.bie);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("te:");
-      if (this.te == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.te);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -6851,47 +6119,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // IPE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ipe = new InvalidPathException();
-                struct.ipe.read(iprot);
-                struct.setIpeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // FDNEE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // FAEE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.faee = new FileAlreadyExistException();
-                struct.faee.read(iprot);
-                struct.setFaeeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 4: // BIE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.bie = new BlockInfoException();
-                struct.bie.read(iprot);
-                struct.setBieIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 5: // TE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.te = new TachyonException();
-                struct.te.read(iprot);
-                struct.setTeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -6916,29 +6148,9 @@ public class FileSystemMasterService {
           oprot.writeI32(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.ipe != null) {
-          oprot.writeFieldBegin(IPE_FIELD_DESC);
-          struct.ipe.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.faee != null) {
-          oprot.writeFieldBegin(FAEE_FIELD_DESC);
-          struct.faee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.bie != null) {
-          oprot.writeFieldBegin(BIE_FIELD_DESC);
-          struct.bie.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.te != null) {
-          oprot.writeFieldBegin(TE_FIELD_DESC);
-          struct.te.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -6962,74 +6174,30 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetIpe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetFdnee()) {
-          optionals.set(2);
-        }
-        if (struct.isSetFaee()) {
-          optionals.set(3);
-        }
-        if (struct.isSetBie()) {
-          optionals.set(4);
-        }
-        if (struct.isSetTe()) {
-          optionals.set(5);
-        }
-        oprot.writeBitSet(optionals, 6);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeI32(struct.success);
         }
-        if (struct.isSetIpe()) {
-          struct.ipe.write(oprot);
-        }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
-        }
-        if (struct.isSetFaee()) {
-          struct.faee.write(oprot);
-        }
-        if (struct.isSetBie()) {
-          struct.bie.write(oprot);
-        }
-        if (struct.isSetTe()) {
-          struct.te.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, createDependency_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(6);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readI32();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.ipe = new InvalidPathException();
-          struct.ipe.read(iprot);
-          struct.setIpeIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
-        }
-        if (incoming.get(3)) {
-          struct.faee = new FileAlreadyExistException();
-          struct.faee.read(iprot);
-          struct.setFaeeIsSet(true);
-        }
-        if (incoming.get(4)) {
-          struct.bie = new BlockInfoException();
-          struct.bie.read(iprot);
-          struct.setBieIsSet(true);
-        }
-        if (incoming.get(5)) {
-          struct.te = new TachyonException();
-          struct.te.read(iprot);
-          struct.setTeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -7504,8 +6672,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createDirectory_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -7514,14 +6681,12 @@ public class FileSystemMasterService {
     }
 
     public boolean success; // required
-    public FileAlreadyExistException faee; // required
-    public InvalidPathException ipe; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FAEE((short)1, "faee"),
-      IPE((short)2, "ipe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -7538,10 +6703,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FAEE
-            return FAEE;
-          case 2: // IPE
-            return IPE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -7589,9 +6752,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.FAEE, new org.apache.thrift.meta_data.FieldMetaData("faee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createDirectory_result.class, metaDataMap);
@@ -7602,14 +6763,12 @@ public class FileSystemMasterService {
 
     public createDirectory_result(
       boolean success,
-      FileAlreadyExistException faee,
-      InvalidPathException ipe)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.faee = faee;
-      this.ipe = ipe;
+      this.e = e;
     }
 
     /**
@@ -7618,11 +6777,8 @@ public class FileSystemMasterService {
     public createDirectory_result(createDirectory_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetFaee()) {
-        this.faee = new FileAlreadyExistException(other.faee);
-      }
-      if (other.isSetIpe()) {
-        this.ipe = new InvalidPathException(other.ipe);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -7634,8 +6790,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.faee = null;
-      this.ipe = null;
+      this.e = null;
     }
 
     public boolean isSuccess() {
@@ -7661,51 +6816,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public FileAlreadyExistException getFaee() {
-      return this.faee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public createDirectory_result setFaee(FileAlreadyExistException faee) {
-      this.faee = faee;
+    public createDirectory_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFaee() {
-      this.faee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field faee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFaee() {
-      return this.faee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFaeeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.faee = null;
-      }
-    }
-
-    public InvalidPathException getIpe() {
-      return this.ipe;
-    }
-
-    public createDirectory_result setIpe(InvalidPathException ipe) {
-      this.ipe = ipe;
-      return this;
-    }
-
-    public void unsetIpe() {
-      this.ipe = null;
-    }
-
-    /** Returns true if field ipe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIpe() {
-      return this.ipe != null;
-    }
-
-    public void setIpeIsSet(boolean value) {
-      if (!value) {
-        this.ipe = null;
+        this.e = null;
       }
     }
 
@@ -7719,19 +6850,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FAEE:
+      case E:
         if (value == null) {
-          unsetFaee();
+          unsetE();
         } else {
-          setFaee((FileAlreadyExistException)value);
-        }
-        break;
-
-      case IPE:
-        if (value == null) {
-          unsetIpe();
-        } else {
-          setIpe((InvalidPathException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -7743,11 +6866,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
 
-      case FAEE:
-        return getFaee();
-
-      case IPE:
-        return getIpe();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -7762,10 +6882,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FAEE:
-        return isSetFaee();
-      case IPE:
-        return isSetIpe();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -7792,21 +6910,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_faee = true && this.isSetFaee();
-      boolean that_present_faee = true && that.isSetFaee();
-      if (this_present_faee || that_present_faee) {
-        if (!(this_present_faee && that_present_faee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.faee.equals(that.faee))
-          return false;
-      }
-
-      boolean this_present_ipe = true && this.isSetIpe();
-      boolean that_present_ipe = true && that.isSetIpe();
-      if (this_present_ipe || that_present_ipe) {
-        if (!(this_present_ipe && that_present_ipe))
-          return false;
-        if (!this.ipe.equals(that.ipe))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -7822,15 +6931,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_faee = true && (isSetFaee());
-      list.add(present_faee);
-      if (present_faee)
-        list.add(faee);
-
-      boolean present_ipe = true && (isSetIpe());
-      list.add(present_ipe);
-      if (present_ipe)
-        list.add(ipe);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -7853,22 +6957,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFaee()).compareTo(other.isSetFaee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFaee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.faee, other.faee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetIpe()).compareTo(other.isSetIpe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIpe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipe, other.ipe);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -7897,19 +6991,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("faee:");
-      if (this.faee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.faee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("ipe:");
-      if (this.ipe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ipe);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -7965,20 +7051,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FAEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.faee = new FileAlreadyExistException();
-                struct.faee.read(iprot);
-                struct.setFaeeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IPE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ipe = new InvalidPathException();
-                struct.ipe.read(iprot);
-                struct.setIpeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -8003,14 +7080,9 @@ public class FileSystemMasterService {
           oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.faee != null) {
-          oprot.writeFieldBegin(FAEE_FIELD_DESC);
-          struct.faee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ipe != null) {
-          oprot.writeFieldBegin(IPE_FIELD_DESC);
-          struct.ipe.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -8034,41 +7106,30 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFaee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetIpe()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
-        if (struct.isSetFaee()) {
-          struct.faee.write(oprot);
-        }
-        if (struct.isSetIpe()) {
-          struct.ipe.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, createDirectory_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.faee = new FileAlreadyExistException();
-          struct.faee.read(iprot);
-          struct.setFaeeIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.ipe = new InvalidPathException();
-          struct.ipe.read(iprot);
-          struct.setIpeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -8741,10 +7802,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createFile_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
-    private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField SFSE_FIELD_DESC = new org.apache.thrift.protocol.TField("sfse", org.apache.thrift.protocol.TType.STRUCT, (short)3);
-    private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -8753,18 +7811,12 @@ public class FileSystemMasterService {
     }
 
     public long success; // required
-    public FileAlreadyExistException faee; // required
-    public BlockInfoException bie; // required
-    public SuspectedFileSizeException sfse; // required
-    public TachyonException te; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FAEE((short)1, "faee"),
-      BIE((short)2, "bie"),
-      SFSE((short)3, "sfse"),
-      TE((short)4, "te");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8781,14 +7833,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FAEE
-            return FAEE;
-          case 2: // BIE
-            return BIE;
-          case 3: // SFSE
-            return SFSE;
-          case 4: // TE
-            return TE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -8836,13 +7882,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.FAEE, new org.apache.thrift.meta_data.FieldMetaData("faee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.SFSE, new org.apache.thrift.meta_data.FieldMetaData("sfse", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(createFile_result.class, metaDataMap);
@@ -8853,18 +7893,12 @@ public class FileSystemMasterService {
 
     public createFile_result(
       long success,
-      FileAlreadyExistException faee,
-      BlockInfoException bie,
-      SuspectedFileSizeException sfse,
-      TachyonException te)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.faee = faee;
-      this.bie = bie;
-      this.sfse = sfse;
-      this.te = te;
+      this.e = e;
     }
 
     /**
@@ -8873,17 +7907,8 @@ public class FileSystemMasterService {
     public createFile_result(createFile_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetFaee()) {
-        this.faee = new FileAlreadyExistException(other.faee);
-      }
-      if (other.isSetBie()) {
-        this.bie = new BlockInfoException(other.bie);
-      }
-      if (other.isSetSfse()) {
-        this.sfse = new SuspectedFileSizeException(other.sfse);
-      }
-      if (other.isSetTe()) {
-        this.te = new TachyonException(other.te);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -8895,10 +7920,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = 0;
-      this.faee = null;
-      this.bie = null;
-      this.sfse = null;
-      this.te = null;
+      this.e = null;
     }
 
     public long getSuccess() {
@@ -8924,99 +7946,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public FileAlreadyExistException getFaee() {
-      return this.faee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public createFile_result setFaee(FileAlreadyExistException faee) {
-      this.faee = faee;
+    public createFile_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFaee() {
-      this.faee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field faee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFaee() {
-      return this.faee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFaeeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.faee = null;
-      }
-    }
-
-    public BlockInfoException getBie() {
-      return this.bie;
-    }
-
-    public createFile_result setBie(BlockInfoException bie) {
-      this.bie = bie;
-      return this;
-    }
-
-    public void unsetBie() {
-      this.bie = null;
-    }
-
-    /** Returns true if field bie is set (has been assigned a value) and false otherwise */
-    public boolean isSetBie() {
-      return this.bie != null;
-    }
-
-    public void setBieIsSet(boolean value) {
-      if (!value) {
-        this.bie = null;
-      }
-    }
-
-    public SuspectedFileSizeException getSfse() {
-      return this.sfse;
-    }
-
-    public createFile_result setSfse(SuspectedFileSizeException sfse) {
-      this.sfse = sfse;
-      return this;
-    }
-
-    public void unsetSfse() {
-      this.sfse = null;
-    }
-
-    /** Returns true if field sfse is set (has been assigned a value) and false otherwise */
-    public boolean isSetSfse() {
-      return this.sfse != null;
-    }
-
-    public void setSfseIsSet(boolean value) {
-      if (!value) {
-        this.sfse = null;
-      }
-    }
-
-    public TachyonException getTe() {
-      return this.te;
-    }
-
-    public createFile_result setTe(TachyonException te) {
-      this.te = te;
-      return this;
-    }
-
-    public void unsetTe() {
-      this.te = null;
-    }
-
-    /** Returns true if field te is set (has been assigned a value) and false otherwise */
-    public boolean isSetTe() {
-      return this.te != null;
-    }
-
-    public void setTeIsSet(boolean value) {
-      if (!value) {
-        this.te = null;
+        this.e = null;
       }
     }
 
@@ -9030,35 +7980,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FAEE:
+      case E:
         if (value == null) {
-          unsetFaee();
+          unsetE();
         } else {
-          setFaee((FileAlreadyExistException)value);
-        }
-        break;
-
-      case BIE:
-        if (value == null) {
-          unsetBie();
-        } else {
-          setBie((BlockInfoException)value);
-        }
-        break;
-
-      case SFSE:
-        if (value == null) {
-          unsetSfse();
-        } else {
-          setSfse((SuspectedFileSizeException)value);
-        }
-        break;
-
-      case TE:
-        if (value == null) {
-          unsetTe();
-        } else {
-          setTe((TachyonException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -9070,17 +7996,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Long.valueOf(getSuccess());
 
-      case FAEE:
-        return getFaee();
-
-      case BIE:
-        return getBie();
-
-      case SFSE:
-        return getSfse();
-
-      case TE:
-        return getTe();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -9095,14 +8012,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FAEE:
-        return isSetFaee();
-      case BIE:
-        return isSetBie();
-      case SFSE:
-        return isSetSfse();
-      case TE:
-        return isSetTe();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -9129,39 +8040,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_faee = true && this.isSetFaee();
-      boolean that_present_faee = true && that.isSetFaee();
-      if (this_present_faee || that_present_faee) {
-        if (!(this_present_faee && that_present_faee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.faee.equals(that.faee))
-          return false;
-      }
-
-      boolean this_present_bie = true && this.isSetBie();
-      boolean that_present_bie = true && that.isSetBie();
-      if (this_present_bie || that_present_bie) {
-        if (!(this_present_bie && that_present_bie))
-          return false;
-        if (!this.bie.equals(that.bie))
-          return false;
-      }
-
-      boolean this_present_sfse = true && this.isSetSfse();
-      boolean that_present_sfse = true && that.isSetSfse();
-      if (this_present_sfse || that_present_sfse) {
-        if (!(this_present_sfse && that_present_sfse))
-          return false;
-        if (!this.sfse.equals(that.sfse))
-          return false;
-      }
-
-      boolean this_present_te = true && this.isSetTe();
-      boolean that_present_te = true && that.isSetTe();
-      if (this_present_te || that_present_te) {
-        if (!(this_present_te && that_present_te))
-          return false;
-        if (!this.te.equals(that.te))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -9177,25 +8061,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_faee = true && (isSetFaee());
-      list.add(present_faee);
-      if (present_faee)
-        list.add(faee);
-
-      boolean present_bie = true && (isSetBie());
-      list.add(present_bie);
-      if (present_bie)
-        list.add(bie);
-
-      boolean present_sfse = true && (isSetSfse());
-      list.add(present_sfse);
-      if (present_sfse)
-        list.add(sfse);
-
-      boolean present_te = true && (isSetTe());
-      list.add(present_te);
-      if (present_te)
-        list.add(te);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -9218,42 +8087,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFaee()).compareTo(other.isSetFaee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFaee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.faee, other.faee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetBie()).compareTo(other.isSetBie());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetBie()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bie, other.bie);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetSfse()).compareTo(other.isSetSfse());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSfse()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sfse, other.sfse);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetTe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.te, other.te);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -9282,35 +8121,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("faee:");
-      if (this.faee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.faee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("bie:");
-      if (this.bie == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.bie);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("sfse:");
-      if (this.sfse == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.sfse);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("te:");
-      if (this.te == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.te);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -9366,38 +8181,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FAEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.faee = new FileAlreadyExistException();
-                struct.faee.read(iprot);
-                struct.setFaeeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // BIE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.bie = new BlockInfoException();
-                struct.bie.read(iprot);
-                struct.setBieIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // SFSE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.sfse = new SuspectedFileSizeException();
-                struct.sfse.read(iprot);
-                struct.setSfseIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 4: // TE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.te = new TachyonException();
-                struct.te.read(iprot);
-                struct.setTeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -9422,24 +8210,9 @@ public class FileSystemMasterService {
           oprot.writeI64(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.faee != null) {
-          oprot.writeFieldBegin(FAEE_FIELD_DESC);
-          struct.faee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.bie != null) {
-          oprot.writeFieldBegin(BIE_FIELD_DESC);
-          struct.bie.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.sfse != null) {
-          oprot.writeFieldBegin(SFSE_FIELD_DESC);
-          struct.sfse.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.te != null) {
-          oprot.writeFieldBegin(TE_FIELD_DESC);
-          struct.te.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -9463,63 +8236,30 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFaee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetBie()) {
-          optionals.set(2);
-        }
-        if (struct.isSetSfse()) {
-          optionals.set(3);
-        }
-        if (struct.isSetTe()) {
-          optionals.set(4);
-        }
-        oprot.writeBitSet(optionals, 5);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
         }
-        if (struct.isSetFaee()) {
-          struct.faee.write(oprot);
-        }
-        if (struct.isSetBie()) {
-          struct.bie.write(oprot);
-        }
-        if (struct.isSetSfse()) {
-          struct.sfse.write(oprot);
-        }
-        if (struct.isSetTe()) {
-          struct.te.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, createFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(5);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.faee = new FileAlreadyExistException();
-          struct.faee.read(iprot);
-          struct.setFaeeIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.bie = new BlockInfoException();
-          struct.bie.read(iprot);
-          struct.setBieIsSet(true);
-        }
-        if (incoming.get(3)) {
-          struct.sfse = new SuspectedFileSizeException();
-          struct.sfse.read(iprot);
-          struct.setSfseIsSet(true);
-        }
-        if (incoming.get(4)) {
-          struct.te = new TachyonException();
-          struct.te.read(iprot);
-          struct.setTeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -9988,7 +8728,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("deleteFile_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -9997,12 +8737,12 @@ public class FileSystemMasterService {
     }
 
     public boolean success; // required
-    public TachyonException te; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      TE((short)1, "te");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10019,8 +8759,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // TE
-            return TE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -10068,7 +8808,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(deleteFile_result.class, metaDataMap);
@@ -10079,12 +8819,12 @@ public class FileSystemMasterService {
 
     public deleteFile_result(
       boolean success,
-      TachyonException te)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.te = te;
+      this.e = e;
     }
 
     /**
@@ -10093,8 +8833,8 @@ public class FileSystemMasterService {
     public deleteFile_result(deleteFile_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetTe()) {
-        this.te = new TachyonException(other.te);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -10106,7 +8846,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.te = null;
+      this.e = null;
     }
 
     public boolean isSuccess() {
@@ -10132,27 +8872,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public TachyonException getTe() {
-      return this.te;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public deleteFile_result setTe(TachyonException te) {
-      this.te = te;
+    public deleteFile_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetTe() {
-      this.te = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field te is set (has been assigned a value) and false otherwise */
-    public boolean isSetTe() {
-      return this.te != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setTeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.te = null;
+        this.e = null;
       }
     }
 
@@ -10166,11 +8906,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case TE:
+      case E:
         if (value == null) {
-          unsetTe();
+          unsetE();
         } else {
-          setTe((TachyonException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -10182,8 +8922,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
 
-      case TE:
-        return getTe();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -10198,8 +8938,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case TE:
-        return isSetTe();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -10226,12 +8966,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_te = true && this.isSetTe();
-      boolean that_present_te = true && that.isSetTe();
-      if (this_present_te || that_present_te) {
-        if (!(this_present_te && that_present_te))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.te.equals(that.te))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -10247,10 +8987,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_te = true && (isSetTe());
-      list.add(present_te);
-      if (present_te)
-        list.add(te);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -10273,12 +9013,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetTe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.te, other.te);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -10307,11 +9047,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("te:");
-      if (this.te == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.te);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -10367,11 +9107,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // TE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.te = new TachyonException();
-                struct.te.read(iprot);
-                struct.setTeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -10396,9 +9136,9 @@ public class FileSystemMasterService {
           oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.te != null) {
-          oprot.writeFieldBegin(TE_FIELD_DESC);
-          struct.te.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -10422,15 +9162,15 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetTe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
-        if (struct.isSetTe()) {
-          struct.te.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -10443,9 +9183,9 @@ public class FileSystemMasterService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.te = new TachyonException();
-          struct.te.read(iprot);
-          struct.setTeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -10914,7 +9654,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("free_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -10923,12 +9663,12 @@ public class FileSystemMasterService {
     }
 
     public boolean success; // required
-    public FileDoesNotExistException fdnee; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FDNEE((short)1, "fdnee");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10945,8 +9685,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FDNEE
-            return FDNEE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -10994,7 +9734,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(free_result.class, metaDataMap);
@@ -11005,12 +9745,12 @@ public class FileSystemMasterService {
 
     public free_result(
       boolean success,
-      FileDoesNotExistException fdnee)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.fdnee = fdnee;
+      this.e = e;
     }
 
     /**
@@ -11019,8 +9759,8 @@ public class FileSystemMasterService {
     public free_result(free_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -11032,7 +9772,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.fdnee = null;
+      this.e = null;
     }
 
     public boolean isSuccess() {
@@ -11058,27 +9798,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public free_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
+    public free_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFdnee() {
-      this.fdnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.fdnee = null;
+        this.e = null;
       }
     }
 
@@ -11092,11 +9832,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FDNEE:
+      case E:
         if (value == null) {
-          unsetFdnee();
+          unsetE();
         } else {
-          setFdnee((FileDoesNotExistException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -11108,8 +9848,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
 
-      case FDNEE:
-        return getFdnee();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -11124,8 +9864,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FDNEE:
-        return isSetFdnee();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -11152,12 +9892,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.fdnee.equals(that.fdnee))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -11173,10 +9913,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -11199,12 +9939,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -11233,11 +9973,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.fdnee);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -11293,11 +10033,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -11322,9 +10062,9 @@ public class FileSystemMasterService {
           oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -11348,15 +10088,15 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFdnee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -11369,9 +10109,9 @@ public class FileSystemMasterService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -11741,7 +10481,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getDependencyInfo_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
-    private static final org.apache.thrift.protocol.TField DDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("ddnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -11750,12 +10490,12 @@ public class FileSystemMasterService {
     }
 
     public DependencyInfo success; // required
-    public DependencyDoesNotExistException ddnee; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      DDNEE((short)1, "ddnee");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -11772,8 +10512,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // DDNEE
-            return DDNEE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -11819,7 +10559,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, DependencyInfo.class)));
-      tmpMap.put(_Fields.DDNEE, new org.apache.thrift.meta_data.FieldMetaData("ddnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getDependencyInfo_result.class, metaDataMap);
@@ -11830,11 +10570,11 @@ public class FileSystemMasterService {
 
     public getDependencyInfo_result(
       DependencyInfo success,
-      DependencyDoesNotExistException ddnee)
+      TachyonTException e)
     {
       this();
       this.success = success;
-      this.ddnee = ddnee;
+      this.e = e;
     }
 
     /**
@@ -11844,8 +10584,8 @@ public class FileSystemMasterService {
       if (other.isSetSuccess()) {
         this.success = new DependencyInfo(other.success);
       }
-      if (other.isSetDdnee()) {
-        this.ddnee = new DependencyDoesNotExistException(other.ddnee);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -11856,7 +10596,7 @@ public class FileSystemMasterService {
     @Override
     public void clear() {
       this.success = null;
-      this.ddnee = null;
+      this.e = null;
     }
 
     public DependencyInfo getSuccess() {
@@ -11883,27 +10623,27 @@ public class FileSystemMasterService {
       }
     }
 
-    public DependencyDoesNotExistException getDdnee() {
-      return this.ddnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public getDependencyInfo_result setDdnee(DependencyDoesNotExistException ddnee) {
-      this.ddnee = ddnee;
+    public getDependencyInfo_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetDdnee() {
-      this.ddnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field ddnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetDdnee() {
-      return this.ddnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setDdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.ddnee = null;
+        this.e = null;
       }
     }
 
@@ -11917,11 +10657,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case DDNEE:
+      case E:
         if (value == null) {
-          unsetDdnee();
+          unsetE();
         } else {
-          setDdnee((DependencyDoesNotExistException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -11933,8 +10673,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return getSuccess();
 
-      case DDNEE:
-        return getDdnee();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -11949,8 +10689,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case DDNEE:
-        return isSetDdnee();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -11977,12 +10717,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_ddnee = true && this.isSetDdnee();
-      boolean that_present_ddnee = true && that.isSetDdnee();
-      if (this_present_ddnee || that_present_ddnee) {
-        if (!(this_present_ddnee && that_present_ddnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.ddnee.equals(that.ddnee))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -11998,10 +10738,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_ddnee = true && (isSetDdnee());
-      list.add(present_ddnee);
-      if (present_ddnee)
-        list.add(ddnee);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -12024,12 +10764,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetDdnee()).compareTo(other.isSetDdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetDdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ddnee, other.ddnee);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -12062,11 +10802,11 @@ public class FileSystemMasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("ddnee:");
-      if (this.ddnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.ddnee);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -12124,11 +10864,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // DDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ddnee = new DependencyDoesNotExistException();
-                struct.ddnee.read(iprot);
-                struct.setDdneeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -12153,9 +10893,9 @@ public class FileSystemMasterService {
           struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.ddnee != null) {
-          oprot.writeFieldBegin(DDNEE_FIELD_DESC);
-          struct.ddnee.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -12179,15 +10919,15 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetDdnee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           struct.success.write(oprot);
         }
-        if (struct.isSetDdnee()) {
-          struct.ddnee.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -12201,9 +10941,9 @@ public class FileSystemMasterService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.ddnee = new DependencyDoesNotExistException();
-          struct.ddnee.read(iprot);
-          struct.setDdneeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -12672,8 +11412,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileBlockInfo_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -12682,14 +11421,12 @@ public class FileSystemMasterService {
     }
 
     public FileBlockInfo success; // required
-    public FileDoesNotExistException fdnee; // required
-    public BlockInfoException bie; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FDNEE((short)1, "fdnee"),
-      BIE((short)2, "bie");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -12706,10 +11443,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FDNEE
-            return FDNEE;
-          case 2: // BIE
-            return BIE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -12755,9 +11490,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileBlockInfo.class)));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileBlockInfo_result.class, metaDataMap);
@@ -12768,13 +11501,11 @@ public class FileSystemMasterService {
 
     public getFileBlockInfo_result(
       FileBlockInfo success,
-      FileDoesNotExistException fdnee,
-      BlockInfoException bie)
+      TachyonTException e)
     {
       this();
       this.success = success;
-      this.fdnee = fdnee;
-      this.bie = bie;
+      this.e = e;
     }
 
     /**
@@ -12784,11 +11515,8 @@ public class FileSystemMasterService {
       if (other.isSetSuccess()) {
         this.success = new FileBlockInfo(other.success);
       }
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
-      }
-      if (other.isSetBie()) {
-        this.bie = new BlockInfoException(other.bie);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -12799,8 +11527,7 @@ public class FileSystemMasterService {
     @Override
     public void clear() {
       this.success = null;
-      this.fdnee = null;
-      this.bie = null;
+      this.e = null;
     }
 
     public FileBlockInfo getSuccess() {
@@ -12827,51 +11554,27 @@ public class FileSystemMasterService {
       }
     }
 
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public getFileBlockInfo_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
+    public getFileBlockInfo_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFdnee() {
-      this.fdnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.fdnee = null;
-      }
-    }
-
-    public BlockInfoException getBie() {
-      return this.bie;
-    }
-
-    public getFileBlockInfo_result setBie(BlockInfoException bie) {
-      this.bie = bie;
-      return this;
-    }
-
-    public void unsetBie() {
-      this.bie = null;
-    }
-
-    /** Returns true if field bie is set (has been assigned a value) and false otherwise */
-    public boolean isSetBie() {
-      return this.bie != null;
-    }
-
-    public void setBieIsSet(boolean value) {
-      if (!value) {
-        this.bie = null;
+        this.e = null;
       }
     }
 
@@ -12885,19 +11588,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FDNEE:
+      case E:
         if (value == null) {
-          unsetFdnee();
+          unsetE();
         } else {
-          setFdnee((FileDoesNotExistException)value);
-        }
-        break;
-
-      case BIE:
-        if (value == null) {
-          unsetBie();
-        } else {
-          setBie((BlockInfoException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -12909,11 +11604,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return getSuccess();
 
-      case FDNEE:
-        return getFdnee();
-
-      case BIE:
-        return getBie();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -12928,10 +11620,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FDNEE:
-        return isSetFdnee();
-      case BIE:
-        return isSetBie();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -12958,21 +11648,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.fdnee.equals(that.fdnee))
-          return false;
-      }
-
-      boolean this_present_bie = true && this.isSetBie();
-      boolean that_present_bie = true && that.isSetBie();
-      if (this_present_bie || that_present_bie) {
-        if (!(this_present_bie && that_present_bie))
-          return false;
-        if (!this.bie.equals(that.bie))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -12988,15 +11669,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
-
-      boolean present_bie = true && (isSetBie());
-      list.add(present_bie);
-      if (present_bie)
-        list.add(bie);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -13019,22 +11695,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetBie()).compareTo(other.isSetBie());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetBie()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bie, other.bie);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -13067,19 +11733,11 @@ public class FileSystemMasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.fdnee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("bie:");
-      if (this.bie == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.bie);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -13137,20 +11795,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // BIE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.bie = new BlockInfoException();
-                struct.bie.read(iprot);
-                struct.setBieIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -13175,14 +11824,9 @@ public class FileSystemMasterService {
           struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.bie != null) {
-          oprot.writeFieldBegin(BIE_FIELD_DESC);
-          struct.bie.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -13206,42 +11850,31 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFdnee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetBie()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           struct.success.write(oprot);
         }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
-        }
-        if (struct.isSetBie()) {
-          struct.bie.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getFileBlockInfo_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = new FileBlockInfo();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.bie = new BlockInfoException();
-          struct.bie.read(iprot);
-          struct.setBieIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -13611,7 +12244,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileBlockInfoList_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -13620,12 +12253,12 @@ public class FileSystemMasterService {
     }
 
     public List<FileBlockInfo> success; // required
-    public FileDoesNotExistException fdnee; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FDNEE((short)1, "fdnee");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -13642,8 +12275,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FDNEE
-            return FDNEE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -13690,7 +12323,7 @@ public class FileSystemMasterService {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileBlockInfo.class))));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileBlockInfoList_result.class, metaDataMap);
@@ -13701,11 +12334,11 @@ public class FileSystemMasterService {
 
     public getFileBlockInfoList_result(
       List<FileBlockInfo> success,
-      FileDoesNotExistException fdnee)
+      TachyonTException e)
     {
       this();
       this.success = success;
-      this.fdnee = fdnee;
+      this.e = e;
     }
 
     /**
@@ -13719,8 +12352,8 @@ public class FileSystemMasterService {
         }
         this.success = __this__success;
       }
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -13731,7 +12364,7 @@ public class FileSystemMasterService {
     @Override
     public void clear() {
       this.success = null;
-      this.fdnee = null;
+      this.e = null;
     }
 
     public int getSuccessSize() {
@@ -13773,27 +12406,27 @@ public class FileSystemMasterService {
       }
     }
 
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public getFileBlockInfoList_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
+    public getFileBlockInfoList_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFdnee() {
-      this.fdnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.fdnee = null;
+        this.e = null;
       }
     }
 
@@ -13807,11 +12440,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FDNEE:
+      case E:
         if (value == null) {
-          unsetFdnee();
+          unsetE();
         } else {
-          setFdnee((FileDoesNotExistException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -13823,8 +12456,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return getSuccess();
 
-      case FDNEE:
-        return getFdnee();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -13839,8 +12472,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FDNEE:
-        return isSetFdnee();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -13867,12 +12500,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.fdnee.equals(that.fdnee))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -13888,10 +12521,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -13914,12 +12547,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -13952,11 +12585,11 @@ public class FileSystemMasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.fdnee);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -14021,11 +12654,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -14057,9 +12690,9 @@ public class FileSystemMasterService {
           }
           oprot.writeFieldEnd();
         }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -14083,7 +12716,7 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFdnee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
@@ -14096,8 +12729,8 @@ public class FileSystemMasterService {
             }
           }
         }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -14120,9 +12753,9 @@ public class FileSystemMasterService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -14494,7 +13127,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileId_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
-    private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -14503,12 +13136,12 @@ public class FileSystemMasterService {
     }
 
     public long success; // required
-    public InvalidPathException ipe; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      IPE((short)1, "ipe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -14525,8 +13158,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // IPE
-            return IPE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -14574,7 +13207,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileId_result.class, metaDataMap);
@@ -14585,12 +13218,12 @@ public class FileSystemMasterService {
 
     public getFileId_result(
       long success,
-      InvalidPathException ipe)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.ipe = ipe;
+      this.e = e;
     }
 
     /**
@@ -14599,8 +13232,8 @@ public class FileSystemMasterService {
     public getFileId_result(getFileId_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetIpe()) {
-        this.ipe = new InvalidPathException(other.ipe);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -14612,7 +13245,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = 0;
-      this.ipe = null;
+      this.e = null;
     }
 
     public long getSuccess() {
@@ -14638,27 +13271,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public InvalidPathException getIpe() {
-      return this.ipe;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public getFileId_result setIpe(InvalidPathException ipe) {
-      this.ipe = ipe;
+    public getFileId_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetIpe() {
-      this.ipe = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field ipe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIpe() {
-      return this.ipe != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setIpeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.ipe = null;
+        this.e = null;
       }
     }
 
@@ -14672,11 +13305,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case IPE:
+      case E:
         if (value == null) {
-          unsetIpe();
+          unsetE();
         } else {
-          setIpe((InvalidPathException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -14688,8 +13321,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Long.valueOf(getSuccess());
 
-      case IPE:
-        return getIpe();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -14704,8 +13337,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case IPE:
-        return isSetIpe();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -14732,12 +13365,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_ipe = true && this.isSetIpe();
-      boolean that_present_ipe = true && that.isSetIpe();
-      if (this_present_ipe || that_present_ipe) {
-        if (!(this_present_ipe && that_present_ipe))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.ipe.equals(that.ipe))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -14753,10 +13386,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_ipe = true && (isSetIpe());
-      list.add(present_ipe);
-      if (present_ipe)
-        list.add(ipe);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -14779,12 +13412,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetIpe()).compareTo(other.isSetIpe());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetIpe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipe, other.ipe);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -14813,11 +13446,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("ipe:");
-      if (this.ipe == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.ipe);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -14873,11 +13506,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // IPE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ipe = new InvalidPathException();
-                struct.ipe.read(iprot);
-                struct.setIpeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -14902,9 +13535,9 @@ public class FileSystemMasterService {
           oprot.writeI64(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.ipe != null) {
-          oprot.writeFieldBegin(IPE_FIELD_DESC);
-          struct.ipe.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -14928,15 +13561,15 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetIpe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
         }
-        if (struct.isSetIpe()) {
-          struct.ipe.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -14949,9 +13582,9 @@ public class FileSystemMasterService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.ipe = new InvalidPathException();
-          struct.ipe.read(iprot);
-          struct.setIpeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -15321,7 +13954,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileInfo_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -15330,12 +13963,12 @@ public class FileSystemMasterService {
     }
 
     public FileInfo success; // required
-    public FileDoesNotExistException fdnee; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FDNEE((short)1, "fdnee");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -15352,8 +13985,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FDNEE
-            return FDNEE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -15399,7 +14032,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileInfo.class)));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileInfo_result.class, metaDataMap);
@@ -15410,11 +14043,11 @@ public class FileSystemMasterService {
 
     public getFileInfo_result(
       FileInfo success,
-      FileDoesNotExistException fdnee)
+      TachyonTException e)
     {
       this();
       this.success = success;
-      this.fdnee = fdnee;
+      this.e = e;
     }
 
     /**
@@ -15424,8 +14057,8 @@ public class FileSystemMasterService {
       if (other.isSetSuccess()) {
         this.success = new FileInfo(other.success);
       }
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -15436,7 +14069,7 @@ public class FileSystemMasterService {
     @Override
     public void clear() {
       this.success = null;
-      this.fdnee = null;
+      this.e = null;
     }
 
     public FileInfo getSuccess() {
@@ -15463,27 +14096,27 @@ public class FileSystemMasterService {
       }
     }
 
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public getFileInfo_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
+    public getFileInfo_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFdnee() {
-      this.fdnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.fdnee = null;
+        this.e = null;
       }
     }
 
@@ -15497,11 +14130,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FDNEE:
+      case E:
         if (value == null) {
-          unsetFdnee();
+          unsetE();
         } else {
-          setFdnee((FileDoesNotExistException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -15513,8 +14146,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return getSuccess();
 
-      case FDNEE:
-        return getFdnee();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -15529,8 +14162,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FDNEE:
-        return isSetFdnee();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -15557,12 +14190,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.fdnee.equals(that.fdnee))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -15578,10 +14211,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -15604,12 +14237,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -15642,11 +14275,11 @@ public class FileSystemMasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.fdnee);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -15704,11 +14337,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -15733,9 +14366,9 @@ public class FileSystemMasterService {
           struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -15759,15 +14392,15 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFdnee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           struct.success.write(oprot);
         }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -15781,9 +14414,9 @@ public class FileSystemMasterService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -16153,7 +14786,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileInfoList_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -16162,12 +14795,12 @@ public class FileSystemMasterService {
     }
 
     public List<FileInfo> success; // required
-    public FileDoesNotExistException fdnee; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FDNEE((short)1, "fdnee");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -16184,8 +14817,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FDNEE
-            return FDNEE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -16232,7 +14865,7 @@ public class FileSystemMasterService {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileInfo.class))));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileInfoList_result.class, metaDataMap);
@@ -16243,11 +14876,11 @@ public class FileSystemMasterService {
 
     public getFileInfoList_result(
       List<FileInfo> success,
-      FileDoesNotExistException fdnee)
+      TachyonTException e)
     {
       this();
       this.success = success;
-      this.fdnee = fdnee;
+      this.e = e;
     }
 
     /**
@@ -16261,8 +14894,8 @@ public class FileSystemMasterService {
         }
         this.success = __this__success;
       }
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -16273,7 +14906,7 @@ public class FileSystemMasterService {
     @Override
     public void clear() {
       this.success = null;
-      this.fdnee = null;
+      this.e = null;
     }
 
     public int getSuccessSize() {
@@ -16315,27 +14948,27 @@ public class FileSystemMasterService {
       }
     }
 
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public getFileInfoList_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
+    public getFileInfoList_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFdnee() {
-      this.fdnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.fdnee = null;
+        this.e = null;
       }
     }
 
@@ -16349,11 +14982,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FDNEE:
+      case E:
         if (value == null) {
-          unsetFdnee();
+          unsetE();
         } else {
-          setFdnee((FileDoesNotExistException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -16365,8 +14998,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return getSuccess();
 
-      case FDNEE:
-        return getFdnee();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -16381,8 +15014,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FDNEE:
-        return isSetFdnee();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -16409,12 +15042,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.fdnee.equals(that.fdnee))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -16430,10 +15063,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -16456,12 +15089,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -16494,11 +15127,11 @@ public class FileSystemMasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.fdnee);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -16563,11 +15196,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -16599,9 +15232,9 @@ public class FileSystemMasterService {
           }
           oprot.writeFieldEnd();
         }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -16625,7 +15258,7 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFdnee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
@@ -16638,8 +15271,8 @@ public class FileSystemMasterService {
             }
           }
         }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -16662,9 +15295,9 @@ public class FileSystemMasterService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -17034,8 +15667,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getNewBlockIdForFile_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -17044,14 +15676,12 @@ public class FileSystemMasterService {
     }
 
     public long success; // required
-    public FileDoesNotExistException fdnee; // required
-    public BlockInfoException bie; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FDNEE((short)1, "fdnee"),
-      BIE((short)2, "bie");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -17068,10 +15698,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FDNEE
-            return FDNEE;
-          case 2: // BIE
-            return BIE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -17119,9 +15747,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getNewBlockIdForFile_result.class, metaDataMap);
@@ -17132,14 +15758,12 @@ public class FileSystemMasterService {
 
     public getNewBlockIdForFile_result(
       long success,
-      FileDoesNotExistException fdnee,
-      BlockInfoException bie)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.fdnee = fdnee;
-      this.bie = bie;
+      this.e = e;
     }
 
     /**
@@ -17148,11 +15772,8 @@ public class FileSystemMasterService {
     public getNewBlockIdForFile_result(getNewBlockIdForFile_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
-      }
-      if (other.isSetBie()) {
-        this.bie = new BlockInfoException(other.bie);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -17164,8 +15785,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = 0;
-      this.fdnee = null;
-      this.bie = null;
+      this.e = null;
     }
 
     public long getSuccess() {
@@ -17191,51 +15811,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public getNewBlockIdForFile_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
+    public getNewBlockIdForFile_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFdnee() {
-      this.fdnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.fdnee = null;
-      }
-    }
-
-    public BlockInfoException getBie() {
-      return this.bie;
-    }
-
-    public getNewBlockIdForFile_result setBie(BlockInfoException bie) {
-      this.bie = bie;
-      return this;
-    }
-
-    public void unsetBie() {
-      this.bie = null;
-    }
-
-    /** Returns true if field bie is set (has been assigned a value) and false otherwise */
-    public boolean isSetBie() {
-      return this.bie != null;
-    }
-
-    public void setBieIsSet(boolean value) {
-      if (!value) {
-        this.bie = null;
+        this.e = null;
       }
     }
 
@@ -17249,19 +15845,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FDNEE:
+      case E:
         if (value == null) {
-          unsetFdnee();
+          unsetE();
         } else {
-          setFdnee((FileDoesNotExistException)value);
-        }
-        break;
-
-      case BIE:
-        if (value == null) {
-          unsetBie();
-        } else {
-          setBie((BlockInfoException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -17273,11 +15861,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Long.valueOf(getSuccess());
 
-      case FDNEE:
-        return getFdnee();
-
-      case BIE:
-        return getBie();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -17292,10 +15877,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FDNEE:
-        return isSetFdnee();
-      case BIE:
-        return isSetBie();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -17322,21 +15905,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.fdnee.equals(that.fdnee))
-          return false;
-      }
-
-      boolean this_present_bie = true && this.isSetBie();
-      boolean that_present_bie = true && that.isSetBie();
-      if (this_present_bie || that_present_bie) {
-        if (!(this_present_bie && that_present_bie))
-          return false;
-        if (!this.bie.equals(that.bie))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -17352,15 +15926,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
-
-      boolean present_bie = true && (isSetBie());
-      list.add(present_bie);
-      if (present_bie)
-        list.add(bie);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -17383,22 +15952,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetBie()).compareTo(other.isSetBie());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetBie()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bie, other.bie);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -17427,19 +15986,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.fdnee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("bie:");
-      if (this.bie == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.bie);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -17495,20 +16046,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // BIE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.bie = new BlockInfoException();
-                struct.bie.read(iprot);
-                struct.setBieIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -17533,14 +16075,9 @@ public class FileSystemMasterService {
           oprot.writeI64(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.bie != null) {
-          oprot.writeFieldBegin(BIE_FIELD_DESC);
-          struct.bie.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -17564,41 +16101,30 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFdnee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetBie()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
         }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
-        }
-        if (struct.isSetBie()) {
-          struct.bie.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, getNewBlockIdForFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.bie = new BlockInfoException();
-          struct.bie.read(iprot);
-          struct.setBieIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -18682,12 +17208,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("loadMetadata_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
-    private static final org.apache.thrift.protocol.TField BIE_FIELD_DESC = new org.apache.thrift.protocol.TField("bie", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)3);
-    private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)4);
-    private static final org.apache.thrift.protocol.TField SFSE_FIELD_DESC = new org.apache.thrift.protocol.TField("sfse", org.apache.thrift.protocol.TType.STRUCT, (short)5);
-    private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)6);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -18696,22 +17217,12 @@ public class FileSystemMasterService {
     }
 
     public long success; // required
-    public BlockInfoException bie; // required
-    public FileDoesNotExistException fdnee; // required
-    public FileAlreadyExistException faee; // required
-    public InvalidPathException ipe; // required
-    public SuspectedFileSizeException sfse; // required
-    public TachyonException te; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      BIE((short)1, "bie"),
-      FDNEE((short)2, "fdnee"),
-      FAEE((short)3, "faee"),
-      IPE((short)4, "ipe"),
-      SFSE((short)5, "sfse"),
-      TE((short)6, "te");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -18728,18 +17239,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // BIE
-            return BIE;
-          case 2: // FDNEE
-            return FDNEE;
-          case 3: // FAEE
-            return FAEE;
-          case 4: // IPE
-            return IPE;
-          case 5: // SFSE
-            return SFSE;
-          case 6: // TE
-            return TE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -18787,17 +17288,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-      tmpMap.put(_Fields.BIE, new org.apache.thrift.meta_data.FieldMetaData("bie", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.FAEE, new org.apache.thrift.meta_data.FieldMetaData("faee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.SFSE, new org.apache.thrift.meta_data.FieldMetaData("sfse", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(loadMetadata_result.class, metaDataMap);
@@ -18808,22 +17299,12 @@ public class FileSystemMasterService {
 
     public loadMetadata_result(
       long success,
-      BlockInfoException bie,
-      FileDoesNotExistException fdnee,
-      FileAlreadyExistException faee,
-      InvalidPathException ipe,
-      SuspectedFileSizeException sfse,
-      TachyonException te)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.bie = bie;
-      this.fdnee = fdnee;
-      this.faee = faee;
-      this.ipe = ipe;
-      this.sfse = sfse;
-      this.te = te;
+      this.e = e;
     }
 
     /**
@@ -18832,23 +17313,8 @@ public class FileSystemMasterService {
     public loadMetadata_result(loadMetadata_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetBie()) {
-        this.bie = new BlockInfoException(other.bie);
-      }
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
-      }
-      if (other.isSetFaee()) {
-        this.faee = new FileAlreadyExistException(other.faee);
-      }
-      if (other.isSetIpe()) {
-        this.ipe = new InvalidPathException(other.ipe);
-      }
-      if (other.isSetSfse()) {
-        this.sfse = new SuspectedFileSizeException(other.sfse);
-      }
-      if (other.isSetTe()) {
-        this.te = new TachyonException(other.te);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -18860,12 +17326,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = 0;
-      this.bie = null;
-      this.fdnee = null;
-      this.faee = null;
-      this.ipe = null;
-      this.sfse = null;
-      this.te = null;
+      this.e = null;
     }
 
     public long getSuccess() {
@@ -18891,147 +17352,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public BlockInfoException getBie() {
-      return this.bie;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public loadMetadata_result setBie(BlockInfoException bie) {
-      this.bie = bie;
+    public loadMetadata_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetBie() {
-      this.bie = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field bie is set (has been assigned a value) and false otherwise */
-    public boolean isSetBie() {
-      return this.bie != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setBieIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.bie = null;
-      }
-    }
-
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
-    }
-
-    public loadMetadata_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
-      return this;
-    }
-
-    public void unsetFdnee() {
-      this.fdnee = null;
-    }
-
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
-    }
-
-    public void setFdneeIsSet(boolean value) {
-      if (!value) {
-        this.fdnee = null;
-      }
-    }
-
-    public FileAlreadyExistException getFaee() {
-      return this.faee;
-    }
-
-    public loadMetadata_result setFaee(FileAlreadyExistException faee) {
-      this.faee = faee;
-      return this;
-    }
-
-    public void unsetFaee() {
-      this.faee = null;
-    }
-
-    /** Returns true if field faee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFaee() {
-      return this.faee != null;
-    }
-
-    public void setFaeeIsSet(boolean value) {
-      if (!value) {
-        this.faee = null;
-      }
-    }
-
-    public InvalidPathException getIpe() {
-      return this.ipe;
-    }
-
-    public loadMetadata_result setIpe(InvalidPathException ipe) {
-      this.ipe = ipe;
-      return this;
-    }
-
-    public void unsetIpe() {
-      this.ipe = null;
-    }
-
-    /** Returns true if field ipe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIpe() {
-      return this.ipe != null;
-    }
-
-    public void setIpeIsSet(boolean value) {
-      if (!value) {
-        this.ipe = null;
-      }
-    }
-
-    public SuspectedFileSizeException getSfse() {
-      return this.sfse;
-    }
-
-    public loadMetadata_result setSfse(SuspectedFileSizeException sfse) {
-      this.sfse = sfse;
-      return this;
-    }
-
-    public void unsetSfse() {
-      this.sfse = null;
-    }
-
-    /** Returns true if field sfse is set (has been assigned a value) and false otherwise */
-    public boolean isSetSfse() {
-      return this.sfse != null;
-    }
-
-    public void setSfseIsSet(boolean value) {
-      if (!value) {
-        this.sfse = null;
-      }
-    }
-
-    public TachyonException getTe() {
-      return this.te;
-    }
-
-    public loadMetadata_result setTe(TachyonException te) {
-      this.te = te;
-      return this;
-    }
-
-    public void unsetTe() {
-      this.te = null;
-    }
-
-    /** Returns true if field te is set (has been assigned a value) and false otherwise */
-    public boolean isSetTe() {
-      return this.te != null;
-    }
-
-    public void setTeIsSet(boolean value) {
-      if (!value) {
-        this.te = null;
+        this.e = null;
       }
     }
 
@@ -19045,51 +17386,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case BIE:
+      case E:
         if (value == null) {
-          unsetBie();
+          unsetE();
         } else {
-          setBie((BlockInfoException)value);
-        }
-        break;
-
-      case FDNEE:
-        if (value == null) {
-          unsetFdnee();
-        } else {
-          setFdnee((FileDoesNotExistException)value);
-        }
-        break;
-
-      case FAEE:
-        if (value == null) {
-          unsetFaee();
-        } else {
-          setFaee((FileAlreadyExistException)value);
-        }
-        break;
-
-      case IPE:
-        if (value == null) {
-          unsetIpe();
-        } else {
-          setIpe((InvalidPathException)value);
-        }
-        break;
-
-      case SFSE:
-        if (value == null) {
-          unsetSfse();
-        } else {
-          setSfse((SuspectedFileSizeException)value);
-        }
-        break;
-
-      case TE:
-        if (value == null) {
-          unsetTe();
-        } else {
-          setTe((TachyonException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -19101,23 +17402,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Long.valueOf(getSuccess());
 
-      case BIE:
-        return getBie();
-
-      case FDNEE:
-        return getFdnee();
-
-      case FAEE:
-        return getFaee();
-
-      case IPE:
-        return getIpe();
-
-      case SFSE:
-        return getSfse();
-
-      case TE:
-        return getTe();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -19132,18 +17418,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case BIE:
-        return isSetBie();
-      case FDNEE:
-        return isSetFdnee();
-      case FAEE:
-        return isSetFaee();
-      case IPE:
-        return isSetIpe();
-      case SFSE:
-        return isSetSfse();
-      case TE:
-        return isSetTe();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -19170,57 +17446,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_bie = true && this.isSetBie();
-      boolean that_present_bie = true && that.isSetBie();
-      if (this_present_bie || that_present_bie) {
-        if (!(this_present_bie && that_present_bie))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.bie.equals(that.bie))
-          return false;
-      }
-
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
-          return false;
-        if (!this.fdnee.equals(that.fdnee))
-          return false;
-      }
-
-      boolean this_present_faee = true && this.isSetFaee();
-      boolean that_present_faee = true && that.isSetFaee();
-      if (this_present_faee || that_present_faee) {
-        if (!(this_present_faee && that_present_faee))
-          return false;
-        if (!this.faee.equals(that.faee))
-          return false;
-      }
-
-      boolean this_present_ipe = true && this.isSetIpe();
-      boolean that_present_ipe = true && that.isSetIpe();
-      if (this_present_ipe || that_present_ipe) {
-        if (!(this_present_ipe && that_present_ipe))
-          return false;
-        if (!this.ipe.equals(that.ipe))
-          return false;
-      }
-
-      boolean this_present_sfse = true && this.isSetSfse();
-      boolean that_present_sfse = true && that.isSetSfse();
-      if (this_present_sfse || that_present_sfse) {
-        if (!(this_present_sfse && that_present_sfse))
-          return false;
-        if (!this.sfse.equals(that.sfse))
-          return false;
-      }
-
-      boolean this_present_te = true && this.isSetTe();
-      boolean that_present_te = true && that.isSetTe();
-      if (this_present_te || that_present_te) {
-        if (!(this_present_te && that_present_te))
-          return false;
-        if (!this.te.equals(that.te))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -19236,35 +17467,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_bie = true && (isSetBie());
-      list.add(present_bie);
-      if (present_bie)
-        list.add(bie);
-
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
-
-      boolean present_faee = true && (isSetFaee());
-      list.add(present_faee);
-      if (present_faee)
-        list.add(faee);
-
-      boolean present_ipe = true && (isSetIpe());
-      list.add(present_ipe);
-      if (present_ipe)
-        list.add(ipe);
-
-      boolean present_sfse = true && (isSetSfse());
-      list.add(present_sfse);
-      if (present_sfse)
-        list.add(sfse);
-
-      boolean present_te = true && (isSetTe());
-      list.add(present_te);
-      if (present_te)
-        list.add(te);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -19287,62 +17493,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetBie()).compareTo(other.isSetBie());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetBie()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.bie, other.bie);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetFaee()).compareTo(other.isSetFaee());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFaee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.faee, other.faee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetIpe()).compareTo(other.isSetIpe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIpe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipe, other.ipe);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetSfse()).compareTo(other.isSetSfse());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSfse()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sfse, other.sfse);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetTe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.te, other.te);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -19371,51 +17527,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("bie:");
-      if (this.bie == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.bie);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.fdnee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("faee:");
-      if (this.faee == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.faee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("ipe:");
-      if (this.ipe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ipe);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("sfse:");
-      if (this.sfse == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.sfse);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("te:");
-      if (this.te == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.te);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -19471,56 +17587,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // BIE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.bie = new BlockInfoException();
-                struct.bie.read(iprot);
-                struct.setBieIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // FDNEE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // FAEE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.faee = new FileAlreadyExistException();
-                struct.faee.read(iprot);
-                struct.setFaeeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 4: // IPE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ipe = new InvalidPathException();
-                struct.ipe.read(iprot);
-                struct.setIpeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 5: // SFSE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.sfse = new SuspectedFileSizeException();
-                struct.sfse.read(iprot);
-                struct.setSfseIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 6: // TE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.te = new TachyonException();
-                struct.te.read(iprot);
-                struct.setTeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -19545,34 +17616,9 @@ public class FileSystemMasterService {
           oprot.writeI64(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.bie != null) {
-          oprot.writeFieldBegin(BIE_FIELD_DESC);
-          struct.bie.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.faee != null) {
-          oprot.writeFieldBegin(FAEE_FIELD_DESC);
-          struct.faee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ipe != null) {
-          oprot.writeFieldBegin(IPE_FIELD_DESC);
-          struct.ipe.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.sfse != null) {
-          oprot.writeFieldBegin(SFSE_FIELD_DESC);
-          struct.sfse.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.te != null) {
-          oprot.writeFieldBegin(TE_FIELD_DESC);
-          struct.te.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -19596,85 +17642,30 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetBie()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetFdnee()) {
-          optionals.set(2);
-        }
-        if (struct.isSetFaee()) {
-          optionals.set(3);
-        }
-        if (struct.isSetIpe()) {
-          optionals.set(4);
-        }
-        if (struct.isSetSfse()) {
-          optionals.set(5);
-        }
-        if (struct.isSetTe()) {
-          optionals.set(6);
-        }
-        oprot.writeBitSet(optionals, 7);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeI64(struct.success);
         }
-        if (struct.isSetBie()) {
-          struct.bie.write(oprot);
-        }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
-        }
-        if (struct.isSetFaee()) {
-          struct.faee.write(oprot);
-        }
-        if (struct.isSetIpe()) {
-          struct.ipe.write(oprot);
-        }
-        if (struct.isSetSfse()) {
-          struct.sfse.write(oprot);
-        }
-        if (struct.isSetTe()) {
-          struct.te.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, loadMetadata_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(7);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readI64();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.bie = new BlockInfoException();
-          struct.bie.read(iprot);
-          struct.setBieIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
-        }
-        if (incoming.get(3)) {
-          struct.faee = new FileAlreadyExistException();
-          struct.faee.read(iprot);
-          struct.setFaeeIsSet(true);
-        }
-        if (incoming.get(4)) {
-          struct.ipe = new InvalidPathException();
-          struct.ipe.read(iprot);
-          struct.setIpeIsSet(true);
-        }
-        if (incoming.get(5)) {
-          struct.sfse = new SuspectedFileSizeException();
-          struct.sfse.read(iprot);
-          struct.setSfseIsSet(true);
-        }
-        if (incoming.get(6)) {
-          struct.te = new TachyonException();
-          struct.te.read(iprot);
-          struct.setTeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -20151,7 +18142,8 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("mount_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -20160,12 +18152,14 @@ public class FileSystemMasterService {
     }
 
     public boolean success; // required
-    public TachyonException te; // required
+    public TachyonTException e; // required
+    public ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      TE((short)1, "te");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -20182,8 +18176,10 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // TE
-            return TE;
+          case 1: // E
+            return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -20231,7 +18227,9 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(mount_result.class, metaDataMap);
@@ -20242,12 +18240,14 @@ public class FileSystemMasterService {
 
     public mount_result(
       boolean success,
-      TachyonException te)
+      TachyonTException e,
+      ThriftIOException ioe)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.te = te;
+      this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -20256,8 +18256,11 @@ public class FileSystemMasterService {
     public mount_result(mount_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetTe()) {
-        this.te = new TachyonException(other.te);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new ThriftIOException(other.ioe);
       }
     }
 
@@ -20269,7 +18272,8 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.te = null;
+      this.e = null;
+      this.ioe = null;
     }
 
     public boolean isSuccess() {
@@ -20295,27 +18299,51 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public TachyonException getTe() {
-      return this.te;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public mount_result setTe(TachyonException te) {
-      this.te = te;
+    public mount_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetTe() {
-      this.te = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field te is set (has been assigned a value) and false otherwise */
-    public boolean isSetTe() {
-      return this.te != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setTeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.te = null;
+        this.e = null;
+      }
+    }
+
+    public ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public mount_result setIoe(ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
       }
     }
 
@@ -20329,11 +18357,19 @@ public class FileSystemMasterService {
         }
         break;
 
-      case TE:
+      case E:
         if (value == null) {
-          unsetTe();
+          unsetE();
         } else {
-          setTe((TachyonException)value);
+          setE((TachyonTException)value);
+        }
+        break;
+
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((ThriftIOException)value);
         }
         break;
 
@@ -20345,8 +18381,11 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
 
-      case TE:
-        return getTe();
+      case E:
+        return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -20361,8 +18400,10 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case TE:
-        return isSetTe();
+      case E:
+        return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -20389,12 +18430,21 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_te = true && this.isSetTe();
-      boolean that_present_te = true && that.isSetTe();
-      if (this_present_te || that_present_te) {
-        if (!(this_present_te && that_present_te))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.te.equals(that.te))
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
           return false;
       }
 
@@ -20410,10 +18460,15 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_te = true && (isSetTe());
-      list.add(present_te);
-      if (present_te)
-        list.add(te);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -20436,12 +18491,22 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetTe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.te, other.te);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -20470,11 +18535,19 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("te:");
-      if (this.te == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.te);
+        sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -20530,11 +18603,20 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // TE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.te = new TachyonException();
-                struct.te.read(iprot);
-                struct.setTeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -20559,9 +18641,14 @@ public class FileSystemMasterService {
           oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.te != null) {
-          oprot.writeFieldBegin(TE_FIELD_DESC);
-          struct.te.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -20585,30 +18672,41 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetTe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetIoe()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
-        if (struct.isSetTe()) {
-          struct.te.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, mount_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.te = new TachyonException();
-          struct.te.read(iprot);
-          struct.setTeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.ioe = new ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }
@@ -21077,9 +19175,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("persistFile_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField E_B_FIELD_DESC = new org.apache.thrift.protocol.TField("eB", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -21088,16 +19184,12 @@ public class FileSystemMasterService {
     }
 
     public boolean success; // required
-    public FileDoesNotExistException eP; // required
-    public SuspectedFileSizeException eS; // required
-    public BlockInfoException eB; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E_P((short)1, "eP"),
-      E_S((short)2, "eS"),
-      E_B((short)3, "eB");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -21114,12 +19206,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // E_P
-            return E_P;
-          case 2: // E_S
-            return E_S;
-          case 3: // E_B
-            return E_B;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -21167,11 +19255,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_B, new org.apache.thrift.meta_data.FieldMetaData("eB", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(persistFile_result.class, metaDataMap);
@@ -21182,16 +19266,12 @@ public class FileSystemMasterService {
 
     public persistFile_result(
       boolean success,
-      FileDoesNotExistException eP,
-      SuspectedFileSizeException eS,
-      BlockInfoException eB)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.eP = eP;
-      this.eS = eS;
-      this.eB = eB;
+      this.e = e;
     }
 
     /**
@@ -21200,14 +19280,8 @@ public class FileSystemMasterService {
     public persistFile_result(persistFile_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetEP()) {
-        this.eP = new FileDoesNotExistException(other.eP);
-      }
-      if (other.isSetES()) {
-        this.eS = new SuspectedFileSizeException(other.eS);
-      }
-      if (other.isSetEB()) {
-        this.eB = new BlockInfoException(other.eB);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -21219,9 +19293,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.eP = null;
-      this.eS = null;
-      this.eB = null;
+      this.e = null;
     }
 
     public boolean isSuccess() {
@@ -21247,75 +19319,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public FileDoesNotExistException getEP() {
-      return this.eP;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public persistFile_result setEP(FileDoesNotExistException eP) {
-      this.eP = eP;
+    public persistFile_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetEP() {
-      this.eP = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
-    public boolean isSetEP() {
-      return this.eP != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setEPIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.eP = null;
-      }
-    }
-
-    public SuspectedFileSizeException getES() {
-      return this.eS;
-    }
-
-    public persistFile_result setES(SuspectedFileSizeException eS) {
-      this.eS = eS;
-      return this;
-    }
-
-    public void unsetES() {
-      this.eS = null;
-    }
-
-    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
-    public boolean isSetES() {
-      return this.eS != null;
-    }
-
-    public void setESIsSet(boolean value) {
-      if (!value) {
-        this.eS = null;
-      }
-    }
-
-    public BlockInfoException getEB() {
-      return this.eB;
-    }
-
-    public persistFile_result setEB(BlockInfoException eB) {
-      this.eB = eB;
-      return this;
-    }
-
-    public void unsetEB() {
-      this.eB = null;
-    }
-
-    /** Returns true if field eB is set (has been assigned a value) and false otherwise */
-    public boolean isSetEB() {
-      return this.eB != null;
-    }
-
-    public void setEBIsSet(boolean value) {
-      if (!value) {
-        this.eB = null;
+        this.e = null;
       }
     }
 
@@ -21329,27 +19353,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case E_P:
+      case E:
         if (value == null) {
-          unsetEP();
+          unsetE();
         } else {
-          setEP((FileDoesNotExistException)value);
-        }
-        break;
-
-      case E_S:
-        if (value == null) {
-          unsetES();
-        } else {
-          setES((SuspectedFileSizeException)value);
-        }
-        break;
-
-      case E_B:
-        if (value == null) {
-          unsetEB();
-        } else {
-          setEB((BlockInfoException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -21361,14 +19369,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
 
-      case E_P:
-        return getEP();
-
-      case E_S:
-        return getES();
-
-      case E_B:
-        return getEB();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -21383,12 +19385,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case E_P:
-        return isSetEP();
-      case E_S:
-        return isSetES();
-      case E_B:
-        return isSetEB();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -21415,30 +19413,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_eP = true && this.isSetEP();
-      boolean that_present_eP = true && that.isSetEP();
-      if (this_present_eP || that_present_eP) {
-        if (!(this_present_eP && that_present_eP))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.eP.equals(that.eP))
-          return false;
-      }
-
-      boolean this_present_eS = true && this.isSetES();
-      boolean that_present_eS = true && that.isSetES();
-      if (this_present_eS || that_present_eS) {
-        if (!(this_present_eS && that_present_eS))
-          return false;
-        if (!this.eS.equals(that.eS))
-          return false;
-      }
-
-      boolean this_present_eB = true && this.isSetEB();
-      boolean that_present_eB = true && that.isSetEB();
-      if (this_present_eB || that_present_eB) {
-        if (!(this_present_eB && that_present_eB))
-          return false;
-        if (!this.eB.equals(that.eB))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -21454,20 +19434,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_eP = true && (isSetEP());
-      list.add(present_eP);
-      if (present_eP)
-        list.add(eP);
-
-      boolean present_eS = true && (isSetES());
-      list.add(present_eS);
-      if (present_eS)
-        list.add(eS);
-
-      boolean present_eB = true && (isSetEB());
-      list.add(present_eB);
-      if (present_eB)
-        list.add(eB);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -21490,32 +19460,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetEP()).compareTo(other.isSetEP());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetEP()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, other.eP);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetES()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEB()).compareTo(other.isSetEB());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEB()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eB, other.eB);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -21544,27 +19494,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("eP:");
-      if (this.eP == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.eP);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eS:");
-      if (this.eS == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eS);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eB:");
-      if (this.eB == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eB);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -21620,29 +19554,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // E_P
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eP = new FileDoesNotExistException();
-                struct.eP.read(iprot);
-                struct.setEPIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_S
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eS = new SuspectedFileSizeException();
-                struct.eS.read(iprot);
-                struct.setESIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // E_B
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eB = new BlockInfoException();
-                struct.eB.read(iprot);
-                struct.setEBIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -21667,19 +19583,9 @@ public class FileSystemMasterService {
           oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.eP != null) {
-          oprot.writeFieldBegin(E_P_FIELD_DESC);
-          struct.eP.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eS != null) {
-          oprot.writeFieldBegin(E_S_FIELD_DESC);
-          struct.eS.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eB != null) {
-          oprot.writeFieldBegin(E_B_FIELD_DESC);
-          struct.eB.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -21703,52 +19609,30 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetEP()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetES()) {
-          optionals.set(2);
-        }
-        if (struct.isSetEB()) {
-          optionals.set(3);
-        }
-        oprot.writeBitSet(optionals, 4);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
-        if (struct.isSetEP()) {
-          struct.eP.write(oprot);
-        }
-        if (struct.isSetES()) {
-          struct.eS.write(oprot);
-        }
-        if (struct.isSetEB()) {
-          struct.eB.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, persistFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(4);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.eP = new FileDoesNotExistException();
-          struct.eP.read(iprot);
-          struct.setEPIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.eS = new SuspectedFileSizeException();
-          struct.eS.read(iprot);
-          struct.setESIsSet(true);
-        }
-        if (incoming.get(3)) {
-          struct.eB = new BlockInfoException();
-          struct.eB.read(iprot);
-          struct.setEBIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -22223,9 +20107,7 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("renameFile_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField FAEE_FIELD_DESC = new org.apache.thrift.protocol.TField("faee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField IPE_FIELD_DESC = new org.apache.thrift.protocol.TField("ipe", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -22234,16 +20116,12 @@ public class FileSystemMasterService {
     }
 
     public boolean success; // required
-    public FileAlreadyExistException faee; // required
-    public FileDoesNotExistException fdnee; // required
-    public InvalidPathException ipe; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      FAEE((short)1, "faee"),
-      FDNEE((short)2, "fdnee"),
-      IPE((short)3, "ipe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -22260,12 +20138,8 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // FAEE
-            return FAEE;
-          case 2: // FDNEE
-            return FDNEE;
-          case 3: // IPE
-            return IPE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -22313,11 +20187,7 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.FAEE, new org.apache.thrift.meta_data.FieldMetaData("faee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IPE, new org.apache.thrift.meta_data.FieldMetaData("ipe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(renameFile_result.class, metaDataMap);
@@ -22328,16 +20198,12 @@ public class FileSystemMasterService {
 
     public renameFile_result(
       boolean success,
-      FileAlreadyExistException faee,
-      FileDoesNotExistException fdnee,
-      InvalidPathException ipe)
+      TachyonTException e)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.faee = faee;
-      this.fdnee = fdnee;
-      this.ipe = ipe;
+      this.e = e;
     }
 
     /**
@@ -22346,14 +20212,8 @@ public class FileSystemMasterService {
     public renameFile_result(renameFile_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetFaee()) {
-        this.faee = new FileAlreadyExistException(other.faee);
-      }
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
-      }
-      if (other.isSetIpe()) {
-        this.ipe = new InvalidPathException(other.ipe);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -22365,9 +20225,7 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.faee = null;
-      this.fdnee = null;
-      this.ipe = null;
+      this.e = null;
     }
 
     public boolean isSuccess() {
@@ -22393,75 +20251,27 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public FileAlreadyExistException getFaee() {
-      return this.faee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public renameFile_result setFaee(FileAlreadyExistException faee) {
-      this.faee = faee;
+    public renameFile_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFaee() {
-      this.faee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field faee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFaee() {
-      return this.faee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFaeeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.faee = null;
-      }
-    }
-
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
-    }
-
-    public renameFile_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
-      return this;
-    }
-
-    public void unsetFdnee() {
-      this.fdnee = null;
-    }
-
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
-    }
-
-    public void setFdneeIsSet(boolean value) {
-      if (!value) {
-        this.fdnee = null;
-      }
-    }
-
-    public InvalidPathException getIpe() {
-      return this.ipe;
-    }
-
-    public renameFile_result setIpe(InvalidPathException ipe) {
-      this.ipe = ipe;
-      return this;
-    }
-
-    public void unsetIpe() {
-      this.ipe = null;
-    }
-
-    /** Returns true if field ipe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIpe() {
-      return this.ipe != null;
-    }
-
-    public void setIpeIsSet(boolean value) {
-      if (!value) {
-        this.ipe = null;
+        this.e = null;
       }
     }
 
@@ -22475,27 +20285,11 @@ public class FileSystemMasterService {
         }
         break;
 
-      case FAEE:
+      case E:
         if (value == null) {
-          unsetFaee();
+          unsetE();
         } else {
-          setFaee((FileAlreadyExistException)value);
-        }
-        break;
-
-      case FDNEE:
-        if (value == null) {
-          unsetFdnee();
-        } else {
-          setFdnee((FileDoesNotExistException)value);
-        }
-        break;
-
-      case IPE:
-        if (value == null) {
-          unsetIpe();
-        } else {
-          setIpe((InvalidPathException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -22507,14 +20301,8 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
 
-      case FAEE:
-        return getFaee();
-
-      case FDNEE:
-        return getFdnee();
-
-      case IPE:
-        return getIpe();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -22529,12 +20317,8 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case FAEE:
-        return isSetFaee();
-      case FDNEE:
-        return isSetFdnee();
-      case IPE:
-        return isSetIpe();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -22561,30 +20345,12 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_faee = true && this.isSetFaee();
-      boolean that_present_faee = true && that.isSetFaee();
-      if (this_present_faee || that_present_faee) {
-        if (!(this_present_faee && that_present_faee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.faee.equals(that.faee))
-          return false;
-      }
-
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
-          return false;
-        if (!this.fdnee.equals(that.fdnee))
-          return false;
-      }
-
-      boolean this_present_ipe = true && this.isSetIpe();
-      boolean that_present_ipe = true && that.isSetIpe();
-      if (this_present_ipe || that_present_ipe) {
-        if (!(this_present_ipe && that_present_ipe))
-          return false;
-        if (!this.ipe.equals(that.ipe))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -22600,20 +20366,10 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_faee = true && (isSetFaee());
-      list.add(present_faee);
-      if (present_faee)
-        list.add(faee);
-
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
-
-      boolean present_ipe = true && (isSetIpe());
-      list.add(present_ipe);
-      if (present_ipe)
-        list.add(ipe);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -22636,32 +20392,12 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetFaee()).compareTo(other.isSetFaee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFaee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.faee, other.faee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetIpe()).compareTo(other.isSetIpe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIpe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ipe, other.ipe);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -22690,27 +20426,11 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("faee:");
-      if (this.faee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.faee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.fdnee);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("ipe:");
-      if (this.ipe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ipe);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -22766,29 +20486,11 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // FAEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.faee = new FileAlreadyExistException();
-                struct.faee.read(iprot);
-                struct.setFaeeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // FDNEE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // IPE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ipe = new InvalidPathException();
-                struct.ipe.read(iprot);
-                struct.setIpeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -22813,19 +20515,9 @@ public class FileSystemMasterService {
           oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.faee != null) {
-          oprot.writeFieldBegin(FAEE_FIELD_DESC);
-          struct.faee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ipe != null) {
-          oprot.writeFieldBegin(IPE_FIELD_DESC);
-          struct.ipe.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -22849,52 +20541,30 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetFaee()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetFdnee()) {
-          optionals.set(2);
-        }
-        if (struct.isSetIpe()) {
-          optionals.set(3);
-        }
-        oprot.writeBitSet(optionals, 4);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
-        if (struct.isSetFaee()) {
-          struct.faee.write(oprot);
-        }
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
-        }
-        if (struct.isSetIpe()) {
-          struct.ipe.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, renameFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(4);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.faee = new FileAlreadyExistException();
-          struct.faee.read(iprot);
-          struct.setFaeeIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
-        }
-        if (incoming.get(3)) {
-          struct.ipe = new InvalidPathException();
-          struct.ipe.read(iprot);
-          struct.setIpeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -23263,7 +20933,7 @@ public class FileSystemMasterService {
   public static class reportLostFile_result implements org.apache.thrift.TBase<reportLostFile_result, reportLostFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<reportLostFile_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("reportLostFile_result");
 
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -23271,11 +20941,11 @@ public class FileSystemMasterService {
       schemes.put(TupleScheme.class, new reportLostFile_resultTupleSchemeFactory());
     }
 
-    public FileDoesNotExistException fdnee; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FDNEE((short)1, "fdnee");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -23290,8 +20960,8 @@ public class FileSystemMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // FDNEE
-            return FDNEE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -23335,7 +21005,7 @@ public class FileSystemMasterService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(reportLostFile_result.class, metaDataMap);
@@ -23345,18 +21015,18 @@ public class FileSystemMasterService {
     }
 
     public reportLostFile_result(
-      FileDoesNotExistException fdnee)
+      TachyonTException e)
     {
       this();
-      this.fdnee = fdnee;
+      this.e = e;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public reportLostFile_result(reportLostFile_result other) {
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -23366,40 +21036,40 @@ public class FileSystemMasterService {
 
     @Override
     public void clear() {
-      this.fdnee = null;
+      this.e = null;
     }
 
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public reportLostFile_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
+    public reportLostFile_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFdnee() {
-      this.fdnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.fdnee = null;
+        this.e = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case FDNEE:
+      case E:
         if (value == null) {
-          unsetFdnee();
+          unsetE();
         } else {
-          setFdnee((FileDoesNotExistException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -23408,8 +21078,8 @@ public class FileSystemMasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case FDNEE:
-        return getFdnee();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -23422,8 +21092,8 @@ public class FileSystemMasterService {
       }
 
       switch (field) {
-      case FDNEE:
-        return isSetFdnee();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -23441,12 +21111,12 @@ public class FileSystemMasterService {
       if (that == null)
         return false;
 
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.fdnee.equals(that.fdnee))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -23457,10 +21127,10 @@ public class FileSystemMasterService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -23473,12 +21143,12 @@ public class FileSystemMasterService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -23503,11 +21173,11 @@ public class FileSystemMasterService {
       StringBuilder sb = new StringBuilder("reportLostFile_result(");
       boolean first = true;
 
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.fdnee);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -23553,11 +21223,11 @@ public class FileSystemMasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // FDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -23577,9 +21247,9 @@ public class FileSystemMasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -23600,12 +21270,12 @@ public class FileSystemMasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, reportLostFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetFdnee()) {
+        if (struct.isSetE()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -23614,9 +21284,9 @@ public class FileSystemMasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -23985,7 +21655,7 @@ public class FileSystemMasterService {
   public static class requestFilesInDependency_result implements org.apache.thrift.TBase<requestFilesInDependency_result, requestFilesInDependency_result._Fields>, java.io.Serializable, Cloneable, Comparable<requestFilesInDependency_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestFilesInDependency_result");
 
-    private static final org.apache.thrift.protocol.TField DDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("ddnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -23993,11 +21663,11 @@ public class FileSystemMasterService {
       schemes.put(TupleScheme.class, new requestFilesInDependency_resultTupleSchemeFactory());
     }
 
-    public DependencyDoesNotExistException ddnee; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      DDNEE((short)1, "ddnee");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -24012,8 +21682,8 @@ public class FileSystemMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // DDNEE
-            return DDNEE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -24057,7 +21727,7 @@ public class FileSystemMasterService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.DDNEE, new org.apache.thrift.meta_data.FieldMetaData("ddnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestFilesInDependency_result.class, metaDataMap);
@@ -24067,18 +21737,18 @@ public class FileSystemMasterService {
     }
 
     public requestFilesInDependency_result(
-      DependencyDoesNotExistException ddnee)
+      TachyonTException e)
     {
       this();
-      this.ddnee = ddnee;
+      this.e = e;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public requestFilesInDependency_result(requestFilesInDependency_result other) {
-      if (other.isSetDdnee()) {
-        this.ddnee = new DependencyDoesNotExistException(other.ddnee);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -24088,40 +21758,40 @@ public class FileSystemMasterService {
 
     @Override
     public void clear() {
-      this.ddnee = null;
+      this.e = null;
     }
 
-    public DependencyDoesNotExistException getDdnee() {
-      return this.ddnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public requestFilesInDependency_result setDdnee(DependencyDoesNotExistException ddnee) {
-      this.ddnee = ddnee;
+    public requestFilesInDependency_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetDdnee() {
-      this.ddnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field ddnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetDdnee() {
-      return this.ddnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setDdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.ddnee = null;
+        this.e = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case DDNEE:
+      case E:
         if (value == null) {
-          unsetDdnee();
+          unsetE();
         } else {
-          setDdnee((DependencyDoesNotExistException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -24130,8 +21800,8 @@ public class FileSystemMasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case DDNEE:
-        return getDdnee();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -24144,8 +21814,8 @@ public class FileSystemMasterService {
       }
 
       switch (field) {
-      case DDNEE:
-        return isSetDdnee();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -24163,12 +21833,12 @@ public class FileSystemMasterService {
       if (that == null)
         return false;
 
-      boolean this_present_ddnee = true && this.isSetDdnee();
-      boolean that_present_ddnee = true && that.isSetDdnee();
-      if (this_present_ddnee || that_present_ddnee) {
-        if (!(this_present_ddnee && that_present_ddnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.ddnee.equals(that.ddnee))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -24179,10 +21849,10 @@ public class FileSystemMasterService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_ddnee = true && (isSetDdnee());
-      list.add(present_ddnee);
-      if (present_ddnee)
-        list.add(ddnee);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -24195,12 +21865,12 @@ public class FileSystemMasterService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetDdnee()).compareTo(other.isSetDdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetDdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ddnee, other.ddnee);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -24225,11 +21895,11 @@ public class FileSystemMasterService {
       StringBuilder sb = new StringBuilder("requestFilesInDependency_result(");
       boolean first = true;
 
-      sb.append("ddnee:");
-      if (this.ddnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.ddnee);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -24275,11 +21945,11 @@ public class FileSystemMasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // DDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ddnee = new DependencyDoesNotExistException();
-                struct.ddnee.read(iprot);
-                struct.setDdneeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -24299,9 +21969,9 @@ public class FileSystemMasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.ddnee != null) {
-          oprot.writeFieldBegin(DDNEE_FIELD_DESC);
-          struct.ddnee.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -24322,12 +21992,12 @@ public class FileSystemMasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, requestFilesInDependency_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetDdnee()) {
+        if (struct.isSetE()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetDdnee()) {
-          struct.ddnee.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -24336,9 +22006,9 @@ public class FileSystemMasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.ddnee = new DependencyDoesNotExistException();
-          struct.ddnee.read(iprot);
-          struct.setDdneeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -24806,7 +22476,7 @@ public class FileSystemMasterService {
   public static class setPinned_result implements org.apache.thrift.TBase<setPinned_result, setPinned_result._Fields>, java.io.Serializable, Cloneable, Comparable<setPinned_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("setPinned_result");
 
-    private static final org.apache.thrift.protocol.TField FDNEE_FIELD_DESC = new org.apache.thrift.protocol.TField("fdnee", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -24814,11 +22484,11 @@ public class FileSystemMasterService {
       schemes.put(TupleScheme.class, new setPinned_resultTupleSchemeFactory());
     }
 
-    public FileDoesNotExistException fdnee; // required
+    public TachyonTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FDNEE((short)1, "fdnee");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -24833,8 +22503,8 @@ public class FileSystemMasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // FDNEE
-            return FDNEE;
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -24878,7 +22548,7 @@ public class FileSystemMasterService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FDNEE, new org.apache.thrift.meta_data.FieldMetaData("fdnee", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(setPinned_result.class, metaDataMap);
@@ -24888,18 +22558,18 @@ public class FileSystemMasterService {
     }
 
     public setPinned_result(
-      FileDoesNotExistException fdnee)
+      TachyonTException e)
     {
       this();
-      this.fdnee = fdnee;
+      this.e = e;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public setPinned_result(setPinned_result other) {
-      if (other.isSetFdnee()) {
-        this.fdnee = new FileDoesNotExistException(other.fdnee);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
       }
     }
 
@@ -24909,40 +22579,40 @@ public class FileSystemMasterService {
 
     @Override
     public void clear() {
-      this.fdnee = null;
+      this.e = null;
     }
 
-    public FileDoesNotExistException getFdnee() {
-      return this.fdnee;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public setPinned_result setFdnee(FileDoesNotExistException fdnee) {
-      this.fdnee = fdnee;
+    public setPinned_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetFdnee() {
-      this.fdnee = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field fdnee is set (has been assigned a value) and false otherwise */
-    public boolean isSetFdnee() {
-      return this.fdnee != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setFdneeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.fdnee = null;
+        this.e = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case FDNEE:
+      case E:
         if (value == null) {
-          unsetFdnee();
+          unsetE();
         } else {
-          setFdnee((FileDoesNotExistException)value);
+          setE((TachyonTException)value);
         }
         break;
 
@@ -24951,8 +22621,8 @@ public class FileSystemMasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case FDNEE:
-        return getFdnee();
+      case E:
+        return getE();
 
       }
       throw new IllegalStateException();
@@ -24965,8 +22635,8 @@ public class FileSystemMasterService {
       }
 
       switch (field) {
-      case FDNEE:
-        return isSetFdnee();
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -24984,12 +22654,12 @@ public class FileSystemMasterService {
       if (that == null)
         return false;
 
-      boolean this_present_fdnee = true && this.isSetFdnee();
-      boolean that_present_fdnee = true && that.isSetFdnee();
-      if (this_present_fdnee || that_present_fdnee) {
-        if (!(this_present_fdnee && that_present_fdnee))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.fdnee.equals(that.fdnee))
+        if (!this.e.equals(that.e))
           return false;
       }
 
@@ -25000,10 +22670,10 @@ public class FileSystemMasterService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_fdnee = true && (isSetFdnee());
-      list.add(present_fdnee);
-      if (present_fdnee)
-        list.add(fdnee);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
 
       return list.hashCode();
     }
@@ -25016,12 +22686,12 @@ public class FileSystemMasterService {
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetFdnee()).compareTo(other.isSetFdnee());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetFdnee()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fdnee, other.fdnee);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -25046,11 +22716,11 @@ public class FileSystemMasterService {
       StringBuilder sb = new StringBuilder("setPinned_result(");
       boolean first = true;
 
-      sb.append("fdnee:");
-      if (this.fdnee == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.fdnee);
+        sb.append(this.e);
       }
       first = false;
       sb.append(")");
@@ -25096,11 +22766,11 @@ public class FileSystemMasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // FDNEE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.fdnee = new FileDoesNotExistException();
-                struct.fdnee.read(iprot);
-                struct.setFdneeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -25120,9 +22790,9 @@ public class FileSystemMasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.fdnee != null) {
-          oprot.writeFieldBegin(FDNEE_FIELD_DESC);
-          struct.fdnee.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -25143,12 +22813,12 @@ public class FileSystemMasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, setPinned_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetFdnee()) {
+        if (struct.isSetE()) {
           optionals.set(0);
         }
         oprot.writeBitSet(optionals, 1);
-        if (struct.isSetFdnee()) {
-          struct.fdnee.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
         }
       }
 
@@ -25157,9 +22827,9 @@ public class FileSystemMasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.fdnee = new FileDoesNotExistException();
-          struct.fdnee.read(iprot);
-          struct.setFdneeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
         }
       }
     }
@@ -25531,7 +23201,8 @@ public class FileSystemMasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("unmount_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField TE_FIELD_DESC = new org.apache.thrift.protocol.TField("te", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -25540,12 +23211,14 @@ public class FileSystemMasterService {
     }
 
     public boolean success; // required
-    public TachyonException te; // required
+    public TachyonTException e; // required
+    public ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      TE((short)1, "te");
+      E((short)1, "e"),
+      IOE((short)2, "ioe");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -25562,8 +23235,10 @@ public class FileSystemMasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // TE
-            return TE;
+          case 1: // E
+            return E;
+          case 2: // IOE
+            return IOE;
           default:
             return null;
         }
@@ -25611,7 +23286,9 @@ public class FileSystemMasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.TE, new org.apache.thrift.meta_data.FieldMetaData("te", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unmount_result.class, metaDataMap);
@@ -25622,12 +23299,14 @@ public class FileSystemMasterService {
 
     public unmount_result(
       boolean success,
-      TachyonException te)
+      TachyonTException e,
+      ThriftIOException ioe)
     {
       this();
       this.success = success;
       setSuccessIsSet(true);
-      this.te = te;
+      this.e = e;
+      this.ioe = ioe;
     }
 
     /**
@@ -25636,8 +23315,11 @@ public class FileSystemMasterService {
     public unmount_result(unmount_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
-      if (other.isSetTe()) {
-        this.te = new TachyonException(other.te);
+      if (other.isSetE()) {
+        this.e = new TachyonTException(other.e);
+      }
+      if (other.isSetIoe()) {
+        this.ioe = new ThriftIOException(other.ioe);
       }
     }
 
@@ -25649,7 +23331,8 @@ public class FileSystemMasterService {
     public void clear() {
       setSuccessIsSet(false);
       this.success = false;
-      this.te = null;
+      this.e = null;
+      this.ioe = null;
     }
 
     public boolean isSuccess() {
@@ -25675,27 +23358,51 @@ public class FileSystemMasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
-    public TachyonException getTe() {
-      return this.te;
+    public TachyonTException getE() {
+      return this.e;
     }
 
-    public unmount_result setTe(TachyonException te) {
-      this.te = te;
+    public unmount_result setE(TachyonTException e) {
+      this.e = e;
       return this;
     }
 
-    public void unsetTe() {
-      this.te = null;
+    public void unsetE() {
+      this.e = null;
     }
 
-    /** Returns true if field te is set (has been assigned a value) and false otherwise */
-    public boolean isSetTe() {
-      return this.te != null;
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
     }
 
-    public void setTeIsSet(boolean value) {
+    public void setEIsSet(boolean value) {
       if (!value) {
-        this.te = null;
+        this.e = null;
+      }
+    }
+
+    public ThriftIOException getIoe() {
+      return this.ioe;
+    }
+
+    public unmount_result setIoe(ThriftIOException ioe) {
+      this.ioe = ioe;
+      return this;
+    }
+
+    public void unsetIoe() {
+      this.ioe = null;
+    }
+
+    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
+    public boolean isSetIoe() {
+      return this.ioe != null;
+    }
+
+    public void setIoeIsSet(boolean value) {
+      if (!value) {
+        this.ioe = null;
       }
     }
 
@@ -25709,11 +23416,19 @@ public class FileSystemMasterService {
         }
         break;
 
-      case TE:
+      case E:
         if (value == null) {
-          unsetTe();
+          unsetE();
         } else {
-          setTe((TachyonException)value);
+          setE((TachyonTException)value);
+        }
+        break;
+
+      case IOE:
+        if (value == null) {
+          unsetIoe();
+        } else {
+          setIoe((ThriftIOException)value);
         }
         break;
 
@@ -25725,8 +23440,11 @@ public class FileSystemMasterService {
       case SUCCESS:
         return Boolean.valueOf(isSuccess());
 
-      case TE:
-        return getTe();
+      case E:
+        return getE();
+
+      case IOE:
+        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -25741,8 +23459,10 @@ public class FileSystemMasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case TE:
-        return isSetTe();
+      case E:
+        return isSetE();
+      case IOE:
+        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -25769,12 +23489,21 @@ public class FileSystemMasterService {
           return false;
       }
 
-      boolean this_present_te = true && this.isSetTe();
-      boolean that_present_te = true && that.isSetTe();
-      if (this_present_te || that_present_te) {
-        if (!(this_present_te && that_present_te))
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
           return false;
-        if (!this.te.equals(that.te))
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      boolean this_present_ioe = true && this.isSetIoe();
+      boolean that_present_ioe = true && that.isSetIoe();
+      if (this_present_ioe || that_present_ioe) {
+        if (!(this_present_ioe && that_present_ioe))
+          return false;
+        if (!this.ioe.equals(that.ioe))
           return false;
       }
 
@@ -25790,10 +23519,15 @@ public class FileSystemMasterService {
       if (present_success)
         list.add(success);
 
-      boolean present_te = true && (isSetTe());
-      list.add(present_te);
-      if (present_te)
-        list.add(te);
+      boolean present_e = true && (isSetE());
+      list.add(present_e);
+      if (present_e)
+        list.add(e);
+
+      boolean present_ioe = true && (isSetIoe());
+      list.add(present_ioe);
+      if (present_ioe)
+        list.add(ioe);
 
       return list.hashCode();
     }
@@ -25816,12 +23550,22 @@ public class FileSystemMasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetTe()).compareTo(other.isSetTe());
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetTe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.te, other.te);
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetIoe()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -25850,11 +23594,19 @@ public class FileSystemMasterService {
       sb.append(this.success);
       first = false;
       if (!first) sb.append(", ");
-      sb.append("te:");
-      if (this.te == null) {
+      sb.append("e:");
+      if (this.e == null) {
         sb.append("null");
       } else {
-        sb.append(this.te);
+        sb.append(this.e);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("ioe:");
+      if (this.ioe == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -25910,11 +23662,20 @@ public class FileSystemMasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // TE
+            case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.te = new TachyonException();
-                struct.te.read(iprot);
-                struct.setTeIsSet(true);
+                struct.e = new TachyonTException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // IOE
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.ioe = new ThriftIOException();
+                struct.ioe.read(iprot);
+                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -25939,9 +23700,14 @@ public class FileSystemMasterService {
           oprot.writeBool(struct.success);
           oprot.writeFieldEnd();
         }
-        if (struct.te != null) {
-          oprot.writeFieldBegin(TE_FIELD_DESC);
-          struct.te.write(oprot);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.ioe != null) {
+          oprot.writeFieldBegin(IOE_FIELD_DESC);
+          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -25965,30 +23731,41 @@ public class FileSystemMasterService {
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetTe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetIoe()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           oprot.writeBool(struct.success);
         }
-        if (struct.isSetTe()) {
-          struct.te.write(oprot);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+        if (struct.isSetIoe()) {
+          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, unmount_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.success = iprot.readBool();
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.te = new TachyonException();
-          struct.te.read(iprot);
-          struct.setTeIsSet(true);
+          struct.e = new TachyonTException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.ioe = new ThriftIOException();
+          struct.ioe.read(iprot);
+          struct.setIoeIsSet(true);
         }
       }
     }

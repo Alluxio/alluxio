@@ -32,9 +32,8 @@ import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
-import tachyon.thrift.FileDoesNotExistException;
+import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.InvalidWorkerStateException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.BufferUtils;
@@ -74,12 +73,7 @@ public final class LineageDataManager {
   public synchronized void persistFile(long fileId, List<Long> blockIds) throws IOException {
     String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
     FileInfo fileInfo;
-    try {
-      fileInfo = mBlockDataManager.getFileInfo(fileId);
-    } catch (FileDoesNotExistException e) {
-      LOG.error("Fail to get file info for file " + fileId, e);
-      throw new IOException(e);
-    }
+    fileInfo = mBlockDataManager.getFileInfo(fileId);
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
     LOG.info("persist file " + fileId + " at " + dstPath);
@@ -94,8 +88,8 @@ public final class LineageDataManager {
       long lockId;
       try {
         lockId = mBlockDataManager.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
-      } catch (NotFoundException ioe) {
-        throw new IOException(ioe);
+      } catch (BlockDoesNotExistException e) {
+        throw new IOException(e);
       }
 
       // obtain block reader
@@ -104,10 +98,10 @@ public final class LineageDataManager {
         try {
           reader =
               mBlockDataManager.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-        } catch (NotFoundException nfe) {
-          throw new IOException(nfe);
-        } catch (InvalidStateException ise) {
-          throw new IOException(ise);
+        } catch (BlockDoesNotExistException e) {
+          throw new IOException(e);
+        } catch (InvalidWorkerStateException e) {
+          throw new IOException(e);
         }
 
         // write content out
@@ -117,8 +111,8 @@ public final class LineageDataManager {
       } finally {
         try {
           mBlockDataManager.unlockBlock(lockId);
-        } catch (NotFoundException nfe) {
-          throw new IOException(nfe);
+        } catch (BlockDoesNotExistException e) {
+          throw new IOException(e);
         }
       }
     }
