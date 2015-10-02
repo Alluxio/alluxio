@@ -53,13 +53,13 @@ import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.lineage.TachyonLineage;
 import tachyon.client.lineage.options.DeleteLineageOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
 import tachyon.thrift.BlockLocation;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageInfo;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
@@ -1268,7 +1268,7 @@ public class TfsShell implements Closeable {
     long lineageId;
     try {
       lineageId = tl.createLineage(inputFiles, outputFiles, job);
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
     System.out.println("Lineage " + lineageId + " has been created.");

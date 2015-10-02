@@ -26,8 +26,8 @@ import tachyon.annotation.PublicApi;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.LineageDoesNotExistException;
 
 /**
  * Tachyon lineage file system client. This class provides lineage support in the file system
@@ -59,14 +59,18 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws LineageDoesNotExistException if the lineage does not exist
    * @throws IOException if the recreation fails
+   * @throws TachyonException if an unexpected TachyonException occurs
    */
   private long reinitializeFile(TachyonURI path, OutStreamOptions options)
-      throws LineageDoesNotExistException, IOException {
+      throws LineageDoesNotExistException, IOException, TachyonException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
           masterClient.reintializeFile(path.getPath(), options.getBlockSize(), options.getTTL());
       return fileId;
+    } catch (TachyonException e) {
+      TachyonException.unwrap(e, LineageDoesNotExistException.class);
+      throw e;
     } finally {
       mContext.releaseMasterClient(masterClient);
     }

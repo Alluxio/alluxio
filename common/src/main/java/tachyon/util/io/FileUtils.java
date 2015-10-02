@@ -29,7 +29,7 @@ import com.google.common.io.Closer;
 import com.google.common.io.Files;
 
 import tachyon.TachyonURI;
-import tachyon.thrift.InvalidPathException;
+import tachyon.exception.InvalidPathException;
 
 /**
  * Provides utility methods for working with files and directories.
