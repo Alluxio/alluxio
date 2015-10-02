@@ -35,13 +35,12 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 

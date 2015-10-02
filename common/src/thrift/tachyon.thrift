@@ -85,7 +85,7 @@ struct RawTableInfo {
 enum CommandType {
   Unknown = 0,
   Nothing = 1,
-  Register = 2,   	// Ask the worker to re-register.
+  Register = 2,         // Ask the worker to re-register.
   Free = 3,		// Ask the worker to free files.
   Delete = 4,		// Ask the worker to delete files.
   Persist = 5,  // Ask the worker to persist a file for lineage
@@ -131,64 +131,17 @@ struct LineageInfo {
   7: list<i64> children
 }
 
-exception BlockInfoException {
-  1: string message
+exception TachyonTException {
+  1: string type
+  2: string message
 }
 
-exception OutOfSpaceException {
-  1: string message
-}
-
-exception FailedToCheckpointException {
-  1: string message
-}
-
-exception FileAlreadyExistException {
-  1: string message
-}
-
-exception FileDoesNotExistException {
-  1: string message
-}
-
-exception NoWorkerException {
-  1: string message
-}
-
-exception SuspectedFileSizeException {
-  1: string message
-}
-
-exception InvalidPathException {
-  1: string message
-}
-
-exception TableColumnException {
-  1: string message
-}
-
-exception TableDoesNotExistException {
-  1: string message
-}
-
-exception TachyonException {
-  1: string message
-}
-
-exception DependencyDoesNotExistException {
-  1: string message
-}
-
-exception LineageDoesNotExistException {
-  1: string message
-}
-
-exception LineageDeletionException {
+exception ThriftIOException {
   1: string message
 }
 
 service BlockMasterService {
-  BlockInfo getBlockInfo(1: i64 blockId) throws (1: BlockInfoException bie)
+  BlockInfo getBlockInfo(1: i64 blockId) throws (1: TachyonTException e)
 
   i64 getCapacityBytes()
 
@@ -198,64 +151,60 @@ service BlockMasterService {
 
   void workerCommitBlock(1: i64 workerId, 2: i64 usedBytesOnTier, 3: i32 tier, 4: i64 blockId,
       5: i64 length)
-    throws (1: BlockInfoException bie)
+    throws (1: TachyonTException e)
 
   i64 workerGetWorkerId(1: NetAddress workerNetAddress)
 
   Command workerHeartbeat(1: i64 workerId, 2: list<i64> usedBytesOnTiers,
       3: list<i64> removedBlockIds, 4: map<i64, list<i64>> addedBlocksOnTiers)
-    throws (1: BlockInfoException bie)
+    throws (1: TachyonTException e)
 
   void workerRegister(1: i64 workerId, 2: list<i64> totalBytesOnTiers,
       3: list<i64> usedBytesOnTiers, 4: map<i64, list<i64>> currentBlocksOnTiers)
-    throws (1: TachyonException te)
+    throws (1: TachyonTException e)
 }
 
 service FileSystemMasterService {
-  void completeFile(1: i64 fileId)
-    throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
-      3: InvalidPathException ipe)
+  void completeFile(1: i64 fileId) throws (1: TachyonTException e)
 
   // Lineage Features
   i32 createDependency(1: list<string> parents, 2: list<string> children,
       3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
       7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
-    throws (1: InvalidPathException ipe, 2: FileDoesNotExistException fdnee,
-      3: FileAlreadyExistException faee, 4: BlockInfoException bie, 5: TachyonException te)
+    throws (1: TachyonTException e)
 
   bool createDirectory(1: string path, 2: bool recursive)
-    throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe)
+    throws (1: TachyonTException e)
 
   i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
-    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
-      3: SuspectedFileSizeException sfse, 4: TachyonException te)
+    throws (1: TachyonTException e)
 
   bool deleteFile(1: i64 fileId, 2: bool recursive)
-    throws (1: TachyonException te)
+    throws (1: TachyonTException e)
 
   bool free(1: i64 fileId, 2: bool recursive)
-    throws (1: FileDoesNotExistException fdnee)
+    throws (1: TachyonTException e)
 
   DependencyInfo getDependencyInfo(1: i32 dependencyId)
-    throws (1: DependencyDoesNotExistException ddnee)
+    throws (1: TachyonTException e)
 
   FileBlockInfo getFileBlockInfo(1: i64 fileId, 2: i32 fileBlockIndex)
-    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
+    throws (1: TachyonTException e)
 
   list<FileBlockInfo> getFileBlockInfoList(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee)
+    throws (1: TachyonTException e)
 
   i64 getFileId(1: string path)
-    throws (1: InvalidPathException ipe)
+    throws (1: TachyonTException e)
 
   FileInfo getFileInfo(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee)
+    throws (1: TachyonTException e)
 
   list<FileInfo> getFileInfoList(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee)
+    throws (1: TachyonTException e)
 
   i64 getNewBlockIdForFile(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
+    throws (1: TachyonTException e)
 
   // TODO(gene): Is this necessary?
   string getUfsAddress()
@@ -265,40 +214,36 @@ service FileSystemMasterService {
    */
    // TODO(jiri): Get rid of this.
   i64 loadMetadata(1: string ufsPath, 2: bool recursive)
-    throws (1: BlockInfoException bie, 2: FileDoesNotExistException fdnee,
-    3: FileAlreadyExistException faee, 4: InvalidPathException ipe,
-    5: SuspectedFileSizeException sfse, 6: TachyonException te)
+    throws (1: TachyonTException e)
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given
    * path. The path should not exist and should not be nested under any existing mount point.
    */
   bool mount(1: string tachyonPath, 2: string ufsPath)
-    throws (1: TachyonException te)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   bool persistFile(1: i64 fileId, 2: i64 length)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
-      3: BlockInfoException eB)
+    throws (1: TachyonTException e)
 
   bool renameFile(1: i64 fileId, 2: string dstPath)
-    throws (1:FileAlreadyExistException faee, 2: FileDoesNotExistException fdnee,
-      3: InvalidPathException ipe)
+    throws (1: TachyonTException e)
 
   void reportLostFile(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee)
+    throws (1: TachyonTException e)
 
   void requestFilesInDependency(1: i32 depId)
-    throws (1: DependencyDoesNotExistException ddnee)
+    throws (1: TachyonTException e)
 
   void setPinned(1: i64 fileId, 2: bool pinned)
-    throws (1: FileDoesNotExistException fdnee)
+    throws (1: TachyonTException e)
 
   /**
    * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
    * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
    * will be persisted before they are removed from the Tachyon namespace.
    */
-  bool unmount(1: string tachyonPath) throws (1: TachyonException te)
+  bool unmount(1: string tachyonPath) throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   set<i64> workerGetPinIdList()
 
@@ -308,19 +253,18 @@ service FileSystemMasterService {
 service LineageMasterService {
   // for client
   i64 createLineage(1: list<string> inputFiles, 2: list<string> outputFiles, 3: CommandLineJobInfo job)
-    throws (1: FileAlreadyExistException faee, 2: BlockInfoException bie,
-      3: SuspectedFileSizeException sfse, 4: TachyonException te)
+    throws (1: TachyonTException e)
 
   bool deleteLineage(1: i64 lineageId, 2: bool cascade)
-    throws (1: LineageDoesNotExistException lnee, 2: LineageDeletionException lde)
+    throws (1: TachyonTException e)
 
   list<LineageInfo> getLineageInfoList()
 
   i64 reinitializeFile(1: string path, 2: i64 blockSizeBytes, 3: i64 ttl)
-    throws (1: InvalidPathException ipe, 2: LineageDoesNotExistException ldee)
+    throws (1: TachyonTException e)
 
   void asyncCompleteFile(1: i64 fileId)
-    throws (1: FileDoesNotExistException fdnee, 2: BlockInfoException bie)
+    throws (1: TachyonTException e)
 
   // for workers
   LineageCommand workerLineageHeartbeat(1: i64 workerId, 2: list<i64> persistedFiles)
@@ -328,27 +272,26 @@ service LineageMasterService {
 
 service RawTableMasterService {
   i64 createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
-    throws (1: FileAlreadyExistException faee, 2: InvalidPathException ipe, 3: TableColumnException tce,
-      4: TachyonException te)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   RawTableInfo getClientRawTableInfoById(1: i64 id)
-    throws (1: TableDoesNotExistException tdnee)
+    throws (1: TachyonTException e)
 
   RawTableInfo getClientRawTableInfoByPath(1: string path)
-    throws (1: TableDoesNotExistException tdnee, 2: InvalidPathException ipe)
+    throws (1: TachyonTException e)
 
   i64 getRawTableId(1: string path)
-    throws (1: InvalidPathException ipe, 2: TableDoesNotExistException tdnee)
+    throws (1: TachyonTException e)
 
   void updateRawTableMetadata(1: i64 tableId, 2: binary metadata)
-    throws (1: TableDoesNotExistException tdnee, 2: TachyonException te)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 }
 
 service WorkerService {
   void accessBlock(1: i64 blockId)
 
   bool asyncCheckpoint(1: i64 fileId)
-    throws (1: TachyonException e)
+    throws (1: TachyonTException e)
 
   /**
    * Used to cache a block into Tachyon space, worker will move the temporary block file from session
@@ -356,13 +299,14 @@ service WorkerService {
    * information to master.
    */
   void cacheBlock(1: i64 sessionId, 2: i64 blockId)
-    throws (1: FileDoesNotExistException eP, 2: BlockInfoException eB)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   /**
    * Used to cancel a block which is being written. worker will delete the temporary block file and
    * the location and space information related, then reclaim space allocated to the block.
    */
   void cancelBlock(1: i64 sessionId, 2: i64 blockId)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   /**
    * Lock the file in Tachyon's space while the session is reading it, and the path of the block file
@@ -370,11 +314,10 @@ service WorkerService {
    * thrown.
    */
   string lockBlock(1: i64 blockId, 2: i64 sessionId)
-    throws (1: FileDoesNotExistException eP)
+    throws (1: TachyonTException e)
 
   void persistFile(1: i64 fileId, 2: i64 nonce, 3: string path)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
-      3: FailedToCheckpointException eF, 4: BlockInfoException eB)
+    throws (1: TachyonTException e)
 
   /**
    * Used to promote block on under storage layer to top storage layer when there are more than one
@@ -382,16 +325,17 @@ service WorkerService {
    * otherwise.
    */
   bool promoteBlock(1: i64 blockId)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   /**
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy, and the
    * temporary file path of the block file will be returned. if there is no enough space on Tachyon
    * storage OutOfSpaceException will be thrown, if the file is already being written by the session,
-   * FileAlreadyExistException will be thrown.
+   * FileAlreadyExistsException will be thrown.
    */
   string requestBlockLocation(1: i64 sessionId, 2: i64 blockId, 3: i64 initialBytes)
-    throws (1: OutOfSpaceException eP, 2: FileAlreadyExistException eS)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   /**
    * Used to request space for some block file. return true if the worker successfully allocates
@@ -399,7 +343,7 @@ service WorkerService {
    * information of the block on worker, FileDoesNotExistException will be thrown.
    */
   bool requestSpace(1: i64 sessionId, 2: i64 blockId, 3: i64 requestBytes)
-    throws (1: FileDoesNotExistException eP)
+    throws (1: TachyonTException e)
 
   /**
    * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
