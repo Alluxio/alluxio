@@ -86,7 +86,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     // memory for running worker
     mWorkerMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
     // memory for running ramdisk
-    mRamdiskMemInMB =(int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
+    mRamdiskMemInMB = (int) mTachyonConf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
     mNumWorkers = numWorkers;
     mTachyonHome = tachyonHome;
     mMasterAddress = masterAddress;
