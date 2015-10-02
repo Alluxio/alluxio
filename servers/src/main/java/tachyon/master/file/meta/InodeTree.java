@@ -110,6 +110,18 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
+   * Determines whether the given path exists in the inode tree.
+   *
+   * @param path the path to check
+   * @return whether the given path exists or not
+   * @throws InvalidPathException if an the given path is invalid
+   */
+  public boolean exists(TachyonURI path) throws InvalidPathException {
+    TraversalResult traversalResult = traverseToInode(PathUtils.getPathComponents(path.toString()));
+    return traversalResult.isFound();
+  }
+
+  /**
    * Return the number of total inodes.
    *
    * @return the number of total inodes
