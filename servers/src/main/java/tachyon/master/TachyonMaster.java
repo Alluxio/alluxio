@@ -24,6 +24,7 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ import tachyon.master.journal.ReadWriteJournal;
 import tachyon.master.lineage.LineageMaster;
 import tachyon.master.rawtable.RawTableMaster;
 import tachyon.metrics.MetricsSystem;
+import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -316,8 +318,9 @@ public class TachyonMaster {
   protected void startServingWebServer() {
     // start web ui
     TachyonConf conf = MasterContext.getConf();
-    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, conf), this, conf);
+    mWebServer =
+        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
+            ServiceType.MASTER_WEB, conf), this, conf);
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
     mWebServer.startWebServer();
@@ -332,11 +335,20 @@ public class TachyonMaster {
     processor.registerProcessor(mRawTableMaster.getServiceName(), mRawTableMaster.getProcessor());
     processor.registerProcessor(mLineageMaster.getServiceName(), mLineageMaster.getProcessor());
 
+    // Return a TTransportFactory based on the authentication type
+    TTransportFactory transportFactory;
+    try {
+      transportFactory = AuthenticationUtils.getServerTransportFactory(MasterContext.getConf());
+    } catch (IOException ioe) {
+      throw Throwables.propagate(ioe);
+    }
+
     // create master thrift service with the multiplexed processor.
-    mMasterServiceServer = new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
-        .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
-        .processor(processor).transportFactory(new TFramedTransport.Factory())
-        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    mMasterServiceServer =
+        new TThreadPoolServer(new TThreadPoolServer.Args(mTServerSocket)
+            .maxWorkerThreads(mMaxWorkerThreads).minWorkerThreads(mMinWorkerThreads)
+            .processor(processor).transportFactory(transportFactory)
+            .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start thrift rpc server
     mIsServing = true;
