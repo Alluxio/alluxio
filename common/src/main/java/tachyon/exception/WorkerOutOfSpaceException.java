@@ -15,26 +15,23 @@
 
 package tachyon.exception;
 
-/**
- * Exception used when some entity that we attempted to create (e.g., block, file, directory or
- * lock) already exists.
- */
-public final class AlreadyExistsException extends AbstractTachyonException {
-  private static final long serialVersionUID = -8538037207176988241L;
+public class WorkerOutOfSpaceException extends TachyonException {
+  private static final TachyonExceptionType EXCEPTION_TYPE =
+      TachyonExceptionType.WORKER_OUT_OF_SPACE;
 
-  public AlreadyExistsException(String message) {
-    super(message);
+  public WorkerOutOfSpaceException(String message) {
+    super(EXCEPTION_TYPE, message);
   }
 
-  public AlreadyExistsException(String message, Throwable cause) {
-    super(message, cause);
+  public WorkerOutOfSpaceException(String message, Throwable cause) {
+    super(EXCEPTION_TYPE, message, cause);
   }
 
-  public AlreadyExistsException(ExceptionMessage message, Object... params) {
-    super(message, params);
+  public WorkerOutOfSpaceException(ExceptionMessage message, Object... params) {
+    this(message.getMessage(params));
   }
 
-  public AlreadyExistsException(ExceptionMessage message, Throwable cause, Object... params) {
-    super(message, cause, params);
+  public WorkerOutOfSpaceException(ExceptionMessage message, Throwable cause, Object... params) {
+    this(message.getMessage(params), cause);
   }
 }

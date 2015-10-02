@@ -20,7 +20,6 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +36,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.block.BufferedBlockOutStream;
 import tachyon.client.file.options.OutStreamOptions;
-import tachyon.thrift.FileDoesNotExistException;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
@@ -170,7 +169,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(mFileId);
-      } catch (TException e) {
+      } catch (TachyonException e) {
         throw new IOException(e);
       } finally {
         mContext.releaseMasterClient(masterClient);
@@ -264,7 +263,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getNewBlockIdForFile(mFileId);
-    } catch (TException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     } finally {
       mContext.releaseMasterClient(masterClient);
@@ -288,7 +287,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
       return client.getFileInfo(mFileId);
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException   e) {
       throw new IOException(e.getMessage());
     } finally {
       mContext.releaseMasterClient(client);
