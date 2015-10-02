@@ -39,13 +39,12 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.OutOfSpaceException;
+import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -208,8 +207,8 @@ public class BlockServiceHandlerIntegrationTest {
     Exception exception = null;
     try {
       mWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
-    } catch (FileDoesNotExistException fdne) {
-      exception = fdne;
+    } catch (TachyonTException e) {
+      exception = e;
     }
 
     // A file does not exist exception should have been thrown
@@ -275,8 +274,8 @@ public class BlockServiceHandlerIntegrationTest {
     Exception exception = null;
     try {
       mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2, WORKER_CAPACITY_BYTES + 1);
-    } catch (OutOfSpaceException oose) {
-      exception = oose;
+    } catch (TachyonTException e) {
+      exception = e;
     }
     Assert.assertNotNull(exception);
   }

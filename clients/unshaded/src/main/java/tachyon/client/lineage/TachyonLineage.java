@@ -21,8 +21,9 @@ import tachyon.Constants;
 import tachyon.annotation.PublicApi;
 import tachyon.client.ClientContext;
 import tachyon.client.lineage.options.DeleteLineageOptions;
-import tachyon.thrift.LineageDeletionException;
-import tachyon.thrift.LineageDoesNotExistException;
+import tachyon.exception.LineageDeletionException;
+import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.TachyonException;
 
 /**
  * A LineageClient implementation. This class does not access the master client directly but goes
@@ -49,8 +50,8 @@ public final class TachyonLineage extends AbstractLineageClient {
   /**
    * Convenience method for {@link #deleteLineage(long, DeleteLineageOptions)} with default options.
    */
-  public boolean deleteLineage(long lineageId)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException {
+  public boolean deleteLineage(long lineageId) throws IOException, LineageDoesNotExistException,
+      LineageDeletionException, TachyonException {
     return super.deleteLineage(lineageId, DeleteLineageOptions.defaults());
   }
 }

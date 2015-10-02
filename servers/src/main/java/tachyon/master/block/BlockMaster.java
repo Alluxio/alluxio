@@ -43,7 +43,9 @@ import tachyon.collections.IndexedSet;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.NoWorkerException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
@@ -58,13 +60,11 @@ import tachyon.master.journal.JournalOutputStream;
 import tachyon.test.Testable;
 import tachyon.test.Tester;
 import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
@@ -467,15 +467,15 @@ public final class BlockMaster extends MasterBase
    * @param totalBytesOnTiers list of total bytes on each tier
    * @param usedBytesOnTiers list of the used byes on each tier
    * @param currentBlocksOnTiers a mapping of each storage dir, to all the blocks on that storage
-   * @throws TachyonException if workerId cannot be found
+   * @throws NoWorkerException if workerId cannot be found
    */
   public void workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)
-          throws TachyonException {
+        throws NoWorkerException {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         if (!mWorkers.contains(mIdIndex, workerId)) {
-          throw new TachyonException("Could not find worker id: " + workerId + " to register.");
+          throw new NoWorkerException("Could not find worker id: " + workerId + " to register.");
         }
         MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
         workerInfo.updateLastUpdatedTimeMs();
@@ -649,18 +649,6 @@ public final class BlockMaster extends MasterBase
             LOG.info("The lost worker " + worker + " is found.");
             mLostWorkers.remove(worker);
           }
-        }
-      }
-
-      // restart the failed workers
-      if (mLostWorkers.size() != 0) {
-        LOG.warn("Restarting failed workers.");
-        try {
-          String tachyonHome = conf.get(Constants.TACHYON_HOME);
-          java.lang.Runtime.getRuntime()
-              .exec(tachyonHome + "/bin/tachyon-start.sh restart_workers");
-        } catch (IOException e) {
-          LOG.error(e.getMessage());
         }
       }
     }

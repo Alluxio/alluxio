@@ -27,10 +27,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.DependencyDoesNotExistException;
+import tachyon.exception.FileDoesNotExistException;
 import tachyon.master.TachyonMaster;
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.DependencyInfo;
-import tachyon.thrift.FileDoesNotExistException;
 
 public final class WebInterfaceDependencyServlet extends HttpServlet {
   private static final long serialVersionUID = 2071462168900313417L;

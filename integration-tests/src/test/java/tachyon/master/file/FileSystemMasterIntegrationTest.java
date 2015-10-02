@@ -38,13 +38,13 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -85,9 +85,8 @@ public class FileSystemMasterIntegrationTest {
         ExecutorService executor = Executors.newCachedThreadPool();
         ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
         for (int i = 0; i < FILES_PER_NODE; i ++) {
-          Callable<Void> call =
-              (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-                  path.join(Integer.toString(i))));
+          Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
+              path.join(Integer.toString(i))));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -142,9 +141,8 @@ public class FileSystemMasterIntegrationTest {
           ExecutorService executor = Executors.newCachedThreadPool();
           ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
           for (int i = 0; i < FILES_PER_NODE; i ++) {
-            Callable<Void> call =
-                (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1, path.join(Integer
-                    .toString(i))));
+            Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
+                path.join(Integer.toString(i))));
             futures.add(executor.submit(call));
           }
           for (Future<Void> f : futures) {
@@ -190,13 +188,13 @@ public class FileSystemMasterIntegrationTest {
         // Sometimes we want to try renaming a path when we're not all the way down, which is what
         // the second condition is for. We have to create the path in the destination up till what
         // we're renaming. This might already exist, so createFile could throw a
-        // FileAlreadyExistException, which we silently handle.
+        // FileAlreadyExistsException, which we silently handle.
         TachyonURI srcPath = mRootPath.join(path);
         TachyonURI dstPath = mRootPath2.join(path);
         long fileId = mFsMaster.getFileId(srcPath);
         try {
           mFsMaster.mkdir(dstPath.getParent(), true);
-        } catch (FileAlreadyExistException e) {
+        } catch (FileAlreadyExistsException e) {
           // This is an acceptable exception to get, since we don't know if the parent has been
           // created yet by another thread.
         } catch (InvalidPathException e) {
@@ -208,9 +206,8 @@ public class FileSystemMasterIntegrationTest {
         ExecutorService executor = Executors.newCachedThreadPool();
         ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
         for (int i = 0; i < FILES_PER_NODE; i ++) {
-          Callable<Void> call =
-              (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath, mRootPath2,
-                  path.join(Integer.toString(i))));
+          Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
+              mRootPath2, path.join(Integer.toString(i))));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -346,9 +343,8 @@ public class FileSystemMasterIntegrationTest {
 
     int numFiles = mFsMaster.getFileInfoList(mFsMaster.getFileId(ROOT_PATH)).size();
 
-    ConcurrentRenamer concurrentRenamer =
-        new ConcurrentRenamer(
-            DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, TachyonURI.EMPTY_URI);
+    ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
+        ROOT_PATH2, TachyonURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
@@ -357,7 +353,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void createAlreadyExistFileTest() throws Exception {
-    mThrown.expect(FileAlreadyExistException.class);
+    mThrown.expect(FileAlreadyExistsException.class);
     mFsMaster.createFile(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
     mFsMaster.mkdir(new TachyonURI("/testFile"), true);
   }
@@ -377,7 +373,7 @@ public class FileSystemMasterIntegrationTest {
 
   @Test
   public void createFileInvalidPathTest2() throws Exception {
-    mThrown.expect(FileAlreadyExistException.class);
+    mThrown.expect(FileAlreadyExistsException.class);
     mFsMaster.createFile(new TachyonURI("/"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
   }
 
@@ -399,8 +395,8 @@ public class FileSystemMasterIntegrationTest {
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile").join(
-          Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
+      mFsMaster.getFileInfo(mFsMaster.getFileId(
+          new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0")));
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }
@@ -670,8 +666,8 @@ public class FileSystemMasterIntegrationTest {
     long ttl = 100;
     mFsMaster.createFileInternal(new TachyonURI("/testFolder/testFile"),
         Constants.DEFAULT_BLOCK_SIZE_BYTE, true, System.currentTimeMillis(), ttl);
-    FileInfo folderInfo = mFsMaster.getFileInfo(
-        mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
+    FileInfo folderInfo =
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(ttl, folderInfo.ttl);
   }
 
@@ -681,8 +677,8 @@ public class FileSystemMasterIntegrationTest {
     long ttl = 1;
     long fileId = mFsMaster.createFile(new TachyonURI("/testFolder/testFile1"),
         Constants.DEFAULT_BLOCK_SIZE_BYTE, true, ttl);
-    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(
-        new TachyonURI("/testFolder/testFile1")));
+    FileInfo folderInfo =
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.fileId);
     Assert.assertEquals(ttl, folderInfo.ttl);
     CommonUtils.sleepMs(5000);
@@ -698,56 +694,56 @@ public class FileSystemMasterIntegrationTest {
         Constants.DEFAULT_BLOCK_SIZE_BYTE, true, ttl);
     mFsMaster.renameInternal(fileId, new TachyonURI("/testFolder/testFile2"), true,
         System.currentTimeMillis());
-    FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(
-        new TachyonURI("/testFolder/testFile2")));
+    FileInfo folderInfo =
+        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.ttl);
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
   // or remove this test when we have better tests against journal checkpoint.
-  //@Test
-  //public void writeImageTest() throws IOException {
-  //  // initialize the MasterInfo
-  //  Journal journal =
-  //      new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data",
-  //          mMasterTachyonConf);
-  //  Journal
-  //  MasterInfo info =
-  //     new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
+  // @Test
+  // public void writeImageTest() throws IOException {
+  // // initialize the MasterInfo
+  // Journal journal =
+  // new Journal(mLocalTachyonCluster.getTachyonHome() + "journal/", "image.data", "log.data",
+  // mMasterTachyonConf);
+  // Journal
+  // MasterInfo info =
+  // new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService, mMasterTachyonConf);
 
-  //  // create the output streams
-  //  ByteArrayOutputStream os = new ByteArrayOutputStream();
-  //  DataOutputStream dos = new DataOutputStream(os);
-  //  ObjectMapper mapper = JsonObject.createObjectMapper();
-  //  ObjectWriter writer = mapper.writer();
-  //  ImageElement version = null;
-  //  ImageElement checkpoint = null;
+  // // create the output streams
+  // ByteArrayOutputStream os = new ByteArrayOutputStream();
+  // DataOutputStream dos = new DataOutputStream(os);
+  // ObjectMapper mapper = JsonObject.createObjectMapper();
+  // ObjectWriter writer = mapper.writer();
+  // ImageElement version = null;
+  // ImageElement checkpoint = null;
 
-  //  // write the image
-  //  info.writeImage(writer, dos);
+  // // write the image
+  // info.writeImage(writer, dos);
 
-  //  // parse the written bytes and look for the Checkpoint and Version ImageElements
-  //  String[] splits = new String(os.toByteArray()).split("\n");
-  //  for (String split : splits) {
-  //    byte[] bytes = split.getBytes();
-  //    JsonParser parser = mapper.getFactory().createParser(bytes);
-  //    ImageElement ele = parser.readValueAs(ImageElement.class);
+  // // parse the written bytes and look for the Checkpoint and Version ImageElements
+  // String[] splits = new String(os.toByteArray()).split("\n");
+  // for (String split : splits) {
+  // byte[] bytes = split.getBytes();
+  // JsonParser parser = mapper.getFactory().createParser(bytes);
+  // ImageElement ele = parser.readValueAs(ImageElement.class);
 
-  //    if (ele.mType.equals(ImageElementType.Checkpoint)) {
-  //      checkpoint = ele;
-  //    }
+  // if (ele.mType.equals(ImageElementType.Checkpoint)) {
+  // checkpoint = ele;
+  // }
 
-  //    if (ele.mType.equals(ImageElementType.Version)) {
-  //      version = ele;
-  //    }
-  //  }
+  // if (ele.mType.equals(ImageElementType.Version)) {
+  // version = ele;
+  // }
+  // }
 
-  //  // test the elements
-  //  Assert.assertNotNull(checkpoint);
-  //  Assert.assertEquals(checkpoint.mType, ImageElementType.Checkpoint);
-  //  Assert.assertEquals(Constants.JOURNAL_VERSION, version.getInt("version").intValue());
-  //  Assert.assertEquals(1, checkpoint.getInt("inodeCounter").intValue());
-  //  Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
-  //  Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
-  //}
+  // // test the elements
+  // Assert.assertNotNull(checkpoint);
+  // Assert.assertEquals(checkpoint.mType, ImageElementType.Checkpoint);
+  // Assert.assertEquals(Constants.JOURNAL_VERSION, version.getInt("version").intValue());
+  // Assert.assertEquals(1, checkpoint.getInt("inodeCounter").intValue());
+  // Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
+  // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
+  // }
 }

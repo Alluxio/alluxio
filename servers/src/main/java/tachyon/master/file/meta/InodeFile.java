@@ -21,12 +21,12 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.SuspectedFileSizeException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.util.IdUtils;
 
 /**
@@ -227,6 +227,8 @@ public final class InodeFile extends Inode {
     sb.append(", Completed: ").append(mCompleted);
     sb.append(", Cacheable: ").append(mCacheable);
     sb.append(", mBlocks: ").append(mBlocks);
+    sb.append(", mTTL: ").append(mTTL);
+    sb.append(")");
     return sb.toString();
   }
 

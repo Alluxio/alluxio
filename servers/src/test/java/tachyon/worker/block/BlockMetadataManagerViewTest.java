@@ -28,8 +28,8 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Sets;
 
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.NotFoundException;
 import tachyon.master.block.BlockId;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
@@ -107,8 +107,8 @@ public final class BlockMetadataManagerViewTest {
   }
 
   @Test
-  public void getBlockMetaNotExistingTest() throws NotFoundException {
-    mThrown.expect(NotFoundException.class);
+  public void getBlockMetaNotExistingTest() throws BlockDoesNotExistException {
+    mThrown.expect(BlockDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(TEST_BLOCK_ID));
     mMetaManagerView.getBlockMeta(TEST_BLOCK_ID);
   }

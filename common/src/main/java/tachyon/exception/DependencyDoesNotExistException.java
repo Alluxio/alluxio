@@ -15,25 +15,24 @@
 
 package tachyon.exception;
 
-/**
- * Exception used when some requested entity (e.g., block, file, directory or lock) was not found.
- */
-public final class NotFoundException extends AbstractTachyonException {
-  private static final long serialVersionUID = 6901397458237323517L;
+public class DependencyDoesNotExistException extends TachyonException {
+  private static final TachyonExceptionType EXCEPTION_TYPE =
+      TachyonExceptionType.DEPENDENCY_DOES_NOT_EXIST;
 
-  public NotFoundException(String message) {
-    super(message);
+  public DependencyDoesNotExistException(String message) {
+    super(EXCEPTION_TYPE, message);
   }
 
-  public NotFoundException(String message, Throwable cause) {
-    super(message, cause);
+  public DependencyDoesNotExistException(String message, Throwable cause) {
+    super(EXCEPTION_TYPE, message, cause);
   }
 
-  public NotFoundException(ExceptionMessage message, Object... params) {
-    super(message, params);
+  public DependencyDoesNotExistException(ExceptionMessage message, Object... params) {
+    this(message.getMessage(params));
   }
 
-  public NotFoundException(ExceptionMessage message, Throwable cause, Object... params) {
-    super(message, cause, params);
+  public DependencyDoesNotExistException(ExceptionMessage message, Throwable cause,
+      Object... params) {
+    this(message.getMessage(params), cause);
   }
 }
