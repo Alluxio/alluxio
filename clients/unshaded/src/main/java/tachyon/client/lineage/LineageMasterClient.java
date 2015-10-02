@@ -30,12 +30,11 @@ import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.LineageDeletionException;
-import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.TachyonTException;
 
 /**
  * A wrapper for the thrift client to interact with the lineage master, used by tachyon clients.
@@ -71,7 +70,7 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
-      CommandLineJob job) throws IOException, FileDoesNotExistException {
+      CommandLineJob job) throws IOException, TachyonException {
     // prepare for RPC
     List<String> inputFileStrings = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
@@ -88,8 +87,8 @@ public final class LineageMasterClient extends MasterClientBase {
       try {
         return mClient.createLineage(inputFileStrings, outputFileStrings,
             job.generateCommandLineJobInfo());
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -99,12 +98,14 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException {
+      throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.deleteLineage(lineageId, cascade);
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -114,12 +115,14 @@ public final class LineageMasterClient extends MasterClientBase {
   }
 
   public synchronized long reintializeFile(String path, long blockSizeBytes, long ttl)
-      throws IOException, LineageDoesNotExistException {
+      throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.reinitializeFile(path, blockSizeBytes, ttl);
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

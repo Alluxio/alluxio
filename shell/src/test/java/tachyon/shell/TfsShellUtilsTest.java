@@ -38,7 +38,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.thrift.InvalidPathException;
 
 /**
  * Unit tests on tachyon.command.Utils.

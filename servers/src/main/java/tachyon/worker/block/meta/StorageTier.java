@@ -22,8 +22,8 @@ import java.util.List;
 
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
-import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.BlockAlreadyExistsException;
+import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
@@ -54,8 +54,8 @@ public final class StorageTier {
     mTierAlias = alias.getValue();
   }
 
-  private void initStorageTier() throws AlreadyExistsException, IOException,
-      OutOfSpaceException {
+  private void initStorageTier() throws BlockAlreadyExistsException, IOException,
+      WorkerOutOfSpaceException {
     String workerDataFolder = WorkerContext.getConf().get(Constants.WORKER_DATA_FOLDER);
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
@@ -88,12 +88,12 @@ public final class StorageTier {
    *
    * @param tierLevel the tier level
    * @return a new storage tier
-   * @throws AlreadyExistsException if the tier already exists
+   * @throws BlockAlreadyExistsException if the tier already exists
    * @throws IOException if an I/O error occurred
-   * @throws OutOfSpaceException if there is not enough space available
+   * @throws WorkerOutOfSpaceException if there is not enough space available
    */
   public static StorageTier newStorageTier(int tierLevel)
-      throws AlreadyExistsException, IOException, OutOfSpaceException {
+      throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     StorageTier ret = new StorageTier(tierLevel);
     ret.initStorageTier();
     return ret;
