@@ -27,9 +27,20 @@ import tachyon.conf.TachyonConf;
  */
 @Deprecated
 abstract class AbstractTachyonFS implements TachyonFSCore {
+  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
+      new ClientContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(ClientContext.PrivateReinitializer access) {
+          sReinitializer = access;
+        }
+      };
+  private static ClientContext.PrivateReinitializer sReinitializer;
+
   protected final TachyonConf mTachyonConf;
 
   protected AbstractTachyonFS(TachyonConf tachyonConf) {
+    sReinitializerAccesser.receiveAccess(sReinitializer);
+    sReinitializer.reinitializeWithConf(tachyonConf);
     mTachyonConf = tachyonConf;
   }
 
