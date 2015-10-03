@@ -38,4 +38,12 @@ public final class WorkerContext {
   public static TachyonConf getConf() {
     return sTachyonConf;
   }
+
+  /**
+   * Reset the TachyonConf instance in worker context, for test only.
+   * TODO(binfan): consider a better way to mock test TachyonConf
+   */
+  public static void resetConf() {
+    sTachyonConf = new TachyonConf();
+  }
 }

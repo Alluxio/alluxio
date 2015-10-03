@@ -20,9 +20,9 @@ import java.nio.ByteBuffer;
 
 import tachyon.collections.IndexedSet;
 import tachyon.exception.ExceptionMessage;
+import tachyon.exception.TableDoesNotExistException;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.thrift.TableDoesNotExistException;
 import tachyon.util.io.BufferUtils;
 
 /**

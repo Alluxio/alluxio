@@ -21,10 +21,11 @@ import java.util.List;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
 import tachyon.client.lineage.options.DeleteLineageOptions;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.LineageDeletionException;
+import tachyon.exception.LineageDoesNotExistException;
+import tachyon.exception.TachyonException;
 import tachyon.job.Job;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.LineageDeletionException;
-import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 
 
@@ -45,9 +46,18 @@ interface LineageClient {
    * @throws IOException if the master cannot create the lineage
    * @throws FileDoesNotExistException an input file does not exist in Tachyon storage, nor is added
    *         as an output file of an existing lineage
+   * @throws TachyonException if an unexpected tachyon error occurs
    */
   long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
-      throws FileDoesNotExistException, IOException;
+      throws FileDoesNotExistException, IOException, TachyonException;
+
+  /**
+   * Lists all the lineages.
+   *
+   * @return the information about lineages
+   * @throws IOException if the master cannot list the lineage info
+   */
+  public List<LineageInfo> getLineageInfoList() throws IOException;
 
   /**
    * Deletes a lineage identified by a given id. If the delete is cascade, it will delete all the
@@ -61,15 +71,8 @@ interface LineageClient {
    * @throws IOException if the master cannot delete the lineage
    * @throws LineageDeletionException if the deletion is cascade but the lineage has children
    * @throws LineageDoesNotExistException if the lineage does not exist
+   * @throws TachyonException if an unexpected tachyon error occurs
    */
   public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
-      throws IOException, LineageDoesNotExistException, LineageDeletionException;
-
-  /**
-   * Lists all the lineages.
-   *
-   * @return the information about lineages
-   * @throws IOException if the master cannot list the lineage info
-   */
-  public List<LineageInfo> getLineageInfoList() throws IOException;
+      throws IOException, LineageDoesNotExistException, LineageDeletionException, TachyonException;
 }

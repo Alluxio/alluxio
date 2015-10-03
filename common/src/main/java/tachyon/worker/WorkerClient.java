@@ -24,8 +24,6 @@ import java.util.concurrent.Future;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,14 +34,10 @@ import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FailedToCheckpointException;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
+import tachyon.exception.TachyonExceptionType;
+import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.OutOfSpaceException;
-import tachyon.thrift.SuspectedFileSizeException;
-import tachyon.thrift.TachyonException;
+import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerService;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -126,13 +120,7 @@ public final class WorkerClient implements Closeable {
 
     try {
       mClient.persistFile(fileId, nonce, path);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (SuspectedFileSizeException e) {
-      throw new IOException(e);
-    } catch (FailedToCheckpointException e) {
-      throw new IOException(e);
-    } catch (BlockInfoException e) {
+    } catch (TachyonTException e) {
       throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
@@ -152,7 +140,7 @@ public final class WorkerClient implements Closeable {
 
     try {
       return mClient.asyncCheckpoint(fileId);
-    } catch (TachyonException e) {
+    } catch (TachyonTException e) {
       throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
@@ -171,9 +159,7 @@ public final class WorkerClient implements Closeable {
 
     try {
       mClient.cacheBlock(mSessionId, blockId);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (BlockInfoException e) {
+    } catch (TachyonTException e) {
       throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
@@ -233,7 +219,8 @@ public final class WorkerClient implements Closeable {
       mWorkerDataServerAddress = new InetSocketAddress(host, mWorkerNetAddress.dataPort);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
-      mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(host, port)));
+      mProtocol = new TBinaryProtocol(AuthenticationUtils.getClientTransport(
+          mTachyonConf, new InetSocketAddress(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
       mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
@@ -308,10 +295,15 @@ public final class WorkerClient implements Closeable {
   public synchronized String lockBlock(long blockId) throws IOException {
     mustConnect();
 
+    // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
       return mClient.lockBlock(blockId, mSessionId);
-    } catch (FileDoesNotExistException e) {
-      return null;
+    } catch (TachyonTException e) {
+      if (e.getType().equals(TachyonExceptionType.FILE_DOES_NOT_EXIST.name())) {
+        return null;
+      } else {
+        throw new IOException(e);
+      }
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -365,10 +357,12 @@ public final class WorkerClient implements Closeable {
 
     try {
       return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
-    } catch (OutOfSpaceException e) {
-      throw new IOException("Failed to request " + initialBytes, e);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
+    } catch (TachyonTException e) {
+      if (e.getType().equals(TachyonExceptionType.WORKER_OUT_OF_SPACE.name())) {
+        throw new IOException("Failed to request " + initialBytes, e);
+      } else {
+        throw new IOException(e);
+      }
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -388,10 +382,12 @@ public final class WorkerClient implements Closeable {
 
     try {
       return mClient.requestSpace(mSessionId, blockId, requestBytes);
-    } catch (OutOfSpaceException e) {
-      return false;
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+    } catch (TachyonTException e) {
+      if (e.getType().equals(TachyonExceptionType.WORKER_OUT_OF_SPACE.name())) {
+        return false;
+      } else {
+        throw new IOException(e);
+      }
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

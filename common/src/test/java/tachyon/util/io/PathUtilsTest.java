@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
-import tachyon.thrift.InvalidPathException;
+import tachyon.exception.InvalidPathException;
 
 public class PathUtilsTest {
   @Rule
