@@ -18,6 +18,8 @@ package tachyon.master.file.journal;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Objects;
+
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.journal.JournalEntryType;
 import tachyon.security.authorization.PermissionStatus;
@@ -26,14 +28,17 @@ public class InodeDirectoryEntry extends InodeEntry {
   private Set<Long> mChildrenIds;
 
   public InodeDirectoryEntry(long creationTimeMs, long id, String name, long parentId,
-      boolean isPinned, long lastModificationTimeMs, Set<Long> childrenIds, PermissionStatus ps) {
-    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs, ps);
+      boolean persisted, boolean pinned, long lastModificationTimeMs, Set<Long> childrenIds,
+      PermissionStatus ps) {
+    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs, ps);
+
     mChildrenIds = childrenIds;
   }
 
   public InodeDirectory toInodeDirectory() {
     InodeDirectory inode = new InodeDirectory(mName, mId, mParentId, mCreationTimeMs, mPs);
-    inode.setPinned(mIsPinned);
+    inode.setPersisted(mPersisted);
+    inode.setPinned(mPinned);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);
     return inode;
   }
@@ -48,5 +53,22 @@ public class InodeDirectoryEntry extends InodeEntry {
     Map<String, Object> parameters = super.getParameters();
     parameters.put("childrenIds", mChildrenIds);
     return parameters;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(super.hashCode(), mChildrenIds);
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object instanceof InodeDirectoryEntry) {
+      if (!super.equals(object)) {
+        return false;
+      }
+      InodeDirectoryEntry that = (InodeDirectoryEntry) object;
+      return Objects.equal(mChildrenIds, that.mChildrenIds);
+    }
+    return false;
   }
 }

@@ -30,7 +30,7 @@ import tachyon.security.User;
  * A login module that search the Kerberos or OS user from Subject, and then convert to a Tachyon
  * user. It does not really authenticate the user in its login method.
  */
-public class TachyonLoginModule implements LoginModule {
+public final class TachyonLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
 
@@ -41,7 +41,7 @@ public class TachyonLoginModule implements LoginModule {
   }
 
   /**
-   * Authenticate the user (first phase).
+   * Authenticates the user (first phase).
    *
    * The implementation does not really authenticate the user here. Always return true.
    * @return true in all cases
@@ -53,7 +53,7 @@ public class TachyonLoginModule implements LoginModule {
   }
 
   /**
-   * Abort the authentication (second phase).
+   * Aborts the authentication (second phase).
    *
    * This method is called if the LoginContext's overall authentication failed. (login failed)
    * It cleans up any state that was changed in the login and commit methods.
@@ -68,7 +68,7 @@ public class TachyonLoginModule implements LoginModule {
   }
 
   /**
-   * Commit the authentication (second phase).
+   * Commits the authentication (second phase).
    *
    * This method is called if the LoginContext's overall authentication succeeded. (login
    * succeeded)
@@ -91,7 +91,7 @@ public class TachyonLoginModule implements LoginModule {
 
     // get a OS user
     if (user == null) {
-      user = getPrincipalUser(TachyonJaasProperties.getOsPrincipalClassName());
+      user = getPrincipalUser(TachyonJaasProperties.OS_PRINCIPAL_CLASS_NAME);
     }
 
     // if a user is found, convert it to a Tachyon user and save it.
@@ -105,7 +105,7 @@ public class TachyonLoginModule implements LoginModule {
   }
 
   /**
-   * Logout the user
+   * Logs out the user.
    *
    * The implementation removes the User associated with the Subject.
    * @return true in all cases

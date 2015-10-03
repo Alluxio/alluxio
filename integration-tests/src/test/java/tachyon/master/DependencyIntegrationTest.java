@@ -20,7 +20,6 @@ import org.junit.Before;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
-import tachyon.master.LocalTachyonCluster;
 import tachyon.master.file.meta.DependencyVariables;
 
 public class DependencyIntegrationTest {
@@ -44,7 +43,7 @@ public class DependencyIntegrationTest {
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 /*
-  // TODO: re-enable when lineage is implemented.
+  // TODO(gene): Re-enable when lineage is implemented.
   @Test
   public void ParseCommandPrefixTest() {
     String cmd = "java test.jar $master:$port";

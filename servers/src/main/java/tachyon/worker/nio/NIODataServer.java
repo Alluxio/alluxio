@@ -37,7 +37,8 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.NotFoundException;
+import tachyon.exception.BlockDoesNotExistException;
+import tachyon.util.network.NetworkAddressUtils;
 import tachyon.worker.DataServer;
 import tachyon.worker.DataServerMessage;
 import tachyon.worker.block.BlockDataManager;
@@ -85,7 +86,7 @@ public final class NIODataServer implements Runnable, DataServer {
       TachyonConf tachyonConf) {
     LOG.info("Starting DataServer @ " + address);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    TachyonConf.assertValidPort(Preconditions.checkNotNull(address), mTachyonConf);
+    NetworkAddressUtils.assertValidPort(Preconditions.checkNotNull(address), mTachyonConf);
     mAddress = address;
     mDataManager = Preconditions.checkNotNull(dataManager);
     try {
@@ -259,7 +260,7 @@ public final class NIODataServer implements Runnable, DataServer {
           }
 
           // Check what event is available and deal with it.
-          // TODO These should be multi-thread.
+          // TODO(dcapwell): These should be multi-thread.
           if (key.isAcceptable()) {
             accept(key);
           } else if (key.isReadable()) {
@@ -310,10 +311,10 @@ public final class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      // TODO: Reconsider how we handle this exception
+      // TODO(calvin): Reconsider how we handle this exception.
       try {
         mDataManager.unlockBlock(sendMessage.getLockId());
-      } catch (NotFoundException ioe) {
+      } catch (BlockDoesNotExistException ioe) {
         LOG.error("Failed to unlock block: " + sendMessage.getBlockId(), ioe);
       }
     }

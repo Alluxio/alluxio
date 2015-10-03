@@ -168,6 +168,23 @@ number.
   <td>The folder to store master journal log.</td>
 </tr>
 <tr>
+  <td>tachyon.master.journal.formatter.class</td>
+  <td>tachyon.master.journal.JsonJournalFormatter</td>
+  <td>The class to serialize the journal in a specified format.</td>
+</tr>
+<tr>
+  <td>tachyon.master.journal.tailer.sleep.time.ms</td>
+  <td>1000</td>
+  <td>Time(in milliseconds) to sleep for standby master when it cannot find anything new from leader
+    master's journal.</td>
+</tr>
+<tr>
+  <td>tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms</td>
+  <td>5000</td>
+  <td>Before the standby master shuts down its tailer thread, there should be no update to the
+    leader master's journal in this specified time period(in milliseconds).</td>
+</tr>
+<tr>
   <td>tachyon.master.hostname</td>
   <td>localhost</td>
   <td>The externally resolvable hostname of Tachyon's master address.</td>
@@ -224,6 +241,11 @@ number.
   <td>tachyon.master.principal</td>
   <td></td>
   <td>Kerberos principal for Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.master.ttlchecker.interval.ms=3600000
+  <td>3600000</td>
+  <td>Time interval(in milliseconds) to periodically delete the files with expired ttl value.</td>
 </tr>
 </table>
 
@@ -310,6 +332,22 @@ number.
   <td>The capacity of top storage layer.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.tieredstore.level0.reserved.ratio</td>
+  <td>0.1</td>
+  <td>Value is between 0 and 1, it sets the portion of space reserved on top storage layer.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.space.reserver.enable</td>
+  <td>false</td>
+  <td>Whether enabling space reserver service or not.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.space.reserver.interval.ms</td>
+  <td>1000</td>
+  <td>The period of space reserver service, which keeps certain portion of available space on each
+  layer. Specified in milliseconds.</td>
+</tr>
+<tr>
   <td>tachyon.worker.allocate.strategy.class</td>
   <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
   <td>The strategy that worker allocate space among storage directories in certain storage layer. Valid options
@@ -389,6 +427,12 @@ number.
   <td>10000</td>
   <td>Timeout between worker and client connection indicating a lost session connection.  Specified in milliseconds</td>
 </tr>
+<tr>
+  <td>tachyon.worker.block.lock.count</td>
+  <td>1000</td>
+  <td>Total number of block locks for a Tachyon block worker. Larger value leads to finer locking granularity, but more space</td>
+</tr>
+
 </table>
 
 ## User Configuration
@@ -447,6 +491,26 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.network.netty.timeout.ms</td>
   <td>3000</td>
   <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to wait for a response from the data server.</td>
+</tr>
+<tr>
+  <td>tachyon.user.remote.block.worker.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for remote block worker client to read from remote block workers.</td>
+</tr>
+<tr>
+  <td>tachyon.user.local.block.worker.client.threads</td>
+  <td>10000</td>
+  <td>How many threads to use for block worker client pool to read from a local block worker.</td>
+</tr>
+<tr>
+  <td>tachyon.user.block.master.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for block master client to talk to block master.</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.master.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for file system master client to talk to block master.</td>
 </tr>
 </table>
 

@@ -27,6 +27,35 @@ end
 
 require 'yaml'
 
+# parse zookeeper.yml
+class ZookeeperVersion
+  def initialize(yaml_path)
+    puts 'parsing zookeeper.yml'
+    @yml = YAML.load_file(yaml_path)
+
+    @type = @yml['Type']
+    @dist = ''
+    case @type
+    when "Release"
+      @version = @yml['Release']['Version']
+      puts "using zookeeper version #{@version}"
+    when "None"
+      puts 'No zookeeper will be set up'
+    else
+      puts "Unknown Type"
+      exit(1)
+    end
+  end
+
+  def type
+    return @type
+  end
+
+  def version
+    return @version
+  end
+end
+
 # parse tachyon_version.yml
 class TachyonVersion
   def initialize(yaml_path)
@@ -52,6 +81,7 @@ class TachyonVersion
     end
 
     @mem = @yml['WorkerMemory']
+    @masters = @yml['Masters']
   end
 
   def type
@@ -65,6 +95,10 @@ class TachyonVersion
   def memory
     return @mem
   end
+
+  def masters
+    return @masters
+  end
 end
 
 # parse mesos_version.yml
@@ -77,6 +111,7 @@ class MesosVersion
     @repo = ''
     @version = ''
     @dist = ''
+    @use_mesos = true
     case @type
     when "Github"
       @repo = @yml['Github']['Repo']
@@ -85,6 +120,9 @@ class MesosVersion
     when "Release"
       @dist = @yml['Release']['Dist']
       puts "using mesos dist #{@dist}"
+    when "None"
+      puts 'No Mesos will be set up'
+      @use_mesos = false
     else
       puts "Unknown VersionType"
       exit(1)
@@ -97,6 +135,10 @@ class MesosVersion
 
   def type
     return @type
+  end
+
+  def use_mesos
+    return @use_mesos
   end
 
   def repo_version

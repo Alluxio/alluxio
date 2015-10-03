@@ -24,8 +24,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.security.User;
-import tachyon.security.login.TachyonJaasConfiguration;
-import tachyon.security.login.TachyonJaasProperties;
 
 /**
  * Unit test for the login modules defined in {@link tachyon.security.login.TachyonLoginModule} and
@@ -40,7 +38,7 @@ public class LoginModuleTest {
    */
   @Test
   public void simpleLoginTest() throws Exception {
-    String clazzName = TachyonJaasProperties.getOsPrincipalClassName();
+    String clazzName = TachyonJaasProperties.OS_PRINCIPAL_CLASS_NAME;
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader
         .getSystemClassLoader().loadClass(clazzName);
     Subject subject = new Subject();

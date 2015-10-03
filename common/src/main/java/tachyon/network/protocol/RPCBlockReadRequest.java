@@ -17,12 +17,13 @@ package tachyon.network.protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
+
 import io.netty.buffer.ByteBuf;
 
 /**
  * This represents an RPC request to read a block from a DataServer.
  */
-public class RPCBlockReadRequest extends RPCRequest {
+public final class RPCBlockReadRequest extends RPCRequest {
   private final long mBlockId;
   private final long mOffset;
   private final long mLength;
@@ -33,12 +34,13 @@ public class RPCBlockReadRequest extends RPCRequest {
     mLength = length;
   }
 
+  @Override
   public Type getType() {
     return Type.RPC_BLOCK_READ_REQUEST;
   }
 
   /**
-   * Decode the input {@link ByteBuf} into a {@link RPCBlockReadRequest} object and return it.
+   * Decodes the input {@link ByteBuf} into a {@link RPCBlockReadRequest} object and returns it.
    *
    * @param in the input {@link ByteBuf}
    * @return The decoded RPCBlockReadRequest object

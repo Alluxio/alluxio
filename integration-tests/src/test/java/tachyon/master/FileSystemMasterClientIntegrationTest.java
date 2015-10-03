@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,6 +27,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 
 /**
  * Test the internal implementation of tachyon Master via a
@@ -54,13 +54,14 @@ public class FileSystemMasterClientIntegrationTest {
   }
 
   @Test
-  public void openCloseTest() throws TException, IOException {
-    FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
-        mLocalTachyonCluster.getMaster().getAddress(), mExecutorService, mMasterTachyonConf);
+  public void openCloseTest() throws TachyonException, IOException {
+    FileSystemMasterClient fsMasterClient =
+        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
+            mMasterTachyonConf);
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    fsMasterClient.createFile("/file", Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
+    fsMasterClient.create("/file", Constants.DEFAULT_BLOCK_SIZE_BYTE, true, Constants.NO_TTL);
     Assert.assertTrue(fsMasterClient.getFileInfo(fsMasterClient.getFileId("/file")) != null);
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());
@@ -70,18 +71,20 @@ public class FileSystemMasterClientIntegrationTest {
     fsMasterClient.close();
   }
 
-  @Test(timeout = 3000, expected = IOException.class)
-  public void user_getClientBlockInfoReturnsOnError() throws IOException {
+  @Test(timeout = 3000, expected = TachyonException.class)
+  public void user_getClientBlockInfoReturnsOnError() throws IOException, TachyonException {
     // This test was created to show that an infinite loop occurs.
     // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
-        mLocalTachyonCluster.getMaster().getAddress(), mExecutorService, mMasterTachyonConf);
+    FileSystemMasterClient fsMasterClient =
+        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
+            mMasterTachyonConf);
     fsMasterClient.getFileInfo(Long.MAX_VALUE);
     fsMasterClient.close();
   }
 
-  // TODO: Cannot find counterpart for {@link MasterClientBase#user_getWorker} in new master clients
+  // TODO(gene): Cannot find counterpart for {@link MasterClientBase#user_getWorker} in new master
+  // clients.
   // @Test(timeout = 3000, expected = NoWorkerException.class)
   // public void user_getWorkerReturnsWhenNotLocal() throws Exception {
   // // This test was created to show that an infinite loop occurs.

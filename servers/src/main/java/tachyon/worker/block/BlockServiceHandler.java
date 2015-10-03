@@ -18,25 +18,24 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.StorageLevelAlias;
-import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
-import tachyon.exception.OutOfSpaceException;
-import tachyon.thrift.FileDoesNotExistException;
+import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.TachyonException;
+import tachyon.thrift.TachyonTException;
+import tachyon.thrift.ThriftIOException;
 import tachyon.thrift.WorkerService;
 
 /**
  * Handles all thrift RPC calls to the worker. This class is a thrift server implementation and is
  * thread safe.
  */
-// TODO: better exception handling than wrapping into TException
+// TODO(cc): Better exception handling than wrapping into TException.
 public final class BlockServiceHandler implements WorkerService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -52,38 +51,41 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * components that may care about the access times of the blocks (for example, Evictor, UI).
    *
    * @param blockId the id of the block to access
-   * @throws TException if the underlying worker RPC fails
+   * @throws TachyonTException if a tachyon error occurs
    */
   @Override
-  public void accessBlock(long blockId) throws TException {
+  public void accessBlock(long blockId) throws TachyonTException {
     try {
       mWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
-    } catch (NotFoundException nfe) {
-      throw new TException(nfe);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
     }
   }
 
   /**
-   * This should be called in order to commit a file that was written directly to the under storage
-   * system via a THROUGH type write. This will update the master with the appropriate metadata
-   * for the new block.
+   * This should be called in order to persist a file that was written directly to the under storage
+   * system via a THROUGH type write. This will update the master with the appropriate metadata for
+   * the new block.
    *
-   * @param sessionId the id of the client requesting the checkpoint
-   * @param fileId the id of the file that was written to the under storage system
-   * @throws TException if the underlying worker RPC fails
+   * @param fileId the file id
+   * @param nonce nonce a nonce used for temporary file creation
+   * @param path the UFS path of the file
    */
   @Override
-  public void addCheckpoint(long sessionId, long fileId) throws TException {
+  public void persistFile(long fileId, long nonce, String path)
+      throws TachyonTException, ThriftIOException {
     try {
-      mWorker.addCheckpoint(sessionId, fileId);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
+      mWorker.persistFile(fileId, nonce, path);
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
     }
   }
 
-  // TODO: Make this supported again
+  // TODO(calvin): Make this supported again.
   @Override
-  public boolean asyncCheckpoint(long fileId) throws TException {
+  public boolean asyncCheckpoint(long fileId) throws TachyonTException {
     return false;
   }
 
@@ -94,23 +96,18 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param sessionId the id of the client requesting the commit
    * @param blockId the id of the block to commit
-   * @throws TException if the underlying worker RPC fails
+   * @throws TachyonTException if a tachyon error occurs
+   * @throws ThriftIOException if an I/O error occurs
    */
-  // TODO: Reconsider this exception handling
+  // TODO(calvin): Reconsider this exception handling.
   @Override
-  public void cacheBlock(long sessionId, long blockId) throws TException {
+  public void cacheBlock(long sessionId, long blockId) throws TachyonTException, ThriftIOException {
     try {
       mWorker.commitBlock(sessionId, blockId);
-    } catch (AlreadyExistsException aee) {
-      throw new TException(aee);
-    } catch (NotFoundException nfe) {
-      throw new TException(nfe);
-    } catch (InvalidStateException fpe) {
-      throw new TException(fpe);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
-    } catch (OutOfSpaceException ooe) {
-      throw new TException(ooe);
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
     }
   }
 
@@ -120,32 +117,19 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param sessionId the id of the client requesting the abort
    * @param blockId the id of the block to be aborted
-   * @throws TException if the underlying worker RPC fails
+   * @throws TachyonTException if a tachyon error occurs
+   * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public void cancelBlock(long sessionId, long blockId) throws TException {
+  public void cancelBlock(long sessionId, long blockId)
+      throws TachyonTException, ThriftIOException {
     try {
       mWorker.abortBlock(sessionId, blockId);
-    } catch (AlreadyExistsException aee) {
-      throw new TException(aee);
-    } catch (NotFoundException nfe) {
-      throw new TException(nfe);
-    } catch (InvalidStateException fpe) {
-      throw new TException(fpe);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
-  }
-
-  /**
-   * Used to get session's temporary folder on under file system, and the path of the session's
-   * temporary folder will be returned.
-   *
-   * @param sessionId the id of the session requesting the ufs location
-   */
-  @Override
-  public String getSessionUfsTempFolder(long sessionId) {
-    return mWorker.getSessionUfsTmpFolder(sessionId);
   }
 
   /**
@@ -155,20 +139,18 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param blockId the id of the block to be locked
    * @param sessionId the id of the session
-   * @throws FileDoesNotExistException if the underlying file is not found
-   * @throws TException if the underlying worker RPC fails
+   * @throws TachyonTException if a tachyon error occurs
    */
   @Override
-  public String lockBlock(long blockId, long sessionId)
-      throws FileDoesNotExistException, TException {
+  public String lockBlock(long blockId, long sessionId) throws TachyonTException {
     try {
       long lockId = mWorker.lockBlock(sessionId, blockId);
       return mWorker.readBlock(sessionId, blockId, lockId);
-    } catch (NotFoundException nfe) {
-      // TODO: reconsider this, maybe it is because lockId can not be found
-      throw new FileDoesNotExistException(nfe.getMessage());
-    } catch (InvalidStateException fpe) {
-      throw new TException(fpe);
+    } catch (BlockDoesNotExistException nfe) {
+      // TODO(cc): Reconsider this, maybe it is because lockId can not be found.
+      throw new FileDoesNotExistException(nfe.getMessage()).toTachyonTException();
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
     }
   }
 
@@ -178,28 +160,21 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * otherwise.
    *
    * @param blockId the id of the block to move to the top layer
-   * @throws TException if the underlying worker RPC fails
+   * @throws TachyonTException if a tachyon error occurs
+   * @throws ThriftIOException if an I/O error occurs
    */
-  // TODO: This may be better as void
+  // TODO(calvin): This may be better as void.
   @Override
-  public boolean promoteBlock(long blockId) throws TException {
+  public boolean promoteBlock(long blockId) throws TachyonTException, ThriftIOException {
     try {
-      // TODO: Make the top level configurable
+      // TODO(calvin): Make the top level configurable.
       mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId,
           StorageLevelAlias.MEM.getValue());
       return true;
-    } catch (NotFoundException nfe) {
-      throw new TException(nfe);
-    } catch (AlreadyExistsException aee) {
-      throw new TException(aee);
-    } catch (InvalidStateException fpe) {
-      throw new TException(fpe);
-    } catch (IllegalArgumentException iae) {
-      throw new TException(iae);
-    } catch (tachyon.exception.OutOfSpaceException ooe) {
-      throw new TException(ooe);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 
@@ -207,34 +182,26 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * Used to allocate location and space for a new coming block, worker will choose the appropriate
    * storage directory which fits the initial block size by some allocation strategy, and the
    * temporary file path of the block file will be returned. if there is no enough space on Tachyon
-   * storage OutOfSpaceException will be thrown, if the file is already being written by the
-   * session, FileAlreadyExistException will be thrown.
+   * storage WorkerOutOfSpaceException will be thrown, if the file is already being written by the
+   * session, FileAlreadyExistsException will be thrown.
    *
    * @param sessionId the id of the client requesting the create
    * @param blockId the id of the new block to create
    * @param initialBytes the initial number of bytes to allocate for this block
-   * @throws tachyon.thrift.OutOfSpaceException if there is no space available
-   * @throws TException if the underlying worker RPC fails
+   * @throws TachyonTException if a tachyon error occurs
+   * @throws ThriftIOException if an I/O error occurs
    */
   @Override
   public String requestBlockLocation(long sessionId, long blockId, long initialBytes)
-      throws tachyon.thrift.OutOfSpaceException, TException {
+      throws TachyonTException, ThriftIOException {
     try {
       // NOTE: right now, we ask allocator to allocate new blocks in MEM tier
       return mWorker.createBlock(sessionId, blockId, StorageLevelAlias.MEM.getValue(),
           initialBytes);
-    } catch (AlreadyExistsException aee) {
-      throw new TException(aee);
-    } catch (IllegalArgumentException iae) {
-      throw new TException(iae);
-    } catch (OutOfSpaceException ooe) {
-      throw new tachyon.thrift.OutOfSpaceException(ooe.getMessage());
-    } catch (NotFoundException nfe) {
-      throw new TException(nfe);
-    } catch (IOException ioe) {
-      throw new TException(ioe);
-    } catch (InvalidStateException ise) {
-      throw new TException(ise);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 
@@ -264,15 +231,15 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    *
    * @param blockId the id of the block to unlock
    * @param sessionId the id of the client requesting the unlock
-   * @throws TException if the block does not exist
+   * @throws TachyonTException if a tachyon error occurs
    */
   @Override
-  public boolean unlockBlock(long blockId, long sessionId) throws TException {
+  public boolean unlockBlock(long blockId, long sessionId) throws TachyonTException {
     try {
       mWorker.unlockBlock(sessionId, blockId);
       return true;
-    } catch (NotFoundException nfe) {
-      throw new TException(nfe);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
     }
   }
 
@@ -280,9 +247,8 @@ public final class BlockServiceHandler implements WorkerService.Iface {
    * Local session send heartbeat to local worker to keep its temporary folder.
    *
    * @param sessionId the id of the client heartbeating
-   * @param metrics a list of the client metrics that were collected between this heartbeat and
-   *                the last. Each value in the list represents a specific metric based on the
-   *                index.
+   * @param metrics a list of the client metrics that were collected between this heartbeat and the
+   *        last. Each value in the list represents a specific metric based on the index.
    */
   @Override
   public void sessionHeartbeat(long sessionId, List<Long> metrics) {

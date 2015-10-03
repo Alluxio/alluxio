@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReadWriteLock;
  * by the same client).
  */
 public final class ClientRWLock implements ReadWriteLock {
-  // TODO: make this const a configurable
+  // TODO(bin): Make this const a configurable.
   /** Total number of permits. This value decides the max number of concurrent readers */
   private static final int MAX_AVAILABLE = 100;
   /** Underlying Semaphore */

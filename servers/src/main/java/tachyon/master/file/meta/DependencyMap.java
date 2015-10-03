@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.master.IndexedSet;
+import tachyon.collections.IndexedSet;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
 

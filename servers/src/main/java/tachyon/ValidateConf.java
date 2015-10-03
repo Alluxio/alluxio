@@ -34,13 +34,13 @@ public class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static boolean validate() {
-    Constants constants = new Constants();
     Set<String> validProperties = new HashSet<String>();
     try {
       // Iterate over the array of Field objects in tachyon.Constants by reflection
-      for (Field field : constants.getClass().getDeclaredFields()) {
+      for (Field field : Constants.class.getDeclaredFields()) {
         if (field.getType().isAssignableFrom(String.class)) {
-          String name = (String) field.get(constants);
+          // all fields are static, so ignore the argument
+          String name = (String) field.get(null);
           if (name.startsWith("tachyon.")) {
             validProperties.add(name.trim());
           }
@@ -67,13 +67,17 @@ public class ValidateConf {
     Pattern dirsQuotaPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT.replace("%d",
             "\\d+").replace(".", "\\."));
+    Pattern reservedRatioPattern =
+        Pattern.compile(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
+            "\\d+").replace(".", "\\."));
     TachyonConf tachyonConf = new TachyonConf();
     boolean valid = true;
     for (Entry<String, String> entry : tachyonConf.toMap().entrySet()) {
       String propertyName = entry.getKey();
       if (aliasPattern.matcher(propertyName).matches()
           || dirsPathPattern.matcher(propertyName).matches()
-          || dirsQuotaPattern.matcher(propertyName).matches()) {
+          || dirsQuotaPattern.matcher(propertyName).matches()
+          || reservedRatioPattern.matcher(propertyName).matches()) {
         continue;
       }
       if (propertyName.startsWith("tachyon.") && !validProperties.contains(propertyName)) {

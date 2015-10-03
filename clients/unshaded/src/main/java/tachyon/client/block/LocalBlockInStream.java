@@ -17,10 +17,10 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 
 import tachyon.client.ClientContext;
@@ -33,13 +33,15 @@ import tachyon.worker.WorkerClient;
  * from the local machine's storage. The instances of this class should only be used by one
  * thread and are not thread safe.
  */
-public class LocalBlockInStream extends BlockInStream {
-  private final long mBlockId;
-  private final BlockStoreContext mContext;
+public final class LocalBlockInStream extends BufferedBlockInStream {
+  /** Helper to manage closables. */
+  private final Closer mCloser;
+  /** File channel providing access to the local data. */
+  private final FileChannel mLocalFileChannel;
+  /** Client to communicate with the local worker. */
   private final WorkerClient mWorkerClient;
-  private final ByteBuffer mData;
-
-  private boolean mClosed;
+  /** The block store context which provides block worker clients. */
+  private final BlockStoreContext mContext;
 
   /**
    * Creates a new local block input stream.
@@ -47,30 +49,29 @@ public class LocalBlockInStream extends BlockInStream {
    * @param blockId the block id
    * @throws IOException if I/O error occurs
    */
-  public LocalBlockInStream(long blockId) throws IOException {
-    mBlockId = blockId;
-    mClosed = false;
+  public LocalBlockInStream(long blockId, long blockSize, InetSocketAddress location)
+      throws IOException {
+    super(blockId, blockSize, location);
     mContext = BlockStoreContext.INSTANCE;
+
+    mCloser = Closer.create();
     mWorkerClient =
         mContext.acquireWorkerClient(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-    String blockPath = mWorkerClient.lockBlock(blockId);
+    FileChannel localFileChannel = null;
 
-    if (null == blockPath) {
-      // TODO(calvin): Handle this error case better.
-      mContext.releaseWorkerClient(mWorkerClient);
-      throw new IOException("Block is not available on local machine");
-    }
-
-    // Map the data to the blockData byte buffer
-    Closer closer = Closer.create();
     try {
-      RandomAccessFile localFile = closer.register(new RandomAccessFile(blockPath, "r"));
-      long fileLength = localFile.length();
-      FileChannel localFileChannel = closer.register(localFile.getChannel());
-      mData = localFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileLength);
-    } finally {
-      closer.close();
+      String blockPath = mWorkerClient.lockBlock(blockId);
+      if (blockPath == null) {
+        throw new IOException("Block " + mBlockId + " is not available on local machine.");
+      }
+      RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "r"));
+      localFileChannel = mCloser.register(localFile.getChannel());
+    } catch (IOException e) {
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw e;
     }
+
+    mLocalFileChannel = localFileChannel;
   }
 
   @Override
@@ -78,78 +79,36 @@ public class LocalBlockInStream extends BlockInStream {
     if (mClosed) {
       return;
     }
-    mWorkerClient.unlockBlock(mBlockId);
-    mContext.releaseWorkerClient(mWorkerClient);
-    // TODO(calvin): Evaluate if this is necessary.
-    BufferUtils.cleanDirectBuffer(mData);
+    try {
+      mWorkerClient.unlockBlock(mBlockId);
+    } finally {
+      mContext.releaseWorkerClient(mWorkerClient);
+      mCloser.close();
+    }
+
+    // TODO(calvin): Perhaps verify something was read from this stream
+    ClientContext.getClientMetrics().incBlocksReadLocal(1);
     mClosed = true;
   }
 
   @Override
-  public int read() throws IOException {
-    checkIfClosed();
-    if (mData.remaining() == 0) {
-      close();
-      return -1;
+  protected void bufferedRead(int len) throws IOException {
+    if (mBuffer.isDirect()) { // Buffer may not be direct on initialization
+      BufferUtils.cleanDirectBuffer(mBuffer);
     }
-    return BufferUtils.byteToInt(mData.get());
+    mBuffer = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, getPosition(), len);
   }
 
   @Override
-  public int read(byte[] b) throws IOException {
-    checkIfClosed();
-    return read(b, 0, b.length);
+  public int directRead(byte[] b, int off, int len) throws IOException {
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, getPosition(), len);
+    buf.get(b, off, len);
+    BufferUtils.cleanDirectBuffer(buf);
+    return len;
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    checkIfClosed();
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length, String
-        .format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
-    if (len == 0) {
-      return 0;
-    }
-
-    int ret = Math.min(len, mData.remaining());
-    if (ret == 0) {
-      close();
-      return -1;
-    }
-    mData.get(b, off, ret);
-    return ret;
-  }
-
-  @Override
-  public long remaining() {
-    return mData.remaining();
-  }
-
-  @Override
-  public void seek(long pos) throws IOException {
-    checkIfClosed();
-    Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos <= mData.limit(), "Seek position is past buffer limit: " + pos
-        + ", Buffer Size = " + mData.limit());
-    mData.position((int) pos);
-  }
-
-  @Override
-  public long skip(long n) throws IOException {
-    checkIfClosed();
-    if (n <= 0) {
-      return 0;
-    }
-
-    int ret = mData.remaining();
-    if (ret > n) {
-      ret = (int) n;
-    }
-    mData.position(mData.position() + ret);
-    return ret;
-  }
-
-  private void checkIfClosed() throws IOException {
-    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
+  protected void incrementBytesReadMetric(int bytes) {
+    ClientContext.getClientMetrics().incBytesReadLocal(bytes);
   }
 }

@@ -28,16 +28,21 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.UnderStorageType;
+import tachyon.client.block.TachyonBlockStore;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
+import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
+@Ignore("TACHYON-987")
 public class MasterFaultToleranceIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
@@ -67,14 +72,14 @@ public class MasterFaultToleranceIntegrationTest {
    * @throws IOException if an error occurs creating the file
    */
   private void faultTestDataCreation(TachyonURI folderName, List<Pair<Long, TachyonURI>> answer)
-      throws IOException {
-    mTfs.mkdirs(folderName);
+      throws IOException, TachyonException {
+    mTfs.mkdir(folderName);
     answer.add(new Pair<Long, TachyonURI>(mTfs.open(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k ++) {
       TachyonURI path =
-          new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1), k));
-      mTfs.getOutStream(path, ClientOptions.defaults()).close();
+          new TachyonURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
+      mTfs.getOutStream(path).close();
       answer.add(new Pair<Long, TachyonURI>(mTfs.open(path).getFileId(), path));
     }
   }
@@ -85,49 +90,75 @@ public class MasterFaultToleranceIntegrationTest {
    * @param answer the correct results
    * @throws IOException if an error occurs opening the file
    */
-  private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException {
+  private void faultTestDataCheck(List<Pair<Long, TachyonURI>> answer) throws IOException,
+      TachyonException {
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Collections.sort(files);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
           mTfs.getInfo(new TachyonFile(answer.get(k).getFirst())).getPath());
-      Assert.assertEquals(answer.get(k).getFirst().intValue(),
+      Assert.assertEquals(answer.get(k).getFirst().longValue(),
           mTfs.open(answer.get(k).getSecond()).getFileId());
     }
   }
 
-  @Ignore
   @Test
-  public void faultTest() throws IOException {
+  public void createFileFaultTest() throws Exception {
     int clients = 10;
     List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
     for (int k = 0; k < clients; k ++) {
       faultTestDataCreation(new TachyonURI("/data" + k), answer);
     }
-
     faultTestDataCheck(answer);
 
-    for (int kills = 0; kills < 1; kills ++) {
+    for (int kills = 0; kills < MASTERS - 1; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(Constants.SECOND_MS * 3);
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
-    }
-
-    for (int kills = 1; kills < MASTERS - 1; kills ++) {
-      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(null, Constants.SECOND_MS * 3);
-      faultTestDataCheck(answer);
-      // TODO Add the following line back
-      // faultTestDataCreation("/data" + (clients + kills + 1), answer);
+      faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
     }
   }
 
-  @Ignore
   @Test
-  public void getClientsTest() throws IOException {
+  public void deleteFileFaultTest() throws Exception {
+    // Kill leader -> create files -> kill leader -> delete files, repeat.
+    List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
+    for (int kills = 0; kills < MASTERS - 1; kills ++) {
+      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+
+      if (kills % 2 != 0) {
+        // Delete files.
+
+        faultTestDataCheck(answer);
+
+        // We can not call mTfs.delete(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR))) because root
+        // node can not be deleted.
+        for (FileInfo file : mTfs.listStatus(mTfs.open(new TachyonURI(TachyonURI.SEPARATOR)))) {
+          mTfs.delete(new TachyonFile(file.getFileId()));
+        }
+        answer.clear();
+        faultTestDataCheck(answer);
+      } else {
+        // Create files.
+
+        Assert.assertEquals(0, answer.size());
+        faultTestDataCheck(answer);
+
+        faultTestDataCreation(new TachyonURI(PathUtils.concatPath(
+            TachyonURI.SEPARATOR, "data_" + kills)), answer);
+        faultTestDataCheck(answer);
+      }
+    }
+  }
+
+  @Test
+  public void createFilesTest() throws Exception {
     int clients = 10;
-    ClientOptions option = new ClientOptions.Builder(new TachyonConf()).setBlockSize(1024).build();
+    OutStreamOptions option =
+        new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(1024)
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     for (int k = 0; k < clients; k ++) {
       TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
@@ -137,6 +168,49 @@ public class MasterFaultToleranceIntegrationTest {
     Collections.sort(files);
     for (int k = 0; k < clients; k ++) {
       Assert.assertEquals(TachyonURI.SEPARATOR + k, files.get(k));
+    }
+  }
+
+  @Test
+  public void killStandbyTest() throws Exception {
+    // If standby masters are killed(or node failure), current leader should not be affected and the
+    // cluster should run properly.
+
+    int leaderIndex = mLocalTachyonClusterMultiMaster.getLeaderIndex();
+    Assert.assertNotEquals(-1, leaderIndex);
+
+    List<Pair<Long, TachyonURI>> answer = Lists.newArrayList();
+    for (int k = 0; k < 5; k ++) {
+      faultTestDataCreation(new TachyonURI("/data" + k), answer);
+    }
+    faultTestDataCheck(answer);
+
+    for (int kills = 0; kills < MASTERS - 1; kills ++) {
+      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killStandby());
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+
+      // Leader should not change.
+      Assert.assertEquals(leaderIndex, mLocalTachyonClusterMultiMaster.getLeaderIndex());
+      // Cluster should still work.
+      faultTestDataCheck(answer);
+      faultTestDataCreation(new TachyonURI("/data_kills_" + kills), answer);
+    }
+  }
+
+  @Test
+  public void workerReRegisterTest() throws Exception {
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
+
+    List<Pair<Long, TachyonURI>> emptyAnswer = Lists.newArrayList();
+    for (int kills = 0; kills < MASTERS - 1; kills++) {
+      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
+      CommonUtils.sleepMs(Constants.SECOND_MS * 2);
+
+      // TODO(cc) Why this test fail without this line? [TACHYON-970]
+      faultTestDataCheck(emptyAnswer);
+
+      // If worker is successfully re-registered, the capacity bytes should not change.
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, TachyonBlockStore.get().getCapacityBytes());
     }
   }
 }

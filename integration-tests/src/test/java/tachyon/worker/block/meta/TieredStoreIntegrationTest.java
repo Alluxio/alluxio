@@ -28,15 +28,19 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonFSTestUtils;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
+import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.io.BufferUtils;
 
@@ -52,7 +56,8 @@ public class TieredStoreIntegrationTest {
   private TachyonConf mWorkerConf;
   private TachyonFileSystem mTFS;
   private int mWorkerToMasterHeartbeatIntervalMs;
-
+  private SetStateOptions mSetPinned;
+  private SetStateOptions mSetUnpinned;
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -63,16 +68,18 @@ public class TieredStoreIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = MasterContext.getConf();
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
     mLocalTachyonCluster =
         new LocalTachyonCluster(MEM_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
         mWorkerConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    mSetPinned = new SetStateOptions.Builder(mWorkerConf).setPinned(true).build();
+    mSetUnpinned = new SetStateOptions.Builder(mWorkerConf).setPinned(false).build();
   }
 
   // Tests that deletes go through despite failing initially due to concurrent read
@@ -85,9 +92,9 @@ public class TieredStoreIntegrationTest {
 
     Assert.assertTrue(mTFS.getInfo(file).getInMemoryPercentage() == 100);
     // Open the file
-    ClientOptions options =
-        new ClientOptions.Builder(new TachyonConf()).setTachyonStoreType(TachyonStorageType.STORE)
-            .build();
+    InStreamOptions options =
+        new InStreamOptions.Builder(new TachyonConf()).setTachyonStorageType(
+            TachyonStorageType.STORE).build();
     FileInStream in = mTFS.getInStream(file, options);
     Assert.assertEquals(0, in.read());
 
@@ -100,7 +107,7 @@ public class TieredStoreIntegrationTest {
     try {
       mTFS.open(new TachyonURI("/test1"));
       Assert.fail("file should not exist: /test1");
-    } catch (IOException ioe) {
+    } catch (TachyonException e) {
       // This is expected, since the file should not exist.
     }
 
@@ -130,7 +137,7 @@ public class TieredStoreIntegrationTest {
             UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // Pin the file
-    mTFS.setPin(file, true);
+    mTFS.setState(file, mSetPinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the pin with master
@@ -151,14 +158,14 @@ public class TieredStoreIntegrationTest {
         UnderStorageType.NO_PERSIST, MEM_CAPACITY_BYTES);
 
     // Pin the file
-    mTFS.setPin(file1, true);
+    mTFS.setState(file1, mSetPinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the pin with master
     Assert.assertTrue(mTFS.getInfo(file1).isIsPinned());
 
     // Unpin the file
-    mTFS.setPin(file1, false);
+    mTFS.setState(file1, mSetUnpinned);
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // Confirm the unpin
@@ -175,31 +182,57 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mTFS.getInfo(file2).getInMemoryPercentage() == 100);
   }
 
-  // TODO: Add this test back when CACHE_PROMOTE is enabled again
-  /*
-   * @Test public void promoteBlock() throws IOException, InterruptedException { int fileId1 =
-   * TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES
-   * / 6); int fileId2 = TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", WriteType.TRY_CACHE,
-   * MEM_CAPACITY_BYTES / 2); int fileId3 = TachyonFSTestUtils.createByteFile(mTFS, "/root/test3",
-   * WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
-   *
-   * CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
-   *
-   * TachyonFile file1 = mTFS.getFile(fileId1); TachyonFile file2 = mTFS.getFile(fileId2);
-   * TachyonFile file3 = mTFS.getFile(fileId3);
-   *
-   * Assert.assertEquals(false, file1.isInMemory()); Assert.assertEquals(true, file2.isInMemory());
-   * Assert.assertEquals(true, file3.isInMemory()); Assert.assertEquals(MEM_CAPACITY_BYTES / 6 +
-   * MEM_CAPACITY_BYTES, mLocalTachyonCluster.getMasterInfo().getUsedBytes());
-   *
-   * InStream is = file1.getInStream(ReadType.CACHE_PROMOTE); byte[] buf = new
-   * byte[MEM_CAPACITY_BYTES / 6]; int len = is.read(buf); is.close();
-   *
-   * CommonUtils.sleepMs(null, CommonUtils.getToMasterHeartBeatIntervalMs(mWorkerConf) * 2 + 10);
-   *
-   * Assert.assertEquals(MEM_CAPACITY_BYTES / 6, len); Assert.assertEquals(true,
-   * file1.isInMemory()); Assert.assertEquals(false, file2.isInMemory()); Assert.assertEquals(true,
-   * file3.isInMemory()); Assert.assertEquals(MEM_CAPACITY_BYTES / 6 + MEM_CAPACITY_BYTES,
-   * mLocalTachyonCluster.getMasterInfo().getUsedBytes()); }
-   */
+  @Test
+  public void promoteBlock() throws Exception {
+    TachyonFile file1 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", TachyonStorageType.STORE,
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 6);
+    TachyonFile file2 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", TachyonStorageType.STORE,
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 2);
+    TachyonFile file3 =
+        TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", TachyonStorageType.STORE,
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 2);
+
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+
+    TachyonFile toPromote = null;
+    int toPromoteLen = 0;
+    FileInfo file1Info = mTFS.getInfo(file1);
+    FileInfo file2Info = mTFS.getInfo(file2);
+    FileInfo file3Info = mTFS.getInfo(file3);
+
+    // We know some file will not be in memory, but not which one since we do not want to make
+    // any assumptions on the eviction policy
+    if (file1Info.getInMemoryPercentage() < 100) {
+      toPromote = file1;
+      toPromoteLen = (int) file1Info.getLength();
+      Assert.assertEquals(100, file2Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file3Info.getInMemoryPercentage());
+    } else if (file2Info.getInMemoryPercentage() < 100) {
+      toPromote = file2;
+      toPromoteLen = (int) file2Info.getLength();
+      Assert.assertEquals(100, file1Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file3Info.getInMemoryPercentage());
+    } else {
+      toPromote = file3;
+      toPromoteLen = (int) file3Info.getLength();
+      Assert.assertEquals(100, file1Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file2Info.getInMemoryPercentage());
+    }
+
+    FileInStream is =
+        mTFS.getInStream(
+            toPromote,
+            new InStreamOptions.Builder(mWorkerConf).setTachyonStorageType(
+                TachyonStorageType.PROMOTE).build());
+    byte[] buf = new byte[toPromoteLen];
+    int len = is.read(buf);
+    is.close();
+
+    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+
+    Assert.assertEquals(toPromoteLen, len);
+    Assert.assertEquals(100, mTFS.getInfo(toPromote).getInMemoryPercentage());
+  }
 }

@@ -17,15 +17,14 @@ package tachyon.client.block;
 
 import java.io.Closeable;
 import java.io.IOException;
-
-import com.google.common.base.Preconditions;
+import java.net.InetSocketAddress;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
-import tachyon.client.ClientOptions;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
+import tachyon.worker.WorkerClient;
 
 /**
  * Tachyon Block Store client. This is an internal client for all block level operations in Tachyon.
@@ -33,7 +32,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * class are completely opaque to user input (such as {@link ClientOptions}). This class is thread
  * safe.
  */
-public class TachyonBlockStore implements Closeable {
+public final class TachyonBlockStore implements Closeable {
 
   private static TachyonBlockStore sClient = null;
 
@@ -41,7 +40,7 @@ public class TachyonBlockStore implements Closeable {
    * @return a new instance of Tachyon block store
    */
   public static synchronized TachyonBlockStore get() {
-    if (null == sClient) {
+    if (sClient == null) {
       sClient = new TachyonBlockStore();
     }
     return sClient;
@@ -85,7 +84,7 @@ public class TachyonBlockStore implements Closeable {
    * @return a BlockInStream which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
-  public BlockInStream getInStream(long blockId) throws IOException {
+  public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Fix this RPC.
@@ -95,8 +94,20 @@ public class TachyonBlockStore implements Closeable {
         // TODO(calvin): Maybe this shouldn't be an exception.
         throw new IOException("No block " + blockId + " is not available in Tachyon");
       }
-      return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
-          .getWorkerAddress());
+      // TODO(calvin): Investigate making this a Factory method
+      NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
+      InetSocketAddress workerAddr =
+          new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
+      if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
+          workerAddr.getHostName())) {
+        if (mContext.hasLocalWorker()) {
+          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+        } else {
+          throw new IOException("Local read requested but there is no local worker.");
+        }
+      } else {
+        return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+      }
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -112,7 +123,7 @@ public class TachyonBlockStore implements Closeable {
    * @return a BlockOutStream which can be used to write data to the block in a streaming fashion
    * @throws IOException if the block cannot be written
    */
-  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, NetAddress location)
+  public BufferedBlockOutStream getOutStream(long blockId, long blockSize, String location)
       throws IOException {
     if (blockSize == -1) {
       BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
@@ -123,7 +134,7 @@ public class TachyonBlockStore implements Closeable {
       }
     }
     // No specified location to write to.
-    if (null == location) {
+    if (location == null) {
       // Local client, attempt to do direct write to local storage.
       if (mContext.hasLocalWorker()) {
         return new LocalBlockOutStream(blockId, blockSize);
@@ -132,12 +143,15 @@ public class TachyonBlockStore implements Closeable {
       return new RemoteBlockOutStream(blockId, blockSize);
     }
     // Location is local.
-    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location.getHost())) {
-      Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
-      return new LocalBlockOutStream(blockId, blockSize);
+    if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location)) {
+      if (mContext.hasLocalWorker()) {
+        return new LocalBlockOutStream(blockId, blockSize);
+      } else {
+        throw new IOException("Local write requested but there is no local worker.");
+      }
     }
-    // TODO(calvin): Handle the case when a location is specified.
-    return null;
+    // Location is specified and it is remote.
+    return new RemoteBlockOutStream(blockId, blockSize, location);
   }
 
   /**
@@ -164,6 +178,36 @@ public class TachyonBlockStore implements Closeable {
     BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
     try {
       return blockMasterClient.getUsedBytes();
+    } finally {
+      mContext.releaseMasterClient(blockMasterClient);
+    }
+  }
+
+  /**
+   * Attempts to promote a block in Tachyon space. If the block is not present, this method will
+   * return without an error. If the block is present in multiple workers, only one worker will
+   * receive the promotion request.
+   *
+   * @param blockId the id of the block to promote
+   * @throws IOException if the block does not exist
+   */
+  public void promote(long blockId) throws IOException {
+    BlockMasterClient blockMasterClient = mContext.acquireMasterClient();
+    try {
+      BlockInfo info = blockMasterClient.getBlockInfo(blockId);
+      if (info.getLocations().isEmpty()) {
+        // Nothing to promote
+        return;
+      }
+      // Get the first worker address for now, as this will likely be the location being read from
+      // TODO: Get this location via a policy (possibly location is a parameter to promote)
+      NetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
+      WorkerClient workerClient = mContext.acquireWorkerClient(workerAddr.getHost());
+      try {
+        workerClient.promoteBlock(blockId);
+      } finally {
+        mContext.releaseWorkerClient(workerClient);
+      }
     } finally {
       mContext.releaseMasterClient(blockMasterClient);
     }

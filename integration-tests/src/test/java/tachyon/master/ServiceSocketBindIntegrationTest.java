@@ -23,6 +23,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,9 +35,6 @@ import tachyon.conf.TachyonConf;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.worker.WorkerClient;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
 
 /**
  * Simple integration tests for the bind configuration options.
@@ -59,13 +57,13 @@ public class ServiceSocketBindIntegrationTest {
     mExecutorService.shutdown();
   }
 
-  private final void startCluster(String bindHost) throws Exception {
-    TachyonConf tachyonConf = new TachyonConf();
+  private void startCluster(String bindHost) throws Exception {
+    TachyonConf tachyonConf = MasterContext.getConf();
     for (ServiceType service : ServiceType.values()) {
       tachyonConf.set(service.getBindHostKey(), bindHost);
     }
     mLocalTachyonCluster = new LocalTachyonCluster(100, 100, Constants.GB);
-    mLocalTachyonCluster.start(tachyonConf);
+    mLocalTachyonCluster.start();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
   }
@@ -141,36 +139,36 @@ public class ServiceSocketBindIntegrationTest {
 
     // test Master RPC socket bind (session layer)
     String bindHost = mLocalTachyonCluster.getMaster().getRPCBindHost();
-    assertThat("Master RPC bind address " + bindHost + "is not wildcard address", bindHost,
-        containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+    Assert.assertThat("Master RPC bind address " + bindHost + "is not wildcard address", bindHost,
+        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Master RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
     // test Worker RPC socket bind (session layer)
     bindHost = mLocalTachyonCluster.getWorker().getRPCBindHost();
-    assertThat("Worker RPC address " + bindHost + "is not wildcard address", bindHost,
-        containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+    Assert.assertThat("Worker RPC address " + bindHost + "is not wildcard address", bindHost,
+        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker RPC service connectivity (application layer)
     Assert.assertTrue(mBlockMasterClient.isConnected());
 
     // test Worker data socket bind (session layer)
     bindHost = mLocalTachyonCluster.getWorker().getDataBindHost();
-    assertThat("Worker Data bind address " + bindHost + "is not wildcard address", bindHost,
-        containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+    Assert.assertThat("Worker Data bind address " + bindHost + "is not wildcard address", bindHost,
+        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker data service connectivity (application layer)
     Assert.assertTrue(mWorkerDataService.isConnected());
 
     // test Master Web socket bind (session layer)
     bindHost = mLocalTachyonCluster.getMaster().getWebBindHost();
-    assertThat("Master Web bind address " + bindHost + "is not wildcard address", bindHost,
-        containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+    Assert.assertThat("Master Web bind address " + bindHost + "is not wildcard address", bindHost,
+        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Master Web service connectivity (application layer)
     Assert.assertEquals(200, mMasterWebService.getResponseCode());
 
     // test Worker Web socket bind (session layer)
     bindHost = mLocalTachyonCluster.getWorker().getWebBindHost();
-    assertThat("Worker Web bind address " + bindHost + "is not wildcard address", bindHost,
-        containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
+    Assert.assertThat("Worker Web bind address " + bindHost + "is not wildcard address", bindHost,
+        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
     // test Worker Web service connectivity (application layer)
     Assert.assertEquals(200, mWorkerWebService.getResponseCode());
 

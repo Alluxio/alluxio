@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Unit test for {@link tachyon.security.User}
  */
-public class UserTest {
+public final class UserTest {
 
   /**
    * This test verifies whether the {@link tachyon.security.User} could be used in Java security

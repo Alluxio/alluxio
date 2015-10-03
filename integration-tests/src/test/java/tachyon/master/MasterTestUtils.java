@@ -22,18 +22,16 @@ import tachyon.conf.TachyonConf;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
+import tachyon.master.journal.ReadWriteJournal;
 
 public class MasterTestUtils {
   public static FileSystemMaster createFileSystemMasterFromJournal(TachyonConf tachyonConf)
       throws IOException {
     String masterJournal = tachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
-    Journal blockJournal = new Journal(BlockMaster.getJournalDirectory(masterJournal),
-        tachyonConf);
-    Journal fsJournal = new Journal(FileSystemMaster.getJournalDirectory(masterJournal),
-        tachyonConf);
-
-    BlockMaster blockMaster = new BlockMaster(blockJournal, tachyonConf);
-    FileSystemMaster fsMaster = new FileSystemMaster(tachyonConf, blockMaster, fsJournal);
+    Journal blockJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(masterJournal));
+    Journal fsJournal = new ReadWriteJournal(FileSystemMaster.getJournalDirectory(masterJournal));
+    BlockMaster blockMaster = new BlockMaster(blockJournal);
+    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, fsJournal);
     blockMaster.start(true);
     fsMaster.start(true);
     return fsMaster;

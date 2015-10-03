@@ -17,6 +17,7 @@ package tachyon.worker.block;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,8 +26,8 @@ import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.NotFoundException;
 import tachyon.master.block.BlockId;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDirView;
@@ -35,9 +36,11 @@ import tachyon.worker.block.meta.StorageTierView;
 
 /**
  * This class exposes a narrower view of {@link BlockMetadataManager} to Evictors and Allocators,
- * filtering out un-evictable blocks and un-allocatable space (TODO) internally, so that evictors
- * and allocators can be developed with much simpler logic, without worrying about various
- * constraints, e.g. pinned files, locked blocks, etc.
+ * filtering out un-evictable blocks and un-allocatable space internally, so that evictors and
+ * allocators can be developed with much simpler logic, without worrying about various constraints,
+ * e.g. pinned files, locked blocks, etc.
+ *
+ * TODO(cc): Filter un-allocatable space.
  */
 public class BlockMetadataManagerView {
 
@@ -54,7 +57,7 @@ public class BlockMetadataManagerView {
 
   /**
    * Constructor of BlockMatadataManagerView. Now we always creating a new view before freespace.
-   * TODO: incrementally update the view
+   * TODO(qifan): Incrementally update the view.
    *
    * @param manager which the view should be constructed from
    * @param pinnedInodes a set of pinned inodes
@@ -150,7 +153,7 @@ public class BlockMetadataManagerView {
    */
   public StorageTierView getTierView(int tierAlias) {
     StorageTierView tierView = mAliasToTierViews.get(tierAlias);
-    if (null == tierView) {
+    if (tierView == null) {
       throw new IllegalArgumentException(
           ExceptionMessage.TIER_VIEW_ALIAS_NOT_FOUND.getMessage(tierAlias));
     } else {
@@ -164,7 +167,7 @@ public class BlockMetadataManagerView {
    * @return the list of StorageTierViews
    */
   public List<StorageTierView> getTierViews() {
-    return mTierViews;
+    return Collections.unmodifiableList(mTierViews);
   }
 
   /**
@@ -211,9 +214,9 @@ public class BlockMetadataManagerView {
    *
    * @param blockId the block ID
    * @return metadata of the block or null
-   * @throws NotFoundException if no BlockMeta for this blockId is found
+   * @throws BlockDoesNotExistException if no BlockMeta for this blockId is found
    */
-  public BlockMeta getBlockMeta(long blockId) throws NotFoundException {
+  public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
     if (isBlockEvictable(blockId)) {
       return mMetadataManager.getBlockMeta(blockId);
     } else {
