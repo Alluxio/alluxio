@@ -177,7 +177,7 @@ public class MasterClientAuthenticationIntegrationTest {
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
-    masterClient.createFile(filename, Constants.DEFAULT_BLOCK_SIZE_BYTE, true, Constants.NO_TTL);
+    masterClient.create(filename, Constants.DEFAULT_BLOCK_SIZE_BYTE, true, Constants.NO_TTL);
     Assert.assertNotNull(masterClient.getFileId(filename));
     masterClient.disconnect();
     masterClient.close();
