@@ -24,6 +24,7 @@ import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.metrics.MetricsSystem;
+import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
@@ -335,9 +337,15 @@ public final class BlockWorker {
     int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
+    TTransportFactory tTransportFactory;
+    try {
+      tTransportFactory = AuthenticationUtils.getServerTransportFactory(mTachyonConf);
+    } catch (IOException ioe) {
+      throw Throwables.propagate(ioe);
+    }
     return new TThreadPoolServer(new TThreadPoolServer.Args(mThriftServerSocket)
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
-        .transportFactory(new TFramedTransport.Factory())
+        .transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true)));
   }
 
