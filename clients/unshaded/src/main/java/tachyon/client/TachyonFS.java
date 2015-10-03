@@ -316,7 +316,7 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeByte > 0) {
-        return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive,
+        return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive,
             Constants.NO_TTL);
       } else {
         return mFSMasterClient.loadMetadata(path.getPath(), recursive);
@@ -850,7 +850,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.createDirectory(path.getPath(), recursive);
+      return mFSMasterClient.mkdir(path.getPath(), recursive);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
