@@ -13,37 +13,39 @@
  * the License.
  */
 
-package tachyon.worker;
-
-import tachyon.conf.TachyonConf;
+package tachyon.security.authentication;
 
 /**
- * A WorkerContext object stores TachyonConf.
+ * Different authentication types for Tachyon.
  */
-public final class WorkerContext {
-  private WorkerContext() {} // to prevent initialization
+public enum AuthType {
+  /**
+   * Authentication is disabled. No user info in Tachyon.
+   */
+  NOSASL,
 
   /**
-   * The static configuration object. There is only one TachyonConf object shared within the same
-   * worker process.
+   * User is aware in Tachyon. Login user is OS user. The verification of client user is disabled.
    */
-  private static TachyonConf sTachyonConf = new TachyonConf();
+  SIMPLE,
 
   /**
-   * Returns the one and only static {@link TachyonConf} object which is shared among all classes
-   * within the worker process.
-   *
-   * @return the tachyonConf for the worker process
+   * User is aware in Tachyon. Login user is OS user. The user is verified by Custom
+   * authentication provider (Use with property tachyon.security.authentication.custom.provider
+   * .class).
    */
-  public static TachyonConf getConf() {
-    return sTachyonConf;
-  }
+  CUSTOM,
 
   /**
-   * Reset the TachyonConf instance in worker context, for test only.
-   * TODO(binfan): consider a better way to mock test TachyonConf
+   * User is aware in Tachyon. The user is verified by Kerberos authentication. NOTE: this
+   * authentication is not supported.
    */
-  public static void resetConf() {
-    sTachyonConf = new TachyonConf();
+  KERBEROS;
+
+  /**
+   * @return the string value of AuthType
+   */
+  public String getAuthName() {
+    return name();
   }
 }

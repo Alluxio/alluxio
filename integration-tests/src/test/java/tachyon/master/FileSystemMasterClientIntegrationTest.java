@@ -61,7 +61,7 @@ public class FileSystemMasterClientIntegrationTest {
     Assert.assertFalse(fsMasterClient.isConnected());
     fsMasterClient.connect();
     Assert.assertTrue(fsMasterClient.isConnected());
-    fsMasterClient.createFile("/file", Constants.DEFAULT_BLOCK_SIZE_BYTE, true, Constants.NO_TTL);
+    fsMasterClient.create("/file", Constants.DEFAULT_BLOCK_SIZE_BYTE, true, Constants.NO_TTL);
     Assert.assertTrue(fsMasterClient.getFileInfo(fsMasterClient.getFileId("/file")) != null);
     fsMasterClient.disconnect();
     Assert.assertFalse(fsMasterClient.isConnected());
