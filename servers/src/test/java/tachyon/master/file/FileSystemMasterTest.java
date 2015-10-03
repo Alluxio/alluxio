@@ -29,14 +29,13 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
@@ -118,7 +117,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
@@ -126,7 +125,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void createFileWithTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true, 1);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 1);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.fileId, fileId);
     CommonUtils.sleepMs(5000);
@@ -136,7 +135,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void isDirectoryTest() throws Exception {
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
     Assert.assertFalse(mFileSystemMaster.isDirectory(fileId));
     Assert.assertTrue(mFileSystemMaster.isDirectory(mFileSystemMaster.getFileId(NESTED_URI)));
   }
@@ -144,7 +143,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
@@ -159,7 +158,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void renameTest() throws Exception {
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
 
     // move a nested file to root
     Assert.assertFalse(mFileSystemMaster.rename(fileId, ROOT_URI));
@@ -180,7 +179,7 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Could not find path: /nested/test");
 
-    long fileId = mFileSystemMaster.createFile(TEST_URI, Constants.KB, false);
+    long fileId = mFileSystemMaster.create(TEST_URI, Constants.KB, false);
 
     // nested dir
     Assert.assertFalse(mFileSystemMaster.rename(fileId, NESTED_FILE_URI));
@@ -191,7 +190,7 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Failed to rename: /nested/test is a prefix of /nested/test/file");
 
-    long fileId = mFileSystemMaster.createFile(NESTED_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_URI, Constants.KB, true);
     mFileSystemMaster.rename(fileId, NESTED_FILE_URI);
   }
 
@@ -221,7 +220,7 @@ public final class FileSystemMasterTest {
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
-    long fileId = mFileSystemMaster.createFile(uri, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(uri, Constants.KB, true);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
     mFileSystemMaster.completeFile(fileId);

@@ -17,23 +17,17 @@ package tachyon.master.lineage;
 
 import java.util.List;
 
-import org.apache.thrift.TException;
-
 import com.google.common.collect.Lists;
 
 import tachyon.TachyonURI;
+import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.JobConf;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.CommandLineJobInfo;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.LineageCommand;
-import tachyon.thrift.LineageDeletionException;
-import tachyon.thrift.LineageDoesNotExistException;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
+import tachyon.thrift.TachyonTException;
 
 public final class LineageMasterServiceHandler implements LineageMasterService.Iface {
   private final LineageMaster mLineageMaster;
@@ -44,8 +38,7 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
 
   @Override
   public long createLineage(List<String> inputFiles, List<String> outputFiles,
-      CommandLineJobInfo jobInfo)
-          throws InvalidPathException, FileAlreadyExistException, BlockInfoException {
+      CommandLineJobInfo jobInfo) throws TachyonTException {
     // deserialization
     List<TachyonURI> inputFilesUri = Lists.newArrayList();
     for (String inputFile : inputFiles) {
@@ -58,35 +51,53 @@ public final class LineageMasterServiceHandler implements LineageMasterService.I
 
     CommandLineJob job =
         new CommandLineJob(jobInfo.command, new JobConf(jobInfo.getConf().outputFile));
-    return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
+    try {
+      return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
-  public boolean deleteLineage(long lineageId, boolean cascade)
-      throws LineageDoesNotExistException, LineageDeletionException {
-    return mLineageMaster.deleteLineage(lineageId, cascade);
+  public boolean deleteLineage(long lineageId, boolean cascade) throws TachyonTException {
+    try {
+      return mLineageMaster.deleteLineage(lineageId, cascade);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
-  public void asyncCompleteFile(long fileId)
-      throws FileDoesNotExistException, BlockInfoException {
-    mLineageMaster.asyncCompleteFile(fileId);
+  public void asyncCompleteFile(long fileId) throws TachyonTException {
+    try {
+      mLineageMaster.asyncCompleteFile(fileId);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
   public long reinitializeFile(String path, long blockSizeBytes, long ttl)
-      throws InvalidPathException, LineageDoesNotExistException {
-    return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
+      throws TachyonTException {
+    try {
+      return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
   public LineageCommand workerLineageHeartbeat(long workerId, List<Long> persistedFiles)
-      throws TException {
-    return mLineageMaster.lineageWorkerHeartbeat(workerId, persistedFiles);
+      throws TachyonTException {
+    try {
+      return mLineageMaster.lineageWorkerHeartbeat(workerId, persistedFiles);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
-  public List<LineageInfo> getLineageInfoList() throws TException {
+  public List<LineageInfo> getLineageInfoList() {
     return mLineageMaster.getLineageInfoList();
   }
 }

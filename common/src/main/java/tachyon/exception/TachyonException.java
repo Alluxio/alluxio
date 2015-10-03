@@ -15,15 +15,60 @@
 
 package tachyon.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import tachyon.Constants;
+import tachyon.thrift.TachyonTException;
+
+/**
+ * General TachyonException used throughout the system. It must be able serialize itself to the RPC
+ * framework and convert back without losing any necessary information.
+ */
 public class TachyonException extends Exception {
   private TachyonExceptionType mType;
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public TachyonException(Exception e, TachyonExceptionType type) {
-    super(e.getMessage());
+  public TachyonException(TachyonTException te) {
+    super(te.getMessage());
+    mType = TachyonExceptionType.valueOf(te.type);
+  }
+
+  protected TachyonException(TachyonExceptionType type, Throwable cause) {
+    super(cause);
+    mType = type;
+  }
+
+  protected TachyonException(TachyonExceptionType type, String message) {
+    super(message);
+    mType = type;
+  }
+
+  protected TachyonException(TachyonExceptionType type, String message, Throwable cause) {
+    super(message, cause);
     mType = type;
   }
 
   public TachyonExceptionType getType() {
     return mType;
+  }
+
+  public TachyonTException toTachyonTException() {
+    return new TachyonTException(mType.name(), getMessage());
+  }
+
+  public static <T extends TachyonException> void unwrap(TachyonException e, Class<T> throwClass)
+      throws T {
+    try {
+      T throwInstance =
+          throwClass.getConstructor(String.class, Throwable.class).newInstance(e.getMessage(), e);
+      if (e.getType() == throwInstance.getType()) {
+        throw throwInstance;
+      }
+    } catch (ReflectiveOperationException roe) {
+      // They passed us an exception class that couldn't be instantiated with a string and
+      // throwable, so we can ignore it
+      LOG.error("Class passed to unwrap is invalid: ", throwClass.getName());
+    }
   }
 }
