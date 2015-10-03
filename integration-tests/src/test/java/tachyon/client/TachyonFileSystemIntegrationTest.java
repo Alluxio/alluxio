@@ -35,8 +35,8 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.GetInfoOptions;
 import tachyon.client.file.options.InStreamOptions;
-import tachyon.client.file.options.IsCompletedOptions;
 import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.WaitCompletedOptions;
@@ -219,14 +219,17 @@ public class TachyonFileSystemIntegrationTest {
         FileOutStream os = null;
         try {
           os = sTfs.getOutStream(uri, sWriteBoth);
-          final TachyonFile f = sTfs.open(uri);
-          Assert.assertFalse(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+          final TachyonFile file = sTfs.open(uri);
+          boolean completed = 
+              sTfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+          Assert.assertFalse(completed);
           for (int i = 0; i < numWrites; i++) {
             os.write(42);
             CommonUtils.sleepMs(200);
           }
           os.close();
-          Assert.assertTrue(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+          completed = sTfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+          Assert.assertTrue(completed);
         } catch (Exception e) {
           Assert.fail(e.getMessage());
         }
@@ -240,8 +243,10 @@ public class TachyonFileSystemIntegrationTest {
         try {
           boolean completed = sTfs.waitCompleted(uri);
           Assert.assertTrue(completed);
-          TachyonFile f = sTfs.open(uri);
-          Assert.assertTrue(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+          final TachyonFile file = sTfs.open(uri);
+          completed = 
+              sTfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+          Assert.assertTrue(completed);
         } catch (Exception e) {
           e.printStackTrace();
           Assert.fail(e.getMessage());
@@ -272,15 +277,18 @@ public class TachyonFileSystemIntegrationTest {
         FileOutStream os = null;
         try {
           os = sTfs.getOutStream(uri, sWriteBoth);
-          final TachyonFile f = sTfs.open(uri);
-          Assert.assertFalse(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+          final TachyonFile file = sTfs.open(uri);
+          boolean completed = 
+              sTfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+          Assert.assertFalse(completed);
           // four writes that will take > 600ms due to the sleeps
           for (int i = 0; i < numWrites; i++) {
             os.write(42);
             CommonUtils.sleepMs(200);
           }
           os.close();
-          Assert.assertTrue(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+          completed = sTfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+          Assert.assertTrue(completed);
         } catch (Exception e) {
           Assert.fail(e.getMessage());
         }
@@ -299,10 +307,11 @@ public class TachyonFileSystemIntegrationTest {
           final WaitCompletedOptions opts = (new WaitCompletedOptions.Builder(
               conf)).setTimeout(300, TimeUnit.MILLISECONDS).build();
           // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
-          final boolean completed = sTfs.waitCompleted(uri, opts);
+          boolean completed = sTfs.waitCompleted(uri, opts);
           Assert.assertFalse(completed);
-          TachyonFile f = sTfs.open(uri);
-          Assert.assertFalse(sTfs.isCompleted(f, IsCompletedOptions.defaults()));
+          final TachyonFile file = sTfs.open(uri);
+          completed = sTfs.getInfo(file, GetInfoOptions.defaults()).isCompleted;
+          Assert.assertFalse(completed);
         } catch (Exception e) {
           e.printStackTrace();
           Assert.fail(e.getMessage());
