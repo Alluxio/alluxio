@@ -32,7 +32,6 @@ import tachyon.client.file.options.CreateOptions;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.FreeOptions;
 import tachyon.client.file.options.GetInfoOptions;
-import tachyon.client.file.options.IsCompletedOptions;
 import tachyon.client.file.options.ListStatusOptions;
 import tachyon.client.file.options.LoadMetadataOptions;
 import tachyon.client.file.options.MkdirOptions;
@@ -133,20 +132,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
-  }
-
-  /**
-   * Convenience method for {@link #getInfo(TachyonFile, GetInfoOptions)} + {@link
-   * FileInfo#isCompleted}
-   * @param file the file whose completion status is to be queried
-   * @param options {@link IsCompletedOptions} for the call
-   * @return true if the last status known for the file on the master was "completed"
-   * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if a Tachyon exception occurs
-   */
-  public boolean isCompleted(TachyonFile file, IsCompletedOptions options) throws IOException,
-    TachyonException {
-    return getInfo(file, GetInfoOptions.defaults()).isCompleted;
   }
 
   /**
@@ -310,7 +295,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     final TimeUnit tunit = options.getTunit();
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
     final long pollPeriod = options.getPollPeriodMillis();
-    final IsCompletedOptions opts = IsCompletedOptions.defaults();
 
     TachyonFile file = null;
     boolean complete = false ;
@@ -333,7 +317,7 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
       }
 
       if (file != null) {
-        complete = isCompleted(file, opts);
+        complete = getInfo(file, GetInfoOptions.defaults()).isCompleted;
       }
 
       if (!complete) {
