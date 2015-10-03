@@ -59,9 +59,6 @@ public final class Constants {
   public static final int DEFAULT_WORKER_DATA_PORT = DEFAULT_WORKER_PORT + 1;
   public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
-  public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
-  public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
-
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
   public static final boolean DEFAULT_USER_ENABLE_LOCAL_READ = true;
