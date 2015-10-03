@@ -173,10 +173,10 @@ service FileSystemMasterService {
       7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
     throws (1: TachyonTException e)
 
-  bool createDirectory(1: string path, 2: bool recursive)
+  bool mkdir(1: string path, 2: bool recursive)
     throws (1: TachyonTException e)
 
-  i64 createFile(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
+  i64 create(1: string path, 2: i64 blockSizeBytes, 3: bool recursive, 4: i64 ttl)
     throws (1: TachyonTException e)
 
   bool deleteFile(1: i64 fileId, 2: bool recursive)
