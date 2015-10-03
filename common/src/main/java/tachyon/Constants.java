@@ -312,5 +312,13 @@ public final class Constants {
   // ttl related
   public static final long NO_TTL = -1;
 
+  // TODO(binfan): explaine the following three properties in the configuration page in docs/
+  /** Security */
+  public static final String SECURITY_LOGIN_USERNAME = "tachyon.security.login.username";
+  // Authentication
+  public static final String SECURITY_AUTHENTICATION_TYPE = "tachyon.security.authentication.type";
+  public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
+      "tachyon.security.authentication.custom.provider.class";
+
   private Constants() {} // prevent instantiation
 }

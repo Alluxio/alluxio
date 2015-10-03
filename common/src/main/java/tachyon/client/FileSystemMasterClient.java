@@ -241,13 +241,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
+  public synchronized long create(String path, long blockSizeBytes, boolean recursive, long ttl)
           throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createFile(path, blockSizeBytes, recursive, ttl);
+        return mClient.create(path, blockSizeBytes, recursive, ttl);
       } catch (TachyonTException e) {
         throw new TachyonException(e);
       } catch (TException e) {
@@ -371,13 +371,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws IOException if an I/O error occurs
    * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized boolean createDirectory(String path, boolean recursive) throws IOException,
+  public synchronized boolean mkdir(String path, boolean recursive) throws IOException,
       TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createDirectory(path, recursive);
+        return mClient.mkdir(path, recursive);
       } catch (TachyonTException e) {
         throw new TachyonException(e);
       } catch (TException e) {
