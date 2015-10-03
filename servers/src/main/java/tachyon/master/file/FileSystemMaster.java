@@ -980,6 +980,8 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path of the directory
    * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,
    *        the parent directories must already exist
+   * @return a {@link InodeTree.CreatePathResult} representing the modified inodes and created
+   *         inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
@@ -1340,7 +1342,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param path the path for which metadata should be loaded
    * @param recursive whether parent directories should be created if they do not already exist
-   * @return
+   * @return the file id of the loaded path
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileAlreadyExistsException if the object to be loaded already exists
    * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
@@ -1348,7 +1350,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws SuspectedFileSizeException if invalid file size is encountered
    * @throws IOException if an I/O error occurs
    */
-  // TODO(jiri): Make it possible to load directories and not just individual files.
+  // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
       InvalidPathException, SuspectedFileSizeException, IOException {
