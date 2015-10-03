@@ -39,6 +39,7 @@ import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.IdUtils;
 
 /**
  * Unit tests for tachyon.master.filesystem.FileSystemMaster.
@@ -96,7 +97,7 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // verify the file is deleted
-    Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
   }
 
   @Test

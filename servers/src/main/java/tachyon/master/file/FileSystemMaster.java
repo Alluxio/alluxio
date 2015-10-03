@@ -331,13 +331,12 @@ public final class FileSystemMaster extends MasterBase {
    * @return the file id for a given path, or -1 if there is no file at that path
    */
   public long getFileId(TachyonURI path) {
-    // TODO(manugoyal) make sure client and master agree that -1 is an invalid file id
     synchronized (mInodeTree) {
       Inode inode;
       try {
         inode = mInodeTree.getInodeByPath(path);
       } catch (InvalidPathException e) {
-        return -1;
+        return IdUtils.INVALID_FILE_ID;
       }
       return inode.getId();
     }

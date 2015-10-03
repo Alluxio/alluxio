@@ -121,7 +121,7 @@ public class FileSystemMasterIntegrationTest {
 
     private void doDelete(TachyonURI path) throws Exception {
       mFsMaster.deleteFile(mFsMaster.getFileId(path), true);
-      Assert.assertEquals(-1, mFsMaster.getFileId(path));
+      Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
     }
 
     public void exec(int depth, int concurrencyDepth, TachyonURI path) throws Exception {
@@ -384,8 +384,9 @@ public class FileSystemMasterIntegrationTest {
   public void createFilePerfTest() throws Exception {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mFsMaster.mkdir(new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k)
-          .join("0"), true);
+      mFsMaster.mkdir(
+          new TachyonURI("/testFile").join(Constants.MASTER_COLUMN_FILE_PREFIX + k).join("0"),
+          true);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
@@ -417,9 +418,9 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(2, mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
-            mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
+        mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    Assert.assertEquals(-1,
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new TachyonURI("/testFolder/testFolder2/testFile2")));
   }
 
@@ -455,7 +456,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFsMaster.getFileId(new TachyonURI("/testFolder")));
   }
 
   @Test
@@ -476,7 +478,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), true);
     Assert.assertEquals(1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertTrue(mFsMaster.deleteFile(1, true));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFolder")));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFsMaster.getFileId(new TachyonURI("/testFolder")));
   }
 
   @Test
@@ -485,7 +488,7 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.create(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
     Assert.assertEquals(fileId, mFsMaster.getFileId(new TachyonURI("/testFile")));
     Assert.assertTrue(mFsMaster.deleteFile(fileId, true));
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFile")));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new TachyonURI("/testFile")));
   }
 
   @Test
@@ -633,7 +636,7 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void renameNonexistentTest() throws Exception {
     mFsMaster.create(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertEquals(-1, mFsMaster.getFileId(new TachyonURI("/testFile2")));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new TachyonURI("/testFile2")));
   }
 
   @Test
