@@ -94,8 +94,8 @@ public class SpaceReserverTest {
       TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore,
           tier0);
     }
-    CommonUtils.sleepMs(WorkerContext.getConf()
-        .getLong(Constants.WORKER_SPACE_RESERVER_INTERVAL_MS));
+    CommonUtils
+        .sleepMs(2 * WorkerContext.getConf().getLong(Constants.WORKER_SPACE_RESERVER_INTERVAL_MS));
     BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
     Assert.assertEquals(3 * BLOCK_SIZE, storeMeta.getUsedBytes());
     List<Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
@@ -108,8 +108,8 @@ public class SpaceReserverTest {
     for (int i = 0; i < 7; i ++) {
       TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore, tier0);
     }
-    CommonUtils.sleepMs(WorkerContext.getConf()
-        .getLong(Constants.WORKER_SPACE_RESERVER_INTERVAL_MS));
+    CommonUtils
+        .sleepMs(2 * WorkerContext.getConf().getLong(Constants.WORKER_SPACE_RESERVER_INTERVAL_MS));
     storeMeta = mBlockStore.getBlockStoreMeta();
     Assert.assertEquals(9 * BLOCK_SIZE, storeMeta.getUsedBytes());
     usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
