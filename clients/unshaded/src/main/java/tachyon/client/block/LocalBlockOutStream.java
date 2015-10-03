@@ -17,11 +17,12 @@ package tachyon.client.block;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -36,7 +37,8 @@ import tachyon.worker.WorkerClient;
  * input to a file in local Tachyon storage. The instances of this class should only be used by one
  * thread and are not thread safe.
  */
-public class LocalBlockOutStream extends BufferedBlockOutStream {
+public final class LocalBlockOutStream extends BufferedBlockOutStream {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
   private final WorkerClient mWorkerClient;
   private final FileChannel mLocalFileChannel;
@@ -64,8 +66,7 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
       RandomAccessFile localFile = mCloser.register(new RandomAccessFile(blockPath, "rw"));
       mLocalFileChannel = mCloser.register(localFile.getChannel());
       // Change the permission of the temporary file in order that the worker can move it.
-      FileUtils.changeLocalFileToFullPermission(blockPath);
-      // TODO(calvin): Add a log message to indicate the file creation.
+      LOG.info("LocalBlockOutStream created new file block, block path: " + blockPath);
     } catch (IOException ioe) {
       mContext.releaseWorkerClient(mWorkerClient);
       throw ioe;
@@ -92,6 +93,7 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
     mCloser.close();
     if (mWrittenBytes > 0) {
       mWorkerClient.cacheBlock(mBlockId);
+      ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
     }
     mContext.releaseWorkerClient(mWorkerClient);
     mClosed = true;
@@ -110,6 +112,7 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
     mReservedBytes -= bytesToWrite;
     mFlushedBytes += bytesToWrite;
     mBuffer.clear();
+    ClientContext.getClientMetrics().incBytesWrittenLocal(bytesToWrite);
   }
 
   @Override
@@ -123,6 +126,7 @@ public class LocalBlockOutStream extends BufferedBlockOutStream {
     BufferUtils.cleanDirectBuffer(mappedBuffer);
     mReservedBytes -= len;
     mFlushedBytes += len;
+    ClientContext.getClientMetrics().incBytesWrittenLocal(len);
   }
 
   private long requestSpace(long requestBytes) throws IOException {

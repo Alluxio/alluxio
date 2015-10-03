@@ -16,24 +16,32 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
+import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 
 /**
  * Tachyon File.
+ *
+ * As of 0.8, replaced by {@link TachyonFileSystem}
  */
 @Deprecated
 public class TachyonFile implements Comparable<TachyonFile> {
@@ -57,7 +65,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonFile(TachyonFS tfs, long fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
-    mTFS = TachyonFileSystem.get();
+    mTFS = TachyonFileSystemFactory.get();
     mFileId = fid;
     mTachyonConf = tachyonConf;
   }
@@ -132,7 +140,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return the replication factor.
    */
   public int getDiskReplication() {
-    // TODO(haoyuan): Implement it.
+    // TODO(hy): Implement it.
     return 3;
   }
 
@@ -150,7 +158,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("ReadType can not be null.");
     }
 
-    if (!isComplete()) {
+    if (!isCompleted()) {
       throw new IOException("The file " + this + " is not complete.");
     }
 
@@ -160,14 +168,17 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     FileInfo info = getUnCachedFileStatus();
     TachyonURI uri = new TachyonURI(info.getPath());
-    ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
-    optionsBuilder.setBlockSize(info.getBlockSizeBytes());
+    InStreamOptions.Builder optionsBuilder = new InStreamOptions.Builder(mTachyonConf);
     if (readType.isCache()) {
-      optionsBuilder.setTachyonStoreType(TachyonStorageType.STORE);
+      optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
     } else {
-      optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
+      optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
-    return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
+    try {
+      return mTFS.getInStream(mTFS.open(uri), optionsBuilder.build());
+    } catch (TachyonException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   /**
@@ -181,8 +192,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public String getLocalFilename(int blockIndex) throws IOException {
-    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    long blockId = blockInfo.getBlockId();
+    FileBlockInfo fileBlockInfo = getClientBlockInfo(blockIndex);
+    long blockId = fileBlockInfo.blockInfo.getBlockId();
     int blockLockId = mTachyonFS.getBlockLockId();
     String filename = mTachyonFS.lockBlock(blockId, blockLockId);
     if (filename != null) {
@@ -198,11 +209,19 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public List<String> getLocationHosts() throws IOException {
-    List<String> ret = new ArrayList<String>();
+    List<String> ret = Lists.newArrayList();
     if (getNumberOfBlocks() > 0) {
-      List<NetAddress> locations = getClientBlockInfo(0).getLocations();
-      if (locations != null) {
-        for (NetAddress location : locations) {
+      // add tachyon locations first
+      List<BlockLocation> blockLocations = getClientBlockInfo(0).getBlockInfo().getLocations();
+      if (blockLocations != null) {
+        for (BlockLocation location : blockLocations) {
+          ret.add(location.workerAddress.host);
+        }
+      }
+      // under FS locations
+      List<NetAddress> underFsLocations = getClientBlockInfo(0).getUfsLocations();
+      if (underFsLocations != null) {
+        for (NetAddress location : underFsLocations) {
           ret.add(location.host);
         }
       }
@@ -230,7 +249,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
   public FileOutStream getOutStream(WriteType writeType) throws IOException {
-    if (isComplete()) {
+    if (isCompleted()) {
       throw new IOException("Overriding after completion not supported.");
     }
 
@@ -239,16 +258,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     FileInfo info = getUnCachedFileStatus();
-    ClientOptions.Builder optionsBuilder = new ClientOptions.Builder(mTachyonConf);
+    OutStreamOptions.Builder optionsBuilder = new OutStreamOptions.Builder(mTachyonConf);
     optionsBuilder.setBlockSize(info.getBlockSizeBytes());
 
     if (writeType.isCache()) {
-      optionsBuilder.setTachyonStoreType(TachyonStorageType.STORE);
+      optionsBuilder.setTachyonStorageType(TachyonStorageType.STORE);
     } else {
-      optionsBuilder.setTachyonStoreType(TachyonStorageType.NO_STORE);
+      optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
     if (writeType.isThrough()) {
-      optionsBuilder.setUnderStorageType(UnderStorageType.PERSIST);
+      optionsBuilder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);
     } else {
       optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
     }
@@ -274,22 +293,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return mUFSConf;
   }
 
-  /**
-   * Returns the under filesystem path in the under file system of this file
-   *
-   * @return the under filesystem path
-   * @throws IOException if the underlying file does not exist or its metadata is corrupted
-   */
-  String getUfsPath() throws IOException {
-    FileInfo info = getCachedFileStatus();
-
-    if (!info.getUfsPath().isEmpty()) {
-      return info.getUfsPath();
-    }
-
-    return getUnCachedFileStatus().getUfsPath();
-  }
-
   @Override
   public int hashCode() {
     return Long.valueOf(mFileId).hashCode();
@@ -301,8 +304,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return true if this file is complete, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
-  public boolean isComplete() throws IOException {
-    return getCachedFileStatus().isComplete || getUnCachedFileStatus().isComplete;
+  public boolean isCompleted() throws IOException {
+    return getCachedFileStatus().isCompleted || getUnCachedFileStatus().isCompleted;
   }
 
   /**
@@ -356,8 +359,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public boolean promoteBlock(int blockIndex) throws IOException {
-    FileBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-    return mTachyonFS.promoteBlock(blockInfo.getBlockId());
+    FileBlockInfo fileBlockInfo = getClientBlockInfo(blockIndex);
+    return mTachyonFS.promoteBlock(fileBlockInfo.blockInfo.getBlockId());
   }
 
   /**
@@ -424,7 +427,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *
    * Currently unsupported.
    *
-   * TODO(haoyuan): Remove this method. Do streaming cache. This is not a right API.
+   * TODO(hy): Remove this method. Do streaming cache. This is not a right API.
    *
    * @return true if succeed, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted

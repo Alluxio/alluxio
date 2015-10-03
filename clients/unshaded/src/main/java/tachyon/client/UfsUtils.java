@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.Pair;
-import tachyon.PrefixList;
+import tachyon.collections.Pair;
+import tachyon.collections.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
@@ -35,9 +35,9 @@ import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * Utilities related to under filesystem
+ * Utilities related to under file system.
  */
-public class UfsUtils {
+public final class UfsUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -77,7 +77,7 @@ public class UfsUtils {
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");
 
-    loadUnderFs(tfs, tfsAddrRootPath, ufsAddrRootPath, excludePathPrefix, tachyonConf);
+    loadUfs(tfs, tfsAddrRootPath, ufsAddrRootPath, excludePathPrefix, tachyonConf);
   }
 
   /**
@@ -92,7 +92,8 @@ public class UfsUtils {
    * @param tachyonConf instance of TachyonConf
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
-  public static void loadUnderFs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
+  @Deprecated
+  public static void loadUfs(TachyonFS tfs, TachyonURI tachyonPath, TachyonURI ufsAddrRootPath,
       PrefixList excludePathPrefix, TachyonConf tachyonConf) throws IOException {
     LOG.info("Loading to " + tachyonPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
     try {
@@ -139,7 +140,7 @@ public class UfsUtils {
         LOG.debug("Loading ufs. Make dir if needed for '" + directoryName + "'.");
         tfs.mkdir(directoryName);
       }
-      // TODO(haoyuan): Add the following.
+      // TODO(hy): Add the following.
       // if (tfs.mkdir(tfsRootPath)) {
       // LOG.info("directory " + tfsRootPath + " does not exist in Tachyon: created");
       // } else {
@@ -154,19 +155,19 @@ public class UfsUtils {
 
     while (!ufsPathQueue.isEmpty()) {
       TachyonURI ufsPath = ufsPathQueue.poll(); // this is the absolute path
-      LOG.info("Loading: " + ufsPath);
-      if (ufs.isFile(ufsPath.toString())) { // TODO(haoyuan): Fix path matching issue.
+      LOG.debug("Loading: " + ufsPath);
+      if (ufs.isFile(ufsPath.toString())) { // TODO(hy): Fix path matching issue.
         TachyonURI tfsPath = buildTFSPath(directoryName, ufsAddrRootPath, ufsPath);
         LOG.debug("Loading ufs. tfs path = " + tfsPath + ".");
         if (tfs.exist(tfsPath)) {
-          LOG.info("File " + tfsPath + " already exists in Tachyon.");
+          LOG.debug("File " + tfsPath + " already exists in Tachyon.");
           continue;
         }
         long fileId = tfs.createFile(tfsPath, ufsPath);
         if (fileId == -1) {
           LOG.warn("Failed to create tachyon file: " + tfsPath);
         } else {
-          LOG.info("Create tachyon file " + tfsPath + " with file id " + fileId + " and "
+          LOG.debug("Create tachyon file " + tfsPath + " with file id " + fileId + " and "
               + "checkpoint location " + ufsPath);
         }
       } else { // ufsPath is a directory
@@ -177,14 +178,14 @@ public class UfsUtils {
             if (filePath.isEmpty()) { // Prevent infinite loops
               continue;
             }
-            LOG.info("Get: " + filePath);
+            LOG.debug("Get: " + filePath);
             String aPath = PathUtils.concatPath(ufsPath, filePath);
             String checkPath = aPath.substring(ufsAddrRootPath.toString().length());
             if (checkPath.startsWith(TachyonURI.SEPARATOR)) {
               checkPath = checkPath.substring(TachyonURI.SEPARATOR.length());
             }
             if (excludePathPrefix.inList(checkPath)) {
-              LOG.info("excluded: " + checkPath);
+              LOG.debug("excluded: " + checkPath);
             } else {
               ufsPathQueue.add(new TachyonURI(aPath));
             }
@@ -198,7 +199,7 @@ public class UfsUtils {
           LOG.debug("Loading ufs. ufs path is a directory. make dir = "
                   + tfsPath + ".");
           tfs.mkdir(tfsPath);
-          // TODO(haoyuan): Add the following.
+          // TODO(hy): Add the following.
           // if (tfs.mkdir(tfsPath)) {
           // LOG.info("Created mTachyonFS folder " + tfsPath + " with checkpoint location " +
           // ufsPath);
@@ -242,4 +243,6 @@ public class UfsUtils {
     System.out.print("In the TFS, all files under local FS /b will be registered under /a, ");
     System.out.println("except for those with prefix c");
   }
+
+  private UfsUtils() {} // prevent instantiation
 }

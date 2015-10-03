@@ -44,6 +44,6 @@ public abstract class AbstractInodeTest {
 
   protected InodeFile createInodeFile(long id) {
     return new InodeFile("testFile" + id, id, 1, Constants.KB, System.currentTimeMillis(),
-        sPermisionStatus);
+        Constants.NO_TTL, sPermisionStatus);
   }
 }

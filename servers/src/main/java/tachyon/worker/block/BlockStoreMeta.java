@@ -31,10 +31,10 @@ import tachyon.worker.block.meta.StorageTier;
 /**
  * This class holds the meta data information of a block store.
  * <p>
- * TODO: use proto buf to represent this information
+ * TODO(bin): Use proto buf to represent this information.
  */
 public final class BlockStoreMeta {
-  // TODO: the following two fields don't need to be computed on the creation of each
+  // TODO(bin): The following two fields don't need to be computed on the creation of each
   // {@link BlockStoreMeta} instance.
   /**
    * Capacity bytes on each tier alias (MEM, SSD and HDD). E.g., for two tiers [MEM: 1GB][HDD:
@@ -53,10 +53,13 @@ public final class BlockStoreMeta {
   private final Map<Long, List<Long>> mBlockIdsOnDirs = new HashMap<Long, List<Long>>();
   private final Map<Long, Long> mUsedBytesOnDirs = new HashMap<Long, Long>();
   private final Map<Long, String> mDirPaths = new LinkedHashMap<Long, String>();
+  private final List<Integer> mAliasOnTiers;
 
   public BlockStoreMeta(BlockMetadataManager manager) {
     Preconditions.checkNotNull(manager);
+    mAliasOnTiers = new ArrayList<Integer>(Collections.nCopies(manager.getTiers().size(), 0));
     for (StorageTier tier : manager.getTiers()) {
+      mAliasOnTiers.set(tier.getTierLevel(), tier.getTierAlias());
       int aliasIndex = tier.getTierAlias() - 1;
       mCapacityBytesOnTiers.set(aliasIndex,
           mCapacityBytesOnTiers.get(aliasIndex) + tier.getCapacityBytes());
@@ -70,6 +73,10 @@ public final class BlockStoreMeta {
         mDirPaths.put(dir.getStorageDirId(), dir.getDirPath());
       }
     }
+  }
+
+  public List<Integer> getAliasOnTiers() {
+    return mAliasOnTiers;
   }
 
   public Map<Long, List<Long>> getBlockList() {

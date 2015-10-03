@@ -16,6 +16,8 @@ function printUsage {
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Tachyon."
   echo -e "  runTest       \t Run a end-to-end test on a Tachyon cluster."
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
+  echo -e "  journalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon journalCrashTest -help' for more help."
+  echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
@@ -73,7 +75,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
+  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
 
   if [ "$#" -ne 2 ]; then
     echo $Usage
@@ -97,6 +99,10 @@ function runTest {
       file+="/BasicNonByteBuffer_$2"
       class="tachyon.examples.BasicNonByteBufferOperations"
       ;;
+    BasicRawTable)
+      file+="/BasicRawTable_$2"
+      class="tachyon.examples.BasicRawTableOperations"
+      ;;
     *)
       echo "Unknown test: $1 with type $2" 1>&2
       echo "$Usage"
@@ -109,6 +115,26 @@ function runTest {
   # If test process received a signal abort early
   # Exit Codes for signals terminating a JVM are 128 + signal
   RET=$?
+  if [ $RET -gt 128 ]; then
+    echo "Test process was terminated due to signal"
+    exit $RET
+  fi
+  return $RET
+}
+
+function journalCrashTest {
+  MASTER_ADDRESS=$TACHYON_MASTER_ADDRESS
+  if [ -z $TACHYON_MASTER_ADDRESS ] ; then
+    MASTER_ADDRESS=localhost
+  fi
+
+  local class="tachyon.examples.JournalCrashTest"
+
+  $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$MASTER_ADDRESS -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS "$class" $@
+  RET=$?
+
+  # If test process received a signal abort early
+  # Exit Codes for signals terminating a JVM are 128 + signal
   if [ $RET -gt 128 ]; then
     echo "Test process was terminated due to signal"
     exit $RET
@@ -201,7 +227,7 @@ elif [ "$COMMAND" == "formatWorker" ]; then
   CLASS=tachyon.Format
   PARAMETER=worker
 elif [ "$COMMAND" == "tfs" ]; then
-  CLASS=tachyon.shell.TFsShell
+  CLASS=tachyon.shell.TfsShell
 elif [ "$COMMAND" == "loadufs" ]; then
   CLASS=tachyon.client.UfsUtils
 elif [ "$COMMAND" == "runTest" ]; then
@@ -213,7 +239,7 @@ elif [ "$COMMAND" == "runTests" ]; then
   failed=0
   for op in ${opArr[@]}
   do
-    for example in Basic BasicNonByteBuffer
+    for example in Basic BasicNonByteBuffer BasicRawTable
     do
       echo $LAUNCHER $bin/tachyon runTest $example $op
       $LAUNCHER $bin/tachyon runTest $example $op
@@ -234,6 +260,9 @@ elif [ "$COMMAND" == "runTests" ]; then
     echo "Number of failed tests: $failed" 1>&2
   fi
   exit $failed
+elif [ "$COMMAND" == "journalCrashTest" ]; then
+  journalCrashTest "$@"
+  exit $?
 elif [ "$COMMAND" == "killAll" ]; then
   killAll "$@"
   exit 0

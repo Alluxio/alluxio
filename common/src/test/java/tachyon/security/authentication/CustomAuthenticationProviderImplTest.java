@@ -22,11 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import tachyon.Constants;
-import tachyon.conf.TachyonConf;
-
 public class CustomAuthenticationProviderImplTest {
-  private TachyonConf mConf = new TachyonConf();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -34,27 +30,23 @@ public class CustomAuthenticationProviderImplTest {
   @Test
   public void classNotFoundTest() throws Exception {
     String notExistClass = "tachyon.test.custom.provider";
-    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS, notExistClass);
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(notExistClass + " not found");
-    new CustomAuthenticationProviderImpl(mConf);
+    new CustomAuthenticationProviderImpl(notExistClass);
   }
 
   @Test
-  public void classNotProviderInterfaceTest() throws Exception {
-    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        CustomAuthenticationProviderImplTest.class.getName());
+  public void classNotProviderTest() throws Exception {
+    String notProviderClass = CustomAuthenticationProviderImplTest.class.getName();
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage(CustomAuthenticationProviderImplTest.class.getName()
-        + " didn't implement interface AuthenticationProvider");
-    new CustomAuthenticationProviderImpl(mConf);
+    mThrown.expectMessage(notProviderClass + " instantiate failed :");
+    new CustomAuthenticationProviderImpl(notProviderClass);
   }
 
   @Test
-  public void underlyingCustomProviderTest() throws Exception {
-    mConf.set(Constants.TACHYON_AUTHENTICATION_PROVIDER_CUSTOM_CLASS,
-        MockAuthenticationProvider.class.getName());
-    CustomAuthenticationProviderImpl provider = new CustomAuthenticationProviderImpl(mConf);
+  public void mockCustomProviderTest() throws Exception {
+    CustomAuthenticationProviderImpl provider =
+        new CustomAuthenticationProviderImpl(MockAuthenticationProvider.class.getName());
     Assert.assertTrue(provider.getCustomProvider() instanceof MockAuthenticationProvider);
   }
 

@@ -15,15 +15,21 @@
 
 package tachyon.master.journal;
 
+/**
+ * The types of entries that can be represented in the journal.
+ */
 public enum JournalEntryType {
   // Block master entries
   BLOCK_CONTAINER_ID_GENERATOR,
   BLOCK_INFO,
-  WORKER_ID_GENERATOR,
 
   // File system master entries
   INODE_FILE,
   INODE_DIRECTORY,
+  INODE_MTIME,
+  INODE_PERSISTED,
+  ADD_MOUNTPOINT,
+  DELETE_MOUNTPOINT,
   ADD_CHECKPOINT,
   DEPENDENCY,
   COMPLETE_FILE,
@@ -32,8 +38,17 @@ public enum JournalEntryType {
   DELETE_FILE,
   RENAME,
   INODE_DIRECTORY_ID_GENERATOR,
+  REINITIALIZE_FILE,
 
   // Raw table master entries
   RAW_TABLE,
   UPDATE_METADATA,
+
+  // Lineage master entries
+  ASYNC_COMPLETE_FILE,
+  DELETE_LINEAGE,
+  LINEAGE,
+  LINEAGE_ID_GENERATOR,
+  PERSIST_FILES,
+  REQUEST_FILE_PERSISTENCE,
 }

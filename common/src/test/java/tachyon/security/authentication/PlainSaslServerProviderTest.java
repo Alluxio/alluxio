@@ -23,9 +23,6 @@ import javax.security.sasl.SaslServer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.security.authentication.PlainSaslHelper;
-import tachyon.security.authentication.PlainSaslServerProvider;
-
 public class PlainSaslServerProviderTest {
 
   @Test
@@ -46,6 +43,6 @@ public class PlainSaslServerProviderTest {
 
   @Test
   public void plainSaslProviderHasRegisteredTest() throws Exception {
-    Assert.assertTrue(PlainSaslHelper.isPlainSaslProviderAdded());
+    Assert.assertTrue(PlainSaslUtils.isPlainSaslProviderAdded());
   }
 }

@@ -27,12 +27,12 @@ import tachyon.security.User;
 
 /**
  * An app login module that creates a user based on the user name provided through application
- * configuration. Specifically, through Java system property tachyon.security.username.
- * This module is useful if multiple Tachyon clients running under same OS user name
- * want to get different identifies (for resource and data management), or if Tachyon clients
- * running under different OS user names want to get same identify.
+ * configuration. Specifically, through Java system property tachyon.security.login.username. This
+ * module is useful if multiple Tachyon clients running under same OS user name want to get
+ * different identifies (for resource and data management), or if Tachyon clients running under
+ * different OS user names want to get same identify.
  */
-public class AppLoginModule implements LoginModule {
+public final class AppLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
 
@@ -43,16 +43,16 @@ public class AppLoginModule implements LoginModule {
   }
 
   /**
-   * Retrieve the user name by querying the property of Constants.TACHYON_SECURITY_USERNAME.
+   * Retrieves the user name by querying the property of Constants.SECURITY_LOGIN_USERNAME.
    *
    * @return true if user name provided by application is set and not empty.
    * @throws javax.security.auth.login.LoginException
    */
   @Override
   public boolean login() throws LoginException {
-    //TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
-    //instead of System.getProperty for retrieving user name.
-    String userName = System.getProperty(Constants.TACHYON_SECURITY_USERNAME, "");
+    // TODO: after TachyonConf is refactored into Singleton, we will use TachyonConf
+    // instead of System.getProperty for retrieving user name.
+    String userName = System.getProperty(Constants.SECURITY_LOGIN_USERNAME, "");
     if (!userName.isEmpty()) {
       mUser = new User(userName);
       return true;
@@ -61,10 +61,11 @@ public class AppLoginModule implements LoginModule {
   }
 
   /**
-   * Abort the authentication (second phase).
+   * Aborts the authentication (second phase).
    *
-   * This method is called if the LoginContext's overall authentication failed. (login failed)
-   * It cleans up any state that was changed in the login and commit methods.
+   * <p>
+   * This method is called if the LoginContext's overall authentication failed. (login failed) It
+   * cleans up any state that was changed in the login and commit methods.
    *
    * @return true in all cases
    * @throws LoginException
@@ -77,11 +78,12 @@ public class AppLoginModule implements LoginModule {
   }
 
   /**
-   * Commit the authentication (second phase).
+   * Commits the authentication (second phase).
    *
-   * This method is called if the LoginContext's overall authentication succeeded.
-   * The implementation first checks if there is already Tachyon user in the subject.
-   * If not, it adds the previously logged in Tachyon user into the subject.
+   * <p>
+   * This method is called if the LoginContext's overall authentication succeeded. The
+   * implementation first checks if there is already Tachyon user in the subject. If not, it adds
+   * the previously logged in Tachyon user into the subject.
    *
    * @return true if a Tachyon user if found or created.
    * @throws LoginException not Tachyon user is found or created.
@@ -102,8 +104,9 @@ public class AppLoginModule implements LoginModule {
   }
 
   /**
-   * Logout the user
+   * Logs out the user
    *
+   * <p>
    * The implementation removes the User associated with the Subject.
    *
    * @return true in all cases

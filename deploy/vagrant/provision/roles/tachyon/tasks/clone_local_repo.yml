@@ -9,15 +9,15 @@
     src: ../../../../../../
     dest: /tachyon
     rsync_opts: >
-      --exclude=.git,
       --exclude=.gitignore,
-      --exclude=core/target,
-      --exclude=assembly/target,
-      --exclude=client/target,
-      --exclude=deploy,
-      --exclude=docs,
-      --exclude=journal,
-      --exclude=logs,
-      --exclude=underFSStorage
+      --filter="- /*/target/",
+      --filter="- /.git/",
+      --filter="- /deploy/",
+      --filter="- /docs/",
+      --filter="- /journal/",
+      --filter="- /logs/",
+      --filter="- /target/",
+      --filter="- /underFSStorage/"
+
 
 # vim :set filetype=ansible.yaml:

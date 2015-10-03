@@ -15,17 +15,16 @@
 
 package tachyon.worker.block;
 
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.FileSystemMasterClient;
+import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * PinListSync periodically syncs the set of pinned inodes from master,
@@ -39,15 +38,13 @@ public final class PinListSync implements Runnable {
 
   /** Block data manager responsible for interacting with Tachyon and UFS storage */
   private final BlockDataManager mBlockDataManager;
-  /** The configuration values */
-  private final TachyonConf mTachyonConf;
   /** Milliseconds between each sync */
   private final int mSyncIntervalMs;
   /** Milliseconds between syncs before a timeout */
   private final int mSyncTimeoutMs;
 
   /** Client for all master communication */
-  private FileSystemMasterClient mMasterClient;
+  private WorkerFileSystemMasterClient mMasterClient;
   /** Flag to indicate if the syncing should continue */
   private volatile boolean mRunning;
 
@@ -55,16 +52,15 @@ public final class PinListSync implements Runnable {
    * Constructor for PinListSync
    *
    * @param blockDataManager the blockDataManager this syncer is updating to
-   * @param tachyonConf the configuration values to be used
    * @param masterClient the Tachyon master client
    */
-  public PinListSync(BlockDataManager blockDataManager, TachyonConf tachyonConf,
-      FileSystemMasterClient masterClient) {
+  public PinListSync(BlockDataManager blockDataManager, WorkerFileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
-    mTachyonConf = tachyonConf;
+    TachyonConf conf = WorkerContext.getConf();
+    
     mMasterClient = masterClient;
-    mSyncIntervalMs = mTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mSyncTimeoutMs = mTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    mSyncIntervalMs = conf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    mSyncTimeoutMs = conf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
   }
@@ -91,11 +87,11 @@ public final class PinListSync implements Runnable {
         Set<Long> pinList = mMasterClient.getPinList();
         mBlockDataManager.updatePinList(pinList);
         lastSyncMs = System.currentTimeMillis();
-      // TODO: Change this back to IOException when we have the correct pinlist RPC
+      // TODO(calvin): Change this back to IOException when we have the correct pinlist RPC.
       } catch (Exception ioe) {
         // An error occurred, retry after 1 second or error if sync timeout is reached
         LOG.error("Failed to receive pinlist.", ioe);
-        // TODO: Add this method to MasterClientBase
+        // TODO(gene): Add this method to MasterClientBase.
         // mMasterClient.resetConnection();
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         if (System.currentTimeMillis() - lastSyncMs >= mSyncTimeoutMs) {

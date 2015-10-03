@@ -18,13 +18,14 @@ package tachyon.client;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.PrefixList;
+import tachyon.collections.PrefixList;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -39,7 +40,7 @@ public class UfsUtilsIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private TachyonFileSystem mTachyonFileSystem = null;
-  private String mUnderfsAddress = null;
+  private String mUfsRoot = null;
   private UnderFileSystem mUfs = null;
 
   @After
@@ -56,29 +57,29 @@ public class UfsUtilsIntegrationTest {
     mTachyonFileSystem = mLocalTachyonCluster.getClient();
 
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR, masterConf);
+    mUfsRoot = masterConf.get(Constants.UNDERFS_DATA_FOLDER);
+    mUfs = UnderFileSystem.get(mUfsRoot + TachyonURI.SEPARATOR, masterConf);
   }
 
   @Test
-  public void loadUnderFsTest() throws IOException {
+  public void loadUnderFsTest() throws IOException, TException {
     String[] exclusions = {"/tachyon", "/exclusions"};
     String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
-        mUfs.mkdirs(mUnderfsAddress + exclusion, true);
+        mUfs.mkdirs(mUfsRoot + exclusion, true);
       }
     }
 
     for (String inclusion : inclusions) {
       if (!mUfs.exists(inclusion)) {
-        mUfs.mkdirs(mUnderfsAddress + inclusion, true);
+        mUfs.mkdirs(mUfsRoot + inclusion, true);
       }
-      UnderFileSystemUtils.touch(mUnderfsAddress + inclusion + "/1",
+      UnderFileSystemUtils.touch(mUfsRoot + inclusion + "/1",
           mLocalTachyonCluster.getMasterTachyonConf());
     }
 
-    UfsUtils.loadUnderFs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUnderfsAddress
+    UfsUtils.loadUfs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUfsRoot
         + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
         mLocalTachyonCluster.getMasterTachyonConf());
 

@@ -17,6 +17,7 @@ package tachyon.master.file.meta;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,21 +25,23 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.conf.TachyonConf;
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.block.BlockMaster;
-import tachyon.master.file.meta.Inode;
-import tachyon.master.file.meta.InodeDirectory;
-import tachyon.master.file.meta.InodeDirectoryIdGenerator;
-import tachyon.master.file.meta.InodeFile;
-import tachyon.master.file.meta.InodeTree;
+import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.journal.Journal;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
+import tachyon.master.journal.JournalOutputStream;
+import tachyon.master.journal.ReadWriteJournal;
+import tachyon.util.CommonUtils;
 
 /**
  * Unit tests for InodeTree.
@@ -58,15 +61,23 @@ public final class InodeTreeTest {
 
   @Before
   public void before() throws IOException {
-    TachyonConf conf = new TachyonConf();
-    Journal blockJournal = new Journal(mTestFolder.newFolder().getAbsolutePath(), conf);
+    Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
-    BlockMaster blockMaster = new BlockMaster(blockJournal, conf);
+    BlockMaster blockMaster = new BlockMaster(blockJournal);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     mTree = new InodeTree(blockMaster, directoryIdGenerator);
 
     blockMaster.start(true);
     mTree.initializeRoot();
+  }
+
+  @Test
+  public void initializeRootTwiceTest() throws Exception {
+    Inode root = mTree.getInodeByPath(new TachyonURI("/"));
+    // initializeRoot call does nothing
+    mTree.initializeRoot();
+    Inode newRoot = mTree.getInodeByPath(new TachyonURI("/"));
+    Assert.assertEquals(root, newRoot);
   }
 
   @Test
@@ -86,6 +97,24 @@ public final class InodeTreeTest {
   }
 
   @Test
+  public void createFileUnderPinnedDirectoryTest() throws Exception {
+    // create nested directory
+    InodeTree.CreatePathResult createResult =
+        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    List<Inode> created = createResult.getCreated();
+    Inode nested = created.get(created.size() - 1);
+
+    // pin nested folder
+    mTree.setPinned(nested, true);
+
+    // create nested file under pinned folder
+    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+
+    // the nested file is pinned
+    Assert.assertEquals(1, mTree.getPinIdSet().size());
+  }
+
+  @Test
   public void createFileTest() throws Exception {
     // created nested file
     mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
@@ -97,25 +126,52 @@ public final class InodeTreeTest {
 
   @Test
   public void createPathTest() throws Exception {
+    // save the last mod time of the root
+    long lastModTime = mTree.getRoot().getLastModificationTimeMs();
+    // sleep to ensure a different last modification time
+    CommonUtils.sleepMs(10);
+
     // create nested directory
-    List<Inode> inodes = mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    Assert.assertEquals(2, inodes.size());
-    Assert.assertEquals("nested", inodes.get(0).getName());
-    Assert.assertEquals("test", inodes.get(1).getName());
+    InodeTree.CreatePathResult createResult =
+        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    List<Inode> modified = createResult.getModified();
+    List<Inode> created = createResult.getCreated();
+    // 1 modified directory
+    Assert.assertEquals(1, modified.size());
+    Assert.assertEquals("", modified.get(0).getName());
+    Assert.assertNotEquals(lastModTime, modified.get(0).getLastModificationTimeMs());
+    // 2 created directories
+    Assert.assertEquals(2, created.size());
+    Assert.assertEquals("nested", created.get(0).getName());
+    Assert.assertEquals("test", created.get(1).getName());
+    // save the last mod time of 'test'
+    lastModTime = created.get(1).getLastModificationTimeMs();
+    // sleep to ensure a different last modification time
+    CommonUtils.sleepMs(10);
 
     // creating the directory path again results in no new inodes.
-    inodes = mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    Assert.assertEquals(0, inodes.size());
+    createResult = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    modified = createResult.getModified();
+    created = createResult.getCreated();
+    Assert.assertEquals(0, modified.size());
+    Assert.assertEquals(0, created.size());
 
     // create a file
-    inodes = mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
-    Assert.assertEquals(1, inodes.size());
-    Assert.assertEquals("file", inodes.get(0).getName());
+    createResult = mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    modified = createResult.getModified();
+    created = createResult.getCreated();
+    // test directory was modified
+    Assert.assertEquals(1, modified.size());
+    Assert.assertEquals("test", modified.get(0).getName());
+    Assert.assertNotEquals(lastModTime, modified.get(0).getLastModificationTimeMs());
+    // file was created
+    Assert.assertEquals(1, created.size());
+    Assert.assertEquals("file", created.get(0).getName());
   }
 
   @Test
   public void createRootPathTest() throws Exception {
-    mThrown.expect(FileAlreadyExistException.class);
+    mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/");
 
     mTree.createPath(new TachyonURI("/"), Constants.KB, false, true);
@@ -147,7 +203,7 @@ public final class InodeTreeTest {
 
   @Test
   public void createFileTwiceTest() throws Exception {
-    mThrown.expect(FileAlreadyExistException.class);
+    mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/nested/test");
 
     mTree.createPath(NESTED_URI, Constants.KB, true, false);
@@ -202,13 +258,15 @@ public final class InodeTreeTest {
     Assert.assertEquals(new TachyonURI("/"), mTree.getPath(root));
 
     // test one level
-    List<Inode> created = mTree.createPath(TEST_URI, Constants.KB, false, true);
+    InodeTree.CreatePathResult createResult = mTree.createPath(TEST_URI, Constants.KB, false, true);
+    List<Inode> created = createResult.getCreated();
     Assert.assertEquals(new TachyonURI("/test"), mTree.getPath(created.get(created.size() - 1)));
 
     // test nesting
-    created = mTree.createPath(NESTED_URI, Constants.KB, true, true);
-    Assert.assertEquals(new TachyonURI("/nested/test"), mTree.getPath(created.get(
-        created.size() - 1)));
+    createResult = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    created = createResult.getCreated();
+    Assert.assertEquals(new TachyonURI("/nested/test"),
+        mTree.getPath(created.get(created.size() - 1)));
   }
 
   @Test
@@ -226,7 +284,9 @@ public final class InodeTreeTest {
 
   @Test
   public void deleteInodeTest() throws Exception {
-    List<Inode> created = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    InodeTree.CreatePathResult createResult =
+        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    List<Inode> created = createResult.getCreated();
 
     // all inodes under root
     List<Inode> inodes = mTree.getInodeChildrenRecursive((InodeDirectory) mTree.getInodeById(0));
@@ -244,13 +304,16 @@ public final class InodeTreeTest {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
-    Inode testFile = new InodeFile("testFile1", 1, 1, Constants.KB, System.currentTimeMillis());
+    Inode testFile = new InodeFile("testFile1", 1, 1, Constants.KB, System.currentTimeMillis(),
+        Constants.NO_TTL);
     mTree.deleteInode(testFile);
   }
 
   @Test
   public void setPinnedTest() throws Exception {
-    List<Inode> created = mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    InodeTree.CreatePathResult createResult =
+        mTree.createPath(NESTED_URI, Constants.KB, true, true);
+    List<Inode> created = createResult.getCreated();
     Inode nested = created.get(created.size() - 1);
     mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
 
@@ -265,5 +328,80 @@ public final class InodeTreeTest {
     // unpin nested folder
     mTree.setPinned(nested, false);
     Assert.assertEquals(0, mTree.getPinIdSet().size());
+  }
+
+  @Test
+  public void streamToJournalCheckpointTest() throws Exception {
+    InodeDirectory root = mTree.getRoot();
+
+    // test root
+    verifyJournal(mTree, Lists.<Inode>newArrayList(root));
+
+    // test nested URI
+    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
+    InodeDirectory test = (InodeDirectory) nested.getChild("test");
+    Inode file = test.getChild("file");
+    verifyJournal(mTree, Lists.newArrayList(root, nested, test, file));
+
+    // add a sibling of test and verify journaling is in correct order (breadth first)
+    mTree.createPath(new TachyonURI("/nested/test1/file1"), Constants.KB, true, false);
+    InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
+    Inode file1 = test1.getChild("file1");
+    verifyJournal(mTree, Lists.newArrayList(root, nested, test, test1, file, file1));
+  }
+
+  @Test
+  public void addInodeFromJournalTest() throws Exception {
+    mTree.createPath(NESTED_FILE_URI, Constants.KB, true, false);
+    mTree.createPath(new TachyonURI("/nested/test1/file1"), Constants.KB, true, false);
+    InodeDirectory root = mTree.getRoot();
+    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
+    InodeDirectory test = (InodeDirectory) nested.getChild("test");
+    Inode file = test.getChild("file");
+    InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
+    Inode file1 = test1.getChild("file1");
+
+    // reset the tree
+    mTree.addInodeFromJournal((InodeEntry) root.toJournalEntry());
+
+    // re-init the root since the tree was reset above
+    root = mTree.getRoot();
+
+    Assert.assertEquals(0, mTree.getInodeChildrenRecursive(root).size());
+    mTree.addInodeFromJournal((InodeEntry) nested.toJournalEntry());
+    verifyChildrenNames(mTree, root, Sets.newHashSet("nested"));
+
+    mTree.addInodeFromJournal((InodeEntry) test.toJournalEntry());
+    verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test"));
+
+    mTree.addInodeFromJournal((InodeEntry) test1.toJournalEntry());
+    verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1"));
+
+    mTree.addInodeFromJournal((InodeEntry) file.toJournalEntry());
+    verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file"));
+
+    mTree.addInodeFromJournal((InodeEntry) file1.toJournalEntry());
+    verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file", "file1"));
+  }
+
+  // helper for verifying that correct objects were journaled to the output stream
+  private static void verifyJournal(InodeTree root, List<Inode> journaled) throws Exception {
+    JournalOutputStream mockOutputStream = Mockito.mock(JournalOutputStream.class);
+    root.streamToJournalCheckpoint(mockOutputStream);
+    for (Inode node : journaled) {
+      Mockito.verify(mockOutputStream).writeEntry(node.toJournalEntry());
+    }
+    Mockito.verifyNoMoreInteractions(mockOutputStream);
+  }
+
+  // verify that the tree has the given children
+  private static void verifyChildrenNames(InodeTree tree, InodeDirectory root,
+      Set<String> childNames) throws Exception {
+    List<Inode> children = tree.getInodeChildrenRecursive(root);
+    Assert.assertEquals(childNames.size(), children.size());
+    for (Inode child : children) {
+      Assert.assertTrue(childNames.contains(child.getName()));
+    }
   }
 }

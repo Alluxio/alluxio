@@ -19,9 +19,10 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
-import tachyon.client.ResourcePool;
+import tachyon.resource.ResourcePool;
 import tachyon.util.ThreadFactoryUtils;
 
 /**
@@ -29,8 +30,7 @@ import tachyon.util.ThreadFactoryUtils;
  * {@link ResourcePool#acquire}, {@link ResourcePool#release} must be called when the thread is done
  * using the client.
  */
-public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
-  private static final int CAPACITY = 10;
+public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
 
@@ -40,11 +40,9 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
    * @param masterAddress the master address
    */
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
-    // TODO(calvin): Get the capacity from configuration.
-    super(CAPACITY);
-    mExecutorService =
-        Executors.newFixedThreadPool(CAPACITY,
-            ThreadFactoryUtils.build("block-master-heartbeat-%d", true));
+    super(ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS));
+    mExecutorService = Executors.newFixedThreadPool(mMaxCapacity,
+        ThreadFactoryUtils.build("block-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
   }
 

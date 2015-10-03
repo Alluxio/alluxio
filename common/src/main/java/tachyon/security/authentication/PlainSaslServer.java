@@ -29,7 +29,7 @@ import javax.security.sasl.SaslServer;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.security.AuthorizedClientUser;
+import tachyon.security.User;
 
 /**
  * This class provides PLAIN SASL authentication.
@@ -48,12 +48,13 @@ import tachyon.security.AuthorizedClientUser;
  *
  * TODO: Authorization ID and authentication ID could be different after supporting impersonation.
  */
-public class PlainSaslServer implements SaslServer {
+public final class PlainSaslServer implements SaslServer {
   /**
    * This ID represent the authorized client user, who has been authenticated successfully. It is
    * associated with the client connection thread for following action authorization usage.
    */
   private String mAuthorizationId;
+  /** Whether an authentication is complete or not */
   private boolean mCompleted;
   private CallbackHandler mHandler;
 
@@ -64,7 +65,7 @@ public class PlainSaslServer implements SaslServer {
 
   @Override
   public String getMechanismName() {
-    return "PLAIN";
+    return PlainSaslServerProvider.MECHANISM;
   }
 
   @Override
@@ -90,12 +91,10 @@ public class PlainSaslServer implements SaslServer {
       String authorizationId = parts[0];
       String authenticationId = parts[1];
       String passwd = parts[2];
-      if (authenticationId == null || authenticationId.isEmpty()) {
-        throw new IllegalStateException("No authentication identity provided");
-      }
-      if (passwd == null || passwd.isEmpty()) {
-        throw new IllegalStateException("No password provided");
-      }
+      Preconditions.checkState(authenticationId != null && !authenticationId.isEmpty(),
+          "No authentication identity provided");
+      Preconditions.checkState(passwd != null && !passwd.isEmpty(), "No password provided");
+
       if (authorizationId == null || authorizationId.isEmpty()) {
         authorizationId = authenticationId;
       } else if (!authorizationId.equals(authenticationId)) {
@@ -176,10 +175,10 @@ public class PlainSaslServer implements SaslServer {
    * do verification operation.
    */
   public static final class PlainServerCallbackHandler implements CallbackHandler {
-    private final AuthenticationProvider mAuthenticationPrivoder;
+    private final AuthenticationProvider mAuthenticationProvider;
 
     public PlainServerCallbackHandler(AuthenticationProvider authenticationProvider) {
-      mAuthenticationPrivoder = authenticationProvider;
+      mAuthenticationProvider = authenticationProvider;
     }
 
     @Override
@@ -202,11 +201,53 @@ public class PlainSaslServer implements SaslServer {
         }
       }
 
-      mAuthenticationPrivoder.authenticate(username, password);
+      mAuthenticationProvider.authenticate(username, password);
 
       if (ac != null) {
         ac.setAuthorized(true);
       }
+    }
+  }
+
+  /**
+   * An instance of this class represents a client user connecting to Tachyon service.
+   *
+   * It is maintained in a ThreadLocal variable based on the Thrift RPC mechanism.
+   * {@link org.apache.thrift.server.TThreadPoolServer} allocates a thread to serve a connection
+   * from client side and take back it when connection is closed. During the thread alive cycle,
+   * all the RPC happens in this thread. These RPC methods implemented in server side could
+   * get the client user by this class.
+   */
+  public static final class AuthorizedClientUser {
+
+    /**
+     * A ThreadLocal variable to maintain the client user along with a specific thread.
+     */
+    private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<User>();
+
+    /**
+     * Creates a {@link User} and sets it to the ThreadLocal variable.
+     *
+     * @param userName the name of the client user
+     */
+    public static void set(String userName) {
+      sUserThreadLocal.set(new User(userName));
+    }
+
+    /**
+     * Gets the {@link User} from the ThreadLocal variable.
+     *
+     * @return the client user
+     */
+    public static User get() {
+      return sUserThreadLocal.get();
+    }
+
+    /**
+     * Removes the {@link User} from the ThreadLocal variable.
+     */
+    public static void remove() {
+      sUserThreadLocal.remove();
     }
   }
 }

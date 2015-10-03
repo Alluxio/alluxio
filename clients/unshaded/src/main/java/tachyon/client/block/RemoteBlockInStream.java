@@ -19,26 +19,15 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
-import com.google.common.base.Preconditions;
-
-import tachyon.client.RemoteBlockReader;
 import tachyon.client.ClientContext;
-import tachyon.thrift.NetAddress;
-import tachyon.util.io.BufferUtils;
+import tachyon.client.RemoteBlockReader;
 
 /**
  * This class provides a streaming API to read a block in Tachyon. The data will be transferred
  * through a Tachyon worker's dataserver to the client. The instances of this class should only be
  * used by one thread and are not thread safe.
  */
-public class RemoteBlockInStream extends BlockInStream {
-  private final long mBlockId;
-  private final BlockStoreContext mContext;
-  private final long mBlockSize;
-  private final InetSocketAddress mLocation;
-
-  private long mPos;
-
+public final class RemoteBlockInStream extends BufferedBlockInStream {
   /**
    * Creates a new remote block input stream.
    *
@@ -47,79 +36,69 @@ public class RemoteBlockInStream extends BlockInStream {
    * @param location the location
    */
   // TODO(calvin): Modify the locking so the stream owns the lock instead of the data server.
-  public RemoteBlockInStream(long blockId, long blockSize, NetAddress location) {
-    mBlockId = blockId;
-    mContext = BlockStoreContext.INSTANCE;
-    mBlockSize = blockSize;
-    // TODO(calvin): Validate these fields.
-    mLocation = new InetSocketAddress(location.getHost(), location.getDataPort());
+  public RemoteBlockInStream(long blockId, long blockSize, InetSocketAddress location) {
+    super(blockId, blockSize, location);
   }
 
   @Override
-  public int read() throws IOException {
-    byte[] b = new byte[1];
-    if (read(b) == -1) {
-      return -1;
-    }
-    return BufferUtils.byteToInt(b[0]);
-  }
-
-  @Override
-  public int read(byte[] b) throws IOException {
-    return read(b, 0, b.length);
-  }
-
-  @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
-    if (len == 0) {
-      return 0;
-    } else if (mPos == mBlockSize) {
-      return -1;
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
     }
 
+    // TODO(calvin): Perhaps verify that something was read from this stream
+    ClientContext.getClientMetrics().incBlocksReadRemote(1);
+    mClosed = true;
+  }
+
+  @Override
+  protected void bufferedRead(int len) throws IOException {
+    mBuffer.clear();
+    int bytesRead = readFromRemote(mBuffer.array(), 0, len);
+    mBuffer.limit(bytesRead);
+  }
+
+  @Override
+  protected int directRead(byte[] b, int off, int len) throws IOException {
+    return readFromRemote(b, off, len);
+  }
+
+  /**
+   * Increments the number of bytes read metric.
+   *
+   * @param bytes number of bytes to record as read
+   */
+  @Override
+  protected void incrementBytesReadMetric(int bytes) {
+    ClientContext.getClientMetrics().incBytesReadRemote(bytes);
+  }
+
+  /**
+   * Reads a portion of the block from the remote worker.
+   *
+   * @param b the byte array to write the data to
+   * @param off the offset in the array to write to
+   * @param len the length of data to write into the array
+   * @return the number of bytes successfully read
+   * @throws IOException if an error occurs reading the data
+   */
+  private int readFromRemote(byte[] b, int off, int len) throws IOException {
     // We read at most len bytes, but if mPos + len exceeds the length of the block, we only
     // read up to the end of the block.
-    int lengthToRead = (int) Math.min(len, mBlockSize - mPos);
-    int bytesLeft = lengthToRead;
-
+    int toRead = (int) Math.min(len, remaining());
+    int bytesLeft = toRead;
     while (bytesLeft > 0) {
       // TODO(calvin): Fix needing to recreate reader each time.
       RemoteBlockReader reader =
           RemoteBlockReader.Factory.createRemoteBlockReader(ClientContext.getConf());
-      ByteBuffer data = reader.readRemoteBlock(mLocation, mBlockId, mPos, bytesLeft);
-      int bytesToRead = Math.min(bytesLeft, data.remaining());
-      data.get(b, off, bytesToRead);
+      ByteBuffer data = reader.readRemoteBlock(mLocation, mBlockId, getPosition(), bytesLeft);
+      int bytesRead = data.remaining();
+      data.get(b, off, bytesRead);
       reader.close();
-      mPos += bytesToRead;
-      bytesLeft -= bytesToRead;
+      bytesLeft -= bytesRead;
+      incrementBytesReadMetric(bytesRead);
     }
 
-    return lengthToRead;
-  }
-
-  @Override
-  public long remaining() {
-    return mBlockSize - mPos;
-  }
-
-  @Override
-  public void seek(long pos) throws IOException {
-    Preconditions.checkArgument(pos > 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos < mBlockSize,
-        "Seek position: " + pos + " is past block size: " + mBlockSize);
-    mPos = pos;
-  }
-
-  @Override
-  public long skip(long n) throws IOException {
-    if (n <= 0) {
-      return 0;
-    }
-    long skipped = Math.min(n, mBlockSize - mPos);
-    mPos += skipped;
-    return skipped;
+    return toRead;
   }
 }

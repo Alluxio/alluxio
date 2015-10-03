@@ -37,9 +37,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
-import tachyon.conf.TachyonConf;
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.network.NetworkAddressUtils;
 
@@ -52,7 +52,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
-  // TODO add sticky bit and narrow down the permission in hadoop 2
+  // TODO(hy): Add a sticky bit and narrow down the permission in hadoop 2.
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
@@ -136,7 +136,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
-    // TODO Fix this
+    // TODO(hy): Fix this.
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
     return create(path);
   }
@@ -144,7 +144,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public FSDataOutputStream create(String path, short replication, int blockSizeByte)
       throws IOException {
-    // TODO Fix this
+    // TODO(hy): Fix this.
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeBytes);
     return create(path);
     // LOG.info(path + " " + replication + " " + blockSizeBytes);
@@ -302,11 +302,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void connectFromMaster(TachyonConf conf, String host) throws IOException {
-    String masterKeytab = conf.get(Constants.MASTER_KEYTAB_KEY);
-    String masterPrincipal = conf.get(Constants.MASTER_PRINCIPAL_KEY);
-    if (masterKeytab == null || masterPrincipal == null) {
+    if (!conf.containsKey(Constants.MASTER_KEYTAB_KEY)
+        || !conf.containsKey(Constants.MASTER_PRINCIPAL_KEY)) {
       return;
     }
+    String masterKeytab = conf.get(Constants.MASTER_KEYTAB_KEY);
+    String masterPrincipal = conf.get(Constants.MASTER_PRINCIPAL_KEY);
 
     login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
         masterPrincipal, host);
@@ -314,11 +315,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void connectFromWorker(TachyonConf conf, String host) throws IOException {
-    String workerKeytab = conf.get(Constants.WORKER_KEYTAB_KEY);
-    String workerPrincipal = conf.get(Constants.WORKER_PRINCIPAL_KEY);
-    if (workerKeytab == null || workerPrincipal == null) {
+    if (!conf.containsKey(Constants.WORKER_KEYTAB_KEY)
+        || !conf.containsKey(Constants.WORKER_PRINCIPAL_KEY)) {
       return;
     }
+    String workerKeytab = conf.get(Constants.WORKER_KEYTAB_KEY);
+    String workerPrincipal = conf.get(Constants.WORKER_PRINCIPAL_KEY);
 
     login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
         workerPrincipal, host);

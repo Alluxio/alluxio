@@ -24,13 +24,14 @@ import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.ClientMetrics;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Tachyon
  * configuration and master address. All members of this class are immutable. This class is
  * thread safe.
  */
-public class ClientContext {
+public final class ClientContext {
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
    * client.
@@ -39,7 +40,29 @@ public class ClientContext {
 
   private static InetSocketAddress sMasterAddress;
 
+  private static ClientMetrics sClientMetrics;
+
   private static Random sRandom;
+
+  // private access to the reinitializer of BlockStoreContext
+  private static BlockStoreContext.ReinitializerAccesser sBSCReinitializerAccesser =
+      new BlockStoreContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(BlockStoreContext.PrivateReinitializer access) {
+          sBSCReinitializer = access;
+        }
+      };
+  private static BlockStoreContext.PrivateReinitializer sBSCReinitializer;
+
+  // private access to the reinitializer of FileSystemContext
+  private static FileSystemContext.ReinitializerAccesser sFSCReinitializerAccesser =
+      new FileSystemContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(FileSystemContext.PrivateReinitializer access) {
+          sFSCReinitializer = access;
+        }
+      };
+  private static FileSystemContext.PrivateReinitializer sFSCReinitializer;
 
   static {
     sTachyonConf = new TachyonConf();
@@ -49,6 +72,8 @@ public class ClientContext {
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
+    sClientMetrics = new ClientMetrics();
+
     sRandom = new Random();
   }
 
@@ -57,6 +82,13 @@ public class ClientContext {
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
+  }
+
+  /**
+   * @return the ClientMetrics for this client
+   */
+  public static ClientMetrics getClientMetrics() {
+    return sClientMetrics;
   }
 
   /**
@@ -74,21 +106,42 @@ public class ClientContext {
   }
 
   /**
-   * This method is only for testing purposes.
-   *
-   * @param conf new configuration to use
+   * PrivateReinitializer can be used to reset the context. This access is limited only to classes
+   * that implement ReinitializeAccess class.
    */
-  // TODO(calvin): Find a better way to handle testing configurations
-  public static synchronized void reinitializeWithConf(TachyonConf conf) {
-    sTachyonConf = conf;
-    String masterHostname = Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
+  public static class PrivateReinitializer {
+    /**
+     * Re-initializes the client context.
+     *
+     * @param conf new configuration to use
+     */
+    public synchronized void reinitializeWithConf(TachyonConf conf) {
+      sTachyonConf = conf;
+      String masterHostname =
+          Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
+      int masterPort = sTachyonConf.getInt(Constants.MASTER_PORT);
 
-    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
+      sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
-    sRandom = new Random();
-
-    BlockStoreContext.INSTANCE.resetContext();
-    FileSystemContext.INSTANCE.resetContext();
+      sRandom = new Random();
+      // the initialization is done lazily because BlockStoreContext and FileSystemContext need
+      // ClientContext for class initialization
+      if (sBSCReinitializer == null || sFSCReinitializer == null) {
+        BlockStoreContext.INSTANCE.accessReinitializer(sBSCReinitializerAccesser);
+        FileSystemContext.INSTANCE.accessReinitializer(sFSCReinitializerAccesser);
+      }
+      sBSCReinitializer.resetContext();
+      sFSCReinitializer.resetContext();
+    }
   }
+
+  public interface ReinitializerAccesser {
+    void receiveAccess(PrivateReinitializer access);
+  }
+
+  public static void accessReinitializer(ReinitializerAccesser accesser) {
+    accesser.receiveAccess(new PrivateReinitializer());
+  }
+
+  private ClientContext() {}
 }

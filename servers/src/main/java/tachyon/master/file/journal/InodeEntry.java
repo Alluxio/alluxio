@@ -17,6 +17,7 @@ package tachyon.master.file.journal;
 
 import java.util.Map;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 
 import tachyon.master.journal.JournalEntry;
@@ -27,17 +28,19 @@ public abstract class InodeEntry implements JournalEntry {
   protected final long mId;
   protected final long mParentId;
   protected final String mName;
-  protected final boolean mIsPinned;
+  protected final boolean mPersisted;
+  protected final boolean mPinned;
   protected final long mCreationTimeMs;
   protected final long mLastModificationTimeMs;
   protected final PermissionStatus mPs;
 
-  public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean isPinned,
-      long lastModificationTimeMs, PermissionStatus ps) {
+  public InodeEntry(long creationTimeMs, long id, String name, long parentId, boolean persisted,
+      boolean pinned, long lastModificationTimeMs, PermissionStatus ps) {
     mId = id;
     mParentId = parentId;
     mName = name;
-    mIsPinned = isPinned;
+    mPersisted = persisted;
+    mPinned = pinned;
     mCreationTimeMs = creationTimeMs;
     mLastModificationTimeMs = lastModificationTimeMs;
     mPs = ps;
@@ -52,12 +55,32 @@ public abstract class InodeEntry implements JournalEntry {
     parameters.put("id", mId);
     parameters.put("parentId", mParentId);
     parameters.put("name", mName);
-    parameters.put("isPinned", mIsPinned);
+    parameters.put("persisted", mPersisted);
+    parameters.put("pinned", mPinned);
     parameters.put("creationTimeMs", mCreationTimeMs);
     parameters.put("lastModificationTimeMs", mLastModificationTimeMs);
     parameters.put("username", mPs.getUserName());
     parameters.put("groupname", mPs.getGroupName());
     parameters.put("permission", mPs.getPermission().toShort());
     return parameters;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mId, mParentId, mName, mPinned, mPersisted, mCreationTimeMs,
+        mLastModificationTimeMs);
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (object instanceof InodeEntry) {
+      InodeEntry that = (InodeEntry) object;
+      return Objects.equal(mId, that.mId) && Objects.equal(mParentId, that.mParentId)
+          && Objects.equal(mName, that.mName) && Objects.equal(mPersisted, that.mPersisted)
+          && Objects.equal(mPinned, that.mPinned)
+          && Objects.equal(mCreationTimeMs, that.mCreationTimeMs)
+          && Objects.equal(mLastModificationTimeMs, that.mLastModificationTimeMs);
+    }
+    return false;
   }
 }

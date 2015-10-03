@@ -15,6 +15,8 @@
 
 package tachyon.master.rawtable;
 
+import java.io.IOException;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,13 +28,13 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
+import tachyon.exception.TableColumnException;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.TableColumnException;
-import tachyon.thrift.TachyonException;
 
 public class RawTableMasterIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -59,23 +61,23 @@ public class RawTableMasterIntegrationTest {
 
   @Ignore
   @Test
-  public void createRawTableTest() throws InvalidPathException, FileAlreadyExistException,
-        TableColumnException, FileDoesNotExistException, TachyonException {
+  public void createRawTableTest() throws InvalidPathException, FileAlreadyExistsException,
+      TableColumnException, FileDoesNotExistException, TachyonException, IOException {
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"), 1, null);
     Assert.assertTrue(
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testTable"))).isFolder);
   }
 
   @Test
-  public void negativeColumnTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, TachyonException {
+  public void negativeColumnTest() throws InvalidPathException, FileAlreadyExistsException,
+      TableColumnException, TachyonException, IOException {
     mException.expect(TableColumnException.class);
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"), -1, null);
   }
 
   @Test
-  public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
-      TableColumnException, TachyonException {
+  public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistsException,
+      TableColumnException, TachyonException, IOException {
     mException.expect(TableColumnException.class);
     mRawTableMaster.createRawTable(new TachyonURI("/testTable"),
         mMasterConf.getInt(Constants.MAX_COLUMNS) + 1, null);

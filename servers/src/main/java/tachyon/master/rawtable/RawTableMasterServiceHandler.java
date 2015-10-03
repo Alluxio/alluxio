@@ -15,18 +15,15 @@
 
 package tachyon.master.rawtable;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.apache.thrift.TException;
-
 import tachyon.TachyonURI;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.InvalidPathException;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.RawTableMasterService;
-import tachyon.thrift.TableColumnException;
-import tachyon.thrift.TableDoesNotExistException;
-import tachyon.thrift.TachyonException;
+import tachyon.thrift.TachyonTException;
+import tachyon.thrift.ThriftIOException;
 
 public class RawTableMasterServiceHandler implements RawTableMasterService.Iface {
   private final RawTableMaster mRawTableMaster;
@@ -35,34 +32,55 @@ public class RawTableMasterServiceHandler implements RawTableMasterService.Iface
     mRawTableMaster = rawTableMaster;
   }
 
+  // TODO(jiri) Reduce exception handling boilerplate here
   @Override
   public long createRawTable(String path, int columns, ByteBuffer metadata)
-      throws FileAlreadyExistException, InvalidPathException, TableColumnException,
-      TachyonException, TException {
-    return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
+      throws TachyonTException, ThriftIOException {
+    try {
+      return mRawTableMaster.createRawTable(new TachyonURI(path), columns, metadata);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    }
   }
 
   @Override
-  public long getRawTableId(String path)
-      throws InvalidPathException, TableDoesNotExistException, TException {
-    return mRawTableMaster.getRawTableId(new TachyonURI(path));
+  public long getRawTableId(String path) throws TachyonTException {
+    try {
+      return mRawTableMaster.getRawTableId(new TachyonURI(path));
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
-  public RawTableInfo getClientRawTableInfoById(long id)
-      throws TableDoesNotExistException, TException {
-    return mRawTableMaster.getClientRawTableInfo(id);
+  public RawTableInfo getClientRawTableInfoById(long id) throws TachyonTException {
+    try {
+      return mRawTableMaster.getClientRawTableInfo(id);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
-  public RawTableInfo getClientRawTableInfoByPath(String path)
-      throws TableDoesNotExistException, InvalidPathException, TException {
-    return mRawTableMaster.getClientRawTableInfo(new TachyonURI(path));
+  public RawTableInfo getClientRawTableInfoByPath(String path) throws TachyonTException {
+    try {
+      return mRawTableMaster.getClientRawTableInfo(new TachyonURI(path));
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
-  public void updateRawTableMetadata(long tableId, ByteBuffer metadata)
-      throws TableDoesNotExistException, TachyonException, TException {
-    mRawTableMaster.updateRawTableMetadata(tableId, metadata);
+  public void updateRawTableMetadata(long tableId, ByteBuffer metadata) throws TachyonTException,
+      ThriftIOException {
+    try {
+      mRawTableMaster.updateRawTableMetadata(tableId, metadata);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    }
   }
 }
