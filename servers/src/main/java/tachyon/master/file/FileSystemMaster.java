@@ -60,7 +60,6 @@ import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.PersistFileEntry;
-import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
