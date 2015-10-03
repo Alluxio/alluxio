@@ -198,13 +198,13 @@ public final class BlockMasterSync implements Runnable {
     if (cmd == null) {
       return;
     }
-    switch (cmd.mCommandType) {
+    switch (cmd.commandType) {
       // Currently unused
       case Delete:
         break;
       // Master requests blocks to be removed from Tachyon managed space.
       case Free:
-        for (long block : cmd.mData) {
+        for (long block : cmd.data) {
           mFixedExecutionService.execute(new BlockRemover(mBlockDataManager,
               Sessions.MASTER_COMMAND_SESSION_ID, block));
         }
