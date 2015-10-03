@@ -116,10 +116,10 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   // TODO: need to add another create option object for passing ttl
   @Override
-  public long createFile(String path, long blockSizeBytes, boolean recursive, long ttl)
+  public long create(String path, long blockSizeBytes, boolean recursive, long ttl)
       throws TachyonTException {
     try {
-      return mFileSystemMaster.createFile(new TachyonURI(path), blockSizeBytes, recursive, ttl);
+      return mFileSystemMaster.create(new TachyonURI(path), blockSizeBytes, recursive, ttl);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -168,7 +168,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean createDirectory(String path, boolean recursive) throws TachyonTException {
+  public boolean mkdir(String path, boolean recursive) throws TachyonTException {
     try {
       mFileSystemMaster.mkdir(new TachyonURI(path), recursive);
       return true;
