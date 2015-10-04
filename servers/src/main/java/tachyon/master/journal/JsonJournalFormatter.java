@@ -292,7 +292,7 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getBoolean("completed"),
                 entry.getBoolean("cacheable"),
                 entry.get("blocks", new TypeReference<List<Long>>() {}),
-                entry.getLong("ttl"));
+                entry.getLong("ttl"),
                 new PermissionStatus(entry.getString("username"),
                     entry.getString("groupname"), entry.getShort("permission")));
           }
