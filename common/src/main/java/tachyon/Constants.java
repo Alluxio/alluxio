@@ -65,11 +65,6 @@ public final class Constants {
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
-
-  public static final int DEFAULT_CHECKPOINT_CAP_MB_SEC = 1000;
-
-  public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
-
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
   public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
@@ -181,8 +176,6 @@ public final class Constants {
   public static final String WORKER_MAX_WORKER_THREADS = "tachyon.worker.max.worker.threads";
   public static final String WORKER_MIN_WORKER_THREADS = "tachyon.worker.min.worker.threads";
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
-  public static final String WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
-      "tachyon.worker.per.thread.checkpoint.cap.mb.sec";
   public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
       "tachyon.worker.network.netty.boss.threads";
   public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
@@ -248,7 +241,6 @@ public final class Constants {
       "tachyon.worker.space.reserver.enable";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
-  public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
   public static final String WORKER_RESOURCE_CPU = "tachyon.worker.resource.cpu";
   public static final String WORKER_RESOURCE_MEM = "tachyon.worker.resource.mem";
