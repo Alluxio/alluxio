@@ -181,8 +181,6 @@ public final class Constants {
   public static final String WORKER_MAX_WORKER_THREADS = "tachyon.worker.max.worker.threads";
   public static final String WORKER_MIN_WORKER_THREADS = "tachyon.worker.min.worker.threads";
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
-  public static final String WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
-      "tachyon.worker.per.thread.checkpoint.cap.mb.sec";
   public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
       "tachyon.worker.network.netty.boss.threads";
   public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
