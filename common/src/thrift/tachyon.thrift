@@ -57,22 +57,15 @@ struct FileInfo {
   9: bool isFolder
   10: bool isPinned
   11: bool isCacheable
-<<<<<<< HEAD
-  12: list<i64> blockIds
-  13: i32 dependencyId
-  14: i32 inMemoryPercentage
-  15: i64 lastModificationTimeMs
-  16: string username
-  17: string groupname
-  18: i32 permission
-=======
   12: bool isPersisted
   13: list<i64> blockIds
   14: i32 dependencyId
   15: i32 inMemoryPercentage
   16: i64 lastModificationTimeMs
   17: i64 ttl
->>>>>>> security
+  18: string username
+  19: string groupname
+  20: i32 permission
 }
 
 // Information about lineage.
