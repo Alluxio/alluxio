@@ -21,6 +21,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import tachyon.Constants;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.SuspectedFileSizeException;
 import tachyon.master.block.BlockId;
@@ -63,9 +64,9 @@ public final class InodeFile extends Inode {
    * @param ttl The TTL for file expiration
    */
   public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
-      long creationTimeMs) {
+      long creationTimeMs, long ttl) {
     this(name, blockContainerId, parentId, blockSizeBytes,
-        creationTimeMs, PermissionStatus.getDirDefault());
+        creationTimeMs, ttl, PermissionStatus.getDirDefault());
   }
 
   /**
@@ -75,7 +76,7 @@ public final class InodeFile extends Inode {
    * @param blockContainerId The block container id for this file. All blocks for this file will
    *        belong to this block container.
    * @param parentId The inode id of the parent of the file
-   * @param blockSizeByte The block size of the file, in bytes
+   * @param blockSizeBytes The block size of the file, in bytes
    * @param creationTimeMs The creation time of the file, in milliseconds
    * @param ps the file permissionStatus information
    */
