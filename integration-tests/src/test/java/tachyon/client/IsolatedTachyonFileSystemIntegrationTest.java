@@ -160,14 +160,12 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
-    for (int k = 0; k <= numOfFiles; k ++) {
-      FileInfo info = mTfs.getInfo(files.get(k));
-      if (k != 0) {
-        Assert.assertTrue(info.getInMemoryPercentage() == 100);
-      } else {
-        CommonUtils.sleepMs(getSleepMs());
-        Assert.assertFalse(info.getInMemoryPercentage() == 100);
-      }
+    CommonUtils.sleepMs(getSleepMs());
+    FileInfo info = mTfs.getInfo(files.get(0));
+    Assert.assertFalse(info.getInMemoryPercentage() == 100);
+    for (int k = 1; k <= numOfFiles; k ++) {
+      info = mTfs.getInfo(files.get(k));
+      Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
   }
 
