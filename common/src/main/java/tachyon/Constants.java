@@ -64,9 +64,6 @@ public final class Constants {
 
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
-  public static final boolean DEFAULT_USER_ENABLE_LOCAL_READ = true;
-  public static final boolean DEFAULT_USER_ENABLE_LOCAL_WRITE = true;
-
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
   public static final int DEFAULT_CHECKPOINT_CAP_MB_SEC = 1000;

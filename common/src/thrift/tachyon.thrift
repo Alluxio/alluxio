@@ -95,8 +95,8 @@ enum CommandType {
 }
 
 struct Command {
-  1: CommandType mCommandType
-  2: list<i64> mData
+  1: CommandType commandType
+  2: list<i64> data
 }
 
 struct LineageCommand {
