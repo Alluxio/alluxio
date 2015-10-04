@@ -292,11 +292,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the dependency's id
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized int createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
-    return mFSMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
-        framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
@@ -460,8 +460,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the DependencyInfo of the specified dependency
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized DependencyInfo getClientDependencyInfo(int depId) throws IOException {
-    return mFSMasterClient.getDependencyInfo(depId);
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
@@ -958,12 +959,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param depId the dependency id
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized void requestFilesInDependency(int depId) throws IOException {
-    try {
-      mFSMasterClient.requestFilesInDependency(depId);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**

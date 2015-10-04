@@ -45,6 +45,10 @@ struct FileBlockInfo {
   3: list<NetAddress> ufsLocations
 }
 
+// deprecated
+struct DependencyInfo {
+}
+
 struct FileInfo {
   1: i64 fileId
   2: string name
@@ -59,18 +63,9 @@ struct FileInfo {
   11: bool isCacheable
   12: bool isPersisted
   13: list<i64> blockIds
-  14: i32 dependencyId
   15: i32 inMemoryPercentage
   16: i64 lastModificationTimeMs
   17: i64 ttl
-}
-
-// Information about lineage.
-struct DependencyInfo {
-  1: i32 id
-  2: list<i64> parents
-  3: list<i64> children
-  4: list<binary> data
 }
 
 // Information about raw tables.
@@ -167,12 +162,6 @@ service BlockMasterService {
 service FileSystemMasterService {
   void completeFile(1: i64 fileId) throws (1: TachyonTException e)
 
-  // Lineage Features
-  i32 createDependency(1: list<string> parents, 2: list<string> children,
-      3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
-      7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
-    throws (1: TachyonTException e)
-
   bool mkdir(1: string path, 2: bool recursive)
     throws (1: TachyonTException e)
 
@@ -183,9 +172,6 @@ service FileSystemMasterService {
     throws (1: TachyonTException e)
 
   bool free(1: i64 fileId, 2: bool recursive)
-    throws (1: TachyonTException e)
-
-  DependencyInfo getDependencyInfo(1: i32 dependencyId)
     throws (1: TachyonTException e)
 
   FileBlockInfo getFileBlockInfo(1: i64 fileId, 2: i32 fileBlockIndex)
@@ -230,9 +216,6 @@ service FileSystemMasterService {
   void reportLostFile(1: i64 fileId)
     throws (1: TachyonTException e)
 
-  void requestFilesInDependency(1: i32 depId)
-    throws (1: TachyonTException e)
-
   void setPinned(1: i64 fileId, 2: bool pinned)
     throws (1: TachyonTException e)
 
@@ -244,8 +227,6 @@ service FileSystemMasterService {
   bool unmount(1: string tachyonPath) throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   set<i64> workerGetPinIdList()
-
-  list<i32> workerGetPriorityDependencyList()
 }
 
 service LineageMasterService {

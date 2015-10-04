@@ -18,7 +18,6 @@ package tachyon.web;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -30,7 +29,6 @@ import tachyon.StorageLevelAlias;
 import tachyon.Version;
 import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
-import tachyon.master.file.meta.DependencyVariables;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 
@@ -110,15 +108,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    DependencyVariables.VARIABLES.clear();
-    for (String key : (Set<String>) request.getParameterMap().keySet()) {
-      if (key.startsWith("varName")) {
-        String value = request.getParameter("varVal" + key.substring(7));
-        if (value != null) {
-          DependencyVariables.VARIABLES.put(request.getParameter(key), value);
-        }
-      }
-    }
     populateValues(request);
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
@@ -202,8 +191,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     } else {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }
-
-    request.setAttribute("recomputeVariables", DependencyVariables.VARIABLES);
 
     StorageTierInfo[] infos = generateOrderedStorageTierInfo();
     request.setAttribute("storageTierInfos", infos);

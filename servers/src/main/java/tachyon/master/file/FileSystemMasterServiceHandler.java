@@ -16,13 +16,11 @@
 package tachyon.master.file;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
@@ -39,11 +37,6 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   @Override
   public Set<Long> workerGetPinIdList() {
     return mFileSystemMaster.getPinIdList();
-  }
-
-  @Override
-  public List<Integer> workerGetPriorityDependencyList() {
-    return mFileSystemMaster.getPriorityDependencyList();
   }
 
   // TODO(jiri) Reduce exception handling boilerplate here
@@ -74,6 +67,7 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
     }
   }
 
+  @Override
   public List<FileInfo> getFileInfoList(long fileId) throws TachyonTException {
     try {
       return mFileSystemMaster.getFileInfoList(fileId);
@@ -187,34 +181,12 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public int createDependency(List<String> parents, List<String> children, String commandPrefix,
-      List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
-      int dependencyType, long childrenBlockSizeByte) {
-    // TODO(gene): Implement lineage.
-    return 0;
-  }
-
-  @Override
-  public DependencyInfo getDependencyInfo(int dependencyId) throws TachyonTException {
-    try {
-      return mFileSystemMaster.getClientDependencyInfo(dependencyId);
-    } catch (TachyonException e) {
-      throw e.toTachyonTException();
-    }
-  }
-
-  @Override
   public void reportLostFile(long fileId) throws TachyonTException {
     try {
       mFileSystemMaster.reportLostFile(fileId);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
-  }
-
-  @Override
-  public void requestFilesInDependency(int depId) {
-    mFileSystemMaster.requestFilesInDependency(depId);
   }
 
   @Override
