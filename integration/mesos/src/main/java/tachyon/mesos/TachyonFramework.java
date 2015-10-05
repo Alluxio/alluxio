@@ -20,11 +20,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.MesosSchedulerDriver;
 
 import com.google.common.collect.Lists;
 
@@ -43,11 +43,15 @@ import tachyon.util.io.PathUtils;
  */
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
+    private static TachyonConf sConf = new TachyonConf();  
     private boolean mMasterLaunched = false;
     private String mMasterHostname = "";
+    private String mTaskName = "";
+    private int mMasterTaskId;
     private Set<String> mWorkers = new HashSet<String>();
     int mLaunchedTasks = 0;
-
+    int mMasterCount = 0;
+    
     @Override
     public void disconnected(SchedulerDriver driver) {
       System.out.println("Disconnected from master.");
@@ -91,11 +95,10 @@ public class TachyonFramework {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-      TachyonConf conf = new TachyonConf();
-      double masterCpu = conf.getInt(Constants.MASTER_RESOURCE_CPU);
-      double masterMem = conf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
-      double workerCpu = conf.getInt(Constants.WORKER_RESOURCE_CPU);
-      double workerMem = conf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
+      double masterCpu = sConf.getInt(Constants.MASTER_RESOURCE_CPU);
+      double masterMem = sConf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
+      double workerCpu = sConf.getInt(Constants.WORKER_RESOURCE_CPU);
+      double workerMem = sConf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -114,16 +117,11 @@ public class TachyonFramework {
         System.out.println("Received offer " + offer.getId().getValue() + " with cpus: " + offerCpu
             + " and mem: " + offerMem + "MB.");
 
-        Protos.TaskID taskId =
-            Protos.TaskID.newBuilder().setValue(Integer.toString(mLaunchedTasks ++)).build();
-
-        System.out.println("Launching task " + taskId.getValue() + " using offer "
-            + offer.getId().getValue());
-
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
         double targetCpu;
         double targetMem;
-        if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem) {
+        if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem && mMasterCount 
+              < sConf.getInt(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT)) {
           executorBuilder
               .setName("Tachyon Master Executor")
               .setSource("master")
@@ -133,7 +131,7 @@ public class TachyonFramework {
                       .newBuilder()
                       .setValue(
                           "export JAVA_HOME="
-                              + conf.get(Constants.JRE_VERSION)
+                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_VERSION)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("tachyon", "integration", "bin",
                                   "tachyon-master-mesos.sh"))
@@ -141,16 +139,19 @@ public class TachyonFramework {
           targetCpu = masterCpu;
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
-          mMasterLaunched = true;
+          mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NAME);
+          mMasterCount++;
+          mMasterTaskId = mLaunchedTasks;
+
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
-            && masterCpu >= workerCpu && offerMem >= workerMem) {
+            && offerCpu >= workerCpu && offerMem >= workerMem) {
           final String MEM_SIZE = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
           executorBuilder
               .setName("Tachyon Worker Executor")
               .setSource("worker")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
               .setCommand(Protos.CommandInfo.newBuilder().setValue(
-                      "export JAVA_HOME=" + conf.get(Constants.JRE_VERSION)
+                      "export JAVA_HOME=" + sConf.get(Constants.INTEGRATION_MESOS_JRE_VERSION)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("tachyon", "integration", "bin",
                                   "tachyon-worker-mesos.sh"))
@@ -164,14 +165,24 @@ public class TachyonFramework {
           targetCpu = workerCpu;
           targetMem = workerMem;
           mWorkers.add(offer.getHostname());
+          mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_WORKER_NAME);
         } else {
           // The resource offer cannot be used to start either master or a worker.
+          driver.declineOffer(offer.getId());
           continue;
         }
+        
+        Protos.TaskID taskId =
+                Protos.TaskID.newBuilder().setValue(String.valueOf(mLaunchedTasks)).build();
+
+        System.out.println("Launching task " + taskId.getValue() + " using offer "
+                + offer.getId().getValue());
+
+        
         Protos.TaskInfo task =
             Protos.TaskInfo
                 .newBuilder()
-                .setName("task " + taskId.getValue())
+                .setName(mTaskName)
                 .setTaskId(taskId)
                 .setSlaveId(offer.getSlaveId())
                 .addResources(
@@ -185,6 +196,7 @@ public class TachyonFramework {
                 .setExecutor(executorBuilder).build();
 
         launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
+        mLaunchedTasks++;
 
         // NOTE: We use the new API `acceptOffers` here to launch tasks.
         // The 'launchTasks' API will be deprecated.
@@ -215,6 +227,23 @@ public class TachyonFramework {
       // In particular, we should enable support for the fault tolerant mode of Tachyon to account
       // for Tachyon master process failures and keep track of the running number of Tachyon
       // masters.
+      
+      switch (status.getState()) {
+        case TASK_FAILED: // fallthrough
+        case TASK_LOST:
+        case TASK_ERROR:  
+          if (status.getTaskId().getValue().equals(String.valueOf(mMasterTaskId))) {
+            mMasterCount--;
+          }
+          break;
+        case TASK_RUNNING:
+          if (status.getTaskId().getValue().equals(String.valueOf(mMasterTaskId))) {
+            mMasterLaunched = true;
+          }
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -228,12 +257,12 @@ public class TachyonFramework {
 
   private static List<CommandInfo.URI> getExecutorDependencyURIList() {
     TachyonConf conf = new TachyonConf();
-    String dependencyPath = conf.get(Constants.EXECUTOR_DEPENDENCY_PATH);
+    String dependencyPath = conf.get(Constants.INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH);
     return Lists.newArrayList(
         CommandInfo.URI.newBuilder()
             .setValue(PathUtils.concatPath(dependencyPath, "tachyon.tar.gz")).setExtract(true)
             .build(), CommandInfo.URI.newBuilder()
-            .setValue(conf.get(Constants.JRE_URL)).setExtract(true).build());
+            .setValue(conf.get(Constants.INTEGRATION_MESOS_JRE_URL)).setExtract(true).build());
   }
 
   public static void main(String[] args) throws Exception {
