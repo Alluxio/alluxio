@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.CommandInfo;
+
+import com.google.common.collect.Lists;
+
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.MesosSchedulerDriver;
@@ -93,7 +97,6 @@ public class TachyonFramework {
       double masterMem = conf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
       double workerCpu = conf.getInt(Constants.WORKER_RESOURCE_CPU);
       double workerMem = conf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
-      String tachyonHome = conf.get(Constants.TACHYON_HOME);
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -127,8 +130,15 @@ public class TachyonFramework {
               .setSource("master")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("master"))
               .setCommand(
-                  Protos.CommandInfo.newBuilder().setValue(PathUtils
-                      .concatPath(tachyonHome, "integration", "bin", "tachyon-master-mesos.sh")));
+                  Protos.CommandInfo
+                      .newBuilder()
+                      .setValue(
+                          "export JAVA_HOME="
+                              + conf.get(Constants.JRE_VERSION)
+                              + " && export PATH=$PATH:$JAVA_HOME/bin && "
+                              + PathUtils.concatPath("tachyon", "integration", "bin",
+                                  "tachyon-master-mesos.sh"))
+                      .addAllUris(getExecutorDependencyURIList()));
           targetCpu = masterCpu;
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
@@ -140,18 +150,17 @@ public class TachyonFramework {
               .setName("Tachyon Worker Executor")
               .setSource("worker")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
-              .setCommand(
-                  Protos.CommandInfo.newBuilder().setValue(PathUtils
-                      .concatPath(tachyonHome, "integration", "bin", "tachyon-worker-mesos.sh"))
-                      .setEnvironment(Protos.Environment.newBuilder()
-                              .addVariables(
-                                  Protos.Environment.Variable.newBuilder()
-                                      .setName("TACHYON_MASTER_ADDRESS").setValue(mMasterHostname)
-                                      .build())
-                              .addVariables(
-                                  Protos.Environment.Variable.newBuilder()
-                                      .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE)
-                                      .build())
+              .setCommand(Protos.CommandInfo.newBuilder().setValue(
+                      "export JAVA_HOME=" + conf.get(Constants.JRE_VERSION)
+                              + " && export PATH=$PATH:$JAVA_HOME/bin && "
+                              + PathUtils.concatPath("tachyon", "integration", "bin",
+                                  "tachyon-worker-mesos.sh"))
+                      .addAllUris(getExecutorDependencyURIList())
+              .setEnvironment(Protos.Environment.newBuilder()
+                  .addVariables(Protos.Environment.Variable.newBuilder()
+                          .setName("TACHYON_MASTER_ADDRESS").setValue(mMasterHostname).build())
+                  .addVariables(Protos.Environment.Variable.newBuilder()
+                          .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE).build())
                           .build()));
           targetCpu = workerCpu;
           targetMem = workerMem;
@@ -216,6 +225,16 @@ public class TachyonFramework {
         + "starting\nTachyon processes. The current implementation starts a single Tachyon master "
         + "and\n n Tachyon workers (one per Mesos slave).");
     System.err.println("Usage: " + name + " <hostname>");
+  }
+
+  private static List<CommandInfo.URI> getExecutorDependencyURIList() {
+    TachyonConf conf = new TachyonConf();
+    String dependencyPath = conf.get(Constants.EXECUTOR_DEPENDENCY_PATH);
+    return Lists.newArrayList(
+        CommandInfo.URI.newBuilder()
+            .setValue(PathUtils.concatPath(dependencyPath, "tachyon.tar.gz")).setExtract(true)
+            .build(), CommandInfo.URI.newBuilder()
+            .setValue(conf.get(Constants.JRE_URL)).setExtract(true).build());
   }
 
   public static void main(String[] args) throws Exception {
