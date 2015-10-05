@@ -54,7 +54,7 @@ public final class MasterConcurrencyPerformance {
   /** Registry where type of operation is mapped to concrete operation */
   private static Map<OperationType, OperationCallable> sOperationRegistry = Maps.newHashMap();
   /** Shared Tachyon client in this class */
-  private static TachyonFileSystem sTfs = TachyonFileSystem.get();
+  private static TachyonFileSystem sTfs = TachyonFileSystem.TachyonFileSystemFactory.get();
 
   static {
     /**
