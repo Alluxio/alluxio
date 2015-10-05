@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
@@ -37,9 +35,6 @@ import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
-import tachyon.master.file.meta.DependencyType;
-import tachyon.util.CommonUtils;
-import tachyon.util.FormatUtils;
 
 /**
  * An example to show to how use Tachyon's API
@@ -60,25 +55,8 @@ public class BasicCheckpoint implements Callable<Boolean> {
   @Override
   public Boolean call() throws Exception {
     TachyonFS tachyonClient = TachyonFS.get(mLocation, new TachyonConf());
-    createDependency(tachyonClient);
     writeFile(tachyonClient);
     return readFile(tachyonClient);
-  }
-
-  private void createDependency(TachyonFS tachyonClient) throws IOException {
-    long startTimeMs = CommonUtils.getCurrentMs();
-    List<String> children = new ArrayList<String>();
-    for (int k = 0; k < mNumFiles; k ++) {
-      children.add(mFileFolder + "/part-" + k);
-    }
-    List<ByteBuffer> data = new ArrayList<ByteBuffer>();
-    data.add(ByteBuffer.allocate(10));
-    int depId =
-        tachyonClient.createDependency(new ArrayList<String>(), children, "fake command", data,
-            "BasicCheckpoint Dependency", "Tachyon Examples", "0.3",
-            DependencyType.Narrow.getValue(), 512 * Constants.MB);
-
-    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createDependency with depId " + depId));
   }
 
   private boolean readFile(TachyonFS tachyonClient) throws IOException {

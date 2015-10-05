@@ -50,7 +50,6 @@ import tachyon.master.file.journal.AddMountPointEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
 import tachyon.master.file.journal.DeleteMountPointEntry;
-import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
@@ -60,7 +59,6 @@ import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
-import tachyon.master.file.meta.DependencyType;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
@@ -316,29 +314,6 @@ public final class JsonJournalFormatter implements JournalFormatter {
           case DELETE_MOUNTPOINT: {
             return new DeleteMountPointEntry(
                 new TachyonURI(entry.getString("tachyonPath")));
-          }
-          case DEPENDENCY: {
-            return new DependencyEntry(
-                entry.getInt("id"),
-                entry.get("parentFiles", new TypeReference<List<Long>>() {
-                }),
-                entry.get("childrenFiles", new TypeReference<List<Long>>() {
-                }),
-                entry.getString("commandPrefix"),
-                entry.getByteBufferList("data"),
-                entry.getString("comment"),
-                entry.getString("framework"),
-                entry.getString("frameworkVersion"),
-                entry.get("dependencyType", DependencyType.class),
-                entry.get("parentDependencies", new TypeReference<List<Integer>>() {
-                }),
-                entry.get("childrenDependencies", new TypeReference<List<Integer>>() {
-                }),
-                entry.getLong("creationTimeMs"),
-                entry.get("uncheckpointedFiles", new TypeReference<List<Long>>() {
-                }),
-                entry.get("lostFileIds", new TypeReference<Set<Long>>() {
-                }));
           }
           case COMPLETE_FILE: {
             return new CompleteFileEntry(
