@@ -22,12 +22,11 @@ import java.util.Set;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
-
-import com.google.common.collect.Lists;
-
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.MesosSchedulerDriver;
+
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
