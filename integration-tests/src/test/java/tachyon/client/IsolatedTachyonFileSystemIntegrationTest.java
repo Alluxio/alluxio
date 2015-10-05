@@ -130,6 +130,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
+    // Sleep to ensure eviction has been reported to master
     CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(numOfFiles));
     Assert.assertTrue(info.getInMemoryPercentage() == 100);
@@ -160,6 +161,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
+    // Sleep to ensure eviction has been reported to master
     CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
@@ -191,6 +193,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
+    // Sleep to ensure eviction has been reported to master
     CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
@@ -229,6 +232,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
       FileInfo info = mTfs.getInfo(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
+    // Sleep to ensure eviction has been reported to master
     CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(numOfFiles));
     Assert.assertTrue(info.getInMemoryPercentage() == 100);
@@ -260,6 +264,7 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     }
     files.add(TachyonFSTestUtils.createByteFile(mTfs, uniqPath + numOfFiles, fileSize, mWriteBoth));
 
+    // Sleep to ensure eviction has been reported to master
     CommonUtils.sleepMs(getSleepMs());
     FileInfo info = mTfs.getInfo(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
