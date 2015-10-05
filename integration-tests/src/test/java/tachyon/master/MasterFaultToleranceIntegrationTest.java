@@ -55,10 +55,14 @@ public class MasterFaultToleranceIntegrationTest {
   @After
   public final void after() throws Exception {
     mLocalTachyonClusterMultiMaster.stop();
+    // Reset the master conf.
+    MasterContext.getConf().merge(new TachyonConf());
   }
 
   @Before
   public final void before() throws Exception {
+    // Reset the master conf.
+    MasterContext.getConf().merge(new TachyonConf());
     mLocalTachyonClusterMultiMaster =
         new LocalTachyonClusterMultiMaster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
     mLocalTachyonClusterMultiMaster.start();
