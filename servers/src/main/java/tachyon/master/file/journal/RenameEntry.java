@@ -23,7 +23,7 @@ import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
 /**
- * This class represents a journal entry for renaming an existing entry.
+ * This class represents a journal entry for renaming a file.
  */
 public class RenameEntry implements JournalEntry {
   public final long mFileId;
