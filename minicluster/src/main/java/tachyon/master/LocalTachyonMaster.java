@@ -23,6 +23,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
 import tachyon.Constants;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
@@ -256,11 +257,11 @@ public final class LocalTachyonMaster {
   }
 
   public TachyonFS getOldClient() throws IOException {
-    return mOldClientPool.getClient(MasterContext.getConf());
+    return mOldClientPool.getClient(ClientContext.getConf());
   }
 
   public TachyonFileSystem getClient() throws IOException {
-    return mClientPool.getClient(MasterContext.getConf());
+    return mClientPool.getClient(ClientContext.getConf());
   }
 
   private static String uniquePath() throws IOException {
