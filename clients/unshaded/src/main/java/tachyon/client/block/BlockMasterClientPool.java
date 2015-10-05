@@ -23,7 +23,6 @@ import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
-import tachyon.conf.TachyonConf;
 import tachyon.util.ThreadFactoryUtils;
 
 /**

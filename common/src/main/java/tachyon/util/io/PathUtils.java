@@ -25,7 +25,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
-import tachyon.thrift.InvalidPathException;
+import tachyon.exception.InvalidPathException;
 
 /**
  * Utilities related to both Tachyon paths like {@link tachyon.TachyonURI} and local file paths.
@@ -127,6 +127,29 @@ public final class PathUtils {
   }
 
   /**
+   * Checks whether the given path contains the given prefix. The comparison happens at a component
+   * granularity; for example, {@code hasPrefix(/dir/file, /dir)} should evaluate to true, while
+   * {@code hasPrefix(/dir/file, /d)} should evaluate to false.
+   *
+   * @param path a path
+   * @param prefix a prefix
+   * @return whether the given path has the given prefix
+   */
+  public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
+    String[] pathComponents = getPathComponents(path);
+    String[] prefixComponents = getPathComponents(prefix);
+    if (pathComponents.length < prefixComponents.length) {
+      return false;
+    }
+    for (int i = 0; i < prefixComponents.length; i ++) {
+      if (!pathComponents[i].equals(prefixComponents[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Checks if the given path is the root.
    *
    * @param path The path to check
@@ -148,6 +171,18 @@ public final class PathUtils {
         || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
+  }
+
+  /**
+   * Generates a deterministic temporary file name for the a path and a file id and a nonce.
+   *
+   * @param fileId a file id
+   * @param nonce a nonce token
+   * @param path a file path
+   * @return a deterministic temporary file name
+   */
+  public static final String temporaryFileName(long fileId, long nonce, String path) {
+    return path + ".tachyon." + fileId + "." + String.format("0x%16s", nonce) + ".tmp";
   }
 
   /**

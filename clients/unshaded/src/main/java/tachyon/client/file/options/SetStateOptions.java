@@ -21,6 +21,8 @@ import tachyon.conf.TachyonConf;
 public class SetStateOptions {
   public static class Builder {
     private Boolean mPinned;
+    // TODO(cc) Have an option to change TTL, would be used in a shell command like "setTTL", should
+    // also update logic of TTLBucketList when ttl value of an existing file is updated.
 
     /**
      * Creates a new builder for {@link SetStateOptions}.
@@ -33,7 +35,8 @@ public class SetStateOptions {
 
     /**
      * @param pinned the pinned flag value to use; it specifies whether the object should be kept in
-     *        memory
+     *        memory, if ttl(time to live) is set, the file will be deleted after expiration no
+     *        matter this value is true or false
      * @return the builder
      */
     public Builder setPinned(boolean pinned) {
