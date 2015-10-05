@@ -38,6 +38,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileInfo;
@@ -268,7 +269,8 @@ public class TfsShellTest {
   @Test
   public void countNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"count", "/NotExistFile"});
-    Assert.assertEquals("Could not find path: /NotExistFile\n", mOutput.toString());
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
+        mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -291,7 +293,8 @@ public class TfsShellTest {
   @Test
   public void fileinfoNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"fileinfo", "/NotExistFile"});
-    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
+        mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -361,7 +364,8 @@ public class TfsShellTest {
   @Test
   public void locationNotExistTest() throws IOException {
     int ret = mFsShell.run(new String[] {"location", "/NotExistFile"});
-    Assert.assertEquals("/NotExistFile does not exist.\n", mOutput.toString());
+    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
+        mOutput.toString());
     Assert.assertEquals(-1, ret);
   }
 
@@ -681,7 +685,7 @@ public class TfsShellTest {
     String expected = "";
     // du a non-existing file
     mFsShell.run(new String[] {"du", "/testRoot/noneExisting"});
-    expected += "Could not find path: /testRoot/noneExisting\n";
+    expected += ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testRoot/noneExisting") + "\n";
     // du a file
     mFsShell.run(new String[] {"du", "/testRoot/testFileA"});
     expected += "/testRoot/testFileA is 10 bytes\n";
@@ -780,7 +784,7 @@ public class TfsShellTest {
 
   private boolean fileExist(TachyonURI path) {
     try {
-      return (mTfs.open(path) != null);
+      return mTfs.open(path) != null;
     } catch (IOException e) {
       return false;
     } catch (TachyonException e) {

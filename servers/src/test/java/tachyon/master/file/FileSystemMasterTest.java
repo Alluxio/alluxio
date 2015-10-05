@@ -32,12 +32,14 @@ import tachyon.TachyonURI;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.MasterContext;
+import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.IdUtils;
 
 /**
  * Unit tests for tachyon.master.filesystem.FileSystemMaster.
@@ -95,10 +97,7 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
 
     // verify the file is deleted
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /nested/test/file");
-
-    mFileSystemMaster.getFileId(NESTED_FILE_URI);
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
   }
 
   @Test
@@ -109,10 +108,7 @@ public final class FileSystemMasterTest {
     Assert.assertTrue(mFileSystemMaster.deleteFile(dirId, true));
 
     // verify the dir is deleted
-    mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /nested/test");
-
-    mFileSystemMaster.getFileId(NESTED_URI);
+    Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
   }
 
   @Test
@@ -177,7 +173,7 @@ public final class FileSystemMasterTest {
   @Test
   public void renameUnderNonexistingDir() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /nested/test");
+    mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
 
     long fileId = mFileSystemMaster.create(TEST_URI, Constants.KB, false);
 
