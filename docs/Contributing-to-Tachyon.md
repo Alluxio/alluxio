@@ -1,8 +1,8 @@
 ---
 layout: global
 title: Contributing to Tachyon
-nickname: Contributing
-group: Development
+nickname: Contributor Guide
+group: Dev Resources
 ---
 
 Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
