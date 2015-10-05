@@ -23,8 +23,8 @@ import org.junit.Test;
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.SuspectedFileSizeException;
 
 /**
  * Unit tests for tachyon.InodeFile
@@ -70,7 +70,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void setLengthAfterCompleteTest() throws Exception {
     mThrown.expect(SuspectedFileSizeException.class);
-    mThrown.expectMessage("InodeFile length was set previously.");
+    mThrown.expectMessage("InodeFile has been completed.");
 
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
@@ -113,9 +113,9 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void setCompleteTest() {
     InodeFile inode1 = createInodeFile(1);
-    Assert.assertFalse(inode1.isComplete());
+    Assert.assertFalse(inode1.isCompleted());
 
-    inode1.setComplete(LENGTH);
-    Assert.assertTrue(inode1.isComplete());
+    inode1.setCompleted(LENGTH);
+    Assert.assertTrue(inode1.isCompleted());
   }
 }

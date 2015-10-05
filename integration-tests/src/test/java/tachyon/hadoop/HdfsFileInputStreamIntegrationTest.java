@@ -66,9 +66,9 @@ public class HdfsFileInputStreamIntegrationTest {
     sTFS = sLocalTachyonCluster.getOldClient();
     sTachyonFileSystem = sLocalTachyonCluster.getClient();
     TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile1", TachyonStorageType.STORE,
-        UnderStorageType.PERSIST, FILE_LEN);
+        UnderStorageType.SYNC_PERSIST, FILE_LEN);
     TachyonFSTestUtils.createByteFile(sTachyonFileSystem, "/testFile2", TachyonStorageType.NO_STORE,
-        UnderStorageType.PERSIST, FILE_LEN);
+        UnderStorageType.SYNC_PERSIST, FILE_LEN);
   }
 
   @After

@@ -85,7 +85,7 @@ public class TachyonFileSystemIntegrationTest {
     sWriteBoth =
         new OutStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
+            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     sReadCache =
         new InStreamOptions.Builder(sLocalTachyonCluster.getMasterTachyonConf())
             .setTachyonStorageType(TachyonStorageType.STORE).build();
@@ -107,7 +107,7 @@ public class TachyonFileSystemIntegrationTest {
   }
 
   @Test
-  public void createFileWithFileAlreadyExistExceptionTest() throws IOException, TachyonException {
+  public void createFileWithFileAlreadyExistsExceptionTest() throws IOException, TachyonException {
     TachyonURI uri = new TachyonURI(PathUtils.uniqPath());
     sTfs.getOutStream(uri, sWriteBoth).close();
     Assert.assertNotNull(sTfs.getInfo(sTfs.open(uri)));

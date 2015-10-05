@@ -26,9 +26,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFSTestUtils;
-import tachyon.client.TachyonStorageType;
-import tachyon.client.UnderStorageType;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -38,12 +35,12 @@ import tachyon.client.file.options.MkdirOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.file.FileSystemMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.PathUtils;
 
@@ -64,7 +61,7 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void AddBlockTest() throws Exception {
+  public void addBlockTest() throws Exception {
     TachyonURI uri = new TachyonURI("/xyz");
     OutStreamOptions options =
         new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
@@ -75,7 +72,7 @@ public class JournalIntegrationTest {
     os.close();
     FileInfo fInfo = mTfs.getInfo(mTfs.open(uri));
     mLocalTachyonCluster.stopTFS();
-    AddBlockTestUtil(fInfo);
+    addBlockTestUtil(fInfo);
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
@@ -90,7 +87,7 @@ public class JournalIntegrationTest {
         true);
   }
 
-  private void AddBlockTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
+  private void addBlockTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
@@ -112,37 +109,37 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void AddCheckpointTest() throws Exception {
-    OutStreamOptions options =
-        new OutStreamOptions.Builder(mMasterTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
-            .setUnderStorageType(UnderStorageType.PERSIST).build();
-    TachyonFSTestUtils.createByteFile(mTfs, "/xyz", 10, options);
-    FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
-    TachyonURI ckPath = new TachyonURI("/xyz_ck");
-    // TODO(cc): What's the counterpart in the new client API for this?
+  public void loadMetadataTest() throws Exception {
+    String ufsRoot =
+        PathUtils.concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(
+            Constants.UNDERFS_DATA_FOLDER));
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
+    ufs.create(ufsRoot + "/xyz");
+    try {
+      mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
+      Assert.fail("File /xyz should not exist.");
+    } catch (InvalidPathException e) {
+      // This is to expected.
+    }
     LoadMetadataOptions recursive =
         new LoadMetadataOptions.Builder(new TachyonConf()).setRecursive(true).build();
-    mTfs.loadMetadata(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()), recursive);
-    FileInfo ckFileInfo = mTfs.getInfo(mTfs.open(ckPath));
+    mTfs.loadMetadata(new TachyonURI("/xyz"), recursive);
+    FileInfo fileInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     mLocalTachyonCluster.stopTFS();
-    AddCheckpointTestUtil(fInfo, ckFileInfo);
+    loadMetadataTestUtil(fileInfo);
     deleteFsMasterJournalLogs();
-    AddCheckpointTestUtil(fInfo, ckFileInfo);
+    loadMetadataTestUtil(fileInfo);
   }
 
-  private void AddCheckpointTestUtil(FileInfo fileInfo, FileInfo ckFileInfo)
-      throws IOException, InvalidPathException, FileDoesNotExistException {
+  private void loadMetadataTestUtil(FileInfo fileInfo) throws IOException,
+      InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != -1);
-    Assert.assertEquals(2, fsMaster.getFileInfoList(rootId).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(rootId).size());
     Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/xyz")) != -1);
-    Assert.assertTrue(fsMaster.getFileId(new TachyonURI("/xyz_ck")) != -1);
     Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/xyz"))));
-    Assert.assertEquals(ckFileInfo,
-        fsMaster.getFileInfo(fsMaster.getFileId(new TachyonURI("/xyz_ck"))));
     fsMaster.stop();
   }
 
@@ -173,7 +170,7 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void CompletedEditLogDeletionTest() throws Exception {
+  public void completedEditLogDeletionTest() throws Exception {
     for (int i = 0; i < 124; i ++) {
       mTfs.getOutStream(new TachyonURI("/a" + i),
           new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + 10) / 10 * 64).build())
@@ -187,10 +184,10 @@ public class JournalIntegrationTest {
     String completedPath = journal.getCompletedDirectory();
     Assert.assertTrue(UnderFileSystem.get(completedPath,
         mMasterTachyonConf).list(completedPath).length > 1);
-    MultiEditLogTestUtil();
+    multiEditLogTestUtil();
     Assert.assertTrue(UnderFileSystem.get(completedPath,
         mMasterTachyonConf).list(completedPath).length <= 1);
-    MultiEditLogTestUtil();
+    multiEditLogTestUtil();
   }
 
   /**
@@ -199,7 +196,7 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void DeleteTest() throws Exception {
+  public void deleteTest() throws Exception {
     MkdirOptions recMkdir = new MkdirOptions.Builder(new TachyonConf()).setRecursive(true).build();
     DeleteOptions recDelete =
         new DeleteOptions.Builder(new TachyonConf()).setRecursive(true).build();
@@ -220,12 +217,12 @@ public class JournalIntegrationTest {
       }
     }
     mLocalTachyonCluster.stopTFS();
-    DeleteTestUtil();
+    deleteTestUtil();
     deleteFsMasterJournalLogs();
-    DeleteTestUtil();
+    deleteTestUtil();
   }
 
-  private void DeleteTestUtil() throws IOException, InvalidPathException,
+  private void deleteTestUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -240,7 +237,7 @@ public class JournalIntegrationTest {
   }
 
   @Test
-  public void EmptyImageTest() throws Exception {
+  public void emptyImageTest() throws Exception {
     mLocalTachyonCluster.stopTFS();
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -255,7 +252,7 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void FileFolderTest() throws Exception {
+  public void fileFolderTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
       mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
@@ -265,12 +262,12 @@ public class JournalIntegrationTest {
       }
     }
     mLocalTachyonCluster.stopTFS();
-    FileFolderUtil();
+    fileFolderUtil();
     deleteFsMasterJournalLogs();
-    FileFolderUtil();
+    fileFolderUtil();
   }
 
-  private void FileFolderUtil() throws IOException, InvalidPathException,
+  private void fileFolderUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -290,19 +287,19 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void FileTest() throws Exception {
+  public void fileTest() throws Exception {
     OutStreamOptions option =
         new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize(64).build();
     TachyonURI filePath = new TachyonURI("/xyz");
     mTfs.getOutStream(filePath, option).close();
     FileInfo fInfo = mTfs.getInfo(mTfs.open(filePath));
     mLocalTachyonCluster.stopTFS();
-    FileTestUtil(fInfo);
+    fileTestUtil(fInfo);
     deleteFsMasterJournalLogs();
-    FileTestUtil(fInfo);
+    fileTestUtil(fInfo);
   }
 
-  private void FileTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
+  private void fileTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -318,7 +315,7 @@ public class JournalIntegrationTest {
    * Test journalling of inodes being pinned.
    */
   @Test
-  public void PinTest() throws Exception {
+  public void pinTest() throws Exception {
     SetStateOptions setPinned =
         new SetStateOptions.Builder(new TachyonConf()).setPinned(true).build();
     SetStateOptions setUnpinned =
@@ -342,12 +339,12 @@ public class JournalIntegrationTest {
 
     mLocalTachyonCluster.stopTFS();
 
-    PinTestUtil(folderInfo, file0Info, file1Info);
+    pinTestUtil(folderInfo, file0Info, file1Info);
     deleteFsMasterJournalLogs();
-    PinTestUtil(folderInfo, file0Info, file1Info);
+    pinTestUtil(folderInfo, file0Info, file1Info);
   }
 
-  private void PinTestUtil(FileInfo folder, FileInfo file0, FileInfo file1)
+  private void pinTestUtil(FileInfo folder, FileInfo file0, FileInfo file1)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
@@ -372,17 +369,17 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void FolderTest() throws Exception {
+  public void folderTest() throws Exception {
     TachyonURI folderPath = new TachyonURI("/xyz");
     mTfs.mkdir(folderPath);
     FileInfo fInfo = mTfs.getInfo(mTfs.open(folderPath));
     mLocalTachyonCluster.stopTFS();
-    FolderTest(fInfo);
+    folderTestUtil(fInfo);
     deleteFsMasterJournalLogs();
-    FolderTest(fInfo);
+    folderTestUtil(fInfo);
   }
 
-  private void FolderTest(FileInfo fileInfo) throws IOException, InvalidPathException,
+  private void folderTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
       FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -400,19 +397,19 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void ManyFileTest() throws Exception {
+  public void manyFileTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
       OutStreamOptions option =
           new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + 1) * 64).build();
       mTfs.getOutStream(new TachyonURI("/a" + i), option).close();
     }
     mLocalTachyonCluster.stopTFS();
-    ManyFileTestUtil();
+    manyFileTestUtil();
     deleteFsMasterJournalLogs();
-    ManyFileTestUtil();
+    manyFileTestUtil();
   }
 
-  private void ManyFileTestUtil() throws IOException, InvalidPathException,
+  private void manyFileTestUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -430,19 +427,19 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void MultiEditLogTest() throws Exception {
+  public void multiEditLogTest() throws Exception {
     for (int i = 0; i < 124; i ++) {
       OutStreamOptions op =
           new OutStreamOptions.Builder(mMasterTachyonConf).setBlockSize((i + 10) / 10 * 64).build();
       mTfs.getOutStream(new TachyonURI("/a" + i), op);
     }
     mLocalTachyonCluster.stopTFS();
-    MultiEditLogTestUtil();
+    multiEditLogTestUtil();
     deleteFsMasterJournalLogs();
-    MultiEditLogTestUtil();
+    multiEditLogTestUtil();
   }
 
-  private void MultiEditLogTestUtil() throws IOException, InvalidPathException,
+  private void multiEditLogTestUtil() throws IOException, InvalidPathException,
       FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
@@ -467,7 +464,7 @@ public class JournalIntegrationTest {
   //  Journal journal = new Journal(journalPrefix, mMasterTachyonConf);
   //  UnderFileSystem ufs = UnderFileSystem.get(journalPrefix, mMasterTachyonConf);
   //  ufs.delete(journalPrefix, true);
-  //  ufs.mkdirs(journalPrefix, true);
+  //  ufs.mkdir(journalPrefix, true);
   //  OutputStream ops = ufs.create(journal.getCurrentLogFilePath());
   //  if (ops != null) {
   //    ops.close();
@@ -514,7 +511,7 @@ public class JournalIntegrationTest {
    * @throws Exception
    */
   @Test
-  public void RenameTest() throws Exception {
+  public void renameTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
       mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
@@ -527,12 +524,12 @@ public class JournalIntegrationTest {
       mTfs.rename(mTfs.open(new TachyonURI("/i" + i)), new TachyonURI("/ii" + i));
     }
     mLocalTachyonCluster.stopTFS();
-    RenameTestUtil();
+    renameTestUtil();
     deleteFsMasterJournalLogs();
-    RenameTestUtil();
+    renameTestUtil();
   }
 
-  private void RenameTestUtil()
+  private void renameTestUtil()
       throws IOException, InvalidPathException, FileDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);

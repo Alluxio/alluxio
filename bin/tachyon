@@ -76,7 +76,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
+  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
 
   if [ "$#" -ne 2 ]; then
     echo $Usage
@@ -99,6 +99,10 @@ function runTest {
     BasicNonByteBuffer)
       file+="/BasicNonByteBuffer_$2"
       class="tachyon.examples.BasicNonByteBufferOperations"
+      ;;
+    BasicRawTable)
+      file+="/BasicRawTable_$2"
+      class="tachyon.examples.BasicRawTableOperations"
       ;;
     *)
       echo "Unknown test: $1 with type $2" 1>&2
@@ -235,7 +239,7 @@ elif [ "$COMMAND" == "formatWorker" ]; then
   CLASS=tachyon.Format
   PARAMETER=worker
 elif [ "$COMMAND" == "tfs" ]; then
-  CLASS=tachyon.shell.TFsShell
+  CLASS=tachyon.shell.TfsShell
 elif [ "$COMMAND" == "loadufs" ]; then
   CLASS=tachyon.client.UfsUtils
 elif [ "$COMMAND" == "runTest" ]; then
@@ -247,7 +251,7 @@ elif [ "$COMMAND" == "runTests" ]; then
   failed=0
   for op in ${opArr[@]}
   do
-    for example in Basic BasicNonByteBuffer
+    for example in Basic BasicNonByteBuffer BasicRawTable
     do
       echo $LAUNCHER $bin/tachyon runTest $example $op
       $LAUNCHER $bin/tachyon runTest $example $op

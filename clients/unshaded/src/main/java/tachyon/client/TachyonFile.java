@@ -28,6 +28,7 @@ import tachyon.TachyonURI;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
@@ -64,7 +65,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   TachyonFile(TachyonFS tfs, long fid, TachyonConf tachyonConf) {
     mTachyonFS = tfs;
-    mTFS = TachyonFileSystem.get();
+    mTFS = TachyonFileSystemFactory.get();
     mFileId = fid;
     mTachyonConf = tachyonConf;
   }
@@ -157,7 +158,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("ReadType can not be null.");
     }
 
-    if (!isComplete()) {
+    if (!isCompleted()) {
       throw new IOException("The file " + this + " is not complete.");
     }
 
@@ -248,7 +249,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException when an event that prevents the operation from completing is encountered
    */
   public FileOutStream getOutStream(WriteType writeType) throws IOException {
-    if (isComplete()) {
+    if (isCompleted()) {
       throw new IOException("Overriding after completion not supported.");
     }
 
@@ -266,7 +267,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
     if (writeType.isThrough()) {
-      optionsBuilder.setUnderStorageType(UnderStorageType.PERSIST);
+      optionsBuilder.setUnderStorageType(UnderStorageType.SYNC_PERSIST);
     } else {
       optionsBuilder.setUnderStorageType(UnderStorageType.NO_PERSIST);
     }
@@ -292,22 +293,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return mUFSConf;
   }
 
-  /**
-   * Returns the under filesystem path in the under file system of this file
-   *
-   * @return the under filesystem path
-   * @throws IOException if the underlying file does not exist or its metadata is corrupted
-   */
-  String getUfsPath() throws IOException {
-    FileInfo info = getCachedFileStatus();
-
-    if (!info.getUfsPath().isEmpty()) {
-      return info.getUfsPath();
-    }
-
-    return getUnCachedFileStatus().getUfsPath();
-  }
-
   @Override
   public int hashCode() {
     return Long.valueOf(mFileId).hashCode();
@@ -319,8 +304,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return true if this file is complete, false otherwise
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
-  public boolean isComplete() throws IOException {
-    return getCachedFileStatus().isComplete || getUnCachedFileStatus().isComplete;
+  public boolean isCompleted() throws IOException {
+    return getCachedFileStatus().isCompleted || getUnCachedFileStatus().isCompleted;
   }
 
   /**

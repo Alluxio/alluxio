@@ -17,7 +17,6 @@ package tachyon.client.file;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +43,9 @@ import tachyon.util.network.NetworkAddressUtils;
  * into a given offset of the stream to read.
  *
  * <p>
- * This class wraps the {@link BlockInStream} for each of the blocks in the file and abstracts the
- * switching between streams. The backing streams can read from Tachyon space in the local machine,
- * remote machines, or the under storage system.
+ * This class wraps the {@link tachyon.client.block.BlockInStream} for each of the blocks in the
+ * file and abstracts the switching between streams. The backing streams can read from Tachyon space
+ * in the local machine, remote machines, or the under storage system.
  */
 @PublicApi
 public final class FileInStream extends InputStream implements BoundedStream, Seekable {
@@ -61,14 +60,12 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   private final long mFileLength;
   /** File System context containing the FileSystemMasterClient pool */
   private final FileSystemContext mContext;
-  /** Block ids associated with this file */
-  private final List<Long> mBlockIds;
-  /** Path to the under storage system file that backs this Tachyon file */
-  private final String mUfsPath;
+  /** File information */
+  private final FileInfo mFileInfo;
 
   /** If the stream is closed, this can only go from false to true */
   private boolean mClosed;
-  /** Whether or not the current block should be cached. */
+  /** Whether or not the current block should be cached */
   private boolean mShouldCacheCurrentBlock;
   /** Current position of the stream */
   private long mPos;
@@ -84,10 +81,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
    * @param options the client options
    */
   public FileInStream(FileInfo info, InStreamOptions options) {
+    mFileInfo = info;
     mBlockSize = info.getBlockSizeBytes();
     mFileLength = info.getLength();
-    mBlockIds = info.getBlockIds();
-    mUfsPath = info.getUfsPath();
     mContext = FileSystemContext.INSTANCE;
     mTachyonStorageType = options.getTachyonStorageType();
     mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
@@ -184,8 +180,8 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return;
     }
     Preconditions.checkArgument(pos >= 0, "Seek position is negative: " + pos);
-    Preconditions.checkArgument(pos <= mFileLength,
-        "Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
+    Preconditions.checkArgument(pos < mFileLength, "Seek position is past EOF: " + pos
+        + ", fileSize = " + mFileLength);
 
     seekBlockInStream(pos);
     checkAndAdvanceBlockInStream();
@@ -264,8 +260,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
       return -1;
     }
     int index = (int) (mPos / mBlockSize);
-    Preconditions.checkState(index < mBlockIds.size(), "Current block index exceeds max index.");
-    return mBlockIds.get(index);
+    Preconditions.checkState(index < mFileInfo.blockIds.size(),
+        "Current block index exceeds max index.");
+    return mFileInfo.blockIds.get(index);
   }
 
   /**
@@ -325,13 +322,14 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mTachyonStorageType.isStore();
     } catch (IOException ioe) {
       LOG.debug("Failed to get BlockInStream for " + blockId + ", using ufs instead", ioe);
-      if (mUfsPath == null || mUfsPath.isEmpty()) {
-        LOG.error("Could not obtain data for " + blockId + " from Tachyon and no checkpoint is"
-            + " available in under storage.");
+      if (!mFileInfo.isPersisted) {
+        LOG.error("Could not obtain data for " + blockId
+            + " from Tachyon and data is not persisted in under storage.");
         throw ioe;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
-      mCurrentBlockInStream = new UnderStoreFileInStream(blockStart, mBlockSize, mUfsPath);
+      mCurrentBlockInStream =
+          new UnderStoreFileInStream(blockStart, mBlockSize, mFileInfo.getUfsPath());
       mShouldCacheCurrentBlock = mTachyonStorageType.isStore();
     }
   }

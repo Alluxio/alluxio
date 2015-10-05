@@ -23,6 +23,7 @@ import tachyon.conf.TachyonConf;
 @PublicApi
 public final class CreateOptions {
   public static class Builder {
+    // TODO(calvin): Should this just be an int?
     private long mBlockSize;
     private boolean mRecursive;
     private long mTTL;
@@ -33,7 +34,7 @@ public final class CreateOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mTTL = 0;
+      mTTL = Constants.NO_TTL;
       mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
       mRecursive = false;
     }
@@ -58,8 +59,9 @@ public final class CreateOptions {
     }
 
     /**
-     * @param ttl the TTL (time to live) value to use; it identifies duration (in seconds) the
-     *        created file should be kept around before it is automatically deleted
+     * @param ttl the TTL (time to live) value to use; it identifies duration (in milliseconds) the
+     *        created file should be kept around before it is automatically deleted, no matter
+     *        whether the file is pinned
      * @return the builder
      */
     public Builder setTTL(long ttl) {
@@ -110,7 +112,7 @@ public final class CreateOptions {
   }
 
   /**
-   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
+   * @return the TTL (time to live) value; it identifies duration (in milliseconds) the created file
    *         should be kept around before it is automatically deleted
    */
   public long getTTL() {

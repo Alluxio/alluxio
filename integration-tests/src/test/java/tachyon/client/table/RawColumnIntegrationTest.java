@@ -15,11 +15,19 @@
 
 package tachyon.client.table;
 
+import java.io.IOException;
+
+import org.apache.thrift.TException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.TachyonURI;
+import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
+import tachyon.conf.TachyonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -27,21 +35,26 @@ import tachyon.master.LocalTachyonCluster;
  */
 public class RawColumnIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private TachyonFS mTfs = null;
+
+  @Before
+  public final void before() throws Exception {
+    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
+    mLocalTachyonCluster.start();
+    mTfs = mLocalTachyonCluster.getOldClient();
+  }
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
   }
 
-  // TODO(gene): Renable when there is a raw table client.
-/*
   @Test
   public void basicTest() throws IOException, TException {
     TachyonConf conf = mLocalTachyonCluster.getMasterTachyonConf();
     int maxCols = conf.getInt(Constants.MAX_COLUMNS);
 
-    int fileId = mTfs.createRawTable(new TachyonURI("/table"), maxCols / 10);
+    long fileId = mTfs.createRawTable(new TachyonURI("/table"), maxCols / 10);
     RawTable table = mTfs.getRawTable(fileId);
 
     for (int col = 0; col < maxCols / 10; col ++) {
@@ -54,13 +67,5 @@ public class RawColumnIntegrationTest {
       }
       Assert.assertEquals(5, column.partitions());
     }
-  }
-*/
-
-  @Before
-  public final void before() throws Exception {
-    mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
   }
 }

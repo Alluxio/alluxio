@@ -27,7 +27,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,14 +40,12 @@ import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.DependencyDoesNotExistException;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.WorkerInfo;
-import tachyon.underfs.UnderFileSystem;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -158,6 +155,8 @@ public class TachyonFS extends AbstractTachyonFS {
   private final FileSystemMasterClient mFSMasterClient;
   /** The RPC client talks to the block store master. */
   private final BlockMasterClient mBlockMasterClient;
+  /** The RPC client talks to the raw table master. */
+  private final RawTableMasterClient mRawTableMasterClient;
   /** The Master address. */
   private final InetSocketAddress mMasterAddress;
   /** The RPC client talks to the local worker if there is one. */
@@ -168,8 +167,6 @@ public class TachyonFS extends AbstractTachyonFS {
   // Cached FileInfo
   private final Map<String, FileInfo> mPathToClientFileInfo = new HashMap<String, FileInfo>();
   private final Map<Long, FileInfo> mIdToClientFileInfo = new HashMap<Long, FileInfo>();
-
-  private UnderFileSystem mUnderFileSystem;
 
   /** All Blocks that have been locked. */
   private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
@@ -190,6 +187,8 @@ public class TachyonFS extends AbstractTachyonFS {
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
     mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
+    mRawTableMasterClient = mCloser.register(new RawTableMasterClient(mMasterAddress,
+        mExecutorService, mTachyonConf));
     mWorkerClient = mCloser.register(BlockStoreContext.INSTANCE.acquireWorkerClient());
     mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
@@ -216,7 +215,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying worker RPC fails
    */
   synchronized void addCheckpoint(long fid) throws IOException {
-    mWorkerClient.addCheckpoint(fid);
+    throw new UnsupportedOperationException("AddCheckpoint is not unsupported");
   }
 
   /**
@@ -273,31 +272,9 @@ public class TachyonFS extends AbstractTachyonFS {
   synchronized void completeFile(long fid) throws IOException {
     try {
       mFSMasterClient.completeFile(fid);
-    } catch (TException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
-  }
-
-  /**
-   * Creates a user UnderFileSystem temporary folder and returns it.
-   *
-   * @param ufsConf the configuration of UnderFileSystem
-   * @return the UnderFileSystem temporary folder
-   * @throws IOException if the underlying worker RPC or under file system interaction fails
-   */
-  synchronized String createAndGetUserUfsTempFolder(Object ufsConf) throws IOException {
-    String tmpFolder = mWorkerClient.getSessionUfsTempFolder();
-    if (tmpFolder == null) {
-      return null;
-    }
-
-    if (mUnderFileSystem == null) {
-      mUnderFileSystem = UnderFileSystem.get(tmpFolder, ufsConf, mTachyonConf);
-    }
-
-    mUnderFileSystem.mkdirs(tmpFolder, true);
-
-    return tmpFolder;
   }
 
   /**
@@ -315,11 +292,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the dependency's id
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized int createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
-    return mFSMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
-        framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
@@ -339,12 +316,12 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeByte > 0) {
-        return mFSMasterClient.createFile(path.getPath(), blockSizeByte, recursive,
+        return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive,
             Constants.NO_TTL);
       } else {
-        return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), ufsPath.toString(), recursive);
+        return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), recursive);
       }
-    } catch (TException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -374,15 +351,13 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized long createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws IOException {
-    throw new UnsupportedOperationException("Raw table is currently unsupported");
-    // TODO(calvin): Re-enable this logic when support for raw tables is re-introduced.
-    // validateUri(path);
-    // int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
-    // if (columns < 1 || columns > maxColumns) {
-    // throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
-    // + maxColumns);
-    // }
-    // return mMasterClient.user_createRawTable(path.getPath(), columns, metadata);
+    validateUri(path);
+    int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
+    if (columns < 1 || columns > maxColumns) {
+      throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
+          + maxColumns);
+    }
+    return mRawTableMasterClient.createRawTable(path, columns, metadata);
   }
 
   /**
@@ -403,13 +378,13 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileId == -1) {
       try {
         fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (InvalidPathException e) {
+      } catch (TachyonException e) {
         throw new IOException(e);
       }
     }
     try {
       return mFSMasterClient.deleteFile(fileId, recursive);
-    } catch (TException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -453,7 +428,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
     try {
       return mFSMasterClient.getFileBlockInfo(fileId, blockIndex).blockInfo.getBlockId();
-    } catch (TException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -485,8 +460,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the DependencyInfo of the specified dependency
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized DependencyInfo getClientDependencyInfo(int depId) throws IOException {
-    return mFSMasterClient.getDependencyInfo(depId);
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
@@ -573,7 +549,7 @@ public class TachyonFS extends AbstractTachyonFS {
     // TODO(hy) Should add timeout to improve this.
     try {
       return mFSMasterClient.getFileBlockInfoList(fid);
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -617,7 +593,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileId == -1) {
       try {
         fileId = mFSMasterClient.getFileId(path);
-      } catch (InvalidPathException e) {
+      } catch (TachyonException e) {
         throw new IOException(e);
       }
     }
@@ -627,7 +603,7 @@ public class TachyonFS extends AbstractTachyonFS {
     }
     try {
       info = mFSMasterClient.getFileInfo(fileId);
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
     path = info.getPath();
@@ -655,7 +631,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileId == -1) {
       try {
         fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (InvalidPathException e) {
+      } catch (TachyonException e) {
         throw new IOException(e);
       }
     }
@@ -707,10 +683,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized RawTable getRawTable(long id) throws IOException {
-    throw new UnsupportedOperationException("Raw table is currently unsupported");
-    // TODO(calvin): Re-enable this logic when support for raw tables is re-introduced.
-    // RawTableInfo rawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
-    // return new RawTable(this, rawTableInfo);
+    RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(id);
+    return new RawTable(this, rawTableInfo);
   }
 
   /**
@@ -723,12 +697,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
-    throw new UnsupportedOperationException("Raw table is currently unsupported");
-    // TODO(calvin): Re-enable this logic when support for raw tables is re-introduced.
-    // validateUri(path);
-    // RawTableInfo rawTableInfo =
-    // mMasterClient.user_getClientRawTableInfo(-1, path.getPath());
-    // return new RawTable(this, rawTableInfo);
+    validateUri(path);
+    RawTableInfo rawTableInfo = mRawTableMasterClient.getClientRawTableInfo(path);
+    return new RawTable(this, rawTableInfo);
   }
 
   /**
@@ -829,7 +800,7 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       return mFSMasterClient.getFileInfoList(getFileStatus(-1, path).getFileId());
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -880,8 +851,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.createDirectory(path.getPath(), recursive);
-    } catch (TException e) {
+      return mFSMasterClient.mkdir(path.getPath(), recursive);
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -914,13 +885,13 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileId == -1) {
       try {
         fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (InvalidPathException e) {
+      } catch (TachyonException e) {
         throw new IOException(e);
       }
     }
     try {
       return mFSMasterClient.free(fileId, recursive);
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -957,13 +928,13 @@ public class TachyonFS extends AbstractTachyonFS {
     if (fileId == -1) {
       try {
         fileId = mFSMasterClient.getFileId(srcPath.getPath());
-      } catch (InvalidPathException e) {
+      } catch (TachyonException e) {
         throw new IOException(e);
       }
     }
     try {
       return mFSMasterClient.renameFile(fileId, dstPath.getPath());
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -977,7 +948,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized void reportLostFile(long fileId) throws IOException {
     try {
       mFSMasterClient.reportLostFile(fileId);
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -988,12 +959,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param depId the dependency id
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized void requestFilesInDependency(int depId) throws IOException {
-    try {
-      mFSMasterClient.requestFilesInDependency(depId);
-    } catch (DependencyDoesNotExistException e) {
-      throw new IOException(e);
-    }
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
@@ -1034,7 +1002,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized void setPinned(long fid, boolean pinned) throws IOException {
     try {
       mFSMasterClient.setPinned(fid, pinned);
-    } catch (FileDoesNotExistException e) {
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -1100,9 +1068,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized void updateRawTableMetadata(long id, ByteBuffer metadata) throws IOException {
-    throw new UnsupportedOperationException("Raw table is currently unsupported");
-    // TODO(calvin): Re-enable this logic when support for raw tables is re-introduced.
-    // mMasterClient.user_updateRawTableMetadata(id, metadata);
+    mRawTableMasterClient.updateRawTableMetadata(id, metadata);
   }
 
   /**

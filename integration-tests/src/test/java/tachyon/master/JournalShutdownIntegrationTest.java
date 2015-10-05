@@ -28,13 +28,12 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
+import tachyon.exception.TableDoesNotExistException;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.TableDoesNotExistException;
 import tachyon.util.CommonUtils;
 
 /**
