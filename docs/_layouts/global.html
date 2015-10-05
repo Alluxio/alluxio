@@ -61,7 +61,7 @@
                     <li><a href="index.html">Overview</a></li>
                 {% endif %}
 
-                {% assign categories = "User Guide|Features|Frameworks|Under Storage Systems" | split: "|" %}
+                {% assign categories = "User Guide|Features|Frameworks|Under Stores|Dev Resources" | split: "|" %}
                 {% for groupName in categories %}
                     <li class="dropdown">
                         {% if page.group == groupName %}
@@ -97,30 +97,14 @@
                                     </a></li>
                                 {% endif %}
                             {% endfor %}
-
-                            {% if groupName == "Development" %}
-                                <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting
-                                    Issues</a></li>
-                            {% elsif groupName == "More" %}
+                            {% if groupName == "Dev Resources" %}
+                                <li><a href="https://tachyon.atlassian.net/browse/TACHYON">Reporting Issues (JIRA)</a></li>
                                 <li class="divider"></li>
                                 <li><p>Presentations</p></li>
                                 <li><a href="http://goo.gl/0HpqeS">Tachyon Workshop 2015</a></li>
                                 <li><a href="http://goo.gl/fP9qkF">Strata and Hadoop World 2014</a></li>
                                 <li><a href="http://goo.gl/DKrE4M">Spark Summit 2014</a></li>
                                 <li><a href="http://goo.gl/AHgz0E">Strata and Hadoop World 2013</a></li>
-                                <li class="divider"></li>
-                                <li><a href="/documentation/master">Master branch document</a></li>
-                                <li><a href="/documentation/v0.7.1">V0.7.1 Document</a></li>
-                                <li><a href="/documentation/v0.7.0">V0.7.0 Document</a></li>
-                                <li><a href="/documentation/v0.6.4">V0.6.4 Document</a></li>
-                                <li><a href="/documentation/v0.6.3">V0.6.3 Document</a></li>
-                                <li><a href="/documentation/v0.6.2">V0.6.2 Document</a></li>
-                                <li><a href="/documentation/v0.6.1">V0.6.1 Document</a></li>
-                                <li><a href="/documentation/v0.6.0">V0.6.0 Document</a></li>
-                                <li><a href="/documentation/v0.5.0">V0.5.0 Document</a></li>
-                                <li><a href="/documentation/v0.4.1">V0.4.1 Document</a></li>
-                                <li><a href="/documentation/v0.4.0">V0.4.0 Document</a></li>
-                                <li><a href="/documentation/v0.3.0">V0.3.0 Document</a></li>
                             {% endif %}
                         </ul>
                     </li>
