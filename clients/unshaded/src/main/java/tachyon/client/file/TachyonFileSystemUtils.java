@@ -36,6 +36,10 @@ import tachyon.util.CommonUtils;
 public final class TachyonFileSystemUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+
+  // prevent instantiation
+  private TachyonFileSystemUtils() {}
+
   /**
    * Shortcut for {@code waitCompleted(tfs, uri, -1, TimeUnit.MILLISECONDS)}, i.e., wait for an
    * indefinite amount of time. Note that if a file is never completed, the thread will block
