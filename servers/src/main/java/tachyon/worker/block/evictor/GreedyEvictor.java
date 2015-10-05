@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
@@ -101,7 +101,7 @@ public final class GreedyEvictor implements Evictor {
     // 4. Make best effort to transfer victim blocks to lower tiers rather than evict them.
     Map<StorageDirView, Long> pendingBytesInDir = new HashMap<StorageDirView, Long>();
     for (BlockMeta block : victimBlocks) {
-      // TODO: should avoid calling getParentDir
+      // TODO(qifan): Should avoid calling getParentDir.
       int fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
       List<StorageTierView> candidateTiers = view.getTierViewsBelow(fromTierAlias);
       StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);

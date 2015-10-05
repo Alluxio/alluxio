@@ -24,8 +24,8 @@ import org.junit.Assert;
 
 import com.google.common.base.Preconditions;
 
-import tachyon.Pair;
-import tachyon.exception.NotFoundException;
+import tachyon.collections.Pair;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.worker.block.BlockMetadataManager;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.meta.BlockMeta;
@@ -41,10 +41,10 @@ public class EvictorTestUtils {
    * @param plan the eviction plan
    * @param meta the meta data manager
    * @return true if blocks are in the same dir otherwise false
-   * @throws NotFoundException if fail to get meta data of a block
+   * @throws BlockDoesNotExistException if fail to get meta data of a block
    */
   public static boolean blocksInTheSameDir(EvictionPlan plan, BlockMetadataManager meta)
-      throws NotFoundException {
+      throws BlockDoesNotExistException {
     Preconditions.checkNotNull(plan);
 
     StorageDir dir = null;
@@ -77,10 +77,10 @@ public class EvictorTestUtils {
    * @param metaManager the meta data manager
    * @return true if and only if the plan is not null and both {@link #blocksInTheSameDir} and
    *         {@link #requestSpaceSatisfied} are true, otherwise false
-   * @throws tachyon.exception.NotFoundException when fail to get meta data of a block
+   * @throws tachyon.exception.BlockDoesNotExistException when fail to get meta data of a block
    */
   public static boolean validNonCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws NotFoundException {
+      BlockMetadataManager metaManager) throws BlockDoesNotExistException {
     Preconditions.checkNotNull(plan);
     return blocksInTheSameDir(plan, metaManager)
         && requestSpaceSatisfied(bytesToBeAvailable, plan, metaManager);
@@ -99,11 +99,11 @@ public class EvictorTestUtils {
    * @param plan the eviction plan, should not be empty
    * @param metaManager the meta data manager
    * @return true if the above requirements are satisfied, otherwise false
-   * @throws NotFoundException if a block for which metadata cannot be found is encountered
+   * @throws BlockDoesNotExistException if a block for which metadata cannot be found is encountered
    */
-  // TODO: unit test this method
+  // TODO(bin): Add a unit test for this method.
   public static boolean validCascadingPlan(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager metaManager) throws NotFoundException {
+      BlockMetadataManager metaManager) throws BlockDoesNotExistException {
     // reassure the plan is feasible: enough free space to satisfy bytesToBeAvailable, and enough
     // space in lower tier to move blocks in upper tier there
 
@@ -199,10 +199,10 @@ public class EvictorTestUtils {
    * @param plan the eviction plan, should not be null
    * @param meta the metadata manager
    * @return true if the request can be satisfied otherwise false
-   * @throws tachyon.exception.NotFoundException if can not get meta data of a block
+   * @throws tachyon.exception.BlockDoesNotExistException if can not get meta data of a block
    */
   public static boolean requestSpaceSatisfied(long bytesToBeAvailable, EvictionPlan plan,
-      BlockMetadataManager meta) throws NotFoundException {
+      BlockMetadataManager meta) throws BlockDoesNotExistException {
     Preconditions.checkNotNull(plan);
 
     List<Long> blockIds = new ArrayList<Long>();

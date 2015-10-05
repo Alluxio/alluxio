@@ -15,12 +15,16 @@
 
 package tachyon.master.file.meta;
 
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
-import tachyon.master.file.meta.InodeFile;
-import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.SuspectedFileSizeException;
 
 /**
  * Unit tests for tachyon.InodeFile
@@ -33,7 +37,8 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeFile inode1 = createInodeFile(1);
     // self equal
     Assert.assertEquals(inode1, inode1);
-    InodeFile inode2 = new InodeFile("test2", 1, 0, 1000, System.currentTimeMillis());
+    InodeFile inode2 = new InodeFile("test2", 1, 0, 1000, System.currentTimeMillis(),
+        Constants.NO_TTL);
     // equal with same id
     Assert.assertEquals(inode1, inode2);
     InodeFile inode3 = createInodeFile(3);
@@ -65,7 +70,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void setLengthAfterCompleteTest() throws Exception {
     mThrown.expect(SuspectedFileSizeException.class);
-    mThrown.expectMessage("InodeFile length was set previously.");
+    mThrown.expectMessage("InodeFile has been completed.");
 
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
@@ -79,11 +84,38 @@ public final class InodeFileTest extends AbstractInodeTest {
   }
 
   @Test
+  public void getBlockIdByIndexTest() throws Exception {
+    InodeFile inodeFile = createInodeFile(1);
+    List<Long> blockIds = Lists.newArrayList();
+    final int NUM_BLOCKS = 3;
+    for (int i = 0; i < NUM_BLOCKS; i ++) {
+      blockIds.add(inodeFile.getNewBlockId());
+    }
+    for (int i = 0; i < NUM_BLOCKS; i ++) {
+      Assert.assertEquals(blockIds.get(i), (Long) inodeFile.getBlockIdByIndex(i));
+    }
+    try {
+      inodeFile.getBlockIdByIndex(-1);
+      Assert.fail();
+    } catch (BlockInfoException e) {
+      Assert.assertEquals(String.format("blockIndex -1 is out of range. File blocks: %d",
+          NUM_BLOCKS), e.getMessage());
+    }
+    try {
+      inodeFile.getBlockIdByIndex(NUM_BLOCKS);
+      Assert.fail();
+    } catch (BlockInfoException e) {
+      Assert.assertEquals(String.format("blockIndex %d is out of range. File blocks: %d",
+          NUM_BLOCKS, NUM_BLOCKS), e.getMessage());
+    }
+  }
+
+  @Test
   public void setCompleteTest() {
     InodeFile inode1 = createInodeFile(1);
-    Assert.assertFalse(inode1.isComplete());
+    Assert.assertFalse(inode1.isCompleted());
 
-    inode1.setComplete(LENGTH);
-    Assert.assertTrue(inode1.isComplete());
+    inode1.setCompleted(LENGTH);
+    Assert.assertTrue(inode1.isCompleted());
   }
 }

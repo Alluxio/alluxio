@@ -20,37 +20,34 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.codec.binary.Base64;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.google.common.collect.Sets;
-
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
-import tachyon.master.block.journal.WorkerIdGeneratorEntry;
-import tachyon.master.file.journal.AddCheckpointEntry;
+import tachyon.master.file.journal.AddMountPointEntry;
+import tachyon.master.file.journal.DeleteMountPointEntry;
+import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.CompleteFileEntry;
 import tachyon.master.file.journal.DeleteFileEntry;
-import tachyon.master.file.journal.DependencyEntry;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeDirectoryIdGeneratorEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.file.journal.InodeLastModificationTimeEntry;
+import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
-import tachyon.master.file.meta.DependencyType;
 import tachyon.master.rawtable.journal.RawTableEntry;
 import tachyon.util.io.BufferUtils;
 
@@ -73,7 +70,8 @@ public abstract class JournalFormatterTestBase {
   protected static final long TEST_TABLE_ID = 2L;
   protected static final long TEST_OP_TIME_MS = 1409349750338L;
   protected static final long TEST_SEQUENCE_NUMBER = 1945L;
-  protected static final long TEST_WORKER_ID = 100L;
+  protected static final TachyonURI TEST_TACHYON_PATH = new TachyonURI("/test/path");
+  protected static final TachyonURI TEST_UFS_PATH = new TachyonURI("hdfs://host:port/test/path");
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
@@ -129,11 +127,6 @@ public abstract class JournalFormatterTestBase {
     entryTest(new BlockInfoEntry(TEST_BLOCK_ID, TEST_LENGTH_BYTES));
   }
 
-  @Test
-  public void workerIdGeneratorEntryTest() throws IOException {
-    entryTest(new WorkerIdGeneratorEntry(TEST_WORKER_ID));
-  }
-
   // FileSystem
 
   @Test
@@ -143,8 +136,8 @@ public abstract class JournalFormatterTestBase {
       blocks.add(TEST_BLOCK_ID + i);
     }
     entryTest(new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
-        TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, TEST_FILE_NAME,
-        blocks));
+        true, TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, blocks,
+        Constants.NO_TTL));
   }
 
   @Test
@@ -154,7 +147,7 @@ public abstract class JournalFormatterTestBase {
       childrenIds.add(TEST_FILE_ID + i);
     }
     entryTest(new InodeDirectoryEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID,
-        true, TEST_OP_TIME_MS, childrenIds));
+        true, true, TEST_OP_TIME_MS, childrenIds));
   }
 
   @Test
@@ -163,29 +156,13 @@ public abstract class JournalFormatterTestBase {
   }
 
   @Test
-  public void addCheckpointEntryTest() throws IOException {
-    entryTest(new AddCheckpointEntry(TEST_WORKER_ID, TEST_FILE_ID, TEST_LENGTH_BYTES,
-        new TachyonURI(TEST_FILE_NAME), TEST_OP_TIME_MS));
+  public void persistedDirectoryEntryTest() throws IOException {
+    entryTest(new PersistDirectoryEntry(TEST_FILE_ID, true));
   }
 
   @Test
-  public void dependencyEntryTest() throws IOException {
-    List<Long> parents = Arrays.asList(1L, 2L, 3L);
-    List<Long> children = Arrays.asList(4L, 5L, 6L, 7L);
-    String commandPrefix = "fake command";
-    List<ByteBuffer> data = Arrays.asList(ByteBuffer.wrap(Base64.decodeBase64("AAAAAAAAAAAAA==")));
-    String comment = "Comment Test";
-    String framework = "Tachyon Examples";
-    String frameworkVersion = "0.3";
-    DependencyType dependencyType = DependencyType.Narrow;
-    List<Integer> parentDepIds = Arrays.asList(1, 2, 3);
-    List<Integer> childrenDepIds = Arrays.asList(4, 5, 6, 7);
-    List<Long> unCheckpointedFileIds = Arrays.asList(1L, 2L);
-    Set<Long> lostFileIds = Sets.newHashSet(4L, 5L, 6L);
-    int depId = 1;
-    entryTest(new DependencyEntry(depId, parents, children, commandPrefix, data, comment,
-        framework, frameworkVersion, dependencyType, parentDepIds, childrenDepIds, TEST_OP_TIME_MS,
-        unCheckpointedFileIds, lostFileIds));
+  public void persistFileEntryTest() throws IOException {
+    entryTest(new PersistFileEntry(TEST_FILE_ID, TEST_LENGTH_BYTES, TEST_OP_TIME_MS));
   }
 
   @Test
@@ -212,6 +189,16 @@ public abstract class JournalFormatterTestBase {
   @Test
   public void inodeDirectoryIdGeneratorEntryTest() throws IOException {
     entryTest(new InodeDirectoryIdGeneratorEntry(TEST_CONTAINER_ID, TEST_SEQUENCE_NUMBER));
+  }
+
+  @Test
+  public void addMountPointEntryTest() throws IOException {
+    entryTest(new AddMountPointEntry(TEST_TACHYON_PATH, TEST_UFS_PATH));
+  }
+
+  @Test
+  public void deleteMountPointEntryTest() throws IOException {
+    entryTest(new DeleteMountPointEntry(TEST_TACHYON_PATH));
   }
 
   // RawTable

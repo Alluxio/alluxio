@@ -15,7 +15,6 @@
 
 package tachyon;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,8 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.conf.TachyonConf;
-import tachyon.underfs.UnderFileSystem;
-import tachyon.util.io.PathUtils;
+import tachyon.worker.WorkerContext;
 
 /**
  * <code>Sessions</code> represents and manages all session contacting a worker.
@@ -41,16 +39,11 @@ public class Sessions {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Session's temporary data folder in the under filesystem **/
-  private final String mSessionUnderFSFolder;
   /** Map from SessionId to {@link tachyon.SessionInfo} object **/
   private final Map<Long, SessionInfo> mSessions;
-  private final TachyonConf mTachyonConf;
 
-  public Sessions(String sessionUfsFolder, TachyonConf tachyonConf) {
-    mSessionUnderFSFolder = sessionUfsFolder;
+  public Sessions() {
     mSessions = new HashMap<Long, SessionInfo>();
-    mTachyonConf = tachyonConf;
   }
 
   /**
@@ -72,16 +65,6 @@ public class Sessions {
   }
 
   /**
-   * Returns the session's temporary data folder in the under filesystem.
-   *
-   * @param sessionId The queried session.
-   * @return String contains the session's temporary data folder in the under filesystem.
-   */
-  public String getSessionUfsTempFolder(long sessionId) {
-    return PathUtils.concatPath(mSessionUnderFSFolder, sessionId);
-  }
-
-  /**
    * Remove <code> sessionId </code> from session pool.
    *
    * @param sessionId The session to be removed.
@@ -90,22 +73,7 @@ public class Sessions {
     LOG.info("Cleaning up session " + sessionId);
     SessionInfo tSession = null;
     synchronized (mSessions) {
-      tSession = mSessions.remove(sessionId);
-    }
-
-    if (tSession == null) {
-      LOG.warn("Session " + sessionId + " does not exist in the worker's current session pool.");
-    } else {
-      String folder = getSessionUfsTempFolder(sessionId);
-      try {
-        String ufsAddress = mTachyonConf.get(Constants.UNDERFS_ADDRESS, "/underFSStorage");
-        UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, mTachyonConf);
-        if (ufs.exists(folder)) {
-          ufs.delete(folder, true);
-        }
-      } catch (IOException e) {
-        LOG.warn("An error occurred removing the ufs folder of session " + sessionId, e);
-      }
+      mSessions.remove(sessionId);
     }
   }
 
@@ -119,7 +87,8 @@ public class Sessions {
       if (mSessions.containsKey(sessionId)) {
         mSessions.get(sessionId).heartbeat();
       } else {
-        int sessionTimeoutMs = mTachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
+        TachyonConf conf = WorkerContext.getConf();
+        int sessionTimeoutMs = conf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
         mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
       }
     }

@@ -34,8 +34,8 @@ import tachyon.Constants;
 import tachyon.Sessions;
 import tachyon.StorageLevelAlias;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
+import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.InvalidWorkerStateException;
 import tachyon.network.protocol.RPCBlockReadRequest;
 import tachyon.network.protocol.RPCBlockReadResponse;
 import tachyon.network.protocol.RPCBlockWriteRequest;
@@ -66,8 +66,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   public DataServerHandler(final BlockDataManager dataManager, TachyonConf tachyonConf) {
     mDataManager = Preconditions.checkNotNull(dataManager);
     mTachyonConf = Preconditions.checkNotNull(tachyonConf);
-    mTransferType =
-        mTachyonConf.getEnum(Constants.WORKER_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
+    mTransferType = mTachyonConf.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
+        FileTransferType.class);
   }
 
   @Override
@@ -102,7 +102,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     long lockId;
     try {
       lockId = mDataManager.lockBlock(Sessions.DATASERVER_SESSION_ID, blockId);
-    } catch (NotFoundException ioe) {
+    } catch (BlockDoesNotExistException ioe) {
       LOG.error("Failed to lock block: " + blockId, ioe);
       RPCBlockReadResponse resp =
           RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.BLOCK_LOCK_ERROR);
@@ -114,9 +114,9 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     BlockReader reader;
     try {
       reader = mDataManager.readBlockRemote(Sessions.DATASERVER_SESSION_ID, blockId, lockId);
-    } catch (NotFoundException nfe) {
+    } catch (BlockDoesNotExistException nfe) {
       throw new IOException(nfe);
-    } catch (InvalidStateException fpe) {
+    } catch (InvalidWorkerStateException fpe) {
       throw new IOException(fpe);
     }
     try {
@@ -143,15 +143,15 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     } finally {
       try {
         mDataManager.unlockBlock(lockId);
-      } catch (NotFoundException nfe) {
+      } catch (BlockDoesNotExistException nfe) {
         throw new IOException(nfe);
       }
     }
   }
 
-  // TODO: This write request handler is very simple in order to be stateless. Therefore, the block
-  // file is opened and closed for every request. If this is too slow, then this handler should be
-  // optimized to keep state.
+  // TODO(hy): This write request handler is very simple in order to be stateless. Therefore, the
+  // block file is opened and closed for every request. If this is too slow, then this handler
+  // should be optimized to keep state.
   private void handleBlockWriteRequest(final ChannelHandlerContext ctx,
       final RPCBlockWriteRequest req) throws IOException {
     final long sessionId = req.getSessionId();

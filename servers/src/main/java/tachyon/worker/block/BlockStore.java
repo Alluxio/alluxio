@@ -18,10 +18,10 @@ package tachyon.worker.block;
 import java.io.IOException;
 import java.util.Set;
 
-import tachyon.exception.AlreadyExistsException;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
-import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.BlockAlreadyExistsException;
+import tachyon.exception.BlockDoesNotExistException;
+import tachyon.exception.InvalidWorkerStateException;
+import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
 import tachyon.worker.block.meta.BlockMeta;
@@ -39,26 +39,26 @@ interface BlockStore {
    * @param sessionId the ID of the session to lock this block
    * @param blockId the ID of the block to lock
    * @return the lock ID if the lock is acquired successfully
-   * @throws NotFoundException if blockId can not be found, for example, evicted already.
+   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already.
    */
-  long lockBlock(long sessionId, long blockId) throws NotFoundException;
+  long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
    * Releases an acquired block lock based on a lockId (returned by {@link #lockBlock}).
    *
    * @param lockId the ID of the lock returned by {@link #lockBlock}
-   * @throws NotFoundException if lockId can not be found
+   * @throws BlockDoesNotExistException if lockId can not be found
    */
-  void unlockBlock(long lockId) throws NotFoundException;
+  void unlockBlock(long lockId) throws BlockDoesNotExistException;
 
   /**
    * NOTE: temporary, will be removed after changing client side code.
    *
    * @param sessionId the ID of the session to lock this block
    * @param blockId the ID of the block to lock
-   * @throws NotFoundException if blockId can not be found, for example, evicted already.
+   * @throws BlockDoesNotExistException if blockId can not be found, for example, evicted already.
    */
-  void unlockBlock(long sessionId, long blockId) throws NotFoundException;
+  void unlockBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
    * Creates the meta data of a new block and assigns a temporary path (e.g., a subdir of the final
@@ -76,30 +76,34 @@ interface BlockStore {
    * @param initialBlockSize initial size of this block in bytes
    * @return metadata of the temp block created
    * @throws IllegalArgumentException if location does not belong to tiered storage
-   * @throws AlreadyExistsException if blockId already exists, either temporary or committed, or
-   *         block in eviction plan already exists
-   * @throws OutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws NotFoundException if blocks in eviction plan can not be found
+   * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
+   *         or block in eviction plan already exists
+   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
+   * @throws BlockDoesNotExistException if blocks in eviction plan can not be found
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
-   * @throws InvalidStateException if blocks to be moved/deleted in eviction plan is uncommitted
+   * @throws InvalidWorkerStateException if blocks to be moved/deleted in eviction plan is
+   *         uncommitted
    */
-  // TODO: exceptions like NotFoundException, IOException and InvalidStateException here involves
-  // implementation details, also, AlreadyExistsException has two possible semantic now, these are
-  // because we propagate any exception in freeSpaceInternal, revisit this by throwing more general
-  // exception
+  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException and
+  // InvalidWorkerStateException here
+  // involves implementation details, also, BlockAlreadyExistsException has two possible semantic
+  // now,
+  // these are because we propagate any exception in freeSpaceInternal, revisit this by throwing
+  // more general exception.
   TempBlockMeta createBlockMeta(long sessionId, long blockId, BlockStoreLocation location,
-      long initialBlockSize) throws AlreadyExistsException, OutOfSpaceException, NotFoundException,
-          IOException, InvalidStateException;
+      long initialBlockSize) throws BlockAlreadyExistsException, WorkerOutOfSpaceException,
+      BlockDoesNotExistException, IOException, InvalidWorkerStateException;
 
   /**
-   * Gets the metadata of a block given its blockId or throws NotFoundException. This method does
-   * not require a lock ID so the block is possible to be moved or removed after it returns.
+   * Gets the metadata of a block given its blockId or throws BlockDoesNotExistException. This
+   * method does not require a lock ID so the block is possible to be moved or removed after it
+   * returns.
    *
    * @param blockId the block ID
    * @return metadata of the block
-   * @throws NotFoundException if no BlockMeta for this blockId is found
+   * @throws BlockDoesNotExistException if no BlockMeta for this blockId is found
    */
-  BlockMeta getVolatileBlockMeta(long blockId) throws NotFoundException;
+  BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException;
 
   /**
    * Gets the meta data of a specific block from local storage.
@@ -110,13 +114,13 @@ interface BlockStore {
    * @param blockId the ID of the block
    * @param lockId the ID of the lock
    * @return metadata of the block
-   * @throws NotFoundException if the blockId can not be found in committed blocks or lockId can not
-   *         be found
-   * @throws InvalidStateException if sessionId or blockId is not the same as that in the LockRecord
-   *         of lockId
+   * @throws BlockDoesNotExistException if the blockId can not be found in committed blocks or
+   *         lockId can not be found
+   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
+   *         LockRecord of lockId
    */
   BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
-      throws NotFoundException, InvalidStateException;
+      throws BlockDoesNotExistException, InvalidWorkerStateException;
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this
@@ -125,14 +129,15 @@ interface BlockStore {
    *
    * @param sessionId the ID of the session
    * @param blockId the ID of a temp block
-   * @throws AlreadyExistsException if blockId already exists in committed blocks
-   * @throws NotFoundException if the temporary block can not be found
-   * @throws InvalidStateException if blockId does not belong to sessionId
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
+   * @throws BlockDoesNotExistException if the temporary block can not be found
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws IOException if the block can not be moved from temporary path to committed path
-   * @throws OutOfSpaceException if there is no more space left to hold the block
+   * @throws WorkerOutOfSpaceException if there is no more space left to hold the block
    */
-  void commitBlock(long sessionId, long blockId) throws AlreadyExistsException, NotFoundException,
-      InvalidStateException, IOException, OutOfSpaceException;
+  void commitBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
+      BlockDoesNotExistException, InvalidWorkerStateException, IOException,
+      WorkerOutOfSpaceException;
 
   /**
    * Aborts a temporary block. The meta data of this block will not be added, its data will be
@@ -141,13 +146,13 @@ interface BlockStore {
    *
    * @param sessionId the ID of the session
    * @param blockId the ID of a temp block
-   * @throws AlreadyExistsException if blockId already exists in committed blocks
-   * @throws NotFoundException if the temporary block can not be found
-   * @throws InvalidStateException if blockId does not belong to sessionId
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks
+   * @throws BlockDoesNotExistException if the temporary block can not be found
+   * @throws InvalidWorkerStateException if blockId does not belong to sessionId
    * @throws IOException if temporary block can not be deleted
    */
-  void abortBlock(long sessionId, long blockId) throws AlreadyExistsException, NotFoundException,
-      InvalidStateException, IOException;
+  void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
+      BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
   /**
    * Requests to increase the size of a temp block. Since a temp block is "private" to the writer
@@ -156,22 +161,25 @@ interface BlockStore {
    * @param sessionId the ID of the session to request space
    * @param blockId the ID of the temp block
    * @param additionalBytes the amount of more space to request in bytes, never be less than 0
-   * @throws NotFoundException if blockId can not be found, or some block in eviction plan cannot be
-   *         found
-   * @throws OutOfSpaceException if requested space can not be satisfied
+   * @throws BlockDoesNotExistException if blockId can not be found, or some block in eviction plan
+   *         cannot be found
+   * @throws WorkerOutOfSpaceException if requested space can not be satisfied
    * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
    *         moved or deleted on file system
-   * @throws AlreadyExistsException if blocks to move in
+   * @throws BlockAlreadyExistsException if blocks to move in
    *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
    *         location
-   * @throws InvalidStateException if the space requested is less than current space or blocks to
-   *         move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
+   * @throws InvalidWorkerStateException if the space requested is less than current space or blocks
+   *         to move/evict in {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO: exceptions like IOException AlreadyExistsException and InvalidStateException here
-  // involves implementation details, also, NotFoundException has two semantic now, revisit this
-  // with a more general exception
-  void requestSpace(long sessionId, long blockId, long additionalBytes) throws NotFoundException,
-      OutOfSpaceException, IOException, AlreadyExistsException, InvalidStateException;
+  // TODO(cc): Exceptions like IOException BlockAlreadyExistsException and
+  // InvalidWorkerStateException here
+  // involves implementation details, also, BlockDoesNotExistException has two semantic now, revisit
+  // this
+  // with a more general exception.
+  void requestSpace(long sessionId, long blockId, long additionalBytes)
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException,
+      BlockAlreadyExistsException, InvalidWorkerStateException;
 
   /**
    * Creates a writer to write data to a temp block. Since the temp block is "private" to the
@@ -180,10 +188,11 @@ interface BlockStore {
    * @param sessionId the ID of the session to get the writer
    * @param blockId the ID of the temp block
    * @return a {@link BlockWriter} instance on this block
-   * @throws NotFoundException if the block can not be found
+   * @throws BlockDoesNotExistException if the block can not be found
    * @throws IOException if block can not be created
    */
-  BlockWriter getBlockWriter(long sessionId, long blockId) throws NotFoundException, IOException;
+  BlockWriter getBlockWriter(long sessionId, long blockId) throws BlockDoesNotExistException,
+      IOException;
 
   /**
    * Creates a reader of an existing block to read data from this block.
@@ -194,13 +203,13 @@ interface BlockStore {
    * @param blockId the ID of an existing block
    * @param lockId the ID of the lock returned by {@link #lockBlock}
    * @return a {@link BlockReader} instance on this block
-   * @throws NotFoundException if lockId is not found
-   * @throws InvalidStateException if sessionId or blockId is not the same as that in the LockRecord
-   *         of lockId
+   * @throws BlockDoesNotExistException if lockId is not found
+   * @throws InvalidWorkerStateException if sessionId or blockId is not the same as that in the
+   *         LockRecord of lockId
    * @throws IOException if block can not be read
    */
   BlockReader getBlockReader(long sessionId, long blockId, long lockId)
-      throws NotFoundException, InvalidStateException, IOException;
+      throws BlockDoesNotExistException, InvalidWorkerStateException, IOException;
 
   /**
    * Moves an existing block to a new location.
@@ -209,15 +218,17 @@ interface BlockStore {
    * @param blockId the ID of an existing block
    * @param newLocation the location of the destination
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
-   * @throws NotFoundException if blockId can not be found
-   * @throws AlreadyExistsException if blockId already exists in committed blocks of the newLocation
-   * @throws InvalidStateException if blockId has not been committed
-   * @throws OutOfSpaceException if newLocation does not have enough extra space to hold the block
+   * @throws BlockDoesNotExistException if blockId can not be found
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
+   *         newLocation
+   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
+   *         block
    * @throws IOException if block cannot be moved from current location to newLocation
    */
   void moveBlock(long sessionId, long blockId, BlockStoreLocation newLocation)
-      throws NotFoundException, AlreadyExistsException, InvalidStateException, OutOfSpaceException,
-      IOException;
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
+      WorkerOutOfSpaceException, IOException;
 
   /**
    * Moves an existing block to a new location.
@@ -227,27 +238,30 @@ interface BlockStore {
    * @param oldLocation the location of the source
    * @param newLocation the location of the destination
    * @throws IllegalArgumentException if newLocation does not belong to the tiered storage
-   * @throws NotFoundException if blockId can not be found
-   * @throws AlreadyExistsException if blockId already exists in committed blocks of the newLocation
-   * @throws InvalidStateException if blockId has not been committed
-   * @throws OutOfSpaceException if newLocation does not have enough extra space to hold the block
+   * @throws BlockDoesNotExistException if blockId can not be found
+   * @throws BlockAlreadyExistsException if blockId already exists in committed blocks of the
+   *         newLocation
+   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws WorkerOutOfSpaceException if newLocation does not have enough extra space to hold the
+   *         block
    * @throws IOException if block cannot be moved from current location to newLocation
    */
   void moveBlock(long sessionId, long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) throws NotFoundException, AlreadyExistsException,
-      InvalidStateException, OutOfSpaceException, IOException;
+      BlockStoreLocation newLocation) throws BlockDoesNotExistException,
+      BlockAlreadyExistsException, InvalidWorkerStateException, WorkerOutOfSpaceException,
+      IOException;
 
   /**
    * Removes an existing block. If the block can not be found in this store.
    *
    * @param sessionId the ID of the session to remove a block
    * @param blockId the ID of an existing block
-   * @throws InvalidStateException if blockId has not been committed
-   * @throws NotFoundException if block can not be found
+   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws BlockDoesNotExistException if block can not be found
    * @throws IOException if block cannot be removed from current path
    */
-  void removeBlock(long sessionId, long blockId) throws InvalidStateException, NotFoundException,
-      IOException;
+  void removeBlock(long sessionId, long blockId) throws InvalidWorkerStateException,
+      BlockDoesNotExistException, IOException;
 
   /**
    * Removes an existing block. If the block can not be found in this store.
@@ -255,12 +269,12 @@ interface BlockStore {
    * @param sessionId the ID of the session to move a block
    * @param blockId the ID of an existing block
    * @param location the location of the block
-   * @throws InvalidStateException if blockId has not been committed
-   * @throws NotFoundException if block can not be found
+   * @throws InvalidWorkerStateException if blockId has not been committed
+   * @throws BlockDoesNotExistException if block can not be found
    * @throws IOException if block cannot be removed from current path
    */
-  void removeBlock(long sessionId, long blockId, BlockStoreLocation location) throws
-      InvalidStateException, NotFoundException, IOException;
+  void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
+      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException;
 
   /**
    * Notifies the block store that a block was accessed so the block store could update accordingly
@@ -268,9 +282,9 @@ interface BlockStore {
    *
    * @param sessionId the ID of the session to access a block
    * @param blockId the ID of an accessed block
-   * @throws NotFoundException if the blockId is not found
+   * @throws BlockDoesNotExistException if the blockId is not found
    */
-  void accessBlock(long sessionId, long blockId) throws NotFoundException;
+  void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException;
 
   /**
    * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will be
@@ -303,23 +317,25 @@ interface BlockStore {
    * @param sessionId the session ID
    * @param availableBytes the amount of free space in bytes
    * @param location the location to free space
-   * @throws OutOfSpaceException if there is not enough space
-   * @throws NotFoundException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} can
-   *         not be found
+   * @throws WorkerOutOfSpaceException if there is not enough space
+   * @throws BlockDoesNotExistException if blocks in
+   *         {@link tachyon.worker.block.evictor.EvictionPlan} can not be found
    * @throws IOException if blocks in {@link tachyon.worker.block.evictor.EvictionPlan} fail to be
    *         moved or deleted on file system
-   * @throws AlreadyExistsException if blocks to move in
+   * @throws BlockAlreadyExistsException if blocks to move in
    *         {@link tachyon.worker.block.evictor.EvictionPlan} already exists in destination
    *         location
-   * @throws InvalidStateException if blocks to move/evict in
+   * @throws InvalidWorkerStateException if blocks to move/evict in
    *         {@link tachyon.worker.block.evictor.EvictionPlan} is uncommitted
    */
-  // TODO: exceptions like NotFoundException, IOException AlreadyExistsException and
-  // InvalidStateException here involves implementation details, may be removed to a more general
-  // exception
+  // TODO(cc): Exceptions like BlockDoesNotExistException, IOException BlockAlreadyExistsException
+  // and
+  // InvalidWorkerStateException here involves implementation details, may be removed to a more
+  // general
+  // exception.
   void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws OutOfSpaceException, NotFoundException, IOException, AlreadyExistsException,
-      InvalidStateException;
+      throws WorkerOutOfSpaceException, BlockDoesNotExistException, IOException,
+      BlockAlreadyExistsException, InvalidWorkerStateException;
 
   /**
    * Registers a {@link BlockStoreEventListener} to this block store.

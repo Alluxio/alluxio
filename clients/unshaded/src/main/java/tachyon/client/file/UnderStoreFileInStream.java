@@ -29,7 +29,7 @@ import tachyon.underfs.UnderFileSystem;
  * storage client.
  */
 // TODO(calvin): This should be treated like a block in stream.
-public class UnderStoreFileInStream extends BlockInStream {
+public final class UnderStoreFileInStream extends BlockInStream {
   private final long mInitPos;
   private final long mLength;
   private final String mUfsPath;
@@ -113,7 +113,7 @@ public class UnderStoreFileInStream extends BlockInStream {
   }
 
   private void setUnderStoreStream(long pos) throws IOException {
-    if (null != mUnderStoreStream) {
+    if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
     UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());

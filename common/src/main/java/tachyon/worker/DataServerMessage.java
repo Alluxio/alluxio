@@ -31,7 +31,7 @@ import tachyon.network.protocol.RPCResponse;
 /**
  * The message type used to send data request and response for remote data.
  */
-public class DataServerMessage {
+public final class DataServerMessage {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // The size of the prefix of the header: frame length (long), messageType (int)
@@ -45,7 +45,7 @@ public class DataServerMessage {
   private static final int ERROR_RESPONSE_HEADER_LENGTH = HEADER_PREFIX_LENGTH + 2;
 
   /**
-   * Create a default block request message, just allocate the message header, and no attribute is
+   * Creates a default block request message, just allocates the message header, and no attribute is
    * set. The message is not ready to be sent.
    *
    * @return the created block request message
@@ -57,8 +57,8 @@ public class DataServerMessage {
   }
 
   /**
-   * Create a block request message for an entire block by the block id, and the message is ready to
-   * be sent.
+   * Creates a block request message for an entire block by the block id, and the message is ready
+   * to be sent.
    *
    * @param blockId The id of the block
    * @return The created block request message
@@ -68,7 +68,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Create a block request message for a part of the block by the block id, the offset and the
+   * Creates a block request message for a part of the block by the block id, the offset and the
    * length. The message is ready to be sent. If <code>len</code> is -1, it means requesting the
    * data from offset to the end of the block.
    *
@@ -93,8 +93,8 @@ public class DataServerMessage {
   }
 
   /**
-   * Create a block response message specified by the block's id. If <code>toSend</code> is true, it
-   * will prepare the data to be sent, otherwise the message is used to receive data.
+   * Creates a block response message specified by the block's id. If <code>toSend</code> is true,
+   * it will prepare the data to be sent, otherwise the message is used to receive data.
    *
    * @param toSend If true the message is to send the data, otherwise it's used to receive data.
    * @param blockId The id of the block
@@ -107,7 +107,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Create a block response message specified by the block's id, the offset and the length. If
+   * Creates a block response message specified by the block's id, the offset and the length. If
    * <code>toSend</code> is true, it will prepare the data to be sent, otherwise the message is used
    * to receive data. If <code>len</code> is -1, it means response the data from offset to the
    * block's end.
@@ -166,7 +166,7 @@ public class DataServerMessage {
 
   private RPCResponse.Status mStatus;
 
-  // TODO: Investigate how to remove this since it is not transferred over the wire.
+  // TODO(calvin): Investigate how to remove this since it is not transferred over the wire.
   private long mLockId = -1L;
 
   private ByteBuffer mData = null;
@@ -184,20 +184,20 @@ public class DataServerMessage {
   }
 
   /**
-   * Check if the message is ready. If not ready, it will throw a runtime exception.
+   * Checks if the message is ready. If not ready, it will throw a runtime exception.
    */
   public void checkReady() {
     Preconditions.checkState(mIsMessageReady, "Message is not ready.");
   }
 
   /**
-   * Close the message.
+   * Closes the message.
    */
   public void close() {
   }
 
   /**
-   * Return whether the message finishes sending or not. It will check if the message is a send
+   * Returns whether the message finishes sending or not. It will check if the message is a send
    * message, so don't call this on a recv message.
    *
    * @return true if the message finishes sending, false otherwise
@@ -232,7 +232,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Get the id of the block. Make sure the message is ready before calling this method.
+   * Gets the id of the block. Make sure the message is ready before calling this method.
    *
    * @return The id of the block
    */
@@ -242,7 +242,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Get the length of the message's requested or responded data. Make sure the message is ready
+   * Gets the length of the message's requested or responded data. Make sure the message is ready
    * before calling this method.
    *
    * @return The length of the message's requested or responded data
@@ -253,7 +253,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Get the id of the block's locker.
+   * Gets the id of the block's locker.
    *
    * @return The id of the block's locker
    */
@@ -262,7 +262,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Get the offset of the message's data in the block. Make sure the message is ready before
+   * Gets the offset of the message's data in the block. Make sure the message is ready before
    * calling this method.
    *
    * @return The offset of the message's data in the block
@@ -273,7 +273,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Get the status of the response. Make sure the message is ready before calling this method.
+   * Gets the status of the response. Make sure the message is ready before calling this method.
    *
    * @return The {@link tachyon.network.protocol.RPCResponse.Status} of the response
    */
@@ -283,7 +283,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Get the read only buffer of the message's data. Make sure the message is ready before calling
+   * Gets the read only buffer of the message's data. Make sure the message is ready before calling
    * this method.
    *
    * @return The read only buffer of the message's data
@@ -354,7 +354,7 @@ public class DataServerMessage {
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
-        // TODO make this better to truncate the file.
+        // TODO(hy): Make this better to truncate the file.
         Preconditions.checkState(mLength < Integer.MAX_VALUE,
             "received length is too large: " + mLength);
         if (mMessageType == RPCMessage.Type.RPC_BLOCK_READ_RESPONSE) {
@@ -386,12 +386,13 @@ public class DataServerMessage {
   }
 
   /**
-   * Send this message to the specified socket channel. Make sure this is a send message.
+   * Sends this message to the specified socket channel. Make sure this is a send message.
    *
    * @param socketChannel The socket channel to send to
    * @throws IOException
    */
   public void send(SocketChannel socketChannel) throws IOException {
+    Preconditions.checkNotNull(socketChannel);
     isSend(true);
 
     socketChannel.write(mHeader);
@@ -402,7 +403,7 @@ public class DataServerMessage {
   }
 
   /**
-   * Set the id of the block's locker.
+   * Sets the id of the block's locker.
    *
    * @param lockId The id of the block's locker
    */

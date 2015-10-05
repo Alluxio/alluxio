@@ -15,40 +15,17 @@
 
 package tachyon.client.block;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import tachyon.client.BoundedStream;
-import tachyon.client.ClientContext;
 import tachyon.client.Seekable;
-import tachyon.thrift.NetAddress;
-import tachyon.util.network.NetworkAddressUtils;
 
 /**
- * Provides a stream API to read a block from Tachyon. An instance extending this class can be
- * obtained by calling {@link TachyonBlockStore#getInStream}. Multiple BlockInStreams can be opened
- * for a block. This class is not thread safe and should only be used by one thread.
- *
- * This class provides the same methods as a Java {@link InputStream} with an additional seek
- * method.
+ * This class represents a stream to a block in the Tachyon system. The data source of the block
+ * could be a local Tachyon worker, a remote Tachyon worker, or the under storage system. All
+ * block streams provide data access to a sequential region of data of the block size of the block.
  */
+// TODO: Resolve the confusion between BufferedBlockInStream (Tachyon-only stream) and BlockInStream
 public abstract class BlockInStream extends InputStream implements BoundedStream, Seekable {
-  /**
-   * Creates a block input stream.
-   *
-   * @param blockId the block id
-   * @param blockSize the block size (for remote block input streams)
-   * @param location the block location (for remote block input streams)
-   * @return a block input stream
-   * @throws IOException if an I/O error occurs
-   */
-  public static BlockInStream get(long blockId, long blockSize, NetAddress location)
-      throws IOException {
-    String localHostname = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
-    if (location.getHost().equals(localHostname)) {
-      return new LocalBlockInStream(blockId);
-    } else {
-      return new RemoteBlockInStream(blockId, blockSize, location);
-    }
-  }
+
 }

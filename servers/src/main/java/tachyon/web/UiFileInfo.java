@@ -65,10 +65,8 @@ public final class UiFileInfo {
   }
 
   private final long mId;
-  private final int mDependencyId;
   private final String mName;
   private final String mAbsolutePath;
-  private final String mCheckpointPath;
   private final long mBlockSizeBytes;
   private final long mSize;
   private final long mCreationTimeMs;
@@ -86,10 +84,8 @@ public final class UiFileInfo {
 
   public UiFileInfo(FileInfo fileInfo) {
     mId = fileInfo.getFileId();
-    mDependencyId = fileInfo.getDependencyId();
     mName = fileInfo.getName();
     mAbsolutePath = fileInfo.getPath();
-    mCheckpointPath = fileInfo.getUfsPath();
     mBlockSizeBytes = fileInfo.getBlockSizeBytes();
     mSize = fileInfo.getLength();
     mCreationTimeMs = fileInfo.getCreationTimeMs();
@@ -106,10 +102,8 @@ public final class UiFileInfo {
 
   public UiFileInfo(LocalFileInfo fileInfo) {
     mId = -1;
-    mDependencyId = -1;
     mName = fileInfo.mName;
     mAbsolutePath = fileInfo.mAbsolutePath;
-    mCheckpointPath = "";
     mBlockSizeBytes = 0;
     mSize = fileInfo.mSize;
     mCreationTimeMs = fileInfo.mCreationTimeMs;
@@ -150,10 +144,6 @@ public final class UiFileInfo {
     return mBlocksOnTier;
   }
 
-  public String getCheckpointPath() {
-    return mCheckpointPath;
-  }
-
   public String getCreationTime() {
     if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
@@ -163,10 +153,6 @@ public final class UiFileInfo {
 
   public String getModificationTime() {
     return Utils.convertMsToDate(mLastModificationTimeMs);
-  }
-
-  public int getDependencyId() {
-    return mDependencyId;
   }
 
   public List<String> getFileLocations() {

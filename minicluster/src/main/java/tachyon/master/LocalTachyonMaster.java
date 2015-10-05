@@ -40,13 +40,13 @@ import tachyon.util.network.NetworkAddressUtils.ServiceType;
  * Isolated is defined as having its own root directory, and port.
  */
 public final class LocalTachyonMaster {
-  // TODO should this be moved to TachyonURI? Prob after UFS supports it
+  // TODO(hy): Should this be moved to TachyonURI? Prob after UFS supports it.
 
   private final String mTachyonHome;
   private final String mHostname;
 
-  private final UnderFileSystemCluster mUnderFSCluster;
-  private final String mUnderFSFolder;
+  private final UnderFileSystemCluster mUfsCluster;
+  private final String mUfsDirectory;
   private final String mJournalFolder;
 
   private final TachyonMaster mTachyonMaster;
@@ -62,10 +62,11 @@ public final class LocalTachyonMaster {
 
   private final OldClientPool mOldClientPool = new OldClientPool(mClientSupplier);
 
-  private LocalTachyonMaster(final String tachyonHome, TachyonConf tachyonConf)
+  private LocalTachyonMaster(final String tachyonHome)
       throws IOException {
     mTachyonHome = tachyonHome;
 
+    TachyonConf tachyonConf = MasterContext.getConf();
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, tachyonConf);
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
@@ -73,17 +74,18 @@ public final class LocalTachyonMaster {
     // "mTachyonHome/tachyon*". Otherwise, it starts some distributed file system cluster e.g.,
     // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
     // "hdfs://xxx:xxx/tachyon*".
-    mUnderFSCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs", tachyonConf);
-    mUnderFSFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
+    mUfsCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs", tachyonConf);
+    mUfsDirectory = mUfsCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
-    mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
+    mJournalFolder = mUfsCluster.getUnderFilesystemAddress() + "/journal";
 
     UnderFileSystemUtils.mkdirIfNotExists(mJournalFolder, tachyonConf);
     String[] masterServiceNames = new String[] {
         Constants.BLOCK_MASTER_SERVICE_NAME,
         Constants.FILE_SYSTEM_MASTER_SERVICE_NAME,
         Constants.RAW_TABLE_MASTER_SERVICE_NAME,
+        Constants.LINEAGE_MASTER_SERVICE_NAME,
     };
     for (String masterServiceName : masterServiceNames) {
       UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mJournalFolder, masterServiceName),
@@ -93,8 +95,7 @@ public final class LocalTachyonMaster {
         tachyonConf);
 
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
-    tachyonConf.set(Constants.UNDERFS_ADDRESS, mUnderFSFolder);
-
+    tachyonConf.set(Constants.UNDERFS_ADDRESS, mUfsDirectory);
     tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
     tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
 
@@ -110,11 +111,7 @@ public final class LocalTachyonMaster {
     tachyonConf.set(Constants.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../servers/src/main/webapp"));
 
-    if (tachyonConf.getBoolean(Constants.USE_ZOOKEEPER)) {
-      mTachyonMaster = new TachyonMasterFaultTolerant(tachyonConf);
-    } else {
-      mTachyonMaster = new TachyonMaster(tachyonConf);
-    }
+    mTachyonMaster = TachyonMaster.Factory.createMaster();
 
     // Reset the master port
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(getRPCLocalPort()));
@@ -136,35 +133,34 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated home and port.
    *
-   * @param tachyonConf Tachyon configuration
    * @throws IOException when unable to do file operation or listen on port
    * @return an instance of Tachyon master
    */
-  public static LocalTachyonMaster create(TachyonConf tachyonConf) throws IOException {
+  public static LocalTachyonMaster create() throws IOException {
     final String tachyonHome = uniquePath();
+    TachyonConf tachyonConf = MasterContext.getConf();
     UnderFileSystemUtils.deleteDir(tachyonHome, tachyonConf);
     UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
 
     // Update Tachyon home in the passed TachyonConf instance.
     tachyonConf.set(Constants.TACHYON_HOME, tachyonHome);
 
-    return new LocalTachyonMaster(tachyonHome, tachyonConf);
+    return new LocalTachyonMaster(tachyonHome);
   }
 
   /**
    * Creates a new local tachyon master with a isolated port.
    *
-   * @param tachyonHome Tachyon home directory
-   * @param tachyonConf Tachyon configuration
+   * @param tachyonHome Tachyon home directory, if the directory already exists, this method will
+   *                    reuse any directory/file if possible, no deletion will be made
    * @return an instance of Tachyon master
    * @throws IOException when unable to do file operation or listen on port
    */
-  public static LocalTachyonMaster create(final String tachyonHome, TachyonConf tachyonConf)
-      throws IOException {
-    UnderFileSystemUtils.deleteDir(tachyonHome, tachyonConf);
+  public static LocalTachyonMaster create(final String tachyonHome) throws IOException {
+    TachyonConf tachyonConf = MasterContext.getConf();
     UnderFileSystemUtils.mkdirIfNotExists(tachyonHome, tachyonConf);
 
-    return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome), tachyonConf);
+    return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome));
   }
 
   public void start() {
@@ -199,8 +195,8 @@ public final class LocalTachyonMaster {
   }
 
   public void cleanupUnderfs() throws IOException {
-    if (null != mUnderFSCluster) {
-      mUnderFSCluster.cleanup();
+    if (mUfsCluster != null) {
+      mUfsCluster.cleanup();
     }
     System.clearProperty("tachyon.underfs.address");
   }
@@ -260,11 +256,11 @@ public final class LocalTachyonMaster {
   }
 
   public TachyonFS getOldClient() throws IOException {
-    return mOldClientPool.getClient(mTachyonMaster.getTachyonConf());
+    return mOldClientPool.getClient(MasterContext.getConf());
   }
 
   public TachyonFileSystem getClient() throws IOException {
-    return mClientPool.getClient(mTachyonMaster.getTachyonConf());
+    return mClientPool.getClient(MasterContext.getConf());
   }
 
   private static String uniquePath() throws IOException {
@@ -273,10 +269,6 @@ public final class LocalTachyonMaster {
 
   private static String path(final String parent, final String child) {
     return parent + "/" + child;
-  }
-
-  public TachyonConf getTachyonConf() {
-    return mTachyonMaster.getTachyonConf();
   }
 
   public String getJournalFolder() {

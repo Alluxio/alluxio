@@ -81,23 +81,19 @@ public class Format {
 
       String ufsDataFolder =
           tachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
-      String ufsWorkerFolder =
-          tachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-      if (!formatFolder("UNDERFS_DATA_FOLDER", ufsDataFolder, tachyonConf)
-          || !formatFolder("UNDERFS_WORKERS_FOLDER", ufsWorkerFolder, tachyonConf)) {
+      if (!formatFolder("UNDERFS_DATA_FOLDER", ufsDataFolder, tachyonConf)) {
         System.exit(-1);
       }
 
       UnderFileSystemUtils.touch(
           masterJournal + Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis(), tachyonConf);
     } else if (args[0].toUpperCase().equals("WORKER")) {
-      String workerDataFolder =
-          tachyonConf.get(Constants.WORKER_DATA_FOLDER, Constants.DEFAULT_DATA_FOLDER);
+      String workerDataFolder = tachyonConf.get(Constants.WORKER_DATA_FOLDER);
       int maxStorageLevels = tachyonConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
       for (int level = 0; level < maxStorageLevels; level ++) {
         String tierLevelDirPath =
             String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
-        String[] dirPaths = tachyonConf.get(tierLevelDirPath, "/mnt/ramdisk").split(",");
+        String[] dirPaths = tachyonConf.get(tierLevelDirPath).split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
           String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);

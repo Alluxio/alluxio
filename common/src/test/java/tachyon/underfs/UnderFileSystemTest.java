@@ -16,13 +16,13 @@
 package tachyon.underfs;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.conf.TachyonConf;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.TachyonURI;
+import tachyon.conf.TachyonConf;
 
 /**
  * Unit tests for {@link UnderFileSystem}

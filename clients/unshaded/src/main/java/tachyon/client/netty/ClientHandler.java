@@ -21,6 +21,8 @@ import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -63,7 +65,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
    * @param listener the listener to add
    */
   public void addListener(ResponseListener listener) {
-    mListeners.add(listener);
+    mListeners.add(Preconditions.checkNotNull(listener));
   }
 
   /**

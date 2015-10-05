@@ -32,17 +32,19 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 /**
  * Masters use this client to elect a leader.
  */
-public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
+public final class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final String mZookeeperAddress;
   private final String mElectionPath;
   private final String mLeaderFolder;
-  private final String mName;
   private final LeaderSelector mLeaderSelector;
+  private final String mName;
+  private final String mZookeeperAddress;
 
   private AtomicBoolean mIsLeader = new AtomicBoolean(false);
   private volatile Thread mCurrentMasterThread = null;
@@ -81,7 +83,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     try {
       mLeaderSelector.close();
     } catch (IllegalStateException e) {
-      // TODO This should not happen in unit tests.
+      // TODO(hy): This should not happen in unit tests.
       if (!e.getMessage().equals("Already closed or has not been started")) {
         throw e;
       }
@@ -117,7 +119,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
    * @param currentMasterThread the thread to use as the master thread
    */
   public void setCurrentMasterThread(Thread currentMasterThread) {
-    mCurrentMasterThread = currentMasterThread;
+    mCurrentMasterThread = Preconditions.checkNotNull(currentMasterThread);
   }
 
   public void start() throws IOException {

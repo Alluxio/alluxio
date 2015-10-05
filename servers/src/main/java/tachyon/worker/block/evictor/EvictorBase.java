@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.Sessions;
-import tachyon.exception.NotFoundException;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
@@ -89,7 +89,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       long blockId = it.next().getKey();
       try {
         BlockMeta block = mManagerView.getBlockMeta(blockId);
-        if (null != block) { // might not present in this view
+        if (block != null) { // might not present in this view
           if (block.getBlockLocation().belongTo(location)) {
             int tierAlias = block.getParentDir().getParentTier().getTierAlias();
             int dirIndex = block.getParentDir().getDirIndex();
@@ -97,7 +97,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
                 block.getBlockSize());
           }
         }
-      } catch (NotFoundException nfe) {
+      } catch (BlockDoesNotExistException nfe) {
         LOG.warn("Remove block {} from evictor cache because {}", blockId, nfe);
         it.remove();
         onRemoveBlockFromIterator(blockId);
@@ -120,12 +120,12 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       for (Long blockId : candidateBlocks) {
         try {
           BlockMeta block = mManagerView.getBlockMeta(blockId);
-          if (null != block) {
+          if (block != null) {
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
                 candidateDirView.toBlockStoreLocation()));
           }
-        } catch (NotFoundException nfe) {
+        } catch (BlockDoesNotExistException nfe) {
           continue;
         }
       }
@@ -133,7 +133,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
       for (Long blockId : candidateBlocks) {
         try {
           BlockMeta block = mManagerView.getBlockMeta(blockId);
-          if (null == block) {
+          if (block == null) {
             continue;
           }
           StorageDirView nextDirView = mAllocator.allocateBlockWithView(
@@ -155,7 +155,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
               nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
-        } catch (NotFoundException nfe) {
+        } catch (BlockDoesNotExistException nfe) {
           continue;
         }
       }
@@ -187,7 +187,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
    * specifying the iteration order using its own strategy. For example, LRUEvictor returns an
    * iterator that iterates the blocks in LRU order. The key of the map entry is the block Id.
    */
-  // TODO: Is a key iterator sufficient?
+  // TODO(calvin): Is a key iterator sufficient?
   protected abstract Iterator<Map.Entry<Long, Object>> getBlockIterator();
 
   /**

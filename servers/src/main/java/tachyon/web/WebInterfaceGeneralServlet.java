@@ -18,7 +18,6 @@ package tachyon.web;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -28,8 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.Version;
+import tachyon.conf.TachyonConf;
 import tachyon.master.TachyonMaster;
-import tachyon.master.file.meta.DependencyVariables;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.FormatUtils;
 
@@ -109,15 +108,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    DependencyVariables.VARIABLES.clear();
-    for (String key : (Set<String>) request.getParameterMap().keySet()) {
-      if (key.startsWith("varName")) {
-        String value = request.getParameter("varVal" + key.substring(7));
-        if (value != null) {
-          DependencyVariables.VARIABLES.put(request.getParameter(key), value);
-        }
-      }
-    }
     populateValues(request);
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
@@ -176,9 +166,10 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
 
-    String ufsDataFolder = mMaster.getTachyonConf().get(Constants.UNDERFS_DATA_FOLDER,
-        Constants.DEFAULT_DATA_FOLDER);
-    UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, mMaster.getTachyonConf());
+    // TODO(jiri): Should we use MasterContext here instead?
+    TachyonConf conf = new TachyonConf();
+    String ufsDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, conf);
 
     long sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
     if (sizeBytes >= 0) {
@@ -200,8 +191,6 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     } else {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }
-
-    request.setAttribute("recomputeVariables", DependencyVariables.VARIABLES);
 
     StorageTierInfo[] infos = generateOrderedStorageTierInfo();
     request.setAttribute("storageTierInfos", infos);

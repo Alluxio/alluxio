@@ -83,9 +83,7 @@ public abstract class UIWebServer {
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(TachyonURI.SEPARATOR);
-    String tachyonHome = mTachyonConf.get(Constants.TACHYON_HOME);
-    File warPath =
-        new File(mTachyonConf.get(Constants.WEB_RESOURCES, tachyonHome + "/core/src/main/webapp"));
+    File warPath = new File(mTachyonConf.get(Constants.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});

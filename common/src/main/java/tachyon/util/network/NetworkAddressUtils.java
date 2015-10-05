@@ -27,8 +27,8 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import org.apache.thrift.transport.TServerSocket;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +47,7 @@ public final class NetworkAddressUtils {
   public static final String WILDCARD_ADDRESS = "0.0.0.0";
 
   /**
-   * Check if the underlying OS is Windows.
+   * Checks if the underlying OS is Windows.
    */
   public static final boolean WINDOWS = OSUtils.isWindows();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -166,6 +166,19 @@ public final class NetworkAddressUtils {
     }
   }
 
+  public static void assertValidPort(final int port, TachyonConf tachyonConf) {
+    Preconditions.checkNotNull(tachyonConf);
+    Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
+
+    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
+      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
+    }
+  }
+
+  public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
+    assertValidPort(address.getPort(), tachyonConf);
+  }
+
   /**
    * Helper method to get the {@link InetSocketAddress} address for client to communicate with the
    * service.
@@ -223,16 +236,19 @@ public final class NetworkAddressUtils {
    *         service.
    */
   public static String getConnectHost(ServiceType service, TachyonConf conf) {
-    String connectHost = conf.get(service.mHostNameKey, "");
-    String bindHost = conf.get(service.mBindHostKey, "");
-
-    if (!connectHost.equals(WILDCARD_ADDRESS) && !connectHost.isEmpty()) {
-      return connectHost;
-    } else if (!bindHost.equals(WILDCARD_ADDRESS) && !bindHost.isEmpty()) {
-      return bindHost;
-    } else {
-      return getLocalHostName(conf);
+    if (conf.containsKey(service.mHostNameKey)) {
+      String connectHost = conf.get(service.mHostNameKey);
+      if (!connectHost.isEmpty() && !connectHost.equals(WILDCARD_ADDRESS)) {
+        return connectHost;
+      }
     }
+    if (conf.containsKey(service.mBindHostKey)) {
+      String bindHost = conf.get(service.mBindHostKey);
+      if (!bindHost.isEmpty() && !bindHost.equals(WILDCARD_ADDRESS)) {
+        return bindHost;
+      }
+    }
+    return getLocalHostName(conf);
   }
 
   /**
@@ -262,15 +278,16 @@ public final class NetworkAddressUtils {
    * @return the InetSocketAddress the service will bind to
    */
   public static InetSocketAddress getBindAddress(ServiceType service, TachyonConf conf) {
-    String host = conf.get(service.mBindHostKey, "");
     int port = getPort(service, conf);
-    TachyonConf.assertValidPort(port, conf);
+    assertValidPort(port, conf);
 
-    if (!host.isEmpty()) {
-      return new InetSocketAddress(host, port);
+    String host;
+    if (conf.containsKey(service.mBindHostKey) && !conf.get(service.mBindHostKey).isEmpty()) {
+      host = conf.get(service.mBindHostKey);
     } else {
-      return new InetSocketAddress(getLocalHostName(conf), port);
+      host = getLocalHostName(conf);
     }
+    return new InetSocketAddress(host, port);
   }
 
   /**
@@ -383,7 +400,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Test if the address is externally resolvable. Address must not be wildcard, link local,
+   * Tests if the address is externally resolvable. Address must not be wildcard, link local,
    * loopback address, non-IPv4, or other unreachable addresses.
    *
    * @param address The testing address
@@ -400,7 +417,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Replace and resolve the hostname in a given address or path string.
+   * Replaces and resolves the hostname in a given address or path string.
    *
    * @param path an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
    * @return an address or path string with hostname resolved, or the original path intact if no
@@ -423,7 +440,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Resolve a given hostname by a canonical hostname. When a hostname alias (e.g., those specified
+   * Resolves a given hostname by a canonical hostname. When a hostname alias (e.g., those specified
    * in /etc/hosts) is given, the alias may not be resolvable on other hosts in a cluster unless the
    * same alias is defined there. In this situation, loadufs would break.
    *
@@ -452,7 +469,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Get FQDN(Full Qualified Domain Name) from Tachyon representation of network address.
+   * Gets FQDN(Full Qualified Domain Name) from Tachyon representation of network address.
    *
    * @param addr the input network address representation
    * @return the resolved FQDN host name
@@ -492,7 +509,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Parse InetSocketAddress from a String.
+   * Parses InetSocketAddress from a String.
    *
    * @param address socket address to parse
    * @return InetSocketAddress of the String

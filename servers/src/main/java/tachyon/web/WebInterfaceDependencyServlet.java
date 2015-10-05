@@ -28,9 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Preconditions;
 
 import tachyon.master.TachyonMaster;
-import tachyon.thrift.DependencyDoesNotExistException;
-import tachyon.thrift.DependencyInfo;
-import tachyon.thrift.FileDoesNotExistException;
 
 public final class WebInterfaceDependencyServlet extends HttpServlet {
   private static final long serialVersionUID = 2071462168900313417L;
@@ -46,28 +43,12 @@ public final class WebInterfaceDependencyServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("filePath", request.getParameter("filePath"));
     request.setAttribute("error", "");
-    int dependencyId = Integer.parseInt(request.getParameter("id"));
     List<String> parentFileNames = new ArrayList<String>();
     List<String> childrenFileNames = new ArrayList<String>();
-    try {
-      DependencyInfo dependencyInfo =
-          mMaster.getFileSystemMaster().getClientDependencyInfo(dependencyId);
-      for (long pId : dependencyInfo.parents) {
-        parentFileNames.add(mMaster.getFileSystemMaster().getPath((int) pId).toString());
-      }
-      for (long cId : dependencyInfo.children) {
-        childrenFileNames.add(mMaster.getFileSystemMaster().getPath((int) cId).toString());
-      }
-    } catch (DependencyDoesNotExistException ddnee) {
-      request.setAttribute("error", ddnee.getMessage());
-    } catch (FileDoesNotExistException fdne) {
-      request.setAttribute("error", fdne.getMessage());
-    }
     Collections.sort(parentFileNames);
     Collections.sort(childrenFileNames);
     request.setAttribute("parentFileNames", parentFileNames);
     request.setAttribute("childrenFileNames", childrenFileNames);
-    getServletContext().getRequestDispatcher("/dependency.jsp").forward(request, response);
   }
 
   @Override

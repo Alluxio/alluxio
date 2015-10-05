@@ -24,13 +24,14 @@ import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.ClientMetrics;
 
 /**
  * A shared context in each client JVM. It provides common functionality such as the Tachyon
  * configuration and master address. All members of this class are immutable. This class is
  * thread safe.
  */
-public class ClientContext {
+public final class ClientContext {
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
    * client.
@@ -38,6 +39,8 @@ public class ClientContext {
   private static TachyonConf sTachyonConf;
 
   private static InetSocketAddress sMasterAddress;
+
+  private static ClientMetrics sClientMetrics;
 
   private static Random sRandom;
 
@@ -69,6 +72,8 @@ public class ClientContext {
 
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
+    sClientMetrics = new ClientMetrics();
+
     sRandom = new Random();
   }
 
@@ -77,6 +82,13 @@ public class ClientContext {
    */
   public static TachyonConf getConf() {
     return sTachyonConf;
+  }
+
+  /**
+   * @return the ClientMetrics for this client
+   */
+  public static ClientMetrics getClientMetrics() {
+    return sClientMetrics;
   }
 
   /**

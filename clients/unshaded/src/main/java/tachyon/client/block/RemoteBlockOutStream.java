@@ -41,8 +41,36 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     super(blockId, blockSize);
     mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
     mWorkerClient = mContext.acquireWorkerClient();
-    mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
-        mWorkerClient.getSessionId());
+    try {
+      mWorkerClient.mustConnect();
+      mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
+          mWorkerClient.getSessionId());
+    } catch (IOException e) {
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw e;
+    }
+  }
+
+  /**
+   * Creates a new block output stream on a specific host.
+   *
+   * @param blockId the block id
+   * @param blockSize the block size
+   * @param hostname the hostname of the preferred worker
+   * @throws IOException if I/O error occurs
+   */
+  public RemoteBlockOutStream(long blockId, long blockSize, String hostname) throws IOException {
+    super(blockId, blockSize);
+    mRemoteWriter = RemoteBlockWriter.Factory.createRemoteBlockWriter(ClientContext.getConf());
+    mWorkerClient = mContext.acquireWorkerClient(hostname);
+    try {
+      mWorkerClient.mustConnect();
+      mRemoteWriter.open(mWorkerClient.getDataServerAddress(), mBlockId,
+          mWorkerClient.getSessionId());
+    } catch (IOException e) {
+      mContext.releaseWorkerClient(mWorkerClient);
+      throw e;
+    }
   }
 
   @Override
@@ -65,6 +93,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     mRemoteWriter.close();
     if (mFlushedBytes == mBlockSize) {
       mWorkerClient.cacheBlock(mBlockId);
+      ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
     } else {
       mWorkerClient.cancelBlock(mBlockId);
     }
@@ -86,5 +115,6 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private void writeToRemoteBlock(byte[] b, int off, int len) throws IOException {
     mRemoteWriter.write(b, off, len);
     mFlushedBytes += len;
+    ClientContext.getClientMetrics().incBytesWrittenRemote(len);
   }
 }
