@@ -41,7 +41,6 @@ import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
 import tachyon.client.file.options.WaitCompletedOptions;
 import tachyon.client.lineage.TachyonLineageFileSystem;
-import tachyon.exception.DependencyDoesNotExistException;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -256,21 +255,6 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
       mContext.releaseMasterClient(masterClient);
     }
   }
-
-  // TODO: Move this to lineage client
-  public void requestFilesInDependency(int depId) throws IOException,
-      DependencyDoesNotExistException, TachyonException {
-    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
-    try {
-      masterClient.requestFilesInDependency(depId);
-    } catch (TachyonException e) {
-      TachyonException.unwrap(e, DependencyDoesNotExistException.class);
-      throw e;
-    } finally {
-      mContext.releaseMasterClient(masterClient);
-    }
-  }
-
   /**
    * Convenience method for {@link #waitCompleted(TachyonURI,WaitCompletedOptions)} with
    * default options.
