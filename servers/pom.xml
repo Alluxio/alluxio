@@ -28,6 +28,12 @@
       <artifactId>tachyon-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- For reflection on S3OutputStream in tachyon.master.journal.JournalWriter -->
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-underfs-s3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>io.dropwizard.metrics</groupId>
       <artifactId>metrics-core</artifactId>
