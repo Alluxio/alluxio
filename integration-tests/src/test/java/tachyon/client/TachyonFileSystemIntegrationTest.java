@@ -199,6 +199,4 @@ public class TachyonFileSystemIntegrationTest {
     Assert.assertTrue(sTfs.rename(f, uniqUri));
     Assert.assertEquals(oldFileId, sTfs.open(uniqUri).getFileId());
   }
-
-
 }

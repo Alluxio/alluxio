@@ -43,7 +43,7 @@ import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
 /**
- * Created by andrea on 05/10/15.
+ * Tests for {@link tachyon.client.file.TachyonFileSystemUtils}.
  */
 public class TachyonFileSystemUtilsIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 20000;
@@ -182,7 +182,7 @@ public class TachyonFileSystemUtilsIntegrationTest {
       public void run() {
         try {
           final TachyonConf conf = ClientContext.getConf();
-          // set the slow defauult polling period to a more sensible value, in order
+          // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
           conf.set(Constants.USER_WAITCOMPLETED_POLL, "100");
           // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
