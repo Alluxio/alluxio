@@ -46,11 +46,8 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
-  private TachyonConf mMasterTachyonConf;
-  private TachyonConf mWorkerTachyonConf;
   private int mWorkerToMasterHeartbeatIntervalMs;
   private OutStreamOptions mWriteBoth;
-  private OutStreamOptions mWriteUnderStorage;
 
   @After
   public final void after() throws Exception {
@@ -67,7 +64,9 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mLocalTachyonCluster.start();
 
     mTfs = mLocalTachyonCluster.getClient();
-    mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
+
+    TachyonConf mWorkerTachyonConf;
+
     mWorkerTachyonConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerTachyonConf.set(Constants.MAX_COLUMNS, "257");
     mWorkerToMasterHeartbeatIntervalMs =
@@ -75,10 +74,6 @@ public class IsolatedTachyonFileSystemIntegrationTest {
     mWriteBoth =
         new OutStreamOptions.Builder(mWorkerTachyonConf)
             .setTachyonStorageType(TachyonStorageType.STORE)
-            .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
-    mWriteUnderStorage =
-        new OutStreamOptions.Builder(mWorkerTachyonConf)
-            .setTachyonStorageType(TachyonStorageType.NO_STORE)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
   }
 
@@ -107,9 +102,8 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   @Test
   public void lockBlockTest2() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
-    TachyonFile tFile = null;
-    FileInStream is = null;
-    ByteBuffer buf = null;
+    FileInStream is;
+    ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
@@ -138,9 +132,8 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   @Test
   public void lockBlockTest3() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
-    TachyonFile tFile = null;
-    FileInStream is = null;
-    ByteBuffer buf = null;
+    FileInStream is;
+    ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
@@ -174,9 +167,8 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   @Test
   public void unlockBlockTest1() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
-    TachyonFile tFile = null;
-    FileInStream is = null;
-    ByteBuffer buf = null;
+    FileInStream is;
+    ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
@@ -205,9 +197,8 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   @Test
   public void unlockBlockTest2() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
-    TachyonFile tFile = null;
-    FileInStream is = null;
-    ByteBuffer buf = null;
+    FileInStream is;
+    ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
@@ -239,10 +230,9 @@ public class IsolatedTachyonFileSystemIntegrationTest {
   @Test
   public void unlockBlockTest3() throws IOException, TachyonException {
     String uniqPath = PathUtils.uniqPath();
-    TachyonFile tFile = null;
-    FileInStream is = null;
-    ByteBuffer buf1 = null;
-    ByteBuffer buf2 = null;
+    FileInStream is;
+    ByteBuffer buf1;
+    ByteBuffer buf2;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<TachyonFile> files = new ArrayList<TachyonFile>();
