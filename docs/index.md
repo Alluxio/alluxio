@@ -56,84 +56,8 @@ checkpoint path, etc.
 * **[Command line interaction](Command-Line-Interface.html)** Users can use ``./bin/tachyon tfs``
 to interact with Tachyon, e.g. copy data in and out of the file system.
 
-# User Documentation
+# Getting Started
+TODO(calvin): Add link to user guide
 
-**Deployment Guide:**
-
-* [Single Node](Running-Tachyon-Locally.html)
-* [Cluster](Running-Tachyon-on-a-Cluster.html)
-* [Master Fault Tolerant Cluster](Fault-Tolerant-Tachyon-Cluster.html)
-* [Tachyon Deploy Module (Virtualbox and AWS EC2)](Deploy-Module.html)
-* [Amazon AWS Through mesos/spark-ec2](Running-Tachyon-on-EC2.html)
-
-**Configuration:**
-
-* [Configure Underlayer Storage System](Setup-UFS.html): Learn how to configure underlayer storage
-system or to create a new one.
-* [Configuration Settings](Configuration-Settings.html): How to configure Tachyon.
-
-**Frameworks on Tachyon:**
-
-* [Running Apache Spark on Tachyon](Running-Spark-on-Tachyon.html): Get Apache Spark running on
-Tachyon
-* [Running Shark on Tachyon](Running-Shark-on-Tachyon.html): Get Shark running on Tachyon
-* [Running Apache Hadoop MapReduce on Tachyon](Running-Hadoop-MapReduce-on-Tachyon.html): Get Apache
-Hadoop MapReduce running on Tachyon
-* [Running Apache Flink on Tachyon](Running-Flink-on-Tachyon.html): Get Apache Flink running on
-Tachyon
-
-**Others:**
-
-* [Command-Line Interface](Command-Line-Interface.html): Interact with Tachyon through the command
-line.
-* [Syncing the Underlayer Storage System](Syncing-the-Underlying-Filesystem.html): Make Tachyon
-understand an existing underlayer storage system.
-* [FAQ](FAQ.html)
-* [Tachyon Java API (Javadoc)](api/java/index.html)
-* [Tiered Storage (Beta)](Tiered-Storage-on-Tachyon.html)
-
-**Tachyon Presentations:**
-
-* Tachyon Workshop 2015 (July, 2015) [pptx](http://goo.gl/0HpqeS)
-* Strata and Hadoop World 2014 (October, 2014) [pdf](http://goo.gl/fP9qkF) [pptx](http://goo.gl/GOyUbI)
-* Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
-* Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
-
-# Developer Documentation
-
-* [Contributing to Tachyon](Contributing-to-Tachyon.html)
-* [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
-
-# External resources
-
-Tachyon Mini Courses:
-
-* [AMPCamp 5](http://ampcamp.berkeley.edu/5/exercises/)
-* [Strata 2014](http://ampcamp.berkeley.edu/big-data-mini-course/)
-
-[Hot Rod Hadoop With Tachyon on Fedora 21](http://timothysc.github.io/blog/2014/02/17/bdas-tachyon/)
-
-# Support or Contact
-
-You are welcome to join our
-[mailing list](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users) to discuss
-questions and make suggestions. We use [JIRA](https://tachyon.atlassian.net/browse/TACHYON) to
-track development and issues. If you are interested in trying out Tachyon in your cluster, please
-contact [Haoyuan](mailto:haoyuan@cs.berkeley.edu).
-
-# Acknowledgement
-
-Tachyon is an open source project started in the
-[UC Berkeley AMP Lab](http://amplab.cs.berkeley.edu).
-This research is supported in part by NSF CISE Expeditions Award CCF-1139158, LBNL Award 7076018,
-and DARPA XData Award FA8750-12-2-0331, and gifts from Amazon Web Services, Google, SAP, The Thomas
-and Stacey Siebel Foundation, Adatao, Adobe, Apple, Inc., Blue Goji, Bosch, C3Energy, Cisco, Cray,
-Cloudera, EMC, Ericsson, Facebook, Guavus, Huawei, Informatica, Intel, Microsoft, NetApp, Pivotal,
-Samsung, Splunk, Virdata, VMware, and Yahoo!.
-
-We would also like to thank to our project
-[contributors](https://github.com/amplab/tachyon/graphs/contributors).
-
-# Related Projects
-
-[Berkeley Data Analysis Stack (BDAS)](https://amplab.cs.berkeley.edu/bdas/) from AMPLab at Berkeley
+# Downloads
+TODO(calvin): Add link to downloads

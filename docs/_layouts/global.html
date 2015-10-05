@@ -60,13 +60,8 @@
                 {% else %}
                     <li><a href="index.html">Overview</a></li>
                 {% endif %}
-                {% if page.group == "FAQ" %}
-                    <li class="active"><a>FAQ</a></li>
-                {% else %}
-                    <li><a href="FAQ.html">FAQ</a></li>
-                {% endif %}
 
-                {% assign categories = "Deployment|Development|Frameworks|More" | split: "|" %}
+                {% assign categories = "User Guide|Features|Frameworks|Under Storage Systems" | split: "|" %}
                 {% for groupName in categories %}
                     <li class="dropdown">
                         {% if page.group == groupName %}
