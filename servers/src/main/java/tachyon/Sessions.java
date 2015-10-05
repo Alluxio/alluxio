@@ -71,7 +71,6 @@ public class Sessions {
    */
   public synchronized void removeSession(long sessionId) {
     LOG.info("Cleaning up session " + sessionId);
-    SessionInfo tSession = null;
     synchronized (mSessions) {
       mSessions.remove(sessionId);
     }
