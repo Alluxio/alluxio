@@ -22,11 +22,21 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for renaming an existing entry.
+ */
 public class RenameEntry implements JournalEntry {
   public final long mFileId;
   public final String mDstPath;
   public final long mOpTimeMs;
 
+  /**
+   * Creates a new instance of <code>RenameEntry</code>.
+   *
+   * @param fileId the file id.
+   * @param dstPath the destination path.
+   * @param opTimeMs the operation timestamp (in millisecs).
+   */
   public RenameEntry(long fileId, String dstPath, long opTimeMs) {
     mFileId = fileId;
     mDstPath = dstPath;
