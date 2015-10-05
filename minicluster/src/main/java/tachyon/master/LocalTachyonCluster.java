@@ -69,22 +69,15 @@ public final class LocalTachyonCluster {
   private static ClientContext.PrivateReinitializer sReinitializer;
 
   private BlockWorker mWorker = null;
-
   private long mWorkerCapacityBytes;
   private int mUserBlockSize;
   private int mQuotaUnitBytes;
-
   private String mTachyonHome;
-
   private String mWorkerDataFolder;
-
   private Thread mWorkerThread = null;
   private String mLocalhostName = null;
-
   private LocalTachyonMaster mMaster;
-
   private TachyonConf mMasterConf;
-
   private TachyonConf mWorkerConf;
 
   public LocalTachyonCluster(long workerCapacityBytes, int quotaUnitBytes, int userBlockSize) {
@@ -123,10 +116,6 @@ public final class LocalTachyonCluster {
 
   public String getTachyonHome() {
     return mTachyonHome;
-  }
-
-  public String getTempFolderInUnderFs() {
-    return mMasterConf.get(Constants.UNDERFS_ADDRESS);
   }
 
   public BlockWorker getWorker() {
@@ -203,8 +192,8 @@ public final class LocalTachyonCluster {
 
     int maxLevel = mWorkerConf.getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     for (int level = 1; level < maxLevel; level ++) {
-      String tierLevelDirPath = String.format(
-          Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
+      String tierLevelDirPath =
+          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = mWorkerConf.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<String>();
       for (String dirPath : dirPaths) {
@@ -260,8 +249,6 @@ public final class LocalTachyonCluster {
 
     UnderFileSystemUtils.mkdirIfNotExists(
         mMasterConf.get(Constants.UNDERFS_DATA_FOLDER), mMasterConf);
-    UnderFileSystemUtils.mkdirIfNotExists(
-        mMasterConf.get(Constants.UNDERFS_WORKERS_FOLDER), mMasterConf);
     CommonUtils.sleepMs(10);
 
     startWorker();
@@ -289,17 +276,6 @@ public final class LocalTachyonCluster {
   public void stopTFS() throws Exception {
     mMaster.stop();
     mWorker.stop();
-
-    System.clearProperty(Constants.TACHYON_HOME);
-    System.clearProperty(Constants.WORKER_PORT);
-    System.clearProperty(Constants.WORKER_DATA_PORT);
-    System.clearProperty(Constants.WORKER_DATA_FOLDER);
-    System.clearProperty(Constants.WORKER_MEMORY_SIZE);
-    System.clearProperty(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
-    System.clearProperty(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
-    System.clearProperty(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS);
-    System.clearProperty(Constants.WORKER_MIN_WORKER_THREADS);
   }
 
   /**

@@ -33,15 +33,16 @@ import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.master.TachyonMaster;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.FileBlockInfo;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.util.io.PathUtils;
 
@@ -72,14 +73,14 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, TachyonException {
-    TachyonFileSystem tFS = TachyonFileSystem.get();
+    TachyonFileSystem tFS = TachyonFileSystemFactory.get();
     TachyonFile tFile = tFS.open(path);
     String fileData = null;
     if (tFile == null) {
       throw new FileDoesNotExistException(path.toString());
     }
     FileInfo fileInfo = tFS.getInfo(tFile);
-    if (fileInfo.isComplete) {
+    if (fileInfo.isCompleted) {
       InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)
           .setTachyonStorageType(TachyonStorageType.NO_STORE).build();
       FileInStream is = tFS.getInStream(tFile, readNoCache);
@@ -225,6 +226,10 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
             "Error: non-existing file " + fdne.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
         return;
+      } catch (InvalidPathException ipe) {
+        request.setAttribute("InvalidPathException",
+            "Error: invalid path " + ipe.getMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       }
       fileInfos.add(toAdd);
     }

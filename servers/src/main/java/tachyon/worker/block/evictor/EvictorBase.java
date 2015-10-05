@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.Sessions;
-import tachyon.exception.NotFoundException;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
 import tachyon.worker.block.BlockStoreLocation;
@@ -97,7 +97,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
                 block.getBlockSize());
           }
         }
-      } catch (NotFoundException nfe) {
+      } catch (BlockDoesNotExistException nfe) {
         LOG.warn("Remove block {} from evictor cache because {}", blockId, nfe);
         it.remove();
         onRemoveBlockFromIterator(blockId);
@@ -125,7 +125,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
             plan.toEvict().add(new Pair<Long, BlockStoreLocation>(blockId,
                 candidateDirView.toBlockStoreLocation()));
           }
-        } catch (NotFoundException nfe) {
+        } catch (BlockDoesNotExistException nfe) {
           continue;
         }
       }
@@ -155,7 +155,7 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
               nextDirView.toBlockStoreLocation()));
           candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
           nextDirView.markBlockMoveIn(blockId, block.getBlockSize());
-        } catch (NotFoundException nfe) {
+        } catch (BlockDoesNotExistException nfe) {
           continue;
         }
       }

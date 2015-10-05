@@ -91,10 +91,6 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals(ufsAddress + "/tachyon/data", value);
 
-    value = sDefaultTachyonConf.get(Constants.UNDERFS_WORKERS_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(ufsAddress + "/tachyon/workers", value);
-
     boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     Assert.assertEquals(false, booleanValue);
 
@@ -207,9 +203,6 @@ public class TachyonConfTest {
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS);
     Assert.assertEquals(1, intValue);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
-    Assert.assertEquals(1000, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
     Assert.assertEquals(1, intValue);

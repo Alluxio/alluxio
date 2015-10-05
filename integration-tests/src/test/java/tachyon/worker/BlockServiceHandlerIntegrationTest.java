@@ -39,13 +39,12 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.OutOfSpaceException;
+import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
@@ -94,25 +93,27 @@ public class BlockServiceHandlerIntegrationTest {
             mLocalTachyonCluster.getMasterPort()), mExecutorService, mWorkerTachyonConf);
   }
 
-  // Tests that checkpointing a file successfully informs master of the update
+  // Tests that persisting a file successfully informs master of the update
   @Test
   public void addCheckpointTest() throws Exception {
-    mTfs.getOutStream(new TachyonURI("/testFile"));
-    TachyonFile file = mTfs.open(new TachyonURI("/testFile"));
-    final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
+    TachyonFile file = new TachyonFile(mTfs.create(new TachyonURI("/testFile")));
+    FileInfo fileInfo = mLocalTachyonCluster.getClient().getInfo(file);
+    long nonce = 10;
 
-    String tmpFolder = mWorkerServiceHandler.getSessionUfsTempFolder(SESSION_ID);
-    UnderFileSystem ufs = UnderFileSystem.get(tmpFolder, mMasterTachyonConf);
-    ufs.mkdirs(tmpFolder, true);
-    String filename = PathUtils.concatPath(tmpFolder, file.getFileId());
-    OutputStream out = ufs.create(filename);
+    // Create the temporary file.
+    String ufsPath =
+        PathUtils.temporaryFileName(fileInfo.getFileId(), nonce, fileInfo.getUfsPath());
+    UnderFileSystem ufs = UnderFileSystem.get(ufsPath, mMasterTachyonConf);
+    OutputStream out = ufs.create(ufsPath);
+    final int blockSize = (int) WORKER_CAPACITY_BYTES / 10;
     out.write(BufferUtils.getIncreasingByteArray(blockSize));
     out.close();
-    mWorkerServiceHandler.addCheckpoint(SESSION_ID, (int) file.getFileId());
+
+    mWorkerServiceHandler.persistFile(file.getFileId(), nonce, ufsPath);
 
     // No space should be used in Tachyon, but the file should be complete
     Assert.assertEquals(0, mBlockMasterClient.getUsedBytes());
-    Assert.assertTrue(mTfs.getInfo(file).isComplete);
+    Assert.assertTrue(mTfs.getInfo(file).isCompleted);
   }
 
   // Tests that caching a block successfully persists the block if the block exists
@@ -206,8 +207,8 @@ public class BlockServiceHandlerIntegrationTest {
     Exception exception = null;
     try {
       mWorkerServiceHandler.lockBlock(blockId, SESSION_ID);
-    } catch (FileDoesNotExistException fdne) {
-      exception = fdne;
+    } catch (TachyonTException e) {
+      exception = e;
     }
 
     // A file does not exist exception should have been thrown
@@ -273,8 +274,8 @@ public class BlockServiceHandlerIntegrationTest {
     Exception exception = null;
     try {
       mWorkerServiceHandler.requestBlockLocation(SESSION_ID, blockId2, WORKER_CAPACITY_BYTES + 1);
-    } catch (OutOfSpaceException oose) {
-      exception = oose;
+    } catch (TachyonTException e) {
+      exception = e;
     }
     Assert.assertNotNull(exception);
   }
