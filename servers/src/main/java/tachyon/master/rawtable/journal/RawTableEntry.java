@@ -23,11 +23,19 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * The <code>JournalEntry</code> to represent an entry in RawTable.
+ */
 public class RawTableEntry implements JournalEntry {
   public final long mId;
   public final int mColumns;
   public final ByteBuffer mMetadata;
 
+  /**
+   * @param id table id.
+   * @param columns the columns to be set for the table.
+   * @param metadata the metadata to be set for the table.
+   */
   public RawTableEntry(long id, int columns, ByteBuffer metadata) {
     mId = id;
     mColumns = columns;
