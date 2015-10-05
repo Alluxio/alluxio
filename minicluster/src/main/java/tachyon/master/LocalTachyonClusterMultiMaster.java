@@ -106,7 +106,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public synchronized TachyonFileSystem getClient() throws IOException {
-    return mClientPool.getClient(mMasterConf);
+    return mClientPool.getClient(ClientContext.getConf());
   }
 
   public TachyonConf getMasterTachyonConf() {
