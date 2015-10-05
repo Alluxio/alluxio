@@ -40,14 +40,12 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
-import tachyon.client.file.options.WaitCompletedOptions;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.TachyonException;
 import tachyon.exception.TachyonExceptionType;
 import tachyon.thrift.FileInfo;
-import tachyon.util.CommonUtils;
 
 /**
  * Tachyon File System client. This class should be used to interface with the Tachyon File
@@ -284,54 +282,4 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     }
   }
 
-  // <i>IMPLEMENTATION NOTES</i> As inefficient it might be, this method is implemented
-  // by periodically polling the master about the file status. The
-  // polling period is controlled by the {@link Constants#USER_WAITCOMPLETED_POLL}
-  // java property and defaults to a generous 1 second.
-  @Override
-  public boolean waitCompleted(TachyonURI uri, WaitCompletedOptions options)
-      throws IOException, TachyonException, InterruptedException {
-    final long timeout = options.getTimeout();
-    final TimeUnit tunit = options.getTunit();
-    final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod = options.getPollPeriodMillis();
-
-    TachyonFile file = null;
-    boolean complete = false ;
-    long timeleft = deadline - System.currentTimeMillis();
-    long toSleep = 0;
-
-    while (!complete && (timeout < 0 || timeleft > 0)) {
-
-      if (file == null) {
-        try {
-          file = open(uri, OpenOptions.defaults());
-        } catch (TachyonException e) {
-          if (e.getType() == TachyonExceptionType.INVALID_PATH) {
-            LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
-                + "created.", uri);
-          } else {
-            throw e;
-          }
-        }
-      }
-
-      if (file != null) {
-        complete = getInfo(file, GetInfoOptions.defaults()).isCompleted;
-      }
-
-      if (!complete) {
-        if (timeout < 0 || timeleft > pollPeriod) {
-          toSleep = pollPeriod;
-        } else {
-          toSleep = timeleft;
-        }
-
-        CommonUtils.sleepMs(LOG, toSleep, true);
-        timeleft = deadline - System.currentTimeMillis();
-      }
-    }
-
-    return complete;
-  }
 }

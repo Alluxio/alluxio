@@ -39,7 +39,6 @@ import tachyon.client.file.options.OutStreamOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
-import tachyon.client.file.options.WaitCompletedOptions;
 import tachyon.client.lineage.TachyonLineageFileSystem;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
@@ -254,15 +253,5 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
-  }
-  /**
-   * Convenience method for {@link #waitCompleted(TachyonURI,WaitCompletedOptions)} with
-   * default options.
-   */
-  public boolean waitCompleted(TachyonURI uri) throws InterruptedException, TachyonException,
-    IOException {
-
-    return waitCompleted(uri, WaitCompletedOptions.defaults());
-
   }
 }
