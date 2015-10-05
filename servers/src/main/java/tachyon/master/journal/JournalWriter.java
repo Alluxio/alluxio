@@ -17,6 +17,7 @@ package tachyon.master.journal;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.ExceptionMessage;
 import tachyon.master.MasterContext;
 import tachyon.underfs.UnderFileSystem;
+import tachyon.underfs.s3.S3OutputStream;
 
 /**
  * This class manages all the writes to the journal. Journal writes happen in two phases:
@@ -328,8 +330,14 @@ public final class JournalWriter {
       if (mOutputStream instanceof FSDataOutputStream) {
         ((FSDataOutputStream) mOutputStream).sync();
       }
-      if (mOutputStream.size() > mMaxLogSize) {
-        LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + mMaxLogSize);
+      boolean overSize = mOutputStream.size() > mMaxLogSize;
+      if (overSize || ((OutputStream) mOutputStream) instanceof S3OutputStream) {
+        // (1) The log file is oversize, needs to be rotated. Or
+        // (2) Underfs is S3, flush on S3OutputStream will only flush to local temporary file,
+        //     call close and complete the log to sync the journal entry to S3.
+        if (overSize) {
+          LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + mMaxLogSize);
+        }
         // rotate the current log.
         mOutputStream.close();
         completeCurrentLog();
