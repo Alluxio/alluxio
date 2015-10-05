@@ -27,6 +27,7 @@ import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.FileInfo;
 
 public final class TachyonFSTestUtils {
@@ -138,7 +139,11 @@ public final class TachyonFSTestUtils {
    */
   public static List<String> listFiles(TachyonFileSystem tfs, String path) throws IOException {
     try {
-      List<FileInfo> infos = tfs.listStatus(tfs.open(new TachyonURI(path)));
+      TachyonFile file = tfs.open(new TachyonURI(path));
+      if (file == null) {
+        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
+      List<FileInfo> infos = tfs.listStatus(file);
       List<String> res = new ArrayList<String>();
       for (FileInfo info : infos) {
         res.add(info.getPath());

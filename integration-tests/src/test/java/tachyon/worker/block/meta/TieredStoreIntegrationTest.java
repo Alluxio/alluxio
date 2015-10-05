@@ -104,12 +104,7 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // After the delete, the master should no longer serve the file
-    try {
-      mTFS.open(new TachyonURI("/test1"));
-      Assert.fail("file should not exist: /test1");
-    } catch (TachyonException e) {
-      // This is expected, since the file should not exist.
-    }
+    Assert.assertNull(mTFS.open(new TachyonURI("/test1")));
 
     // However, the previous read should still be able to read it as the data still exists
     byte[] res = new byte[MEM_CAPACITY_BYTES];

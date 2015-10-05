@@ -98,6 +98,11 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
             response);
         return;
+      } catch (TachyonException e) {
+        request.setAttribute("fatalError", "Error: tachyon exception. " + e.getMessage());
+        getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request,
+            response);
+        return;
       }
     }
 
@@ -141,6 +146,10 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       request.setAttribute("fatalError", bnfe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
+    } catch (TachyonException e) {
+      request.setAttribute("fatalError", e.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
+      return;
     }
 
     getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
@@ -176,7 +185,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId)
-      throws FileDoesNotExistException, BlockDoesNotExistException, IOException {
+      throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
     return getUiFileInfo(tachyonFileSystem, fileId, TachyonURI.EMPTY_URI);
   }
 
@@ -190,7 +199,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, TachyonURI filePath)
-      throws FileDoesNotExistException, BlockDoesNotExistException, IOException {
+      throws FileDoesNotExistException, BlockDoesNotExistException, IOException, TachyonException {
     return getUiFileInfo(tachyonFileSystem, -1, filePath);
   }
 
@@ -205,15 +214,14 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @throws IOException
    */
   private UiFileInfo getUiFileInfo(TachyonFileSystem tachyonFileSystem, long fileId,
-      TachyonURI filePath) throws FileDoesNotExistException, IOException,
-      BlockDoesNotExistException {
+      TachyonURI filePath) throws BlockDoesNotExistException, FileDoesNotExistException,
+          IOException, TachyonException {
     TachyonFile file = null;
-    if (fileId == -1) {
+    if (fileId != -1) {
       file = new TachyonFile(fileId);
     } else {
-      try {
-        file = tachyonFileSystem.open(filePath);
-      } catch (TachyonException e) {
+      file = tachyonFileSystem.open(filePath);
+      if (file == null) {
         throw new FileDoesNotExistException(filePath.toString());
       }
     }
