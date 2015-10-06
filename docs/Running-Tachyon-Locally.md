@@ -1,8 +1,8 @@
 ---
 layout: global
 title: Running Tachyon Locally
-nickname: Local
-group: Deployment
+nickname: Tachyon on Local Machine
+group: User Guide
 priority: 1
 ---
 

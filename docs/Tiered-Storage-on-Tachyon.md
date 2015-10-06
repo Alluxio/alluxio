@@ -2,7 +2,7 @@
 layout: global
 title: Tiered Storage on Tachyon (Beta)
 nickname: Tiered Storage
-group: More
+group: Features
 ---
 
 Tachyon supports tiered storage, which allows Tachyon to manage other storage types besides memory.

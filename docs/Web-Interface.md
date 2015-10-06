@@ -1,5 +1,6 @@
 ---
 layout: global
+group: Features
 title: Web Interface
 ---
 
