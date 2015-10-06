@@ -63,9 +63,10 @@ public final class FileOutStreamIntegrationTest {
   private static OutStreamOptions sWriteTachyon;
   private static OutStreamOptions sWriteUnderStore;
   private static OutStreamOptions sWriteLocal;
+  private static TachyonConf sMasterTachyonConf;
 
   private TachyonFileSystem mTfs = null;
-  private TachyonConf mMasterTachyonConf;
+
 
   @After
   public final void after() throws Exception {
@@ -80,26 +81,28 @@ public final class FileOutStreamIntegrationTest {
     tachyonConf.set(Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
     sLocalTachyonCluster.start();
     mTfs = sLocalTachyonCluster.getClient();
-    mMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
-    sWriteBoth = new OutStreamOptions.Builder(mMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
-    sWriteTachyon = new OutStreamOptions.Builder(mMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
-    sWriteUnderStore = new OutStreamOptions.Builder(mMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.NO_STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
-    sWriteLocal = new OutStreamOptions.Builder(mMasterTachyonConf)
-        .setTachyonStorageType(TachyonStorageType.STORE)
-        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
-        .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
   }
 
   @BeforeClass
   public static final void beforeClass() throws IOException {
     sLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, QUOTA_UNIT_BYTES, BLOCK_SIZE_BYTES);
+    sLocalTachyonCluster.init();
+    sMasterTachyonConf = sLocalTachyonCluster.getMasterTachyonConf();
+    sWriteBoth = new OutStreamOptions.Builder(sMasterTachyonConf)
+        .setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+    sWriteTachyon = new OutStreamOptions.Builder(sMasterTachyonConf)
+        .setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.NO_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+    sWriteUnderStore = new OutStreamOptions.Builder(sMasterTachyonConf)
+        .setTachyonStorageType(TachyonStorageType.NO_STORE)
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES).build();
+    sWriteLocal = new OutStreamOptions.Builder(sMasterTachyonConf)
+        .setTachyonStorageType(TachyonStorageType.STORE)
+        .setUnderStorageType(UnderStorageType.SYNC_PERSIST).setBlockSize(BLOCK_SIZE_BYTES)
+        .setHostname(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())).build();
+
   }
 
   /**
@@ -118,7 +121,7 @@ public final class FileOutStreamIntegrationTest {
       FileInfo info = mTfs.getInfo(file);
       Assert.assertEquals(fileLen, info.getLength());
       InStreamOptions op2 =
-          new InStreamOptions.Builder(mMasterTachyonConf).setTachyonStorageType(
+          new InStreamOptions.Builder(sMasterTachyonConf).setTachyonStorageType(
               op.getTachyonStorageType()).build();
       FileInStream is = mTfs.getInStream(file, op2);
       byte[] res = new byte[(int) info.getLength()];
@@ -131,7 +134,7 @@ public final class FileOutStreamIntegrationTest {
       TachyonFile file = mTfs.open(filePath);
       FileInfo info = mTfs.getInfo(file);
       String checkpointPath = info.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mMasterTachyonConf);
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, sMasterTachyonConf);
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) info.getLength()];
@@ -242,7 +245,7 @@ public final class FileOutStreamIntegrationTest {
     final int length = 2;
     FileOutStream os = mTfs.getOutStream(filePath, sWriteUnderStore);
     os.write((byte) 0);
-    Thread.sleep(mMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
+    Thread.sleep(sMasterTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
     os.write((byte) 1);
     os.close();
     checkWrite(filePath, sWriteUnderStore.getUnderStorageType(), length, length);
