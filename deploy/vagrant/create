@@ -184,6 +184,7 @@ for master in ${masters[@]}; do
   curl "${master}:19999" >/dev/null
   if [[ "$?" == "0" ]]; then
     info ">>> Tachyon master is currently ${master}, Tachyon web UI is at ${master}:19999 <<<"
+    break
   fi
 done
 
