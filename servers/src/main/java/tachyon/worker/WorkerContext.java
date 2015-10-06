@@ -46,4 +46,12 @@ public final class WorkerContext {
   public static void resetConf() {
     sTachyonConf = new TachyonConf();
   }
+
+  /**
+   * Reset the TachyonConf instance in master context, for test only.
+   * TODO(binfan): consider a better way to mock test TachyonConf
+   */
+  public static void resetConf(TachyonConf conf) {
+    sTachyonConf = conf;
+  }
 }
