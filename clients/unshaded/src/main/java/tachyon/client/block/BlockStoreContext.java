@@ -200,37 +200,23 @@ public enum BlockStoreContext {
   }
 
   /**
-   * PrivateReinitializer can be used to reset the context. This access is limited only to classes
-   * that implement ReinitializeAccess class.
+   * Resets the Block Store context. This method should only be used in
+   * {@link ClientContext}.
    */
-  public class PrivateReinitializer {
-    /**
-     * Re-initializes the Block Store context. This method should only be used in
-     * {@link ClientContext}.
-     */
-    public void resetContext() {
-      mBlockMasterClientPool.close();
-      if (mLocalBlockWorkerClientPool != null) {
-        mLocalBlockWorkerClientPool.close();
-      }
-      mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-      NetAddress localWorkerAddress =
-          getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-
-      // If the local worker is not available, do not initialize the local worker client pool.
-      if (localWorkerAddress == null) {
-        mLocalBlockWorkerClientPool = null;
-      } else {
-        mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
-      }
+  public void resetContext() {
+    mBlockMasterClientPool.close();
+    if (mLocalBlockWorkerClientPool != null) {
+      mLocalBlockWorkerClientPool.close();
     }
-  }
+    mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
+    NetAddress localWorkerAddress =
+        getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
 
-  public interface ReinitializerAccesser {
-    void receiveAccess(PrivateReinitializer access);
-  }
-
-  public void accessReinitializer(ReinitializerAccesser accesser) {
-    accesser.receiveAccess(new PrivateReinitializer());
+    // If the local worker is not available, do not initialize the local worker client pool.
+    if (localWorkerAddress == null) {
+      mLocalBlockWorkerClientPool = null;
+    } else {
+      mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
+    }
   }
 }
