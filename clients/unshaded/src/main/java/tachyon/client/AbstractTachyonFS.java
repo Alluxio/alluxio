@@ -30,7 +30,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   protected final TachyonConf mTachyonConf;
 
   protected AbstractTachyonFS(TachyonConf tachyonConf) {
-    ClientContext.resetConf(tachyonConf);
+    ClientContext.reset(tachyonConf);
     mTachyonConf = tachyonConf;
   }
 

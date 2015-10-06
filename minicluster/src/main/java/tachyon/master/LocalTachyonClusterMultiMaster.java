@@ -304,7 +304,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
     // The client context should reflect the updates to the conf.
-    ClientContext.resetConf(mWorkerConf);
+    ClientContext.reset(mWorkerConf);
   }
 
   public void stop() throws Exception {

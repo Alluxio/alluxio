@@ -184,9 +184,9 @@ public final class LocalTachyonCluster {
     mMasterConf = new TachyonConf(testConf.getInternalProperties());
     mWorkerConf = new TachyonConf(testConf.getInternalProperties());
     mClientConf = new TachyonConf(testConf.getInternalProperties());
-    MasterContext.resetConf(mMasterConf);
-    WorkerContext.resetConf(mWorkerConf);
-    ClientContext.resetConf(mClientConf);
+    MasterContext.reset(mMasterConf);
+    WorkerContext.reset(mWorkerConf);
+    ClientContext.reset(mClientConf);
     mInitialized = true;
   }
 
@@ -247,9 +247,9 @@ public final class LocalTachyonCluster {
     stopTFS();
     stopUFS();
 
-    MasterContext.resetConf();
-    WorkerContext.resetConf();
-    ClientContext.resetConf();
+    MasterContext.reset();
+    WorkerContext.reset();
+    ClientContext.reset();
     // clear HDFS client caching
     System.clearProperty("fs.hdfs.impl.disable.cache");
   }
