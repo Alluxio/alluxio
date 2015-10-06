@@ -40,10 +40,10 @@ public class TachyonURITest {
     Assert.assertEquals("/xy z/a b c", uri.getPath());
     Assert.assertEquals(19998, uri.getPort());
     Assert.assertEquals("tachyon", uri.getScheme());
-    Assert.assertEquals(true, uri.hasAuthority());
-    Assert.assertEquals(true, uri.hasScheme());
-    Assert.assertEquals(true, uri.isAbsolute());
-    Assert.assertEquals(true, uri.isPathAbsolute());
+    Assert.assertTrue(uri.hasAuthority());
+    Assert.assertTrue(uri.hasScheme());
+    Assert.assertTrue(uri.isAbsolute());
+    Assert.assertTrue(uri.isPathAbsolute());
     Assert.assertEquals("tachyon://localhost:19998/xy z/a b c/d", uri.join("/d").toString());
     Assert.assertEquals("tachyon://localhost:19998/xy z/a b c/d", uri.join(new TachyonURI("/d"))
         .toString());
@@ -62,10 +62,10 @@ public class TachyonURITest {
     Assert.assertEquals("/xy z/a b c", uri.getPath());
     Assert.assertEquals(-1, uri.getPort());
     Assert.assertEquals("hdfs", uri.getScheme());
-    Assert.assertEquals(true, uri.hasAuthority());
-    Assert.assertEquals(true, uri.hasScheme());
-    Assert.assertEquals(true, uri.isAbsolute());
-    Assert.assertEquals(true, uri.isPathAbsolute());
+    Assert.assertTrue(uri.hasAuthority());
+    Assert.assertTrue(uri.hasScheme());
+    Assert.assertTrue(uri.isAbsolute());
+    Assert.assertTrue(uri.isPathAbsolute());
     Assert.assertEquals("hdfs://localhost/xy z/a b c/d", uri.join("/d").toString());
     Assert.assertEquals("hdfs://localhost/xy z/a b c/d", uri.join(new TachyonURI("/d"))
         .toString());
@@ -97,10 +97,10 @@ public class TachyonURITest {
     Assert.assertEquals("", uri.getPath());
     Assert.assertEquals(-1, uri.getPort());
     Assert.assertEquals(null, uri.getScheme());
-    Assert.assertEquals(false, uri.hasAuthority());
-    Assert.assertEquals(false, uri.hasScheme());
-    Assert.assertEquals(false, uri.isAbsolute());
-    Assert.assertEquals(false, uri.isPathAbsolute());
+    Assert.assertFalse(uri.hasAuthority());
+    Assert.assertFalse(uri.hasScheme());
+    Assert.assertFalse(uri.isAbsolute());
+    Assert.assertFalse(uri.isPathAbsolute());
     Assert.assertEquals("/d", uri.join("/d").toString());
     Assert.assertEquals("/d", uri.join(new TachyonURI("/d")).toString());
     Assert.assertEquals("", uri.toString());
