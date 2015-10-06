@@ -69,23 +69,14 @@ public final class LineageMasterClient extends MasterClientBase {
     mClient = new LineageMasterService.Client(mProtocol);
   }
 
-  public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
+  public synchronized long createLineage(List<String> inputFiles, List<String> outputFiles,
       CommandLineJob job) throws IOException, TachyonException {
     // prepare for RPC
-    List<String> inputFileStrings = Lists.newArrayList();
-    for (TachyonURI inputFile : inputFiles) {
-      inputFileStrings.add(inputFile.toString());
-    }
-    List<String> outputFileStrings = Lists.newArrayList();
-    for (TachyonURI outputFile : outputFiles) {
-      outputFileStrings.add(outputFile.toString());
-    }
-
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.createLineage(inputFileStrings, outputFileStrings,
+        return mClient.createLineage(inputFiles, outputFiles,
             job.generateCommandLineJobInfo());
       } catch (TachyonTException e) {
         throw new TachyonException(e);

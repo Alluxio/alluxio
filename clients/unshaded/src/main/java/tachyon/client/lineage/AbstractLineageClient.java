@@ -21,7 +21,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -49,10 +51,10 @@ public abstract class AbstractLineageClient implements LineageClient {
           throws FileDoesNotExistException, TachyonException, IOException {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
-
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      long lineageId = masterClient.createLineage(inputFiles, outputFiles, (CommandLineJob) job);
+      long lineageId = masterClient.createLineage(stripURIList(inputFiles),
+          stripURIList(outputFiles), (CommandLineJob) job);
       LOG.info("Created lineage " + lineageId);
       return lineageId;
     } catch (TachyonException e) {
@@ -90,5 +92,20 @@ public abstract class AbstractLineageClient implements LineageClient {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  /**
+   * Transfors the list of @{link TachyonURI} in a new list of Strings,
+   * where each string is @{link TachyonURI#getPath()}
+   * @param uris
+   * @return
+   */
+  private List<String> stripURIList(List<TachyonURI> uris) {
+    return Lists.transform(uris, new Function<TachyonURI, String>() {
+      @Override
+      public String apply(TachyonURI input) {
+        return input.getPath();
+      }
+    });
   }
 }
