@@ -31,7 +31,7 @@ Next, you need to specify the AWS credentials for S3 access. In the `TACHYON_JAV
 
 Here, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` should be replaced with your actual [AWS keys](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html), or other environment variables that represent your credentials.
 
-After these changes, Tachyon should be configured to work with S3 its under storage system, and you can try [Running Tachyon Locally with S3](#running-tachyon-locally-with-s3).
+After these changes, Tachyon should be configured to work with S3 as its under storage system, and you can try [Running Tachyon Locally with S3](#running-tachyon-locally-with-s3).
 
 # Configuring Your Application
 
