@@ -78,6 +78,12 @@ However, the Hadoop S3 client needs the `jets3t` package in order to use S3, but
 
 The `jets3t` version `0.9.0` works for Hadoop version `2.3.0`. The `jets3t` version `0.7.1` should work for older versions of Hadoop. To find the exact `jets3t` version for your Hadoop version, please refer to [MvnRepository](http://mvnrepository.com/).
 
+## Configuring Distributed Applications
+
+If you are using a Tachyon client that is running separately from the Tachyon master/workers (in a separate JVM), then you need to make sure that your AWS credentials are provided to the application JVM processes as well. The easiest way to do this is to add them add them as command line options when starting your client JVM process. For example:
+
+    $ java -Xmx3g -Dfs.s3n.awsAccessKeyId=<AWS_ACCESS_KEY_ID> -Dfs.s3n.awsSecretAccessKey=<AWS_SECRET_ACCESS_KEY> -cp my_application.jar com.MyApplicationClass myArgs
+
 # Running Tachyon Locally with S3
 
 After everything is configured, you can start up Tachyon locally to see that everything works.
