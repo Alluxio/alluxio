@@ -31,30 +31,25 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 
 # Current Features
 
-* **Java-like File API** Tachyon's native API is similar to that of the ``java.io.File`` class,
+* **[Flexible File API](File-System-API.md)** Tachyon's native API is similar to that of the ``java.io.File`` class,
 providing InputStream and OutputStream interfaces and efficient support for memory-mapped I/O. We
-recommend using this API to get the best performance from Tachyon.
+recommend using this API to get the best performance from Tachyon. Alternatively, Tachyon provides a Hadoop compatible FileSystem interface, allowing Hadoop MapReduce
+and Spark can run with Tachyon without modification.
 
-* **Compatibility** Tachyon implements the Hadoop FileSystem interface. Therefore, Hadoop MapReduce
-and Spark can run with Tachyon without modification. However, close integration is required to fully
-take advantage of Tachyon, and we are working towards that. End-to-end latency speedup depends on
-the workload and the framework, since various frameworks have different execution overhead.
-
-* **Pluggable underlayer file system** To provide fault-tolerance, Tachyon checkpoints in-memory
-data to the underlayer file system. It has a generic interface to make plugging different underlayer
-file systems easy. We currently support HDFS, S3, GlusterFS, and single-node local file systems, and
+* **Pluggable Under Storage** To provide fault-tolerance, Tachyon checkpoints in-memory
+data to the underlayer storage system. It has a generic interface to make plugging different underlayer
+storage systems easy. We currently support HDFS, S3, Swift, GlusterFS, and single-node local file systems, and
 support for many other file systems is coming.
 
-* **Native support for raw tables** Table data with over hundreds of columns is common in data
-warehouses. Tachyon provides native support for multi-columned data, with the option to put only hot
-columns in memory to save space.
+* **[Tiered Storage](Tiered-Storage-on-Tachyon.html)** With Tiered Storage, Tachyon can manage SSDs and HDDs in addition to memory, allowing for larger datasets to be stored in Tachyon. Data will automatically be managed between the different tiers, keeping hot data in faster tiers. Custom policies are easily pluggable, and a pin concept allows for direct user control.
 
-* **[Web UI](Web-Interface.html)** Users can browse the file system easily through the web UI.
-Under debug mode, administrators can view detailed information of each file, including locations,
-checkpoint path, etc.
+* **[Lineage](Lineage-API.md)**
 
-* **[Command line interaction](Command-Line-Interface.html)** Users can use ``./bin/tachyon tfs``
+* **[Web UI](Web-Interface.html) & [Command Line](Command-Line-Interface.html)** Users can browse the file system easily through the web UI.
+Under debug mode, administrators can view detailed information of each file, including locations, checkpoint path, etc. Users can also use ``./bin/tachyon tfs``
 to interact with Tachyon, e.g. copy data in and out of the file system.
+
+* **[Mounting & Transparency](Mounting-and-Transparent-Naming.md)**
 
 # Getting Started
 
