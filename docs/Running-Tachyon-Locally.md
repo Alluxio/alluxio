@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Running Tachyon Locally
-nickname: Getting Started
+nickname: Tachyon on Local Machine
 group: User Guide
 priority: 1
 ---
