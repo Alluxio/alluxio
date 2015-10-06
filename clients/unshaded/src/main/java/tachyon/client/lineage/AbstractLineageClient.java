@@ -16,14 +16,13 @@
 package tachyon.client.lineage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -95,17 +94,16 @@ public abstract class AbstractLineageClient implements LineageClient {
   }
 
   /**
-   * Transfors the list of @{link TachyonURI} in a new list of Strings,
-   * where each string is @{link TachyonURI#getPath()}
-   * @param uris
-   * @return
+   * Transforms the list of {@link TachyonURI} in a new list of Strings,
+   * where each string is {@link TachyonURI#getPath()}
+   * @param uris the list of {@link TacyonUri}s to be stripped 
+   * @return a new list of strings mapping the input URIs to theri path component
    */
   private List<String> stripURIList(List<TachyonURI> uris) {
-    return Lists.transform(uris, new Function<TachyonURI, String>() {
-      @Override
-      public String apply(TachyonURI input) {
-        return input.getPath();
-      }
-    });
+    final List<String> pathStrings = new ArrayList<String>(uris.size());
+    for (final TachyonURI uri : uris) {
+      pathStrings.add(uri.getPath());
+    }
+    return pathStrings;
   }
 }
