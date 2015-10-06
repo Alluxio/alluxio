@@ -1,7 +1,8 @@
 ---
 layout: global
 title: Configuration Settings
-group: More
+group: Features
+Priority: 1
 ---
 
 ### toc

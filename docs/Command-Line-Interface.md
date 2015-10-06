@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Command Line Interface
-group: Deployment
+group: Features
 priority: 3
 ---
 
