@@ -89,15 +89,15 @@ public final class ClientContext {
    * Reset the TachyonConf instance in worker context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
-  public static void resetConf() {
-    resetConf(new TachyonConf());
+  public static void reset() {
+    reset(new TachyonConf());
   }
 
   /**
    * Reset the TachyonConf instance in master context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
-  public static void resetConf(TachyonConf conf) {
+  public static void reset(TachyonConf conf) {
     sTachyonConf = conf;
     String masterHostname =
         Preconditions.checkNotNull(sTachyonConf.get(Constants.MASTER_HOSTNAME));
@@ -107,8 +107,8 @@ public final class ClientContext {
 
     sRandom = new Random();
 
-    BlockStoreContext.INSTANCE.resetContext();
-    FileSystemContext.INSTANCE.resetContext();
+    BlockStoreContext.INSTANCE.reset();
+    FileSystemContext.INSTANCE.reset();
   }
 
   private ClientContext() {} // to prevent initialization

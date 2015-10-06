@@ -67,7 +67,7 @@ public enum FileSystemContext {
    * Resets the Block Store context. This method should only be used in
    * {@link ClientContext}.
    */
-  public void resetContext() {
+  public void reset() {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());

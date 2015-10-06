@@ -66,8 +66,8 @@ public class MasterClientAuthenticationIntegrationTest {
     mLocalTachyonCluster.stop();
 
     System.clearProperty(Constants.SECURITY_LOGIN_USERNAME);
-    MasterContext.resetConf();
-    WorkerContext.resetConf();
+    MasterContext.reset();
+    WorkerContext.reset();
   }
 
   @Test

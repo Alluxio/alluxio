@@ -55,18 +55,20 @@ public final class MasterContext {
   }
 
   /**
-   * Reset the TachyonConf instance in master context, for test only.
+   * Resets the master context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
-  public static void resetConf() {
-    sTachyonConf = new TachyonConf();
+  public static void reset() {
+    reset(new TachyonConf());
+
   }
 
   /**
-   * Reset the TachyonConf instance in master context, for test only.
+   * Reset the master context, for test only.
    * TODO(binfan): consider a better way to mock test TachyonConf
    */
-  public static void resetConf(TachyonConf conf) {
+  public static void reset(TachyonConf conf) {
     sTachyonConf = conf;
+    sMasterSource = new MasterSource();
   }
 }
