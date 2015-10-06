@@ -31,3 +31,23 @@ Next, you need to specify the AWS credentials for S3 access. In the `TACHYON_JAV
 
 Here, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` should be replaced with your actual [AWS keys](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html), or other environment variables that represent your credentials.
 
+# Running Tachyon with S3
+
+After everything is configured, you can start up Tachyon locally to see that everything works.
+
+    $ ./bin/tachyon format
+    $ ./bin/tachyon-start.sh local
+
+This should start a Tachyon master and a Tachyon worker. You can see the master UI at [http://localhost:19999](http://localhost:19999).
+
+Next, you can run a simple example program:
+
+    $ ./bin/tachyon runTest Basic CACHE_THROUGH
+
+After this succeeds, you can visit your S3 directory `S3_BUCKET/S3_DIRECTORY` to verify the files and directories created by Tachyon. For this test, you should see a file named:
+
+    S3_BUCKET/S3_DIRECTORY/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH
+
+To stop Tachyon, you can run:
+
+    $ ./bin/tachyon-stop.sh
