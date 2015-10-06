@@ -8,7 +8,7 @@ priority: 1
 
 This guide describes how to configure Tachyon with [Amazon S3](https://aws.amazon.com/s3/) as the under storage system.
 
-# Getting Started
+# Initial Setup
 
 First, the Tachyon binaries must be on your machine. You can either [compile Tachyon](Building-Tachyon-Master-Branch.html), or [download the binaries locally](Running-Tachyon-Locally.html).
 
