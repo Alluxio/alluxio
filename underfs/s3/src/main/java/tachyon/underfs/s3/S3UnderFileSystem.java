@@ -74,6 +74,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public UnderFSType getUnderFSType() {
+    return UnderFSType.S3;
+  }
+
+  @Override
   public void close() throws IOException {
   }
 

@@ -101,6 +101,24 @@ public abstract class UnderFileSystem {
   }
 
   /**
+   * Type of under filesystem, to be used by {@link #getUnderFSType()} to determine which concrete
+   * under filesystem implementation is being used. New types of under filesystem should be added
+   * below and returned by the implementation of {@link #getUnderFSType()}.
+   */
+  public enum UnderFSType {
+    LOCAL,
+    HDFS,
+    S3,
+    GLUSTERFS,
+    SWIFT,
+  }
+
+  /**
+   * @return type of concrete under filesystem implementation
+   */
+  public abstract UnderFSType getUnderFSType();
+
+  /**
    * Determines if the given path is on a Hadoop under file system
    *
    * To decide if a path should use the hadoop implementation, we check

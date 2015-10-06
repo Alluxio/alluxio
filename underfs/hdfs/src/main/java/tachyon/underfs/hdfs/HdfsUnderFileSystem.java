@@ -78,6 +78,11 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     }
   }
 
+  @Override
+  public UnderFSType getUnderFSType() {
+    return UnderFSType.HDFS;
+  }
+
   /**
    * Prepares the Hadoop configuration necessary to successfully obtain a {@link FileSystem}
    * instance that can access the provided path
