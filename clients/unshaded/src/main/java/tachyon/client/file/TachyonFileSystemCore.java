@@ -56,6 +56,7 @@ interface TachyonFileSystemCore {
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
+  // (andrea) why doesn't this method return a file.TachyonFile instance instead?
   long create(TachyonURI path, CreateOptions options) throws IOException,
       FileAlreadyExistsException, InvalidPathException, TachyonException;
 
@@ -88,11 +89,12 @@ interface TachyonFileSystemCore {
    *
    * @param file the handler for the file.
    * @param options method options
-   * @return the FileInfo of the file, null if the file does not exist.
+   * @return the FileInfo of the file
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws TachyonException if an unexpected tachyon exception is thrown
+   * @throws FileDoesNotExistException if the file does not exist
    */
-  FileInfo getInfo(TachyonFile file, GetInfoOptions options) throws IOException, TachyonException;
+  FileInfo getInfo(TachyonFile file, GetInfoOptions options) throws IOException,
+      FileDoesNotExistException, TachyonException;
 
   /**
    * If the file is a directory, returns the {@link FileInfo} of all the direct entries in it.
@@ -158,11 +160,9 @@ interface TachyonFileSystemCore {
    * @param options method options
    * @return a TachyonFile which acts as a file handler for the path
    * @throws IOException if a non-Tachyon exception occurs
-   * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  TachyonFile open(TachyonURI path, OpenOptions options) throws IOException, InvalidPathException,
-      TachyonException;
+  TachyonFile open(TachyonURI path, OpenOptions options) throws IOException, TachyonException;
 
   /**
    * Renames an existing Tachyon file to another Tachyon path in Tachyon.

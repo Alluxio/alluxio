@@ -90,13 +90,11 @@ rm -f files/workers
 for i in `seq 1 $((TOTAL-TACHYON_MASTERS))`; do
   echo "TachyonWorker${i}" >> files/workers
 done
-for i in `seq $TACHYON_MASTERS 1`; do
-  if [[ "$i" == "1" ]]; then
-    echo "TachyonMaster" >> files/workers
-  else
-    echo "TachyonMaster$i" >> files/workers
-  fi
+for ((i=2; i<=TACHYON_MASTERS; i++)); do
+  echo "TachyonMaster$i" >> files/workers
 done
+echo "TachyonMaster" >> files/workers
+
 # create virtual machine without provisioning
 [[ "$PROVIDER" == "aws" ]] && sgid=$(python bin/init_aws.py | tail -n 1)
 # pass security group id to vagrant up
@@ -186,6 +184,7 @@ for master in ${masters[@]}; do
   curl "${master}:19999" >/dev/null
   if [[ "$?" == "0" ]]; then
     info ">>> Tachyon master is currently ${master}, Tachyon web UI is at ${master}:19999 <<<"
+    break
   fi
 done
 
