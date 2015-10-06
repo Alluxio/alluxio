@@ -64,26 +64,12 @@ public enum FileSystemContext {
   }
 
   /**
-   * PrivateReinitializer can be used to reset the context. This access is limited only to classes
-   * that implement ReinitializeAccess class.
+   * Resets the Block Store context. This method should only be used in
+   * {@link ClientContext}.
    */
-  public class PrivateReinitializer {
-    /**
-     * Re-initializes the Block Store context. This method should only be used in
-     * {@link ClientContext}.
-     */
-    public void resetContext() {
-      mFileSystemMasterClientPool.close();
-      mFileSystemMasterClientPool =
-          new FileSystemMasterClientPool(ClientContext.getMasterAddress());
-    }
-  }
-
-  public interface ReinitializerAccesser {
-    void receiveAccess(PrivateReinitializer access);
-  }
-
-  public void accessReinitializer(ReinitializerAccesser accesser) {
-    accesser.receiveAccess(new PrivateReinitializer());
+  public void resetContext() {
+    mFileSystemMasterClientPool.close();
+    mFileSystemMasterClientPool =
+        new FileSystemMasterClientPool(ClientContext.getMasterAddress());
   }
 }
