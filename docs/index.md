@@ -57,7 +57,9 @@ checkpoint path, etc.
 to interact with Tachyon, e.g. copy data in and out of the file system.
 
 # Getting Started
-TODO(calvin): Add link to user guide
+
+To quickly get Tachyon up and running, take a look at our [Getting Started](Getting-Started.html) page which will go through how to deploy Tachyon and run some basic examples in a local enviornment.
 
 # Downloads
-TODO(calvin): Add link to downloads
+
+You can get the released versions of Tachyon from the [Project Downloads Page](http://tachyon-project.org/downloads). Each release comes with prebuilt binaries compatibile with various Hadoop versions. If you would like to build the project from the source code, check out the [Building From Master Branch Documentation](Building-Tachyon-Master-Branch.html).
