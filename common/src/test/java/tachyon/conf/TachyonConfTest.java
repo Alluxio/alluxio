@@ -92,13 +92,13 @@ public class TachyonConfTest {
     Assert.assertEquals(ufsAddress + "/tachyon/data", value);
 
     boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
-    Assert.assertEquals(false, booleanValue);
+    Assert.assertFalse(booleanValue);
 
     booleanValue = sDefaultTachyonConf.getBoolean(Constants.IN_TEST_MODE);
-    Assert.assertEquals(false, booleanValue);
+    Assert.assertFalse(booleanValue);
 
     booleanValue = sDefaultTachyonConf.getBoolean(Constants.ASYNC_ENABLED);
-    Assert.assertEquals(false, booleanValue);
+    Assert.assertFalse(booleanValue);
 
     int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS);
     Assert.assertEquals(1000, intValue);
