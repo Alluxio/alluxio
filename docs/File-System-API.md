@@ -51,7 +51,7 @@ Operations on an already existing file require its `TachyonFile` handler. The ge
 
 ### Reading Data
 
-After obtaining a `TachyonFile`, the user my modify the file metadata or get an inputstream to read the file. For example:
+After obtaining a `TachyonFile`, the user may modify the file metadata or get an inputstream to read the file. For example:
 
 	TachyonFileSystem tfs = TachyonFileSystem.get();
 	TachyonURI path = new TachyonURI("/myFile");
