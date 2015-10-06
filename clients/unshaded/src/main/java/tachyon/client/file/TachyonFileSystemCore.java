@@ -56,7 +56,6 @@ interface TachyonFileSystemCore {
    * @throws InvalidPathException if the path is invalid
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  // (andrea) why doesn't this method return a file.TachyonFile instance instead?
   long create(TachyonURI path, CreateOptions options) throws IOException,
       FileAlreadyExistsException, InvalidPathException, TachyonException;
 
