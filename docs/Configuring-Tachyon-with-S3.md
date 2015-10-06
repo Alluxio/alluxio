@@ -18,9 +18,9 @@ Then, if you haven't already done so, create your configuration file from the te
 
 Also, in preparation for using S3 with Tachyon, create a bucket (or use an existing bucket). You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket, or using an existing one. For the purposes of this guide, the S3 bucket name is called `S3_BUCKET`, and the directory in that bucket is called `S3_DIRECTORY`. 
 
-# Configuration
+# Configuring Tachyon
 
-To configure Tachyon to use S3 as its under storage system, modifications to the `conf/tachyon-env.sh` file must be made. The first modification is to specify the *existing* S3 bucket and directory as the under storage system. You specify it by modifying `conf/tachyon-env.sh` to include:
+To configure Tachyon to use S3 as its under storage system, modifications to the `conf/tachyon-env.sh` file must be made. The first modification is to specify the **existing** S3 bucket and directory as the under storage system. You specify it by modifying `conf/tachyon-env.sh` to include:
 
     export TACHYON_UNDERFS_ADDRESS=s3n://S3_BUCKET/S3_DIRECTORY
 
@@ -31,7 +31,54 @@ Next, you need to specify the AWS credentials for S3 access. In the `TACHYON_JAV
 
 Here, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` should be replaced with your actual [AWS keys](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html), or other environment variables that represent your credentials.
 
-# Running Tachyon with S3
+After these changes, Tachyon should be configured to work with S3 its under storage system, and you can try [Running Tachyon Locally with S3](#running-tachyon-locally-with-s3).
+
+# Configuring Your Application
+
+When building your application to use Tachyon, your application will have to include the `tachyon-client` module. If you are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
+
+    <dependency>
+	    <groupId>org.tachyonproject</groupId>
+	    <artifactId>tachyon-client</artifactId>
+	    <version>0.8.0</version>
+    </dependency>
+
+## Enabling the Hadoop S3 Client (instead of the native S3 client)
+
+Tachyon provides a native client to communicate with S3. By default, the native S3 client is used when Tachyon is configured to use S3 as its under storage system.
+
+However, there is also an option to use a different implementation to communicate with S3; the S3 client provided by Hadoop. In order to disable the Tachyon S3 client (and enable the Hadoop S3 client) additional modifications to your application must be made. When including the `tachyon-client` module in your application, the `tachyon-underfs-s3` should be excluded to disable the native client, and to use the Hadoop S3 client:
+
+    <dependency>
+      <groupId>org.tachyonproject</groupId>
+      <artifactId>tachyon-client</artifactId>
+      <version>0.8.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.tachyonproject</groupId>
+          <artifactId>tachyon-underfs-s3</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+However, the Hadoop S3 client needs the `jets3t` package in order to use S3, but it is not included as a dependency automatically. Therefore, you must also add the `jets3t` dependency manually. When using maven, you can add the following to pull in the `jets3t` dependency:
+
+    <dependency>
+      <groupId>net.java.dev.jets3t</groupId>
+      <artifactId>jets3t</artifactId>
+      <version>0.9.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+          <!-- <version>1.3</version> -->
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+The `jets3t` version `0.9.0` works for Hadoop version `2.3.0`. The `jets3t` version `0.7.1` should work for older versions of Hadoop. To find the exact `jets3t` version for your Hadoop version, please refer to [MvnRepository](http://mvnrepository.com/).
+
+# Running Tachyon Locally with S3
 
 After everything is configured, you can start up Tachyon locally to see that everything works.
 
