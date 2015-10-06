@@ -18,6 +18,7 @@ function printUsage {
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
   echo -e "  journalCrashTest\t Test the Master Journal System in a crash scenario. Try 'tachyon journalCrashTest -help' for more help."
   echo -e "                  \t NOTE: This command will stop the existing server and creates a new one!"
+  echo -e "  masterConcurrencyPerf\t Performance tests for concurrent master operations."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
@@ -142,6 +143,17 @@ function journalCrashTest {
   return $RET
 }
 
+function masterConcurrencyPerf {
+  MASTER_ADDRESS=$TACHYON_MASTER_ADDRESS
+  if [ -z $TACHYON_MASTER_ADDRESS ] ; then
+    MASTER_ADDRESS=localhost
+  fi
+
+  local class="tachyon.examples.MasterConcurrencyPerformance"
+
+  $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$MASTER_ADDRESS -Dtachyon.logs.dir=$TACHYON_LOGS_DIR -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS "$class" $@
+}
+
 function killAll {
   if [ "$#" -ne 1 ]
   then
@@ -263,6 +275,9 @@ elif [ "$COMMAND" == "runTests" ]; then
 elif [ "$COMMAND" == "journalCrashTest" ]; then
   journalCrashTest "$@"
   exit $?
+elif [ "$COMMAND" == "masterConcurrencyPerf" ]; then
+  masterConcurrencyPerf "$@"
+  exit 0
 elif [ "$COMMAND" == "killAll" ]; then
   killAll "$@"
   exit 0
