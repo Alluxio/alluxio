@@ -37,6 +37,6 @@ public class MkdirOptionsTest {
   @Test
   public void defaultsTest() {
     MkdirOptions options = MkdirOptions.defaults();
-    Assert.assertEquals(false, options.isRecursive());
+    Assert.assertFalse(options.isRecursive());
   }
 }
