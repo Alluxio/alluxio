@@ -26,8 +26,8 @@ All metadata operations as well as opening a file for reading or creating a file
 	// Create file and get output stream
 	FileOutStream out = tfs.getOutStream(path);
 	// Write data
-    out.write(...);
-    // Close and complete file
+	out.write(...);
+	// Close and complete file
 	out.close();
 
 ### Specifying Operation Options
