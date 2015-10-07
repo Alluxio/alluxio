@@ -71,7 +71,7 @@ public final class LineageDataManager {
    * @throws IOException if the file persistence fails
    */
   public synchronized void persistFile(long fileId, List<Long> blockIds) throws IOException {
-    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
+    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     FileInfo fileInfo;
     fileInfo = mBlockDataManager.getFileInfo(fileId);
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
