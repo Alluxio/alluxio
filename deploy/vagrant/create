@@ -176,7 +176,8 @@ fi
 masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
 
 if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
-  info ">>> Tachyon is in Fault Tolerant mode, all Tachyon masters: <<<"
+  info ">>> Tachyon is in Fault Tolerant mode, waiting 5 seconds for leader to be selected and web UI to be available <<<"
+  sleep 5
 fi
 for master in ${masters[@]}; do
   info "Tachyon master: ${master}"
