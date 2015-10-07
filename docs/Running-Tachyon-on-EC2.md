@@ -96,7 +96,7 @@ You can run some tests against Tachyon to check its health:
 
     $ /tachyon/bin/tachyon runTests
 
-After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse FileSystem` in the navigation bar, and you should see the files written to Tachyon by the above tests.
+After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse File System` in the navigation bar, and you should see the files written to Tachyon by the above tests.
 
 Similarly, you can ssh to a worker node without password like
 
