@@ -41,7 +41,7 @@ If the versions of Spark and Tachyon form one of the the following pairs, they w
 If the version of Spark is not supported by your Tachyon installation by default (e.g., you are trying out the latest Tachyon release with some older Spark installation), one can recompile Spark by 
 updating the correct version of tachyon-client in Spark dependency. To be more specific, edit `spark/core/pom.xml` and change the dependency version of `tachyon-client` to `your_tachyon_version`:
 
-~~~ pom
+~~~
 <dependency>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
