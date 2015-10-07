@@ -22,13 +22,13 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
 import tachyon.Constants;
-import tachyon.collections.Pair;
 import tachyon.TachyonURI;
 import tachyon.client.ClientContext;
 import tachyon.client.TachyonFSTestUtils;
@@ -38,6 +38,7 @@ import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.DeleteOptions;
 import tachyon.client.file.options.OutStreamOptions;
+import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
@@ -45,6 +46,8 @@ import tachyon.util.CommonUtils;
 import tachyon.util.io.PathUtils;
 
 public class MasterFaultToleranceIntegrationTest {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private static final long WORKER_CAPACITY_BYTES = 10000;
   private static final int BLOCK_SIZE = 30;
   private static final int MASTERS = 5;
@@ -167,9 +170,12 @@ public class MasterFaultToleranceIntegrationTest {
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     for (int k = 0; k < clients; k ++) {
       TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();
+      LOG.info("create file: " + k);
       tfs.getOutStream(new TachyonURI(TachyonURI.SEPARATOR + k), option).close();
     }
+    LOG.info("list files");
     List<String> files = TachyonFSTestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
+    LOG.info("list files done");
     Assert.assertEquals(clients, files.size());
     Collections.sort(files);
     for (int k = 0; k < clients; k ++) {
