@@ -16,7 +16,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * Unit test for TachyonConf class
  */
 public class TachyonConfTest {
-  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,s3://,s3n://,glusterfs:///";
+  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";
 
   private static TachyonConf sDefaultTachyonConf;
   private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
@@ -87,10 +87,6 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals("org.apache.hadoop.fs.glusterfs.GlusterFileSystem", value);
 
-    value = sDefaultTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(ufsAddress + "/tachyon/data", value);
-
     boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     Assert.assertFalse(booleanValue);
 
@@ -123,10 +119,6 @@ public class TachyonConfTest {
     value = sDefaultTachyonConf.get(Constants.MASTER_HOSTNAME);
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.getLocalHostName(100), value);
-
-    value = sDefaultTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals("/tmp", value);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
     Assert.assertNotNull(value);
@@ -200,9 +192,6 @@ public class TachyonConfTest {
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS);
-    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
     Assert.assertEquals(1, intValue);
