@@ -47,6 +47,10 @@ public abstract class AbstractLineageClient implements LineageClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected LineageContext mContext;
 
+  public AbstractLineageClient() {
+    mContext = LineageContext.INSTANCE;
+  }
+
   @Override
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job,
       CreateLineageOptions options)
