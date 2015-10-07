@@ -157,7 +157,7 @@ interface TachyonFileSystemCore {
    *
    * @param path the path of the file, this should be in Tachyon space
    * @param options method options
-   * @return a TachyonFile which acts as a file handler for the path
+   * @return a TachyonFile which acts as a file handler for the path or null if path doesn't exist
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
