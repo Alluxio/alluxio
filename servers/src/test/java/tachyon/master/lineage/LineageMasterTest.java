@@ -21,6 +21,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -30,6 +31,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.google.common.collect.Lists;
 
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.InvalidPathException;
 import tachyon.job.CommandLineJob;
 import tachyon.job.Job;
 import tachyon.job.JobConf;
@@ -44,6 +47,9 @@ public final class LineageMasterTest {
   private LineageMaster mLineageMaster;
   private FileSystemMaster mFileSystemMaster;
   private Job mJob;
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -65,5 +71,14 @@ public final class LineageMasterTest {
         Lists.newArrayList(new TachyonURI("/test2")), mJob);
     List<LineageInfo> info = mLineageMaster.getLineageInfoList();
     Assert.assertEquals(2, info.size());
+  }
+
+  @Test
+  public void createLineageWithNonExistingFileTest()  throws Exception {
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage(ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage("/test1"));
+
+    mLineageMaster.createLineage(Lists.newArrayList(new TachyonURI("/test1")),
+        Lists.newArrayList(new TachyonURI("/test2")), mJob);
   }
 }
