@@ -177,7 +177,7 @@ function copyDir {
   fi
 
   bin=`cd "$( dirname "$0" )"; pwd`
-  WORKERS=`cat $TACHYON_CONF_DIR/workers`
+  WORKERS=`cat $TACHYON_CONF_DIR/workers | grep -v '^#'`
 
   DIR=`readlink -f "$1"`
   DIR=`echo "$DIR"|sed 's@/$@@'`
