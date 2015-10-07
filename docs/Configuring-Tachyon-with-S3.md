@@ -40,7 +40,7 @@ When building your application to use Tachyon, your application will have to inc
     <dependency>
 	    <groupId>org.tachyonproject</groupId>
 	    <artifactId>tachyon-client</artifactId>
-	    <version>0.8.0</version>
+	    <version>{{site.TACHYON_RELEASED_VERSION}}</version>
     </dependency>
 
 ## Enabling the Hadoop S3 Client (instead of the native S3 client)
@@ -52,7 +52,7 @@ However, there is also an option to use a different implementation to communicat
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon-client</artifactId>
-      <version>0.8.0</version>
+      <version>{{site.TACHYON_RELEASED_VERSION}}</version>
       <exclusions>
         <exclusion>
           <groupId>org.tachyonproject</groupId>
