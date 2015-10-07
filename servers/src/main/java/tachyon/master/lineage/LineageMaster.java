@@ -73,6 +73,7 @@ import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.LineageCommand;
 import tachyon.thrift.LineageInfo;
 import tachyon.thrift.LineageMasterService;
+import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.PathUtils;
 
@@ -205,11 +206,14 @@ public final class LineageMaster extends MasterBase {
    */
   public synchronized long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
-    // TODO: validate input files exist
     List<TachyonFile> inputTachyonFiles = Lists.newArrayList();
     for (TachyonURI inputFile : inputFiles) {
       long fileId;
       fileId = mFileSystemMaster.getFileId(inputFile);
+      if (fileId == IdUtils.INVALID_FILE_ID) {
+        throw new InvalidPathException(
+            ExceptionMessage.LINEAGE_INPUT_FILE_NOT_EXIST.getMessage(inputFile));
+      }
       inputTachyonFiles.add(new TachyonFile(fileId));
     }
     // create output files
