@@ -16,6 +16,7 @@
 package tachyon.client.lineage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -46,16 +47,20 @@ public abstract class AbstractLineageClient implements LineageClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   protected LineageContext mContext;
 
+  public AbstractLineageClient() {
+    mContext = LineageContext.INSTANCE;
+  }
+
   @Override
   public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job,
       CreateLineageOptions options)
           throws FileDoesNotExistException, TachyonException, IOException {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
-
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      long lineageId = masterClient.createLineage(inputFiles, outputFiles, (CommandLineJob) job);
+      long lineageId = masterClient.createLineage(stripURIList(inputFiles),
+          stripURIList(outputFiles), (CommandLineJob) job);
       LOG.info("Created lineage " + lineageId);
       return lineageId;
     } catch (TachyonException e) {
@@ -94,5 +99,19 @@ public abstract class AbstractLineageClient implements LineageClient {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
+  }
+
+  /**
+   * Transforms the list of {@link TachyonURI} in a new list of Strings,
+   * where each string is {@link TachyonURI#getPath()}
+   * @param uris the list of {@link TacyonUri}s to be stripped 
+   * @return a new list of strings mapping the input URIs to theri path component
+   */
+  private List<String> stripURIList(List<TachyonURI> uris) {
+    final List<String> pathStrings = new ArrayList<String>(uris.size());
+    for (final TachyonURI uri : uris) {
+      pathStrings.add(uri.getPath());
+    }
+    return pathStrings;
   }
 }
