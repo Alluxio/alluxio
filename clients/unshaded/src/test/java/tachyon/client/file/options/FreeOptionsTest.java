@@ -35,6 +35,6 @@ public class FreeOptionsTest {
   @Test
   public void defaultsTest() {
     FreeOptions options = FreeOptions.defaults();
-    Assert.assertEquals(false, options.isRecursive());
+    Assert.assertFalse(options.isRecursive());
   }
 }

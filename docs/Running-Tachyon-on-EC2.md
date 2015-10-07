@@ -23,8 +23,8 @@ Install AWS Vagrant plugin:
 
 Download Tachyon to your local machine, and unzip it:
 
-    $ wget https://github.com/amplab/tachyon/releases/download/v0.7.1/tachyon-0.7.1-bin.tar.gz
-    $ tar xvfz tachyon-0.7.1-bin.tar.gz
+    $ wget https://github.com/amplab/tachyon/releases/download/v{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+    $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
 
 **Install python library dependencies**
 
@@ -96,7 +96,7 @@ You can run some tests against Tachyon to check its health:
 
     $ /tachyon/bin/tachyon runTests
 
-After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse FileSystem` in the navigation bar, and you should see the files written to Tachyon by the above tests.
+After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse File System` in the navigation bar, and you should see the files written to Tachyon by the above tests.
 
 Similarly, you can ssh to a worker node without password like
 

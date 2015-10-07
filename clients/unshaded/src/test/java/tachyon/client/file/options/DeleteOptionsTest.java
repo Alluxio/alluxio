@@ -35,6 +35,6 @@ public class DeleteOptionsTest {
   @Test
   public void defaultsTest() {
     DeleteOptions options = DeleteOptions.defaults();
-    Assert.assertEquals(false, options.isRecursive());
+    Assert.assertFalse(options.isRecursive());
   }
 }
