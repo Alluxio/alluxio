@@ -26,7 +26,9 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.lineage.options.CreateLineageOptions;
 import tachyon.client.lineage.options.DeleteLineageOptions;
+import tachyon.client.lineage.options.GetLineageInfoListOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
@@ -45,7 +47,8 @@ public abstract class AbstractLineageClient implements LineageClient {
   protected LineageContext mContext;
 
   @Override
-  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
+  public long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job,
+      CreateLineageOptions options)
           throws FileDoesNotExistException, TachyonException, IOException {
     // TODO(yupeng): relax this to support other type of jobs
     Preconditions.checkState(job instanceof CommandLineJob, "only command line job supported");
@@ -64,8 +67,8 @@ public abstract class AbstractLineageClient implements LineageClient {
   }
 
   @Override
-  public boolean deleteLineage(long lineageId, DeleteLineageOptions options) throws IOException,
-      LineageDoesNotExistException, LineageDeletionException, TachyonException {
+  public boolean deleteLineage(long lineageId, DeleteLineageOptions options)
+      throws IOException, LineageDoesNotExistException, LineageDeletionException, TachyonException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       boolean result = masterClient.deleteLineage(lineageId, options.isCascade());
@@ -81,7 +84,8 @@ public abstract class AbstractLineageClient implements LineageClient {
   }
 
   @Override
-  public List<LineageInfo> getLineageInfoList() throws IOException {
+  public List<LineageInfo> getLineageInfoList(GetLineageInfoListOptions options)
+      throws IOException {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
 
     try {
