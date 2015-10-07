@@ -260,12 +260,12 @@ public class BlockServiceHandlerIntegrationTest {
     boolean result = mWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, chunkSize);
 
     // Initial request and first additional request should succeed
-    Assert.assertEquals(true, result);
+    Assert.assertTrue(result);
 
     result = mWorkerServiceHandler.requestSpace(SESSION_ID, blockId1, WORKER_CAPACITY_BYTES);
 
     // Impossible request should fail
-    Assert.assertEquals(false, result);
+    Assert.assertFalse(result);
 
     // Request for space on a nonexistent block should fail
     Assert.assertFalse(mWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize));
