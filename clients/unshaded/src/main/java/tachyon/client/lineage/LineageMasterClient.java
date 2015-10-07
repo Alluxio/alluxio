@@ -105,7 +105,7 @@ public final class LineageMasterClient extends MasterClientBase {
     throw new IOException("Failed after " + retry + " retries.");
   }
 
-  public synchronized long reintializeFile(String path, long blockSizeBytes, long ttl)
+  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
       throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
