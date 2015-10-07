@@ -389,6 +389,7 @@ public final class LineageMaster extends MasterBase {
         // find the worker
         long workerId = getWorkerStoringFile(file);
         if (workerId == -1) {
+          LOG.info("The file " + file + " cannot be found on any worker");
           // the file is not on any worker
           continue;
         }
