@@ -16,8 +16,8 @@ Priority: 1
 
 There are two types of configuration parameters for Tachyon:
 
-1. Configuration properties, which are used to configure the runtime settings of Tachyon
-2. System environment properties, which control the Tachyon Java VM options
+1. [Configuration properties](#configuration-properties), which are used to configure the runtime settings of Tachyon
+2. [System environment properties](#system-environment-properties), which control the Tachyon Java VM options.
 
 # Configuration properties
 
@@ -244,7 +244,7 @@ number.
   <td>Kerberos principal for Tachyon master.</td>
 </tr>
 <tr>
-  <td>tachyon.master.ttlchecker.interval.ms=3600000
+  <td>tachyon.master.ttlchecker.interval.ms=3600000</td>
   <td>3600000</td>
   <td>Time interval(in milliseconds) to periodically delete the files with expired ttl value.</td>
 </tr>
@@ -433,8 +433,8 @@ number.
   <td>1000</td>
   <td>Total number of block locks for a Tachyon block worker. Larger value leads to finer locking granularity, but more space</td>
 </tr>
-
 </table>
+
 
 ## User Configuration
 
@@ -515,11 +515,9 @@ The user configuration specifies values regarding file system access.
 </tr>
 </table>
 
-## Working with Apache Hadoop MapReduce Configuration
+# Working with Apache Hadoop MapReduce Configuration
 
-In certain deployments there could be situation where client needs to send configuration property
-override to Hadoop MapReduce (MR) for Tachyon Hadoop compatible file system (TFS) when the
-tachyon-site.properties file is not available in nodes where the MR is running.
+In certain deployments there could be situation where client needs to send configuration property override to Hadoop MapReduce (MR) for Tachyon Hadoop compatible file system (TFS) when the tachyon-site.properties file is not available in nodes where the MR is running.
 
 To support this, the MR application client needs to do these steps:
 
