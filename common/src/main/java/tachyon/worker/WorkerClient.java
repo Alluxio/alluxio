@@ -223,14 +223,15 @@ public final class WorkerClient implements Closeable {
           mTachyonConf, new InetSocketAddress(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
-      mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
-      String threadName = "worker-heartbeat-" + mWorkerAddress;
-      int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
-      mHeartbeat =
-          mExecutorService.submit(new HeartbeatThread(threadName, mHeartbeatExecutor, interval));
-
       try {
         mProtocol.getTransport().open();
+
+        // start heartbeating only if the connection does not fail
+        mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
+        String threadName = "worker-heartbeat-" + mWorkerAddress;
+        int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+        mHeartbeat =
+          mExecutorService.submit(new HeartbeatThread(threadName, mHeartbeatExecutor, interval));
       } catch (TTransportException e) {
         LOG.error(e.getMessage(), e);
         return false;
