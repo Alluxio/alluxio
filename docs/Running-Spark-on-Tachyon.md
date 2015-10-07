@@ -5,8 +5,7 @@ nickname: Apache Spark
 group: Frameworks
 ---
 
-This guide describes how to run [Apache Spark](http://spark-project.org/) on Tachyon and use HDFS
- as a running example of Tachyon under storage system. Note that, in addition to HDFS, frameworks like Spark can read data from or write data to many other under storage systems supported by Tachyon. Please refer to [Setup UFS](Setup-UFS.html) for more information. 
+This guide describes how to run [Apache Spark](http://spark-project.org/) on Tachyon and use HDFS as a running example of Tachyon under storage system. Note that, Tachyon supports many other under storage systems in addition to HDFS and enables frameworks like Spark to read data from or write data to those systems. Please refer to [Setup UFS](Setup-UFS.html) for more information.
 
 ## Compatibility
 
