@@ -58,6 +58,8 @@ For the first sample program, you should be able to see something similar to the
     2015-10-06 23:10:43,467 INFO   (BasicOperations.java:readFile) - readFile file /default_tests_files/BasicFile_CACHE_THROUGH took 227 ms.
     Passed the test!
 
+And you can visit Tachyon web UI at **[http://localhost:19999](http://localhost:19999)** again. Click `Browse File System` in the navigation bar, and you should see the files written to Tachyon by the above test.
+
 To run a more comprehensive sanity check:
 
     $ ./bin/tachyon runTests
