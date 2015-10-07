@@ -520,15 +520,19 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the s3 bucket prefix from the key if it is present. For example, for input key
-   * s3n://my-bucket-name/my-path/file, the output would be my-path/file. This method will leave
-   * keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   * Strips the s3 bucket prefix or the preceding path separator from the key if it is present.
+   * For example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file.
+   * If key is an absolute path like /my-path/file, the output would be my-path/file.
+   * This method will leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    * @param key the key to strip
    * @return the key without the s3 bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
     if (key.startsWith(mBucketPrefix)) {
       return key.substring(mBucketPrefix.length());
+    }
+    if (key.startsWith(PATH_SEPARATOR)) {
+      return key.substring(PATH_SEPARATOR.length());
     }
     LOG.warn("Attempted to strip key with invalid prefix: " + key);
     return key;
