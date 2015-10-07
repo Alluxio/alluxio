@@ -76,7 +76,7 @@ public final class LineageDataManager {
     fileInfo = mBlockDataManager.getFileInfo(fileId);
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
-    LOG.info("persist file " + fileId + " at " + dstPath);
+
     String parentPath = PathUtils.concatPath(ufsDataFolder, uri.getParent().getPath());
     if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
       throw new IOException("Failed to create " + parentPath);
@@ -120,6 +120,7 @@ public final class LineageDataManager {
     outputStream.flush();
     outputChannel.close();
     outputStream.close();
+    LOG.info("persisted file " + fileId + " at " + dstPath);
     mPersistedFiles.add(fileId);
   }
 
