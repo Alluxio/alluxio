@@ -534,7 +534,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
     if (key.startsWith(PATH_SEPARATOR)) {
       return key.substring(PATH_SEPARATOR.length());
     }
-    LOG.warn("Attempted to strip key with invalid prefix: " + key);
     return key;
   }
 }
