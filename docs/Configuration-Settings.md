@@ -12,7 +12,6 @@ Priority: 1
     * [Worker Config](#worker-configuration)
     * [User Config](#user-configuration)
 * [System Environment](#system-environment-properties)
-* [MapReduce Configuration](#working-with-apache-hadoop-mapreduce-configuration)
 
 There are two types of configuration parameters for Tachyon:
 
@@ -483,64 +482,29 @@ The user configuration specifies values regarding file system access.
 </tr>
 </table>
 
+## How to configuration of multihomed networks
+
+Tachyon configuration provides a way to take advantage of multi-homed networks. If you have more than one NICs and you want your Tachyon master to listen on all NICs, you can specify`tachyon.master.bind.host` to be `0.0.0.0`. As a result, Tachyon clients can reach the master node from connecting to any of its NIC. This is also the same case for other properties suffixed with `bind.host`.
 
 # System environment properties
 
-The system environment variables are configured using the configuration file (located under `conf/tachyon-env.sh`), which is responsible for setting system properties.
+To run Tachyon, it also requires some system environment variables being set which by default are configured in file `conf/tachyon-env.sh`. If this file does not exist yet, you can create one from a template we provided in the source code `conf/tachyon-env.sh.template` by:
 
-The location of the `tachyon-env.sh` can be set by environment variable `TACHYON_CONF_DIR`.
+~~~
+$ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+~~~
 
-These variables should be set as variables under the `TACHYON_JAVA_OPTS` definition.
+There are a few frequently used Tachyon configuration properties that can be set via environment variables. One can either set these variables through Shell or modify their default values specified in `conf/tachyon-env.sh`.
 
-A template is provided with the zip: `conf/tachyon-env.sh.template`.
+* `$TACHYON_MASTER_ADDRESS`: Tachyon master address, default to localhost.
+* `$TACHYON_UNDERFS_ADDRESS`: under storage system address, default to `${TACHYON_HOME}/underFSStorage` which is a local file system.
+* `$TACHYON_JAVA_OPTS`: Java VM options for both Master and Worker.
+* `$TACHYON_MASTER_JAVA_OPTS`: additional Java VM options for Master configuration. 
+* `$TACHYON_WORKER_JAVA_OPTS`: additional Java VM options for Worker configuration. Note that, by default `TACHYON_JAVA_OPTS` is included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
 
-Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master, and `TACHYON_WORKER_JAVA_OPTS` for Worker configuration. In the template file, `TACHYON_JAVA_OPTS` is included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
+For example, if you would like to connect Tachyon to HDFS running at localhost and enable Java remote debugging at port 7001 in the Master, you can export these in environment variables like this:
 
-For example, if you would like to enable Java remote debugging at port 7001 in the Master, you can modify `TACHYON_MASTER_JAVA_OPTS` like this:
-
-```
-export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001“
-```
-
-# Working with Apache Hadoop MapReduce Configuration
-
-In certain deployments there could be situation where client needs to send configuration property override to Hadoop MapReduce (MR) for Tachyon Hadoop compatible file system (TFS) when the tachyon-site.properties file is not available in nodes where the MR is running.
-
-To support this, the MR application client needs to do these steps:
-
-1. Get the TachyonConf instance by calling `TachyonConf.get()`.
-2. Store the encoded TachyonConf object into Hadoop MR job’s Configuration using `ConfUtils.storeToHadoopConfiguration` call.
-3. During initialization of the TFS, it will check if the key exists from the job’s Configuration
-and if it does it will merge the override properties to the current TachyonConf instance via `ConfUtil.loadFromHadoopConfiguration`.
-
-# Configuration of multihomed networks
-
-<table>
-  <tbody>
-    <tr>
-      <th>Specified Hostname</th>
-      <th>Specified Bind Host</th>
-      <th>Returned Connect Host</th>
-    </tr>
-    <tr>
-      <td>hostname</td>
-      <td>hostname</td>
-      <td>hostname</td>
-    </tr>
-    <tr>
-      <td>not defined</td>
-      <td>hostname</td>
-      <td>hostname</td>
-    </tr>
-    <tr>
-      <td>hostname</td>
-      <td>0.0.0.0 or not defined</td>
-      <td>hostname</td>
-    </tr>
-    <tr>
-      <td>not defined</td>
-      <td>0.0.0.0 or not defined</td>
-      <td>localhost</td>
-    </tr>
-  </tbody>
-</table>
+~~~
+$ export TACHYON_UNDERFS_ADDRESS="hdfs://localhost:9000"
+$ export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001“
+~~~
