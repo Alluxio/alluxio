@@ -51,7 +51,7 @@ Each node of the cluster has a Tachyon worker, `TachyonMaster` has a Tachyon mas
 
 After command `./create <number of machines> vb` succeeds, you can see two green lines like below shown at the end of the shell output:
 
-    >>> TachyonMaster public IP is xxx <<<
+    >>> TachyonMaster public IP is xxx, visit xxx:19999 for Tachyon web UI<<<
     >>> visit default port of the web UI of what you deployed <<<
 
 Default port for Tachyon Web UI is **19999**.
@@ -72,7 +72,7 @@ For example, you can ssh into `TachyonMaster` with
 
     $ vagrant ssh TachyonMaster
 
-All software are installed under root directory, e.g. Tachyon is installed in /tachyon, Hadoop is installed in /hadoop.
+All software are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is installed in `/hadoop`.
 
 On `TachyonMaster` node, you can run some tests against Tachyon to check its health:
 

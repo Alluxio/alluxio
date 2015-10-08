@@ -55,7 +55,7 @@ Next generate your EC2 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/User
 
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair name and `Key_Path` to the path to the pem key.
 
-In the configuration file `deploy/vagrant/conf/tachyon.yml`, set the value of `Masters` to the number of TachyonMasters you want, in fault tolerant mode, value of `Masters` should be larger than 1.
+In the configuration file `deploy/vagrant/conf/tachyon.yml`, set the value of `Masters` to the number of TachyonMasters you want. In fault tolerant mode, value of `Masters` should be larger than 1.
 
 By default, the Vagrant script creates a [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html) named *tachyon-vagrant-test* at [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html). The security group will be set up automatically in the region with all inbound/outbound network traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
 
@@ -65,7 +65,7 @@ Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in u
 
 Note that the `<number of machines>` above should be larger than or equal to `Masters` set in `deploy/vagrant/conf/tachyon.yml`.
 
-Each node of the cluster has a Tachyon worker, each master node has a Tachyon master, leader is in one of the master nodes.
+Each node of the cluster has a Tachyon worker, and each master node has a Tachyon master. The leader is in one of the master nodes.
 
 # Access the cluster
 
@@ -73,13 +73,13 @@ Each node of the cluster has a Tachyon worker, each master node has a Tachyon ma
 
 After command `./create <number of machines> aws` succeeds, you can see three green lines like below shown at the end of the shell output:
 
-    >>> Master public IP for Tachyon is xxx <<<
-    >>> Master public IP for other software is xxx <<<
+    >>> Master public IP for Tachyon is xxx, visit xxx:19999 for Tachyon web UI<<<
+    >>> Master public IP for other softwares is xxx <<<
     >>> visit default port of the web UI of what you deployed <<<
 
 The first line shows public IP for current leader of all Tachyon masters.
 
-The second line shows public IP for master of other software like Hadoop.
+The second line shows public IP for master of other softwares like Hadoop.
 
 Default port for Tachyon Web UI is **19999**.
 
@@ -94,10 +94,10 @@ You can also monitor the instances state through [AWS web console](https://conso
 The nodes set up are named to two groups. 
 
 One group contains `TachyonMaster`, `TachyonMaster2` and so on, representing all Tachyon masters, 
-one of them is leader, others are standby, `TachyonMaster` is the master for other software like Hadoop, each node also has workers for Tachyon
-and for other software like Hadoop.
+one of them is leader, others are standbys, `TachyonMaster` is the master for other softwares like Hadoop. Each node also has workers for Tachyon
+and for other softwares like Hadoop.
 
-Another group contains `TachyonWorker1`, `TachyonWorker2` and so on, each node purely has workers for Tachyon and for other software like Hadoop.
+Another group contains `TachyonWorker1`, `TachyonWorker2` and so on, each node purely has workers for Tachyon and for other softwares like Hadoop.
 
 To ssh into a node, run
 
@@ -107,7 +107,7 @@ For example, you can ssh into `TachyonMaster` with
 
     $ vagrant ssh TachyonMaster
 
-All software are installed under root directory, e.g. Tachyon is installed in /tachyon, Hadoop is installed in /hadoop, Zookeeper is installed in /zookeeper.
+All softwares are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is installed in `/hadoop`, Zookeeper is installed in `/zookeeper`.
 
 On leader master node, you can run some tests against Tachyon to check its health:
 

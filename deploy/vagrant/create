@@ -186,7 +186,7 @@ if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
       break
     fi
   done
-  info "Master public IP for other software is ${main_master}"
+  info "Master public IP for other softwares is ${main_master}"
 else
   info "TachyonMaster public IP is ${main_master}, visit ${main_master}:19999 for Tachyon web UI"
 fi
