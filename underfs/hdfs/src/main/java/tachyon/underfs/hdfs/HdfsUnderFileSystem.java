@@ -302,28 +302,28 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void connectFromMaster(TachyonConf conf, String host) throws IOException {
-    if (!conf.containsKey(Constants.MASTER_KEYTAB_KEY)
-        || !conf.containsKey(Constants.MASTER_PRINCIPAL_KEY)) {
-      return;
-    }
-    String masterKeytab = conf.get(Constants.MASTER_KEYTAB_KEY);
-    String masterPrincipal = conf.get(Constants.MASTER_PRINCIPAL_KEY);
-
-    login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
-        masterPrincipal, host);
+//    if (!conf.containsKey(Constants.MASTER_KEYTAB_KEY)
+//        || !conf.containsKey(Constants.MASTER_PRINCIPAL_KEY)) {
+//      return;
+//    }
+//    String masterKeytab = conf.get(Constants.MASTER_KEYTAB_KEY);
+//    String masterPrincipal = conf.get(Constants.MASTER_PRINCIPAL_KEY);
+//
+//    login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
+//        masterPrincipal, host);
   }
 
   @Override
   public void connectFromWorker(TachyonConf conf, String host) throws IOException {
-    if (!conf.containsKey(Constants.WORKER_KEYTAB_KEY)
-        || !conf.containsKey(Constants.WORKER_PRINCIPAL_KEY)) {
-      return;
-    }
-    String workerKeytab = conf.get(Constants.WORKER_KEYTAB_KEY);
-    String workerPrincipal = conf.get(Constants.WORKER_PRINCIPAL_KEY);
-
-    login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
-        workerPrincipal, host);
+//    if (!conf.containsKey(Constants.WORKER_KEYTAB_KEY)
+//        || !conf.containsKey(Constants.WORKER_PRINCIPAL_KEY)) {
+//      return;
+//    }
+//    String workerKeytab = conf.get(Constants.WORKER_KEYTAB_KEY);
+//    String workerPrincipal = conf.get(Constants.WORKER_PRINCIPAL_KEY);
+//
+//    login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
+//        workerPrincipal, host);
   }
 
   private void login(String keytabFileKey, String keytabFile, String principalKey,
