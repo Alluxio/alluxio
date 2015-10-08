@@ -124,10 +124,6 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.getLocalHostName(100), value);
 
-    value = sDefaultTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals("/tmp", value);
-
     value = sDefaultTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
     Assert.assertNotNull(value);
     Assert.assertEquals(Constants.FORMAT_FILE_PREFIX, value);

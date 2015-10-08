@@ -41,9 +41,9 @@ Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/inst
 # Launch a Cluster
 
 To run a Tachyon cluster on EC2, first sign up for an Amazon EC2 account
-on the [Amazon Web Services site](http://aws.amazon.com/). 
+on the [Amazon Web Services site](http://aws.amazon.com/).
 
-Then create [access keys](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html) 
+Then create [access keys](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html)
 and set shell environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 
     $ export AWS_ACCESS_KEY_ID=<your access key>
@@ -107,7 +107,7 @@ From a node in the cluster, you can ssh to other nodes in the cluster without pa
 # Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run
-    
+
     $ ./destroy
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the command succeeds, the EC2 instances are terminated.
