@@ -101,7 +101,8 @@ public final class Constants {
   public static final String ASYNC_ENABLED = "tachyon.async.enabled";
   public static final String MAX_COLUMNS = "tachyon.max.columns";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
-  public static final String HOST_RESOLUTION_TIMEOUT_MS = "tachyon.network.host.resolution.timeout.ms";
+  public static final String HOST_RESOLUTION_TIMEOUT_MS =
+      "tachyon.network.host.resolution.timeout.ms";
   public static final String UNDERFS_GLUSTERFS_IMPL = "tachyon.underfs.glusterfs.impl";
   public static final String UNDERFS_GLUSTERFS_VOLUMES = "tachyon.underfs.glusterfs.volumes";
   public static final String UNDERFS_GLUSTERFS_MOUNTS = "tachyon.underfs.glusterfs.mounts";
@@ -171,7 +172,8 @@ public final class Constants {
   public static final String WORKER_WEB_BIND_HOST = "tachyon.worker.web.bind.host";
   public static final String WORKER_WEB_PORT = "tachyon.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "tachyon.worker.data.folder";
-  public static final String WORKER_HEARTBEAT_TIMEOUT_MS = "tachyon.worker.block.heartbeat.timeout.ms";
+  public static final String WORKER_HEARTBEAT_TIMEOUT_MS =
+      "tachyon.worker.block.heartbeat.timeout.ms";
   public static final String WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       "tachyon.worker.block.heartbeat.interval.ms";
   public static final String WORKER_SESSION_TIMEOUT_MS = "tachyon.worker.session.timeout.ms";
