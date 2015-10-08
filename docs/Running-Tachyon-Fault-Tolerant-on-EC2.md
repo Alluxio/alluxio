@@ -53,6 +53,10 @@ Next generate your EC2 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/User
 
     $ chmod 400 <your key pair>.pem
 
+Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
+
+    $ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair name and `Key_Path` to the path to the pem key.
 
 In the configuration file `deploy/vagrant/conf/tachyon.yml`, set the value of `Masters` to the number of TachyonMasters you want. In fault tolerant mode, value of `Masters` should be larger than 1.

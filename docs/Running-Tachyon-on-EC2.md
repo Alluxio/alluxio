@@ -53,6 +53,10 @@ Next generate your EC2 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/User
 
     $ chmod 400 <your key pair>.pem
 
+Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
+
+    $ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html) named *tachyon-vagrant-test* at [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html). The security group will be set up automatically in the region with all inbound/outbound network traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
