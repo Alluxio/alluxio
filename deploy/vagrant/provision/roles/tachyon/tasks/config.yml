@@ -22,6 +22,10 @@
   script: set_journal_folder.sh
   when: tachyon_masters > 1
 
+- name: set longer worker heartbeat timeout to wait for leader selection
+  script: set_worker_heartbeat_timeout.sh
+  when: tachyon_masters > 1
+
 - name: set worker memory in tachyon-env.sh
   replace: >
     dest=/tachyon/conf/tachyon-env.sh
