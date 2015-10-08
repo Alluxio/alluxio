@@ -59,8 +59,8 @@ public class EvictorFactoryTest {
   @Test
   public void createGreedyEvictorTest() {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, GreedyEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    conf.set(Constants.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
+    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof GreedyEvictor);
@@ -69,8 +69,8 @@ public class EvictorFactoryTest {
   @Test
   public void createLRUEvictorTest() {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_EVICT_STRATEGY_CLASS, LRUEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    conf.set(Constants.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
+    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
@@ -79,7 +79,7 @@ public class EvictorFactoryTest {
   @Test
   public void createDefaultEvictorTest() {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.WORKER_ALLOCATE_STRATEGY_CLASS, MaxFreeAllocator.class.getName());
+    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.createAllocator(conf, sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.createEvictor(conf, sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);

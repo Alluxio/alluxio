@@ -57,10 +57,10 @@ public final class PinListSync implements Runnable {
   public PinListSync(BlockDataManager blockDataManager, WorkerFileSystemMasterClient masterClient) {
     mBlockDataManager = blockDataManager;
     TachyonConf conf = WorkerContext.getConf();
-    
+
     mMasterClient = masterClient;
-    mSyncIntervalMs = conf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mSyncTimeoutMs = conf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    mSyncIntervalMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
+    mSyncTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
   }

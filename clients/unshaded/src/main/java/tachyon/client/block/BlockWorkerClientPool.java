@@ -49,7 +49,7 @@ public final class BlockWorkerClientPool extends ResourcePool<WorkerClient> {
    * @param workerAddress the worker address
    */
   public BlockWorkerClientPool(NetAddress workerAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_LOCAL_BLOCK_WORKER_CLIENT_THREADS));
+    super(ClientContext.getConf().getInt(Constants.USER_BLOCK_LOCAL_WORKER_CLIENT_THREADS));
     mExecutorService = Executors.newFixedThreadPool(mMaxCapacity, ThreadFactoryUtils.build(
         "block-worker-heartbeat-%d", true));
     mWorkerNetAddress = workerAddress;
