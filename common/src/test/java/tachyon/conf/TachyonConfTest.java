@@ -87,10 +87,6 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals("org.apache.hadoop.fs.glusterfs.GlusterFileSystem", value);
 
-    value = sDefaultTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(ufsAddress + "/tachyon/data", value);
-
     boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
     Assert.assertFalse(booleanValue);
 
