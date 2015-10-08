@@ -8,14 +8,45 @@ group: Dev Resources
 Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
 
 ### toc
+* [New Contributor Tasks](#startup-tasks-for-new-contributors)
 * [Submitting Code](#submitting-code)
     * [Testing](#testing)
     * [Coding Style](#coding-style)
     * [FindBugs](#findbugs)
-* [New Contributor Tasks](#startup-tasks-for-new-contributors)
 * [IDE](#ide)
 * [Presentations](#presentations)
 * [Readings](#readings)
+
+### Startup Tasks for New Contributors
+
+Here are a few things that everyone should do before developing on Tachyon.
+
+1.  [Running Tachyon Locally](Running-Tachyon-Locally.html)
+
+2.  [Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
+    (Optional)
+
+3.  Read
+    [Configuration-Settings](Configuration-Settings.html)
+    (Optional) and
+    [Command-Line Interface](Command-Line-Interface.html)
+    (Optional)
+
+4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java).
+
+5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
+
+6.  Fork the repository, add unit tests or javadoc for one or two files in the
+following list, and then submit a pull request. You are also welcome to address
+issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
+Here are a list of
+[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
+for New Contributors. Please limit 2 tasks per New Contributor.
+Afterwards, try some Beginner/Intermediate tasks, or ask in the
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users).
+For a tutorial, see the GitHub guides on
+[forking a repo](https://help.github.com/articles/fork-a-repo) and
+[sending a pull request](https://help.github.com/articles/using-pull-requests).
 
 ### Submitting Code
 
@@ -128,37 +159,6 @@ Before submitting the pull-request, run the latest code against
 [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
 
     $ mvn compile findbugs:findbugs findbugs:gui
-
-### Startup Tasks for New Contributors
-
-Here are a few things that everyone should do before developing on Tachyon.
-
-1.  [Running Tachyon Locally](Running-Tachyon-Locally.html)
-
-2.  [Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
-    (Optional)
-
-3.  Read
-    [Configuration-Settings](Configuration-Settings.html)
-    (Optional) and
-    [Command-Line Interface](Command-Line-Interface.html)
-    (Optional)
-
-4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java).
-
-5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
-
-6.  Fork the repository, add unit tests or javadoc for one or two files in the
-following list, and then submit a pull request. You are also welcome to address
-issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
-Here are a list of
-[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
-for New Contributors. Please limit 2 tasks per New Contributor.
-Afterwards, try some Beginner/Intermediate tasks, or ask in the
-[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users).
-For a tutorial, see the GitHub guides on
-[forking a repo](https://help.github.com/articles/fork-a-repo) and
-[sending a pull request](https://help.github.com/articles/using-pull-requests).
 
 ### IDE
 
