@@ -36,10 +36,10 @@ import com.google.common.collect.Sets;
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
-import tachyon.collections.Pair;
-import tachyon.collections.PrefixList;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
+import tachyon.collections.Pair;
+import tachyon.collections.PrefixList;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.DependencyDoesNotExistException;
@@ -78,6 +78,11 @@ import tachyon.master.file.meta.TTLBucketList;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.security.LoginUser;
+import tachyon.security.authentication.AuthType;
+import tachyon.security.authentication.PlainSaslServer.AuthorizedClientUser;
+import tachyon.security.authorization.FsPermission;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.BlockLocation;
 import tachyon.thrift.DependencyInfo;
@@ -228,7 +233,7 @@ public final class FileSystemMaster extends MasterBase {
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       TachyonConf conf = MasterContext.getConf();
-      mInodeTree.initializeRoot();
+      mInodeTree.initializeRoot(createPermissionStatus(false));
       String defaultUFS = conf.get(Constants.UNDERFS_DATA_FOLDER);
       try {
         mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
@@ -563,7 +568,8 @@ public final class FileSystemMaster extends MasterBase {
     MasterContext.getMasterSource().incCreateFileOps();
     synchronized (mInodeTree) {
       InodeTree.CreatePathResult createResult =
-          createInternal(path, blockSizeBytes, recursive, System.currentTimeMillis(), ttl);
+          createInternal(path, blockSizeBytes, recursive, System.currentTimeMillis(),
+              ttl, createPermissionStatus(true));
       List<Inode> created = createResult.getCreated();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -574,11 +580,11 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   InodeTree.CreatePathResult createInternal(TachyonURI path, long blockSizeBytes,
-      boolean recursive, long opTimeMs, long ttl)
+      boolean recursive, long opTimeMs, long ttl, PermissionStatus ps)
           throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
     InodeTree.CreatePathResult createResult =
-        mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs, ttl);
+        mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs, ttl, ps);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
@@ -980,7 +986,8 @@ public final class FileSystemMaster extends MasterBase {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
-        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, 0, recursive, true);
+        InodeTree.CreatePathResult createResult =
+            mInodeTree.createPath(path, 0, recursive, true, createPermissionStatus(true));
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         journalCreatePathResult(createResult);
@@ -1180,6 +1187,40 @@ public final class FileSystemMaster extends MasterBase {
       setPinnedInternal(entry.getId(), entry.getPinned(), entry.getOperationTimeMs());
     } catch (FileDoesNotExistException fdnee) {
       throw new RuntimeException(fdnee);
+    }
+  }
+
+  /**
+   * Create the permissionStatus for file or directory.
+   * @param remote true if the request is for creating permission from client side, the
+   * username binding into inode will be gotten from {@code AuthorizedClientUser.get().getName()}.
+   * If the remote is false, the username binding into inode will be gotten from {@link LoginUser}
+   * @return permissionStatus
+   * @throws IOException
+   */
+  private PermissionStatus createPermissionStatus(boolean remote) {
+    TachyonConf conf = MasterContext.getConf();
+    AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    if (authType == AuthType.NOSASL) {
+      // no authentication
+      return new PermissionStatus("", "", FsPermission.getNoneFsPermission());
+    }
+    if (remote) {
+      // get the username through the authentication mechanism
+      return new PermissionStatus(AuthorizedClientUser.get().getName(),
+          "",//TODO group permission binding into Inode
+          FsPermission.getDefault().applyUMask(conf));
+    } else {
+      // get the username through the login module
+      String loginUserName;
+      try {
+        loginUserName = LoginUser.get(conf).getName();
+      } catch (IOException ioe) {
+        throw new RuntimeException("failed to get login user: " + ioe.getMessage(), ioe);
+      }
+      return new PermissionStatus(loginUserName,
+          "",//TODO group permission binding into Inode
+          FsPermission.getDefault().applyUMask(conf));
     }
   }
 
