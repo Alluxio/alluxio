@@ -7,15 +7,8 @@ group: Dev Resources
 
 Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
 
-### toc
-* [New Contributor Tasks](#startup-tasks-for-new-contributors)
-* [Submitting Code](#submitting-code)
-    * [Testing](#testing)
-    * [Coding Style](#coding-style)
-    * [FindBugs](#findbugs)
-* [IDE](#ide)
-* [Presentations](#presentations)
-* [Readings](#readings)
+* Table of Contents
+{:toc}
 
 ### Startup Tasks for New Contributors
 
@@ -178,7 +171,7 @@ You can do this by going to
 
     View > Tool Windows > Maven Projects
 
-### Presentations:
+### Presentations
 
 -   Strata and Hadoop World 2014 (October, 2014) [pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf) [pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
 -   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
