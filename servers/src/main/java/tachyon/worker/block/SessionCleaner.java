@@ -45,7 +45,7 @@ public final class SessionCleaner implements Runnable {
   public SessionCleaner(BlockDataManager blockDataManager) {
     mBlockDataManager = blockDataManager;
     mCheckIntervalMs =
-        WorkerContext.getConf().getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+        WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;
   }

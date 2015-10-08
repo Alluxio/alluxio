@@ -82,7 +82,7 @@ public final class TachyonFileSystemUtils {
    *
    * <i>IMPLEMENTATION NOTES</i> This method is implemented
    * by periodically polling the master about the file status. The
-   * polling period is controlled by the {@link Constants#USER_WAITCOMPLETED_POLL}
+   * polling period is controlled by the {@link Constants#USER_FILE_WAITCOMPLETED_POLL_MS}
    * java property and defaults to a generous 1 second.
    *
    * @param tfs an instance of {@link TachyonFileSystemCore}
@@ -103,7 +103,8 @@ public final class TachyonFileSystemUtils {
       TachyonException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod = ClientContext.getConf().getLong(Constants.USER_WAITCOMPLETED_POLL);
+    final long pollPeriod =
+        ClientContext.getConf().getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
     TachyonFile file = null;
     boolean completed = false ;
     long timeleft = deadline - System.currentTimeMillis();

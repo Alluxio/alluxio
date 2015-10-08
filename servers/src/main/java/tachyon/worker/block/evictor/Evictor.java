@@ -42,7 +42,7 @@ public interface Evictor {
         Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<Evictor>getClass(Constants.WORKER_EVICT_STRATEGY_CLASS),
+            conf.<Evictor>getClass(Constants.WORKER_EVICTOR_CLASS),
             new Class[]{BlockMetadataManagerView.class, Allocator.class},
             new Object[]{view, allocator});
       } catch (Exception e) {
