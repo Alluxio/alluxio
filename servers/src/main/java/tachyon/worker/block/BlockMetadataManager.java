@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.exception.AlreadyExistsException;
+import tachyon.exception.BlockAlreadyExistsException;
+import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.ExceptionMessage;
-import tachyon.exception.InvalidStateException;
-import tachyon.exception.NotFoundException;
-import tachyon.exception.OutOfSpaceException;
+import tachyon.exception.InvalidWorkerStateException;
+import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.BlockMetaBase;
@@ -69,18 +69,18 @@ public class BlockMetadataManager {
       ret.initBlockMetadataManager();
       // caller of newBlockMetadataManager should not be forced to catch and handle these exceptions
       // since it is the responsibility of BlockMetadataManager.
-    } catch (AlreadyExistsException aee) {
+    } catch (BlockAlreadyExistsException aee) {
       throw new RuntimeException(aee);
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
-    } catch (OutOfSpaceException ooe) {
+    } catch (WorkerOutOfSpaceException ooe) {
       throw new RuntimeException(ooe);
     }
     return ret;
   }
 
-  private void initBlockMetadataManager() throws AlreadyExistsException, IOException,
-      OutOfSpaceException {
+  private void initBlockMetadataManager() throws BlockAlreadyExistsException, IOException,
+      WorkerOutOfSpaceException {
     // Initialize storage tiers
     int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
@@ -96,9 +96,9 @@ public class BlockMetadataManager {
    * Aborts a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to add
-   * @throws NotFoundException when block can not be found
+   * @throws BlockDoesNotExistException when block can not be found
    */
-  public void abortTempBlockMeta(TempBlockMeta tempBlockMeta) throws NotFoundException {
+  public void abortTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
   }
@@ -107,11 +107,11 @@ public class BlockMetadataManager {
    * Adds a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to add
-   * @throws OutOfSpaceException when no more space left to hold the block
-   * @throws AlreadyExistsException when the block already exists
+   * @throws WorkerOutOfSpaceException when no more space left to hold the block
+   * @throws BlockAlreadyExistsException when the block already exists
    */
-  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws OutOfSpaceException,
-      AlreadyExistsException {
+  public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
+      BlockAlreadyExistsException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.addTempBlockMeta(tempBlockMeta);
   }
@@ -120,12 +120,12 @@ public class BlockMetadataManager {
    * Commits a temp block.
    *
    * @param tempBlockMeta the meta data of the temp block to commit
-   * @throws OutOfSpaceException when no more space left to hold the block
-   * @throws AlreadyExistsException when the block already exists in committed blocks
-   * @throws NotFoundException when temp block can not be found
+   * @throws WorkerOutOfSpaceException when no more space left to hold the block
+   * @throws BlockAlreadyExistsException when the block already exists in committed blocks
+   * @throws BlockDoesNotExistException when temp block can not be found
    */
-  public void commitTempBlockMeta(TempBlockMeta tempBlockMeta) throws OutOfSpaceException,
-      AlreadyExistsException, NotFoundException {
+  public void commitTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
+      BlockAlreadyExistsException, BlockDoesNotExistException {
     BlockMeta block = new BlockMeta(Preconditions.checkNotNull(tempBlockMeta));
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.removeTempBlockMeta(tempBlockMeta);
@@ -184,9 +184,9 @@ public class BlockMetadataManager {
    *
    * @param blockId the block ID
    * @return metadata of the block
-   * @throws NotFoundException if no BlockMeta for this blockId is found
+   * @throws BlockDoesNotExistException if no BlockMeta for this blockId is found
    */
-  public BlockMeta getBlockMeta(long blockId) throws NotFoundException {
+  public BlockMeta getBlockMeta(long blockId) throws BlockDoesNotExistException {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasBlockMeta(blockId)) {
@@ -194,7 +194,7 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new NotFoundException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
+    throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
   }
 
   /**
@@ -241,9 +241,9 @@ public class BlockMetadataManager {
    *
    * @param blockId the ID of the temp block
    * @return metadata of the block or null
-   * @throws NotFoundException when blockId can not be found
+   * @throws BlockDoesNotExistException when blockId can not be found
    */
-  public TempBlockMeta getTempBlockMeta(long blockId) throws NotFoundException {
+  public TempBlockMeta getTempBlockMeta(long blockId) throws BlockDoesNotExistException {
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         if (dir.hasTempBlockMeta(blockId)) {
@@ -251,7 +251,7 @@ public class BlockMetadataManager {
         }
       }
     }
-    throw new NotFoundException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
+    throw new BlockDoesNotExistException(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND, blockId);
   }
 
   /**
@@ -348,12 +348,13 @@ public class BlockMetadataManager {
    * @param blockMeta the meta data of the block to move
    * @param tempBlockMeta a placeholder in the destination directory
    * @return the new block metadata if success, absent otherwise
-   * @throws NotFoundException when the block to move is not found
-   * @throws AlreadyExistsException when the block to move already exists in the destination
-   * @throws OutOfSpaceException when destination have no extra space to hold the block to move
+   * @throws BlockDoesNotExistException when the block to move is not found
+   * @throws BlockAlreadyExistsException when the block to move already exists in the destination
+   * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
+   *         move
    */
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, TempBlockMeta tempBlockMeta)
-      throws NotFoundException, OutOfSpaceException, AlreadyExistsException {
+      throws BlockDoesNotExistException, WorkerOutOfSpaceException, BlockAlreadyExistsException {
     StorageDir srcDir = blockMeta.getParentDir();
     StorageDir dstDir = tempBlockMeta.getParentDir();
     srcDir.removeBlockMeta(blockMeta);
@@ -371,13 +372,14 @@ public class BlockMetadataManager {
    * @param newLocation new location of the block
    * @return the new block metadata if success, absent otherwise
    * @throws IllegalArgumentException when the newLocation is not in the tiered storage
-   * @throws NotFoundException when the block to move is not found
-   * @throws AlreadyExistsException when the block to move already exists in the destination
-   * @throws OutOfSpaceException when destination have no extra space to hold the block to move
+   * @throws BlockDoesNotExistException when the block to move is not found
+   * @throws BlockAlreadyExistsException when the block to move already exists in the destination
+   * @throws WorkerOutOfSpaceException when destination have no extra space to hold the block to
+   *         move
    */
   @Deprecated
   public BlockMeta moveBlockMeta(BlockMeta blockMeta, BlockStoreLocation newLocation)
-      throws NotFoundException, AlreadyExistsException, OutOfSpaceException {
+      throws BlockDoesNotExistException, BlockAlreadyExistsException, WorkerOutOfSpaceException {
     // If existing location belongs to the target location, simply return the current block meta.
     BlockStoreLocation oldLocation = blockMeta.getBlockLocation();
     if (oldLocation.belongTo(newLocation)) {
@@ -404,7 +406,7 @@ public class BlockMetadataManager {
     }
 
     if (newDir == null) {
-      throw new OutOfSpaceException("Failed to move BlockMeta: newLocation " + newLocation
+      throw new WorkerOutOfSpaceException("Failed to move BlockMeta: newLocation " + newLocation
           + " does not have enough space for " + blockSize + " bytes");
     }
     StorageDir oldDir = blockMeta.getParentDir();
@@ -418,9 +420,9 @@ public class BlockMetadataManager {
    * Remove the metadata of a specific block.
    *
    * @param block the meta data of the block to remove
-   * @throws NotFoundException when block is not found
+   * @throws BlockDoesNotExistException when block is not found
    */
-  public void removeBlockMeta(BlockMeta block) throws NotFoundException {
+  public void removeBlockMeta(BlockMeta block) throws BlockDoesNotExistException {
     StorageDir dir = block.getParentDir();
     dir.removeBlockMeta(block);
   }
@@ -430,10 +432,10 @@ public class BlockMetadataManager {
    *
    * @param tempBlockMeta the temp block to modify
    * @param newSize new size in bytes
-   * @throws InvalidStateException when newSize is smaller than current size
+   * @throws InvalidWorkerStateException when newSize is smaller than current size
    */
   public void resizeTempBlockMeta(TempBlockMeta tempBlockMeta, long newSize)
-      throws InvalidStateException {
+      throws InvalidWorkerStateException {
     StorageDir dir = tempBlockMeta.getParentDir();
     dir.resizeTempBlockMeta(tempBlockMeta, newSize);
   }

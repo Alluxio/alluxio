@@ -15,19 +15,32 @@
 
 package tachyon.client.table;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.TachyonURI;
+import tachyon.client.ReadType;
+import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
+import tachyon.client.file.FileInStream;
+import tachyon.client.file.FileOutStream;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
+import tachyon.util.io.BufferUtils;
 
 /**
  * Integration tests for tachyon.client.RawTable.
  */
 public class RawTableIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFileSystem mTfs = null;
+  private TachyonFS mTfs = null;
   private int mMaxCols = 1000;
 
   @After
@@ -37,18 +50,18 @@ public class RawTableIntegrationTest {
 
   @Before
   public final void before() throws Exception {
+    MasterContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     mLocalTachyonCluster = new LocalTachyonCluster(10000, 1000, Constants.GB);
     mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonCluster.getOldClient();
     mMaxCols =  mLocalTachyonCluster.getMasterTachyonConf().getInt(Constants.MAX_COLUMNS);
   }
 
-/*
   @Test
   public void getColumnsTest() throws IOException {
     for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/table" + k);
-      int fileId = mTfs.createRawTable(uri, k);
+      long fileId = mTfs.createRawTable(uri, k);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(k, table.getColumns());
       table = mTfs.getRawTable(uri);
@@ -67,7 +80,7 @@ public class RawTableIntegrationTest {
   public void getIdTest() throws IOException {
     for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/table" + k);
-      int fileId = mTfs.createRawTable(uri, 1);
+      long fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(fileId, table.getId());
       table = mTfs.getRawTable(uri);
@@ -86,7 +99,7 @@ public class RawTableIntegrationTest {
   public void getMetadataTest() throws IOException {
     for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/x/table" + k);
-      int fileId = mTfs.createRawTable(uri, 1);
+      long fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
       Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
@@ -108,7 +121,7 @@ public class RawTableIntegrationTest {
   public void getNameTest() throws IOException {
     for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/x/table" + k);
-      int fileId = mTfs.createRawTable(uri, 1);
+      long fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals("table" + k, table.getName());
       table = mTfs.getRawTable(uri);
@@ -127,7 +140,7 @@ public class RawTableIntegrationTest {
   public void getPathTest() throws IOException {
     for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/x/table" + k);
-      int fileId = mTfs.createRawTable(uri, 1);
+      long fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals("/x/table" + k, table.getPath());
       table = mTfs.getRawTable(uri);
@@ -147,7 +160,7 @@ public class RawTableIntegrationTest {
     int col = 200;
 
     TachyonURI uri = new TachyonURI("/table");
-    int fileId = mTfs.createRawTable(uri, col);
+    long fileId = mTfs.createRawTable(uri, col);
 
     RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(col, table.getColumns());
@@ -166,7 +179,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      FileInStream is = file.getInStream(ReadType.STORE);
+      FileInStream is = file.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
@@ -176,7 +189,7 @@ public class RawTableIntegrationTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      FileInStream is = file.getInStream(ReadType.STORE);
+      FileInStream is = file.getInStream(ReadType.CACHE);
       ByteBuffer buf = ByteBuffer.allocate(10);
       is.read(buf.array());
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(10), buf);
@@ -188,7 +201,7 @@ public class RawTableIntegrationTest {
   public void updateMetadataTest() throws IOException {
     for (int k = 1; k < mMaxCols; k += mMaxCols / 5) {
       TachyonURI uri = new TachyonURI("/x/table" + k);
-      int fileId = mTfs.createRawTable(uri, 1);
+      long fileId = mTfs.createRawTable(uri, 1);
       RawTable table = mTfs.getRawTable(fileId);
       table.updateMetadata(BufferUtils.getIncreasingByteBuffer(k % 17));
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(k % 17), table.getMetadata());
@@ -204,5 +217,4 @@ public class RawTableIntegrationTest {
       Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(k % 16), table.getMetadata());
     }
   }
-*/
 }

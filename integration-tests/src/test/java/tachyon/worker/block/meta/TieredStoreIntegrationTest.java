@@ -104,12 +104,7 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // After the delete, the master should no longer serve the file
-    try {
-      mTFS.open(new TachyonURI("/test1"));
-      Assert.fail("file should not exist: /test1");
-    } catch (TachyonException e) {
-      // This is expected, since the file should not exist.
-    }
+    Assert.assertNull(mTFS.open(new TachyonURI("/test1")));
 
     // However, the previous read should still be able to read it as the data still exists
     byte[] res = new byte[MEM_CAPACITY_BYTES];
@@ -186,13 +181,13 @@ public class TieredStoreIntegrationTest {
   public void promoteBlock() throws Exception {
     TachyonFile file1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test1", TachyonStorageType.STORE,
-            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 6);
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 6);
     TachyonFile file2 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test2", TachyonStorageType.STORE,
-            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 2);
     TachyonFile file3 =
         TachyonFSTestUtils.createByteFile(mTFS, "/root/test3", TachyonStorageType.STORE,
-            UnderStorageType.PERSIST, MEM_CAPACITY_BYTES / 2);
+            UnderStorageType.SYNC_PERSIST, MEM_CAPACITY_BYTES / 2);
 
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 

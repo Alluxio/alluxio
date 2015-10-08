@@ -32,15 +32,15 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalOutputStream;
 import tachyon.master.journal.ReadWriteJournal;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -171,7 +171,7 @@ public final class InodeTreeTest {
 
   @Test
   public void createRootPathTest() throws Exception {
-    mThrown.expect(FileAlreadyExistException.class);
+    mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/");
 
     mTree.createPath(new TachyonURI("/"), Constants.KB, false, true);
@@ -203,7 +203,7 @@ public final class InodeTreeTest {
 
   @Test
   public void createFileTwiceTest() throws Exception {
-    mThrown.expect(FileAlreadyExistException.class);
+    mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/nested/test");
 
     mTree.createPath(NESTED_URI, Constants.KB, true, false);
@@ -223,7 +223,7 @@ public final class InodeTreeTest {
   @Test
   public void getInodeByNonexistingPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /test");
+    mThrown.expectMessage("Path /test does not exist");
 
     mTree.getInodeByPath(TEST_URI);
   }
@@ -231,7 +231,7 @@ public final class InodeTreeTest {
   @Test
   public void getInodeByNonexistingNestedPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /nested/test/file");
+    mThrown.expectMessage("Path /nested/test/file does not exist");
 
     mTree.createPath(NESTED_URI, Constants.KB, true, true);
     mTree.getInodeByPath(NESTED_FILE_URI);

@@ -19,20 +19,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.SuspectedFileSizeException;
 import tachyon.master.block.BlockId;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalEntry;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.util.IdUtils;
 
 /**
  * Tachyon file system's file representation in the file system master.
  */
 public final class InodeFile extends Inode {
   private final long mBlockContainerId;
-  private final long mBlockSizeBytes;
+  private long mBlockSizeBytes;
 
   // list of block ids.
   private List<Long> mBlocks;
@@ -57,8 +59,7 @@ public final class InodeFile extends Inode {
    */
   public InodeFile(String name, long blockContainerId, long parentId, long blockSizeBytes,
       long creationTimeMs, long ttl) {
-    super(name, BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), parentId,
-        false, creationTimeMs);
+    super(name, IdUtils.createFileId(blockContainerId), parentId, false, creationTimeMs);
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = blockContainerId;
     mBlockSizeBytes = blockSizeBytes;
@@ -85,6 +86,31 @@ public final class InodeFile extends Inode {
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     ret.ttl = mTTL;
     return ret;
+  }
+
+  /**
+   * Reinitializes the inode file.
+   */
+  public void reinit() {
+    mBlocks = Lists.newArrayList();
+    mLength = 0;
+    mCompleted = false;
+    mCacheable = false;
+  }
+
+  /**
+   * Sets the block size.
+   */
+  public void setBlockSize(long blockSizeBytes) {
+    // TODO(yupeng): add validation
+    mBlockSizeBytes = blockSizeBytes;
+  }
+
+  /**
+   * Sets the ttl.
+   */
+  public void setTTL(long ttl) {
+    mTTL = ttl;
   }
 
   /**
@@ -173,10 +199,9 @@ public final class InodeFile extends Inode {
    *
    * @param length The new length of the file, cannot be negative
    * @throws SuspectedFileSizeException
-   * @throws BlockInfoException
    */
   public synchronized void setLength(long length)
-      throws SuspectedFileSizeException, BlockInfoException {
+      throws SuspectedFileSizeException {
     if (mCompleted) {
       throw new SuspectedFileSizeException("InodeFile has been completed.");
     }
@@ -201,6 +226,8 @@ public final class InodeFile extends Inode {
     sb.append(", Completed: ").append(mCompleted);
     sb.append(", Cacheable: ").append(mCacheable);
     sb.append(", mBlocks: ").append(mBlocks);
+    sb.append(", mTTL: ").append(mTTL);
+    sb.append(")");
     return sb.toString();
   }
 

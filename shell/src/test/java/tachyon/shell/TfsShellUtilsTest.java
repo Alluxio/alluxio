@@ -38,7 +38,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.thrift.InvalidPathException;
 
 /**
  * Unit tests on tachyon.command.Utils.
@@ -96,10 +95,8 @@ public class TfsShellUtilsTest {
      */
     TachyonFile fd;
     try {
-      fd = tfs.open(new TachyonURI("/testWildCars"));
+      fd = tfs.open(new TachyonURI("/testWildCards"));
     } catch (IOException ioe) {
-      fd = null;
-    } catch (TachyonException e) {
       fd = null;
     }
     if (fd != null) {

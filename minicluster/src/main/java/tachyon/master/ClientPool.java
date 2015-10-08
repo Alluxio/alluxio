@@ -24,6 +24,7 @@ import java.util.List;
 import com.google.common.base.Supplier;
 
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -49,7 +50,7 @@ public final class ClientPool implements Closeable {
    * @throws IOException when the operation fails
    */
   public TachyonFileSystem getClient(TachyonConf tachyonConf) throws IOException {
-    final TachyonFileSystem fs = TachyonFileSystem.get();
+    final TachyonFileSystem fs = TachyonFileSystemFactory.get();
     mClients.add(fs);
     return fs;
   }

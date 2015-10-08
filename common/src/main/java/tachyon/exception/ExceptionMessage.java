@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
  */
 public enum ExceptionMessage {
   // general
+  PATH_DOES_NOT_EXIST("Path {0} does not exist"),
 
   // block lock manager
   LOCK_ID_FOR_DIFFERENT_BLOCK("lockId {0} is for block {1}, not {2}"),
@@ -64,6 +65,9 @@ public enum ExceptionMessage {
   RAW_TABLE_ID_DOES_NOT_EXIST("Raw table with id {0} does not exist"),
   UNKNOWN_ENTRY_TYPE("Unknown entry type: {0}"),
 
+  // lineage
+  LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
+
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
@@ -74,7 +78,8 @@ public enum ExceptionMessage {
   }
 
   public String getMessage(Object... params) {
-    Preconditions.checkArgument(mMessage.getFormats().length == params.length);
+    Preconditions.checkArgument(mMessage.getFormats().length == params.length, "The message takes "
+        + mMessage.getFormats().length + " arguments, but is given " + params.length);
     // MessageFormat is not thread-safe, so guard it
     synchronized (mMessage) {
       return mMessage.format(params);

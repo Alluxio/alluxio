@@ -52,7 +52,7 @@ public class CreateOptionsTest {
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
     CreateOptions options = CreateOptions.defaults();
     Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
-    Assert.assertEquals(false, options.isRecursive());
-    Assert.assertEquals(0, options.getTTL());
+    Assert.assertFalse(options.isRecursive());
+    Assert.assertEquals(Constants.NO_TTL, options.getTTL());
   }
 }

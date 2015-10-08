@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.Pair;
+import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
