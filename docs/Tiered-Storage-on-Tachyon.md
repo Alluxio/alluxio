@@ -80,9 +80,17 @@ Tachyon uses allocators for choosing locations for writing new blocks. Tachyon h
 customized allocators, but there are a few default implementations of allocators. Here are the
 existing allocators in Tachyon:
 
-* GreedyAllocator: allocates the new block to the first storage directory that has sufficient space
-* MaxFreeAllocator: allocates the block in the storage directory with most free space.
-* RoundRobinAllocator: allocates the block in the highest tier with space, the storage directory is chosen through round robin
+* **GreedyAllocator**
+
+    Allocates the new block to the first storage directory that has sufficient space
+
+* **MaxFreeAllocator**
+
+    Allocates the block in the storage directory with most free space.
+
+* **RoundRobinAllocator**
+
+    Allocates the block in the highest tier with space, the storage directory is chosen through round robin
 
 In the future, additional allocators will be available. Since Tachyon supports custom allocators,
 you can also develop your own allocator appropriate for your workload.
@@ -92,10 +100,22 @@ you can also develop your own allocator appropriate for your workload.
 Tachyon uses evictors for deciding which blocks to move to a lower tier, when space needs to be
 freed. Tachyon supports custom evictors, and implementations include:
 
-* GreedyEvictor: evicts arbitrary blocks until the required size is freed
-* LRUEvictor: evicts the least-recently-used blocks until the required size is freed
-* LRFUEvictor: evicts blocks based on least-recently-used and least-frequently-used with a configurable weight
-* PartialLRUEvictor: evicts based on least-recently-used but will first one StorageDir with maximum free space and only evict from that StorageDir
+* **GreedyEvictor**
+
+    Evicts arbitrary blocks until the required size is freed
+
+* **LRUEvictor**
+
+    Evicts the least-recently-used blocks until the required size is freed
+
+* **LRFUEvictor**
+
+    Evicts blocks based on least-recently-used and least-frequently-used with a configurable weight. If the weight is completely biased toward least-recently-used,
+    the behavior will be the same as the LRUEvictor
+
+* **PartialLRUEvictor**
+
+    Evicts based on least-recently-used but will first one StorageDir with maximum free space and only evict from that StorageDir
 
 In the future, additional evictors will be available. Since Tachyon supports custom evictors,
 you can also develop your own evictor appropriate for your workload.

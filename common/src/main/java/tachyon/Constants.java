@@ -139,7 +139,6 @@ public final class Constants {
   public static final String MASTER_WEB_HOSTNAME = "tachyon.master.web.hostname";
   public static final String MASTER_WEB_BIND_HOST = "tachyon.master.web.bind.host";
   public static final String MASTER_WEB_PORT = "tachyon.master.web.port";
-  public static final String MASTER_TEMPORARY_FOLDER = "tachyon.master.temporary.folder";
   public static final String MASTER_HEARTBEAT_INTERVAL_MS = "tachyon.master.heartbeat.interval.ms";
   public static final String MASTER_TTLCHECKER_INTERVAL_MS
       = "tachyon.master.ttlchecker.interval.ms";
@@ -147,8 +146,6 @@ public final class Constants {
   public static final String MASTER_MIN_WORKER_THREADS = "tachyon.master.min.worker.threads";
   public static final String MASTER_WORKER_TIMEOUT_MS = "tachyon.master.worker.timeout.ms";
   public static final String MASTER_WHITELIST = "tachyon.master.whitelist";
-  public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
-  public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
   public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
   public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
@@ -243,8 +240,6 @@ public final class Constants {
 
   public static final String WORKER_SPACE_RESERVER_ENABLE =
       "tachyon.worker.space.reserver.enable";
-  public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
-  public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
   public static final String WORKER_RESOURCE_CPU = "tachyon.worker.resource.cpu";
   public static final String WORKER_RESOURCE_MEM = "tachyon.worker.resource.mem";
