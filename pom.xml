@@ -396,7 +396,7 @@
         <configuration>
           <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/tachyon/thrift/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/tachyon/thrift/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
