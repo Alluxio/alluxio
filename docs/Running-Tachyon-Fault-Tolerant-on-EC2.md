@@ -55,7 +55,7 @@ Next generate your EC2 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/User
 
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair name and `Key_Path` to the path to the pem key.
 
-In the configuration file `deploy/vagrant/conf/tachyon.yml`, set the value of `Masters` to the number of TachyonMasters you want.
+In the configuration file `deploy/vagrant/conf/tachyon.yml`, set the value of `Masters` to the number of TachyonMasters you want, in fault tolerant mode, value of `Masters` should be larger than 1.
 
 By default, the Vagrant script creates a [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html) named *tachyon-vagrant-test* at [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html). The security group will be set up automatically in the region with all inbound/outbound network traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
 
@@ -64,6 +64,8 @@ Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in u
     ./create <number of machines> aws
 
 Note that the `<number of machines>` above should be larger than or equal to `Masters` set in `deploy/vagrant/conf/tachyon.yml`.
+
+Each node of the cluster has a Tachyon worker, each master node has a Tachyon master, leader is in one of the master nodes.
 
 # Access the cluster
 
@@ -107,7 +109,7 @@ For example, you can ssh into `TachyonMaster` with
 
 All software are installed under root directory, e.g. Tachyon is installed in /tachyon, Hadoop is installed in /hadoop, Zookeeper is installed in /zookeeper.
 
-You can run some tests against Tachyon to check its health:
+On leader master node, you can run some tests against Tachyon to check its health:
 
     $ /tachyon/bin/tachyon runTests
 
@@ -121,7 +123,7 @@ Then kill the leader with
 
     $ kill -9 <leader pid found via the above command>
 
-Then you can find out the new leader in [zookeeper](http://zookeeper.apache.org/), firstly run zookeeper client via
+Then you can ssh into `TachyonMaster` where [zookeeper](http://zookeeper.apache.org/) server is running to find out the new leader, then run zookeeper client via
 
     $ /zookeeper/bin/zkCli.sh
 
@@ -133,7 +135,7 @@ The new leader should be shown, may need to wait for a moment to let a new leade
 
 Visit Tachyon web UI at `http://{NEW_LEADER_MASTER_IP}:19999`. Click `Browse File System` in the navigation bar, and you should see all files are still there.
 
-Similarly, you can ssh to a worker node without password like
+From a node in the cluster, you can ssh to other nodes in the cluster without password like
 
     $ ssh TachyonWorker1
 

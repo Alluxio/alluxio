@@ -43,6 +43,8 @@ Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem by r
 
     ./create <number of machines> vb
 
+Each node of the cluster has a Tachyon worker, `TachyonMaster` has a Tachyon master.
+
 # Access the cluster
 
 **Access through Web UI**
@@ -72,13 +74,13 @@ For example, you can ssh into `TachyonMaster` with
 
 All software are installed under root directory, e.g. Tachyon is installed in /tachyon, Hadoop is installed in /hadoop.
 
-You can run some tests against Tachyon to check its health:
+On `TachyonMaster` node, you can run some tests against Tachyon to check its health:
 
     $ /tachyon/bin/tachyon runTests
 
 After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse File System` in the navigation bar, and you should see the files written to Tachyon by the above tests.
 
-Similarly, you can ssh to a worker node without password like
+From a node in the cluster, you can ssh to other nodes in the cluster without password like
 
     $ ssh TachyonWorker1
 
