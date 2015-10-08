@@ -28,14 +28,14 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.client.ClientOptions;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
+import tachyon.exception.TableDoesNotExistException;
 import tachyon.master.file.FileSystemMaster;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.TableDoesNotExistException;
 import tachyon.util.CommonUtils;
+import tachyon.util.IdUtils;
 
 /**
  * Test master journal for cluster terminating. Assert that test can replay the editlog and
@@ -132,27 +132,28 @@ public class JournalShutdownIntegrationTest {
       InvalidPathException, FileDoesNotExistException, TableDoesNotExistException {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles = fsMaster.getFileInfoList(fsMaster.getFileId(
-        new TachyonURI(TEST_FILE_DIR))).size();
+    int actualFiles =
+        fsMaster.getFileInfoList(fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR))).size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f ++) {
-      Assert.assertTrue(fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR + f)) != -1);
+      Assert.assertTrue(
+          fsMaster.getFileId(new TachyonURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
     }
 
     // TODO(gene): Add this back when there is new RawTable client API.
-//    int actualTables = fsMaster.getFileInfoList(fsMaster.getFileId(
-//        new TachyonURI(TEST_TABLE_DIR))).size();
-//    Assert.assertTrue((successTables == actualTables) || (successTables + 1 == actualTables));
-//    for (int t = 0; t < successTables; t ++) {
-//      Assert.assertTrue(fsMaster.getRawTableId(new TachyonURI(TEST_TABLE_DIR + t)) != -1);
-//    }
+    // int actualTables = fsMaster.getFileInfoList(fsMaster.getFileId(
+    // new TachyonURI(TEST_TABLE_DIR))).size();
+    // Assert.assertTrue((successTables == actualTables) || (successTables + 1 == actualTables));
+    // for (int t = 0; t < successTables; t ++) {
+    // Assert.assertTrue(fsMaster.getRawTableId(new TachyonURI(TEST_TABLE_DIR + t)) != -1);
+    // }
     fsMaster.stop();
   }
 
   private LocalTachyonClusterMultiMaster setupMultiMasterCluster() throws IOException {
     // Setup and start the tachyon-ft cluster.
-    LocalTachyonClusterMultiMaster cluster = new LocalTachyonClusterMultiMaster(100,
-        TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
+    LocalTachyonClusterMultiMaster cluster =
+        new LocalTachyonClusterMultiMaster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
     cluster.start();
     mMasterTachyonConf = cluster.getMasterTachyonConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
@@ -202,7 +203,8 @@ public class JournalShutdownIntegrationTest {
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdown();
-    while (!mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS)) {}
+    while (!mExecutorsForClient.awaitTermination(TEST_TIME_MS, TimeUnit.MILLISECONDS)) {
+    }
     reproduceAndCheckState(mCreateFileThread.getSuccessNum(), mCreateTableThread.getSuccessNum());
     // clean up
     cluster.stopUFS();

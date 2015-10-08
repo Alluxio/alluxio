@@ -21,7 +21,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
-import tachyon.IndexedSet;
+import tachyon.collections.IndexedSet;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.journal.JournalEntry;
 import tachyon.thrift.FileInfo;
@@ -98,7 +98,6 @@ public final class InodeDirectory extends Inode {
     ret.isCacheable = false;
     ret.isPersisted = isPersisted();
     ret.blockIds = null;
-    ret.dependencyId = -1;
     ret.lastModificationTimeMs = getLastModificationTimeMs();
     ret.ttl = Constants.NO_TTL;
     return ret;

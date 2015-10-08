@@ -25,12 +25,12 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.TachyonException;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -127,7 +127,11 @@ public class TfsShellUtils {
     List<TachyonURI> res = new LinkedList<TachyonURI>();
     List<FileInfo> files = null;
     try {
-      files = tachyonClient.listStatus(tachyonClient.open(parentDir));
+      TachyonFile parentFile = tachyonClient.open(parentDir);
+      if (parentFile == null) {
+        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(parentDir.getPath()));
+      }
+      files = tachyonClient.listStatus(parentFile);
     } catch (TachyonException e) {
       throw new IOException(e);
     }

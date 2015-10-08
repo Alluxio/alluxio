@@ -20,12 +20,12 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 
+import tachyon.exception.TachyonException;
 import tachyon.thrift.BlockInfo;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.TachyonException;
+import tachyon.thrift.TachyonTException;
 import tachyon.thrift.WorkerInfo;
 
 public class BlockMasterServiceHandler implements BlockMasterService.Iface {
@@ -43,42 +43,49 @@ public class BlockMasterServiceHandler implements BlockMasterService.Iface {
   @Override
   public void workerRegister(long workerId, List<Long> totalBytesOnTiers,
       List<Long> usedBytesOnTiers, Map<Long, List<Long>> currentBlocksOnTiers)
-      throws TachyonException, TException {
-    mBlockMaster.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
-        currentBlocksOnTiers);
+      throws TachyonTException {
+    try {
+      mBlockMaster.workerRegister(workerId, totalBytesOnTiers, usedBytesOnTiers,
+              currentBlocksOnTiers);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 
   @Override
   public Command workerHeartbeat(long workerId, List<Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlocksOnTiers)
-      throws BlockInfoException, TException {
+      List<Long> removedBlockIds, Map<Long, List<Long>> addedBlocksOnTiers) {
     return mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds,
         addedBlocksOnTiers);
   }
 
   @Override
   public void workerCommitBlock(long workerId, long usedBytesOnTier, int tier, long blockId,
-      long length) throws BlockInfoException, TException {
+      long length) {
     mBlockMaster.commitBlock(workerId, usedBytesOnTier, tier, blockId, length);
   }
 
   @Override
-  public List<WorkerInfo> getWorkerInfoList() throws TException {
+  public List<WorkerInfo> getWorkerInfoList() {
     return mBlockMaster.getWorkerInfoList();
   }
 
   @Override
-  public long getCapacityBytes() throws TException {
+  public long getCapacityBytes() {
     return mBlockMaster.getCapacityBytes();
   }
 
   @Override
-  public long getUsedBytes() throws TException {
+  public long getUsedBytes() {
     return mBlockMaster.getUsedBytes();
   }
 
   @Override
-  public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
-    return mBlockMaster.getBlockInfo(blockId);
+  public BlockInfo getBlockInfo(long blockId) throws TachyonTException {
+    try {
+      return mBlockMaster.getBlockInfo(blockId);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
   }
 }

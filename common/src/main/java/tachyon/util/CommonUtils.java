@@ -95,7 +95,11 @@ public final class CommonUtils {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
-      logger.warn(e.getMessage(), e);
+      // The null check is needed otherwise #sleeMs(long) will cause a NullPointerException
+      // if the thread is interrupted
+      if (logger != null) {
+        logger.warn(e.getMessage(), e);
+      }
       if (shouldInterrupt) {
         Thread.currentThread().interrupt();
       }

@@ -270,17 +270,6 @@ public final class LocalTachyonCluster {
   public void stopTFS() throws Exception {
     mMaster.stop();
     mWorker.stop();
-
-    System.clearProperty(Constants.TACHYON_HOME);
-    System.clearProperty(Constants.WORKER_PORT);
-    System.clearProperty(Constants.WORKER_DATA_PORT);
-    System.clearProperty(Constants.WORKER_DATA_FOLDER);
-    System.clearProperty(Constants.WORKER_MEMORY_SIZE);
-    System.clearProperty(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
-    System.clearProperty(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    System.clearProperty(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
-    System.clearProperty(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS);
-    System.clearProperty(Constants.WORKER_MIN_WORKER_THREADS);
   }
 
   /**
