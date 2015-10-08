@@ -16,7 +16,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * Unit test for TachyonConf class
  */
 public class TachyonConfTest {
-  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,s3://,s3n://,glusterfs:///";
+  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";
 
   private static TachyonConf sDefaultTachyonConf;
   private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
@@ -192,9 +192,6 @@ public class TachyonConfTest {
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS);
-    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
     Assert.assertEquals(1, intValue);
