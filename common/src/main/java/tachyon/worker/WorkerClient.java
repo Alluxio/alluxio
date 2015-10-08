@@ -90,7 +90,6 @@ public final class WorkerClient implements Closeable {
     mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
   }
 
-
   /**
    * Updates the latest block access time on the worker.
    *
@@ -242,7 +241,6 @@ public final class WorkerClient implements Closeable {
           mExecutorService.submit(new HeartbeatThread(threadName, mHeartbeatExecutor, interval));
       }
     }
-
 
     return mConnected;
   }
