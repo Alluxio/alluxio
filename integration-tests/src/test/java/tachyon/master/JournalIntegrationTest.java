@@ -118,7 +118,7 @@ public class JournalIntegrationTest {
   @Test
   public void loadMetadataTest() throws Exception {
     String ufsRoot = PathUtils
-        .concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(Constants.UNDERFS_DATA_FOLDER));
+        .concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(Constants.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
     ufs.create(ufsRoot + "/xyz");
     Assert.assertNull(mTfs.open(new TachyonURI("/xyz")));
