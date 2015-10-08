@@ -18,6 +18,10 @@
   script: zookeeper.sh
   when: tachyon_masters > 1
 
+- name: set journal folder as a shared folder in underfs for fault tolerance
+  script: set_journal_folder.sh
+  when: tachyon_masters > 1
+
 - name: set worker memory in tachyon-env.sh
   replace: >
     dest=/tachyon/conf/tachyon-env.sh
