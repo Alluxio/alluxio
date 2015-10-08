@@ -182,12 +182,12 @@ if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
     info "Trying to curl Tachyon web UI at ${master}:19999"
     curl "${master}:19999" >/dev/null
     if [[ "$?" == "0" ]]; then
-      info "Master public IP for Tachyon is ${master}"
+      info "Master public IP for Tachyon is ${master}, visit ${master}:19999 for Tachyon web UI"
       break
     fi
   done
   info "Master public IP for other software is ${main_master}"
 else
-  info "TachyonMaster public IP is ${main_master}"
+  info "TachyonMaster public IP is ${main_master}, visit ${main_master}:19999 for Tachyon web UI"
 fi
 info "visit default port of the web UI of what you deployed"
