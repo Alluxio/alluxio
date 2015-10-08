@@ -187,7 +187,7 @@ public class TachyonFS extends AbstractTachyonFS {
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
     mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
     mRawTableMasterClient = mCloser.register(new RawTableMasterClient(mMasterAddress,
-        mExecutorService, mTachyonConf));
+        ClientContext.getExecutorService(), mTachyonConf));
     mWorkerClient = mCloser.register(BlockStoreContext.INSTANCE.acquireWorkerClient());
     mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
