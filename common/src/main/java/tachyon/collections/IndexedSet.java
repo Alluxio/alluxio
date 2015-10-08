@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
@@ -169,24 +170,36 @@ public class IndexedSet<T> implements Iterable<T> {
    * {@code (o == null ? o2 == null : o.equals(o2))}. If this set already contains the object, the
    * call leaves the set unchanged.
    *
-   * @param object the object to add
+   * @param objToAdd the object to add
    * @return true if the object is successfully added to all indexes, otherwise false
    */
-  public boolean add(T object) {
-    Preconditions.checkNotNull(object);
+  public boolean add(T objToAdd) {
+    Preconditions.checkNotNull(objToAdd);
     synchronized (mLock) {
-      boolean success = mObjects.add(object);
+      boolean success = mObjects.add(objToAdd);
+      // iterate over the first level index (filedid to map)
       if (success) {
         for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
+          // get the second level map
           Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
-          Object value = index.getKey().getFieldValue(object);
-          if (fieldValueToSet.containsKey(value)) {
-            success = fieldValueToSet.get(value).add(object) && success;
+          // retrieve the key to index the object within the second level map
+          Object fieldValue = index.getKey().getFieldValue(objToAdd);
+          if (fieldValueToSet.containsKey(fieldValue)) {
+            success = fieldValueToSet.get(fieldValue).add(objToAdd);
+            if (!success) {
+              // this call can never return false because:
+              //   a. toAddSet is an HashSet of unbounded space
+              //   b. We have already successfully added objToAdd on mObjects,
+              //      meaning that it cannot be already in any of the sets.
+              //      (mObjects is exactly the set-union of all the other second-level sets)
+              throw new IllegalStateException("Indexed Set is in an illegal state");
+            }
           } else {
-            fieldValueToSet.put(value, Sets.newHashSet(object));
+            fieldValueToSet.put(fieldValue, Sets.newHashSet(objToAdd));
           }
         }
       }
+
       return success;
     }
   }
@@ -194,14 +207,54 @@ public class IndexedSet<T> implements Iterable<T> {
   /**
    * Returns an iterator over the elements in this set. The elements are returned in no particular
    * order. It is to implement {@link Iterable} so that users can foreach the IndexedSet directly.
-   * The traversal may reflect any modifications subsequent to the construction of the iterator.
+   *
+   * Note that the behaviour of the iterator is unspecified if the underlying collection is
+   * modified while a thread is going through the iterator.
    *
    * @return an iterator over the elements in this IndexedSet
    */
   @Override
   public Iterator<T> iterator() {
-    synchronized (mLock) {
-      return mObjects.iterator();
+    return new IndexedSetIterator();
+  }
+
+  /**
+   *  Specialized iterator for {@link IndexedSet}.
+   *
+   *  This is needed to support consistent removal from the set and the indices.
+   */
+  private class IndexedSetIterator implements Iterator<T> {
+    private final Iterator<T> mSetIterator;
+    private T mLast;
+
+    public IndexedSetIterator() {
+      mSetIterator = mObjects.iterator();
+      mLast = null;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return mSetIterator.hasNext();
+    }
+
+    @Override
+    public T next() {
+      final T next = mSetIterator.next();
+      mLast = next;
+      return next;
+    }
+
+    @Override
+    public void remove() {
+      if (mLast != null) {
+        synchronized (mLock) {
+          mSetIterator.remove();
+          removeFromIndices(mLast);
+          mLast = null;
+        }
+      } else {
+        throw new IllegalStateException("Next was never called before");
+      }
     }
   }
 
@@ -258,21 +311,38 @@ public class IndexedSet<T> implements Iterable<T> {
   public boolean remove(T object) {
     synchronized (mLock) {
       boolean success = mObjects.remove(object);
-      for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
-        Object fieldValue = index.getKey().getFieldValue(object);
-        Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
-        Set<T> set = fieldValueToSet.get(fieldValue);
-        if (set != null) {
-          if (!set.remove(object)) {
-            LOG.error("Fail to remove object " + object.toString() + " from IndexedSet.");
-            success = false;
-          }
-          if (set.isEmpty()) {
-            fieldValueToSet.remove(fieldValue);
-          }
-        }
+      if (success) {
+        removeFromIndices(object);
       }
       return success;
+    }
+  }
+
+  /**
+   * Helper method that removes an object from the two level-indices structure.
+   * Precondition: {@code object} was in {@code mObjects} and was just successfully
+   * removed from it before calling this method.
+   *
+   * Refactored for being called from both {@link #remove(Object)} and {@link tachyon.collections
+   * .IndexedSet.IndexedSetIterator#remove()}
+   * @param object the object to be removed
+   */
+  private void removeFromIndices(T object) {
+    for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
+      Object fieldValue = index.getKey().getFieldValue(object);
+      Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
+      Set<T> set = fieldValueToSet.get(fieldValue);
+      if (set != null) {
+        if (!set.remove(object)) {
+          //runtime exception rather than returning false,
+          //since it would mean that the IndexedSet is in an inconsistent state --> BUG
+          throw new IllegalStateException("Fail to remove object " + object.toString()
+              + "from IndexedSet.");
+        }
+        if (set.isEmpty()) {
+          fieldValueToSet.remove(fieldValue);
+        }
+      }
     }
   }
 
