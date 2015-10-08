@@ -76,15 +76,17 @@ To run all unit tests:
 
     $ mvn test
 
-To run all the unit tests with under filesystem other than local filesystem:
+To run all the unit tests with under storage other than local filesystem:
 
-    $ mvn test [ -Dhadoop.version=x.x.x ] [ -Dtest.profile=hdfs ]
+    $ mvn test [ -Dhadoop.version=x.x.x ] [ -Phdfs1Test ]
 
-Current supported profiles:
+Current supported under storage profiles:
 
-    local #default, uses local disk
-    hdfs # uses hadoop's minicluster
-    glusterfs # uses glusterfs
+    Not Specified # [Default] Tests against local file system
+    hdfs1Test     # Tests against HDFS 1.x minicluster
+    hdfs2Test     # Tests against HDFS 2.x minicluster
+    glusterfsTest # Tests against GlusterFS
+    s3Test        # Tests against s3 (requires a real s3 bucket)
 
 To have the logs output to STDOUT, append the following to the `mvn` command
 
