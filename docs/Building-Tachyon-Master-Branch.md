@@ -2,7 +2,7 @@
 layout: global
 title: Building Tachyon Master Branch
 nickname: Building Master Branch
-group: Development
+group: Dev Resources
 ---
 
 ### toc
