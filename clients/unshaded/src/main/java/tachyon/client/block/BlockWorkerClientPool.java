@@ -24,7 +24,6 @@ import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
 import tachyon.thrift.NetAddress;
-import tachyon.worker.ClientMetrics;
 import tachyon.worker.WorkerClient;
 
 /**
