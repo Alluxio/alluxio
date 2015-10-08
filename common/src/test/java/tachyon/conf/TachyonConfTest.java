@@ -120,10 +120,6 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.getLocalHostName(100), value);
 
-    value = sDefaultTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals("/tmp", value);
-
     value = sDefaultTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
     Assert.assertNotNull(value);
     Assert.assertEquals(Constants.FORMAT_FILE_PREFIX, value);
@@ -196,9 +192,6 @@ public class TachyonConfTest {
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS);
-    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
     Assert.assertEquals(1, intValue);
