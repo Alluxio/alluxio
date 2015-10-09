@@ -17,6 +17,8 @@ package tachyon.client;
 
 import java.net.InetSocketAddress;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import com.google.common.base.Preconditions;
 
@@ -24,6 +26,7 @@ import tachyon.Constants;
 import tachyon.client.block.BlockStoreContext;
 import tachyon.client.file.FileSystemContext;
 import tachyon.conf.TachyonConf;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.ClientMetrics;
 
 /**
@@ -32,6 +35,8 @@ import tachyon.worker.ClientMetrics;
  * thread safe.
  */
 public final class ClientContext {
+
+  private static ExecutorService sExecutorService;
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
    * client.
@@ -75,6 +80,10 @@ public final class ClientContext {
     sClientMetrics = new ClientMetrics();
 
     sRandom = new Random();
+
+    sExecutorService = Executors.newFixedThreadPool(
+        sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
   }
 
   /**
@@ -105,6 +114,9 @@ public final class ClientContext {
     return Math.abs(sRandom.nextLong());
   }
 
+  public static ExecutorService getExecutorService() {
+    return sExecutorService;
+  }
   /**
    * PrivateReinitializer can be used to reset the context. This access is limited only to classes
    * that implement ReinitializeAccess class.
@@ -124,6 +136,11 @@ public final class ClientContext {
       sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
 
       sRandom = new Random();
+      sExecutorService.shutdown();
+      sExecutorService = Executors.newFixedThreadPool(
+          sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+          ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+
       // the initialization is done lazily because BlockStoreContext and FileSystemContext need
       // ClientContext for class initialization
       if (sBSCReinitializer == null || sFSCReinitializer == null) {
