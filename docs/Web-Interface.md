@@ -4,12 +4,19 @@ group: Features
 title: Web Interface
 ---
 
-Tachyon has a user-friendly web interface allowing users to watch and manage the system. The master and workers all serve their own web UI. The default port for the web interface is 19999 for the master and 30000 for the worker.
+Tachyon has a user-friendly web interface allowing users to watch and manage the system. The master and workers all serve their own web UI. The default port for the web interface is 19999 for the master and 30000 for the workers.
 
-# Master Web Interface
+# Tachyon Master Web Interface
+
+The Tachyon master serves a web interface to help manage the system. The default port for the Tachyon master web interface is 19999, so the web interface can be viewed by visiting: `http://<MASTER IP>:19999`. If you started Tachyon locally, the master web interface can be viewed at: [localhost:19999](http://localhost:19999).
+
+The Tachyon master web interface contains several different pages, described below.
 
 ## Home Page
-![home](./img/screenshot_overview.png)
+
+The Tachyon master home page looks something like below:
+
+![Tachyon Master Home Page](./img/screenshot_overview.png)
 
 The home page gives an overview of the system's status. It includes the following sections:
 
@@ -23,12 +30,45 @@ The home page gives an overview of the system's status. It includes the followin
 
 * **Storage Usage Summary**
 
-    Tachyon tiered storage information which gives a break down of amount of space used per tier.
+    Tachyon tiered storage information which gives a break down of amount of space used per tier across the Tachyon cluster.
+
+## Configuration Page
+To check the current system configuration information, click "System Configuration" in the navbar on the top of the screen.
+
+![configurations](./img/screenshot_systemConfiguration.png)
+
+The configuration page has two sections:
+
+* **Tachyon Configuration**
+
+	A map of all the Tachyon configuration properties and their set values.
+
+* **White List**
+
+    Contains all the Tachyon path prefixes eligible to be stored in Tachyon. A request may still be made to a file not prefixed by a path in the white list. Only white listed files will be stored in Tachyon.
+
+## Browse File System Page
+
+You can browse the Tachyon file system through the UI. When selecting the "Browse File System" tab in the navbar, you will see something like this:
+
+![browse](./img/screenshot_browseFileSystem.png)
+
+Files in the current folder are listed, with the file name, file size, size for each block, the percentage of in-memory data, creation time, and the modification time. To view the content of a file, click on that file.
+
+## Browse In-Memory Files Piage
+To browse all in-memory files, click on the "In-Memory Files" tab in the navbar.
+
+![inMemFiles](./img/screenshot_inMemoryFiles.png)
+
+Files currently in the memory tier are listed, with the file name, file size, size for each block, whether the file is pinned or not, the file creation time, and the file modification time.
 
 ## Workers Page
+
+The master also shows all known Tachyon workers in the system and shows them in the "Workers" tab.
+
 ![workers](./img/screenshot_workers.png)
 
-To access the worker status page, click the **workers** button in the navbar on the top of the screen. The workers page gives an overview of all Tachyon worker nodes divided into two sections:
+The workers page gives an overview of all Tachyon worker nodes divided into two sections:
 
 * **Live Nodes**
 
@@ -38,25 +78,15 @@ To access the worker status page, click the **workers** button in the navbar on 
 
     A list of all workers proclaimed as dead by the master, usually due to a long timeout waiting for the worker heartbeat. Possible causes include system restart or network failures.
 
-## Configuration Page
-![configurations](./img/screenshot_systemConfiguration.png)
 
-To check the current system configuration information, click "System Configuration" in the navbar on the top of the screen. The configuration page has two sections:
+# Tachyon Workers Web Interface
 
-* **Tachyon Configuration**
+Each Tachyon worker also serves a web interface to show worker information. The default port for the worker web interface is 30000 so the web interface can be viewed by visiting: `http://<WORKER IP>:30000`. If you started Tachyon locally, the worker web interface can be viewed at: [localhost:30000](http://localhost:30000).
 
-	A map of all the Tachyon configuration strings and their set values.
+## Home Page
 
-* **White List**
+The home page for the Tachyon worker web interface is similar to the home page for the Tachyon master, but shows information local to a single worker. Therefore, it has similar sections: **Worker Summary**, **Storage Usage Summary**, **Tiered Storage Details**.
 
-    Contains all the paths eligible to be Stored in Tachyon. A request may still be made to a file not in the white list. Only white listed files will be stored in Tachyon.
+## BlockInfo Page
 
-## Browse Filesystem
-![browse](./img/screenshot_browseFileSystem.png)
-
-To browse the list of files, click "Browse File System" in the navbar on the top of the screen. In the **browsing page**, files in the current folder are listed, with the file name, file size, size for each block, the percentage of in-memory data, and the creation time. To view the content of a file in detail, click on that file.
-
-## Browse In-Memory Files
-![inMemFiles](./img/screenshot_inMemoryFiles.png)
-
-To browse all in-memory files, click the "In Memory Files" button. In the **in memory files page**, files, currently in memory are listed, with the file name, file size, size for each block, whether the file is pinned or not, the file creation time, and the file modification time.
+In the "BlockInfo" page, you can see the files on the worker, and other information such the file size and which tiers the files is stored on. Also, if you click on a file, you can view all the blocks of that file.
