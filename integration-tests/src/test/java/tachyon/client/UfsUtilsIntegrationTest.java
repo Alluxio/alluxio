@@ -57,7 +57,7 @@ public class UfsUtilsIntegrationTest {
     mTachyonFileSystem = mLocalTachyonCluster.getClient();
 
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mUfsRoot = masterConf.get(Constants.UNDERFS_DATA_FOLDER);
+    mUfsRoot = masterConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUfsRoot + TachyonURI.SEPARATOR, masterConf);
   }
 

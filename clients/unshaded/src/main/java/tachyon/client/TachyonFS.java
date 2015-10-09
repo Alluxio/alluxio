@@ -41,11 +41,13 @@ import tachyon.client.file.FileSystemContext;
 import tachyon.client.table.RawTable;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
+import tachyon.exception.ExceptionMessage;
 import tachyon.thrift.DependencyInfo;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.WorkerInfo;
+import tachyon.util.IdUtils;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -292,11 +294,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the dependency's id
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized int createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
-    return mFSMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
-        framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
@@ -363,9 +365,9 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Deletes a file or folder.
    *
-   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty iff id is not -1.
+   * @param fileId The id of the file / folder. If it is not INVALID_FILE_ID, path parameter is
+   *        ignored. Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty iff id is not INVALID_FILE_ID.
    * @param recursive If fileId or path represents a non-empty folder, delete the folder recursively
    *        or not.
    * @return true if deletes successfully, false otherwise
@@ -375,13 +377,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean delete(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
+    fileId = getValidFileId(fileId, path.getPath());
     try {
       return mFSMasterClient.deleteFile(fileId, recursive);
     } catch (TachyonException e) {
@@ -399,7 +395,7 @@ public class TachyonFS extends AbstractTachyonFS {
   // TODO(calvin): Consider making an exists function.
   public synchronized boolean exist(TachyonURI path) throws IOException {
     try {
-      FileInfo info = getFileStatus(-1, path, false);
+      FileInfo info = getFileStatus(IdUtils.INVALID_FILE_ID, path, false);
       return info != null;
     } catch (IOException ioe) {
       return false;
@@ -460,8 +456,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the DependencyInfo of the specified dependency
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized DependencyInfo getClientDependencyInfo(int depId) throws IOException {
-    return mFSMasterClient.getDependencyInfo(depId);
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**
@@ -529,11 +526,31 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized TachyonFile getFile(TachyonURI path, boolean useCachedMetadata)
       throws IOException {
     validateUri(path);
-    FileInfo fileInfo = getFileStatus(-1, path, useCachedMetadata);
+    FileInfo fileInfo = getFileStatus(IdUtils.INVALID_FILE_ID, path, useCachedMetadata);
     if (fileInfo == null) {
       return null;
     }
     return new TachyonFile(this, fileInfo.getFileId(), mTachyonConf);
+  }
+
+  /**
+   * If the given file id is INVALID_FILE_ID, tries to fetch the file id for the given path
+   *
+   * @param fileId
+   * @param path the path to search for if fileId is INVALID_FILE_ID
+   * @return the original fileId if it wasn't INVALID_FILE_ID, or a new fileId corresponding to the
+   *         given path
+   * @throws IOException if the given fileId is INVALID_FILE_ID and no fileId was found for the
+   *         given path
+   */
+  private long getValidFileId(long fileId, String path) throws IOException {
+    if (fileId == IdUtils.INVALID_FILE_ID) {
+      fileId = mFSMasterClient.getFileId(path);
+      if (fileId == IdUtils.INVALID_FILE_ID) {
+        throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
+    }
+    return fileId;
   }
 
   /**
@@ -557,14 +574,14 @@ public class TachyonFS extends AbstractTachyonFS {
    * Get file id by the path. It will check if the path exists.
    *
    * @param path the path in Tachyon file system
-   * @return the file id if exists, -1 otherwise
+   * @return the file id if exists, INVALID_FILE_ID otherwise
    */
   public synchronized long getFileId(TachyonURI path) {
     try {
-      FileInfo fileInfo = getFileStatus(-1, path, false);
-      return fileInfo == null ? -1 : fileInfo.getFileId();
+      FileInfo fileInfo = getFileStatus(IdUtils.INVALID_FILE_ID, path, false);
+      return fileInfo == null ? -IdUtils.INVALID_FILE_ID : fileInfo.getFileId();
     } catch (IOException e) {
-      return -1;
+      return IdUtils.INVALID_FILE_ID;
     }
   }
 
@@ -573,8 +590,9 @@ public class TachyonFS extends AbstractTachyonFS {
    *
    * @param cache FileInfo cache.
    * @param key the key in the cache.
-   * @param fileId the id of the queried file. If it is -1, uses path.
-   * @param path the path of the queried file. If fielId is not -1, this parameter is ignored.
+   * @param fileId the id of the queried file. If it is INVALID_FILE_ID, uses path.
+   * @param path the path of the queried file. If fielId is not INVALID_FILE_ID, this parameter is
+   *        ignored.
    * @param useCachedMetaData whether to use the cached data or not.
    * @return the clientFileInfo.
    * @throws IOException if the underlying master RPC fails
@@ -589,17 +607,7 @@ public class TachyonFS extends AbstractTachyonFS {
       }
     }
 
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(path);
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
-    if (fileId == -1) {
-      cache.remove(key);
-      return null;
-    }
+    fileId = getValidFileId(fileId, path);
     try {
       info = mFSMasterClient.getFileInfo(fileId);
     } catch (TachyonException e) {
@@ -617,23 +625,17 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Advanced API.
    *
-   * Gets the FileInfo object that represents the fileId, or the path if fileId is -1.
+   * Gets the FileInfo object that represents the fileId, or the path if fileId is INVALID_FILE_ID.
    *
    * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
+   * @param path the path of the file or folder. valid iff fileId is INVALID_FILE_ID.
    * @param useCachedMetadata if true use the local cached meta data
    * @return the FileInfo of the file. null if the file does not exist.
    * @throws IOException if the underlying master RPC fails
    */
   public synchronized FileInfo getFileStatus(long fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
+    fileId = getValidFileId(fileId, path.getPath());
     return getFileStatus(mIdToClientFileInfo, fileId, fileId, TachyonURI.EMPTY_URI.getPath(),
         useCachedMetadata);
   }
@@ -798,7 +800,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized List<FileInfo> listStatus(TachyonURI path) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.getFileInfoList(getFileStatus(-1, path).getFileId());
+      return mFSMasterClient.getFileInfoList(getFileStatus(IdUtils.INVALID_FILE_ID, path)
+          .getFileId());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -869,9 +872,9 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Frees an in-memory file or folder.
    *
-   * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the path parameter.
-   * @param path The path of the file / folder. It could be empty iff id is not -1.
+   * @param fileId The id of the file / folder. If it is not INVALID_FILE_ID, path parameter is
+   *        ignored. Otherwise, the method uses the path parameter.
+   * @param path The path of the file / folder. It could be empty iff id is not INVALID_FILE_ID.
    * @param recursive If fileId or path represents a non-empty folder, free the folder recursively
    *        or not
    * @return true if in-memory free successfully, false otherwise.
@@ -881,13 +884,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean freepath(long fileId, TachyonURI path, boolean recursive)
       throws IOException {
     validateUri(path);
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(path.getPath());
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
+    fileId = getValidFileId(fileId, path.getPath());
     try {
       return mFSMasterClient.free(fileId, recursive);
     } catch (TachyonException e) {
@@ -912,10 +909,12 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Renames a file or folder to the indicated new path.
    *
-   * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
-   *        Otherwise, the method uses the srcPath parameter.
-   * @param srcPath The path of the source file / folder. It could be empty iff id is not -1.
-   * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
+   * @param fileId The id of the source file / folder. If it is not INVALID_FILE_ID, path parameter
+   *        is ignored. Otherwise, the method uses the srcPath parameter.
+   * @param srcPath The path of the source file / folder. It could be empty iff id is not
+   *        INVALID_FILE_ID.
+   * @param dstPath The path of the destination file / folder. It could be empty iff id is not
+   *        INVALID_FILE_ID.
    * @return true if renames successfully, false otherwise.
    * @throws IOException if the underlying master RPC fails
    */
@@ -924,13 +923,7 @@ public class TachyonFS extends AbstractTachyonFS {
       throws IOException {
     validateUri(srcPath);
     validateUri(dstPath);
-    if (fileId == -1) {
-      try {
-        fileId = mFSMasterClient.getFileId(srcPath.getPath());
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      }
-    }
+    fileId = getValidFileId(fileId, srcPath.getPath());
     try {
       return mFSMasterClient.renameFile(fileId, dstPath.getPath());
     } catch (TachyonException e) {
@@ -958,12 +951,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param depId the dependency id
    * @throws IOException if the underlying master RPC fails
    */
+  @Deprecated
   public synchronized void requestFilesInDependency(int depId) throws IOException {
-    try {
-      mFSMasterClient.requestFilesInDependency(depId);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
+    throw new UnsupportedOperationException("operation not supported");
   }
 
   /**

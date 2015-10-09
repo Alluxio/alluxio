@@ -13,30 +13,36 @@
  * the License.
  */
 
-package tachyon.client.file.options;
+package tachyon.client.lineage.options;
 
-import java.util.Random;
-
-import org.junit.Assert;
-import org.junit.Test;
-
+import tachyon.annotation.PublicApi;
+import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
-public class MkdirOptionsTest {
-  @Test
-  public void builderTest() {
-    Random random = new Random();
-    boolean recursive = random.nextBoolean();
+@PublicApi
+public final class CreateLineageOptions {
+  private static class Builder {
+    /**
+     * Creates a new builder for {@link CreateLineageOptions}.
+     *
+     * @param conf a Tachyon configuration.
+     */
+    public Builder(TachyonConf conf) {}
 
-    MkdirOptions options =
-        new MkdirOptions.Builder(new TachyonConf()).setRecursive(recursive).build();
-
-    Assert.assertEquals(recursive, options.isRecursive());
+    /**
+     * @return builds a new instance of {@code CreateLineageOptions}
+     */
+    public CreateLineageOptions build() {
+      return new CreateLineageOptions(this);
+    }
   }
 
-  @Test
-  public void defaultsTest() {
-    MkdirOptions options = MkdirOptions.defaults();
-    Assert.assertFalse(options.isRecursive());
+  /**
+   * @return the default options.
+   */
+  public static CreateLineageOptions defaults() {
+    return new Builder(ClientContext.getConf()).build();
   }
+
+  private CreateLineageOptions(CreateLineageOptions.Builder buidler) {}
 }

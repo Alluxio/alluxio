@@ -66,7 +66,7 @@ public class TachyonLineageFileSystem extends TachyonFileSystem {
     LineageMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId =
-          masterClient.reintializeFile(path.getPath(), options.getBlockSize(), options.getTTL());
+          masterClient.reinitializeFile(path.getPath(), options.getBlockSize(), options.getTTL());
       return fileId;
     } catch (TachyonException e) {
       TachyonException.unwrap(e, LineageDoesNotExistException.class);
