@@ -13,11 +13,11 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.heartbeat;
 
 /**
- * The interface for a periodical heartbeat. <code>HeartbeatThread</code> calls the
- * <code>heartbeat()</code> method.
+ * An interface for a heartbeat execution. The {@link HeartbeatThread} calls the
+ * {@link #heartbeat()} method.
  */
 public interface HeartbeatExecutor {
   void heartbeat();

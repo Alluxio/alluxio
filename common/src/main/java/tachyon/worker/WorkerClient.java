@@ -31,10 +31,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.HeartbeatThread;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonExceptionType;
+import tachyon.heartbeat.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonTException;

@@ -13,36 +13,48 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.heartbeat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
+import tachyon.util.CommonUtils;
+
 /**
- * Thread class to execute a heartbeat periodically. This Thread is daemonic, so it will not prevent
+ * Thread class to execute a heartbeat periodically. This thread is daemonic, so it will not prevent
  * the JVM from exiting.
  */
 public final class HeartbeatThread implements Runnable {
+  public static String sHeartbeatTimerClass = "tachyon.heartbeat.SleepingTimer";
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
-  private final long mFixedExecutionIntervalMs;
+  private HeartbeatTimer mTimer;
 
   /**
    * @param threadName Identifies the heartbeat thread name.
-   * @param hbExecutor Identifies the heartbeat thread executor; an
-   *        instance of a class that implements the HeartbeatExecutor
-   *        interface.
-   * @param fixedExecutionIntervalMs Sleep time between different heartbeat.
+   * @param executor Identifies the heartbeat thread executor; an instance of a class that
+   *        implements the HeartbeatExecutor interface.
+   * @param intervalMs Sleep time between different heartbeat.
    */
-  public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
-      long fixedExecutionIntervalMs) {
+  public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs) {
     mThreadName = threadName;
-    mExecutor = Preconditions.checkNotNull(hbExecutor);
-    mFixedExecutionIntervalMs = fixedExecutionIntervalMs;
+    mExecutor = Preconditions.checkNotNull(executor);
+    try {
+      Class<HeartbeatTimer> heartbeatClass =
+          (Class<HeartbeatTimer>) Class.forName(sHeartbeatTimerClass);
+      mTimer =
+          CommonUtils.createNewClassInstance(heartbeatClass,
+              new Class[] {String.class, long.class}, new Object[] {threadName, intervalMs});
+    } catch (Exception e) {
+      String msg = "requested class could not be loaded";
+      LOG.error("{} : {} , {}", msg, sHeartbeatTimerClass, e);
+      mTimer = new SleepingTimer(threadName, intervalMs);
+    }
   }
 
   @Override
@@ -51,15 +63,8 @@ public final class HeartbeatThread implements Runnable {
     Thread.currentThread().setName(mThreadName);
     try {
       while (!Thread.interrupted()) {
-        long lastMs = System.currentTimeMillis();
+        mTimer.tick();
         mExecutor.heartbeat();
-        long executionTimeMs = System.currentTimeMillis() - lastMs;
-        if (executionTimeMs > mFixedExecutionIntervalMs) {
-          LOG.warn(mThreadName + " last execution took " + executionTimeMs + " ms. Longer than "
-              + " the mFixedExecutionIntervalMs " + mFixedExecutionIntervalMs);
-        } else {
-          Thread.sleep(mFixedExecutionIntervalMs - executionTimeMs);
-        }
       }
     } catch (InterruptedException e) {
       // exit, reset interrupt
