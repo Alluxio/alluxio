@@ -50,7 +50,6 @@ public final class SessionCleaner implements Runnable {
     mRunning = true;
   }
 
-
   /**
    * Main loop for the cleanup, continuously look for zombie sessions
    */

@@ -278,10 +278,8 @@ public final class Constants {
       "tachyon.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_BLOCK_WRITER =
       "tachyon.user.block.remote.writer.class";
-  public static final String USER_BLOCK_REMOTE_WORKER_CLIENT_THREADS =
-      "tachyon.user.block.remote.worker.client.threads";
-  public static final String USER_BLOCK_LOCAL_WORKER_CLIENT_THREADS =
-      "tachyon.user.block.local.worker.client.threads";
+  public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
+      "tachyon.user.block.worker.client.threads";
   public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
       "tachyon.user.block.master.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
