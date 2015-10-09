@@ -176,7 +176,8 @@ fi
 masters=($(echo $masters | tr '\n' ' ' | tr -d '\r'))
 
 if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
-  info "Tachyon is in Fault Tolerant mode, all Tachyon masters:"
+  info "Tachyon is in Fault Tolerant mode, waiting 5 seconds for leader to be selected and web UI to be available"
+  sleep 5
   for master in ${masters[@]}; do
     info "Tachyon master: ${master}"
     info "Trying to curl Tachyon web UI at ${master}:19999"
@@ -186,7 +187,6 @@ if [[ "$TACHYON_MASTERS" -gt 1 ]]; then
       break
     fi
   done
-  info "Master public IP for other softwares is ${main_master}"
 else
   info "TachyonMaster public IP is ${main_master}, visit ${main_master}:19999 for Tachyon web UI"
 fi

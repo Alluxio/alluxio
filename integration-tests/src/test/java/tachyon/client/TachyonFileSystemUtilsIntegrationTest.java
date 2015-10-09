@@ -93,7 +93,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
     final int numWrites = 4; // random value chosen through a fair dice roll :P
     final TachyonURI uri = new TachyonURI(uniqPath);
 
-
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
@@ -116,7 +115,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
         }
       }
     };
-
 
     final Runnable waiter = new Runnable() {
       @Override
@@ -151,7 +149,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
     final int numWrites = 4; // random value chosen through a fair dice roll :P
     final TachyonURI uri = new TachyonURI(uniqPath);
 
-
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
@@ -175,7 +172,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
         }
       }
     };
-
 
     final Runnable waiter = new Runnable() {
       @Override
