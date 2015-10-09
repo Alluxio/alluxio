@@ -174,5 +174,9 @@
       <message key="name.invalidPattern"
                value="Static member name ''{0}'' must match pattern ''{1}''."/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="^\s*this\."/>
+      <property name="message" value="keyword this is not needed"/>
+    </module>
   </module>
 </module>
