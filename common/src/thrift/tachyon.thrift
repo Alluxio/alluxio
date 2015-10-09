@@ -215,7 +215,7 @@ service FileSystemMasterService {
     throws (1: TachyonTException e)
 
   void reportLostFile(1: i64 fileId)
-    throws (1: TachyonTException e, 2: ThriftIOException ioe)
+    throws (1: TachyonTException e)
 
   void setPinned(1: i64 fileId, 2: bool pinned)
     throws (1: TachyonTException e)
