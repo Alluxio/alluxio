@@ -43,7 +43,7 @@ import tachyon.util.io.PathUtils;
  */
 public class TachyonFramework {
   static class TachyonScheduler implements Scheduler {
-    private static TachyonConf sConf = new TachyonConf();  
+    private static TachyonConf sConf = new TachyonConf();
     private boolean mMasterLaunched = false;
     private String mMasterHostname = "";
     private String mTaskName = "";
@@ -51,7 +51,7 @@ public class TachyonFramework {
     private Set<String> mWorkers = new HashSet<String>();
     int mLaunchedTasks = 0;
     int mMasterCount = 0;
-    
+
     @Override
     public void disconnected(SchedulerDriver driver) {
       System.out.println("Disconnected from master.");
@@ -120,8 +120,8 @@ public class TachyonFramework {
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
         double targetCpu;
         double targetMem;
-        if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem && mMasterCount 
-              < sConf.getInt(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT)) {
+        if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem
+            && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT)) {
           executorBuilder
               .setName("Tachyon Master Executor")
               .setSource("master")
@@ -140,7 +140,7 @@ public class TachyonFramework {
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NAME);
-          mMasterCount++;
+          mMasterCount ++;
           mMasterTaskId = mLaunchedTasks;
 
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
@@ -150,18 +150,27 @@ public class TachyonFramework {
               .setName("Tachyon Worker Executor")
               .setSource("worker")
               .setExecutorId(Protos.ExecutorID.newBuilder().setValue("worker"))
-              .setCommand(Protos.CommandInfo.newBuilder().setValue(
-                      "export JAVA_HOME=" + sConf.get(Constants.INTEGRATION_MESOS_JRE_VERSION)
+              .setCommand(
+                  Protos.CommandInfo
+                      .newBuilder()
+                      .setValue(
+                          "export JAVA_HOME="
+                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_VERSION)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("tachyon", "integration", "bin",
                                   "tachyon-worker-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
-              .setEnvironment(Protos.Environment.newBuilder()
-                  .addVariables(Protos.Environment.Variable.newBuilder()
-                          .setName("TACHYON_MASTER_ADDRESS").setValue(mMasterHostname).build())
-                  .addVariables(Protos.Environment.Variable.newBuilder()
-                          .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE).build())
-                          .build()));
+                      .setEnvironment(
+                          Protos.Environment
+                              .newBuilder()
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("TACHYON_MASTER_ADDRESS").setValue(mMasterHostname)
+                                      .build())
+                              .addVariables(
+                                  Protos.Environment.Variable.newBuilder()
+                                      .setName("TACHYON_WORKER_MEMORY_SIZE").setValue(MEM_SIZE)
+                                      .build()).build()));
           targetCpu = workerCpu;
           targetMem = workerMem;
           mWorkers.add(offer.getHostname());
@@ -171,14 +180,13 @@ public class TachyonFramework {
           driver.declineOffer(offer.getId());
           continue;
         }
-        
+
         Protos.TaskID taskId =
-                Protos.TaskID.newBuilder().setValue(String.valueOf(mLaunchedTasks)).build();
+            Protos.TaskID.newBuilder().setValue(String.valueOf(mLaunchedTasks)).build();
 
         System.out.println("Launching task " + taskId.getValue() + " using offer "
-                + offer.getId().getValue());
+            + offer.getId().getValue());
 
-        
         Protos.TaskInfo task =
             Protos.TaskInfo
                 .newBuilder()
@@ -196,7 +204,7 @@ public class TachyonFramework {
                 .setExecutor(executorBuilder).build();
 
         launch.addTaskInfos(Protos.TaskInfo.newBuilder(task));
-        mLaunchedTasks++;
+        mLaunchedTasks ++;
 
         // NOTE: We use the new API `acceptOffers` here to launch tasks.
         // The 'launchTasks' API will be deprecated.
@@ -227,13 +235,13 @@ public class TachyonFramework {
       // In particular, we should enable support for the fault tolerant mode of Tachyon to account
       // for Tachyon master process failures and keep track of the running number of Tachyon
       // masters.
-      
+
       switch (status.getState()) {
-        case TASK_FAILED: // fallthrough
-        case TASK_LOST:
-        case TASK_ERROR:  
+        case TASK_FAILED: // intend to fall through
+        case TASK_LOST: // intend to fall through
+        case TASK_ERROR:
           if (status.getTaskId().getValue().equals(String.valueOf(mMasterTaskId))) {
-            mMasterCount--;
+            mMasterCount --;
           }
           break;
         case TASK_RUNNING:
@@ -261,8 +269,9 @@ public class TachyonFramework {
     return Lists.newArrayList(
         CommandInfo.URI.newBuilder()
             .setValue(PathUtils.concatPath(dependencyPath, "tachyon.tar.gz")).setExtract(true)
-            .build(), CommandInfo.URI.newBuilder()
-            .setValue(conf.get(Constants.INTEGRATION_MESOS_JRE_URL)).setExtract(true).build());
+            .build(),
+        CommandInfo.URI.newBuilder().setValue(conf.get(Constants.INTEGRATION_MESOS_JRE_URL))
+            .setExtract(true).build());
   }
 
   public static void main(String[] args) throws Exception {
