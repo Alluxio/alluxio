@@ -42,8 +42,6 @@ public final class LineageWorker {
   /** Logic for managing lineage file persistence */
   private final LineageDataManager mLineageDataManager;
   /** Threadpool for the lineage master sync */
-  /** The executor service for the master client thread */
-  private final ExecutorService mMasterClientExecutorService;
   /** The executor service for the master sync */
   private final ExecutorService mSyncExecutorService;
   /** Client for lineage master communication. */
@@ -63,12 +61,9 @@ public final class LineageWorker {
         new LineageDataManager(Preconditions.checkNotNull(blockDataManager));
     mWorkerId = workerId;
 
-    // Setup MasterClientBase along with its heartbeat ExecutorService
-    mMasterClientExecutorService = Executors.newFixedThreadPool(1,
-        ThreadFactoryUtils.build("lineage-worker-client-heartbeat-%d", true));
+    // Setup MasterClientBase
     mLineageMasterWorkerClient = new LineageMasterWorkerClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
     mSyncExecutorService = Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("lineage-worker-heartbeat-%d", true));

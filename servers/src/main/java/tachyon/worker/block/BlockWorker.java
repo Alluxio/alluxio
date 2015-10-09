@@ -79,8 +79,6 @@ public final class BlockWorker {
   private final WorkerBlockMasterClient mBlockMasterClient;
   /** Client for all file system master communication */
   private final WorkerFileSystemMasterClient mFileSystemMasterClient;
-  /** The executor service for the master client thread */
-  private final ExecutorService mMasterClientExecutorService;
   /** Threadpool for the master sync */
   private final ExecutorService mSyncExecutorService;
   /** Net address of this worker */
@@ -163,17 +161,12 @@ public final class BlockWorker {
     mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 
-    // Setup MasterClientBase along with its heartbeat ExecutorService
-    mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1,
-            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mBlockMasterClient =
-        new WorkerBlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
+    // Setup MasterClientBase
+    mBlockMasterClient = new WorkerBlockMasterClient(
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
     mFileSystemMasterClient = new WorkerFileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
@@ -308,7 +301,6 @@ public final class BlockWorker {
       mSpaceReserver.stop();
     }
     mFileSystemMasterClient.close();
-    mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     mWorkerMetricsSystem.stop();
     try {

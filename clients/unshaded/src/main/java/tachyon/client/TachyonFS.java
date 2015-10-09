@@ -23,8 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -48,7 +46,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -151,7 +148,6 @@ public class TachyonFS extends AbstractTachyonFS {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final int mUserFailedSpaceRequestLimits;
-  private final ExecutorService mExecutorService;
 
   /** The RPC client talks to the file system master. */
   private final FileSystemMasterClient mFSMasterClient;
@@ -185,12 +181,10 @@ public class TachyonFS extends AbstractTachyonFS {
 
     mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, tachyonConf);
     mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
-    mExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
     mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
-    mRawTableMasterClient = mCloser.register(new RawTableMasterClient(mMasterAddress,
-        mExecutorService, mTachyonConf));
+    mRawTableMasterClient =
+        mCloser.register(new RawTableMasterClient(mMasterAddress, mTachyonConf));
     mWorkerClient = mCloser.register(BlockStoreContext.INSTANCE.acquireWorkerClient());
     mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
@@ -258,11 +252,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Override
   public synchronized void close() throws IOException {
-    try {
-      mCloser.close();
-    } finally {
-      mExecutorService.shutdown();
-    }
+    mCloser.close();
   }
 
   /**
@@ -318,8 +308,7 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeByte > 0) {
-        return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive,
-            Constants.NO_TTL);
+        return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive, Constants.NO_TTL);
       } else {
         return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), recursive);
       }
@@ -356,8 +345,8 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     if (columns < 1 || columns > maxColumns) {
-      throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
-          + maxColumns);
+      throw new IOException(
+          "Column count " + columns + " is smaller than 1 or " + "bigger than " + maxColumns);
     }
     return mRawTableMasterClient.createRawTable(path, columns, metadata);
   }
@@ -446,8 +435,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   synchronized FileBlockInfo getClientBlockInfo(long blockId) throws IOException {
-    throw new UnsupportedOperationException("FileBlockInfo is no longer supported, use FileInfo "
-        + "and/or BlockInfo");
+    throw new UnsupportedOperationException(
+        "FileBlockInfo is no longer supported, use FileInfo " + "and/or BlockInfo");
   }
 
   /**
@@ -800,8 +789,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized List<FileInfo> listStatus(TachyonURI path) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.getFileInfoList(getFileStatus(IdUtils.INVALID_FILE_ID, path)
-          .getFileId());
+      return mFSMasterClient
+          .getFileInfoList(getFileStatus(IdUtils.INVALID_FILE_ID, path).getFileId());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -1072,8 +1061,7 @@ public class TachyonFS extends AbstractTachyonFS {
     Preconditions.checkNotNull(uri, "URI cannot be null.");
     Preconditions.checkArgument(uri.isPathAbsolute() || TachyonURI.EMPTY_URI.equals(uri),
         "URI must be absolute, unless it's empty.");
-    Preconditions.checkArgument(
-        !uri.hasScheme() || mRootUri.getScheme().equals(uri.getScheme()),
+    Preconditions.checkArgument(!uri.hasScheme() || mRootUri.getScheme().equals(uri.getScheme()),
         "URI's scheme: " + uri.getScheme() + " must match the file system's scheme: "
             + mRootUri.getScheme() + ", unless it doesn't have a scheme.");
     Preconditions.checkArgument(
