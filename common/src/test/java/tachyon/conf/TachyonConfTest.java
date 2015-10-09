@@ -62,7 +62,7 @@ public class TachyonConfTest {
   // test default properties
 
   @Test
-  public void testCommonDefault() {
+  public void commonDefaultTest() {
     String tachyonHome = sDefaultTachyonConf.get(Constants.TACHYON_HOME);
     Assert.assertNotNull(tachyonHome);
     Assert.assertEquals("/mnt/tachyon_default_home", tachyonHome);
@@ -107,7 +107,7 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testMasterDefault() {
+  public void masterDefaultTest() {
     String tachyonHome = sDefaultTachyonConf.get(Constants.TACHYON_HOME);
     Assert.assertNotNull(tachyonHome);
     Assert.assertEquals("/mnt/tachyon_default_home", tachyonHome);
@@ -155,7 +155,7 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testWorkerDefault() {
+  public void workerDefaultTest() {
     String value = sDefaultTachyonConf.get(Constants.WORKER_DATA_FOLDER);
     Assert.assertNotNull(value);
     Assert.assertEquals("/tachyonworker/", value);
@@ -204,7 +204,7 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testUserDefault() {
+  public void userDefaultTest() {
     int intValue = sDefaultTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     Assert.assertEquals(3, intValue);
 
@@ -222,7 +222,7 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testVariableSubstitutionSimple() {
+  public void variableSubstitutionSimpleTest() {
     String home = mCustomPropsTachyonConf.get("home");
     Assert.assertEquals("hometest", home);
 
@@ -248,14 +248,14 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testVariableSubstitutionRecursive() {
+  public void variableSubstitutionRecursiveTest() {
     String multiplesubs = mCustomPropsTachyonConf.get("multiplesubs");
     String recursive = mCustomPropsTachyonConf.get("recursive");
     Assert.assertEquals(multiplesubs, recursive);
   }
 
   @Test
-  public void testSystemVariableSubstitutionSample() {
+  public void systemVariableSubstitutionSampleTest() {
     String masterAddress = mSystemPropsTachyonConf.get(Constants.MASTER_ADDRESS);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals("tachyon-ft://master:20001", masterAddress);
