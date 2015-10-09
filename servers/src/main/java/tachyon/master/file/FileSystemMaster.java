@@ -802,7 +802,7 @@ public final class FileSystemMaster extends MasterBase {
    * @throws InvalidPathException if the path is invalid
    */
   public List<FileBlockInfo> getFileBlockInfoList(TachyonURI path)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException {
     long fileId = getFileId(path);
     return getFileBlockInfoList(fileId);
   }
@@ -1249,7 +1249,7 @@ public final class FileSystemMaster extends MasterBase {
     return new ArrayList<Long>(lostFiles);
   }
 
-  public void reportLostFile(long fileId) throws FileDoesNotExistException, IOException {
+  public void reportLostFile(long fileId) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
       Inode inode = mInodeTree.getInodeById(fileId);
       if (inode.isDirectory()) {

@@ -126,8 +126,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
         return mClient.getFileInfoList(fileId);
       } catch (TachyonTException e) {
         throw new TachyonException(e);
-      } catch (ThriftIOException e) {
-        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -422,8 +420,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
         mClient.reportLostFile(fileId);
       } catch (TachyonTException e) {
         throw new TachyonException(e);
-      } catch (ThriftIOException e) {
-        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
