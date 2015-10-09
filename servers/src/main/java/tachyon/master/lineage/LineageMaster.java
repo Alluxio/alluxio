@@ -42,6 +42,7 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
+import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
@@ -157,14 +158,16 @@ public final class LineageMaster extends MasterBase {
     super.start(isLeader);
     if (isLeader) {
       mCheckpointExecutionService =
-          getExecutorService().submit(new HeartbeatThread("Checkpoint scheduling service",
-              new CheckpointSchedulingExcecutor(this),
-              mTachyonConf.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
+          getExecutorService().submit(
+              new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
+                  new CheckpointSchedulingExcecutor(this), mTachyonConf
+                      .getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService =
-          getExecutorService().submit(new HeartbeatThread("Recompute service",
-              new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
-                  mFileSystemMaster),
-              mTachyonConf.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
+          getExecutorService().submit(
+              new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
+                  new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
+                      mFileSystemMaster), mTachyonConf
+                      .getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
 

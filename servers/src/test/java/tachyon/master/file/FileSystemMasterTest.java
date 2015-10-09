@@ -32,8 +32,8 @@ import tachyon.TachyonURI;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
-import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.journal.Journal;
@@ -67,7 +67,8 @@ public final class FileSystemMasterTest {
     MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, "0");
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    HeartbeatThread.sHeartbeatTimerClass = "tachyon.heartbeat.ScheduledTimer";
+    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
     mBlockMaster = new BlockMaster(blockJournal);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
@@ -126,9 +127,9 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.fileId, fileId);
-    HeartbeatScheduler.await(FileSystemMaster.MasterInodeTTLCheckExecutor.THREAD_NAME);
-    HeartbeatScheduler.schedule(FileSystemMaster.MasterInodeTTLCheckExecutor.THREAD_NAME);
-    HeartbeatScheduler.await(FileSystemMaster.MasterInodeTTLCheckExecutor.THREAD_NAME);
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK);
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK);
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }

@@ -26,6 +26,7 @@ import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
@@ -75,10 +76,10 @@ public final class LineageWorker {
   }
 
   public void start() {
-    mFilePersistenceService = mSyncExecutorService.submit(new HeartbeatThread(
-        "Lineage worker master sync", new LineageWorkerMasterSyncExecutor(mLineageDataManager,
-            mLineageMasterWorkerClient, mWorkerId),
-        mTachyonConf.getInt(Constants.WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS)));
+    mFilePersistenceService =
+        mSyncExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_LINEAGE_SYNC,
+            new LineageWorkerMasterSyncExecutor(mLineageDataManager, mLineageMasterWorkerClient,
+                mWorkerId), mTachyonConf.getInt(Constants.WORKER_LINEAGE_HEARTBEAT_INTERVAL_MS)));
   }
 
   public void stop() {

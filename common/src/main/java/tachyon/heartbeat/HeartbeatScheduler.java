@@ -27,27 +27,26 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public final class HeartbeatScheduler {
   private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();
-
-  private static final Lock mLock =  new ReentrantLock();
-  private static final Condition mCondition = mLock.newCondition();
+  private static Lock sLock =  new ReentrantLock();
+  private static Condition sCondition = sLock.newCondition();
 
   /**
    * @param timer a timer to add to the scheduler
    */
   public static void addTimer(ScheduledTimer timer) {
-    mLock.lock();
+    sLock.lock();
     sTimers.put(timer.getThreadName(), timer);
-    mCondition.signal();
-    mLock.unlock();
+    sCondition.signal();
+    sLock.unlock();
   }
 
   /**
    * @param timer a timer to remove from the scheduler
    */
   public static synchronized void removeTimer(ScheduledTimer timer) {
-    mLock.lock();
+    sLock.lock();
     sTimers.remove(timer.getThreadName());
-    mLock.unlock();
+    sLock.unlock();
   }
 
   /**
@@ -55,9 +54,9 @@ public final class HeartbeatScheduler {
    */
   public static synchronized Set<String> getThreadNames() {
     Set<String> result;
-    mLock.lock();
+    sLock.lock();
     result = sTimers.keySet();
-    mLock.unlock();
+    sLock.unlock();
     return result;
   }
 
@@ -67,15 +66,15 @@ public final class HeartbeatScheduler {
    * @param threadName the thread for which heartbeat is to be executed
    */
   public static void schedule(String threadName) {
-    mLock.lock();
+    sLock.lock();
     ScheduledTimer timer = sTimers.get(threadName);
     if (timer == null) {
-      mLock.unlock();
+      sLock.unlock();
       throw new RuntimeException("Timer for thread " + threadName + " not found.");
     }
     timer.schedule();
     sTimers.remove(threadName);
-    mLock.unlock();
+    sLock.unlock();
   }
 
   /**
@@ -84,10 +83,10 @@ public final class HeartbeatScheduler {
    * @param threadName the thread to wait for
    */
   public static void await(String threadName) throws InterruptedException {
-    mLock.lock();
+    sLock.lock();
     while (!sTimers.containsKey(threadName)) {
-      mCondition.await();
+      sCondition.await();
     }
-    mLock.unlock();
+    sLock.unlock();
   }
 }

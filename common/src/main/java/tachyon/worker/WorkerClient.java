@@ -33,6 +33,7 @@ import com.google.common.base.Preconditions;
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonExceptionType;
+import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
@@ -224,10 +225,10 @@ public final class WorkerClient implements Closeable {
       mClient = new WorkerService.Client(mProtocol);
 
       mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
-      String threadName = "worker-heartbeat-" + mWorkerAddress;
       int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
       mHeartbeat =
-          mExecutorService.submit(new HeartbeatThread(threadName, mHeartbeatExecutor, interval));
+          mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
+              mHeartbeatExecutor, interval));
 
       try {
         mProtocol.getTransport().open();
