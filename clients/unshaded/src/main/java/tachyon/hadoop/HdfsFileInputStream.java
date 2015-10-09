@@ -40,6 +40,7 @@ import tachyon.conf.TachyonConf;
 
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final int EOF = Integer.MIN_VALUE;
 
   private long mCurrentPosition;
   private TachyonFS mTFS;
@@ -187,10 +188,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
 
     getHdfsInputStream();
-    b[off] = (byte) readFromHdfsBuffer();
-    if (b[off] == -1) {
+    int byteRead = readFromHdfsBuffer();
+    if (byteRead == EOF) {
       return -1;
     }
+    b[off] = (byte) byteRead;
     return 1;
   }
 
@@ -245,7 +247,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       LOG.error("Read 0 bytes in readFromHdfsBuffer for " + mHdfsPath);
     }
     if (mBufferLimit == -1) {
-      return -1;
+      return EOF;
     }
     mBufferPosition = 0;
     if (mStatistics != null) {
