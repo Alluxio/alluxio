@@ -269,7 +269,7 @@ public class TieredBlockStoreTestUtils {
 
   /**
    * Cache bytes into BlockStore at specific location
-   * 
+   *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
@@ -286,7 +286,7 @@ public class TieredBlockStoreTestUtils {
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta);
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
-    
+
     // commit block
     blockStore.commitBlock(sessionId, blockId);
   }
