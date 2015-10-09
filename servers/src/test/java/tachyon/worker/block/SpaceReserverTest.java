@@ -34,24 +34,26 @@ import tachyon.Constants;
 import tachyon.StorageLevelAlias;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
+import tachyon.test.Tester;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerSource;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({WorkerFileSystemMasterClient.class, WorkerBlockMasterClient.class})
-public class SpaceReserverTest {
+public class SpaceReserverTest implements Tester<SpaceReserver> {
   private static final long SESSION_ID = 1;
-  private static final long BLOCK_SIZE = 300;
+  private static final long BLOCK_SIZE = 100;
 
   private static final int[] TIER_LEVEL = {0, 1};
-  private static final StorageLevelAlias[] TIER_ALIAS = {StorageLevelAlias.MEM,
-      StorageLevelAlias.HDD};
+  private static final StorageLevelAlias[] TIER_ALIAS =
+      {StorageLevelAlias.MEM, StorageLevelAlias.HDD};
   private static final String[][] TIER_PATH = {{"/ramdisk"}, {"/disk1"}};
-  private static final long[][] TIER_CAPACITY_BYTES = {{1000}, {3000}};
+  private static final long[][] TIER_CAPACITY_BYTES = {{400}, {1000}};
+
   private BlockStore mBlockStore;
   private SpaceReserver mSpaceReserver;
-  private ExecutorService mExecutorService = Executors.newFixedThreadPool(1);
+  private SpaceReserver.PrivateAccess mPrivateAccess;
 
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();
@@ -59,7 +61,6 @@ public class SpaceReserverTest {
   @After
   public void after() {
     mSpaceReserver.stop();
-    mExecutorService.shutdown();
   }
 
   @Before
@@ -72,17 +73,26 @@ public class SpaceReserverTest {
     TieredBlockStoreTestUtils.setupTachyonConfWithMultiTier(baseDir, TIER_LEVEL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);
     mBlockStore = new TieredBlockStore();
-    BlockDataManager blockDataManager =
-        new BlockDataManager(workerSource, blockMasterClient, workerFileSystemMasterClient,
-            mBlockStore);
+    BlockDataManager blockDataManager = new BlockDataManager(workerSource, blockMasterClient,
+        workerFileSystemMasterClient, mBlockStore);
     String reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
     WorkerContext.getConf().set(reserveRatioProp, "0.2");
     reserveRatioProp =
+<<<<<<< HEAD
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     WorkerContext.getConf().set(reserveRatioProp, "0.2");
+=======
+        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, 1);
+    WorkerContext.getConf().set(reserveRatioProp, "0.3");
+>>>>>>> 18bc128e21e8fc681b9d66d43ffdc27fc7495ea5
     mSpaceReserver = new SpaceReserver(blockDataManager);
-    mExecutorService.submit(mSpaceReserver);
+    mSpaceReserver.grantAccess(this);
+  }
+
+  @Override
+  public void receiveAccess(Object access) {
+    mPrivateAccess = (SpaceReserver.PrivateAccess) access;
   }
 
   @Test
@@ -90,30 +100,46 @@ public class SpaceReserverTest {
     // Reserve on top tier
     long blockId = 100;
     BlockStoreLocation tier0 = BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue());
-    for (int i = 0; i < 3; i ++) {
-      TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore,
-          tier0);
+    for (int i = 0; i < 4; i ++) {
+      TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore, tier0);
     }
-    CommonUtils.sleepMs(
-        2 * WorkerContext.getConf().getLong(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS));
     BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
-    Assert.assertEquals(3 * BLOCK_SIZE, storeMeta.getUsedBytes());
     List<Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
-    Assert.assertEquals(2 * BLOCK_SIZE,
+    Assert.assertEquals(4 * BLOCK_SIZE, storeMeta.getUsedBytes());
+    Assert.assertEquals(4 * BLOCK_SIZE,
         (long) usedBytesOnTiers.get(StorageLevelAlias.MEM.getValue() - 1));
-    Assert.assertEquals(BLOCK_SIZE,
+    Assert.assertEquals(0, (long) usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
+
+    // Reserver kicks in, expect evicting one block from MEM to HHD
+    mPrivateAccess.reserveSpace();
+
+    storeMeta = mBlockStore.getBlockStoreMeta();
+    usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
+    Assert.assertEquals(4 * BLOCK_SIZE, storeMeta.getUsedBytes());
+    Assert.assertEquals(3 * BLOCK_SIZE,
+        (long) usedBytesOnTiers.get(StorageLevelAlias.MEM.getValue() - 1));
+    Assert.assertEquals(1 * BLOCK_SIZE,
         (long) usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
 
     // Reserve on under tier
-    for (int i = 0; i < 7; i ++) {
+    for (int i = 0; i < 10; i ++) {
       TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore, tier0);
     }
-    CommonUtils.sleepMs(
-        2 * WorkerContext.getConf().getLong(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS));
     storeMeta = mBlockStore.getBlockStoreMeta();
-    Assert.assertEquals(9 * BLOCK_SIZE, storeMeta.getUsedBytes());
     usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
-    Assert.assertEquals(2 * BLOCK_SIZE,
+    Assert.assertEquals(14 * BLOCK_SIZE, storeMeta.getUsedBytes());
+    Assert.assertEquals(4 * BLOCK_SIZE,
+        (long) usedBytesOnTiers.get(StorageLevelAlias.MEM.getValue() - 1));
+    Assert.assertEquals(10 * BLOCK_SIZE,
+        (long) usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));
+
+    // Reserver kicks in again, expect evicting one block from MEM to HHD and four blocks from HHD
+    mPrivateAccess.reserveSpace();
+
+    storeMeta = mBlockStore.getBlockStoreMeta();
+    usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
+    Assert.assertEquals(10 * BLOCK_SIZE, storeMeta.getUsedBytes());
+    Assert.assertEquals(3 * BLOCK_SIZE,
         (long) usedBytesOnTiers.get(StorageLevelAlias.MEM.getValue() - 1));
     Assert.assertEquals(7 * BLOCK_SIZE,
         (long) usedBytesOnTiers.get(StorageLevelAlias.HDD.getValue() - 1));

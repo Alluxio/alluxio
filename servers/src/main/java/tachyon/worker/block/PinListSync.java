@@ -65,7 +65,6 @@ public final class PinListSync implements Runnable {
     mRunning = true;
   }
 
-
   /**
    * Main loop for the sync, continuously sync pinlist from master
    */

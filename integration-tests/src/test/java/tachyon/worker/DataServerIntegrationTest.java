@@ -94,7 +94,6 @@ public class DataServerIntegrationTest {
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
 
-
   public DataServerIntegrationTest(String className, String nettyTransferType, String blockReader) {
     mDataServerClass = className;
     mNettyTransferType = nettyTransferType;
