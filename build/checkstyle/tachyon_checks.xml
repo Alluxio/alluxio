@@ -39,6 +39,11 @@
     <property name="format" value="&lt;&lt;&lt;&lt;&lt;&lt;&lt;"/>
     <property name="message" value="Merge conflicts unresolved."/>
   </module>
+  <module name="RegexpMultiline">
+    <property name="format" value="\n{3}"/>
+    <property name="fileExtensions" value=".java"/>
+    <property name="message" value="Extra newline"/>
+  </module>
 
   <module name="TreeWalker">
     <module name="OuterTypeFilename"/>
@@ -182,5 +187,10 @@
       <message key="name.invalidPattern"
                value="Static member name ''{0}'' must match pattern ''{1}''."/>
     </module>
+  </module>
+  <module name="RegexpSingleline">
+    <property name="format" value="\s+$"/>
+    <property name="message" value="Trailing whitespace found."/>
+    <property name="fileExtensions" value=".java"/>
   </module>
 </module>
