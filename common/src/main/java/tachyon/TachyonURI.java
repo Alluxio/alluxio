@@ -192,7 +192,6 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     return depth;
   }
 
-
   /**
    * Get the first n components of the TachyonURI path. There is no trailing separator as the path
    * will be normalized by normalizePath().
