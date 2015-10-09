@@ -15,7 +15,6 @@
 
 package tachyon.master.file;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -1263,7 +1262,6 @@ public final class FileSystemMaster extends MasterBase {
           "Reported file loss of blocks" + blockIds + ". Tachyon will recompute it: " + fileId);
     }
   }
-
 
   // TODO(jiri): Make it possible to load directories and not just individual files.
   public long loadFileInfoFromUfs(TachyonURI path, boolean recursive)

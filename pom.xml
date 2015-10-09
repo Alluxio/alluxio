@@ -253,6 +253,12 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <version>1.10.8</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-api-mockito</artifactId>
         <version>${powermock.version}</version>
@@ -390,7 +396,7 @@
         <configuration>
           <configLocation>${checkstyle.path}tachyon_checks.xml</configLocation>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/tachyon/thrift/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/tachyon/thrift/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>

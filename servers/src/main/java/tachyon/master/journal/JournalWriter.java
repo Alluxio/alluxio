@@ -17,6 +17,7 @@ package tachyon.master.journal;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
@@ -154,11 +155,11 @@ public final class JournalWriter {
    * @return the output stream for the current log file
    * @throws IOException
    */
-  private DataOutputStream openCurrentLog() throws IOException {
+  private OutputStream openCurrentLog() throws IOException {
     String currentLogFile = mJournal.getCurrentLogFilePath();
-    DataOutputStream dos = new DataOutputStream(mUfs.create(currentLogFile));
+    OutputStream os = mUfs.create(currentLogFile);
     LOG.info("Opened current log file: " + currentLogFile);
-    return dos;
+    return os;
   }
 
   /**
@@ -290,11 +291,15 @@ public final class JournalWriter {
    * handles rotating full log files, and creating the next log file.
    */
   private class EntryOutputStream implements JournalOutputStream {
-    private DataOutputStream mOutputStream;
+    /** The direct output stream created by {@link UnderFileSystem} */
+    private OutputStream mRawOutputStream;
+    /** The output stream that wraps around {@link #mRawOutputStream} */
+    private DataOutputStream mDataOutputStream;
     private boolean mIsClosed = false;
 
-    EntryOutputStream(DataOutputStream outputStream) {
-      mOutputStream = outputStream;
+    EntryOutputStream(OutputStream outputStream) {
+      mRawOutputStream = outputStream;
+      mDataOutputStream = new DataOutputStream(outputStream);
     }
 
     @Override
@@ -303,7 +308,7 @@ public final class JournalWriter {
         throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
       }
       mJournal.getJournalFormatter().serialize(
-          new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mOutputStream);
+          new SerializableJournalEntry(mNextEntrySequenceNumber ++, entry), mDataOutputStream);
     }
 
     @Override
@@ -311,9 +316,9 @@ public final class JournalWriter {
       if (mIsClosed) {
         return;
       }
-      if (mOutputStream != null) {
+      if (mDataOutputStream != null) {
         // Close the current log file.
-        mOutputStream.close();
+        mDataOutputStream.close();
       }
 
       mIsClosed = true;
@@ -324,16 +329,22 @@ public final class JournalWriter {
       if (mIsClosed) {
         return;
       }
-      mOutputStream.flush();
-      if (mOutputStream instanceof FSDataOutputStream) {
-        ((FSDataOutputStream) mOutputStream).sync();
+      mDataOutputStream.flush();
+      if (mRawOutputStream instanceof FSDataOutputStream) {
+        // The output stream directly created by {@link UnderFileSystem} may be
+        // {@link FSDataOutputStream}, which means the under filesystem is HDFS, but
+        // {@link DataOutputStream#flush} won't flush the data to HDFS, so we need to call
+        // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
+        ((FSDataOutputStream) mRawOutputStream).sync();
       }
-      if (mOutputStream.size() > mMaxLogSize) {
-        LOG.info("Rotating log file. size: " + mOutputStream.size() + " maxSize: " + mMaxLogSize);
+      if (mDataOutputStream.size() > mMaxLogSize) {
+        LOG.info("Rotating log file. size: " + mDataOutputStream.size() + " maxSize: "
+            + mMaxLogSize);
         // rotate the current log.
-        mOutputStream.close();
+        mDataOutputStream.close();
         completeCurrentLog();
-        mOutputStream = openCurrentLog();
+        mRawOutputStream = openCurrentLog();
+        mDataOutputStream = new DataOutputStream(mRawOutputStream);
       }
     }
   }
