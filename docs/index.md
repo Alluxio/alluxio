@@ -5,18 +5,25 @@ group: Home
 ---
 
 Tachyon is an open source memory-centric distributed storage system enabling reliable data sharing
-at memory-speed across cluster frameworks, such as Spark and MapReduce. It achieves high performance
-by leveraging lineage information and using memory aggressively. Tachyon caches working set files in
-memory, thereby avoiding going to disk to load datasets that are frequently read. This enables
-different jobs/queries and frameworks to access cached files at memory speed.
+at memory-speed across cluster jobs, possibly writte in different computation frameworks, such as
+Spark and MapReduce. In the eco-system, Tachyon lays between computation frameworks or jobs, such as
+Apache Spark, Apache MapReduce, Apache Flink, and various kinds of stroage systems, such as Amazon
+S3, OpenStack Swift, GlusterFS, Hadoop HDFS, Ceph, to name a few. Tachyon brings significant
+performance improvement in the stack, e.g. [Baidu](www.baidu.com) uses Tachyon to improve their data
+analytics performance by 30 times. Beyond that, Tachyon bridges new workloads with data stord in
+traditional storage systems. Users can run Tachyon using its standalone cluster mode, on EC2, on
+Apache Mesos, or on Yarn.
 
 Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on top of it without
 any code change. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
-multiple companies. It has more than
-[150 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
-including [Yahoo](https://www.yahoo.com/), [Intel](http://www.intel.com/),
-[Red Hat](http://www.redhat.com/), and [Tachyon Nexus](http://www.tachyonnexus.com/).
+multiple companies. It is one of the fastest growing open source project. With less than three years
+open source history, Tachyon has attracted more than
+[130 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
+including [Alibaba](www.alibaba.com), [Baidu](www.baidu.com), [CMU](http://www.cmu.edu/),
+[IBM](www.ibm.com), [Intel](http://www.intel.com/), [Red Hat](http://www.redhat.com/),
+[Tachyon Nexus](http://www.tachyonnexus.com/), 
+[UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics
 Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
