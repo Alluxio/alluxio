@@ -4,17 +4,17 @@ title: Overview
 group: Home
 ---
 
-Tachyon is a memory-centric distributed storage system enabling reliable data sharing at memory-speed
-across cluster frameworks, such as Spark and MapReduce. It achieves high performance by leveraging
-lineage information and using memory aggressively. Tachyon caches working set files in memory,
-thereby avoiding going to disk to load datasets that are frequently read. This enables different
-jobs/queries and frameworks to access cached files at memory speed.
+Tachyon is an open source memory-centric distributed storage system enabling reliable data sharing
+at memory-speed across cluster frameworks, such as Spark and MapReduce. It achieves high performance
+by leveraging lineage information and using memory aggressively. Tachyon caches working set files in
+memory, thereby avoiding going to disk to load datasets that are frequently read. This enables
+different jobs/queries and frameworks to access cached files at memory speed.
 
 Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on top of it without
 any code change. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It has more than
-[100 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 30 institutions,
+[150 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
 including [Yahoo](https://www.yahoo.com/), [Intel](http://www.intel.com/),
 [Red Hat](http://www.redhat.com/), and [Tachyon Nexus](http://www.tachyonnexus.com/).
 The project is the storage layer of the Berkeley Data Analytics
