@@ -32,7 +32,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.HeartbeatThread;
 import tachyon.TachyonURI;
 import tachyon.client.file.TachyonFile;
 import tachyon.conf.TachyonConf;
@@ -43,6 +42,7 @@ import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.job.Job;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;

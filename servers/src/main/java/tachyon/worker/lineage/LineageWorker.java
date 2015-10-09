@@ -25,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.HeartbeatThread;
 import tachyon.conf.TachyonConf;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
