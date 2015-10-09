@@ -36,7 +36,6 @@ import tachyon.util.CommonUtils;
 public final class TachyonFileSystemUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-
   // prevent instantiation
   private TachyonFileSystemUtils() {}
 
