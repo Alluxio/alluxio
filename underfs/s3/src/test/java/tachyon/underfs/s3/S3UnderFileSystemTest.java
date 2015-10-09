@@ -122,25 +122,28 @@ public class S3UnderFileSystemTest {
 
   @Test
   public void stripPrefixIfPresentTest() throws Exception {
-    String input1 = "s3n://test-bucket";
-    String input2 = "s3n://test-bucket/";
-    String input3 = "s3n://test-bucket/file";
-    String input4 = "s3n://test-bucket/dir/file";
-    String input5 = "s3n://test-bucket-wrong/dir/file";
-    String input6 = "dir/file";
-    String result1 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input1);
-    String result2 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input2);
-    String result3 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input3);
-    String result4 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input4);
-    String result5 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input5);
-    String result6 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripPrefixIfPresent", input6);
-
-    Assert.assertEquals("s3n://test-bucket", result1);
-    Assert.assertEquals("", result2);
-    Assert.assertEquals("file", result3);
-    Assert.assertEquals("dir/file", result4);
-    Assert.assertEquals("s3n://test-bucket-wrong/dir/file", result5);
-    Assert.assertEquals("dir/file", result6);
+    String[] inputs = new String[]{
+        "s3n://test-bucket",
+        "s3n://test-bucket/",
+        "s3n://test-bucket/file",
+        "s3n://test-bucket/dir/file",
+        "s3n://test-bucket-wrong/dir/file",
+        "dir/file",
+        "/dir/file",
+    };
+    String[] results = new String[]{
+        "s3n://test-bucket",
+        "",
+        "file",
+        "dir/file",
+        "s3n://test-bucket-wrong/dir/file",
+        "dir/file",
+        "dir/file",
+    };
+    for (int i = 0; i < inputs.length; i ++) {
+      Assert.assertEquals(results[i], Whitebox.invokeMethod(mMockS3UnderFileSystem,
+          "stripPrefixIfPresent", inputs[i]));
+    }
   }
 
 }
