@@ -17,8 +17,6 @@ package tachyon.security;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -48,7 +46,6 @@ import tachyon.worker.WorkerContext;
  */
 public class MasterClientAuthenticationIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private ExecutorService mExecutorService = null;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -56,7 +53,6 @@ public class MasterClientAuthenticationIntegrationTest {
   @Before
   public void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
-    mExecutorService = Executors.newFixedThreadPool(2);
     clearLoginUser();
   }
 
@@ -156,9 +152,8 @@ public class MasterClientAuthenticationIntegrationTest {
     clearLoginUser();
     mThrown.expect(IOException.class);
     System.setProperty(Constants.SECURITY_LOGIN_USERNAME, "no-tachyon");
-    FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
-            mLocalTachyonCluster.getMasterTachyonConf());
+    FileSystemMasterClient masterClient = new FileSystemMasterClient(
+        mLocalTachyonCluster.getMaster().getAddress(), mLocalTachyonCluster.getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
   }
@@ -171,9 +166,8 @@ public class MasterClientAuthenticationIntegrationTest {
    * @throws Exception
    */
   private void authenticationOperationTest(String filename) throws Exception {
-    FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
-            mLocalTachyonCluster.getMasterTachyonConf());
+    FileSystemMasterClient masterClient = new FileSystemMasterClient(
+        mLocalTachyonCluster.getMaster().getAddress(), mLocalTachyonCluster.getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

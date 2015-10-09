@@ -22,8 +22,6 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -50,7 +48,6 @@ import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -86,8 +83,6 @@ public class DataServerIntegrationTest {
   private final String mDataServerClass;
   private final String mNettyTransferType;
   private final String mBlockReader;
-  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2,
-      ThreadFactoryUtils.build("test-executor-%d", true));
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTFS = null;
@@ -152,7 +147,7 @@ public class DataServerIntegrationTest {
 
     mBlockMasterClient =
         new BlockMasterClient(new InetSocketAddress(mLocalTachyonCluster.getMasterHostname(),
-            mLocalTachyonCluster.getMasterPort()), mExecutorService, mWorkerTachyonConf);
+            mLocalTachyonCluster.getMasterPort()), mWorkerTachyonConf);
   }
 
   @Test
