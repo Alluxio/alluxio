@@ -99,6 +99,7 @@ public final class Constants {
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "tachyon.underfs.hdfs.configuration";
+  public static final String UNDERFS_HDFS_PREFIXS = "tachyon.underfs.hdfs.prefixes";
   public static final String ASYNC_ENABLED = "tachyon.async.enabled";
   public static final String MAX_COLUMNS = "tachyon.max.columns";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
@@ -113,7 +114,6 @@ public final class Constants {
   public static final String ZOOKEEPER_ADDRESS = "tachyon.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "tachyon.zookeeper.election.path";
   public static final String ZOOKEEPER_LEADER_PATH = "tachyon.zookeeper.leader.path";
-  public static final String UNDERFS_HDFS_PREFIXS = "tachyon.underfs.hdfs.prefixes";
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
@@ -152,8 +152,8 @@ public final class Constants {
   public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
   public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
-  public static final String MASTER_LINEAGE_CHECKPOINT_STRATEGY_CLASS =
-      "tachyon.master.lineage.checkpoint.strategy.class";
+  public static final String MASTER_LINEAGE_CHECKPOINT_CLASS =
+      "tachyon.master.lineage.checkpoint.class";
   public static final String MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
       "tachyon.master.lineage.checkpoint.interval.ms";
   public static final String MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
