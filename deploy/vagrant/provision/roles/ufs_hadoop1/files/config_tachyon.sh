@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# last should be master
-namenode=`tail -n1 /tachyon/conf/workers`
-
-# create tachyon env
-/bin/cp /tachyon/conf/tachyon-env.sh.template /tachyon/conf/tachyon-env.sh
-sed -i "s/#export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/localhost:9000/export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/${namenode}:9000/g" /tachyon/conf/tachyon-env.sh
-sed -i "s/export TACHYON_MASTER_ADDRESS=localhost/export TACHYON_MASTER_ADDRESS=${namenode}/g" /tachyon/conf/tachyon-env.sh
+# The last node in /tachyon/conf/workers is the master for under filesystem,
+# this is guaranteed by generation process of /tachyon/conf/workers in script vagrant/create.
+UFS_MASTER=$(tail -n1 /tachyon/conf/workers)
+sed -i "s/^export TACHYON_UNDERFS_ADDRESS=.*/export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/${UFS_MASTER}:9000/g" /tachyon/conf/tachyon-env.sh

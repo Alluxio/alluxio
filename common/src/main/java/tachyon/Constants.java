@@ -64,15 +64,7 @@ public final class Constants {
 
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
-  public static final boolean DEFAULT_USER_ENABLE_LOCAL_READ = true;
-  public static final boolean DEFAULT_USER_ENABLE_LOCAL_WRITE = true;
-
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
-
-  public static final int DEFAULT_CHECKPOINT_CAP_MB_SEC = 1000;
-
-  public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
-
   public static final int DEFAULT_HOST_RESOLUTION_TIMEOUT_MS = 5000;
 
   public static final String BLOCK_MASTER_SERVICE_NAME = "BlockMaster";
@@ -104,7 +96,6 @@ public final class Constants {
   public static final String WEB_THREAD_COUNT = "tachyon.web.threads";
   public static final String LOGS_DIR = "tachyon.logs.dir";
   public static final String UNDERFS_ADDRESS = "tachyon.underfs.address";
-  public static final String UNDERFS_DATA_FOLDER = "tachyon.underfs.data.folder";
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String UNDERFS_HADOOP_CONFIGURATION = "tachyon.underfs.hadoop.configuration";
   public static final String ASYNC_ENABLED = "tachyon.async.enabled";
@@ -124,6 +115,10 @@ public final class Constants {
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.byte";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
+  public static final String EXECUTOR_DEPENDENCY_PATH
+      = "tachyon.integration.mesos.executor.dependency.path";
+  public static final String JRE_URL = "tachyon.integration.mesos.jre.url";
+  public static final String JRE_VERSION = "tachyon.integration.mesos.jre.version";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_HOSTNAME_LISTENING = "tachyon.master.hostname.listening";
@@ -184,8 +179,6 @@ public final class Constants {
   public static final String WORKER_MAX_WORKER_THREADS = "tachyon.worker.max.worker.threads";
   public static final String WORKER_MIN_WORKER_THREADS = "tachyon.worker.min.worker.threads";
   public static final String WORKER_CHECKPOINT_THREADS = "tachyon.worker.checkpoint.threads";
-  public static final String WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
-      "tachyon.worker.per.thread.checkpoint.cap.mb.sec";
   public static final String WORKER_NETWORK_NETTY_BOSS_THREADS =
       "tachyon.worker.network.netty.boss.threads";
   public static final String WORKER_NETWORK_NETTY_WORKER_THREADS =
@@ -251,7 +244,6 @@ public final class Constants {
       "tachyon.worker.space.reserver.enable";
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
-  public static final String WORKER_USER_TEMP_RELATIVE_FOLDER = "users";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
   public static final String WORKER_RESOURCE_CPU = "tachyon.worker.resource.cpu";
   public static final String WORKER_RESOURCE_MEM = "tachyon.worker.resource.mem";
@@ -284,6 +276,8 @@ public final class Constants {
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "tachyon.user.file.master.client.threads";
   public static final String USER_LINEAGE_ENABLED = "tachyon.user.lineage.enabled";
+
+  public static final String USER_WAITCOMPLETED_POLL = "tachyon.user.waitcompleted.poll.millis";
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";

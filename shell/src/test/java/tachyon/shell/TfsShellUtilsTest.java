@@ -95,10 +95,8 @@ public class TfsShellUtilsTest {
      */
     TachyonFile fd;
     try {
-      fd = tfs.open(new TachyonURI("/testWildCars"));
+      fd = tfs.open(new TachyonURI("/testWildCards"));
     } catch (IOException ioe) {
-      fd = null;
-    } catch (TachyonException e) {
       fd = null;
     }
     if (fd != null) {
