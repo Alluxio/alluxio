@@ -55,7 +55,6 @@ public class BlockMetadataManager {
   /** A map from tier alias to StorageTier */
   private Map<Integer, StorageTier> mAliasToTiers;
 
-
   private BlockMetadataManager() {}
 
   /**
@@ -218,7 +217,6 @@ public class BlockMetadataManager {
   public BlockStoreMeta getBlockStoreMeta() {
     return new BlockStoreMeta(this);
   }
-
 
   /**
    * Gets the StorageDir given its location in the store.
