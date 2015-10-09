@@ -37,6 +37,7 @@ import tachyon.client.file.options.OpenOptions;
 import tachyon.client.file.options.RenameOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.client.file.options.UnmountOptions;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
@@ -218,7 +219,18 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
   }
 
   @Override
-  public TachyonFile open(TachyonURI path, OpenOptions openOptions) throws IOException {
+  public TachyonFile open(TachyonURI path, OpenOptions openOptions) throws IOException,
+      InvalidPathException, TachyonException {
+    TachyonFile f = openIfExists(path, openOptions);
+    if (f == null) {
+      throw new InvalidPathException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    }
+    return f;
+  }
+
+  @Override
+  public TachyonFile openIfExists(TachyonURI path, OpenOptions openOptions) throws IOException,
+      TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       long fileId = masterClient.getFileId(path.getPath());

@@ -157,11 +157,27 @@ interface TachyonFileSystemCore {
    *
    * @param path the path of the file, this should be in Tachyon space
    * @param options method options
-   * @return a TachyonFile which acts as a file handler for the path or null if path doesn't exist
+   * @return a TachyonFile which acts as a file handler for the path
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws InvalidPathException if there is no file at the given path
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
+  TachyonFile open(TachyonURI path, OpenOptions options) throws IOException, InvalidPathException,
+      TachyonException;
+
+  /**
+   * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
+   * non-create operations.
+   *
+   * @param path the path of the file, this should be in Tachyon space
+   * @param options method options
+   * @return a TachyonFile which acts as a file handler for the path or null if there is no file at
+             the given path
    * @throws IOException if a non-Tachyon exception occurs
    * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  TachyonFile open(TachyonURI path, OpenOptions options) throws IOException, TachyonException;
+  TachyonFile openIfExists(TachyonURI path, OpenOptions options) throws IOException,
+      TachyonException;
 
   /**
    * Renames an existing Tachyon file to another Tachyon path in Tachyon.
