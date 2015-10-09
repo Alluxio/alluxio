@@ -144,7 +144,8 @@ public abstract class UnderFileSystem {
       String header = path.getScheme() + "://";
       String authority = (path.hasAuthority()) ? path.getAuthority() : "";
       if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
-          || isHadoopUnderFS(header, tachyonConf) || header.equals(Constants.HEADER_S3N)) {
+          || isHadoopUnderFS(header, tachyonConf) || header.equals(Constants.HEADER_S3)
+          || header.equals(Constants.HEADER_S3N)) {
         if (path.getPath().isEmpty()) {
           return new Pair<String, String>(header + authority, TachyonURI.SEPARATOR);
         } else {
