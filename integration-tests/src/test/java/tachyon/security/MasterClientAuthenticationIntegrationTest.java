@@ -190,7 +190,6 @@ public class MasterClientAuthenticationIntegrationTest {
     field.set(null, null);
   }
 
-
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
