@@ -37,10 +37,10 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.file.FileInStream;
 import tachyon.conf.TachyonConf;
+import tachyon.util.io.BufferUtils;
 
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final int EOF = Integer.MIN_VALUE;
 
   private long mCurrentPosition;
   private TachyonFS mTFS;
@@ -118,6 +118,12 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mClosed = true;
   }
 
+  /**
+   * Sets mHdfsInputStream to a stream from the under storage system with the stream starting at
+   * mCurrentPosition.
+   *
+   * @throws IOException if opening the file fails
+   */
   // TODO(calvin): Consider removing this when the recovery logic is available in FileInStream
   private void getHdfsInputStream() throws IOException {
     if (mHdfsInputStream == null) {
@@ -127,6 +133,12 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
   }
 
+  /**
+   * Sets mHdfsInputStream to a stream from the under storage system with the stream starting at
+   * position. The mCurrentPosition is not modified to be position.
+   *
+   * @throws IOException if opening the file fails
+   */
   private void getHdfsInputStream(long position) throws IOException {
     if (mHdfsInputStream == null) {
       FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
@@ -190,9 +202,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
     getHdfsInputStream();
     int byteRead = readFromHdfsBuffer();
-    if (byteRead == EOF) {
+    // byteRead is an unsigned byte, if its -1 then we have hit EOF
+    if (byteRead == -1) {
       return -1;
     }
+    // Convert byteRead back to a signed byte
     b[off] = (byte) byteRead;
     return 1;
   }
@@ -236,6 +250,13 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
   }
 
+  /**
+   * Similar to read(), returns a single unsigned byte from the hdfs buffer, or -1 if there is no
+   * more data to be read. This method also fills the hdfs buffer with new data if it is empty.
+   *
+   * @return the next value in the stream from 0 to 255 or -1 if there is no more data to be read
+   * @throws IOException if the bulk read from hdfs fails.
+   */
   private int readFromHdfsBuffer() throws IOException {
     if (mBufferPosition < mBufferLimit) {
       if (mStatistics != null) {
@@ -248,13 +269,13 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       LOG.error("Read 0 bytes in readFromHdfsBuffer for " + mHdfsPath);
     }
     if (mBufferLimit == -1) {
-      return EOF;
+      return -1;
     }
     mBufferPosition = 0;
     if (mStatistics != null) {
       mStatistics.incrementBytesRead(1);
     }
-    return mBuffer[mBufferPosition ++];
+    return BufferUtils.byteToInt(mBuffer[mBufferPosition ++]);
   }
 
   /**
