@@ -26,10 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.thrift.TProcessor;
@@ -120,8 +118,8 @@ public final class BlockMaster extends MasterBase
    * Keeps track of workers which are no longer in communication with the master. Access must be
    * synchronized on mWorkers.
    */
-  private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
-      new LinkedBlockingQueue<MasterWorkerInfo>();
+  private final IndexedSet<MasterWorkerInfo> mLostWorkers =
+      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /** The service that detects lost worker nodes, and tries to restart the failed workers. */
   private Future<?> mLostWorkerDetectionService;
   /** The next worker id to use. This state must be journaled. */
@@ -451,6 +449,18 @@ public final class BlockMaster extends MasterBase
         return oldWorkerId;
       }
 
+      if (mLostWorkers.contains(mAddressIndex, workerAddress)) { // this is one of the lost workers
+        final MasterWorkerInfo lostWorkerInfo = mLostWorkers.getFirstByField(mAddressIndex,
+            workerAddress);
+        final long lostWorkerId = lostWorkerInfo.getId();
+        LOG.warn("A lost worker " + workerAddress + " has requested its old id "
+            + lostWorkerId + ".");
+
+        mWorkers.add(lostWorkerInfo);
+        mLostWorkers.remove(lostWorkerInfo);
+        return lostWorkerId;
+      }
+
       // Generate a new worker id.
       long workerId = mNextWorkerId.getAndIncrement();
       mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
@@ -645,11 +655,9 @@ public final class BlockMaster extends MasterBase
             LOG.error("The worker " + worker + " got timed out!");
             mLostWorkers.add(worker);
             iter.remove();
-          } else if (mLostWorkers.contains(worker)) {
-            LOG.info("The lost worker " + worker + " is found.");
-            mLostWorkers.remove(worker);
           }
         }
+
       }
     }
   }
