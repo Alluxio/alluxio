@@ -238,7 +238,7 @@ public class TachyonFramework {
 
       switch (status.getState()) {
         case TASK_FAILED: // intend to fall through
-        case TASK_LOST:// intend to fall through
+        case TASK_LOST: // intend to fall through
         case TASK_ERROR:
           if (status.getTaskId().getValue().equals(String.valueOf(mMasterTaskId))) {
             mMasterCount --;
