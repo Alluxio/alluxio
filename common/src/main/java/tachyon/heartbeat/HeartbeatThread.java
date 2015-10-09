@@ -28,7 +28,6 @@ import tachyon.util.CommonUtils;
  * the JVM from exiting.
  */
 public final class HeartbeatThread implements Runnable {
-  public static String sHeartbeatTimerClass = "tachyon.heartbeat.SleepingTimer";
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final String mThreadName;
@@ -44,15 +43,14 @@ public final class HeartbeatThread implements Runnable {
   public HeartbeatThread(String threadName, HeartbeatExecutor executor, long intervalMs) {
     mThreadName = threadName;
     mExecutor = Preconditions.checkNotNull(executor);
+    Class<HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(threadName);
     try {
-      Class<HeartbeatTimer> heartbeatClass =
-          (Class<HeartbeatTimer>) Class.forName(sHeartbeatTimerClass);
       mTimer =
-          CommonUtils.createNewClassInstance(heartbeatClass,
-              new Class[] {String.class, long.class}, new Object[] {threadName, intervalMs});
+          CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},
+              new Object[] {threadName, intervalMs});
     } catch (Exception e) {
-      String msg = "requested class could not be loaded";
-      LOG.error("{} : {} , {}", msg, sHeartbeatTimerClass, e);
+      String msg = "timer class could not be instantiated";
+      LOG.error("{} : {} , {}", msg, threadName, e);
       mTimer = new SleepingTimer(threadName, intervalMs);
     }
   }

@@ -45,6 +45,7 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.SuspectedFileSizeException;
+import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterBase;
@@ -214,7 +215,7 @@ public final class FileSystemMaster extends MasterBase {
       }
       mTTLCheckerService =
           getExecutorService().submit(
-              new HeartbeatThread(MasterInodeTTLCheckExecutor.THREAD_NAME,
+              new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
                   new MasterInodeTTLCheckExecutor(), conf
                       .getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
@@ -1368,8 +1369,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * MasterInodeTTL periodic check.
    */
-  protected final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
-    public static final String THREAD_NAME = "InodeFile TTL Check";
+  private final class MasterInodeTTLCheckExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       synchronized (mInodeTree) {
