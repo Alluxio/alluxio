@@ -48,7 +48,7 @@ public class CommandLineJob extends Job {
   }
 
   /**
-   * @return the {@link CommandLineJobInfo} for RPC.
+   * @return the {@link CommandLineJobInfo} for RPC
    */
   public CommandLineJobInfo generateCommandLineJobInfo() {
     return new CommandLineJobInfo(mCommand, new JobConfInfo(getJobConf().getOutputFilePath()));

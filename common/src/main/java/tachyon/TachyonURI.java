@@ -153,7 +153,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Gets the authority of the TachyonURI.
    *
-   * @return the authority, null if it does not have one.
+   * @return the authority, null if it does not have one
    */
   public String getAuthority() {
     return mUri.getAuthority();
@@ -236,7 +236,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Gets the host of the TachyonURI.
    *
-   * @return the host, null if it does not have one.
+   * @return the host, null if it does not have one
    */
   public String getHost() {
     return mUri.getHost();
@@ -256,7 +256,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Get the parent of this TachyonURI or null if at root.
    *
-   * @return the parent of this TachyonURI or null if at root.
+   * @return the parent of this TachyonURI or null if at root
    */
   public TachyonURI getParent() {
     String path = mUri.getPath();
@@ -279,7 +279,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Gets the path component of the TachyonURI.
    *
-   * @return the path.
+   * @return the path
    */
   public String getPath() {
     return mUri.getPath();
@@ -288,7 +288,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Gets the port of the TachyonURI.
    *
-   * @return the port, -1 if it does not have one.
+   * @return the port, -1 if it does not have one
    */
   public int getPort() {
     return mUri.getPort();
@@ -297,7 +297,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Get the scheme of the TachyonURI.
    *
-   * @return the scheme, null if there is no scheme.
+   * @return the scheme, null if there is no scheme
    */
   public String getScheme() {
     return mUri.getScheme();
@@ -306,7 +306,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Tells if the TachyonURI has authority or not.
    *
-   * @return true if it has, false otherwise.
+   * @return true if it has, false otherwise
    */
   public boolean hasAuthority() {
     return mUri.getAuthority() != null;
@@ -320,7 +320,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Tells if this TachyonURI has scheme or not.
    *
-   * @return true if it has, false otherwise.
+   * @return true if it has, false otherwise
    */
   public boolean hasScheme() {
     return mUri.getScheme() != null;
@@ -331,7 +331,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    *
    * @param path the path to check
    * @param slashed if the path starts with a slash.
-   * @return true if it is a windows path, false otherwise.
+   * @return true if it is a windows path, false otherwise
    */
   private boolean hasWindowsDrive(String path, boolean slashed) {
     int start = slashed ? 1 : 0;
@@ -409,7 +409,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * trimming trailing slash from non-root path (ignoring windows drive).
    *
    * @param path the path to normalize
-   * @return the normalized path.
+   * @return the normalized path
    */
   private String normalizePath(String path) {
     while (path.contains("\\")) {

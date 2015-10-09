@@ -23,8 +23,8 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.collections.Pair;
 import tachyon.TachyonURI;
+import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
 
 /**
@@ -308,7 +308,7 @@ public abstract class UnderFileSystem {
    *
    * @param path The path to query
    * @param type The type of queries
-   * @return The space in bytes.
+   * @return The space in bytes
    * @throws IOException
    */
   public abstract long getSpace(String path, SpaceType type) throws IOException;

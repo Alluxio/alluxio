@@ -253,14 +253,14 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * @return the address of the worker.
+   * @return the address of the worker
    */
   public synchronized InetSocketAddress getAddress() {
     return mWorkerAddress;
   }
 
   /**
-   * @return the address of the worker's data server.
+   * @return the address of the worker's data server
    */
   public synchronized InetSocketAddress getDataServerAddress() {
     return mWorkerDataServerAddress;
@@ -271,14 +271,14 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * @return true if it's connected to the worker, false otherwise.
+   * @return true if it's connected to the worker, false otherwise
    */
   public synchronized boolean isConnected() {
     return mConnected;
   }
 
   /**
-   * @return true if the worker is local, false otherwise.
+   * @return true if the worker is local, false otherwise
    */
   public synchronized boolean isLocal() {
     return mIsLocal;
