@@ -35,7 +35,7 @@ import tachyon.worker.ClientMetrics;
  * thread safe.
  */
 public final class ClientContext {
-  
+
   private static ExecutorService sExecutorService;
   /**
    * The static configuration object. There is only one TachyonConf object shared within the same
