@@ -39,6 +39,17 @@ public final class Constants {
   public static final String MESOS_RESOURCE_MEM = "mem";
   public static final String MESOS_RESOURCE_DISK = "disk";
   public static final String MESOS_RESOURCE_PORTS = "ports";
+  public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH
+      = "tachyon.integration.mesos.executor.dependency.path";
+  public static final String INTEGRATION_MESOS_JRE_URL = "tachyon.integration.mesos.jre.url";
+  public static final String INTEGRATION_MESOS_JRE_VERSION
+       = "tachyon.integration.mesos.jre.version";
+  public static final String INTEGRATION_MESOS_TACHYON_MASTER_NAME
+       = "tachyon.integration.mesos.master.name";
+  public static final String INTEGRATION_MESOS_TACHYON_WORKER_NAME
+       = "tachyon.integration.mesos.worker.name";
+  public static final String INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT
+       = "tachyon.integration.mesos.master.node.count";
 
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
@@ -117,10 +128,6 @@ public final class Constants {
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
-  public static final String EXECUTOR_DEPENDENCY_PATH =
-      "tachyon.integration.mesos.executor.dependency.path";
-  public static final String JRE_URL = "tachyon.integration.mesos.jre.url";
-  public static final String JRE_VERSION = "tachyon.integration.mesos.jre.version";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";
