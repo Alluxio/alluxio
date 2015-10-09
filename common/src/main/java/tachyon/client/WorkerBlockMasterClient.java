@@ -32,8 +32,6 @@ import tachyon.thrift.BlockMasterService;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
 
-
-
 /**
  * A wrapper for the thrift client to interact with the block master, used by tachyon worker.
  * <p/>
