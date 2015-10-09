@@ -180,7 +180,6 @@
                value="Static member name ''{0}'' must match pattern ''{1}''."/>
     </module>
   </module>
-<<<<<<< HEAD
 
   <!-- always use Unix-style line separators -->
   <module name="NewlineAtEndOfFile">
