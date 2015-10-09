@@ -268,10 +268,8 @@ public final class Constants {
       "tachyon.user.file.understoragetype.default";
   public static final String USER_REMOTE_BLOCK_READER = "tachyon.user.block.remote.reader.class";
   public static final String USER_REMOTE_BLOCK_WRITER = "tachyon.user.block.remote.writer.class";
-  public static final String USER_REMOTE_BLOCK_WORKER_CLIENT_THREADS =
-      "tachyon.user.block.remote.worker.client.threads";
-  public static final String USER_LOCAL_BLOCK_WORKER_CLIENT_THREADS =
-      "tachyon.user.block.local.worker.client.threads";
+  public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
+      "tachyon.user.block.worker.client.threads";
   public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
       "tachyon.user.block.master.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
