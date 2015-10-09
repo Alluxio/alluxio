@@ -76,10 +76,9 @@ public final class TachyonFileSystemUtils {
    * while it is waited upon. In such cases the method will throw the a {@link TachyonException}
    * with the appropriate {@link tachyon.exception.TachyonExceptionType}
    *
-   * <i>IMPLEMENTATION NOTES</i> This method is implemented
-   * by periodically polling the master about the file status. The
-   * polling period is controlled by the {@link Constants#USER_FILE_WAITCOMPLETED_POLL_MS}
-   * java property and defaults to a generous 1 second.
+   * <i>IMPLEMENTATION NOTES</i> This method is implemented by periodically polling the master about
+   * the file status. The polling period is controlled by the
+   * {@link Constants#USER_WAITCOMPLETED_POLL} java property and defaults to a generous 1 second.
    *
    * @param tfs an instance of {@link TachyonFileSystemCore}
    * @param uri the URI of the file whose completion status is to be watied for.

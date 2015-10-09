@@ -284,7 +284,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
     FileSystemMasterClient client = mContext.acquireMasterClient();
     try {
       return client.getFileInfo(mFileId);
-    } catch (TachyonException   e) {
+    } catch (TachyonException e) {
       throw new IOException(e.getMessage());
     } finally {
       mContext.releaseMasterClient(client);

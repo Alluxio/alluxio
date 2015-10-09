@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 public enum ExceptionMessage {
   // general
   PATH_DOES_NOT_EXIST("Path {0} does not exist"),
+  PATH_MUST_BE_FILE("Path {0} must be a file"),
 
   // general block
   BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
@@ -92,6 +93,10 @@ public enum ExceptionMessage {
   RAW_TABLE_ID_DUPLICATED("There is already a raw table with id {0}"),
   RAW_TABLE_METADATA_OVERSIZED("Size of raw table metadata {0} should be smaller than {1}"),
   RAW_TABLE_PATH_DOES_NOT_EXIST("Raw table with path {0} does not exist"),
+
+  // shell
+  DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
+      "The destination cannot be an existent file when the src contains wildcards."),
 
   // lineage
   LINEAGE_INPUT_FILE_NOT_EXIST("The lineage input file {0} does not exist"),
