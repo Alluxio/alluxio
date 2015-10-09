@@ -218,7 +218,6 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     }
   }
 
-  @Override
   public TachyonFile open(TachyonURI path, OpenOptions openOptions) throws IOException,
       InvalidPathException, TachyonException {
     TachyonFile f = openIfExists(path, openOptions);
