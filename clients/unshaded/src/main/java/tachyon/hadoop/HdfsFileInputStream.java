@@ -118,6 +118,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mClosed = true;
   }
 
+  // TODO(calvin): Consider removing this when the recovery logic is available in FileInStream
   private void getHdfsInputStream() throws IOException {
     if (mHdfsInputStream == null) {
       FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
