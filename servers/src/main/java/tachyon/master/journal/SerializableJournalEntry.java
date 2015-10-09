@@ -30,7 +30,7 @@ public class SerializableJournalEntry implements JournalEntry {
   }
 
   /**
-   * @return the sequence number for this entry.
+   * @return the sequence number for this entry
    */
   public long getSequenceNumber() {
     return mSequenceNumber;
