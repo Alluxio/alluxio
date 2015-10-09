@@ -255,7 +255,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     LOG.debug("createPath {}", FormatUtils.parametersToString(path));
 
-    String[] pathComponents = PathUtils.getPathComponents(path.toString());
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
     String name = path.getName();
 
     String[] parentPath = new String[pathComponents.length - 1];
