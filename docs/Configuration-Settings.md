@@ -483,9 +483,9 @@ Tachyon configuration provides a way to take advantage of multi-homed networks. 
 
 To run Tachyon, it also requires some system environment variables being set which by default are configured in file `conf/tachyon-env.sh`. If this file does not exist yet, you can create one from a template we provided in the source code `conf/tachyon-env.sh.template` by:
 
-~~~
+```
 $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
-~~~
+```
 
 There are a few frequently used Tachyon configuration properties that can be set via environment variables. One can either set these variables through Shell or modify their default values specified in `conf/tachyon-env.sh`.
 
@@ -497,7 +497,7 @@ There are a few frequently used Tachyon configuration properties that can be set
 
 For example, if you would like to connect Tachyon to HDFS running at localhost and enable Java remote debugging at port 7001 in the Master, you can export these in environment variables like this:
 
-~~~
+```
 $ export TACHYON_UNDERFS_ADDRESS="hdfs://localhost:9000"
 $ export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001“
-~~~
+```
