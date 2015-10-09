@@ -22,11 +22,21 @@ import com.google.common.collect.Maps;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
+/**
+ * This class represents a journal entry for recording the entry of setting a pin.
+ */
 public class SetPinnedEntry implements JournalEntry {
   private final long mId;
   private final boolean mPinned;
   private final long mOpTimeMs;
 
+    /**
+     * Creates a new instance of <code>SetPinnedEntry</code>
+     *
+     * @param id the id of the entry.
+     * @param pinned whether the entry is pinned or not.
+     * @param opTimeMs the operation timestamp (in millisecs).
+     */
   public SetPinnedEntry(long id, boolean pinned, long opTimeMs) {
     mId = id;
     mPinned = pinned;
