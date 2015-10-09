@@ -79,13 +79,8 @@ public class SpaceReserverTest implements Tester<SpaceReserver> {
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
     WorkerContext.getConf().set(reserveRatioProp, "0.2");
     reserveRatioProp =
-<<<<<<< HEAD
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
-    WorkerContext.getConf().set(reserveRatioProp, "0.2");
-=======
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     WorkerContext.getConf().set(reserveRatioProp, "0.3");
->>>>>>> 18bc128e21e8fc681b9d66d43ffdc27fc7495ea5
     mSpaceReserver = new SpaceReserver(blockDataManager);
     mSpaceReserver.grantAccess(this);
   }
