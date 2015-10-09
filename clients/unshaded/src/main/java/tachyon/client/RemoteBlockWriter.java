@@ -40,7 +40,7 @@ public interface RemoteBlockWriter extends Closeable {
     public static RemoteBlockWriter createRemoteBlockWriter(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<RemoteBlockWriter>getClass(Constants.USER_BLOCK_REMOTE_BLOCK_WRITER), null, null);
+            conf.<RemoteBlockWriter>getClass(Constants.USER_BLOCK_REMOTE_WRITER), null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

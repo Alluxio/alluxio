@@ -39,7 +39,7 @@ public interface RemoteBlockReader extends Closeable {
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<RemoteBlockReader>getClass(Constants.USER_BLOCK_REMOTE_BLOCK_READER), null, null);
+            conf.<RemoteBlockReader>getClass(Constants.USER_BLOCK_REMOTE_READER), null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

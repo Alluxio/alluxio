@@ -274,9 +274,9 @@ public final class Constants {
       "tachyon.user.file.tachyonstoragetype.default";
   public static final String USER_FILE_UNDER_STORAGE_TYPE_DEFAULT =
       "tachyon.user.file.understoragetype.default";
-  public static final String USER_BLOCK_REMOTE_BLOCK_READER =
+  public static final String USER_BLOCK_REMOTE_READER =
       "tachyon.user.block.remote.reader.class";
-  public static final String USER_BLOCK_REMOTE_BLOCK_WRITER =
+  public static final String USER_BLOCK_REMOTE_WRITER =
       "tachyon.user.block.remote.writer.class";
   public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
       "tachyon.user.block.worker.client.threads";
