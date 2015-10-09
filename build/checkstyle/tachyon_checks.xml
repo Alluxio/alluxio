@@ -175,4 +175,9 @@
                value="Static member name ''{0}'' must match pattern ''{1}''."/>
     </module>
   </module>
+  <module name="RegexpSingleline">
+    <property name="format" value="\s+$"/>
+    <property name="message" value="Trailing whitespace found."/>
+    <property name="fileExtensions" value=".java"/>
+  </module>
 </module>
