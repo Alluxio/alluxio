@@ -624,7 +624,6 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertTrue(fileInfo.isPersisted);
   }
 
-
   @Test
   public void renameExistingDstTest() throws Exception {
     mFsMaster.create(new TachyonURI("/testFile1"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);

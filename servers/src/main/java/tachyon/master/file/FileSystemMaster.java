@@ -1263,7 +1263,6 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-
   // TODO(jiri): Make it possible to load directories and not just individual files.
   public long loadFileInfoFromUfs(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
