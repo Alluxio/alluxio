@@ -30,7 +30,6 @@ import tachyon.exception.TachyonException;
 import tachyon.job.Job;
 import tachyon.thrift.LineageInfo;
 
-
 /**
  * User facing interface for the Tachyon Lineage client APIs.
  */
