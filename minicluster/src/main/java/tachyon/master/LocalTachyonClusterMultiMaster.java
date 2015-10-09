@@ -235,9 +235,9 @@ public class LocalTachyonClusterMultiMaster {
       mMasterConf.set(Constants.MASTER_PORT, "0");
     }
 
-    // Create the UFS data directory after LocalTachyonMaster construction, because
-    // LocalTachyonMaster sets UNDERFS_DATA_FOLDER.
-    mkdir(mMasterConf.get(Constants.UNDERFS_DATA_FOLDER));
+    // Create the UFS directory after LocalTachyonMaster construction, because LocalTachyonMaster
+    // sets UNDERFS_ADDRESS.
+    mkdir(mMasterConf.get(Constants.UNDERFS_ADDRESS));
 
     LOG.info("all " + mNumOfMasters + " masters started.");
     LOG.info("waiting for a leader.");
