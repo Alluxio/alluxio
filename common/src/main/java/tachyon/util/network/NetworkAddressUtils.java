@@ -27,11 +27,11 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import org.apache.thrift.transport.TServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -257,7 +257,7 @@ public final class NetworkAddressUtils {
    *
    * @param service Service type used to connect
    * @param conf Tachyon configuration
-   * @return the service port number.
+   * @return the service port number
    */
   public static int getPort(ServiceType service, TachyonConf conf) {
     return conf.getInt(service.mPortKey);
@@ -294,7 +294,7 @@ public final class NetworkAddressUtils {
    * Gets a local host name for the host this JVM is running on
    *
    * @param conf Tachyon configuration used to look up the host resolution timeout
-   * @return the local host name, which is not based on a loopback ip address.
+   * @return the local host name, which is not based on a loopback ip address
    */
   public static String getLocalHostName(TachyonConf conf) {
     if (sLocalHost != null) {
@@ -309,7 +309,7 @@ public final class NetworkAddressUtils {
    *
    * @param timeout Timeout in milliseconds to use for checking that a possible local host is
    *        reachable
-   * @return the local host name, which is not based on a loopback ip address.
+   * @return the local host name, which is not based on a loopback ip address
    */
   public static String getLocalHostName(int timeout) {
     if (sLocalHost != null) {
@@ -445,7 +445,7 @@ public final class NetworkAddressUtils {
    * same alias is defined there. In this situation, loadufs would break.
    *
    * @param hostname the input hostname, which could be an alias.
-   * @return the canonical form of the hostname, or null if it is null or empty.
+   * @return the canonical form of the hostname, or null if it is null or empty
    * @throws UnknownHostException if the given hostname cannot be resolved.
    */
   public static String resolveHostName(String hostname) throws UnknownHostException {
