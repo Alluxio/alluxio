@@ -27,10 +27,9 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.MasterClientBase;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
-import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.TachyonTException;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon worker.
@@ -66,23 +65,20 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
   }
 
   /**
-   * Adds a checkpoint.
+   * Persists a file.
    *
-   * @param workerId the worker id
    * @param fileId the file id
    * @param length the checkpoint length
-   * @param checkpointPath the checkpoint path
    * @return whether operation succeeded or not
    * @throws IOException if an I/O error occurs
    */
-  public synchronized boolean addCheckpoint(long workerId, long fileId, long length,
-      String checkpointPath) throws IOException {
+  public synchronized boolean persistFile(long fileId, long length) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
-      } catch (FileDoesNotExistException e) {
+        return mClient.persistFile(fileId, length);
+      } catch (TachyonTException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -95,19 +91,17 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
   /**
    * @param fileId the file id
    * @return the file info for the given file id
-   * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
   // TODO(jiri): Factor this method out to a common client.
-  public synchronized FileInfo getFileInfo(long fileId) throws IOException,
-      FileDoesNotExistException {
+  public synchronized FileInfo getFileInfo(long fileId) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileInfo(fileId);
-      } catch (FileDoesNotExistException e) {
-        throw e;
+      } catch (TachyonTException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -126,7 +120,7 @@ public final class WorkerFileSystemMasterClient extends MasterClientBase {
       connect();
       try {
         return mClient.workerGetPinIdList();
-      } catch (InvalidPathException e) {
+      } catch (TachyonTException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
