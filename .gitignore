@@ -3,6 +3,8 @@
 *.pyc
 *.swo
 *.swp
+*~
+\#*#
 .DS_STORE
 .checkstyle
 .classpath
