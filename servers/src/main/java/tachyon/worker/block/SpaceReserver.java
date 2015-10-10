@@ -56,7 +56,7 @@ public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
     long lastTierReservedBytes = 0;
     for (int idx = 0; idx < aliasOnTiers.size(); idx ++) {
       String tierReservedSpaceProp =
-          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, idx);
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, idx);
       int tierAlias = aliasOnTiers.get(idx);
       /** Similar to {@link BlockStoreMeta}, the alias index is the value of alias - 1 */
       long reservedSpaceBytes =
@@ -67,7 +67,7 @@ public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
       lastTierReservedBytes += reservedSpaceBytes;
     }
     mCheckIntervalMs =
-        WorkerContext.getConf().getInt(Constants.WORKER_SPACE_RESERVER_INTERVAL_MS);
+        WorkerContext.getConf().getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
     mRunning = true;
   }
 

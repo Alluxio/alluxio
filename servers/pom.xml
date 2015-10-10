@@ -129,24 +129,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.sling</groupId>
-        <artifactId>maven-jspc-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>compile-jsp</id>
-            <goals>
-              <goal>jspc</goal>
-            </goals>
-            <configuration>
-              <sourceDirectory>${project.basedir}/src/main/webapp</sourceDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 </project>

@@ -35,7 +35,7 @@ public final class CreateOptions {
      */
     public Builder(TachyonConf conf) {
       mTTL = Constants.NO_TTL;
-      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mBlockSize = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mRecursive = false;
     }
 
