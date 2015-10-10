@@ -27,17 +27,16 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ClientContext;
-import tachyon.client.ClientOptions;
 import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
+import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 
@@ -56,14 +55,14 @@ public class BasicOperations implements Callable<Boolean> {
 
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
-  private final ClientOptions mClientOptions;
+  private final OutStreamOptions mClientOptions;
   private final int mNumbers = 20;
 
   public BasicOperations(TachyonURI masterLocation, TachyonURI filePath,
       TachyonStorageType storageType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
-    mClientOptions = new ClientOptions.Builder(ClientContext.getConf())
+    mClientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(storageType).build();
   }
 
@@ -76,23 +75,26 @@ public class BasicOperations implements Callable<Boolean> {
       ClientContext.accessReinitializer(sReinitializerAccesser);
     }
     sReinitializer.reinitializeWithConf(tachyonConf);
-    TachyonFileSystem tFS = TachyonFileSystem.get();
+    TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     long fileId = createFile(tFS);
     writeFile(fileId);
     return readFile(tFS, fileId);
   }
 
   private long createFile(TachyonFileSystem tachyonFileSystem)
-      throws IOException, BlockInfoException, FileAlreadyExistException, InvalidPathException {
+      throws IOException, TachyonException {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    long fileId = tachyonFileSystem.createEmptyFile(mFilePath, mClientOptions);
+    CreateOptions createOptions = (new CreateOptions.Builder(ClientContext.getConf()))
+        .setBlockSize(mClientOptions.getBlockSize()).setRecursive(true)
+        .setTTL(mClientOptions.getTTL()).build();
+    TachyonFile tFile = tachyonFileSystem.create(mFilePath, createOptions);
+    long fileId = tFile.getFileId();
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
     return fileId;
   }
 
-  private void writeFile(long fileId)
-      throws IOException, BlockInfoException, FileAlreadyExistException, InvalidPathException {
+  private void writeFile(long fileId) throws IOException {
     ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
@@ -112,12 +114,12 @@ public class BasicOperations implements Callable<Boolean> {
   }
 
   private boolean readFile(TachyonFileSystem tachyonFileSystem, long fileId)
-      throws IOException, FileDoesNotExistException {
+      throws IOException, TachyonException {
     boolean pass = true;
     LOG.debug("Reading data...");
     TachyonFile file = new TachyonFile(fileId);
-    ClientOptions clientOptions = new ClientOptions.Builder(ClientContext.getConf())
-            .setTachyonStorageType(TachyonStorageType.STORE).build();
+    InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
+        .setTachyonStorageType(TachyonStorageType.STORE).build();
     final long startTimeMs = CommonUtils.getCurrentMs();
     FileInStream is = tachyonFileSystem.getInStream(file, clientOptions);
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());

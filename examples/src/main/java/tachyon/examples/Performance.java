@@ -40,10 +40,7 @@ import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
+import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 
@@ -77,11 +74,11 @@ public class Performance {
   private static int sBaseFileNumber = 0;
   private static boolean sTachyonStreamingRead = false;
 
-  public static void createFiles()
-      throws IOException, BlockInfoException, FileAlreadyExistException, InvalidPathException {
+  public static void createFiles() throws TachyonException, IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < sFiles; k ++) {
-      long fileId = sTFS.createEmptyFile(new TachyonURI(sFileName + (k + sBaseFileNumber)));
+      TachyonFile file = sTFS.create(new TachyonURI(sFileName + (k + sBaseFileNumber)));
+      long fileId = file.getFileId();
       LOG.info(
           FormatUtils.formatTimeTakenMs(startTimeMs, "user_createFiles with fileId " + fileId));
     }
@@ -197,11 +194,11 @@ public class Performance {
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTFS = TachyonFileSystem.get();
+      mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     }
 
     public void writePartition()
-        throws IOException, BlockInfoException, FileAlreadyExistException, InvalidPathException {
+            throws IOException, TachyonException {
       if (sDebugMode) {
         mBuf.flip();
         LOG.info(FormatUtils.byteBufferToString(mBuf));
@@ -236,11 +233,11 @@ public class Performance {
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTFS = TachyonFileSystem.get();
+      mTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
     }
 
     public void readPartition()
-        throws IOException, FileDoesNotExistException, InvalidPathException {
+            throws IOException, TachyonException {
       if (sDebugMode) {
         ByteBuffer buf = ByteBuffer.allocate(sBlockSizeBytes);
         LOG.info("Verifying the reading data...");
@@ -557,13 +554,13 @@ public class Performance {
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sTFS = TachyonFileSystem.get();
+      sTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2 || testCase == 9) {
       sResultPrefix = "TachyonFilesReadTest " + sResultPrefix;
       LOG.info(sResultPrefix);
-      sTFS = TachyonFileSystem.get();
+      sTFS = TachyonFileSystem.TachyonFileSystemFactory.get();
       sTachyonStreamingRead = (9 == testCase);
       TachyonTest(false);
     } else if (testCase == 3) {
