@@ -300,7 +300,7 @@ public final class NetworkAddressUtils {
     if (sLocalHost != null) {
       return sLocalHost;
     }
-    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout = conf.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalHostName(hostResolutionTimeout);
   }
 
@@ -335,7 +335,7 @@ public final class NetworkAddressUtils {
     if (sLocalIP != null) {
       return sLocalIP;
     }
-    int hostResolutionTimeout = conf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout = conf.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalIpAddress(hostResolutionTimeout);
   }
 

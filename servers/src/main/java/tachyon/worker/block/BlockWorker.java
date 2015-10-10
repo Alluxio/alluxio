@@ -21,7 +21,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
@@ -41,7 +40,6 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
@@ -224,7 +222,7 @@ public final class BlockWorker {
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
 
     // Setup space reserver
-    if (mTachyonConf.getBoolean(Constants.WORKER_SPACE_RESERVER_ENABLE)) {
+    if (mTachyonConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(mBlockDataManager);
     }
 
@@ -325,8 +323,8 @@ public final class BlockWorker {
    * @return a thrift server
    */
   private TThreadPoolServer createThriftServer() {
-    int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
-    int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
+    int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
+    int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
     TTransportFactory tTransportFactory;

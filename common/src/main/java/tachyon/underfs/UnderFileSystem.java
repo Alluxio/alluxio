@@ -111,7 +111,7 @@ public abstract class UnderFileSystem {
     // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
     // system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop are
     // supported this is not an option and we have to continue to use this method.
-    for (final String prefix : tachyonConf.getList(Constants.UNDERFS_HADOOP_PREFIXS, ",")) {
+    for (final String prefix : tachyonConf.getList(Constants.UNDERFS_HDFS_PREFIXS, ",")) {
       if (path.startsWith(prefix)) {
         return true;
       }

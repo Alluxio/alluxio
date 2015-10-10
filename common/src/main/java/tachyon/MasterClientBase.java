@@ -43,7 +43,7 @@ public abstract class MasterClientBase extends ClientBase {
    */
   public MasterClientBase(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
     super(masterAddress, tachyonConf, "master");
-    mUseZookeeper = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
+    mUseZookeeper = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
   }
 
   /**

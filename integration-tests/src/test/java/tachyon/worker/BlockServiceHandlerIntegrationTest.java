@@ -307,6 +307,6 @@ public class BlockServiceHandlerIntegrationTest {
   // Sleeps for a duration so that the worker heartbeat to master can be processed
   private void waitForHeartbeat() {
     CommonUtils
-        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 3);
+        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 3);
   }
 }
