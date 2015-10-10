@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Sessions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
@@ -37,6 +39,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.io.BlockReader;
 import tachyon.worker.block.io.BlockWriter;
@@ -62,9 +65,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
   /** WorkerFileSystemMasterClient, only used to inform master of a new file in persistFile */
   private WorkerFileSystemMasterClient mFileSystemMasterClient;
   /** Session metadata, used to keep track of session heartbeats */
-  private Sessions mSessions;
-  /** Id of this worker */
-  private long mWorkerId;
+  private Sessions mSessions = new Sessions();
 
   class PrivateAccess {
     private PrivateAccess() {}
@@ -75,6 +76,10 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
 
     public void setMetricsReporter(BlockMetricsReporter reporter) {
       mMetricsReporter = reporter;
+    }
+
+    public void setSessions(Sessions sessions) {
+      mSessions = Preconditions.checkNotNull(sessions);
     }
   }
 
@@ -217,7 +222,8 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias() - 1);
-      mBlockMasterClient.commitBlock(mWorkerId, bytesUsedOnTier, tier, blockId, length);
+      mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier, tier, blockId,
+          length);
     } catch (IOException ioe) {
       throw new IOException("Failed to commit block to master.", ioe);
     } finally {
@@ -479,25 +485,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException,
       BlockAlreadyExistsException, InvalidWorkerStateException {
     mBlockStore.requestSpace(sessionId, blockId, additionalBytes);
-  }
-
-  /**
-   * Instantiates the session metadata object. This should only be called once and is a temporary
-   * work around.
-   *
-   * @param sessions The session metadata object
-   */
-  public void setSessions(Sessions sessions) {
-    mSessions = sessions;
-  }
-
-  /**
-   * Sets the workerId. This should only be called once and is a temporary work around.
-   *
-   * @param workerId Worker id to update to
-   */
-  public void setWorkerId(long workerId) {
-    mWorkerId = workerId;
   }
 
   /**
