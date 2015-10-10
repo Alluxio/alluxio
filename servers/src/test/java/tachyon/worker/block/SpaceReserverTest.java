@@ -76,10 +76,10 @@ public class SpaceReserverTest implements Tester<SpaceReserver> {
     BlockDataManager blockDataManager = new BlockDataManager(workerSource, blockMasterClient,
         workerFileSystemMasterClient, mBlockStore);
     String reserveRatioProp =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, 0);
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
     WorkerContext.getConf().set(reserveRatioProp, "0.2");
     reserveRatioProp =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, 1);
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     WorkerContext.getConf().set(reserveRatioProp, "0.3");
     mSpaceReserver = new SpaceReserver(blockDataManager);
     mSpaceReserver.grantAccess(this);
@@ -98,7 +98,6 @@ public class SpaceReserverTest implements Tester<SpaceReserver> {
     for (int i = 0; i < 4; i ++) {
       TieredBlockStoreTestUtils.cache(SESSION_ID, blockId ++, BLOCK_SIZE, mBlockStore, tier0);
     }
-
     BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
     List<Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
     Assert.assertEquals(4 * BLOCK_SIZE, storeMeta.getUsedBytes());

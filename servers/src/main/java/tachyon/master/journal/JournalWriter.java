@@ -75,7 +75,7 @@ public final class JournalWriter {
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
     TachyonConf conf = MasterContext.getConf();
     mUfs = UnderFileSystem.get(mJournalDirectory, conf);
-    mMaxLogSize = conf.getBytes(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES);
+    mMaxLogSize = conf.getBytes(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
   }
 
   /**
