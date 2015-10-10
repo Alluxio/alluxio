@@ -27,15 +27,16 @@ public class InodeDirectoryEntry extends InodeEntry {
   private Set<Long> mChildrenIds;
 
   public InodeDirectoryEntry(long creationTimeMs, long id, String name, long parentId,
-      boolean isPinned, long lastModificationTimeMs, Set<Long> childrenIds) {
-    super(creationTimeMs, id, name, parentId, isPinned, lastModificationTimeMs);
+      boolean persisted, boolean pinned, long lastModificationTimeMs, Set<Long> childrenIds) {
+    super(creationTimeMs, id, name, parentId, persisted, pinned, lastModificationTimeMs);
 
     mChildrenIds = childrenIds;
   }
 
   public InodeDirectory toInodeDirectory() {
     InodeDirectory inode = new InodeDirectory(mName, mId, mParentId, mCreationTimeMs);
-    inode.setPinned(mIsPinned);
+    inode.setPersisted(mPersisted);
+    inode.setPinned(mPinned);
     inode.setLastModificationTimeMs(mLastModificationTimeMs);
     return inode;
   }

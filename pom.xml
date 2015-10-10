@@ -151,7 +151,6 @@
     <module>integration-tests</module>
     <module>assembly</module>
     <module>minicluster</module>
-    <module>integration</module>
   </modules>
 
   <dependencyManagement>
@@ -251,6 +250,12 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-test</artifactId>
         <version>${hadoop.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-all</artifactId>
+        <version>1.10.8</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -535,6 +540,36 @@
       <id>hdfs2Test</id>
       <properties>
         <hadoop.version>2.6.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>mesos</id>
+      <modules>
+        <module>integration/mesos</module>
+      </modules>
+    </profile>
+
+    <profile>
+      <id>yarn</id>
+      <modules>
+        <module>integration/yarn</module>
+      </modules>
+      <properties>
+        <!-- Requires hadoop.version to be 2.4.0 or later -->
+        <yarn.version>${hadoop.version}</yarn.version>
+      </properties>
+    </profile>
+
+    <!-- profile that Tachyon developers should use -->
+    <profile>
+      <id>dev</id>
+      <modules>
+        <module>integration</module>
+      </modules>
+      <properties>
+        <hadoop.version>2.6.0</hadoop.version>
+        <yarn.version>${hadoop.version}</yarn.version>
       </properties>
     </profile>
   </profiles>

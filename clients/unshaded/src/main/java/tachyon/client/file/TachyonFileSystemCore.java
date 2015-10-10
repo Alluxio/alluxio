@@ -20,11 +20,23 @@ import java.util.List;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.DeleteOptions;
+import tachyon.client.file.options.FreeOptions;
+import tachyon.client.file.options.GetInfoOptions;
+import tachyon.client.file.options.ListStatusOptions;
+import tachyon.client.file.options.LoadMetadataOptions;
+import tachyon.client.file.options.MkdirOptions;
+import tachyon.client.file.options.MountOptions;
+import tachyon.client.file.options.OpenOptions;
+import tachyon.client.file.options.RenameOptions;
+import tachyon.client.file.options.SetStateOptions;
+import tachyon.client.file.options.UnmountOptions;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
+import tachyon.exception.TachyonException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 
 /**
  * User facing interface for the Tachyon File System client APIs. File refers to any type of inode,
@@ -34,121 +46,160 @@ import tachyon.thrift.InvalidPathException;
 interface TachyonFileSystemCore {
 
   /**
-   * Creates a file with the provided block size as the standard block size of the file. If the
-   * file's parent directories do not exist, they will be created if the recursive flag is set.
+   * Creates a file.
    *
    * @param path the path of the file to create in Tachyon space
-   * @param blockSize the block size in bytes, must be greater than 0
-   * @param recursive whether or not to create parent directories if required
-   * @param ttl time to live for file expiration
-   * @return the file id that identifies the newly created file
-   * @throws BlockInfoException if the block size is less than or equal to 0
-   * @throws FileAlreadyExistException if the path already exists as a file in Tachyon
-   * @throws InvalidPathException if the path is not a valid Tachyon path
-   * @throws IOException if the master is unable to create the file
+   * @param options method options
+   * @return the {@link TachyonFile} instance that identifies the newly created file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws InvalidPathException if the path is invalid
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  long create(TachyonURI path, long blockSize, boolean recursive, long ttl) throws
-      BlockInfoException, FileAlreadyExistException, InvalidPathException, IOException;
+  TachyonFile create(TachyonURI path, CreateOptions options) throws IOException,
+      FileAlreadyExistsException, InvalidPathException, TachyonException;
 
   /**
-   * Deletes a file. If the file is a folder, its contents will be deleted recursively if the
-   * flag is set.
+   * Deletes a file or a directory.
    *
-   * @param file the handler of the file to delete.
-   * @param recursive whether or not to delete all contents in a non empty folder
+   * @param file the handler of the file to delete
+   * @param options method options
+   * @throws IOException if a non-Tachyon exception occurs
    * @throws FileDoesNotExistException if the given file does not exist
-   * @throws IOException if the master is unable to delete the file
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  void delete(TachyonFile file, boolean recursive) throws FileDoesNotExistException, IOException;
+  void delete(TachyonFile file, DeleteOptions options) throws IOException,
+      FileDoesNotExistException, TachyonException;
 
   /**
-   * Removes the file from Tachyon Storage. The underlying under storage system file will not be
-   * removed. If the file is a folder, its contents will be freed recursively if the flag is set.
+   * Removes the file from Tachyon, but not from UFS in case it exists there.
    *
    * @param file the handler for the file
-   * @param recursive whether or not to free all contents in a non empty folder
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if the master is unable to free the file for some other reason
+   * @param options method options
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  void free(TachyonFile file, boolean recursive) throws FileDoesNotExistException, IOException;
+  void free(TachyonFile file, FreeOptions options) throws IOException, FileDoesNotExistException,
+      TachyonException;
 
   /**
    * Gets the {@link FileInfo} object that represents the metadata of a Tachyon file.
    *
    * @param file the handler for the file.
-   * @return the FileInfo of the file, null if the file does not exist.
-   * @throws IOException if the master cannot retrieve the file's metadata for some other reason
+   * @param options method options
+   * @return the FileInfo of the file
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the file does not exist
    */
-  FileInfo getInfo(TachyonFile file) throws IOException;
+  FileInfo getInfo(TachyonFile file, GetInfoOptions options) throws IOException,
+      FileDoesNotExistException, TachyonException;
 
   /**
-   * If the file is a folder, returns the {@link FileInfo} of all the direct entries in it.
+   * If the file is a directory, returns the {@link FileInfo} of all the direct entries in it.
    * Otherwise returns the {@link FileInfo} for the file.
    *
    * @param file the handler for the file
+   * @param options method options
    * @return a list of FileInfos representing the files which are children of the given file
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws IOException if the master cannot retrieve the file status for some other reason
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  List<FileInfo> listStatus(TachyonFile file) throws FileDoesNotExistException, IOException;
+  List<FileInfo> listStatus(TachyonFile file, ListStatusOptions options) throws IOException,
+      FileDoesNotExistException, TachyonException;
 
   /**
-   * Adds metadata about a file in the under storage system to Tachyon. Only metadata will be
-   * updated and no data will be transferred.
+   * Loads metadata about a file in UFS to Tachyon. No data will be transferred.
    *
-   * @param path the path to create the file in Tachyon
-   * @param ufsPath the under storage system path of the file that will back the Tachyon file
-   * @param recursive if true, the parent directories to the file in Tachyon will be created
-   * @return the file id of the resulting file in Tachyon
-   * @throws FileDoesNotExistException if there is no file at the given path
-   * @throws IOException if the Tachyon path is invalid or the ufsPath does not exist
+   * @param path the path for which to load metadat from UFS
+   * @param options method options
+   * @return the {@link TachyonFile} instance identifying the resulting file in Tachyon
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  long loadFileInfoFromUfs(TachyonURI path, TachyonURI ufsPath, boolean recursive)
-      throws FileDoesNotExistException, IOException;
+  TachyonFile loadMetadata(TachyonURI path, LoadMetadataOptions options)
+      throws IOException, FileDoesNotExistException, TachyonException;
 
   /**
-   * Creates a folder. If the parent folders do not exist, they will be created automatically if
-   * the recursive flag is set.
+   * Creates a directory.
    *
    * @param path the handler for the file
-   * @param recursive whether or not to create the parent folders that do not exist
-   * @return true if the folder is created successfully or already existing, false otherwise.
-   * @throws FileAlreadyExistException if there is already a file at the given path
-   * @throws InvalidPathException if the provided path is invalid
-   * @throws IOException if the master cannot create the folder under the specified path
+   * @param options method options
+   * @return true if the directory is created successfully or already existing, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws InvalidPathException if the path is invalid
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  boolean mkdirs(TachyonURI path, boolean recursive) throws FileAlreadyExistException,
-      InvalidPathException, IOException;
+  boolean mkdir(TachyonURI path, MkdirOptions options) throws IOException,
+      FileAlreadyExistsException, InvalidPathException, TachyonException;
+
+  /**
+   * Mounts a UFS subtree to the given Tachyon path. The Tachyon path is expected not to exist as
+   * the method creates it. This method does not transfer any data or metadata from the UFS. It
+   * simply establishes the connection between the given Tachyon path and UFS path.
+   *
+   * @param tachyonPath a Tachyon path
+   * @param ufsPath a UFS path
+   * @param options method options
+   * @return true if the UFS subtree was mounted successfully, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
+  boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath, MountOptions options)
+      throws IOException, TachyonException;
 
   /**
    * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
    * non-create operations.
    *
    * @param path the path of the file, this should be in Tachyon space
-   * @return a TachyonFile which acts as a file handler for the path
-   * @throws InvalidPathException if the provided path is invalid
-   * @throws IOException if the path does not exist in Tachyon space
+   * @param options method options
+   * @return a TachyonFile which acts as a file handler for the path or null if path doesn't exist
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  TachyonFile open(TachyonURI path) throws InvalidPathException, IOException;
+  TachyonFile open(TachyonURI path, OpenOptions options) throws IOException, TachyonException;
 
   /**
-   * Renames an existing file in Tachyon space to another path in Tachyon space.
+   * Renames an existing Tachyon file to another Tachyon path in Tachyon.
    *
-   * @param src The file handler for the source file
-   * @param dst The path of the destination file, this path should not exist
+   * @param src the file handler for the source file
+   * @param dst the path of the destination file, this path should not exist
+   * @param options method options
    * @return true if successful, false otherwise
-   * @throws FileDoesNotExistException if the source file does not exist
-   * @throws IOException if the destination already exists or is invalid
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  boolean rename(TachyonFile src, TachyonURI dst) throws FileDoesNotExistException, IOException;
+  boolean rename(TachyonFile src, TachyonURI dst, RenameOptions options) throws IOException,
+      FileDoesNotExistException, TachyonException;
 
   /**
-   * Sets the pin status of a file. A pinned file will never be evicted for any reason.
+   * Sets the state of a file.
    *
    * @param file the file handler for the file to pin
-   * @param pinned true to pin the file, false to unpin it
-   * @throws FileDoesNotExistException if the file to be pinned does not exist
-   * @throws IOException if an error occurs during the pin operation
+   * @param options method options
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws FileDoesNotExistException if the given file does not exist
+   * @throws TachyonException if an unexpected tachyon exception is thrown
    */
-  void setPin(TachyonFile file, boolean pinned) throws FileDoesNotExistException, IOException;
+  void setState(TachyonFile file, SetStateOptions options) throws IOException,
+      FileDoesNotExistException, TachyonException;
+
+  /**
+   * Unmounts a UFS subtree identified by the given Tachyon path. The Tachyon path match a
+   * previously mounted path. The contents of the subtree rooted at this path are removed from
+   * Tachyon but the corresponding UFS subtree is left untouched.
+   *
+   * @param tachyonPath a Tachyon path
+   * @param options method options
+   * @return true if the UFS subtree was unmounted successfully, false otherwise
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws TachyonException if a Tachyon exception occurs
+   */
+  boolean unmount(TachyonURI tachyonPath, UnmountOptions options) throws IOException,
+      TachyonException;
 }

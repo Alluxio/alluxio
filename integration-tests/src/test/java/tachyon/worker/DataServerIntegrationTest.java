@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -45,6 +44,7 @@ import tachyon.client.UnderStorageType;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
@@ -93,7 +93,6 @@ public class DataServerIntegrationTest {
   private TachyonFileSystem mTFS = null;
   private TachyonConf mWorkerTachyonConf;
   private BlockMasterClient mBlockMasterClient;
-
 
   public DataServerIntegrationTest(String className, String nettyTransferType, String blockReader) {
     mDataServerClass = className;
@@ -156,7 +155,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void lengthTooSmall() throws IOException, TException {
+  public void lengthTooSmall() throws IOException, TachyonException {
     final int length = 20;
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", TachyonStorageType.STORE,
@@ -167,7 +166,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void multiReadTest() throws IOException, TException {
+  public void multiReadTest() throws IOException, TachyonException {
     final int length = 20;
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/multiReadTest", TachyonStorageType.STORE,
@@ -180,7 +179,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void negativeOffset() throws IOException, TException {
+  public void negativeOffset() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", TachyonStorageType.STORE,
@@ -191,7 +190,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readMultiFiles() throws IOException, TException {
+  public void readMultiFiles() throws IOException, TachyonException {
     final int length = WORKER_CAPACITY_BYTES / 2 + 1;
     TachyonFile file1 =
         TachyonFSTestUtils.createByteFile(mTFS, "/readFile1", TachyonStorageType.STORE,
@@ -216,7 +215,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readPartialTest1() throws TException, IOException {
+  public void readPartialTest1() throws TachyonException, IOException {
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
             UnderStorageType.NO_PERSIST, 10);
@@ -228,7 +227,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readPartialTest2() throws TException, IOException {
+  public void readPartialTest2() throws TachyonException, IOException {
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
             UnderStorageType.NO_PERSIST, 10);
@@ -241,7 +240,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readTest() throws IOException, TException {
+  public void readTest() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
@@ -252,7 +251,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readThroughClientTest() throws IOException, TException {
+  public void readThroughClientTest() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
@@ -271,7 +270,7 @@ public class DataServerIntegrationTest {
 
   // TODO(calvin): Make this work with the new BlockReader.
   // @Test
-  public void readThroughClientNonExistentTest() throws IOException, TException {
+  public void readThroughClientNonExistentTest() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/testFile", TachyonStorageType.STORE,
@@ -298,7 +297,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readTooLarge() throws IOException, TException {
+  public void readTooLarge() throws IOException, TachyonException {
     final int length = 20;
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", TachyonStorageType.STORE,
@@ -309,7 +308,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void tooLargeOffset() throws IOException, TException {
+  public void tooLargeOffset() throws IOException, TachyonException {
     final int length = 10;
     TachyonFile file =
         TachyonFSTestUtils.createByteFile(mTFS, "/readTooLarge", TachyonStorageType.STORE,
@@ -322,7 +321,7 @@ public class DataServerIntegrationTest {
   /**
    * Requests a block from the server. This call will read the full block.
    */
-  private DataServerMessage request(final BlockInfo block) throws IOException, TException {
+  private DataServerMessage request(final BlockInfo block) throws IOException, TachyonException {
     return request(block, 0, -1);
   }
 
@@ -331,7 +330,7 @@ public class DataServerIntegrationTest {
    * response from the server.
    */
   private DataServerMessage request(final BlockInfo block, final long offset, final long length)
-      throws IOException, TException {
+      throws IOException, TachyonException {
     DataServerMessage sendMsg =
         DataServerMessage.createBlockRequestMessage(block.blockId, offset, length);
     SocketChannel socketChannel = SocketChannel
@@ -361,9 +360,10 @@ public class DataServerIntegrationTest {
    * @param tachyonFile the file to get the first MasterBlockInfro for
    * @return the MasterBlockInfo of the first block in the file
    * @throws IOException if the block does not exist
-   * @throws TException
+   * @throws TachyonException
    */
-  private BlockInfo getFirstBlockInfo(TachyonFile tachyonFile) throws IOException, TException {
+  private BlockInfo getFirstBlockInfo(TachyonFile tachyonFile)
+      throws IOException, TachyonException {
     FileInfo fileInfo = mTFS.getInfo(tachyonFile);
     return mBlockMasterClient.getBlockInfo(fileInfo.blockIds.get(0));
   }

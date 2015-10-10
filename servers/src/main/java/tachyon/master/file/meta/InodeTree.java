@@ -34,21 +34,25 @@ import com.google.common.collect.Sets;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
-import tachyon.IndexedSet;
+import tachyon.collections.IndexedSet;
+import tachyon.exception.BlockInfoException;
+import tachyon.exception.ExceptionMessage;
+import tachyon.exception.FileAlreadyExistsException;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.block.ContainerIdGenerable;
 import tachyon.master.file.journal.InodeDirectoryEntry;
 import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
-import tachyon.thrift.BlockInfoException;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
 public final class InodeTree implements JournalCheckpointStreamable {
+  /** Value to be used for an inode with no parent. */
+  public static final long NO_PARENT = -1;
+
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Only the root inode should have the empty string as its name. */
   private static final String ROOT_INODE_NAME = "";
@@ -97,8 +101,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   public void initializeRoot() {
     if (mRoot == null) {
-      mRoot = new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), -1,
-          System.currentTimeMillis());
+      mRoot =
+          new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT,
+              System.currentTimeMillis());
       mInodes.add(mRoot);
 
       mCachedInode = mRoot;
@@ -126,7 +131,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * @param id the id to get the inode for
    * @return the inode with the given id
-   * @throws FileDoesNotExistException
+   * @throws FileDoesNotExistException if the file does not exist
    */
   public Inode getInodeById(long id) throws FileDoesNotExistException {
     Inode inode = mInodes.getFirstByField(mIdIndex, id);
@@ -139,12 +144,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * @param path the path to get the inode for
    * @return the inode with the given path
-   * @throws InvalidPathException
+   * @throws InvalidPathException if the path is invalid
    */
   public Inode getInodeByPath(TachyonURI path) throws InvalidPathException {
     TraversalResult traversalResult = traverseToInode(PathUtils.getPathComponents(path.toString()));
     if (!traversalResult.isFound()) {
-      throw new InvalidPathException("Could not find path: " + path);
+      throw new InvalidPathException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
     return traversalResult.getInode();
   }
@@ -182,13 +187,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param directory if it is true, create a directory, otherwise, create a file
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation.
-   * @throws FileAlreadyExistException
-   * @throws BlockInfoException
-   * @throws InvalidPathException
+   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws BlockInfoException if the block size is invalid
+   * @throws InvalidPathException if the path is invalid
    */
   public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory)
-          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
+          throws FileAlreadyExistsException, BlockInfoException, InvalidPathException {
     return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis(),
         Constants.NO_TTL);
   }
@@ -206,13 +211,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param directory if it is true, create a directory, otherwise, create a file
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation.
-   * @throws FileAlreadyExistException
-   * @throws BlockInfoException
-   * @throws InvalidPathException
+   * @throws FileAlreadyExistsException if there is already a file at the given path
+   * @throws BlockInfoException if the block size is invalid
+   * @throws InvalidPathException if the path is invalid
    */
   public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory, long ttl)
-          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
+          throws FileAlreadyExistsException, BlockInfoException, InvalidPathException {
     return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis(), ttl);
   }
 
@@ -230,7 +235,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param ttl time to live for file expiration
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation.
-   * @throws FileAlreadyExistException when there is already a file at path if we want to create a
+   * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
    *         directory there
    * @throws BlockInfoException when blockSizeBytes is invalid
    * @throws InvalidPathException when path is invalid, for example, (1) when there is nonexistent
@@ -239,10 +244,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
    */
   public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
       boolean directory, long creationTimeMs, long ttl)
-          throws FileAlreadyExistException, BlockInfoException, InvalidPathException {
+          throws FileAlreadyExistsException, BlockInfoException, InvalidPathException {
     if (path.isRoot()) {
-      LOG.info("FileAlreadyExistException: " + path);
-      throw new FileAlreadyExistException(path.toString());
+      LOG.info("FileAlreadyExistsException: " + path);
+      throw new FileAlreadyExistsException(path.toString());
     }
     if (!directory && blockSizeBytes < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeBytes);
@@ -250,7 +255,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     LOG.debug("createPath {}", FormatUtils.parametersToString(path));
 
-    String[] pathComponents = PathUtils.getPathComponents(path.toString());
+    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
     String name = path.getName();
 
     String[] parentPath = new String[pathComponents.length - 1];
@@ -305,8 +310,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
       if (lastInode.isDirectory() && directory) {
         return new CreatePathResult();
       }
-      LOG.info("FileAlreadyExistException: " + path);
-      throw new FileAlreadyExistException(path.toString());
+      LOG.info("FileAlreadyExistsException: " + path);
+      throw new FileAlreadyExistsException(path.toString());
     }
     if (directory) {
       lastInode = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
@@ -328,6 +333,24 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
     return new CreatePathResult(modifiedInodes, createdInodes);
+  }
+
+  /**
+   * Reinitializes the block size and TTL of an existing open file.
+   *
+   * @param path the path to the file
+   * @param blockSizeBytes the new block size
+   * @param ttl the ttl
+   * @return the file id
+   * @throws InvalidPathException if the paht is invalid
+   */
+  public long reinitializeFile(TachyonURI path, long blockSizeBytes, long ttl)
+      throws InvalidPathException {
+    // TODO(yupeng): add validation
+    InodeFile file = (InodeFile) getInodeByPath(path);
+    file.setBlockSize(blockSizeBytes);
+    file.setTTL(ttl);;
+    return file.getId();
   }
 
   /**

@@ -28,10 +28,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.common.base.Preconditions;
 
 import tachyon.TachyonURI;
+import tachyon.exception.FileDoesNotExistException;
+import tachyon.exception.InvalidPathException;
 import tachyon.master.TachyonMaster;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.FileInfo;
-import tachyon.thrift.InvalidPathException;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.
@@ -69,10 +69,6 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
         if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
           fileInfos.add(new UiFileInfo(fileInfo));
         }
-      } catch (InvalidPathException ipe) {
-        request.setAttribute("fatalError", "Error: Invalid Path " + ipe.getLocalizedMessage());
-        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
-        return;
       } catch (FileDoesNotExistException fee) {
         request.setAttribute("fatalError",
             "Error: File does not exist " + fee.getLocalizedMessage());

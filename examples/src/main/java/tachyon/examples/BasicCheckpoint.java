@@ -19,11 +19,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,15 +28,13 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
-import tachyon.client.TachyonFile;
 import tachyon.client.TachyonFS;
-import tachyon.client.ClientOptions;
+import tachyon.client.TachyonFile;
 import tachyon.client.file.FileInStream;
-import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.TachyonFileSystem.TachyonFileSystemFactory;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.master.file.meta.DependencyType;
-import tachyon.util.CommonUtils;
-import tachyon.util.FormatUtils;
+import tachyon.exception.TachyonException;
 
 /**
  * An example to show to how use Tachyon's API
@@ -60,25 +55,8 @@ public class BasicCheckpoint implements Callable<Boolean> {
   @Override
   public Boolean call() throws Exception {
     TachyonFS tachyonClient = TachyonFS.get(mLocation, new TachyonConf());
-    createDependency(tachyonClient);
     writeFile(tachyonClient);
     return readFile(tachyonClient);
-  }
-
-  private void createDependency(TachyonFS tachyonClient) throws IOException {
-    long startTimeMs = CommonUtils.getCurrentMs();
-    List<String> children = new ArrayList<String>();
-    for (int k = 0; k < mNumFiles; k ++) {
-      children.add(mFileFolder + "/part-" + k);
-    }
-    List<ByteBuffer> data = new ArrayList<ByteBuffer>();
-    data.add(ByteBuffer.allocate(10));
-    int depId =
-        tachyonClient.createDependency(new ArrayList<String>(), children, "fake command", data,
-            "BasicCheckpoint Dependency", "Tachyon Examples", "0.3",
-            DependencyType.Narrow.getValue(), 512 * Constants.MB);
-
-    LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createDependency with depId " + depId));
   }
 
   private boolean readFile(TachyonFS tachyonClient) throws IOException {
@@ -99,7 +77,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
     return pass;
   }
 
-  private void writeFile(TachyonFS tachyonClient) throws IOException, TException {
+  private void writeFile(TachyonFS tachyonClient) throws IOException, TachyonException {
     for (int i = 0; i < mNumFiles; i ++) {
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -109,7 +87,8 @@ public class BasicCheckpoint implements Callable<Boolean> {
       buf.flip();
       TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
-      OutputStream os = TachyonFileSystem.get().getOutStream(filePath, ClientOptions.defaults());
+      OutputStream os =
+          TachyonFileSystemFactory.get().getOutStream(filePath, OutStreamOptions.defaults());
       os.write(buf.array());
       os.close();
     }

@@ -17,12 +17,10 @@ package tachyon.client.block;
 
 import java.io.Closeable;
 import java.io.IOException;
-
-import com.google.common.base.Preconditions;
+import java.net.InetSocketAddress;
 
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
-import tachyon.client.ClientOptions;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.network.NetworkAddressUtils;
@@ -86,7 +84,7 @@ public final class TachyonBlockStore implements Closeable {
    * @return a BlockInStream which can be used to read the data in a streaming fashion
    * @throws IOException if the block does not exist
    */
-  public BlockInStream getInStream(long blockId) throws IOException {
+  public BufferedBlockInStream getInStream(long blockId) throws IOException {
     BlockMasterClient masterClient = mContext.acquireMasterClient();
     try {
       // TODO(calvin): Fix this RPC.
@@ -96,8 +94,20 @@ public final class TachyonBlockStore implements Closeable {
         // TODO(calvin): Maybe this shouldn't be an exception.
         throw new IOException("No block " + blockId + " is not available in Tachyon");
       }
-      return BlockInStream.get(blockId, blockInfo.getLength(), blockInfo.locations.get(0)
-          .getWorkerAddress());
+      // TODO(calvin): Investigate making this a Factory method
+      NetAddress workerNetAddress = blockInfo.locations.get(0).getWorkerAddress();
+      InetSocketAddress workerAddr =
+          new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
+      if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(
+          workerAddr.getHostName())) {
+        if (mContext.hasLocalWorker()) {
+          return new LocalBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+        } else {
+          throw new IOException("Local read requested but there is no local worker.");
+        }
+      } else {
+        return new RemoteBlockInStream(blockId, blockInfo.getLength(), workerAddr);
+      }
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -134,8 +144,11 @@ public final class TachyonBlockStore implements Closeable {
     }
     // Location is local.
     if (NetworkAddressUtils.getLocalHostName(ClientContext.getConf()).equals(location)) {
-      Preconditions.checkState(mContext.hasLocalWorker(), "Requested write location unavailable.");
-      return new LocalBlockOutStream(blockId, blockSize);
+      if (mContext.hasLocalWorker()) {
+        return new LocalBlockOutStream(blockId, blockSize);
+      } else {
+        throw new IOException("Local write requested but there is no local worker.");
+      }
     }
     // Location is specified and it is remote.
     return new RemoteBlockOutStream(blockId, blockSize, location);

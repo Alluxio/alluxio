@@ -41,15 +41,30 @@ import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * <p>
- * Configuration of Tachyon. It sets various Tachyon parameters as key-value pairs. This class
- * contains all the runtime configuration properties. The default properties is stored in file
- * <code>tachyon-default.properties</code> and users can override these default properties by
- * modifying file <code>tachyon-site.properties</code>.
- * </p>
+ * All the runtime configuration properties of Tachyon. This class works like a dictionary and
+ * serves each Tachyon configuration property as a key-value pair.
+ *
  * <p>
- * User can create an instance of this class by <code>new TachyonConf()</code>, which will load
- * values from any Java system properties set as well.
- * </p>
+ * Tachyon configuration properties are loaded into this class in the following order with
+ * decreasing priority:
+ * <ol>
+ * <li>Java system properties;</li>
+ * <li>Environment variables via <code>tachyon-env.sh</code> or from OS settings;</li>
+ * <li>Site specific properties via <code>tachyon-site.properties</code> file;</li>
+ * <li>Default properties via <code>tachyon-default.properties</code> file.</li>
+ * </ol>
+ *
+ * <p>
+ * The default properties are defined in a property file <code>tachyon-default.properties</code>
+ * distributed with Tachyon jar. Tachyon users can override values of these default properties by
+ * creating <code>tachyon-site.properties</code> and putting it under java <code>CLASSPATH</code>
+ * when running Tachyon (e.g., ${TACHYON_HOME}/conf/)
+ *
+ * <p>
+ * Developers can create an instance of this class by <code>new TachyonConf()</code>, which will
+ * load values from any Java system properties set as well.
+ *
+ * <p>
  * The class only supports creation using <code>new TachyonConf(properties)</code> to override
  * default values.
  */
@@ -59,35 +74,12 @@ public final class TachyonConf {
   /** File to set customized properties */
   public static final String SITE_PROPERTIES = "tachyon-site.properties";
   /** Regex string to find ${key} for variable substitution */
-  public static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
+  private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution */
-  public static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
-
+  private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Properties mProperties = new Properties();
-
-  public static void assertValidPort(final int port, TachyonConf tachyonConf) {
-    Preconditions.checkNotNull(tachyonConf);
-    Preconditions.checkArgument(port < 65536, "Port must be less than 65536");
-
-    if (!tachyonConf.getBoolean(Constants.IN_TEST_MODE)) {
-      Preconditions.checkArgument(port > 0, "Port is only allowed to be zero in test mode.");
-    }
-  }
-
-  public static void assertValidPort(final InetSocketAddress address, TachyonConf tachyonConf) {
-    assertValidPort(address.getPort(), tachyonConf);
-  }
-
-  /**
-   * Copy constructor to merge the properties of the incoming <code>TachyonConf</code>.
-   *
-   * @param tachyonConf The source {@link tachyon.conf.TachyonConf} to be merged.
-   */
-  public TachyonConf(TachyonConf tachyonConf) {
-    merge(tachyonConf);
-  }
 
   /**
    * Overrides default properties.
@@ -122,12 +114,6 @@ public final class TachyonConf {
 
   /**
    * Test constructor for TachyonConfTest class.
-   *
-   * Here is the order of the sources to load the properties:
-   *   -) System properties if desired
-   *   -) Environment variables via tachyon-env.sh or from OS settings
-   *   -) Site specific properties via tachyon-site.properties file
-   *   -) Default properties via tachyon-default.properties file
    */
   TachyonConf(boolean includeSystemProperties) {
     // Load default
@@ -178,7 +164,7 @@ public final class TachyonConf {
     mProperties.putAll(siteProps);
     mProperties.putAll(systemProps);
 
-    // Update tachyon.master_address
+    // Update tachyon.master_address based on if Zookeeper is used or not.
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = mProperties.getProperty(Constants.MASTER_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.USE_ZOOKEEPER));
@@ -230,6 +216,7 @@ public final class TachyonConf {
 
   // Public accessor methods
 
+  // TODO(binfan): this method should be hidden and only used during initialization and tests.
   public void set(String key, String value) {
     mProperties.put(key, value);
   }
@@ -379,8 +366,8 @@ public final class TachyonConf {
    * @param base string to look for.
    * @return the key name with the ${key} substituted
    */
-  String lookup(String base) {
-    return lookup(base, new HashMap<String, String>());
+  private String lookup(String base) {
+    return lookupRecursively(base, new HashMap<String, String>());
   }
 
   /**
@@ -390,7 +377,7 @@ public final class TachyonConf {
    * @param found {@link Map} of String that already seen in this path.
    * @return resolved String value.
    */
-  protected String lookup(final String base, Map<String, String> found) {
+  private String lookupRecursively(final String base, Map<String, String> found) {
     // check argument
     if (base == null) {
       return null;
@@ -404,7 +391,7 @@ public final class TachyonConf {
       String match = matcher.group(2).trim();
       String value;
       if (!found.containsKey(match)) {
-        value = lookup(mProperties.getProperty(match), found);
+        value = lookupRecursively(mProperties.getProperty(match), found);
         found.put(match, value);
       } else {
         value = found.get(match);
