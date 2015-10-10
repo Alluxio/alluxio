@@ -16,8 +16,7 @@
 package tachyon.heartbeat;
 
 /**
- * An interface for a heartbeat timers. The {@link HeartbeatThread} calls the {@link #tick()}
- * method.
+ * An interface for heartbeat timers. The {@link HeartbeatThread} calls the {@link #tick()} method.
  */
 public interface HeartbeatTimer {
   void tick() throws InterruptedException;

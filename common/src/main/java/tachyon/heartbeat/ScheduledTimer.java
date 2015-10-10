@@ -20,7 +20,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * This class can be used for controlling the time when a heartbeat executes.
+ * This class can be used for controlling when a heartbeat executes.
  */
 public final class ScheduledTimer implements HeartbeatTimer {
   private final String mThreadName;
@@ -28,7 +28,7 @@ public final class ScheduledTimer implements HeartbeatTimer {
   private final Condition mCondition;
 
   /**
-   * Creates a new instance of {@link ScheduledTimer}
+   * Creates a new instance of {@link ScheduledTimer}.
    *
    * @param threadName the thread name
    * @param intervalMs the heartbeat interval (unused)
