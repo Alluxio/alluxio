@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 
 /**
- * This class can be used for scheduling a periodic heartbeat.
+ * This class can be used for executing heartbeats periodically.
  */
 public final class SleepingTimer implements HeartbeatTimer {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

@@ -23,13 +23,18 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 
+/**
+ * This class is a singleton for storing and retrieving heartbeat related information.
+ */
 public class HeartbeatContext {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Map<String, String> sExecutorTimerClasses;
 
+  // Names of different heartbeat timer classes.
   public static final String SLEEPING_TIMER_CLASS = "tachyon.heartbeat.SleepingTimer";
   public static final String SCHEDULED_TIMER_CLASS = "tachyon.heartbeat.ScheduledTimer";
 
+  // Names of different hearbeat executors.
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
   public static final String MASTER_FILE_RECOMPUTATION = "Master File Recomputation";
   public static final String MASTER_LOST_WORKER_DETECTION = "Master Lost Worker Detection";
@@ -47,6 +52,10 @@ public class HeartbeatContext {
     sExecutorTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
   }
 
+  /**
+   * @param name a name of a heartbeat executor
+   * @return the timer class to use for the executor
+   */
   public static synchronized  Class<HeartbeatTimer> getTimerClass(String name) {
     String className = sExecutorTimerClasses.get(name);
     if (name == null) {
@@ -62,6 +71,10 @@ public class HeartbeatContext {
     return null;
   }
 
+  /**
+   * @param name a name of a heartbeat executor
+   * @param className the timer class to use for the executor
+   */
   public static synchronized void setTimerClass(String name, String className) {
     sExecutorTimerClasses.put(name, className);
   }
