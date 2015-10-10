@@ -229,7 +229,7 @@ abstract class AbstractTFS extends FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return mTachyonConf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+    return mTachyonConf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -367,7 +367,7 @@ abstract class AbstractTFS extends FileSystem {
     }
     mTachyonConf.set(Constants.MASTER_HOSTNAME, uri.getHost());
     mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(uri.getPort()));
-    mTachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(isZookeeperMode()));
+    mTachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
     mTFS = TachyonFS.get(mTachyonConf);
 
@@ -490,6 +490,6 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   private WriteType getWriteType() {
-    return mTachyonConf.getEnum(Constants.USER_DEFAULT_WRITE_TYPE, WriteType.class);
+    return mTachyonConf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
   }
 }
