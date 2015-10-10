@@ -135,7 +135,7 @@ public class DataServerIntegrationTest {
     tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
     tachyonConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
-    tachyonConf.set(Constants.USER_REMOTE_BLOCK_READER, mBlockReader);
+    tachyonConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
 
     mLocalTachyonCluster =
         new LocalTachyonCluster(WORKER_CAPACITY_BYTES, USER_QUOTA_UNIT_BYTES, Constants.GB);
@@ -202,7 +202,7 @@ public class DataServerIntegrationTest {
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
     CommonUtils
-        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 2
+        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2
             + 10);
 
     FileInfo fileInfo = mTFS.getInfo(mTFS.open(new TachyonURI("/readFile1")));

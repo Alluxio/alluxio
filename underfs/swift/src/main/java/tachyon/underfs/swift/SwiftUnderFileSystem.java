@@ -53,8 +53,8 @@ public class SwiftUnderFileSystem extends HdfsUnderFileSystem {
     // exception. Being configurable for unit/integration test only, and not expose to the end-user
     // currently.
     config.set("fs.swift.impl.disable.cache", "true");
-    SwiftUnderFileSystemUtils.addKey(config, tachyonConf, Constants.UNDERFS_HADOOP_CONFIGURATION);
-    config.addResource(new Path(config.get(Constants.UNDERFS_HADOOP_CONFIGURATION)));
+    SwiftUnderFileSystemUtils.addKey(config, tachyonConf, Constants.UNDERFS_HDFS_CONFIGURATION);
+    config.addResource(new Path(config.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     super.prepareConfiguration(path, tachyonConf, config);
   }
 }
