@@ -15,7 +15,6 @@
 
 package tachyon.master.file;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -207,7 +206,7 @@ public final class FileSystemMaster extends MasterBase {
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       TachyonConf conf = MasterContext.getConf();
       mInodeTree.initializeRoot();
-      String defaultUFS = conf.get(Constants.UNDERFS_DATA_FOLDER);
+      String defaultUFS = conf.get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new TachyonURI(MountTable.ROOT), new TachyonURI(defaultUFS));
       } catch (InvalidPathException e) {
@@ -1263,7 +1262,6 @@ public final class FileSystemMaster extends MasterBase {
           "Reported file loss of blocks" + blockIds + ". Tachyon will recompute it: " + fileId);
     }
   }
-
 
   // TODO(jiri): Make it possible to load directories and not just individual files.
   public long loadFileInfoFromUfs(TachyonURI path, boolean recursive)

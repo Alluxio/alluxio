@@ -308,7 +308,8 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     try {
       if (blockSizeByte > 0) {
-        return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive, Constants.NO_TTL);
+        return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive,
+            Constants.NO_TTL);
       } else {
         return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), recursive);
       }
@@ -345,8 +346,8 @@ public class TachyonFS extends AbstractTachyonFS {
     validateUri(path);
     int maxColumns = mTachyonConf.getInt(Constants.MAX_COLUMNS);
     if (columns < 1 || columns > maxColumns) {
-      throw new IOException(
-          "Column count " + columns + " is smaller than 1 or " + "bigger than " + maxColumns);
+      throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
+          + maxColumns);
     }
     return mRawTableMasterClient.createRawTable(path, columns, metadata);
   }
@@ -435,8 +436,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException if the underlying master RPC fails
    */
   synchronized FileBlockInfo getClientBlockInfo(long blockId) throws IOException {
-    throw new UnsupportedOperationException(
-        "FileBlockInfo is no longer supported, use FileInfo " + "and/or BlockInfo");
+    throw new UnsupportedOperationException("FileBlockInfo is no longer supported, use FileInfo "
+        + "and/or BlockInfo");
   }
 
   /**
@@ -789,8 +790,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized List<FileInfo> listStatus(TachyonURI path) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient
-          .getFileInfoList(getFileStatus(IdUtils.INVALID_FILE_ID, path).getFileId());
+      return mFSMasterClient.getFileInfoList(getFileStatus(IdUtils.INVALID_FILE_ID, path)
+          .getFileId());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -1061,7 +1062,8 @@ public class TachyonFS extends AbstractTachyonFS {
     Preconditions.checkNotNull(uri, "URI cannot be null.");
     Preconditions.checkArgument(uri.isPathAbsolute() || TachyonURI.EMPTY_URI.equals(uri),
         "URI must be absolute, unless it's empty.");
-    Preconditions.checkArgument(!uri.hasScheme() || mRootUri.getScheme().equals(uri.getScheme()),
+    Preconditions.checkArgument(
+        !uri.hasScheme() || mRootUri.getScheme().equals(uri.getScheme()),
         "URI's scheme: " + uri.getScheme() + " must match the file system's scheme: "
             + mRootUri.getScheme() + ", unless it doesn't have a scheme.");
     Preconditions.checkArgument(
