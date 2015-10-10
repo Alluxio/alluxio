@@ -90,7 +90,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that persisting a file successfully informs master of the update
   @Test
   public void addCheckpointTest() throws Exception {
-    TachyonFile file = new TachyonFile(mTfs.create(new TachyonURI("/testFile")));
+    TachyonFile file = mTfs.create(new TachyonURI("/testFile"));
     FileInfo fileInfo = mLocalTachyonCluster.getClient().getInfo(file);
     long nonce = 10;
 
