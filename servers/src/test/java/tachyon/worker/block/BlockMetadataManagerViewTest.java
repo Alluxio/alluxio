@@ -113,7 +113,6 @@ public final class BlockMetadataManagerViewTest {
     mMetaManagerView.getBlockMeta(TEST_BLOCK_ID);
   }
 
-
   @Test
   public void getTierNotExistingTest() throws Exception {
     int badTierAlias = 3;
