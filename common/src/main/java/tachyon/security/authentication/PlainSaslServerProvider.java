@@ -29,6 +29,8 @@ import javax.security.sasl.SaslServerFactory;
  * provider needed to register to support server-side PLAIN mechanism.
  */
 public final class PlainSaslServerProvider extends Provider {
+  private static final long serialVersionUID = 4583558117355348638L;
+
   public static final String PROVIDER_NAME = "SaslPlain";
   public static final String MECHANISM = "PLAIN";
   public static final double PROVIDER_VERSION = 1.0;
