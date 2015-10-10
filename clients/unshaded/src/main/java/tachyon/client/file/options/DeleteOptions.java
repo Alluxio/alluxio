@@ -33,7 +33,6 @@ public final class DeleteOptions {
       mRecursive = false;
     }
 
-
     /**
      * @param recursive the recursive flag value to use; if the object to be deleted is a directory,
      *        the flag specifies whether the directory content should be recursively deleted as well

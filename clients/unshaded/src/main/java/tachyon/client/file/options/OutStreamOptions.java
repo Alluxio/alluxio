@@ -37,12 +37,12 @@ public final class OutStreamOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mBlockSize = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mBlockSize = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mHostname = null;
       mTachyonStorageType =
-          conf.getEnum(Constants.USER_DEFAULT_TACHYON_STORAGE_TYPE, TachyonStorageType.class);
+          conf.getEnum(Constants.USER_FILE_TACHYON_STORAGE_TYPE_DEFAULT, TachyonStorageType.class);
       mUnderStorageType =
-          conf.getEnum(Constants.USER_DEFAULT_UNDER_STORAGE_TYPE, UnderStorageType.class);
+          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
       mTTL = Constants.NO_TTL;
     }
 

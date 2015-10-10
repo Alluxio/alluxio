@@ -48,7 +48,7 @@ public class CreateOptionsTest {
   @Test
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE, "64MB");
+    conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
     CreateOptions options = CreateOptions.defaults();
     Assert.assertEquals(64 * Constants.MB, options.getBlockSize());

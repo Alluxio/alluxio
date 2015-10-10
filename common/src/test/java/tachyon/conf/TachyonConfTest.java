@@ -16,7 +16,7 @@ import tachyon.util.network.NetworkAddressUtils;
  * Unit test for TachyonConf class
  */
 public class TachyonConfTest {
-  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,s3://,s3n://,glusterfs:///";
+  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";
 
   private static TachyonConf sDefaultTachyonConf;
   private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
@@ -28,7 +28,7 @@ public class TachyonConfTest {
   public static void afterClass() {
     System.clearProperty(Constants.MASTER_HOSTNAME);
     System.clearProperty(Constants.MASTER_PORT);
-    System.clearProperty(Constants.USE_ZOOKEEPER);
+    System.clearProperty(Constants.ZOOKEEPER_ENABLED);
   }
 
   @BeforeClass
@@ -46,7 +46,7 @@ public class TachyonConfTest {
     // initialize the system properties
     System.setProperty(Constants.MASTER_HOSTNAME, "master");
     System.setProperty(Constants.MASTER_PORT, "20001");
-    System.setProperty(Constants.USE_ZOOKEEPER, "true");
+    System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
 
     // initialize
     sDefaultTachyonConf = new TachyonConf(false);
@@ -62,7 +62,7 @@ public class TachyonConfTest {
   // test default properties
 
   @Test
-  public void testCommonDefault() {
+  public void commonDefaultTest() {
     String tachyonHome = sDefaultTachyonConf.get(Constants.TACHYON_HOME);
     Assert.assertNotNull(tachyonHome);
     Assert.assertEquals("/mnt/tachyon_default_home", tachyonHome);
@@ -79,7 +79,7 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", value);
 
-    value = sDefaultTachyonConf.get(Constants.UNDERFS_HADOOP_PREFIXS);
+    value = sDefaultTachyonConf.get(Constants.UNDERFS_HDFS_PREFIXS);
     Assert.assertNotNull(value);
     Assert.assertEquals(DEFAULT_HADOOP_UFS_PREFIX, value);
 
@@ -87,7 +87,7 @@ public class TachyonConfTest {
     Assert.assertNotNull(value);
     Assert.assertEquals("org.apache.hadoop.fs.glusterfs.GlusterFileSystem", value);
 
-    boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
+    boolean booleanValue = sDefaultTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
     Assert.assertFalse(booleanValue);
 
     booleanValue = sDefaultTachyonConf.getBoolean(Constants.IN_TEST_MODE);
@@ -99,7 +99,7 @@ public class TachyonConfTest {
     int intValue = sDefaultTachyonConf.getInt(Constants.MAX_COLUMNS);
     Assert.assertEquals(1000, intValue);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.HOST_RESOLUTION_TIMEOUT_MS);
+    intValue = sDefaultTachyonConf.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS, intValue);
 
     long longBytesValue = sDefaultTachyonConf.getBytes(Constants.MAX_TABLE_METADATA_BYTE);
@@ -107,7 +107,7 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testMasterDefault() {
+  public void masterDefaultTest() {
     String tachyonHome = sDefaultTachyonConf.get(Constants.TACHYON_HOME);
     Assert.assertNotNull(tachyonHome);
     Assert.assertEquals("/mnt/tachyon_default_home", tachyonHome);
@@ -119,10 +119,6 @@ public class TachyonConfTest {
     value = sDefaultTachyonConf.get(Constants.MASTER_HOSTNAME);
     Assert.assertNotNull(value);
     Assert.assertEquals(NetworkAddressUtils.getLocalHostName(100), value);
-
-    value = sDefaultTachyonConf.get(Constants.MASTER_TEMPORARY_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals("/tmp", value);
 
     value = sDefaultTachyonConf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
     Assert.assertNotNull(value);
@@ -151,7 +147,7 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS);
     Assert.assertEquals(Constants.SECOND_MS, intValue);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
+    intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WORKER_THREADS_MIN);
     Assert.assertEquals(Runtime.getRuntime().availableProcessors(), intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
@@ -159,7 +155,7 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testWorkerDefault() {
+  public void workerDefaultTest() {
     String value = sDefaultTachyonConf.get(Constants.WORKER_DATA_FOLDER);
     Assert.assertNotNull(value);
     Assert.assertEquals("/tachyonworker/", value);
@@ -185,20 +181,17 @@ public class TachyonConfTest {
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_WEB_PORT);
     Assert.assertEquals(30000, intValue);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     Assert.assertEquals(Constants.SECOND_MS, intValue);
 
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
+    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
     Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
-
-    intValue = sDefaultTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS);
-    Assert.assertEquals(1, intValue);
 
     intValue = sDefaultTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
     Assert.assertEquals(1, intValue);
@@ -211,7 +204,7 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testUserDefault() {
+  public void userDefaultTest() {
     int intValue = sDefaultTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     Assert.assertEquals(3, intValue);
 
@@ -224,12 +217,12 @@ public class TachyonConfTest {
     longValue = sDefaultTachyonConf.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     Assert.assertEquals(Constants.MB, longValue);
 
-    longValue = sDefaultTachyonConf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE);
+    longValue = sDefaultTachyonConf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
     Assert.assertEquals(8 * Constants.MB, longValue);
   }
 
   @Test
-  public void testVariableSubstitutionSimple() {
+  public void variableSubstitutionSimpleTest() {
     String home = mCustomPropsTachyonConf.get("home");
     Assert.assertEquals("hometest", home);
 
@@ -255,14 +248,14 @@ public class TachyonConfTest {
   }
 
   @Test
-  public void testVariableSubstitutionRecursive() {
+  public void variableSubstitutionRecursiveTest() {
     String multiplesubs = mCustomPropsTachyonConf.get("multiplesubs");
     String recursive = mCustomPropsTachyonConf.get("recursive");
     Assert.assertEquals(multiplesubs, recursive);
   }
 
   @Test
-  public void testSystemVariableSubstitutionSample() {
+  public void systemVariableSubstitutionSampleTest() {
     String masterAddress = mSystemPropsTachyonConf.get(Constants.MASTER_ADDRESS);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals("tachyon-ft://master:20001", masterAddress);
