@@ -206,7 +206,8 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    */
   private ByteBuffer allocateBuffer() {
     TachyonConf conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_REMOTE_READ_BUFFER_SIZE_BYTE));
+    return ByteBuffer.allocate(
+        (int) conf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
   }
 
   /**

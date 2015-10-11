@@ -118,6 +118,9 @@ def submit_request(conn, ec2_conf):
     request_ids = [r.id for r in requests]
     save_request_ids(request_ids)
 
+    # sleep before waiting for spot instances to be fulfilled.
+    time.sleep(5)
+
     # block, waiting for all requests to be fulfilled
     requests = wait_until_fulfilled(request_ids, conn)
 
