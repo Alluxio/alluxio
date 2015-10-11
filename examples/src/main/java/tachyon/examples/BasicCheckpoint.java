@@ -96,9 +96,8 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION
-          + "-jar-with-dependencies.jar "
-          + "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
+      System.out.println("java -cp " + Constants.TACHYON_JAR
+          + " tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
       System.exit(-1);
     }
 
