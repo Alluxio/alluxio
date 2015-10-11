@@ -1,5 +1,3 @@
-<%@ page import="static java.net.URLEncoder.encode" %>
-
 <script type="text/javascript">
   var nTotalFile = <%= request.getAttribute("nTotalFile") %>;
 

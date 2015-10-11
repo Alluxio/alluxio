@@ -48,7 +48,7 @@ public final class StorageTier {
     mTierLevel = tierLevel;
 
     String tierLevelAliasProp =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, tierLevel);
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, tierLevel);
     StorageLevelAlias alias = WorkerContext.getConf()
         .getEnum(tierLevelAliasProp, StorageLevelAlias.class);
     mTierAlias = alias.getValue();
@@ -58,7 +58,7 @@ public final class StorageTier {
       WorkerOutOfSpaceException {
     String workerDataFolder = WorkerContext.getConf().get(Constants.WORKER_DATA_FOLDER);
     String tierDirPathConf =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, mTierLevel);
     String[] dirPaths = WorkerContext.getConf().get(tierDirPathConf).split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
@@ -68,7 +68,7 @@ public final class StorageTier {
     }
 
     String tierDirCapacityConf =
-        String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, mTierLevel);
+        String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierLevel);
     String[] dirQuotas = WorkerContext.getConf().get(tierDirCapacityConf).split(",");
 
     mDirs = new ArrayList<StorageDir>(dirPaths.length);

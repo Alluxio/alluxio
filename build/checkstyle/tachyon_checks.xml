@@ -31,6 +31,14 @@
   <module name="FileTabCharacter">
     <property name="eachLine" value="true"/>
   </module>
+  <module name="RegexpSingleline">
+    <property name="format" value="&gt;&gt;&gt;&gt;&gt;&gt;&gt;"/>
+    <property name="message" value="Merge conflicts unresolved."/>
+  </module>
+  <module name="RegexpSingleline">
+    <property name="format" value="&lt;&lt;&lt;&lt;&lt;&lt;&lt;"/>
+    <property name="message" value="Merge conflicts unresolved."/>
+  </module>
   <module name="RegexpMultiline">
     <property name="format" value="\n{3}"/>
     <property name="fileExtensions" value=".java"/>
@@ -178,6 +186,10 @@
       <property name="format" value="^s[A-Z][a-zA-Z0-9]*$"/>
       <message key="name.invalidPattern"
                value="Static member name ''{0}'' must match pattern ''{1}''."/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="^\s*this\."/>
+      <property name="message" value="keyword this is not needed"/>
     </module>
   </module>
 
