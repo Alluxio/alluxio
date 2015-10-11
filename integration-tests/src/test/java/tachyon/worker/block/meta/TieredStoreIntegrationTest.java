@@ -37,7 +37,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
@@ -77,7 +76,7 @@ public class TieredStoreIntegrationTest {
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
-        mWorkerConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+        mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mSetPinned = new SetStateOptions.Builder(mWorkerConf).setPinned(true).build();
     mSetUnpinned = new SetStateOptions.Builder(mWorkerConf).setPinned(false).build();
   }
