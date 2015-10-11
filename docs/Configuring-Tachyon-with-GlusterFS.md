@@ -17,3 +17,31 @@ Then, if you haven't already done so, create your configuration file from the te
     $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 
 # Configuring Tachyon
+Assume the GlusterFS bricks are co-located with Tachyon nodes, the GlusterFS volume name is `gvol`, and the mount point is `/tachyon_vol`.
+
+Modify `conf/tachyon-env.sh` file must be made, adding the following environment variables:
+
+    export TACHYON_UNDERFS_ADDRESS=glusterfs://gvol
+    export TACHYON_UNDERFS_GLUSTERFS_VOLUMES=gvol
+    export TACHYON_UNDERFS_GLUSTERFS_MOUNTS=/tachyon_vol
+
+# Running Tachyon Locally with GlusterFS
+
+After everything is configured, you can start up Tachyon locally to see that everything works.
+
+    $ ./bin/tachyon format
+    $ ./bin/tachyon-start.sh local
+
+This should start a Tachyon master and a Tachyon worker. You can see the master UI at [http://localhost:19999](http://localhost:19999).
+
+Next, you can run a simple example program:
+
+    $ ./bin/tachyon runTest Basic CACHE_THROUGH
+
+After this succeeds, you can visit your GlusterFS volume to verify the files and directories created by Tachyon. For this test, you should see a file named:
+
+    /tachyon_vol/default_tests_files/BasicFile_CACHE_THROUGH
+
+To stop Tachyon, you can run:
+
+    $ ./bin/tachyon-stop.sh
