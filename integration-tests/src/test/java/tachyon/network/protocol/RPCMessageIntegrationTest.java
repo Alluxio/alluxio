@@ -195,8 +195,8 @@ public class RPCMessageIntegrationTest {
     Assert.assertEquals(expected.getStatus(), actual.getStatus());
   }
 
-  // Returns a FileChannel for a temporary file, filled with test data.
-  private FileChannel getTempFileChannel() throws IOException {
+  // Returns an input stream for a temporary file filled with test data.
+  private FileInputStream getTempFileInputStream() throws IOException {
     // Create a temporary file for the FileChannel.
     File f = mFolder.newFile("temp.txt");
     String path = f.getAbsolutePath();
@@ -205,7 +205,7 @@ public class RPCMessageIntegrationTest {
     os.write(BufferUtils.getIncreasingByteArray((int) (OFFSET + LENGTH)));
     os.close();
 
-    return new FileInputStream(f).getChannel();
+    return new FileInputStream(f);
   }
 
   // This encodes and decodes the 'msg' by sending it through the client and server pipelines.
@@ -253,12 +253,14 @@ public class RPCMessageIntegrationTest {
 
   @Test
   public void RPCBlockReadResponseFileChannelTest() throws IOException {
-    FileChannel payload = getTempFileChannel();
-    RPCBlockReadResponse msg =
-        new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataFileChannel(payload, OFFSET,
-            LENGTH), RPCResponse.Status.SUCCESS);
-    RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
-    assertValid(msg, decoded);
+    try (FileInputStream inputStream = getTempFileInputStream()) {
+      FileChannel payload = inputStream.getChannel();
+      RPCBlockReadResponse msg =
+          new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataFileChannel(payload, OFFSET,
+              LENGTH), RPCResponse.Status.SUCCESS);
+      RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
+      assertValid(msg, decoded);
+    }
   }
 
   @Test
