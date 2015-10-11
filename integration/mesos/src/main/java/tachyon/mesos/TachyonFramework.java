@@ -284,7 +284,7 @@ public class TachyonFramework {
     // Start Mesos master. Setting the user to an empty string will prompt Mesos to set it to the
     // current user.
     Protos.FrameworkInfo framework =
-        Protos.FrameworkInfo.newBuilder().setUser("").setName("Tachyon Framework")
+        Protos.FrameworkInfo.newBuilder().setUser("").setName("tachyon").setCheckpoint(true)
             .setPrincipal("tachyon-framework").build();
 
     Scheduler scheduler = new TachyonScheduler();
