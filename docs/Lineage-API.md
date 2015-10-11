@@ -39,7 +39,8 @@ For example,
     TachyonURI output = new TachyonURI("/outputFile");
     List<TachyonURI> outputFiles = Lists.newArrayList(output);
     // command-line job
-    CommandLineJob job = new CommandLineJob("my-spark-job.sh");
+    JobConf conf = new JobConf("/tmp/recompute.log");
+    CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);
     long lineageId = tl.createLineage(inputFiles, outputFiles, job);
 
 The `createLineage` function returns the id of the newly created lineage record. Before creating a lineage record, make sure that all the input files are either persisted, or created as another lineage record’s output.

@@ -93,7 +93,7 @@ This command will copy the `LICENSE` file into the Tachyon namespace with the pa
 
 Now we can run a MapReduce job for wordcount.
 
-bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
+    bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory in Tachyon. You can see the resulting files by running:
 
