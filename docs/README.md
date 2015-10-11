@@ -27,7 +27,7 @@ of the documentation based on the src directory by running `jekyll` in the docs 
 command `SKIP_SCALADOC=1 jekyll build` to skip building and copying over the scaladoc which can be
 time-consuming. To use the `jekyll` command, you will need to have Jekyll installed; the easiest way
 to do this is via a Ruby Gem (see the
-[jekyll installation instructions](https://github.com/mojombo/jekyll/wiki/install)). This will
+[jekyll installation instructions](http://jekyllrb.com/docs/installation/)). This will
 create a directory called `_site` containing index.html as well as the rest of the compiled files.
 Read more about Jekyll at https://github.com/mojombo/jekyll/wiki.
 
