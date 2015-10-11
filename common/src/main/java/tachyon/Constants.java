@@ -153,6 +153,8 @@ public final class Constants {
   public static final String MASTER_WORKER_THREADS_MIN = "tachyon.master.worker.threads.min";
   public static final String MASTER_WORKER_TIMEOUT_MS = "tachyon.master.worker.timeout.ms";
   public static final String MASTER_WHITELIST = "tachyon.master.whitelist";
+  public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
+  public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
   public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
   public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
