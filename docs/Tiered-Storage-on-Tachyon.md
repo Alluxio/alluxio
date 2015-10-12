@@ -8,15 +8,15 @@ group: Features
 * Table of Contents
 {:toc}
 
-Tachyon supports tiered storage, which allows Tachyon to manage other storage types in addition to memory.
-Currently, Tachyon Tiered Storage supports these storage types or tiers:
+Tachyon supports tiered storage, which allows Tachyon to manage other storage types in addition to
+memory. Currently, Tachyon Tiered Storage supports these storage types or tiers:
 
 * MEM (Memory)
 * SSD (Solid State Drives)
 * HDD (Hard Drives)
 
 Using Tachyon with tiered storage allows Tachyon to store more data in the system at once,
-since MEM capacity may still be limited in some deployments. With tiered storage, Tachyon 
+since MEM capacity may still be limited in some deployments. With tiered storage, Tachyon
 automatically manages blocks between all the configured tiers, so users and administrators do not
 have to manually manage the locations of the data. Users may specify their own data management
 strategies by implementing [allocators](#allocators) and [evictors](#evictors). In addition, manual
@@ -93,7 +93,8 @@ existing allocators in Tachyon:
 
 * **RoundRobinAllocator**
 
-    Allocates the block in the highest tier with space, the storage directory is chosen through round robin
+    Allocates the block in the highest tier with space, the storage directory is chosen through
+    round robin
 
 In the future, additional allocators will be available. Since Tachyon supports custom allocators,
 you can also develop your own allocator appropriate for your workload.
@@ -113,18 +114,21 @@ freed. Tachyon supports custom evictors, and implementations include:
 
 * **LRFUEvictor**
 
-    Evicts blocks based on least-recently-used and least-frequently-used with a configurable weight. If the weight is completely biased toward least-recently-used,
-    the behavior will be the same as the LRUEvictor
+    Evicts blocks based on least-recently-used and least-frequently-used with a configurable weight.
+    If the weight is completely biased toward least-recently-used, the behavior will be the same as
+    the LRUEvictor
 
 * **PartialLRUEvictor**
 
-    Evicts based on least-recently-used but will first one StorageDir with maximum free space and only evict from that StorageDir
+    Evicts based on least-recently-used but will first one StorageDir with maximum free space and
+    only evict from that StorageDir
 
 In the future, additional evictors will be available. Since Tachyon supports custom evictors,
 you can also develop your own evictor appropriate for your workload.
 
 When using synchronous eviction, it is recommended to use small block size (around 64MB),
-to reduce the latency of block eviction. When using the [space reserver](#space-reserver), block size will no longer be an issue for eviction.
+to reduce the latency of block eviction. When using the [space reserver](#space-reserver), block
+size will no longer be an issue for eviction.
 
 ## Space Reserver
 
@@ -136,8 +140,9 @@ the space reserver.
 
 # Enabling and Configuring Tiered Storage
 
-Tiered storage can be enabled in Tachyon with some [configuration parameters](Configuration-Settings.html).
-By default, Tachyon only enables a single, MEM tier. To specify additional tiers for Tachyon, use the following configuration parameters:
+Tiered storage can be enabled in Tachyon with some
+[configuration parameters](Configuration-Settings.html). By default, Tachyon only enables a single,
+MEM tier. To specify additional tiers for Tachyon, use the following configuration parameters:
 
     tachyon.worker.tieredstore.level.max
     tachyon.worker.tieredstore.level{x}.alias
