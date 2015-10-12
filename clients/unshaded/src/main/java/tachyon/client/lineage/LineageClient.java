@@ -20,14 +20,15 @@ import java.util.List;
 
 import tachyon.TachyonURI;
 import tachyon.annotation.PublicApi;
+import tachyon.client.lineage.options.CreateLineageOptions;
 import tachyon.client.lineage.options.DeleteLineageOptions;
+import tachyon.client.lineage.options.GetLineageInfoListOptions;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.LineageDeletionException;
 import tachyon.exception.LineageDoesNotExistException;
 import tachyon.exception.TachyonException;
 import tachyon.job.Job;
 import tachyon.thrift.LineageInfo;
-
 
 /**
  * User facing interface for the Tachyon Lineage client APIs.
@@ -42,22 +43,24 @@ interface LineageClient {
    * @param inputFiles the files that the job depends on
    * @param outputFiles the files that the job outputs
    * @param job the job that takes the listed input file and computes the output file
+   * @param options the method options
    * @return the lineage id
    * @throws IOException if the master cannot create the lineage
    * @throws FileDoesNotExistException an input file does not exist in Tachyon storage, nor is added
    *         as an output file of an existing lineage
    * @throws TachyonException if an unexpected tachyon error occurs
    */
-  long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job)
-      throws FileDoesNotExistException, IOException, TachyonException;
+  long createLineage(List<TachyonURI> inputFiles, List<TachyonURI> outputFiles, Job job,
+      CreateLineageOptions options) throws FileDoesNotExistException, IOException, TachyonException;
 
   /**
    * Lists all the lineages.
    *
+   * @param options method options
    * @return the information about lineages
    * @throws IOException if the master cannot list the lineage info
    */
-  public List<LineageInfo> getLineageInfoList() throws IOException;
+  public List<LineageInfo> getLineageInfoList(GetLineageInfoListOptions options) throws IOException;
 
   /**
    * Deletes a lineage identified by a given id. If the delete is cascade, it will delete all the

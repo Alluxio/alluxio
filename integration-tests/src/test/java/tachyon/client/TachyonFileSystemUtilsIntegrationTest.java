@@ -93,7 +93,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
     final int numWrites = 4; // random value chosen through a fair dice roll :P
     final TachyonURI uri = new TachyonURI(uniqPath);
 
-
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
@@ -116,7 +115,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
         }
       }
     };
-
 
     final Runnable waiter = new Runnable() {
       @Override
@@ -151,7 +149,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
     final int numWrites = 4; // random value chosen through a fair dice roll :P
     final TachyonURI uri = new TachyonURI(uniqPath);
 
-
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
@@ -176,7 +173,6 @@ public class TachyonFileSystemUtilsIntegrationTest {
       }
     };
 
-
     final Runnable waiter = new Runnable() {
       @Override
       public void run() {
@@ -184,7 +180,7 @@ public class TachyonFileSystemUtilsIntegrationTest {
           final TachyonConf conf = ClientContext.getConf();
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          conf.set(Constants.USER_WAITCOMPLETED_POLL, "100");
+          conf.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
           boolean completed = TachyonFileSystemUtils.waitCompleted(sTfs, uri, 300,
               TimeUnit.MILLISECONDS);

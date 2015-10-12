@@ -356,7 +356,6 @@ public final class StorageDirTest {
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
   }
 
-
   @Test
   public void resizeTempBlockMetaTest() throws Exception {
     mDir.addTempBlockMeta(mTempBlockMeta);

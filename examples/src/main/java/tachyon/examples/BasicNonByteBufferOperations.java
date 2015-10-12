@@ -20,6 +20,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
+import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
@@ -131,7 +132,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private static void usage() {
-    System.out.println("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+    System.out.println("java -cp " + Constants.TACHYON_JAR + " "
         + BasicNonByteBufferOperations.class.getName()
         + " <master address> <file path> [write type] [read type] [delete file] [num writes]");
     System.exit(-1);

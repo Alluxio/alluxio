@@ -48,6 +48,7 @@ public abstract class IOMapperBase<T> extends Configured implements
 
   public IOMapperBase() {}
 
+  @Override
   public void configure(JobConf conf) {
     setConf(conf);
     try {
@@ -64,6 +65,7 @@ public abstract class IOMapperBase<T> extends Configured implements
     }
   }
 
+  @Override
   public void close() throws IOException {}
 
   /**
@@ -115,6 +117,7 @@ public abstract class IOMapperBase<T> extends Configured implements
    * {@link #collectStats(OutputCollector, String,long, Object)} is called
    * to prepare stat data for a subsequent reducer.
    */
+  @Override
   public void map(Text key, LongWritable value, OutputCollector<Text, Text> output,
       Reporter reporter) throws IOException {
     String name = key.toString();
@@ -122,7 +125,7 @@ public abstract class IOMapperBase<T> extends Configured implements
 
     reporter.setStatus("starting " + name + " ::host = " + mHostname);
 
-    this.mStream = getIOStream(name);
+    mStream = getIOStream(name);
     T statValue = null;
     long tStart = System.currentTimeMillis();
     try {

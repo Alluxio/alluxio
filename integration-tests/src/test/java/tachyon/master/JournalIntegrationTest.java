@@ -16,6 +16,7 @@
 package tachyon.master;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -24,8 +25,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.TachyonFS;
 import tachyon.client.file.FileOutStream;
 import tachyon.client.file.TachyonFile;
 import tachyon.client.file.TachyonFileSystem;
@@ -52,6 +56,8 @@ import tachyon.util.io.PathUtils;
 public class JournalIntegrationTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFileSystem mTfs = null;
+  /** Only for raw table API */
+  private TachyonFS mOldTfs = null;
   private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
   private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
   private TachyonConf mMasterTachyonConf = null;
@@ -112,13 +118,9 @@ public class JournalIntegrationTest {
   @Test
   public void loadMetadataTest() throws Exception {
     String ufsRoot = PathUtils
-        .concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(Constants.UNDERFS_DATA_FOLDER));
+        .concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(Constants.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
     ufs.create(ufsRoot + "/xyz");
-    Assert.assertNull(mTfs.open(new TachyonURI("/xyz")));
-    LoadMetadataOptions recursive =
-        new LoadMetadataOptions.Builder(new TachyonConf()).setRecursive(true).build();
-    mTfs.loadMetadata(new TachyonURI("/xyz"), recursive);
     FileInfo fileInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     mLocalTachyonCluster.stopTFS();
     loadMetadataTestUtil(fileInfo);
@@ -152,10 +154,11 @@ public class JournalIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(Constants.GB, 100, Constants.GB);
-    MasterContext.getConf().set(Constants.MASTER_JOURNAL_MAX_LOG_SIZE_BYTES,
+    MasterContext.getConf().set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX,
         Integer.toString(Constants.KB));
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
+    mOldTfs = mLocalTachyonCluster.getOldClient();
     mMasterTachyonConf = mLocalTachyonCluster.getMasterTachyonConf();
   }
 
@@ -541,35 +544,44 @@ public class JournalIntegrationTest {
     fsMaster.stop();
   }
 
-  // TODO(cc) Add these back when there is new RawTable client API.
-  /// **
-  // * Test folder creation.
-  // *
-  // * @throws Exception
-  // */
-  // @Test
-  // public void TableTest() throws Exception {
-  // mTfs.createRawTable(new TachyonURI("/xyz"), 10);
-  // FileInfo fInfo =
-  // mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
-  // mLocalTachyonCluster.stopTFS();
-  // TableTest(fInfo);
-  // String editLogPath = mLocalTachyonCluster.getEditLogPath();
-  // UnderFileSystem.get(editLogPath, mMasterTachyonConf).delete(editLogPath, true);
-  // TableTest(fInfo);
-  // }
+  /**
+   * Test folder creation.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void TableTest() throws Exception {
+    mOldTfs.createRawTable(new TachyonURI("/xyz"), 10);
+    FileInfo fInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
+    mLocalTachyonCluster.stopTFS();
+    TableTestUtil(fInfo);
+    deleteFsMasterJournalLogs();
+    TableTestUtil(fInfo);
+  }
 
-  // private void TableTest(FileInfo fileInfo) throws IOException, InvalidPathException,
-  // FileDoesNotExistException {
-  // String masterJournal = mMasterTachyonConf.get(Constants.MASTER_JOURNAL_FOLDER);
-  // Journal journal = new Journal(masterJournal, "image.data", "log.data", mMasterTachyonConf);
-  // MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal, mExecutorService,
-  // mMasterTachyonConf);
-  // info.init();
-  // Assert.assertEquals(12, info.ls(mRootUri, true).size());
-  // Assert.assertTrue(info.getFileId(mRootUri) != -1);
-  // Assert.assertTrue(info.getFileId(new TachyonURI("/xyz")) != -1);
-  // Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz"))));
-  // info.stop();
-  // }
+  private List<FileInfo> lsr(FileSystemMaster fsMaster, long fileId)
+      throws FileDoesNotExistException {
+    List<FileInfo> files = fsMaster.getFileInfoList(fileId);
+    List<FileInfo> ret = Lists.newArrayList(files);
+    for (FileInfo file : files) {
+      ret.addAll(lsr(fsMaster, file.getFileId()));
+    }
+    return ret;
+  }
+
+  private void TableTestUtil(FileInfo fileInfo) throws IOException, InvalidPathException,
+      FileDoesNotExistException {
+    FileSystemMaster fsMaster = createFsMasterFromJournal();
+
+    long fileId = fsMaster.getFileId(mRootUri);
+    Assert.assertTrue(fileId != -1);
+    // "ls -r /" should return 11 FileInfos, one is table root "/xyz", the others are 10 columns.
+    Assert.assertEquals(11, lsr(fsMaster, fileId).size());
+
+    fileId = fsMaster.getFileId(new TachyonURI("/xyz"));
+    Assert.assertTrue(fileId != -1);
+    Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fileId));
+
+    fsMaster.stop();
+  }
 }
