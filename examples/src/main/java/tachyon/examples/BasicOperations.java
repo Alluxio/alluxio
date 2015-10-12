@@ -26,46 +26,75 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
-import tachyon.client.ReadType;
-import tachyon.client.TachyonFS;
-import tachyon.client.TachyonFile;
-import tachyon.client.WriteType;
+import tachyon.client.ClientContext;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
+import tachyon.client.file.TachyonFile;
+import tachyon.client.file.TachyonFileSystem;
+import tachyon.client.file.options.CreateOptions;
+import tachyon.client.file.options.InStreamOptions;
+import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.util.CommonUtils;
 import tachyon.util.FormatUtils;
 
 public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  // private access to the reinitializer of ClientContext
+  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
+      new ClientContext.ReinitializerAccesser() {
+        @Override
+        public void receiveAccess(ClientContext.PrivateReinitializer access) {
+          sReinitializer = access;
+        }
+      };
+  private static ClientContext.PrivateReinitializer sReinitializer;
+
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;
-  private final WriteType mWriteType;
+  private final OutStreamOptions mClientOptions;
   private final int mNumbers = 20;
 
-  public BasicOperations(TachyonURI masterLocation, TachyonURI filePath, WriteType writeType) {
+  public BasicOperations(TachyonURI masterLocation, TachyonURI filePath,
+      TachyonStorageType storageType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
-    mWriteType = writeType;
+    mClientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
+        .setTachyonStorageType(storageType).build();
   }
 
   @Override
   public Boolean call() throws Exception {
-    TachyonFS tachyonClient = TachyonFS.get(mMasterLocation, new TachyonConf());
-    createFile(tachyonClient);
-    writeFile(tachyonClient);
-    return readFile(tachyonClient);
+    TachyonConf tachyonConf = ClientContext.getConf();
+    tachyonConf.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
+    tachyonConf.set(Constants.MASTER_PORT, Integer.toString(mMasterLocation.getPort()));
+    if (sReinitializer == null) {
+      ClientContext.accessReinitializer(sReinitializerAccesser);
+    }
+    sReinitializer.reinitializeWithConf(tachyonConf);
+    TachyonFileSystem tFS = TachyonFileSystem.TachyonFileSystemFactory.get();
+    long fileId = createFile(tFS);
+    writeFile(fileId);
+    return readFile(tFS, fileId);
   }
 
-  private void createFile(TachyonFS tachyonClient) throws IOException {
+  private long createFile(TachyonFileSystem tachyonFileSystem)
+      throws IOException, TachyonException {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    long fileId = tachyonClient.createFile(mFilePath);
+    CreateOptions createOptions = (new CreateOptions.Builder(ClientContext.getConf()))
+        .setBlockSize(mClientOptions.getBlockSize()).setRecursive(true)
+        .setTTL(mClientOptions.getTTL()).build();
+    TachyonFile tFile = tachyonFileSystem.create(mFilePath, createOptions);
+    long fileId = tFile.getFileId();
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "createFile with fileId " + fileId));
+    return fileId;
   }
 
-  private void writeFile(TachyonFS tachyonClient) throws IOException {
+  private void writeFile(long fileId) throws IOException {
     ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
@@ -77,22 +106,23 @@ public class BasicOperations implements Callable<Boolean> {
     buf.flip();
 
     long startTimeMs = CommonUtils.getCurrentMs();
-    TachyonFile file = tachyonClient.getFile(mFilePath);
-    FileOutStream os = file.getOutStream(mWriteType);
+    FileOutStream os = new FileOutStream(fileId, mClientOptions);
     os.write(buf.array());
     os.close();
 
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "writeFile to file " + mFilePath));
   }
 
-  private boolean readFile(TachyonFS tachyonClient) throws IOException {
+  private boolean readFile(TachyonFileSystem tachyonFileSystem, long fileId)
+      throws IOException, TachyonException {
     boolean pass = true;
     LOG.debug("Reading data...");
-
+    TachyonFile file = new TachyonFile(fileId);
+    InStreamOptions clientOptions = new InStreamOptions.Builder(ClientContext.getConf())
+        .setTachyonStorageType(TachyonStorageType.STORE).build();
     final long startTimeMs = CommonUtils.getCurrentMs();
-    TachyonFile file = tachyonClient.getFile(mFilePath);
-    FileInStream is = file.getInStream(ReadType.CACHE);
-    ByteBuffer buf = ByteBuffer.allocate((int) file.getBlockSizeByte());
+    FileInStream is = tachyonFileSystem.getInStream(file, clientOptions);
+    ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < mNumbers; k ++) {
@@ -107,11 +137,12 @@ public class BasicOperations implements Callable<Boolean> {
   public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 3) {
       System.out.println("java -cp " + Constants.TACHYON_JAR
-          + " tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
+          + " tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> "
+          + "<WriteType(STORE|NO_STORE)>");
       System.exit(-1);
     }
 
     Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        WriteType.valueOf(args[2])));
+        TachyonStorageType.valueOf(args[2])));
   }
 }
