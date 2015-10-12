@@ -5,17 +5,8 @@ nickname: Building Master Branch
 group: Dev Resources
 ---
 
-### toc
-* [Building Master](#)
-* [Unit Tests](#unit-tests)
-* [Distro Support](#distro-support)
-    * [Apache](#apache)
-    * [Cloudera](#cloudera)
-    * [MapR](#mapr)
-    * [Pivotal](#pivotal)
-    * [Hortonworks](#hortonworks)
-* [System Settings](#system-settings)
-    * [Mac](#mac)
+* Table of Contents
+{:toc}
 
 This guide describes how to compile Tachyon from the beginning.
 

@@ -5,6 +5,9 @@ group: Features
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 Tachyon's command line interface provides users basic file system operations. Invoke the
 command line utility with the script:
 
