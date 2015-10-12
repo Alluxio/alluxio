@@ -58,7 +58,7 @@ public final class JournalWriter {
   private final long mMaxLogSize;
 
   /** The log number to assign to the next complete log. */
-  private int mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
+  private long mNextCompleteLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
   /** The output stream singleton for the checkpoint file. */
   private CheckpointOutputStream mCheckpointOutputStream = null;
@@ -171,7 +171,7 @@ public final class JournalWriter {
     LOG.info("Deleting all completed log files...");
     // Loop over all complete logs starting from the beginning.
     // TODO(gpang): should the deletes start from the end?
-    int logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
+    long logNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
     String logFilename = mJournal.getCompletedLogFilePath(logNumber);
     while (mUfs.exists(logFilename)) {
       LOG.info("Deleting completed log: " + logFilename);
