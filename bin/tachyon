@@ -234,7 +234,7 @@ elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit $?
 elif [ "$COMMAND" == "runTests" ]; then
-  declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
+  declare -a opArr=(STORE NO_STORE)
 
   failed=0
   for op in ${opArr[@]}
