@@ -5,13 +5,8 @@ group: Features
 Priority: 1
 ---
 
-### toc
-* [Configuration Properties](#configuration-properties)
-    * [Common Config](#common-configuration)
-    * [Master Config](#master-configuration)
-    * [Worker Config](#worker-configuration)
-    * [User Config](#user-configuration)
-* [System Environment](#system-environment-properties)
+* Table of Contents
+{:toc}
 
 There are two types of configuration parameters for Tachyon:
 

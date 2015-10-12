@@ -5,10 +5,10 @@ nickname: Contributor Guide
 group: Dev Resources
 ---
 
-Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
-
 * Table of Contents
 {:toc}
+
+Thank you for your interest in Tachyon! We greatly appreciate any new features or fixes.
 
 ### Startup Tasks for New Contributors
 
