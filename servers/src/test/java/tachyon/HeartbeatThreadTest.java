@@ -24,15 +24,15 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for {@link HeartbeatThread}. This test run
+ * Unit tests for {@link HeartbeatThread}. This test runs
  * {@link HeartbeatThreadTest#NUMBER_OF_THREADS} {@link HeartbeatThread} in parallel with different
  * {@link HeartbeatThread#mFixedExecutionIntervalMs}. It checks that every scheduled thread executes
- * an heartbeat for the specified interval with a variance lesser than
+ * a heartbeat for the specified interval with a variance lesser than
  * {@link HeartbeatThreadTest#VARIANCE_UPPER_BOUND}.
  */
 public final class HeartbeatThreadTest {
 
-  private static final String THREAD_NAME = "thread-Name-%s";
+  private static final String THREAD_NAME = "thread-name-%s";
 
   private static final int NUMBER_OF_THREADS = 3;
 
@@ -74,9 +74,9 @@ public final class HeartbeatThreadTest {
 
     private int mCount;
 
-    private long mStartingTIme = -1;
+    private long mStartingTimeMs = -1;
 
-    private long mLastExecutionTime = -1;
+    private long mLastExecutionTimeMs = -1;
 
     private List<Long> mIntervals = new ArrayList<Long>();
 
@@ -86,13 +86,13 @@ public final class HeartbeatThreadTest {
 
     @Override
     public void heartbeat() {
-      if (mStartingTIme == -1) {
-        mStartingTIme = System.currentTimeMillis();
-        mLastExecutionTime = mStartingTIme;
+      if (mStartingTimeMs == -1) {
+        mStartingTimeMs = System.currentTimeMillis();
+        mLastExecutionTimeMs = mStartingTimeMs;
       } else {
         long mCurrTime = System.currentTimeMillis();
-        getIntervals().add(mCurrTime - mLastExecutionTime);
-        mLastExecutionTime = mCurrTime;
+        getIntervals().add(mCurrTime - mLastExecutionTimeMs);
+        mLastExecutionTimeMs = mCurrTime;
         mCount ++;
       }
     }
@@ -106,7 +106,7 @@ public final class HeartbeatThreadTest {
     }
 
     public double getMean() {
-      return mCount != 0 ? (mLastExecutionTime - mStartingTIme) * 1d / mCount : 0d;
+      return mCount != 0 ? (mLastExecutionTimeMs - mStartingTimeMs) * 1d / mCount : 0d;
     }
 
     public String getName() {
