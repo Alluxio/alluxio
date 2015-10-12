@@ -253,13 +253,16 @@ public class RPCMessageIntegrationTest {
 
   @Test
   public void RPCBlockReadResponseFileChannelTest() throws IOException {
-    try (FileInputStream inputStream = getTempFileInputStream()) {
+    FileInputStream inputStream = getTempFileInputStream();
+    try {
       FileChannel payload = inputStream.getChannel();
       RPCBlockReadResponse msg =
           new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataFileChannel(payload, OFFSET,
               LENGTH), RPCResponse.Status.SUCCESS);
       RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
       assertValid(msg, decoded);
+    } finally {
+      inputStream.close();
     }
   }
 
