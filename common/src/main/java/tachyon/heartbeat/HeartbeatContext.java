@@ -26,15 +26,15 @@ import tachyon.Constants;
 /**
  * This class is a singleton for storing and retrieving heartbeat related information.
  */
-public class HeartbeatContext {
+public final class HeartbeatContext {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static Map<String, String> sExecutorTimerClasses;
+  private static Map<String, Class<HeartbeatTimer>> sTimerClasses;
 
   // Names of different heartbeat timer classes.
-  public static final String SLEEPING_TIMER_CLASS = "tachyon.heartbeat.SleepingTimer";
-  public static final String SCHEDULED_TIMER_CLASS = "tachyon.heartbeat.ScheduledTimer";
+  public static final Class<HeartbeatTimer> SCHEDULED_TIMER_CLASS;
+  public static final Class<HeartbeatTimer> SLEEPING_TIMER_CLASS;
 
-  // Names of different hearbeat executors.
+  // Names of different heartbeat executors.
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
   public static final String MASTER_FILE_RECOMPUTATION = "Master File Recomputation";
   public static final String MASTER_LOST_WORKER_DETECTION = "Master Lost Worker Detection";
@@ -43,39 +43,38 @@ public class HeartbeatContext {
   public static final String WORKER_CLIENT = "Worker Client";
 
   static {
-    sExecutorTimerClasses = new HashMap<String, String>();
-    sExecutorTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
-    sExecutorTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
-    sExecutorTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
-    sExecutorTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
-    sExecutorTimerClasses.put(WORKER_LINEAGE_SYNC, SLEEPING_TIMER_CLASS);
-    sExecutorTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
+    try {
+      SCHEDULED_TIMER_CLASS =
+          (Class<HeartbeatTimer>) Class.forName("tachyon.heartbeat.ScheduledTimer");
+      SLEEPING_TIMER_CLASS =
+          (Class<HeartbeatTimer>) Class.forName("tachyon.heartbeat.SleepingTimer");
+    } catch (Exception e) {
+      throw new RuntimeException("requested class could not be loaded: " + e.getMessage());
+    }
+    sTimerClasses = new HashMap<String, Class<HeartbeatTimer>>();
+    sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(WORKER_LINEAGE_SYNC, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(WORKER_CLIENT, SLEEPING_TIMER_CLASS);
   }
 
+  private HeartbeatContext() {} // to prevent initialization
+
   /**
-   * @param name a name of a heartbeat executor
-   * @return the timer class to use for the executor
+   * @param name a name of a heartbeat executor thread
+   * @return the timer class to use for the executor thread
    */
   public static synchronized  Class<HeartbeatTimer> getTimerClass(String name) {
-    String className = sExecutorTimerClasses.get(name);
-    if (name == null) {
-      LOG.error("timer class for executor " + name + " not found");
-      return null;
-    }
-    try {
-      return (Class<HeartbeatTimer>) Class.forName(className);
-    } catch (Exception e) {
-      String msg = "requested class could not be loaded";
-      LOG.error("{} : {} , {}", msg, className, e);
-    }
-    return null;
+    return sTimerClasses.get(name);
   }
 
   /**
-   * @param name a name of a heartbeat executor
-   * @param className the timer class to use for the executor
+   * @param name a name of a heartbeat executor thread
+   * @param timerClass the timer class to use for the executor thread
    */
-  public static synchronized void setTimerClass(String name, String className) {
-    sExecutorTimerClasses.put(name, className);
+  public static synchronized void setTimerClass(String name, Class<HeartbeatTimer> timerClass) {
+    sTimerClasses.put(name, timerClass);
   }
 }

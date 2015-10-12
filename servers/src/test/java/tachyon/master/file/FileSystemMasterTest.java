@@ -16,6 +16,7 @@
 package tachyon.master.file;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -127,9 +128,11 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.fileId, fileId);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
+        TimeUnit.SECONDS));
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
+        TimeUnit.SECONDS));
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }

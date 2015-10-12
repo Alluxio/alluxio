@@ -20,5 +20,8 @@ package tachyon.heartbeat;
  * {@link #heartbeat()} method.
  */
 public interface HeartbeatExecutor {
+  /**
+   * Implements the heartbeat logic.
+   */
   void heartbeat();
 }
