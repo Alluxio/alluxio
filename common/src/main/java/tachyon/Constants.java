@@ -128,6 +128,8 @@ public final class Constants {
       "tachyon.integration.mesos.worker.name";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT =
       "tachyon.integration.mesos.master.node.count";
+  public static final String INTEGRATION_MESOS_TACHYON_WORKER_NODE_COUNT =
+      "tachyon.integration.mesos.worker.node.count";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";
