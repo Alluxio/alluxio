@@ -5,7 +5,8 @@ title: Maven
 
 # Mac OSX
 
-Before OS X Mavericks, Mac OS X comes with Apache Maven 3 built in, and can be located at `/usr/share/maven`
+Before OS X Mavericks, Mac OS X comes with Apache Maven 3 built in, and can be located at
+`/usr/share/maven`
 
 After the upgrade of Mac OS X Mavericks, Maven was removed and hence needs to be installed manually.
 
