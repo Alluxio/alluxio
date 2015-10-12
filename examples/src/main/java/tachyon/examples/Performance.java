@@ -499,8 +499,8 @@ public class Performance {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 9) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION
-          + "-jar-with-dependencies.jar tachyon.examples.Performance "
+      System.out.println("java -cp " + Constants.TACHYON_JAR
+          + " tachyon.examples.Performance "
           + "<MasterIp> <FileNamePrefix> <WriteBlockSizeInBytes> <BlocksPerFile> "
           + "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> "
           + "<BaseFileNumber>\n" + "1: Files Write Test\n" + "2: Files Read Test\n"

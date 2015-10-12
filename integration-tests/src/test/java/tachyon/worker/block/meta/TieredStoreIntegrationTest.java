@@ -37,7 +37,6 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.SetStateOptions;
 import tachyon.conf.TachyonConf;
-import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterContext;
 import tachyon.thrift.FileInfo;
@@ -77,7 +76,7 @@ public class TieredStoreIntegrationTest {
     mTFS = mLocalTachyonCluster.getClient();
     mWorkerConf = mLocalTachyonCluster.getWorkerTachyonConf();
     mWorkerToMasterHeartbeatIntervalMs =
-        mWorkerConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+        mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mSetPinned = new SetStateOptions.Builder(mWorkerConf).setPinned(true).build();
     mSetUnpinned = new SetStateOptions.Builder(mWorkerConf).setPinned(false).build();
   }
@@ -104,12 +103,7 @@ public class TieredStoreIntegrationTest {
     CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
 
     // After the delete, the master should no longer serve the file
-    try {
-      mTFS.open(new TachyonURI("/test1"));
-      Assert.fail("file should not exist: /test1");
-    } catch (TachyonException e) {
-      // This is expected, since the file should not exist.
-    }
+    Assert.assertNull(mTFS.open(new TachyonURI("/test1")));
 
     // However, the previous read should still be able to read it as the data still exists
     byte[] res = new byte[MEM_CAPACITY_BYTES];

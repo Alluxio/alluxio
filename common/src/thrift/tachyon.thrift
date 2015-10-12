@@ -181,7 +181,6 @@ service FileSystemMasterService {
     throws (1: TachyonTException e)
 
   i64 getFileId(1: string path)
-    throws (1: TachyonTException e)
 
   FileInfo getFileInfo(1: i64 fileId)
     throws (1: TachyonTException e)
@@ -196,9 +195,11 @@ service FileSystemMasterService {
   string getUfsAddress()
 
   /**
-   * Loads metadata for the file identified by the given Tachyon path from UFS into Tachyon.
+   * Loads metadata for the object identified by the given Tachyon path from UFS into Tachyon.
    */
-  i64 loadFileInfoFromUfs(1: string ufsPath, 2: bool recursive) throws (1: TachyonTException e)
+   // TODO(jiri): Get rid of this.
+  i64 loadMetadata(1: string ufsPath, 2: bool recursive)
+    throws (1: TachyonTException e)
 
   /**
    * Creates a new "mount point", mounts the given UFS path in the Tachyon namespace at the given

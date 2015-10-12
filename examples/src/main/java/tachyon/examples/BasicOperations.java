@@ -106,9 +106,8 @@ public class BasicOperations implements Callable<Boolean> {
 
   public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION
-          + "-jar-with-dependencies.jar "
-          + "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
+      System.out.println("java -cp " + Constants.TACHYON_JAR
+          + " tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);
     }
 

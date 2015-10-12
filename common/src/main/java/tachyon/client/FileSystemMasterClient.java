@@ -33,7 +33,6 @@ import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
 import tachyon.thrift.TachyonTException;
-import tachyon.thrift.ThriftIOException;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by tachyon clients.
@@ -71,18 +70,15 @@ public final class FileSystemMasterClient extends MasterClientBase {
 
   /**
    * @param path the path
-   * @return the file id for the given path
+   * @return the file id for the given path, or -1 if the path does not point to a file
    * @throws IOException if an I/O error occurs
-   * @throws TachyonException if a Tachyon error occurs
    */
-  public synchronized long getFileId(String path) throws IOException, TachyonException {
+  public synchronized long getFileId(String path) throws IOException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
         return mClient.getFileId(path);
-      } catch (TachyonTException e) {
-        throw new TachyonException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -296,8 +292,6 @@ public final class FileSystemMasterClient extends MasterClientBase {
         return mClient.deleteFile(fileId, recursive);
       } catch (TachyonTException e) {
         throw new TachyonException(e);
-      } catch (ThriftIOException e) {
-        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -442,13 +436,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileInfoFromUfs(String path, boolean recursive)
+  public synchronized long loadMetadata(String path, boolean recursive)
       throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.loadFileInfoFromUfs(path, recursive);
+        return mClient.loadMetadata(path, recursive);
       } catch (TachyonTException e) {
         throw new TachyonException(e);
       } catch (TException e) {

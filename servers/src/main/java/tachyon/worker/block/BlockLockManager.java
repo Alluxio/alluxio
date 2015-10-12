@@ -43,7 +43,8 @@ import tachyon.worker.WorkerContext;
 public final class BlockLockManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of locks, larger value leads to finer locking granularity, but more space. */
-  private static int sNumLocks = WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_LOCK_COUNT);
+  private static int sNumLocks =
+      WorkerContext.getConf().getInt(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS);
 
   /** The unique id of each lock */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);

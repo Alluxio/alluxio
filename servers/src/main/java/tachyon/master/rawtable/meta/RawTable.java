@@ -50,7 +50,6 @@ public class RawTable implements JournalEntryRepresentable {
    * @param columns number of columns
    * @param metadata table metadata, if is null, the internal metadata is set to an empty buffer,
    *        otherwise, the provided buffer will be copied into the internal buffer.
-   * @return the created RawTable
    */
   public RawTable(long id, int columns, ByteBuffer metadata) {
     mId = id;
