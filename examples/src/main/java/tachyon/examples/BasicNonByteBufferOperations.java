@@ -158,9 +158,9 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private static void usage() {
-    System.out.println("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-        + BasicNonByteBufferOperations.class.getName() + " <TachyonMasterAddress> <FilePath> "
-        + "[WriteType(STORE|NO_STORE)] [ReadType(STORE|NO_STORE)] [delete file] [num writes]");
+    System.out.println("java -cp " + Constants.TACHYON_JAR + " "
+        + BasicNonByteBufferOperations.class.getName()
+        + " <master address> <file path>  [ReadType(STORE|NO_STORE)] [delete file] [num writes]");
     System.exit(-1);
   }
 }
