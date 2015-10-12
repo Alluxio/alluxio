@@ -90,7 +90,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private void write(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
       TachyonStorageType writeType, boolean deleteIfExists, int length)
-          throws IOException, TachyonException {
+          throws IOException, TachyonException, NullPointerException {
     OutStreamOptions clientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(writeType).build();
     // If the file exists already, we will override it.
@@ -159,8 +159,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private static void usage() {
     System.out.println("java -cp " + Constants.TACHYON_JAR + " "
-        + BasicNonByteBufferOperations.class.getName()
-        + " <master address> <file path>  [ReadType(STORE|NO_STORE)] [delete file] [num writes]");
+        + BasicNonByteBufferOperations.class.getName() + " <master address> <file path> "
+        + "[WriteType(STORE|NO_STORE)] [ReadType(STORE|NO_STORE)] [delete file] [num writes]");
     System.exit(-1);
   }
 }
