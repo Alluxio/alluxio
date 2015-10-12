@@ -28,7 +28,6 @@ import java.util.concurrent.Executors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -46,6 +45,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.network.protocol.RPCResponse;
 import tachyon.thrift.BlockInfo;
 import tachyon.thrift.FileInfo;
@@ -57,7 +57,6 @@ import tachyon.util.io.BufferUtils;
  * Integration tests for tachyon.worker.DataServer.
  */
 @RunWith(Parameterized.class)
-@Ignore("TACHYON-1050")
 public class DataServerIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
@@ -136,10 +135,12 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    TachyonConf tachyonConf = WorkerContext.getConf();
-    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+    TachyonConf tachyonConf = MasterContext.getConf();
+    // MasterContext will be merged into WorkerContext and ClientContext when starting
+    // LocalTachyonCluster.
     tachyonConf.set(Constants.WORKER_DATA_SERVER, mDataServerClass);
     tachyonConf.set(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, mNettyTransferType);
+    tachyonConf.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
     tachyonConf.set(Constants.USER_BLOCK_REMOTE_READER, mBlockReader);
 
     mLocalTachyonCluster =
