@@ -6,6 +6,9 @@ group: Features
 priority: 2
 ---
 
+* Table of Contents
+{:toc}
+
 Tachyon enables effective data management across different storage systems through its use of transparent naming and mounting API.
 
 ## Transparent Naming

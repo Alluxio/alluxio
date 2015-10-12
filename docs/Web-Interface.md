@@ -4,6 +4,9 @@ group: Features
 title: Web Interface
 ---
 
+* Table of Contents
+{:toc}
+
 Tachyon has a user-friendly web interface allowing users to watch and manage the system. The master and workers all serve their own web UI. The default port for the web interface is 19999 for the master and 30000 for the workers.
 
 # Tachyon Master Web Interface

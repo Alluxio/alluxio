@@ -6,6 +6,9 @@ group: Features
 priority: 4
 ---
 
+* Table of Contents
+{:toc}
+
 Tachyon can achieve high throughput writes and reads, without compromising fault-tolerance by using *Lineage*, where lost output is recovered by re-executing the jobs that created the output. 
 
 With lineage, applications write output into memory, and Tachyon periodically checkpoints the output into the under file system in an asynchronous fashion. In case of failures, Tachyon launches *job recomputation* to restore the lost files. To use lineage, the job must be deterministic so that the re-execution can output identical files.

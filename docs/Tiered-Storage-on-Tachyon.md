@@ -5,6 +5,9 @@ nickname: Tiered Storage
 group: Features
 ---
 
+* Table of Contents
+{:toc}
+
 Tachyon supports tiered storage, which allows Tachyon to manage other storage types in addition to memory.
 Currently, Tachyon Tiered Storage supports these storage types or tiers:
 
