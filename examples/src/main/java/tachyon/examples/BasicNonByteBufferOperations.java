@@ -31,6 +31,7 @@ import tachyon.client.file.TachyonFileSystem;
 import tachyon.client.file.options.InStreamOptions;
 import tachyon.client.file.options.OutStreamOptions;
 import tachyon.conf.TachyonConf;
+import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.TachyonException;
 
 /**
@@ -90,7 +91,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private void write(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
       TachyonStorageType writeType, boolean deleteIfExists, int length)
-          throws IOException, TachyonException, NullPointerException {
+          throws IOException, TachyonException {
     OutStreamOptions clientOptions = new OutStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(writeType).build();
     // If the file exists already, we will override it.
@@ -125,7 +126,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       return tachyonFileSystem.getOutStream(filePath, clientOptions);
     }
     // file exists and deleteIfExists is false
-    return null;
+    throw new FileAlreadyExistsException(" file exists but deleteIfExists is false");
   }
 
   private boolean read(TachyonFileSystem tachyonFileSystem, TachyonURI filePath,
