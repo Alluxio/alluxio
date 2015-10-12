@@ -160,6 +160,8 @@ public class WorkerClientAuthenticationIntegrationTest {
             new ClientMetrics());
     Assert.assertFalse(workerClient.isConnected());
     workerClient.mustConnect();
+    // should never reach here, but this silences the resource not closed warning
+    workerClient.close();
   }
 
   /**

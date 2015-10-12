@@ -161,6 +161,8 @@ public class MasterClientAuthenticationIntegrationTest {
             mLocalTachyonCluster.getMasterTachyonConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
+    // should never reach here, but this silences the resource not closed warning
+    masterClient.close();
   }
 
   /**
