@@ -1,7 +1,11 @@
 ---
 layout: global
 title: Metrics System
+group: Features
 ---
+
+* Table of Contents
+{:toc}
 
 Metrics provide insight to what is going on in the cluster. They are an invaluable resource for
 monitoring the services and debugging problems. Tachyon has a configurable metrics system based
@@ -41,7 +45,7 @@ metrics in JSON format.
 #Supported Metrics
 The following shows the details of the available metrics.
 
-###Master:
+###Master
 
 * CapacityTotal: Total capacity of the file system in byte.
 * CapacityUsed: Used capacity of the file system in byte.
@@ -61,7 +65,7 @@ The following shows the details of the available metrics.
 * FilesCheckpointed: Total number of the files checkpointed.
 * GetFileStatusOps: Total number of the getClientFileInfo operation.
 
-###Worker:
+###Worker
 
 * CapacityTotal: Total capacity of the worker in byte.
 * CapacityUsed: Used capacity of the worker in byte.
