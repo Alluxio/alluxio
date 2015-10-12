@@ -97,8 +97,8 @@ public final class LocalTachyonMaster {
 
     tachyonConf.set(Constants.MASTER_JOURNAL_FOLDER, mJournalFolder);
     tachyonConf.set(Constants.UNDERFS_ADDRESS, mUfsDirectory);
-    tachyonConf.set(Constants.MASTER_MIN_WORKER_THREADS, "1");
-    tachyonConf.set(Constants.MASTER_MAX_WORKER_THREADS, "100");
+    tachyonConf.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
+    tachyonConf.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
@@ -106,7 +106,7 @@ public final class LocalTachyonMaster {
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    tachyonConf.set(Constants.HOST_RESOLUTION_TIMEOUT_MS, "250");
+    tachyonConf.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
     tachyonConf.set(Constants.WEB_THREAD_COUNT, "1");
     tachyonConf.set(Constants.WEB_RESOURCES,

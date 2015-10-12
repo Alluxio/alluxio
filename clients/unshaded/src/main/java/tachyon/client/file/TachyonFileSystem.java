@@ -75,24 +75,24 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   /**
    * Convenience method for {@link #create(TachyonURI, CreateOptions)} with default options.
    */
-  public long create(TachyonURI path) throws IOException, TachyonException,
-      FileAlreadyExistsException, InvalidPathException {
+  public TachyonFile create(TachyonURI path)
+      throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
     return create(path, CreateOptions.defaults());
   }
 
   /**
    * Convenience method for {@link #delete(TachyonFile, DeleteOptions)} with default options.
    */
-  public void delete(TachyonFile file) throws IOException, TachyonException,
-      FileDoesNotExistException {
+  public void delete(TachyonFile file)
+      throws IOException, TachyonException, FileDoesNotExistException {
     delete(file, DeleteOptions.defaults());
   }
 
   /**
    * Convenience method for {@link #free(TachyonFile, FreeOptions)} with default options.
    */
-  public void free(TachyonFile file) throws IOException, TachyonException,
-      FileDoesNotExistException {
+  public void free(TachyonFile file)
+      throws IOException, TachyonException, FileDoesNotExistException {
     free(file, FreeOptions.defaults());
   }
 
@@ -100,15 +100,16 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link TachyonFileSystemCore#getInfo(TachyonFile, GetInfoOptions)} with
    * default options.
    */
-  public FileInfo getInfo(TachyonFile file) throws IOException, TachyonException {
+  public FileInfo getInfo(TachyonFile file)
+      throws FileDoesNotExistException, IOException, TachyonException {
     return getInfo(file, GetInfoOptions.defaults());
   }
 
   /**
    * Convenience method for {@link #getInStream(TachyonFile, InStreamOptions)} with default options.
    */
-  public FileInStream getInStream(TachyonFile file) throws IOException, TachyonException,
-      FileDoesNotExistException {
+  public FileInStream getInStream(TachyonFile file)
+      throws IOException, TachyonException, FileDoesNotExistException {
     return getInStream(file, InStreamOptions.defaults());
   }
 
@@ -124,8 +125,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws TachyonException if an unexpected tachyon exception is thrown
    * @throws FileDoesNotExistException if the given file does not exist
    */
-  public FileInStream getInStream(TachyonFile file, InStreamOptions options) throws IOException,
-      TachyonException, FileDoesNotExistException {
+  public FileInStream getInStream(TachyonFile file, InStreamOptions options)
+      throws IOException, TachyonException, FileDoesNotExistException {
     FileInfo info = getInfo(file, GetInfoOptions.defaults());
     Preconditions.checkState(!info.isIsFolder(), "Cannot read from a folder");
     return new FileInStream(info, options);
@@ -135,8 +136,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #getOutStream(TachyonURI, OutStreamOptions)} with default
    * options.
    */
-  public FileOutStream getOutStream(TachyonURI path) throws IOException,
-      TachyonException, FileAlreadyExistsException, InvalidPathException {
+  public FileOutStream getOutStream(TachyonURI path)
+      throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
     return getOutStream(path, OutStreamOptions.defaults());
   }
 
@@ -154,12 +155,12 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws InvalidPathException if the path is invalid
    */
-  public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options) throws IOException,
-      TachyonException, FileAlreadyExistsException, InvalidPathException {
-    CreateOptions createOptions =
-        (new CreateOptions.Builder(ClientContext.getConf())).setBlockSize(options.getBlockSize())
-            .setRecursive(true).setTTL(options.getTTL()).build();
-    long fileId = create(path, createOptions);
+  public FileOutStream getOutStream(TachyonURI path, OutStreamOptions options)
+      throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
+    CreateOptions createOptions = (new CreateOptions.Builder(ClientContext.getConf()))
+        .setBlockSize(options.getBlockSize()).setRecursive(true).setTTL(options.getTTL()).build();
+    TachyonFile tFile = create(path, createOptions);
+    long fileId = tFile.getFileId();
     return new FileOutStream(fileId, options);
   }
 
@@ -176,28 +177,28 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   /**
-  * Convenience method for {@link #listStatus(TachyonFile, ListStatusOptions)} with default
+   * Convenience method for {@link #listStatus(TachyonFile, ListStatusOptions)} with default
    * options.
    */
-  public List<FileInfo> listStatus(TachyonFile file) throws IOException,
-      TachyonException, FileDoesNotExistException {
+  public List<FileInfo> listStatus(TachyonFile file)
+      throws IOException, TachyonException, FileDoesNotExistException {
     return listStatus(file, ListStatusOptions.defaults());
   }
 
   /**
-   * Convenience method for {@link #loadMetadata(TachyonURI, LoadMetadataOptions)} with
-   * default options.
+   * Convenience method for {@link #loadMetadata(TachyonURI, LoadMetadataOptions)} with default
+   * options.
    */
-  public long loadMetadata(TachyonURI path) throws IOException,
-      TachyonException, FileDoesNotExistException {
+  public TachyonFile loadMetadata(TachyonURI path)
+      throws IOException, TachyonException, FileDoesNotExistException {
     return loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
   /**
    * Convenience method for {@link #mkdir(TachyonURI, MkdirOptions)} with default options.
    */
-  public boolean mkdir(TachyonURI path) throws IOException, TachyonException,
-      FileAlreadyExistsException, InvalidPathException {
+  public boolean mkdir(TachyonURI path)
+      throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
     return mkdir(path, MkdirOptions.defaults());
   }
 
@@ -205,16 +206,15 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #mount(TachyonURI, TachyonURI, MountOptions)} with default
    * options.
    */
-  public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath) throws IOException,
-      TachyonException {
+  public boolean mount(TachyonURI tachyonPath, TachyonURI ufsPath)
+      throws IOException, TachyonException {
     return mount(tachyonPath, ufsPath, MountOptions.defaults());
   }
 
   /**
    * Convenience method for {@link #open(TachyonURI, OpenOptions)} with default options.
    */
-  public TachyonFile open(TachyonURI path) throws IOException, InvalidPathException,
-      TachyonException {
+  public TachyonFile open(TachyonURI path) throws IOException, TachyonException {
     return open(path, OpenOptions.defaults());
   }
 
@@ -222,8 +222,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #rename(TachyonFile, TachyonURI, RenameOptions)} with default
    * options.
    */
-  public boolean rename(TachyonFile src, TachyonURI dst) throws IOException,
-      TachyonException, FileDoesNotExistException {
+  public boolean rename(TachyonFile src, TachyonURI dst)
+      throws IOException, TachyonException, FileDoesNotExistException {
     return rename(src, dst, RenameOptions.defaults());
   }
 
@@ -242,8 +242,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   }
 
   // TODO: Move this to lineage client
-  public void reportLostFile(TachyonFile file) throws IOException, FileDoesNotExistException,
-      TachyonException {
+  public void reportLostFile(TachyonFile file)
+      throws IOException, FileDoesNotExistException, TachyonException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.reportLostFile(file.getFileId());

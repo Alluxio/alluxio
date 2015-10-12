@@ -95,7 +95,7 @@ public class TieredBlockStoreTestUtils {
     if (workerDataFolder != null) {
       sTachyonConf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    sTachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, String.valueOf(nTier));
+    sTachyonConf.set(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX, String.valueOf(nTier));
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i ++) {
@@ -128,7 +128,7 @@ public class TieredBlockStoreTestUtils {
     if (workerDataFolder != null) {
       sTachyonConf.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    sTachyonConf.set(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL, String.valueOf(1));
+    sTachyonConf.set(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX, String.valueOf(1));
     setupTachyonConfTier(tierLevel, tierAlias, tierPath, tierCapacity);
   }
 
@@ -147,15 +147,15 @@ public class TieredBlockStoreTestUtils {
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         String.format("tierPath and tierCapacity should have the same length"));
 
-    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_ALIAS_FORMAT, level),
+    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, level),
         tierAlias.toString());
 
     String tierPathString = StringUtils.join(tierPath, ",");
-    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_PATH_FORMAT, level),
+    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
         tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_DIRS_QUOTA_FORMAT, level),
+    sTachyonConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, level),
         tierCapacityString);
   }
 
@@ -269,7 +269,7 @@ public class TieredBlockStoreTestUtils {
 
   /**
    * Cache bytes into BlockStore at specific location
-   * 
+   *
    * @param sessionId session who caches the data
    * @param blockId id of the cached block
    * @param bytes size of the block in bytes
@@ -286,7 +286,7 @@ public class TieredBlockStoreTestUtils {
     BlockWriter writer = new LocalFileBlockWriter(tempBlockMeta);
     writer.append(BufferUtils.getIncreasingByteBuffer(Ints.checkedCast(bytes)));
     writer.close();
-    
+
     // commit block
     blockStore.commitBlock(sessionId, blockId);
   }

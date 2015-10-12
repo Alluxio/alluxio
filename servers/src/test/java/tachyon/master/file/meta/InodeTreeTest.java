@@ -223,7 +223,7 @@ public final class InodeTreeTest {
   @Test
   public void getInodeByNonexistingPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /test");
+    mThrown.expectMessage("Path /test does not exist");
 
     mTree.getInodeByPath(TEST_URI);
   }
@@ -231,7 +231,7 @@ public final class InodeTreeTest {
   @Test
   public void getInodeByNonexistingNestedPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not find path: /nested/test/file");
+    mThrown.expectMessage("Path /nested/test/file does not exist");
 
     mTree.createPath(NESTED_URI, Constants.KB, true, true);
     mTree.getInodeByPath(NESTED_FILE_URI);
