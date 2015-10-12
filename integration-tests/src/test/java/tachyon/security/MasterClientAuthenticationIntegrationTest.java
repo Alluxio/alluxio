@@ -159,8 +159,12 @@ public class MasterClientAuthenticationIntegrationTest {
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalTachyonCluster.getMaster().getAddress(), mExecutorService,
             mLocalTachyonCluster.getMasterTachyonConf());
-    Assert.assertFalse(masterClient.isConnected());
-    masterClient.connect();
+    try {
+      Assert.assertFalse(masterClient.isConnected());
+      masterClient.connect();
+    } finally {
+      masterClient.close();
+    }
   }
 
   /**
