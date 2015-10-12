@@ -30,8 +30,8 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 
 [Github Repository](https://github.com/amplab/tachyon/) |
 [Releases and Downloads](https://github.com/amplab/tachyon/releases) |
-[User Documentation](#user-documentation) |
-[Developer Documentation](#developer-documentation) |
+[User Documentation](Getting-Started.html) |
+[Developer Documentation](Contributing-To-Tachyon.html) |
 [Meetup Group](http://www.meetup.com/Tachyon/) |
 [JIRA](https://tachyon.atlassian.net/browse/TACHYON) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
@@ -54,14 +54,25 @@ and HDDs in addition to memory, allowing for larger datasets to be stored in Tac
 automatically be managed between the different tiers, keeping hot data in faster tiers. Custom
 policies are easily pluggable, and a pin concept allows for direct user control.
 
-* **[Lineage](Lineage-API.html)**
+* **[Lineage](Lineage-API.html)** Tachyon can achieve high throughput writes without compromising
+fault-tolerance by using lineage, where lost output is recovered by re-executing the jobs that
+created the output. With lineage, applications write output into memory, and Tachyon periodically
+checkpoints the output into the under file system in an asynchronous fashion. In case of failures,
+Tachyon launches job recomputation to restore the lost files.
 
 * **[Web UI](Web-Interface.html) & [Command Line](Command-Line-Interface.html)** Users can browse
 the file system easily through the web UI. Under debug mode, administrators can view detailed
 information of each file, including locations, checkpoint path, etc. Users can also use
 ``./bin/tachyon tfs`` to interact with Tachyon, e.g. copy data in and out of the file system.
 
-* **[Mounting & Transparency](Mounting-and-Transparent-Naming.html)**
+* **[Mounting & Transparency](Mounting-and-Transparent-Naming.html)** Tachyon enables effective
+data management across different storage systems through the mount feature. Mounting allows a data
+source to be linked to a directory in Tachyon, effectively adding the contents of the data source
+into the Tachyon name space under its mount point. On the other hand, transparent naming ensures
+data written into Tachyon and through to an underlying store can be identified with the same file
+name.
+
+
 
 # Getting Started
 
