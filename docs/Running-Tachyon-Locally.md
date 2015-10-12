@@ -16,23 +16,28 @@ Download the binary distribution of Tachyon {{site.TACHYON_RELEASED_VERSION}}:
     $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
     $ cd tachyon-{{site.TACHYON_RELEASED_VERSION}}
 
-Before executing Tachyon run scripts, requisite environment variables must be specified in `conf/tachyon-env.sh`, which can be copied from the included template file:
+Before executing Tachyon run scripts, requisite environment variables must be specified in
+`conf/tachyon-env.sh`, which can be copied from the included template file:
 
     $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 
 To run in standalone mode, make sure that:
 
-* `TACHYON_UNDERFS_ADDRESS` in `conf/tachyon-env.sh` is set to a tmp directory in the local filesystem (e.g., `export TACHYON_UNDERFS_ADDRESS=/tmp`).
+* `TACHYON_UNDERFS_ADDRESS` in `conf/tachyon-env.sh` is set to a tmp directory in the local
+filesystem (e.g., `export TACHYON_UNDERFS_ADDRESS=/tmp`).
 
 * Remote login service is turned on so that `ssh localhost` can succeed.
 
-Then, you can format Tachyon FileSystem and start it. *Note: since Tachyon needs to setup [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt), starting a local system requires users to input their root password for Linux based users.*
+Then, you can format Tachyon FileSystem and start it. *Note: since Tachyon needs to setup
+[RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt), starting a
+local system requires users to input their root password for Linux based users.*
 
     $ ./bin/tachyon format
     $ ./bin/tachyon-start.sh local
 
 To verify that Tachyon is running, you can visit
-**[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder. You can also run a sample program:
+**[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder. You can
+also run a sample program:
 
     $ ./bin/tachyon runTest Basic CACHE_THROUGH
 
@@ -58,7 +63,9 @@ For the first sample program, you should be able to see something similar to the
     2015-10-06 23:10:43,467 INFO   (BasicOperations.java:readFile) - readFile file /default_tests_files/BasicFile_CACHE_THROUGH took 227 ms.
     Passed the test!
 
-And you can visit Tachyon web UI at **[http://localhost:19999](http://localhost:19999)** again. Click `Browse File System` in the navigation bar, and you should see the files written to Tachyon by the above test.
+And you can visit Tachyon web UI at **[http://localhost:19999](http://localhost:19999)** again.
+Click `Browse File System` in the navigation bar, and you should see the files written to Tachyon by
+the above test.
 
 To run a more comprehensive sanity check:
 
