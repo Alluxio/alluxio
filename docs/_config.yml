@@ -1,5 +1,8 @@
 highlighter: pygments
 markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
 
 # These allow the documentation to be updated with new releases of Tachyon.
 TACHYON_RELEASED_VERSION: 0.7.1
