@@ -218,6 +218,17 @@ public abstract class AbstractTachyonFileSystem implements TachyonFileSystemCore
     }
   }
 
+  /**
+   * Resolves a {@link TachyonURI} to a {@link TachyonFile} which is used as the file handler for
+   * non-create operations.
+   *
+   * @param path the path of the file, this should be in Tachyon space
+   * @param openOptions method options
+   * @return a TachyonFile which acts as a file handler for the path
+   * @throws IOException if a non-Tachyon exception occurs
+   * @throws InvalidPathException if there is no file at the given path
+   * @throws TachyonException if an unexpected tachyon exception is thrown
+   */
   public TachyonFile open(TachyonURI path, OpenOptions openOptions) throws IOException,
       InvalidPathException, TachyonException {
     TachyonFile f = openIfExists(path, openOptions);
