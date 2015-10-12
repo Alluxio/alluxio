@@ -115,7 +115,7 @@ public class TachyonFS extends AbstractTachyonFS {
         "Tachyon scheme must be either " + Constants.SCHEME + " or " + Constants.SCHEME_FT + ".");
 
     boolean useZookeeper = scheme.equals(Constants.SCHEME_FT);
-    tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(useZookeeper));
+    tachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(useZookeeper));
     tachyonConf.set(Constants.MASTER_HOSTNAME, tachyonURI.getHost());
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(tachyonURI.getPort()));
 
@@ -134,7 +134,7 @@ public class TachyonFS extends AbstractTachyonFS {
     TachyonConf tachyonConf = new TachyonConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
-    tachyonConf.set(Constants.USE_ZOOKEEPER, Boolean.toString(zkMode));
+    tachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(zkMode));
     return get(tachyonConf);
   }
 
@@ -151,7 +151,6 @@ public class TachyonFS extends AbstractTachyonFS {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final int mUserFailedSpaceRequestLimits;
-  private final ExecutorService mExecutorService;
 
   /** The RPC client talks to the file system master. */
   private final FileSystemMasterClient mFSMasterClient;
@@ -184,13 +183,11 @@ public class TachyonFS extends AbstractTachyonFS {
     super(tachyonConf);
 
     mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, tachyonConf);
-    mZookeeperMode = mTachyonConf.getBoolean(Constants.USE_ZOOKEEPER);
-    mExecutorService =
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("client-heartbeat-%d", true));
+    mZookeeperMode = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
     mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
     mRawTableMasterClient = mCloser.register(new RawTableMasterClient(mMasterAddress,
-        mExecutorService, mTachyonConf));
+        ClientContext.getExecutorService(), mTachyonConf));
     mWorkerClient = mCloser.register(BlockStoreContext.INSTANCE.acquireWorkerClient());
     mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
@@ -258,11 +255,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Override
   public synchronized void close() throws IOException {
-    try {
-      mCloser.close();
-    } finally {
-      mExecutorService.shutdown();
-    }
+    mCloser.close();
   }
 
   /**

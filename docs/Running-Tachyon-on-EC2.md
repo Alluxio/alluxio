@@ -23,7 +23,7 @@ Install AWS Vagrant plugin:
 
 Download Tachyon to your local machine, and unzip it:
 
-    $ wget https://github.com/amplab/tachyon/releases/download/v{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+    $ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
     $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
 
 **Install python library dependencies**
@@ -53,6 +53,10 @@ Next generate your EC2 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/User
 
     $ chmod 400 <your key pair>.pem
 
+Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
+
+    $ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair name and `Key_Path` to the path to the pem key.
 
 By default, the Vagrant script creates a [Security Group](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html) named *tachyon-vagrant-test* at [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html). The security group will be set up automatically in the region with all inbound/outbound network traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
@@ -61,13 +65,15 @@ Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in u
 
     ./create <number of machines> aws
 
+Each node of the cluster has a Tachyon worker, `TachyonMaster` has a Tachyon master.
+
 # Access the cluster
 
 **Access through Web UI**
 
 After command `./create <number of machines> aws` succeeds, you can see two green lines like below shown at the end of the shell output:
 
-    >>> TachyonMaster public IP is xxx <<<
+    >>> TachyonMaster public IP is xxx, visit xxx:19999 for Tachyon web UI<<<
     >>> visit default port of the web UI of what you deployed <<<
 
 Default port for Tachyon Web UI is **19999**.
@@ -90,13 +96,17 @@ For example, you can ssh into `TachyonMaster` with
 
     $ vagrant ssh TachyonMaster
 
-All software are installed under root directory, e.g. Tachyon is installed in /tachyon, Hadoop is installed in /hadoop.
+All software are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is installed in `/hadoop`.
 
-You can run some tests against Tachyon to check its health:
+On `TachyonMaster` node, you can run some tests against Tachyon to check its health:
 
     $ /tachyon/bin/tachyon runTests
 
 After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse File System` in the navigation bar, and you should see the files written to Tachyon by the above tests.
+
+From a node in the cluster, you can ssh to other nodes in the cluster without password like
+
+    $ ssh TachyonWorker1
 
 # Destroy the cluster
 

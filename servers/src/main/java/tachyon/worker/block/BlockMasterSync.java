@@ -81,8 +81,8 @@ public final class BlockMasterSync implements Runnable {
     mWorkerAddress = workerAddress;
     TachyonConf conf = WorkerContext.getConf();
     mMasterClient = masterClient;
-    mHeartbeatIntervalMs = conf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    mHeartbeatTimeoutMs = conf.getInt(Constants.WORKER_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatIntervalMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
+    mHeartbeatTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
     mRunning = true;
     mWorkerId = 0;

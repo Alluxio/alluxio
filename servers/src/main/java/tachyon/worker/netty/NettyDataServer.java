@@ -94,13 +94,13 @@ public final class NettyDataServer implements DataServer {
       boot.option(ChannelOption.SO_BACKLOG,
           mTachyonConf.getInt(Constants.WORKER_NETWORK_NETTY_BACKLOG));
     }
-    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_SEND_BUFFER)) {
+    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_BUFFER_SEND)) {
       boot.option(ChannelOption.SO_SNDBUF,
-          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_SEND_BUFFER));
+          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_BUFFER_SEND));
     }
-    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_RECEIVE_BUFFER)) {
+    if (mTachyonConf.containsKey(Constants.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)) {
       boot.option(ChannelOption.SO_RCVBUF,
-          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_RECEIVE_BUFFER));
+          (int) mTachyonConf.getBytes(Constants.WORKER_NETWORK_NETTY_BUFFER_RECEIVE));
     }
     return boot;
   }
