@@ -37,6 +37,6 @@ public class LoadMetadataOptionsTest {
   @Test
   public void defaultsTest() {
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
-    Assert.assertEquals(false, options.isRecursive());
+    Assert.assertFalse(options.isRecursive());
   }
 }

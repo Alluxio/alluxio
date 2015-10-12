@@ -168,24 +168,24 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
     // TODO(jiri): Should we use MasterContext here instead?
     TachyonConf conf = new TachyonConf();
-    String ufsDataFolder = conf.get(Constants.UNDERFS_DATA_FOLDER);
-    UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, conf);
+    String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, conf);
 
-    long sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
+    long sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
     if (sizeBytes >= 0) {
       request.setAttribute("diskCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskCapacity", "UNKNOWN");
     }
 
-    sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
+    sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_USED);
     if (sizeBytes >= 0) {
       request.setAttribute("diskUsedCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskUsedCapacity", "UNKNOWN");
     }
 
-    sizeBytes = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
+    sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_FREE);
     if (sizeBytes >= 0) {
       request.setAttribute("diskFreeCapacity", FormatUtils.getSizeFromBytes(sizeBytes));
     } else {
