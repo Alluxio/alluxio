@@ -142,7 +142,7 @@ public class TachyonFramework {
           targetMem = masterMem;
           mMasterHostname = offer.getHostname();
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_MASTER_NAME);
-          mMasterCount++;
+          mMasterCount ++;
           mMasterTaskId = mLaunchedTasks;
 
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
@@ -178,7 +178,7 @@ public class TachyonFramework {
           targetMem = workerMem;
           mWorkers.add(offer.getHostname());
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_WORKER_NAME);
-          mWorkerCount++;
+          mWorkerCount ++;
           mWorkerTaskId = mLaunchedTasks;
         } else {
           // The resource offer cannot be used to start either master or a worker.
@@ -246,9 +246,9 @@ public class TachyonFramework {
         case TASK_LOST: // intend to fall through
         case TASK_ERROR:
           if (status.getTaskId().getValue().equals(String.valueOf(mMasterTaskId))) {
-            mMasterCount--;
+            mMasterCount --;
           } else if (status.getTaskId().getValue().equals(String.valueOf(mWorkerTaskId))) {
-            mWorkerCount--;
+            mWorkerCount --;
           }
           break;
         case TASK_RUNNING:
