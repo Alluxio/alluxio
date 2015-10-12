@@ -18,6 +18,7 @@ package tachyon.heartbeat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -63,7 +64,7 @@ public final class HeartbeatScheduler {
   /**
    * Schedules execution of a heartbeat for the given thread.
    *
-   * @param threadName the thread for which heartbeat is to be executed
+   * @param threadName a name of the thread for which heartbeat is to be executed
    */
   public static void schedule(String threadName) {
     sLock.lock();
@@ -80,13 +81,34 @@ public final class HeartbeatScheduler {
   /**
    * Waits until the given thread can be executed.
    *
-   * @param threadName the thread to wait for
+   * @param name a name of the thread to wait for
    */
-  public static void await(String threadName) throws InterruptedException {
+  public static void await(String name) throws InterruptedException {
     sLock.lock();
-    while (!sTimers.containsKey(threadName)) {
+    while (!sTimers.containsKey(name)) {
       sCondition.await();
     }
     sLock.unlock();
+  }
+
+  /**
+   * Waits until the given thread can be executed or the given timeout expires.
+   *
+   * @param name a name of the thread to wait for
+   * @param time the maximum time to wait
+   * @param unit the time unit of the {@code time} argument
+   * @return {@code false} if the waiting time detectably elapsed before return from the method,
+   *         else {@code true}
+   */
+  public static boolean await(String name, long time, TimeUnit unit) throws InterruptedException {
+    sLock.lock();
+    while (!sTimers.containsKey(name)) {
+      if (!sCondition.await(time, unit)) {
+        sLock.unlock();
+        return false;
+      }
+    }
+    sLock.unlock();
+    return true;
   }
 }
