@@ -137,7 +137,8 @@ public class BasicOperations implements Callable<Boolean> {
   public static void main(String[] args) throws IllegalArgumentException {
     if (args.length != 3) {
       System.out.println("java -cp " + Constants.TACHYON_JAR
-          + " tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType(STORE|NO_STORE)>");
+          + " tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> "
+          + "<WriteType(STORE|NO_STORE)>");
       System.exit(-1);
     }
 
