@@ -19,13 +19,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.thrift.TException;
-
 import tachyon.Sessions;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
-import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.FailedToCheckpointException;
@@ -35,6 +32,7 @@ import tachyon.exception.WorkerOutOfSpaceException;
 import tachyon.test.Testable;
 import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
+import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
 import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
@@ -105,7 +103,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
   }
-
 
   @Override
   public void grantAccess(Tester<BlockDataManager> tester) {
