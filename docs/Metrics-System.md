@@ -33,7 +33,7 @@ Some metrics like `BytesReadLocal` rely on data collected from client heartbeat.
 accurate metrics data, the client is expected to properly close the `TachyonFS` client after
 using it.
 
-#Configuration
+# Configuration
 The metrics system is configured via a configuration file that Tachyon expects to be present at
 `$TACHYON_HOME/conf/metrics.properties`. A custom file location can be specified via the
 `tachyon.metrics.conf.file` configuration property. Tachyon provides a metrics.properties.template
@@ -42,10 +42,10 @@ is enabled and you can send HTTP request "/metrics/json" to get a snapshot of al
 metrics in JSON format.
 
 
-#Supported Metrics
+# Supported Metrics
 The following shows the details of the available metrics.
 
-###Master
+### Master
 
 * CapacityTotal: Total capacity of the file system in byte.
 * CapacityUsed: Used capacity of the file system in byte.
@@ -65,7 +65,7 @@ The following shows the details of the available metrics.
 * FilesCheckpointed: Total number of the files checkpointed.
 * GetFileStatusOps: Total number of the getClientFileInfo operation.
 
-###Worker
+### Worker
 
 * CapacityTotal: Total capacity of the worker in byte.
 * CapacityUsed: Used capacity of the worker in byte.
