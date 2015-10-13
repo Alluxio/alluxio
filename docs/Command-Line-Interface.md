@@ -2,7 +2,7 @@
 layout: global
 title: Command Line Interface
 group: Features
-priority: 3
+priority: 0
 ---
 
 Tachyon's command line interface provides users basic file system operations. Invoke the

@@ -3,6 +3,7 @@ layout: global
 title: Running Spark on Tachyon
 nickname: Apache Spark
 group: Frameworks
+priority: 0
 ---
 
 This guide describes how to run [Apache Spark](http://spark-project.org/) on Tachyon and use HDFS as

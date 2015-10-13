@@ -2,7 +2,7 @@
 layout: global
 title: Configuration Settings
 group: Features
-Priority: 1
+priority: 1
 ---
 
 * Table of Contents

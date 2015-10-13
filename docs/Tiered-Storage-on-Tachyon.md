@@ -3,6 +3,7 @@ layout: global
 title: Tiered Storage on Tachyon (Beta)
 nickname: Tiered Storage
 group: Features
+priority: 5
 ---
 
 * Table of Contents
