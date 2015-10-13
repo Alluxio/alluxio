@@ -29,7 +29,7 @@ the bucket, or using an existing one. For the purposes of this guide, the S3 buc
 # Configuring Tachyon
 
 To configure Tachyon to use S3 as its under storage system, modifications to the
-`conf/tachyon-env.sh` file must be made. The first modification is to specify the **existing** S3
+`conf/tachyon-env.sh` file must be made. The first modification is to specify an **existing** S3
 bucket and directory as the under storage system. You specify it by modifying `conf/tachyon-env.sh`
 to include:
 
@@ -45,7 +45,7 @@ the `conf/tachyon-env.sh` file, add:
 
 Here, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` should be replaced with your actual
 [AWS keys](https://aws.amazon.com/developers/access-keys), or other environment variables that
-represent your credentials.
+contain your credentials.
 
 After these changes, Tachyon should be configured to work with S3 as its under storage system, and
 you can try [Running Tachyon Locally with S3](#running-tachyon-locally-with-s3).
@@ -71,7 +71,7 @@ when Tachyon is configured to use S3 as its under storage system.
 
 However, there is also an option to use a different implementation to communicate with S3; the S3
 client provided by Hadoop. In order to disable the Tachyon S3 client (and enable the Hadoop S3
-client) additional modifications to your application must be made. When including the
+client), additional modifications to your application must be made. When including the
 `tachyon-client` module in your application, the `tachyon-underfs-s3` should be excluded to disable
 the native client, and to use the Hadoop S3 client:
 
@@ -114,10 +114,10 @@ please refer to [MvnRepository](http://mvnrepository.com/).
 
 ## Configuring Distributed Applications
 
-If you are using a Tachyon client that is running separately from the Tachyon master/workers (in a
+If you are using a Tachyon client that is running separately from the Tachyon Master and Workers (in a
 separate JVM), then you need to make sure that your AWS credentials are provided to the application
-JVM processes as well. The easiest way to do this is to add them add them as command line options
-when starting your client JVM process. For example:
+JVM processes as well. The easiest way to do this is to add them as command line options when starting 
+your client JVM process. For example:
 
 ```bash
 $ java -Xmx3g -Dfs.s3n.awsAccessKeyId=<AWS_ACCESS_KEY_ID> -Dfs.s3n.awsSecretAccessKey=<AWS_SECRET_ACCESS_KEY> -cp my_application.jar com.MyApplicationClass myArgs
@@ -142,7 +142,7 @@ $ ./bin/tachyon runTest Basic CACHE_THROUGH
 ```
 
 After this succeeds, you can visit your S3 directory `S3_BUCKET/S3_DIRECTORY` to verify the files
-and directories created by Tachyon. For this test, you should see a file named:
+and directories created by Tachyon exist. For this test, you should see a file named:
 
     S3_BUCKET/S3_DIRECTORY/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH
 
