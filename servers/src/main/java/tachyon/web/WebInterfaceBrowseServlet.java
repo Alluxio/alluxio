@@ -132,6 +132,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("debug", Constants.DEBUG);
+    request.setAttribute("viewLog", false);
 
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
