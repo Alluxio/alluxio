@@ -55,7 +55,6 @@ public class BlockMetadataManager {
   /** A map from tier alias to StorageTier */
   private Map<Integer, StorageTier> mAliasToTiers;
 
-
   private BlockMetadataManager() {}
 
   /**
@@ -82,7 +81,7 @@ public class BlockMetadataManager {
   private void initBlockMetadataManager() throws BlockAlreadyExistsException, IOException,
       WorkerOutOfSpaceException {
     // Initialize storage tiers
-    int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_MAX_TIERED_STORAGE_LEVEL);
+    int totalTiers = WorkerContext.getConf().getInt(Constants.WORKER_TIERED_STORAGE_LEVEL_MAX);
     mAliasToTiers = new HashMap<Integer, StorageTier>(totalTiers);
     mTiers = new ArrayList<StorageTier>(totalTiers);
     for (int level = 0; level < totalTiers; level ++) {
@@ -218,7 +217,6 @@ public class BlockMetadataManager {
   public BlockStoreMeta getBlockStoreMeta() {
     return new BlockStoreMeta(this);
   }
-
 
   /**
    * Gets the StorageDir given its location in the store.

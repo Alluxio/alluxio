@@ -71,13 +71,13 @@ public final class LineageDataManager {
    * @throws IOException if the file persistence fails
    */
   public synchronized void persistFile(long fileId, List<Long> blockIds) throws IOException {
-    String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER);
+    String ufsRoot = mTachyonConf.get(Constants.UNDERFS_ADDRESS);
     FileInfo fileInfo;
     fileInfo = mBlockDataManager.getFileInfo(fileId);
     TachyonURI uri = new TachyonURI(fileInfo.getPath());
-    String dstPath = PathUtils.concatPath(ufsDataFolder, fileInfo.getPath());
+    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     LOG.info("persist file " + fileId + " at " + dstPath);
-    String parentPath = PathUtils.concatPath(ufsDataFolder, uri.getParent().getPath());
+    String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
     if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
       throw new IOException("Failed to create " + parentPath);
     }

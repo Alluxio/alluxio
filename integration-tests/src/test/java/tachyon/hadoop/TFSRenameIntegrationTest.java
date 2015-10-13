@@ -72,7 +72,7 @@ public class TFSRenameIntegrationTest {
     sTFS = FileSystem.get(uri, conf);
     sUfsRoot =
         PathUtils.concatPath(sLocalTachyonCluster.getMasterTachyonConf().get(
-            Constants.UNDERFS_DATA_FOLDER));
+            Constants.UNDERFS_ADDRESS));
     sUfs = UnderFileSystem.get(sUfsRoot, sLocalTachyonCluster.getMasterTachyonConf());
   }
 
