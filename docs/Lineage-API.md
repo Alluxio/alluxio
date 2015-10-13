@@ -39,9 +39,9 @@ TachyonLineage tl = TachyonLineage.get();
 Lineage can be created by calling
 `TachyonLineage#createLineage(List<TachyonURI>, List<TachyonURI>, Job)`. A lineage record takes (1)
 a list of URIs to the input files, (2) a list of URIs of the output files, and (3) a *job*. A job
-essentially is a program that can run by Tachyon for recomputation. *Note: at Lineage Alpha, only a
-built-in `CommandLineJob` is supported, which simply takes a string of command that can run in
-terminal. In addition, the user needs to provide the necessary configurations and execution
+essentially is a program that can be run by Tachyon for recomputation. *Note: at Lineage Alpha,
+only a built-in `CommandLineJob` is supported, which simply takes a command String that can be run
+in a terminal. In addition, the user needs to provide the necessary configurations and execution
 environments to ensure the command can be executed both at the client and at Tachyon master (during
 recomputation).*
 
@@ -94,7 +94,7 @@ tl.deleteLineage(1, options);
 
 # Configuration Parameters For Lineage
 
-These are the configuration parameters related to lineage feature.
+These are the configuration parameters related to Tachyon's lineage feature.
 
 <table class="table-striped">
 <tr><th>Parameter</th><th>Default Value</th><th>Description</th></tr>
