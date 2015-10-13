@@ -21,7 +21,7 @@ $ cd tachyon
 $ mvn install
 ```
 
-If you getting java.lang.OutOfMemoryError: Java heap space, please execute
+If you are seeing `java.lang.OutOfMemoryError: Java heap space`, please execute:
 
 ```bash
 $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
@@ -30,11 +30,11 @@ $ export MAVEN_OPTS="-Xmx2g -XX:MaxPermSize=512M -XX:ReservedCodeCacheSize=512m"
 If you want to build a particular version of Tachyon, for example {{site.TACHYON_RELEASED_VERSION}},
 please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd tachyon`.
 
-The Maven build system fetches its dependencies, compiles, runs system's unit tests, and package the
-system. If this is the first time you are building the project, it can take a while to download all
-the dependencies. Subsequent builds, however, will be much faster.
+The Maven build system fetches its dependencies, compiles source code, runs unit tests, and packages 
+the system. If this is the first time you are building the project, it can take a while to download 
+all the dependencies. Subsequent builds, however, will be much faster.
 
-Once it is built, you can start Tachyon:
+Once Tachyon is built, you can start it with:
 
 ```bash
 $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
@@ -43,7 +43,7 @@ $ ./bin/tachyon-start.sh local
 ```
 
 To verify that Tachyon is running, you can visit [http://localhost:19999](http://localhost:19999) or
-check the log in the folder tachyon/logs. You can also run a simple program:
+check the log in the `tachyon/logs` directory. You can also run a simple program:
 
 ```bash
 $ ./bin/tachyon runTest Basic CACHE_THROUGH
@@ -84,10 +84,10 @@ $ mvn test
 To run all the unit tests with under storage other than local filesystem:
 
 ```bash
-$ mvn test [ -Dhadoop.version=x.x.x ] [ -Phdfs1Test ]
+$ mvn test [ -Dhadoop.version=x.x.x ] [ -P<under-storage-profile> ]
 ```
 
-Current supported under storage profiles:
+Currently supported values for `<under-storage-profile>` are:
 
 ```bash
 Not Specified # [Default] Tests against local file system
@@ -144,12 +144,12 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
 
 # System Settings
 
-Some times you will need to play with a few system settings in order to have the unit tests pass
+Sometimes you will need to play with a few system settings in order to have the unit tests pass
 locally.  A common setting that may need to be set is ulimit.
 
 ## Mac
 
-In order to increase the number of files and procs allowed, run the following
+In order to increase the number of files and processes allowed, run the following
 
 ```bash
 $ sudo launchctl limit maxfiles 16384 16384
@@ -158,7 +158,7 @@ $ sudo ulimit -n 16384
 $ sudo ulimit -u 2048
 ```
 
-It is also recommended to exclude your local clone of Tachyon from Spotlight indexing as otherwise
-your Mac may hang constantly trying to re-index the file system during the unit tests.  To do this
-go to `System Preferences > Spotlight > Privacy` and click the `+` button, browse to the folder
-containing your local clone of Tachyon and click `Choose` to add it to the exclusions list.
+It is also recommended to exclude your local clone of Tachyon from Spotlight indexing. Otherwise,
+your Mac may hang constantly trying to re-index the file system during the unit tests.  To do this,
+go to `System Preferences > Spotlight > Privacy`, click the `+` button, browse to the directory
+containing your local clone of Tachyon, and click `Choose` to add it to the exclusions list.
