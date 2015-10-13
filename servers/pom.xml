@@ -94,7 +94,7 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
     </dependency>
-
+    
     <!-- Test Dependencies -->
     <dependency>
       <groupId>commons-httpclient</groupId>
@@ -130,23 +130,28 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.sling</groupId>
-        <artifactId>maven-jspc-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>compile-jsp</id>
-            <goals>
-              <goal>jspc</goal>
-            </goals>
-            <configuration>
-              <sourceDirectory>${project.basedir}/src/main/webapp</sourceDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
+  <profiles>
+    <profile>
+      <id>compileJsp</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>maven-jspc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>compile-jsp</id>
+                <goals>
+                  <goal>jspc</goal>
+                </goals>
+                <configuration>
+                  <sourceDirectory>${project.basedir}/src/main/webapp</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
