@@ -3,7 +3,7 @@ layout: global
 title: Configuring Tachyon with HDFS
 nickname: Tachyon with HDFS
 group: Under Stores
-priority: 2
+priority: 3
 ---
 
 This guide describes how to configure Tachyon with

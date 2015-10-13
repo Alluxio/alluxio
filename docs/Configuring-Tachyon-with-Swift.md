@@ -3,7 +3,7 @@ layout: global
 title: Configuring Tachyon with Swift
 nickname: Tachyon with Swift
 group: Under Stores
-priority: 3
+priority: 1
 ---
 
 This guide describes how to configure Tachyon with

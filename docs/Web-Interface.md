@@ -2,6 +2,7 @@
 layout: global
 group: Features
 title: Web Interface
+priority: 6
 ---
 
 * Table of Contents

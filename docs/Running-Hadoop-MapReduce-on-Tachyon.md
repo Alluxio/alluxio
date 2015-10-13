@@ -3,6 +3,7 @@ layout: global
 title: Running Hadoop MapReduce on Tachyon
 nickname: Apache Hadoop MapReduce
 group: Frameworks
+priority: 1
 ---
 
 This guide describes how to get Tachyon running with Apache Hadoop MapReduce, so that you can easily

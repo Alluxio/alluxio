@@ -2,6 +2,7 @@
 layout: global
 title: Metrics System
 group: Features
+priority: 3
 ---
 
 * Table of Contents

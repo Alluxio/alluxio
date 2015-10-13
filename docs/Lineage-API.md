@@ -3,7 +3,7 @@ layout: global
 title: Lineage API (Alpha)
 nickname: Lineage API
 group: Features
-priority: 4
+priority: 2
 ---
 
 * Table of Contents

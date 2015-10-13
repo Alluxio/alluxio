@@ -3,6 +3,7 @@ layout: global
 title: Running Apache Flink on Tachyon
 nickname: Apache Flink
 group: Frameworks
+priority: 2
 ---
 
 This guide describes how to get Tachyon running with [Apache Flink](http://flink.apache.org/), so
