@@ -37,6 +37,7 @@ import com.google.common.collect.Lists;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.ClientContext;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
@@ -66,7 +67,7 @@ abstract class AbstractTFS extends FileSystem {
   private Statistics mStatistics = null;
   private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
-  private final TachyonConf mTachyonConf = new TachyonConf();
+  private final TachyonConf mTachyonConf = ClientContext.getConf();
 
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)

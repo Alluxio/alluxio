@@ -231,9 +231,7 @@ public final class UfsUtils {
   }
 
   public static void printUsage() {
-    String cmd =
-        "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-            + "tachyon.client.UfsUtils ";
+    String cmd = "java -cp " + Constants.TACHYON_JAR + " tachyon.client.UfsUtils ";
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
