@@ -45,6 +45,7 @@ import tachyon.master.file.journal.InodeEntry;
 import tachyon.master.file.journal.InodeFileEntry;
 import tachyon.master.journal.JournalCheckpointStreamable;
 import tachyon.master.journal.JournalOutputStream;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.util.FormatUtils;
 import tachyon.util.io.PathUtils;
 
@@ -98,11 +99,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     mDirectoryIdGenerator = directoryIdGenerator;
   }
 
-  public void initializeRoot() {
+  public void initializeRoot(PermissionStatus rootPS) {
     if (mRoot == null) {
       mRoot =
           new InodeDirectory(ROOT_INODE_NAME, mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT,
-              System.currentTimeMillis());
+              System.currentTimeMillis(), rootPS);
       mInodes.add(mRoot);
 
       mCachedInode = mRoot;
@@ -184,6 +185,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *        path, otherwise, throw InvalidPathException if there some necessary parent directories
    *        is nonexistent
    * @param directory if it is true, create a directory, otherwise, create a file
+   * @param ps the permissionStatus for the path
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation.
    * @throws FileAlreadyExistsException if there is already a file at the given path
@@ -191,10 +193,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @throws InvalidPathException if the path is invalid
    */
   public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory)
+      boolean directory, PermissionStatus ps)
           throws FileAlreadyExistsException, BlockInfoException, InvalidPathException {
     return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis(),
-        Constants.NO_TTL);
+        Constants.NO_TTL, ps);
   }
 
   /**
@@ -208,6 +210,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *        is nonexistent
    * @param ttl ttl for file expiration
    * @param directory if it is true, create a directory, otherwise, create a file
+   * @param ps the permissionStatus for the path
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation.
    * @throws FileAlreadyExistsException if there is already a file at the given path
@@ -215,9 +218,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @throws InvalidPathException if the path is invalid
    */
   public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory, long ttl)
+      boolean directory, long ttl, PermissionStatus ps)
           throws FileAlreadyExistsException, BlockInfoException, InvalidPathException {
-    return createPath(path, blockSizeBytes, recursive, directory, System.currentTimeMillis(), ttl);
+    return createPath(path, blockSizeBytes, recursive, directory,
+        System.currentTimeMillis(), ttl, ps);
   }
 
   /**
@@ -232,6 +236,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param directory if it is true, create a directory, otherwise, create a file
    * @param creationTimeMs the time to create the inode
    * @param ttl time to live for file expiration
+   * @param ps the permissionStatus for the path
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation.
    * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
@@ -242,7 +247,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *         parent directories is actually a file
    */
   public CreatePathResult createPath(TachyonURI path, long blockSizeBytes, boolean recursive,
-      boolean directory, long creationTimeMs, long ttl)
+      boolean directory, long creationTimeMs, long ttl, PermissionStatus ps)
           throws FileAlreadyExistsException, BlockInfoException, InvalidPathException {
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistsException: " + path);
@@ -292,7 +297,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k ++) {
       Inode dir = new InodeDirectory(pathComponents[k], mDirectoryIdGenerator.getNewDirectoryId(),
-          currentInodeDirectory.getId(), creationTimeMs);
+          currentInodeDirectory.getId(), creationTimeMs, ps);
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(creationTimeMs);
@@ -314,10 +319,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     if (directory) {
       lastInode = new InodeDirectory(name, mDirectoryIdGenerator.getNewDirectoryId(),
-          currentInodeDirectory.getId(), creationTimeMs);
+          currentInodeDirectory.getId(), creationTimeMs, ps);
     } else {
       lastInode = new InodeFile(name, mContainerIdGenerator.getNewContainerId(),
-          currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs, ttl);
+          currentInodeDirectory.getId(), blockSizeBytes, creationTimeMs, ttl, ps);
       if (currentInodeDirectory.isPinned()) {
         // Update set of pinned file ids.
         mPinnedInodeFileIds.add(lastInode.getId());

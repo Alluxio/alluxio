@@ -16,12 +16,16 @@
 package tachyon.security.authorization;
 
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
 
 public class FsPermissionTest {
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Test
   public void toShortTest() throws Exception {
@@ -57,9 +61,9 @@ public class FsPermissionTest {
 
   @Test
   public void umaskTest() throws Exception {
-    short umask = 0022;
+    String umask = "0022";
     TachyonConf conf = new TachyonConf();
-    conf.set(Constants.TFS_PERMISSIONS_UMASK_KEY, Short.valueOf(umask).toString());
+    conf.set(Constants.TFS_PERMISSIONS_UMASK_KEY, umask);
     FsPermission umaskPermission = FsPermission.getUMask(conf);
     // after umask 0022, 0777 should change to 0755
     FsPermission permission = FsPermission.getDefault().applyUMask(umaskPermission);
@@ -67,5 +71,25 @@ public class FsPermissionTest {
     Assert.assertEquals(FsAction.READ_EXECUTE, permission.getGroupAction());
     Assert.assertEquals(FsAction.READ_EXECUTE, permission.getOtherAction());
     Assert.assertEquals(0755, permission.toShort());
+  }
+
+  @Test
+  public void umaskExceedLengthTest() throws Exception {
+    String umask = "00022";
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TFS_PERMISSIONS_UMASK_KEY, umask);
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Invalid configure value for key");
+    FsPermission.getUMask(conf);
+  }
+
+  @Test
+  public void umaskNotIntegerTest() throws Exception {
+    String umask = "NotInteger";
+    TachyonConf conf = new TachyonConf();
+    conf.set(Constants.TFS_PERMISSIONS_UMASK_KEY, umask);
+    mThrown.expect(IllegalArgumentException.class);
+    mThrown.expectMessage("Invalid configure value for key");
+    FsPermission.getUMask(conf);
   }
 }

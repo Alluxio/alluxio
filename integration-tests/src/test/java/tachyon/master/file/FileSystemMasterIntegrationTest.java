@@ -42,8 +42,12 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.master.MasterContext;
 import tachyon.master.MasterTestUtils;
 import tachyon.master.block.BlockMaster;
+import tachyon.security.authentication.AuthType;
+import tachyon.security.authentication.PlainSaslServer.AuthorizedClientUser;
+import tachyon.security.authorization.PermissionStatus;
 import tachyon.thrift.FileInfo;
 import tachyon.util.CommonUtils;
 
@@ -66,6 +70,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
+      setAuthenticateUserforConcurrentOperation(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -75,10 +80,18 @@ public class FileSystemMasterIntegrationTest {
         return;
       } else if (depth == 1) {
         long fileId = mFsMaster.create(path, Constants.DEFAULT_BLOCK_SIZE_BYTE, false);
+        FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
+        // verify the user permission for file
+        Assert.assertEquals(TEST_AUTHENTICATE_USER,fileInfo.getUsername());
+        Assert.assertEquals(0644, (short)fileInfo.getPermission());
       } else {
         mFsMaster.mkdir(path, false);
+        long fileId = mFsMaster.getFileId(path);
+        FileInfo dirInfo = mFsMaster.getFileInfo(fileId);
         Assert.assertNotNull(mFsMaster.getFileId(path));
+        Assert.assertEquals(TEST_AUTHENTICATE_USER,dirInfo.getUsername());
+        Assert.assertEquals(0755, (short)dirInfo.getPermission());
       }
 
       if (concurrencyDepth > 0) {
@@ -177,6 +190,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
+      setAuthenticateUserforConcurrentOperation(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -235,6 +249,8 @@ public class FileSystemMasterIntegrationTest {
 
   private static final TachyonURI ROOT_PATH2 = new TachyonURI("/root2");
 
+  private static final String TEST_AUTHENTICATE_USER = "test-user";
+
   private ExecutorService mExecutorService = null;
 
   private TachyonConf mMasterTachyonConf;
@@ -251,6 +267,13 @@ public class FileSystemMasterIntegrationTest {
   @Before
   public final void before() throws Exception {
     mLocalTachyonCluster = new LocalTachyonCluster(1000, 1000, Constants.GB);
+    // enable simple authentication
+    TachyonConf conf = MasterContext.getConf();
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.SIMPLE.getAuthName());
+    // mock the authentication user f
+    setAuthenticateUserforConcurrentOperation(TEST_AUTHENTICATE_USER);
+
     mLocalTachyonCluster.start();
     mExecutorService = Executors.newFixedThreadPool(2);
     mFsMaster = mLocalTachyonCluster.getMaster().getInternalMaster().getFileSystemMaster();
@@ -271,6 +294,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertTrue(fileInfo.isFolder);
     Assert.assertFalse(fileInfo.isPersisted);
     Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUsername());
+    Assert.assertEquals(0755, (short)fileInfo.getPermission());
   }
 
   @Test
@@ -287,6 +312,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isPersisted);
     Assert.assertFalse(fileInfo.isPinned);
     Assert.assertEquals(Constants.NO_TTL, fileInfo.ttl);
+    Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUsername());
+    Assert.assertEquals(0644, (short)fileInfo.getPermission());
   }
 
   private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
@@ -363,6 +390,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), true);
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertTrue(fileInfo.isFolder);
+    Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUsername());
+    Assert.assertEquals(0755, (short)fileInfo.getPermission());
   }
 
   @Test
@@ -404,8 +433,10 @@ public class FileSystemMasterIntegrationTest {
   @Test
   public void createFileTest() throws Exception {
     mFsMaster.create(new TachyonURI("/testFile"), Constants.DEFAULT_BLOCK_SIZE_BYTE, true);
-    Assert.assertFalse(
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile"))).isFolder);
+    FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFile")));
+    Assert.assertFalse(fileInfo.isFolder);
+    Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUsername());
+    Assert.assertEquals(0644, (short)fileInfo.getPermission());
   }
 
   @Test
@@ -538,7 +569,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), true);
     long opTimeMs = System.currentTimeMillis();
     mFsMaster.createInternal(new TachyonURI("/testFolder/testFile"),
-        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, opTimeMs, Constants.NO_TTL);
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, opTimeMs, Constants.NO_TTL,
+        PermissionStatus.getDirDefault());
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }
@@ -665,7 +697,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.mkdir(new TachyonURI("/testFolder"), true);
     long ttl = 100;
     mFsMaster.createInternal(new TachyonURI("/testFolder/testFile"),
-        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, System.currentTimeMillis(), ttl);
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, true, System.currentTimeMillis(), ttl,
+        PermissionStatus.getDirDefault());
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile")));
     Assert.assertEquals(ttl, folderInfo.ttl);
@@ -697,6 +730,16 @@ public class FileSystemMasterIntegrationTest {
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new TachyonURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.ttl);
+  }
+
+  private void setAuthenticateUserforConcurrentOperation(String username) {
+    /**
+     * The authenticate user is gotten from the current thread local,
+     * if MasterInfo starts a concurrent thread to do some operation,
+     * AuthorizedClientUser will return null. So setAuthenticateUserforConcurrentOperation
+     * should be called in the Callable.call for testing
+     */
+    AuthorizedClientUser.set(username);
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
