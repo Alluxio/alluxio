@@ -1,0 +1,10 @@
+# None means do not set up hibench.
+# Github means cloning and compiling github repo.
+# {None | Github}
+Type: None
+
+# Github repo is default to https://github.com/intel-hadoop/HiBench,
+# version can be branch or commit hash.
+Github:
+  Version: master
+

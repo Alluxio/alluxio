@@ -64,6 +64,10 @@
     - include: roles/mesos/tasks/compile.yml
       when: mesos_type == "Github"
 
+    # HiBench
+    - include: roles/hibench/tasks/main.yml
+      when: hibench_type != "None"
+
 # Rsync compiled and configured packages to other machines.
 - hosts: all
   tasks:

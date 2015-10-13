@@ -14,6 +14,7 @@ Provider = @cmd['Provider']
 validate_provider(Provider)
 
 # load version configuration
+HiBenchV = HiBenchVersion.new('conf/hibench.yml')
 ZookeeperV = ZookeeperVersion.new('conf/zookeeper.yml')
 MesosV = MesosVersion.new('conf/mesos.yml')
 TachyonV = TachyonVersion.new('conf/tachyon.yml')
@@ -56,6 +57,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
             tachyon_platform = "mesos"
           end
           ans.extra_vars = {
+              hibench_type: HiBenchV.type,
+              hibench_repo: HiBenchV.repo,
+              hibench_version: HiBenchV.version,
+
               zookeeper_type: ZookeeperV.type,
               zookeeper_version: ZookeeperV.version,
 

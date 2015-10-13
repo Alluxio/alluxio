@@ -1,0 +1,11 @@
+- include: clone_remote_repo.yml
+
+- name: compile hibench
+  shell: /hibench/bin/build-all.sh
+  async: 1200
+  poll: 60
+
+- name: configure hibench
+  script: configure.sh
+
+# vim :set filetype=ansible.yaml:

@@ -368,3 +368,38 @@ class UfsVersion
     end
   end
 end
+
+# parse hibench.yml
+class HiBenchVersion
+  def initialize(yaml_path)
+    puts 'parsing hibench.yml'
+    @yml = YAML.load_file(yaml_path)
+
+    @type = @yml['Type']
+    @repo = ''
+    @version = ''
+    case @type
+    when "Github"
+      @repo = "https://github.com/intel-hadoop/HiBench"
+      @version = @yml['Github']['Version']
+      puts "using github #{@repo}, version #{@version}"
+    when "None"
+      puts 'No HiBench will be set up'
+    else
+      puts "Unknown VersionType"
+      exit(1)
+    end
+  end
+
+  def type
+    return @type
+  end
+
+  def repo
+    return @repo
+  end
+
+  def version
+    return @version
+  end
+end
