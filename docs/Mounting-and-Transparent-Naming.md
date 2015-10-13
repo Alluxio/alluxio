@@ -43,8 +43,10 @@ By default, Tachyon namespace is mounted onto the directory specified by the `un
 property of Tachyon configuration; this directory identifies the "primary storage" for Tachyon. In
 addition, users can use the mounting API to add new and remove existing data sources:
 
-	bool mount(String tachyonPath, String ufsPath)
-	bool unmount(String tachyonPath)
+```java
+bool mount(String tachyonPath, String ufsPath);
+bool unmount(String tachyonPath);
+```
 
 For example, the primary storage could be HDFS and contain user directories; the `Data` directory
 might be in turned stored in an S3 bucket, which is mounted to the Tachyon namespace through the
@@ -57,47 +59,59 @@ exists in the `${TACHYON_HOME}` directory and that there is an instance of Tachy
 
 First, let's create a temporary directory in the local file system that to use for the example:
 
-	$ cd /tmp
-	$ mkdir tachyon-demo
+```bash
+$ cd /tmp
+$ mkdir tachyon-demo
+```
 
 Next, let's mount the directory created above into Tachyon and verify the mounted directory is
 created in Tachyon:
 
-	$ ${TACHYON_HOME}/bin/tachyon tfs mount /demo /tmp/tachyon-demo
-	> Mounted /tmp/tachyon-demo at /demo
-	$ ${TACHYON_HOME}/bin/tachyon tfs ls /
-	... # should contain /demo
+```bash
+$ ${TACHYON_HOME}/bin/tachyon tfs mount /demo /tmp/tachyon-demo
+> Mounted /tmp/tachyon-demo at /demo
+$ ${TACHYON_HOME}/bin/tachyon tfs ls /
+... # should contain /demo
+```
 
 Next, let's create two files under the mounted directory and verify it is created in the underlying
 file system:
 
-	$ ${TACHYON_HOME}/bin/tachyon tfs touch /demo/hello
-	> /demo/hello has been created
-	$ ${TACHYON_HOME}/bin/tachyon tfs touch /demo/hello2
-	> /demo/hello2 has been created
-	$ ls /tmp/tachyon-demo
-	> hello	hello2
+```bash
+$ ${TACHYON_HOME}/bin/tachyon tfs touch /demo/hello
+> /demo/hello has been created
+$ ${TACHYON_HOME}/bin/tachyon tfs touch /demo/hello2
+> /demo/hello2 has been created
+$ ls /tmp/tachyon-demo
+> hello	hello2
+```
 
 Next, let's rename one of the files and verify it is renamed in the underlying file system:
 
-	$ ${TACHYON_HOME}/bin/tachyon tfs mv /demo/hello2 /demo/world
-	> Renamed /demo/hello2 to /demo/world
-	$ ls /tmp/tachyon-demo
-	> hello world
+```bash
+$ ${TACHYON_HOME}/bin/tachyon tfs mv /demo/hello2 /demo/world
+> Renamed /demo/hello2 to /demo/world
+$ ls /tmp/tachyon-demo
+> hello world
+```
 
 Next, let's delete one of the files and verify it is deleted in the underlying file system:
 
-	$ ${TACHYON_HOME}/bin/tachyon tfs rm /demo/world
-	> /demo/world has been removed
-	$ ls /tmp/tachyon-demo
-	> hello
+```bash
+$ ${TACHYON_HOME}/bin/tachyon tfs rm /demo/world
+> /demo/world has been removed
+$ ls /tmp/tachyon-demo
+> hello
+```
 
 Finally, let's unmount the mounted directory and verify that it is removed from the Tachyon
 namespace, but it contents are preserved in the underlying file system:
 
-	${TACHYON_HOME}/bin/tachyon tfs unmount /demo
-	> Unmounted /demo
-	$ ${TACHYON_HOME}/bin/tachyon tfs ls /
-	... # should not contain /demo
-	$ ls /tmp/tachyon-demo
-	> hello
+```bash
+${TACHYON_HOME}/bin/tachyon tfs unmount /demo
+> Unmounted /demo
+$ ${TACHYON_HOME}/bin/tachyon tfs ls /
+... # should not contain /demo
+$ ls /tmp/tachyon-demo
+> hello
+```

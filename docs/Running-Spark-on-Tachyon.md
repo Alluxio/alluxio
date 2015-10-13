@@ -49,14 +49,14 @@ by updating the correct version of tachyon-client in Spark dependency. To be mor
 `spark/core/pom.xml` and change the dependency version of `tachyon-client` to
 `your_tachyon_version`:
 
-~~~~~~~~~~
+```xml
 <dependency>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
   <version>your_tachyon_version</version>
   ...
 </dependency>
-~~~~~~~~~~
+```
 
 ## Prerequisites
 
@@ -67,43 +67,43 @@ by updating the correct version of tachyon-client in Spark dependency. To be mor
 * If Spark version is earlier than `1.0.0`, please add the following line to
 `spark/conf/spark-env.sh`.
 
-~~~~~~~~~~
+```bash
 export SPARK_CLASSPATH=/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
-~~~~~~~~~~
+```
 
 
 * If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x
 cluster, additionally add new entry in previously created `spark/conf/core-site.xml`:
 
-~~~~~~~~~~
+```xml
 <property>
   <name>fs.tachyon-ft.impl</name>
   <value>tachyon.hadoop.TFSFT</value>
 </property>
-~~~~~~~~~~
+```
 
 
 Add the following line to `spark/conf/spark-env.sh`:
 
-~~~~~~~~~~
+```bash
 export SPARK_JAVA_OPTS="
   -Dtachyon.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181
   -Dtachyon.usezookeeper=true
   $SPARK_JAVA_OPTS
 "
-~~~~~~~~~~
+```
 
 * If Tachyon is run on top of a Hadoop 1.x cluster, create a new file `spark/conf/core-site.xml`
 with the following content:
 
-~~~~~~~~~~
+```xml
 <configuration>
   <property>
     <name>fs.tachyon.impl</name>
     <value>tachyon.hadoop.TFS</value>
   </property>
 </configuration>
-~~~~~~~~~~
+```
 
 
 ## Use Tachyon as Input and Output
@@ -111,30 +111,30 @@ This section shows how to use Tachyon as input and output sources for your Spark
 
 Put a file `foo` into HDFS, assuming namenode is running on `localhost`:
 
-~~~~~~~~~~
+```bash
 $ hadoop fs -put -f foo hdfs://localhost:9000/foo
-~~~~~~~~~~
+```
 
 Run the following commands from Spark shell, assuming Tachyon Master is running on `localhost`
 
-~~~~~~~~~~
+```bash
 $ ./spark-shell
 > val s = sc.textFile("tachyon://localhost:19998/foo")
 > s.count()
 > s.saveAsTextFile("tachyon://localhost:19998/bar")
-~~~~~~~~~~
+```
 
 Open your browser and check [http://localhost:19999](http://localhost:19999). There should be an
 output file `bar` which contains the number of words in the file `foo`.
 
 When running Tachyon with fault tolerant mode, you can point to any Tachyon master:
 
-~~~~~~~~~~
+```bash
 $ ./spark-shell
 > val s = sc.textFile("tachyon-ft://stanbyHost:19998/foo")
 > s.count()
 > s.saveAsTextFile("tachyon-ft://activeHost:19998/bar")
-~~~~~~~~~~
+```
 
 ## Persist Spark RDDs into Tachyon
 
@@ -154,11 +154,11 @@ RDDs. It can be a comma-separated list of multiple directories in Tachyon. By de
 To persist an RDD into Tachyon, you need to pass the `StorageLevel.OFF_HEAP` parameter. The
 following is an example with Spark shell:
 
-~~~~~~~~~~
+```bash
 $ ./spark-shell
 > val rdd = sc.textFile(inputPath)
 > rdd.persist(StorageLevel.OFF_HEAP)
-~~~~~~~~~~
+```
 
 Check the `spark.externalBlockStore.baseDir` on Tachyon's WebUI (the default URI is
 [http://localhost:19999](http://localhost:19999)), when the Spark application is running. There

@@ -25,8 +25,10 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 Download Tachyon to your local machine, and unzip it:
 
-    $ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-    $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```bash
+$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```
 
 **Install python library dependencies**
 
@@ -34,19 +36,25 @@ Install [python>=2.7](https://www.python.org/), not python3.
 
 Under `deploy/vagrant` directory in your home directory, run:
 
-    $ sudo bash bin/install.sh
+```bash
+$ sudo bash bin/install.sh
+```
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `deploy/vagrant` run:
 
-    $ sudo pip install -r pip-req.txt
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 # Launch a Cluster
 
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem by running the script
 under `deploy/vagrant`:
 
-    ./create <number of machines> vb
+```bash
+./create <number of machines> vb
+```
 
 Each node of the cluster has a Tachyon worker, `TachyonMaster` has a Tachyon master.
 
@@ -72,18 +80,24 @@ The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2
 
 To ssh into a node, run
 
-    $ vagrant ssh <node name>
+```bash
+$ vagrant ssh <node name>
+```
 
 For example, you can ssh into `TachyonMaster` with
 
-    $ vagrant ssh TachyonMaster
+```bash
+$ vagrant ssh TachyonMaster
+```
 
 All software are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
 installed in `/hadoop`.
 
 On `TachyonMaster` node, you can run some tests against Tachyon to check its health:
 
-    $ /tachyon/bin/tachyon runTests
+```bash
+$ /tachyon/bin/tachyon runTests
+```
 
 After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
@@ -91,13 +105,17 @@ tests.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password like
 
-    $ ssh TachyonWorker1
+```bash
+$ ssh TachyonWorker1
+```
 
 # Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run
 
-    $ ./destroy
+```bash
+$ ./destroy
+```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.

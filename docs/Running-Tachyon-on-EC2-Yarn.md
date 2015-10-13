@@ -19,15 +19,19 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 Install AWS Vagrant plugin:
 
-    vagrant plugin install vagrant-aws
-    vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```bash
+$ vagrant plugin install vagrant-aws
+$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```
 
 **Install Tachyon**
 
 Download Tachyon to your local machine, and unzip it:
 
-    $ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-    $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```bash
+$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```
 
 **Install python library dependencies**
 
@@ -35,12 +39,16 @@ Install [python>=2.7](https://www.python.org/), not python3.
 
 Under `deploy/vagrant` directory in your home directory, run:
 
-    $ sudo bash bin/install.sh
+```bash
+$ sudo bash bin/install.sh
+```
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `deploy/vagrant` run:
 
-    $ sudo pip install -r pip-req.txt
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 # Launch a Cluster
 
@@ -50,14 +58,18 @@ on the [Amazon Web Services site](http://aws.amazon.com/).
 Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
 variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 
-    $ export AWS_ACCESS_KEY_ID=<your access key>
-    $ export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```bash
+$ export AWS_ACCESS_KEY_ID=<your access key>
+$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```
 
 Next generate your EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
 the permissions of your private key file that only you can read it:
 
-    $ chmod 400 <your key pair>.pem
+```bash
+$ chmod 400 <your key pair>.pem
+```
 
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
@@ -72,7 +84,9 @@ traffic opened. You can change the security group, region and availability zone 
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
 
-    ./create <number of machines> aws
+```bash
+$ ./create <number of machines> aws
+```
 
 # Access the cluster
 
@@ -99,11 +113,15 @@ The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2
 
 To ssh into a node, run
 
-    $ vagrant ssh <node name>
+```bash
+$ vagrant ssh <node name>
+```
 
 For example, you can ssh into `TachyonMaster` with
 
-    $ vagrant ssh TachyonMaster
+```bash
+$ vagrant ssh TachyonMaster
+```
 
 All software are installed under root directory, e.g. Tachyon is installed in /tachyon, Hadoop is
 installed in /hadoop.
@@ -115,7 +133,7 @@ vagrant script do not include this YARN integration. You should first stop the d
 service, re-compile Tachyon with profile yarn specified to have the Yarn client and
 ApplicationMaster for Tachyon.
 
-```
+```bash
 $ cd /tachyon
 $ ./bin/tachyon-stop.sh
 $ mvn clean install -Dhadoop.version=2.4.1 -Pyarn
@@ -137,7 +155,7 @@ scripts and binaries to launch masters and workers. With our EC2 setup, this dir
 For example, here we launch a Tachyon cluster with 3 worker nodes, where an HDFS temp directory is
 `hdfs://TachyonMaster:9000/tmp/` and each Yarn container can access Tachyon in `/tachyon`
 
-```
+```bash
 $ /tachyon/integration/bin/tachyon-yarn.sh /tachyon 3 hdfs://TachyonMaster:9000/tmp/
 ```
 
@@ -153,7 +171,9 @@ TachyonMaster machine; use the Yarn Web UI to find out which machine is Tachyon 
 
 You can run some tests against Tachyon to check its health:
 
-    $ /tachyon/bin/tachyon runTests
+```bash
+$ /tachyon/bin/tachyon runTests
+```
 
 After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
@@ -165,7 +185,7 @@ tests.
 Tachyon can be stopped by using the following Yarn command where the application ID of Tachyon can
  be either retrieved from Yarn web UI or the output of `tachyon-yarn.sh`.
 
-```
+```bash
 $ /hadoop/bin/yarn application -kill TACHYON_APPLICATION_ID
 ```
 
@@ -173,7 +193,9 @@ $ /hadoop/bin/yarn application -kill TACHYON_APPLICATION_ID
 
 Under `deploy/vagrant` directory, you can run
 
-    $ ./destroy
+```bash
+$ ./destroy
+```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.

@@ -8,7 +8,9 @@ priority: 3
 Tachyon's command line interface provides users basic file system operations. Invoke the
 command line utility with the script:
 
-    $ ./bin/tachyon tfs
+```bash
+$ ./bin/tachyon tfs
+```
 
 All "path" variables in tfs commands should start with
 

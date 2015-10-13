@@ -64,15 +64,19 @@ can still promote blocks of pinned files to move blocks to the top tier.
 
 An example of how to pin a file:
 
-    TachyonFile file = TachyonFileSystem.open("/myFile");
-    SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(true);
-    TachyonFileSystem.setState(file, pinOpt);
+```java
+TachyonFile file = TachyonFileSystem.open("/myFile");
+SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(true);
+TachyonFileSystem.setState(file, pinOpt);
+```
 
 similarly the file can be unpinned through:
 
-    TachyonFile file = TachyonFileSystem.open("/myFile");
-    SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(false);
-    TachyonFileSystem.setState(file, pinOpt);
+```java
+TachyonFile file = TachyonFileSystem.open("/myFile");
+SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).setPinned(false);
+TachyonFileSystem.setState(file, pinOpt);
+```
 
 Since blocks of pinned files are no longer candidates for eviction, clients should make sure to
 unpin files when appropriate.

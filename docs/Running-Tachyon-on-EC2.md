@@ -19,15 +19,19 @@ Download [Vagrant](https://www.vagrantup.com/downloads.html)
 
 Install AWS Vagrant plugin:
 
-    vagrant plugin install vagrant-aws
-    vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```bash
+$ vagrant plugin install vagrant-aws
+$ vagrant box add dummy https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box
+```
 
 **Install Tachyon**
 
 Download Tachyon to your local machine, and unzip it:
 
-    $ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-    $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```bash
+$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```
 
 **Install python library dependencies**
 
@@ -35,12 +39,16 @@ Install [python>=2.7](https://www.python.org/), not python3.
 
 Under `deploy/vagrant` directory in your home directory, run:
 
-    $ sudo bash bin/install.sh
+```bash
+$ sudo bash bin/install.sh
+```
 
 Alternatively, you can manually install [pip](https://pip.pypa.io/en/latest/installing/), and then
 in `deploy/vagrant` run:
 
-    $ sudo pip install -r pip-req.txt
+```bash
+$ sudo pip install -r pip-req.txt
+```
 
 # Launch a Cluster
 
@@ -50,18 +58,24 @@ on the [Amazon Web Services site](http://aws.amazon.com/).
 Then create [access keys](https://aws.amazon.com/developers/access-keys/) and set shell environment
 variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` by:
 
-    $ export AWS_ACCESS_KEY_ID=<your access key>
-    $ export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```bash
+$ export AWS_ACCESS_KEY_ID=<your access key>
+$ export AWS_SECRET_ACCESS_KEY=<your secret access key>
+```
 
 Next generate your EC2
 [Key Pairs](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). Make sure to set
 the permissions of your private key file that only you can read it:
 
-    $ chmod 400 <your key pair>.pem
+```bash
+$ chmod 400 <your key pair>.pem
+```
 
 Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
 
-    $ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+```bash
+$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
+```
 
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
@@ -76,7 +90,9 @@ traffic opened. You can change the security group, region and availability zone 
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
 
-    ./create <number of machines> aws
+```bash
+$ ./create <number of machines> aws
+```
 
 Each node of the cluster has a Tachyon worker, `TachyonMaster` has a Tachyon master.
 
@@ -105,18 +121,24 @@ The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2
 
 To ssh into a node, run
 
-    $ vagrant ssh <node name>
+```bash
+$ vagrant ssh <node name>
+```
 
 For example, you can ssh into `TachyonMaster` with
 
-    $ vagrant ssh TachyonMaster
+```bash
+$ vagrant ssh TachyonMaster
+```
 
 All software are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
 installed in `/hadoop`.
 
 On `TachyonMaster` node, you can run some tests against Tachyon to check its health:
 
-    $ /tachyon/bin/tachyon runTests
+```bash
+$ /tachyon/bin/tachyon runTests
+```
 
 After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
@@ -124,13 +146,17 @@ tests.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password like
 
-    $ ssh TachyonWorker1
+```bash
+$ ssh TachyonWorker1
+```
 
 # Destroy the cluster
 
 Under `deploy/vagrant` directory, you can run
 
-    $ ./destroy
+```bash
+$ ./destroy
+```
 
 to destroy the cluster that you created. Only one cluster can be created at a time. After the
 command succeeds, the EC2 instances are terminated.

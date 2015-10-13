@@ -84,12 +84,12 @@ use HDFS 2.4.0 as the under filesystem for the HDFS module tests.
 submodule directory, for example for HDFS, tachyon/underfs/hdfs.
 
 -   In GlusterFS environment, GlusterFS unit tests can be run from tachyon/underfs/glusterfs with:
-``mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol
--Dtachyon.underfs.glusterfs.volumes=testvol test`` (use GlusterFS as under filesystem,
+`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol
+-Dtachyon.underfs.glusterfs.volumes=testvol test` (use GlusterFS as under filesystem,
 where /vol is a valid GlusterFS mount point)
 
 -   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.
-``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
+`mvn -Dtest=TachyonFSTest#createFileTest test` ;
 
 -   To quickly test the working of some APIs in an interactive manner, you may
 leverage the Scala shell, as discussed in this
@@ -98,7 +98,7 @@ leverage the Scala shell, as discussed in this
 -   Run tests with a different Hadoop version: ``mvn -Dhadoop.version=2.2.0 clean test``
 
 -   Run tests with Hadoop FileSystem contract tests (uses hadoop 2.6.0):
-``mvn -PcontractTest clean test``
+`mvn -PcontractTest clean test`
 
 #### Coding Style
 
@@ -135,42 +135,53 @@ leverage the Scala shell, as discussed in this
          will be formatted to what you want
 -   Tachyon is using SLF4J for logging with typical usage pattern of:
 
-        import org.slf4j.Logger;
-        import org.slf4j.LoggerFactory;
+```java
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-        public MyClass {
+public MyClass {
 
-          private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-          public void someMethod() {
-            LOG.info("Hello world");
-          }
-        }
+  public void someMethod() {
+    LOG.info("Hello world");
+  }
+}
+```
+
 -  To verify that the coding standards match, you should run
    [checkstyle](http://checkstyle.sourceforge.net) before sending a pull-request to verify no new
    warnings are introduced:
 
-        $ mvn checkstyle:checkstyle
+```bash
+$ mvn checkstyle:checkstyle
+```
 
 #### FindBugs
 
 Before submitting the pull-request, run the latest code against
 [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
 
-    $ mvn compile findbugs:findbugs findbugs:gui
+```bash
+$ mvn compile findbugs:findbugs findbugs:gui
+```
 
 ### IDE
 
 You can generate an Eclipse configuration file by running:
 
-    $ mvn clean install -DskipTests
-    $ mvn clean -PcontractTest -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+```bash
+$ mvn clean install -DskipTests
+$ mvn clean -PcontractTest -DskipTests eclipse:eclipse -DdownloadJavadocs=true -DdownloadSources=true
+```
 
 Then import the folder into Eclipse.
 
 You may also have to add the classpath variable M2_REPO by running:
 
-    $ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+```bash
+$ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+```
 
 If you are using IntelliJ IDEA, you may need to change the Maven profile to 'contractTest' in order
 to avoid import errors. You can do this by going to

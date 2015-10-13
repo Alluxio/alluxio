@@ -26,14 +26,14 @@ of Tachyon source code.
 `2.6.0`, modify this pom file to set `<hadoop.version>2.6.0</hadoop.version>` instead of
 `<hadoop.version>1.0.4</hadoop.version>`. Then recompiling the source using maven.
 
-```
+```bash
 $ mvn clean package
 ```
 
 * Alternatively, you can also pass the correct Hadoop version in command line when compiling with
 maven. For example, if you want Tachyon to work with Hadoop HDFS `2.6.0`:
 
-```
+```bash
 $ mvn -Dhadoop.version=2.6.0 clean package
 ```
 
@@ -46,13 +46,13 @@ If everything succeeds, you should see
 To run Tachyon binary, we must setup configuration files. Create your configuration file from the
 template:
 
-```
+```bash
 $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 ```
 
 Then edit `tachyon-env.sh` file to set the HDFS Namenode address:
 
-```
+```bash
 TACHYON_UNDERFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT
 ```
 
@@ -60,7 +60,7 @@ TACHYON_UNDERFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT
 
 After everything is configured, you can start up Tachyon locally to see that everything works.
 
-```
+```bash
 $ ./bin/tachyon format
 $ ./bin/tachyon-start.sh local
 ```
@@ -70,7 +70,7 @@ This should start one Tachyon master and one Tachyon worker locally. You can see
 
 Next, you can run a simple example program:
 
-```
+```bash
 $ ./bin/tachyon runTest Basic CACHE_THROUGH
 ```
 
@@ -80,7 +80,7 @@ directories created by Tachyon. For this test, you should see a file named:
 
 To stop Tachyon, you can run:
 
-```
+```bash
 $ ./bin/tachyon-stop.sh
 ```
 
