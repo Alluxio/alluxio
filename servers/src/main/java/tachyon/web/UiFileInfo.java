@@ -25,6 +25,7 @@ import com.google.common.collect.Ordering;
 
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
+import tachyon.security.authorization.FsPermission;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.FormatUtils;
@@ -76,6 +77,9 @@ public final class UiFileInfo {
   private final int mInMemoryPercent;
   private final boolean mIsDirectory;
   private final boolean mIsPinned;
+  private final String mUsername;
+  private final String mGroupname;
+  private final int mPermission;
   private List<String> mFileLocations;
 
   private final List<List<UiBlockInfo>> mBlocksOnTier = new ArrayList<List<UiBlockInfo>>(
@@ -96,6 +100,9 @@ public final class UiFileInfo {
     mInMemoryPercent = fileInfo.getInMemoryPercentage();
     mIsDirectory = fileInfo.isFolder;
     mIsPinned = fileInfo.isPinned;
+    mUsername = fileInfo.getUsername();
+    mGroupname = fileInfo.getGroupname();
+    mPermission = fileInfo.getPermission();
     mFileLocations = new ArrayList<String>();
     for (int i = 0; i < StorageLevelAlias.SIZE; i ++) {
       mBlocksOnTier.add(new ArrayList<UiBlockInfo>());
@@ -115,6 +122,9 @@ public final class UiFileInfo {
     mInMemoryPercent = 0;
     mIsDirectory = fileInfo.mIsDirectory;
     mIsPinned = false;
+    mUsername = "";
+    mGroupname = "";
+    mPermission = FsPermission.getNoneFsPermission().toShort();
     mFileLocations = new ArrayList<String>();
     for (int i = 0; i < StorageLevelAlias.SIZE; i ++) {
       mBlocksOnTier.add(new ArrayList<UiBlockInfo>());
@@ -211,5 +221,17 @@ public final class UiFileInfo {
     for (NetAddress addr : fileLocations) {
       mFileLocations.add(addr.getHost() + ":" + addr.getRpcPort());
     }
+  }
+
+  public String getUsername() {
+    return mUsername;
+  }
+
+  public String getGroupname() {
+    return mGroupname;
+  }
+
+  public int getPermission() {
+    return mPermission;
   }
 }
