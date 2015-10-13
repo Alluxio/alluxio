@@ -13,7 +13,7 @@
  * the License.
  */
 
-package tachyon.master;
+package tachyon.web;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -29,6 +29,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.FileSystemMasterClient;
 import tachyon.conf.TachyonConf;
+import tachyon.master.LocalTachyonCluster;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.exception.TachyonException;
