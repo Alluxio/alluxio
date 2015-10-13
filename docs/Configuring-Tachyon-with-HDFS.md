@@ -17,14 +17,14 @@ machines. You can either
 [compile the binaries from Tachyon source code](Building-Tachyon-Master-Branch.html), or
 [download the precompiled binaries directly](Running-Tachyon-Locally.html).
 
-Note that, by default, Tachyon binaries are built to work with Hadoop HDFS version `1.0.4`. To use
+Note that, by default, Tachyon binaries are built to work with Hadoop HDFS version `2.2.0`. To use
 another Hadoop version, one needs to recompile Tachyon binaries from source code with the correct
 Hadoop version set by either of following approaches. Assume `${TACHYON_HOME}` is the root directory
 of Tachyon source code.
 
 * Modify the `hadoop.version` tag defined in `${TACHYON_HOME}/pom.xml`. E.g., to work with Hadoop
 `2.6.0`, modify this pom file to set `<hadoop.version>2.6.0</hadoop.version>` instead of
-`<hadoop.version>1.0.4</hadoop.version>`. Then recompiling the source using maven.
+`<hadoop.version>2.2.0</hadoop.version>`. Then recompiling the source using maven.
 
 ```bash
 $ mvn clean package
@@ -38,8 +38,8 @@ $ mvn -Dhadoop.version=2.6.0 clean package
 ```
 
 If everything succeeds, you should see
-`tachyon-assemblies-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` created in
-`assembly/target/` and this is the binary that you can run both Tachyon Master and Worker.
+`tachyon-assemblies-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` created in the
+`assembly/target` directory and this is the jar file you can use to run both Tachyon Master and Worker.
 
 # Configuring Tachyon
 
@@ -75,7 +75,7 @@ $ ./bin/tachyon runTest Basic CACHE_THROUGH
 ```
 
 After this succeeds, you can visit [HDFS webUI](http://localhost:50070) to verify the files and
-directories created by Tachyon. For this test, you should see a file named:
+directories created by Tachyon exist. For this test, you should see a file named:
 `/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH`
 
 To stop Tachyon, you can run:
