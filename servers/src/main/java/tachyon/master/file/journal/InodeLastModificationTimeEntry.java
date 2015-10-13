@@ -29,11 +29,11 @@ public final class InodeLastModificationTimeEntry implements JournalEntry {
   protected final long mId;
   protected final long mLastModificationTimeMs;
 
-    /**
-     * Creates a new instance of <code>InodeLastModificationTimeEntry</code>
-     * @param id the id of the entry.
-     * @param lastModificationTimeMs the modification timestamp (in millisecs).
-     */
+  /**
+   * Creates a new instance of <code>InodeLastModificationTimeEntry</code>
+   * @param id the id of the entry.
+   * @param lastModificationTimeMs the modification timestamp (in millisecs).
+   */
   public InodeLastModificationTimeEntry(long id, long lastModificationTimeMs) {
     mId = id;
     mLastModificationTimeMs = lastModificationTimeMs;
