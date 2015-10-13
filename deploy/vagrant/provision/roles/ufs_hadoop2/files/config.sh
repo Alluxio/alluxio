@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+
+# let mapreduce be able to run against Tachyon
+TACHYON_CLIENT_JAR=$(ls /tachyon/clients/client/target/tachyon-client-*-jar-with-dependencies.jar)
+echo "export HADOOP_CLASSPATH=\$\{HADOOP_CLASSPATH\}:${TACHYON_CLIENT_JAR}" >> /hadoop/etc/hadoop/hadoop-env.sh
+
 NODES=`cat /vagrant/files/workers`
 
 # setup hadoop
@@ -13,6 +19,14 @@ cat > /hadoop/etc/hadoop/core-site.xml << EOF
 <property>
   <name>fs.defaultFS</name>
   <value>hdfs://${namenode}:9000</value>
+</property>
+<property>
+  <name>fs.tachyon.impl</name>
+  <value>tachyon.hadoop.TFS</value>
+</property>
+<property>
+  <name>fs.tachyon-ft.impl</name>
+  <value>tachyon.hadoop.TFSFT</value>
 </property>
 </configuration>
 EOF
