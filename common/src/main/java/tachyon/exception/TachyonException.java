@@ -65,6 +65,7 @@ public class TachyonException extends Exception {
       if (e.getType() == throwInstance.getType()) {
         throw throwInstance;
       }
+      // TODO(andrew): Change this to something supported in Java 6
     } catch (ReflectiveOperationException roe) {
       // They passed us an exception class that couldn't be instantiated with a string and
       // throwable, so we can ignore it

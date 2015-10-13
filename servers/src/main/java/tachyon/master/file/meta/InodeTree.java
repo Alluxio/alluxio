@@ -186,7 +186,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *        is nonexistent
    * @param directory if it is true, create a directory, otherwise, create a file
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
-   *         path creation.
+   *         path creation
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws BlockInfoException if the block size is invalid
    * @throws InvalidPathException if the path is invalid
@@ -210,7 +210,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param ttl ttl for file expiration
    * @param directory if it is true, create a directory, otherwise, create a file
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
-   *         path creation.
+   *         path creation
    * @throws FileAlreadyExistsException if there is already a file at the given path
    * @throws BlockInfoException if the block size is invalid
    * @throws InvalidPathException if the path is invalid
@@ -234,7 +234,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param creationTimeMs the time to create the inode
    * @param ttl time to live for file expiration
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
-   *         path creation.
+   *         path creation
    * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
    *         directory there
    * @throws BlockInfoException when blockSizeBytes is invalid
@@ -617,6 +617,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * Represents the results of creating a path in the inode tree. This keeps track of inodes which
    * were modified, and inodes which were newly created during the path creation.
+   *
+   * In particular, a {@link CreatePathResult} consists of an ordered list of modified inodes and an
+   * ordered list of created inodes. Appending the latter to the former produces a list of inodes
+   * starting with the root inode and ending in the inode corresponding to the created path.
    */
   public static final class CreatePathResult {
     private final List<Inode> mModified;
