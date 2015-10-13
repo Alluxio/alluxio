@@ -60,8 +60,8 @@ public class LRUEvictor extends EvictorBase {
   }
 
   @Override
-  protected Iterator<Map.Entry<Long, Object>> getBlockIterator() {
-    return (Iterator) mLRUCache.entrySet().iterator();
+  protected Iterator<Long> getBlockIterator() {
+    return mLRUCache.keySet().iterator();
   }
 
   @Override
