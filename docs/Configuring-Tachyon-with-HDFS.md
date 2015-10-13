@@ -19,7 +19,7 @@ machines. You can either
 
 Note that, by default, Tachyon binaries are built to work with Hadoop HDFS version `1.0.4`. To use
 another Hadoop version, one needs to recompile Tachyon binaries from source code with the correct
-Hadoop version set bt either of following approaches. Assume `${TACHYON_HOME}` is the root directory
+Hadoop version set by either of following approaches. Assume `${TACHYON_HOME}` is the root directory
 of Tachyon source code.
 
 * Modify the `hadoop.version` tag defined in `${TACHYON_HOME}/pom.xml`. E.g., to work with Hadoop
