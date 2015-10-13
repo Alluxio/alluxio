@@ -130,14 +130,14 @@ You can also monitor the instances state through
 
 **Access with ssh**
 
-The nodes set up are named to two groups.
+The nodes created are placed in one of two categories.
 
-One group contains `TachyonMaster`, `TachyonMaster2` and so on, representing all Tachyon masters,
-one of them is leader, others are standbys, `TachyonMaster` is the master for other softwares like
-Hadoop. Each node also has workers for Tachyon and for other softwares like Hadoop.
+One category contains `TachyonMaster`, `TachyonMaster2` and so on, representing all Tachyon masters;
+one of them is the leader, and the others are standbys. `TachyonMaster` is also the master for other
+software, like Hadoop. Each node also runs workers for Tachyon and and for other software like Hadoop.
 
-Another group contains `TachyonWorker1`, `TachyonWorker2` and so on, each node purely has workers
-for Tachyon and for other softwares like Hadoop.
+Another group contains `TachyonWorker1`, `TachyonWorker2` and so on, each node runs workers
+for Tachyon and other software like Hadoop.
 
 To ssh into a node, run
 
