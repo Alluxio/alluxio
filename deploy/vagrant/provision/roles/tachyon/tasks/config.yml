@@ -29,8 +29,8 @@
 - name: set worker memory in tachyon-env.sh
   replace: >
     dest=/tachyon/conf/tachyon-env.sh
-    regexp='TACHYON_WORKER_MEMORY_SIZE=1GB'
-    replace='TACHYON_WORKER_MEMORY_SIZE={{ tachyon_memory }}'
+    regexp='^export TACHYON_WORKER_MEMORY_SIZE=.*'
+    replace='export TACHYON_WORKER_MEMORY_SIZE={{ tachyon_memory }}'
 
 - name: let tachyon ssh to workers in parallel when start
   replace: >
