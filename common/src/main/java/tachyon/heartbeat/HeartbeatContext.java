@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 
 /**
- * This class is a singleton for storing and retrieving heartbeat related information.
+ * This is a static class for storing and retrieving heartbeat related information.
  */
 public final class HeartbeatContext {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
