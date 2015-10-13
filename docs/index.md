@@ -8,11 +8,11 @@ Tachyon is an open source memory-centric distributed storage system enabling rel
 at memory-speed across cluster jobs, possibly written in different computation frameworks, such as
 Spark and MapReduce. In the ecosystem, Tachyon lies between computation frameworks or jobs, such as
 Apache Spark, Apache MapReduce, and Apache Flink, and various kinds of stroage systems, such as
-Amazon S3, OpenStack Swift, GlusterFS, HDFS, Ceph. Tachyon brings significant performance
-improvement to the stack, for example [Baidu](www.baidu.com) uses Tachyon to improve their data
-analytics performance by 30 times. Beyond that, Tachyon bridges new workloads with data stored in
-traditional storage systems. Users can run Tachyon using its standalone cluster mode, on Amazon EC2,
-on Apache Mesos or Apache Yarn.
+Amazon S3, OpenStack Swift, GlusterFS, HDFS, and Ceph. Tachyon brings significant performance
+improvement to the stack; for example, [Baidu](www.baidu.com) uses Tachyon to improve their data
+analytics performance by 30 times. Beyond performance, Tachyon bridges new workloads with data stored
+in traditional storage systems. Users can run Tachyon using its standalone cluster mode, for example
+on Amazon EC2, or launch Tachyon with Apache Mesos or Apache Yarn.
 
 Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on top of it without
 any code change. The project is open source
