@@ -20,14 +20,16 @@ Tachyon and Hadoop in accordance to these guides [Local Mode](Running-Tachyon-Lo
 If running a Hadoop 1.x cluster, ensure that the `hadoop/conf/core-site.xml` file in your Hadoop
 installation's conf directory has the following properties added:
 
-    <property>
-      <name>fs.tachyon.impl</name>
-      <value>tachyon.hadoop.TFS</value>
-    </property>
-    <property>
-      <name>fs.tachyon-ft.impl</name>
-      <value>tachyon.hadoop.TFSFT</value>
-    </property>
+```xml
+<property>
+  <name>fs.tachyon.impl</name>
+  <value>tachyon.hadoop.TFS</value>
+</property>
+<property>
+  <name>fs.tachyon-ft.impl</name>
+  <value>tachyon.hadoop.TFSFT</value>
+</property>
+```
 
 This will allow your MapReduce jobs to use Tachyon for their input and output files. If you are
 using HDFS as the under storage system for Tachyon, it may be necessary to add these properties to
@@ -41,7 +43,9 @@ In order to use Tachyon with your version of Hadoop, you will have to re-compile
 jar to specifying your Hadoop version. You can do this by running the following in your Tachyon
 directory:
 
-    $ mvn install -Dhadoop.version=<YOUR_HADOOP_VERSION>
+```bash
+$ mvn install -Dhadoop.version=<YOUR_HADOOP_VERSION>
+```
 
 The version `<YOUR_HADOOP_VERSION>` supports many different distributions of Hadoop. For example,
 `mvn install -Dhadoop.version=2.7.1` would compile Tachyon for the Apache Hadoop version 2.7.1.
@@ -60,7 +64,9 @@ This is the jar that you should use for the rest of this guide.
 In order for the Tachyon client jar to be available to the JobClient, you can modify
 `HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
 
-    $ export HADOOP_CLASSPATH=/<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+```bash
+$ export HADOOP_CLASSPATH=/<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+```
 
 This allows the code that creates and submits the Job to reference Tachyon if necessary.
 
@@ -84,7 +90,9 @@ specifying
 as the argument. This will place the jar in the Hadoop DistributedCache, and should be available on
 the nodes. For example, the following command adds the Tachyon client jar to the `-libjars` option:
 
-    `$ hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar <INPUT FILES> <OUTPUT DIRECTORY>`
+```bash
+$ hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar <INPUT FILES> <OUTPUT DIRECTORY>`
+```
 
 1. **Distributing the jars to all nodes manually.**
 For installing Tachyon on each node, you must place the client jar
@@ -97,40 +105,54 @@ approach is that the jars must be installed again for each update to a new relea
 
 First, compile Tachyon with the appropriate Hadoop version:
 
-    $ mvn clean install -Dhadoop.version=<YOUR_HADOOP_VERSION>
+```bash
+$ mvn clean install -Dhadoop.version=<YOUR_HADOOP_VERSION>
+```
 
 For simplicity, we will assume a Psuedo-distributed Hadoop cluster, and you can start it by running:
 
-    $ cd $HADOOP_HOME
-    $ ./bin/stop-all.sh
-    $ ./bin/start-all.sh
+```bash
+$ cd $HADOOP_HOME
+$ ./bin/stop-all.sh
+$ ./bin/start-all.sh
+```
 
 Configure Tachyon to use the local HDFS cluster as its under storage system. You can do this by
 modifying `conf/tachyon-env.sh` to include:
 
-    export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
+```bash
+export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
+```
 
 Start Tachyon locally:
 
-    $ ./bin/tachyon-stop.sh
-    $ ./bin/tachyon-start.sh local
+```bash
+$ ./bin/tachyon-stop.sh
+$ ./bin/tachyon-start.sh local
+```
 
 You can add a sample file to Tachyon to run wordcount on. From your Tachyon directory:
 
-    $ ./bin/tachyon tfs copyFromLocal LICENSE /wordcount/input.txt
+```bash
+$ ./bin/tachyon tfs copyFromLocal LICENSE /wordcount/input.txt
+```
 
 This command will copy the `LICENSE` file into the Tachyon namespace with the path
 `/wordcount/input.txt`.
 
 Now we can run a MapReduce job for wordcount.
 
-    bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
+```bash
+$ bin/hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/clients/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar tachyon://localhost:19998/wordcount/input.txt tachyon://localhost:19998/wordcount/output
+```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory
 in Tachyon. You can see the resulting files by running:
 
-    $ ./bin/tachyon tfs ls /wordcount/output
-    $ ./bin/tachyon tfs cat /wordcount/output/part-r-00000
+```bash
+$ ./bin/tachyon tfs ls /wordcount/output
+$ ./bin/tachyon tfs cat /wordcount/output/part-r-00000
+```
 
 You can also see the file in the under storage system HDFS name node web UI. The local HDFS cluster
 web UI can be found at [localhost:50070](http://localhost:50070/).

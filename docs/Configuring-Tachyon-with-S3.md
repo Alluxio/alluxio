@@ -17,7 +17,9 @@ First, the Tachyon binaries must be on your machine. You can either
 
 Then, if you haven't already done so, create your configuration file from the template:
 
-    $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+```bash
+$ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+```
 
 Also, in preparation for using S3 with Tachyon, create a bucket (or use an existing bucket). You
 should also note the directory you want to use in that bucket, either by creating a new directory in
@@ -31,7 +33,9 @@ To configure Tachyon to use S3 as its under storage system, modifications to the
 bucket and directory as the under storage system. You specify it by modifying `conf/tachyon-env.sh`
 to include:
 
-    export TACHYON_UNDERFS_ADDRESS=s3n://S3_BUCKET/S3_DIRECTORY
+```bash
+export TACHYON_UNDERFS_ADDRESS=s3n://S3_BUCKET/S3_DIRECTORY
+```
 
 Next, you need to specify the AWS credentials for S3 access. In the `TACHYON_JAVA_OPTS` section of
 the `conf/tachyon-env.sh` file, add:
@@ -52,11 +56,13 @@ When building your application to use Tachyon, your application will have to inc
 `tachyon-client` module. If you are using [maven](https://maven.apache.org/), you can add the
 dependency to your application with:
 
-    <dependency>
-	    <groupId>org.tachyonproject</groupId>
-	    <artifactId>tachyon-client</artifactId>
-	    <version>{{site.TACHYON_RELEASED_VERSION}}</version>
-    </dependency>
+```xml
+<dependency>
+  <groupId>org.tachyonproject</groupId>
+  <artifactId>tachyon-client</artifactId>
+  <version>{{site.TACHYON_RELEASED_VERSION}}</version>
+</dependency>
+```
 
 ## Enabling the Hadoop S3 Client (instead of the native S3 client)
 
@@ -69,34 +75,38 @@ client) additional modifications to your application must be made. When includin
 `tachyon-client` module in your application, the `tachyon-underfs-s3` should be excluded to disable
 the native client, and to use the Hadoop S3 client:
 
-    <dependency>
+```xml
+<dependency>
+  <groupId>org.tachyonproject</groupId>
+  <artifactId>tachyon-client</artifactId>
+  <version>{{site.TACHYON_RELEASED_VERSION}}</version>
+  <exclusions>
+    <exclusion>
       <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon-client</artifactId>
-      <version>{{site.TACHYON_RELEASED_VERSION}}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.tachyonproject</groupId>
-          <artifactId>tachyon-underfs-s3</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+      <artifactId>tachyon-underfs-s3</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+```
 
 However, the Hadoop S3 client needs the `jets3t` package in order to use S3, but it is not included
 as a dependency automatically. Therefore, you must also add the `jets3t` dependency manually. When
 using maven, you can add the following to pull in the `jets3t` dependency:
 
-    <dependency>
-      <groupId>net.java.dev.jets3t</groupId>
-      <artifactId>jets3t</artifactId>
-      <version>0.9.0</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-codec</groupId>
-          <artifactId>commons-codec</artifactId>
-          <!-- <version>1.3</version> -->
-        </exclusion>
-      </exclusions>
-    </dependency>
+```xml
+<dependency>
+  <groupId>net.java.dev.jets3t</groupId>
+  <artifactId>jets3t</artifactId>
+  <version>0.9.0</version>
+  <exclusions>
+    <exclusion>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <!-- <version>1.3</version> -->
+    </exclusion>
+  </exclusions>
+</dependency>
+```
 
 The `jets3t` version `0.9.0` works for Hadoop version `2.3.0`. The `jets3t` version `0.7.1` should
 work for older versions of Hadoop. To find the exact `jets3t` version for your Hadoop version,
@@ -109,21 +119,27 @@ separate JVM), then you need to make sure that your AWS credentials are provided
 JVM processes as well. The easiest way to do this is to add them add them as command line options
 when starting your client JVM process. For example:
 
-    $ java -Xmx3g -Dfs.s3n.awsAccessKeyId=<AWS_ACCESS_KEY_ID> -Dfs.s3n.awsSecretAccessKey=<AWS_SECRET_ACCESS_KEY> -cp my_application.jar com.MyApplicationClass myArgs
+```bash
+$ java -Xmx3g -Dfs.s3n.awsAccessKeyId=<AWS_ACCESS_KEY_ID> -Dfs.s3n.awsSecretAccessKey=<AWS_SECRET_ACCESS_KEY> -cp my_application.jar com.MyApplicationClass myArgs
+```
 
 # Running Tachyon Locally with S3
 
 After everything is configured, you can start up Tachyon locally to see that everything works.
 
-    $ ./bin/tachyon format
-    $ ./bin/tachyon-start.sh local
+```bash
+$ ./bin/tachyon format
+$ ./bin/tachyon-start.sh local
+```
 
 This should start a Tachyon master and a Tachyon worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-    $ ./bin/tachyon runTest Basic CACHE_THROUGH
+```bash
+$ ./bin/tachyon runTest Basic CACHE_THROUGH
+```
 
 After this succeeds, you can visit your S3 directory `S3_BUCKET/S3_DIRECTORY` to verify the files
 and directories created by Tachyon. For this test, you should see a file named:
@@ -132,4 +148,6 @@ and directories created by Tachyon. For this test, you should see a file named:
 
 To stop Tachyon, you can run:
 
-    $ ./bin/tachyon-stop.sh
+```bash
+$ ./bin/tachyon-stop.sh
+```

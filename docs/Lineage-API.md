@@ -30,7 +30,9 @@ Tachyon provides a Java like API for managing and accessing lineage information.
 
 To obtain a Tachyon Lineage Client in Java code, use:
 
-    TachyonLineage tl = TachyonLineage.get();
+```java
+TachyonLineage tl = TachyonLineage.get();
+```
 
 ### Creating a lineage record
 
@@ -45,18 +47,20 @@ recomputation).*
 
 For example,
 
-    TachyonLineage tl = TachyonLineage.get();
-    // input file paths
-    TachyonURI input1 = new TachyonURI("/inputFile1");
-    TachyonURI input2 = new TachyonURI("/inputFile2");
-    List<TachyonURI> inputFiles = Lists.newArrayList(input1, input2);
-    // output file paths
-    TachyonURI output = new TachyonURI("/outputFile");
-    List<TachyonURI> outputFiles = Lists.newArrayList(output);
-    // command-line job
-    JobConf conf = new JobConf("/tmp/recompute.log");
-    CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);
-    long lineageId = tl.createLineage(inputFiles, outputFiles, job);
+```java
+TachyonLineage tl = TachyonLineage.get();
+// input file paths
+TachyonURI input1 = new TachyonURI("/inputFile1");
+TachyonURI input2 = new TachyonURI("/inputFile2");
+List<TachyonURI> inputFiles = Lists.newArrayList(input1, input2);
+// output file paths
+TachyonURI output = new TachyonURI("/outputFile");
+List<TachyonURI> outputFiles = Lists.newArrayList(output);
+// command-line job
+JobConf conf = new JobConf("/tmp/recompute.log");
+CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);
+long lineageId = tl.createLineage(inputFiles, outputFiles, job);
+```
 
 The `createLineage` function returns the id of the newly created lineage record. Before creating a
 lineage record, make sure that all the input files are either persisted, or created as another
@@ -72,17 +76,21 @@ users to specify non-default settings for the operation
 Lineage records can be deleted by calling `TachyonLineage#deleteLineage`. The deletion function
 takes the lineage id.
 
-    TachyonLineage tl = TachyonLineage.get();
-    tl.deleteLineage(1);
+```java
+TachyonLineage tl = TachyonLineage.get();
+tl.deleteLineage(1);
+```
 
 By default, the lineage record to delete cannot have output files depended by other lineages.
 Optionally, all the downstream lineages can be deleted altogether by setting the cascade delete
 flag. For example:
 
-    TachyonLineage tl = TachyonLineage.get();
-     DeleteLineageOptions options =
-        new DeleteLineageOptions.Builder(new TachyonConf()).setCascade(true).build();
-    tl.deleteLineage(1, options);
+```java
+TachyonLineage tl = TachyonLineage.get();
+DeleteLineageOptions options =
+    new DeleteLineageOptions.Builder(new TachyonConf()).setCascade(true).build();
+tl.deleteLineage(1, options);
+```
 
 # Configuration Parameters For Lineage
 
@@ -135,9 +143,3 @@ These are the configuration parameters related to lineage feature.
   </td>
 </tr>
 </table>
-
-
-
-
-
-

@@ -17,7 +17,9 @@ First, the Tachyon binaries must be on your machine. You can either
 
 Then, if you haven't already done so, create your configuration file from the template:
 
-    $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+```bash
+$ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+```
 
 # Configuring Tachyon
 
@@ -25,7 +27,9 @@ To configure Tachyon to use Swift as its under storage system, modifications to 
 `conf/tachyon-env.sh` file must be made. The first modification is to specify the Swift under
 storage system address. You specify it by modifying `conf/tachyon-env.sh` to include:
 
-    export TACHYON_UNDERFS_ADDRESS=swift://containter.swift1
+```bash
+export TACHYON_UNDERFS_ADDRESS=swift://containter.swift1
+```
 
 Where `container` is an existing Swift container and `swift1` is a profile in `core-sites.xml`. By
 default, Tachyon uses `/conf` directory to load `core-sites.xml`. To specify a different location,
@@ -35,7 +39,9 @@ Swift depends on Hadoop version 2.3.0 or later and can be configured via `hadoop
 in the main pom.xml. Make sure to compile Tachyon with the same Hadoop version as
 `hadoop-openstack.version`. For example, to compile Tachyon with Swift and Hadoop 2.4.0 use:
 
-	$ mvn -Dhadoop.version=2.4.0 clean package
+```bash
+$ mvn -Dhadoop.version=2.4.0 clean package
+```
 
 # Configuring Hadoop
 
@@ -87,8 +93,10 @@ install`.
 
 After everything is configured, you can start up Tachyon locally to see that everything works.
 
-    $ ./bin/tachyon format
-    $ ./bin/tachyon-start.sh local
+```bash
+$ ./bin/tachyon format
+$ ./bin/tachyon-start.sh local
+```
 
 This should start a Tachyon master and a Tachyon worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).

@@ -10,8 +10,10 @@ priority: 1
 
 First download the `Tachyon` tar file, and extract it.
 
-    $ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-    $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```bash
+$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+```
 
 In the `tachyon/conf` directory, copy `tachyon-env.sh.template` to `tachyon-env.sh`. Make sure
 `JAVA_HOME` points to a valid Java 6/7 installation. Add the IP addresses of all the worker nodes to
@@ -19,15 +21,19 @@ the `tachyon/conf/workers` file. Finally, sync all the information to worker nod
 
 Now, you can start Tachyon:
 
-    $ cd tachyon
-    $ ./bin/tachyon format
-    $ ./bin/tachyon-start.sh # use the right parameters here. e.g. all Mount
+```bash
+$ cd tachyon
+$ ./bin/tachyon format
+$ ./bin/tachyon-start.sh # use the right parameters here. e.g. all Mount
+```
 
 To verify that Tachyon is running, you can visit
 [http://tachyon.master.hostname:19999](http://tachyon.master.hostname:19999), check the log in the
 folder tachyon/logs, or run a sample program:
 
-    $ ./bin/tachyon runTests
+```bash
+$ ./bin/tachyon runTests
+```
 
 **Note**: If you are using EC2, make sure the security group settings on the master node allow
  incoming connections on the tachyon web UI port.
@@ -37,8 +43,10 @@ folder tachyon/logs, or run a sample program:
 The tachyon script also contains logic to create a basic config for a
 cluster.  If you run:
 
-    $ cd tachyon
-    $ ./bin/tachyon bootstrap-conf <tachyon_master_hostname>
+```bash
+$ cd tachyon
+$ ./bin/tachyon bootstrap-conf <tachyon_master_hostname>
+```
 
 and there is no existing `tachyon/conf/tachyon-env.sh` file, then the
 script will create one with the appropriate settings for a cluster

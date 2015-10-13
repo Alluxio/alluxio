@@ -12,14 +12,18 @@ The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 6 o
 
 Download the binary distribution of Tachyon {{site.TACHYON_RELEASED_VERSION}}:
 
-    $ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-    $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
-    $ cd tachyon-{{site.TACHYON_RELEASED_VERSION}}
+```bash
+$ wget http://tachyon-project.org/downloads/files/{{site.TACHYON_RELEASED_VERSION}}/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+$ cd tachyon-{{site.TACHYON_RELEASED_VERSION}}
+```
 
 Before executing Tachyon run scripts, requisite environment variables must be specified in
 `conf/tachyon-env.sh`, which can be copied from the included template file:
 
-    $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+```bash
+$ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
+```
 
 To run in standalone mode, make sure that:
 
@@ -32,14 +36,18 @@ Then, you can format Tachyon FileSystem and start it. *Note: since Tachyon needs
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt), starting a
 local system requires users to input their root password for Linux based users.*
 
-    $ ./bin/tachyon format
-    $ ./bin/tachyon-start.sh local
+```bash
+$ ./bin/tachyon format
+$ ./bin/tachyon-start.sh local
+```
 
 To verify that Tachyon is running, you can visit
 **[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder. You can
 also run a sample program:
 
-    $ ./bin/tachyon runTest Basic CACHE_THROUGH
+```bash
+$ ./bin/tachyon runTest Basic CACHE_THROUGH
+```
 
 For the first sample program, you should be able to see something similar to the following:
 
@@ -69,8 +77,12 @@ the above test.
 
 To run a more comprehensive sanity check:
 
-    $ ./bin/tachyon runTests
+```bash
+$ ./bin/tachyon runTests
+```
 
 You can stop Tachyon any time by running:
 
-    $ ./bin/tachyon-stop.sh
+```bash
+$ ./bin/tachyon-stop.sh
+```

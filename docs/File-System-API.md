@@ -22,7 +22,9 @@ Tachyon provides a Java like API for accessing and modifying files in the Tachyo
 
 To obtain a Tachyon filesystem client in Java code, use:
 
-	TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+```java
+TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+```
 
 ### Creating a File
 
@@ -31,25 +33,29 @@ done through the TachyonFileSystem object. Since Tachyon is write once for files
 to use `TachyonFileSystem#getOutStream(TachyonURI)` to create a file and get the stream object to
 write it at the same time. For example:
 
-	TachyonFileSystem tfs = TachyonFileSystemFactory.get();
-	TachyonURI path = new TachyonURI("/myFile");
-	// Create file and get output stream
-	FileOutStream out = tfs.getOutStream(path);
-	// Write data
-	out.write(...);
-	// Close and complete file
-	out.close();
+```java
+TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+TachyonURI path = new TachyonURI("/myFile");
+// Create file and get output stream
+FileOutStream out = tfs.getOutStream(path);
+// Write data
+out.write(...);
+// Close and complete file
+out.close();
+```
 
 ### Specifying Operation Options
 
 For all TachyonFileSystem operations, an additional `options` field may be specified, which allows
 users to specify non-default settings for the operation. For example:
 
-	TachyonFileSystem tfs = TachyonFileSystemFactory.get();
-	TachyonURI path = new TachyonURI("/myFile");
-	// Generate options to set a custom blocksize of 128 MB
-	OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSize(128 * Constants.MB).build();
-	FileOutStream out = tfs.getOutputStream(path, options);
+```java
+TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+TachyonURI path = new TachyonURI("/myFile");
+// Generate options to set a custom blocksize of 128 MB
+OutStreamOptions options = new OutStreamOptions.Builder(ClientContext.getConf()).setBlockSize(128 * Constants.MB).build();
+FileOutStream out = tfs.getOutputStream(path, options);
+```
 
 ### Opening a TachyonFile
 
@@ -61,25 +67,29 @@ For renames, the handler will still be valid and reference the same file. A lock
 (preventing deletion) is only obtained during operations or after opening a stream for reading the
 file. Below is an example of how to obtain a `TachyonFile`:
 
-	TachyonFileSystem tfs = TachyonFileSystemFactory.get();
-	// Assuming "/myFile" already exists
-	TachyonURI path = new TachyonURI("/myFile");
-	TachyonFile file = tfs.open(path);
+```java
+TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+// Assuming "/myFile" already exists
+TachyonURI path = new TachyonURI("/myFile");
+TachyonFile file = tfs.open(path);
+```
 
 ### Reading Data
 
 After obtaining a `TachyonFile`, the user may modify the file metadata or get an inputstream to read
 the file. For example:
 
-	TachyonFileSystem tfs = TachyonFileSystemFactory.get();
-	TachyonURI path = new TachyonURI("/myFile");
-	TachyonFile file = tfs.open(path);
-	// Open the file for reading and obtains a lock preventing deletion
-	FileInStream in = tfs.getInStream(file);
-	// Read data
-	in.read(...);
-	// Close file relinquishing the lock
-	in.close();
+```java
+TachyonFileSystem tfs = TachyonFileSystemFactory.get();
+TachyonURI path = new TachyonURI("/myFile");
+TachyonFile file = tfs.open(path);
+// Open the file for reading and obtains a lock preventing deletion
+FileInStream in = tfs.getInStream(file);
+// Read data
+in.read(...);
+// Close file relinquishing the lock
+in.close();
+```
 
 # Hadoop API
 
