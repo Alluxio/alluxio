@@ -44,8 +44,8 @@ through the HDFS FileSystem interface. Since Tachyon also provides an implementa
 interface, the only modification required is to change the data path scheme from
 `hdfs://master-hostname:port` to `tachyon://master-hostname:port`. See the tutorials for
 [Apache Spark](Running-Spark-on-Tachyon.html),
-[Hadoop Map-Reduce](Running-Hadoop-MapReduce-on-Tachyon.html), or
-[Flink](Running-Flink-on-Tachyon.html) for examples.
+[Apache Hadoop MapReduce](Running-Hadoop-MapReduce-on-Tachyon.html), or
+[Apache Flink](Running-Flink-on-Tachyon.html) for examples.
 
 ### Configuring the System
 

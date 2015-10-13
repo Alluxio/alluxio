@@ -6,7 +6,7 @@ group: User Guide
 priority: 4
 ---
 
-Tachyon can be deployed on EC2 using Mesos, which is in turn deployed on EC2 using the
+Tachyon can be deployed on EC2 using Apache Mesos, which is in turn deployed on EC2 using the
 [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
 Tachyon. The scripts let you create, configure and destroy clusters that come automatically
 configured with HDFS.

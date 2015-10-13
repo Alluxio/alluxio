@@ -6,8 +6,8 @@ group: User Guide
 priority: 5
 ---
 
-Tachyon can be started and managed by Yarn. This guide demonstrates how to launch Tachyon with Yarn
-on EC2 machines using the
+Tachyon can be started and managed by Apache Yarn. This guide demonstrates how to launch Tachyon
+with Yarn on EC2 machines using the
 [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
 Tachyon.
 
