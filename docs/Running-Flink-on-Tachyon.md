@@ -54,21 +54,23 @@ Next, you have to specify the path to the Hadoop configuration in Flink. Therefo
 configuration value to the **directory** containing the `core-site.xml`. For newer Hadoop versions,
 the directory usually ends with `etc/hadoop/`.
 
-#### Make `tachyon-{{site.TACHYON_RELEASED_VERSION}}.jar` available to Flink
+#### Make the Tachyon Client jar available to Flink
 
 In the last step, we need to make the Tachyon `jar` file available to Flink, because it contains the
 configured `tachyon.hadoop.TFS` class.
 
 There are different ways to achieve that:
 
-- Put the `tachyon-{{site.TACHYON_RELEASED_VERSION}}.jar` file into the `lib/` directory of Flink
-(for local and standalone cluster setups)
-- Put the `tachyon-{{site.TACHYON_RELEASED_VERSION}}.jar` file into the `ship/` directory for Flink
-on YARN.
+- Put the `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
+`lib/` directory of Flink (for local and standalone cluster setups)
+- Put the `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
+`ship/` directory for Flink on YARN.
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
-      export HADOOP_CLASSPATH=/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+```bash
+export HADOOP_CLASSPATH=/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
+```
 
 # Using Tachyon with Flink
 
