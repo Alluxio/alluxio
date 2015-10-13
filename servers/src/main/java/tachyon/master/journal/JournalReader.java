@@ -51,7 +51,7 @@ public class JournalReader {
   /** The modified time (in ms) for the latest checkpoint file. */
   private long mCheckpointLastModifiedTime = -1;
   /** The log number for the completed log file. */
-  private int mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
+  private long mCurrentLogNumber = Journal.FIRST_COMPLETED_LOG_NUMBER;
 
   /**
    * @param journal the handle to the journal
