@@ -145,7 +145,8 @@ public abstract class JournalFormatterTestBase {
     }
     entryTest(new InodeFileEntry(TEST_OP_TIME_MS, TEST_FILE_ID, TEST_FILE_NAME, TEST_FILE_ID, true,
         true, TEST_OP_TIME_MS, TEST_BLOCK_SIZE_BYTES, TEST_LENGTH_BYTES, true, true, blocks,
-        Constants.NO_TTL, PermissionStatus.getDirDefault().applyUMask(new FsPermission((short)0111))));
+        Constants.NO_TTL,
+        PermissionStatus.getDirDefault().applyUMask(new FsPermission((short)0111))));
   }
 
   @Test

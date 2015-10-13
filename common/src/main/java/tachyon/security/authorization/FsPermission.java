@@ -141,6 +141,11 @@ public class FsPermission {
     return new FsPermission(Constants.DEFAULT_TFS_FULL_PERMISSION);
   }
 
+  /** Get the none permission for NOSASL authentication mode*/
+  public static FsPermission getNoneFsPermission() {
+    return new FsPermission(FsAction.NONE, FsAction.NONE, FsAction.NONE);
+  }
+
   /**
    * Get the file/directory creation umask
    *
@@ -148,8 +153,29 @@ public class FsPermission {
   public static FsPermission getUMask(TachyonConf conf) {
     int umask = Constants.DEFAULT_TFS_PERMISSIONS_UMASK;
     if (conf != null) {
-      umask = conf.getInt(Constants.TFS_PERMISSIONS_UMASK_KEY);
+      String confUmask = conf.get(Constants.TFS_PERMISSIONS_UMASK_KEY);
+      if (confUmask != null) {
+        if ((confUmask.length() > 4) || !tryParseInt(confUmask)) {
+          throw new IllegalArgumentException("Invalid configure value for key:"
+        + Constants.TFS_PERMISSIONS_UMASK_KEY + " e.g. \"0022\"");
+        }
+        int newUmask = 0;
+        int lastIndex = confUmask.length() - 1;
+        for (int i = 0; i <= lastIndex; i ++) {
+          newUmask += (confUmask.charAt(i) - '0') << 3 * (lastIndex - i);
+        }
+        umask = newUmask;
+      }
     }
     return new FsPermission((short)umask);
+  }
+
+  private static boolean tryParseInt(String value) {
+    try {
+      Integer.parseInt(value);
+      return true;
+    } catch (NumberFormatException nfe) {
+      return false;
+    }
   }
 }
