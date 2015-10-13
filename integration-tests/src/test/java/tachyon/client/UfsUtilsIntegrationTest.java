@@ -57,7 +57,7 @@ public class UfsUtilsIntegrationTest {
     mTachyonFileSystem = mLocalTachyonCluster.getClient();
 
     TachyonConf masterConf = mLocalTachyonCluster.getMasterTachyonConf();
-    mUfsRoot = masterConf.get(Constants.UNDERFS_DATA_FOLDER);
+    mUfsRoot = masterConf.get(Constants.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUfsRoot + TachyonURI.SEPARATOR, masterConf);
   }
 
@@ -83,20 +83,14 @@ public class UfsUtilsIntegrationTest {
         + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"),
         mLocalTachyonCluster.getMasterTachyonConf());
 
-    List<String> paths = null;
+    List<String> paths;
     for (String exclusion : exclusions) {
-      try {
-        paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, exclusion);
-        Assert.fail("NO FileDoesNotExistException is expected here");
-      } catch (IOException ioe) {
-        Assert.assertNotNull(ioe);
-      }
-      Assert.assertNull("Not exclude the target folder: " + exclusion, paths);
+      paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, exclusion);
+      Assert.assertEquals(0, paths.size());
     }
-
     for (String inclusion : inclusions) {
       paths = TachyonFSTestUtils.listFiles(mTachyonFileSystem, inclusion);
-      Assert.assertNotNull(paths);
+      Assert.assertNotEquals(0, paths.size());
     }
   }
 }

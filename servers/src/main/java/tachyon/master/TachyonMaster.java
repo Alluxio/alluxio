@@ -22,7 +22,6 @@ import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
@@ -56,8 +55,7 @@ public class TachyonMaster {
 
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-          + "tachyon.Master");
+      LOG.info("java -cp " + Constants.TACHYON_JAR + " tachyon.Master");
       System.exit(-1);
     }
 
@@ -122,7 +120,7 @@ public class TachyonMaster {
      *         return {@link TachyonMaster}.
      */
     public static TachyonMaster createMaster() {
-      if (MasterContext.getConf().getBoolean(Constants.USE_ZOOKEEPER)) {
+      if (MasterContext.getConf().getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return new TachyonMasterFaultTolerant();
       }
       return new TachyonMaster();
@@ -132,12 +130,12 @@ public class TachyonMaster {
   protected TachyonMaster() {
     TachyonConf conf = MasterContext.getConf();
 
-    mMinWorkerThreads = conf.getInt(Constants.MASTER_MIN_WORKER_THREADS);
-    mMaxWorkerThreads = conf.getInt(Constants.MASTER_MAX_WORKER_THREADS);
+    mMinWorkerThreads = conf.getInt(Constants.MASTER_WORKER_THREADS_MIN);
+    mMaxWorkerThreads = conf.getInt(Constants.MASTER_WORKER_THREADS_MAX);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
-        Constants.MASTER_MAX_WORKER_THREADS + " can not be less than "
-            + Constants.MASTER_MIN_WORKER_THREADS);
+        Constants.MASTER_WORKER_THREADS_MAX + " can not be less than "
+            + Constants.MASTER_WORKER_THREADS_MIN);
 
     try {
       // Extract the port from the generated socket.

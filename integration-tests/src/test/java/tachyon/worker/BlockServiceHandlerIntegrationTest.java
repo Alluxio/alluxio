@@ -96,7 +96,7 @@ public class BlockServiceHandlerIntegrationTest {
   // Tests that persisting a file successfully informs master of the update
   @Test
   public void addCheckpointTest() throws Exception {
-    TachyonFile file = new TachyonFile(mTfs.create(new TachyonURI("/testFile")));
+    TachyonFile file = mTfs.create(new TachyonURI("/testFile"));
     FileInfo fileInfo = mLocalTachyonCluster.getClient().getInfo(file);
     long nonce = 10;
 
@@ -313,6 +313,6 @@ public class BlockServiceHandlerIntegrationTest {
   // Sleeps for a duration so that the worker heartbeat to master can be processed
   private void waitForHeartbeat() {
     CommonUtils
-        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) * 3);
+        .sleepMs(mWorkerTachyonConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 3);
   }
 }
