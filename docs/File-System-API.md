@@ -30,9 +30,9 @@ TachyonFileSystem tfs = TachyonFileSystemFactory.get();
 ### Creating a File
 
 All metadata operations as well as opening a file for reading or creating a file for writing are
-done through the TachyonFileSystem object. Since Tachyon is write once for files, it is encouraged
-to use `TachyonFileSystem#getOutStream(TachyonURI)` to create a file and get the stream object to
-write it at the same time. For example:
+done through the TachyonFileSystem object. Since Tachyon files are immutable once written, it is
+encouraged to use `TachyonFileSystem#getOutStream(TachyonURI)` to create a file and get the stream
+object to write it at the same time. For example:
 
 ```java
 TachyonFileSystem tfs = TachyonFileSystemFactory.get();
