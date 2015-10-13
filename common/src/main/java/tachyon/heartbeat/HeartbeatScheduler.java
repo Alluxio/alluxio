@@ -23,6 +23,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.google.common.base.Preconditions;
+
 /**
  * This class can be used for controlling heartbeat execution.
  */
@@ -35,6 +37,7 @@ public final class HeartbeatScheduler {
    * @param timer a timer to add to the scheduler
    */
   public static void addTimer(ScheduledTimer timer) {
+    Preconditions.checkNotNull(timer);
     sLock.lock();
     sTimers.put(timer.getThreadName(), timer);
     sCondition.signal();
@@ -45,6 +48,7 @@ public final class HeartbeatScheduler {
    * @param timer a timer to remove from the scheduler
    */
   public static synchronized void removeTimer(ScheduledTimer timer) {
+    Preconditions.checkNotNull(timer);
     sLock.lock();
     sTimers.remove(timer.getThreadName());
     sLock.unlock();
