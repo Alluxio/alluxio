@@ -66,7 +66,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       tConf = new Configuration();
     }
     prepareConfiguration(fsDefaultName, tachyonConf, tConf);
-    tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
+    tConf.addResource(new Path(tachyonConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(tConf);
 
     Path path = new Path(mUfsPrefix);
