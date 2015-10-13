@@ -6,7 +6,7 @@ group: Under Stores
 priority: 2
 ---
 
-This guide describes how to configure Tachyon with [Swift](http://www.gluster.org/) as the under
+This guide describes how to configure Tachyon with [GlusterFS](http://www.gluster.org/) as the under
 storage system.
 
 # Initial Setup
@@ -22,10 +22,10 @@ $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 ```
 
 # Configuring Tachyon
-Assume the GlusterFS bricks are co-located with Tachyon nodes, the GlusterFS volume name is `gvol`,
-and the mount point is `/tachyon_vol`.
 
-Modify `conf/tachyon-env.sh` file must be made, adding the following environment variables:
+Assuming the GlusterFS bricks are co-located with Tachyon nodes, the GlusterFS volume name is `gvol`,
+and the mount point is `/tachyon_vol`, the following environment variable assignments need to be added to
+`conf/tachyon-env.sh`:
 
 ```bash
 export TACHYON_UNDERFS_ADDRESS=glusterfs://gvol
@@ -52,7 +52,7 @@ $ ./bin/tachyon runTest Basic CACHE_THROUGH
 ```
 
 After this succeeds, you can visit your GlusterFS volume to verify the files and directories created
-by Tachyon. For this test, you should see a file named:
+by Tachyon exist. For this test, you should see a file named:
 
     /tachyon_vol/default_tests_files/BasicFile_CACHE_THROUGH
 
