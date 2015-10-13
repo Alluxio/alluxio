@@ -39,18 +39,19 @@ Mounting API makes it possible to use Tachyon to access data across multiple dat
 
 ![mounting](./img/screenshot_mounting.png)
 
-By default, Tachyon namespace is mounted onto the directory specified by the `underfs.data.folder`
-property of Tachyon configuration; this directory identifies the "primary storage" for Tachyon. In
-addition, users can use the mounting API to add new and remove existing data sources:
+By default, Tachyon namespace is mounted onto the directory specified by the
+`tachyon.underfs.address` property of Tachyon configuration; this directory identifies the
+"primary storage" for Tachyon. In addition, users can use the mounting API to add new and remove
+existing data sources:
 
 ```java
 bool mount(String tachyonPath, String ufsPath);
 bool unmount(String tachyonPath);
 ```
 
-For example, the primary storage could be HDFS and contain user directories; the `Data` directory
-might be in turned stored in an S3 bucket, which is mounted to the Tachyon namespace through the
-`mount(tachyon://host:port/Data, s3://host/bucket)` invocation.
+For example, the primary storage could be HDFS and contains user directories; the `Data` directory
+might be stored in an S3 bucket, which is mounted to the Tachyon namespace through the
+`mount(tachyon://host:port/Data, s3://bucket/directory)` invocation.
 
 ## Example
 
