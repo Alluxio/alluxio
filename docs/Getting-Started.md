@@ -27,8 +27,8 @@ Currently, [Amazon S3](Configuring-Tachyon-with-S3.html),
 
 Tachyon provides a [file system interface](File-System-API.html) to applications in order to
 interact with data in Tachyon. If you want to directly write an application on top of Tachyon,
-simply add the Tachyon-Client dependency to the program. For example, if the application is built
-using Maven:
+simply add the `tachyon-client` dependency to the program. For example, if the application is
+built using Maven:
 
 ```xml
 <dependency>
@@ -50,8 +50,8 @@ interface, the only modification required is to change the data path scheme from
 ### Configuring the System
 
 Tachyon has various knobs to tune the system to perform best for separate use cases. For an
-application, Tachyon reads custom configurations from the specified tachyon-site.properties file or
-from java options passed through the command line. See
+application, Tachyon reads custom configurations from the specified `tachyon-site.properties` file
+or from java options passed through the command line. See
 [configuration settings](Configuration-Settings.html) for more information about the specific
 adjustable values.
 
@@ -72,10 +72,11 @@ but provides a read-only view.
 While Tachyon can provide significant performance gains simply through accelerating data
 input/output, Tachyon also provides advanced features tailored to specific use cases.
 
-* [Tiered storage](Tiered-Storage-on-Tachyon.html) provides additional resource for Tachyon to
-manage, allowing for workloads larger than memory to be optimized by Tachyon storage.
+* [Tiered storage](Tiered-Storage-on-Tachyon.html) provides additional resources for Tachyon to
+manage (such as SSD or HHD), allowing for workloads larger than memory to be optimized by Tachyon
+storage.
 * [Lineage](Lineage.html) provides an alternative to costly disk replication for fault tolerance and
 data durability, greatly improving write performance.
 * [Mounting and transparenting naming](Mounting-and-Transparent-Naming.html) provides the ability
-for users to import data from existing storage and easily handle deployments where not all systems
-are Tachyon-aware.
+for users to manage data from existing storage systems and easily handle deployments where not all
+systems are Tachyon-aware.
