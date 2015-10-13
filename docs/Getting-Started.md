@@ -19,8 +19,8 @@ Tachyon can be configured in a variety of modes. The simplest setup for new user
 Tachyon can be seen as a data exchange layer and benefits from having reliable persistant storage
 backing it. Depending on the production environment, different under storage will be preferred.
 Tachyon can be integrated with any under storage, provided an under storage connector is written.
-Currently, [S3](Configuring-Tachyon-with-S3.html), [HDFS](Configuring-Tachyon-with-HDFS.html),
-[Swift](Configuring-Tachyon-with-Swift.html), and
+Currently, [Amazon S3](Configuring-Tachyon-with-S3.html),
+[HDFS](Configuring-Tachyon-with-HDFS.html), [Swift](Configuring-Tachyon-with-Swift.html), and
 [GlusterFS](Configuring-Tachyon-with-GlusterFS.html) are supported.
 
 ### Configuring an Application
@@ -43,7 +43,7 @@ frameworks to use Tachyon is almost effortless, especially if the framework is a
 through the HDFS FileSystem interface. Since Tachyon also provides an implementation of the
 interface, the only modification required is to change the data path scheme from
 `hdfs://master-hostname:port` to `tachyon://master-hostname:port`. See the tutorials for
-[Spark](Running-Spark-on-Tachyon.html),
+[Apache Spark](Running-Spark-on-Tachyon.html),
 [Hadoop Map-Reduce](Running-Hadoop-MapReduce-on-Tachyon.html), or
 [Flink](Running-Flink-on-Tachyon.html) for examples.
 
@@ -54,6 +54,18 @@ application, Tachyon reads custom configurations from the specified tachyon-site
 from java options passed through the command line. See
 [configuration settings](Configuration-Settings.html) for more information about the specific
 adjustable values.
+
+### Additional Features
+
+Beyond providing a data sharing layer powered by fast storage, Tachyon also comes with many useful
+features for developers and admins.
+
+* [Command Line Interface](Command-Line-Interface.html) allows users to access and manipulate data
+in Tachyon through a light weight shell provided in the codebase.
+* [Metrics Collection](Metrics-System.html) allows admins to easily monitor the state of the system
+and discover any bottlenecks or inefficiencies.
+* [Web Interface](Web-Interface.html) gives a visually rich representation of the data in Tachyon,
+but provides a read-only view.
 
 ### Advanced Features
 

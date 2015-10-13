@@ -12,20 +12,23 @@ priority: 1
 # Where Tachyon Fits
 
 Tachyon holds a unique place in the big data ecosystem, resting between traditional storage and
-computation frameworks. Tachyon serves as an accelerator for data access by managing fast storage
-throughout the entire cluster. This facilitates data sharing and leveraging locality between jobs
-regardless if they are running with the same computation engine. In addition, it provides an
-abstraction to higher level frameworks, allowing access to data through a common interface. Finally,
-Tachyon connects different under storage systems thereby enabling any storage an easy way to
-integrate with all computation and/or application layers that would interface with Tachyon.
+computation frameworks and applications. For user applications and computation frameworks, Tachyon
+manages data access and fast storage, facilitating data sharing and locality between jobs,
+regardless of whether they are running with the same computation engine. Because of Tachyon's memory
+centric design and being the central point of access, Tachyon can bring order of magnitude speed up
+for big data applications while providing a common data access interface. For under storage systems,
+Tachyon redefines the set of workloads available to utilize the data. Since Tachyon hides the
+integration of under storage systems to applications, any under storage can back all the
+applications and frameworks running on top of Tachyon. Coupled with the potential to mount multiple
+under storage systems, Tachyon can serve as a unifying layer for any number of varied data sources.
 
 ![Stack](./img/stack.png)
 
 # Tachyon's Components
 
-Tachyon has a traditional master - worker design pattern. Tachyon can be roughly divided into three
-components, the [master](#master), [workers](#worker), and [clients](#client). The master and
-workers together make up the Tachyon servers. These will be the components a system admin would
+Tachyon has a single master and multiple worker design pattern. At a very high level, Tachyon can be
+into three components, the [master](#master), [workers](#worker), and [clients](#client). The master
+and workers together make up the Tachyon servers. These will be the components a system admin would
 maintain and manage. The clients will generally be applications, such as map-reduce jobs or command
 line users. Every user of Tachyon will only need to interact with the client portion of Tachyon.
 
