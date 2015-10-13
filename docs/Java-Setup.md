@@ -29,7 +29,7 @@ title: Java Setup
     installed. Move the .tar.gz archive binary to the current directory.
 3.  Unpack the tarball and install the JDK.
 
-```java
+```bash
 $ tar zxvf jdk-7u<version>-linux-x64.tar.gz
 ```
 
