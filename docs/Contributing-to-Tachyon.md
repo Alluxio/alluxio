@@ -57,14 +57,14 @@ purpose it serves.
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
--   In your pull request title, make sure to reference the JIRA ticket, for example:
+-   In your pull request title, make sure to reference the JIRA ticket. This will connect the
+    ticket to the proposed code changes. for example:
 
 ~~~~~
 [TACHYON-100] Awesome New Feature
 ~~~~~
 
-This will connect the ticket to the proposed code changes. In the description field of the pull
-request, please include a link to the JIRA ticket.
+-   In the description field of the pull request, please include a link to the JIRA ticket.
 
 -   For pull requests that only address typos or formating issues, it is not
     required to create the JIRA ticket and reference this JIRA. Instead, you
