@@ -2,7 +2,7 @@
 
 # let mapreduce be able to run against Tachyon
 TACHYON_CLIENT_JAR=$(ls /tachyon/clients/client/target/tachyon-client-*-jar-with-dependencies.jar)
-echo "export HADOOP_CLASSPATH=\$\{HADOOP_CLASSPATH\}:${TACHYON_CLIENT_JAR}" >> /hadoop/conf/hadoop-env.sh
+echo "export HADOOP_CLASSPATH=\${HADOOP_CLASSPATH}:${TACHYON_CLIENT_JAR}" >> /hadoop/conf/hadoop-env.sh
 
 NODES=`cat /vagrant/files/workers`
 
