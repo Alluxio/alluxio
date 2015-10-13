@@ -5,8 +5,8 @@ group: Features
 priority: 0
 ---
 
-Tachyon's command line interface provides users basic file system operations. Invoke the
-command line utility with the script:
+Tachyon's command line interface provides users with basic file system operations. You can invoke 
+the command line utility using:
 
 ```bash
 $ ./bin/tachyon tfs
@@ -20,7 +20,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
 
     /<path>
 
-#List of Operations
+# List of Operations
 
 <table class="table">
   <tr><th>Operation</th><th>Syntax</th><th>Description</th></tr>
@@ -44,12 +44,12 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>count</td>
     <td>count "path"</td>
-    <td>Displays the number of folders and files matching the specified prefix in "path".</td>
+    <td>Display the number of folders and files matching the specified prefix in "path".</td>
   </tr>
   <tr>
     <td>du</td>
     <td>du "path"</td>
-    <td>Displays the size of a file or a directory specified by the input path.</td>
+    <td>Display the size of a file or a directory specified by the input path.</td>
   </tr>
   <tr>
     <td>fileinfo</td>
@@ -75,12 +75,17 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>load</td>
     <td>load "path"</td>
-    <td>Loads a file or a directory in TachyonFS into memory.</td>
+    <td>Load a file or a directory in TachyonFS into memory.</td>
+  </tr>
+  <tr>
+    <td>loadMetadata</td>
+    <td>loadMetadata "path"</td>
+    <td>Load a file or a directory metadata from underlying file system into Tachyon.</td>
   </tr>
   <tr>
     <td>location</td>
     <td>location "path"</td>
-    <td>Displays a list of hosts that have the file data.</td>
+    <td>Display a list of hosts that have the file data.</td>
   </tr>
   <tr>
     <td>ls</td>
@@ -99,6 +104,11 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>mkdir "path"</td>
     <td>Create a directory under the given path, along with any necessary parent directories. This
     command will fail if the given path already exists.</td>
+  </tr>
+  <tr>
+    <td>mount</td>
+    <td>mount "path" "uri"</td>
+    <td>Mount the underlying file system path "uri" into the Tachyon namespace as "path".</td>
   </tr>
   <tr>
     <td>mv</td>
@@ -143,6 +153,11 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>touch</td>
     <td>touch "path"</td>
     <td>Create a 0-byte file at the specified location.</td>
+  </tr>
+  <tr>
+    <td>unmount</td>
+    <td>unmount "path"</td>
+    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path".</td>
   </tr>
   <tr>
     <td>unpin</td>
