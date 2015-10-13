@@ -5,8 +5,8 @@ nickname: Apache Hadoop MapReduce
 group: Frameworks
 ---
 
-This guide describes how to get Tachyon running with Hadoop MapReduce, so that you can easily run
-your MapReduce programs with files stored on Tachyon.
+This guide describes how to get Tachyon running with Apache Hadoop MapReduce, so that you can easily
+run your MapReduce programs with files stored on Tachyon.
 
 # Initial Setup
 
