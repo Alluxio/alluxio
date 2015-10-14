@@ -59,8 +59,8 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>free</td>
     <td>free "path"</td>
-    <td>Free a file or all files under a directory from memory. File/directory will still be
-    available in underfs.</td>
+    <td>Free a file or all files under a directory from Tachyon. If the file/directory is also 
+    in under storage, it will still be available there.</td>
   </tr>
   <tr>
     <td>getCapacityBytes</td>
@@ -75,12 +75,12 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>load</td>
     <td>load "path"</td>
-    <td>Load a file or a directory in TachyonFS into memory.</td>
+    <td>Load the data of a file or a directory from under storage into Tachyon.</td>
   </tr>
   <tr>
     <td>loadMetadata</td>
     <td>loadMetadata "path"</td>
-    <td>Load a file or a directory metadata from underlying file system into Tachyon.</td>
+    <td>Load the metadata of a file or a directory from under storage into Tachyon.</td>
   </tr>
   <tr>
     <td>location</td>
@@ -108,7 +108,10 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>mount</td>
     <td>mount "path" "uri"</td>
-    <td>Mount the underlying file system path "uri" into the Tachyon namespace as "path".</td>
+    <td>Mount the underlying file system path "uri" into the Tachyon namespace as "path". The "path"
+    is assumed not to exist and is created by the operation. No data or metadata is loaded from under
+    storage into Tachyon. After a path is mounted, operations on objects under the mounted path are
+    mirror to the mounted under storage.</td>
   </tr>
   <tr>
     <td>mv</td>
@@ -157,7 +160,9 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>unmount</td>
     <td>unmount "path"</td>
-    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path".</td>
+    <td>Unmount the underlying file system path mounted in the Tachyon namespace as "path". Tachyon 
+    objects under "path" are removed from Tachyon, but they still exist in the previously mounted 
+    under storage.</td>
   </tr>
   <tr>
     <td>unpin</td>
