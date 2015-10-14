@@ -156,8 +156,6 @@ public final class Constants {
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
-  public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
-  public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
 
   public static final String MASTER_LINEAGE_CHECKPOINT_CLASS =
       "tachyon.master.lineage.checkpoint.class";
