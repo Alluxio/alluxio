@@ -121,10 +121,6 @@ public class JournalIntegrationTest {
         .concatPath(mLocalTachyonCluster.getMasterTachyonConf().get(Constants.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalTachyonCluster.getMasterTachyonConf());
     ufs.create(ufsRoot + "/xyz");
-    Assert.assertNull(mTfs.open(new TachyonURI("/xyz")));
-    LoadMetadataOptions recursive =
-        new LoadMetadataOptions.Builder(new TachyonConf()).setRecursive(true).build();
-    mTfs.loadMetadata(new TachyonURI("/xyz"), recursive);
     FileInfo fileInfo = mTfs.getInfo(mTfs.open(new TachyonURI("/xyz")));
     mLocalTachyonCluster.stopTFS();
     loadMetadataTestUtil(fileInfo);

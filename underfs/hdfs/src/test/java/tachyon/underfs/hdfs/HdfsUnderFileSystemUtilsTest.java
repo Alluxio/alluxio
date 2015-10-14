@@ -13,28 +13,32 @@
  * the License.
  */
 
-package tachyon.worker;
+package tachyon.underfs.hdfs;
 
-import java.io.IOException;
+import org.apache.hadoop.conf.Configuration;
+import org.junit.Assert;
+import org.junit.Test;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
-import tachyon.HeartbeatExecutor;
+import tachyon.conf.TachyonConf;
 
 /**
- * Session client sends periodical heartbeats to the worker it is talking to. If it fails to do so,
- * the worker may withdraw the space granted to the particular session.
+ * Tests {@link HdfsUnderFileSystemUtils}.
  */
-final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
+public final class HdfsUnderFileSystemUtilsTest {
 
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient) {
-    mWorkerClient = Preconditions.checkNotNull(workerClient);;
-  }
+  @Test
+  public void addKeyTest() {
+    String key = "key";
+    Configuration conf = new Configuration();
+    TachyonConf tachyonConf = new TachyonConf();
+    tachyonConf.set(key, "tachyonKey");
 
-  @Override
-  public void heartbeat() {
-    mWorkerClient.periodicHeartbeat();
+    System.setProperty(key, "systemKey");
+    HdfsUnderFileSystemUtils.addKey(conf, tachyonConf, key);
+    Assert.assertEquals("systemKey", conf.get(key));
+
+    System.clearProperty(key);
+    HdfsUnderFileSystemUtils.addKey(conf, tachyonConf, key);
+    Assert.assertEquals("tachyonKey", conf.get(key));
   }
 }

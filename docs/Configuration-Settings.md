@@ -42,12 +42,12 @@ The common configuration contains constants which specify paths and the log appe
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.home</td>
-  <td>"/mnt/tachyon_default_home"</td>
+  <td>/mnt/tachyon_default_home</td>
   <td>Tachyon installation folder.</td>
 </tr>
 <tr>
   <td>tachyon.logs.dir</td>
-  <td>"${tachyon.home}/logs"</td>
+  <td>${tachyon.home}/logs</td>
   <td>The path to store log files.</td>
 </tr>
 <tr>
@@ -62,7 +62,7 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.metrics.conf.file</td>
-  <td>"${tachyon.home}/conf/metrics.properties"</td>
+  <td>${tachyon.home}/conf/metrics.properties</td>
   <td>The file path of the metrics system configuration file. By default it is `metrics.properties` in
   the `conf` directory.</td>
 </tr>
@@ -77,13 +77,13 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.underfs.address</td>
-  <td>"${tachyon.home}/underFSStorage"</code></td>
+  <td>${tachyon.home}/underFSStorage</td>
   <td>Tachyon folder in the underlayer file system.</td>
 </tr>
 <tr>
   <td>tachyon.underfs.glusterfs.impl</td>
   <td>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</td>
-  <td>Glusterfs hook with hadoop</td>
+  <td>Glusterfs hook with hadoop.</td>
 </tr>
 <tr>
   <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
@@ -93,23 +93,23 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.underfs.hdfs.configuration</td>
   <td>${tachyon.home}/conf/core-site.xml</td>
-  <td>Location of the hdfs configuration file</td>
+  <td>Location of the hdfs configuration file.</td>
 </tr>
 <tr>
   <td>tachyon.underfs.hdfs.impl</td>
-  <td>"org.apache.hadoop.hdfs.DistributedFileSystem"</td>
+  <td>org.apache.hadoop.hdfs.DistributedFileSystem</td>
   <td>The implementation class of the HDFS as the under storage system.</td>
 </tr>
 <tr>
   <td>tachyon.underfs.hdfs.prefixes</td>
-  <td>hdfs:// glusterfs:///</td>
+  <td>hdfs://,glusterfs:///</td>
   <td>Optionally, specify which prefixes should run through the Apache Hadoop implementation of
-    UnderFileSystem. The delimiter is any whitespace and/or ','</td>
+    UnderFileSystem. The delimiter is any whitespace and/or ','.</td>
 </tr>
 <tr>
   <td>tachyon.web.resources</td>
   <td>${tachyon.home}/servers/src/main/webapp</td>
-  <td>Path to the web application resources</td>
+  <td>Path to the web application resources.</td>
 </tr>
 <tr>
   <td>tachyon.web.threads</td>
@@ -118,7 +118,7 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.zookeeper.election.path</td>
-  <td>"/election"</td>
+  <td>/election</td>
   <td>Election folder in ZooKeeper.</td>
 </tr>
 <tr>
@@ -128,7 +128,7 @@ The common configuration contains constants which specify paths and the log appe
 </tr>
 <tr>
   <td>tachyon.zookeeper.leader.path</td>
-  <td>"/leader"</td>
+  <td>/leader</td>
   <td>Leader folder in ZooKeeper.</td>
 </tr>
 </table>
@@ -143,7 +143,7 @@ the port number.
 <tr>
   <td>tachyon.master.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname that Tachyon master binds to.</td>
+  <td>The hostname that Tachyon master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
 </tr>
 <tr>
   <td>tachyon.master.heartbeat.interval.ms</td>
@@ -159,7 +159,7 @@ the port number.
 </tr>
 <tr>
   <td>tachyon.master.journal.folder</td>
-  <td>"${tachyon.home}/journal/"</td>
+  <td>${tachyon.home}/journal/</td>
   <td>The path to store master journal logs.</td>
 </tr>
 <tr>
@@ -193,8 +193,7 @@ the port number.
 </tr>
 <tr>
   <td>tachyon.master.lineage.checkpoint.class</td>
-  <td>tachyon.master.lineage.checkpoint
-    .CheckpointLatestScheduler</td>
+  <td>tachyon.master.lineage.checkpoint.CheckpointLatestScheduler</td>
   <td>
   The class name of the checkpoint strategy for lineage output files. The default strategy is to
   checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
@@ -234,7 +233,7 @@ the port number.
 <tr>
   <td>tachyon.master.web.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon master's web server binds to.</td>
+  <td>The hostname Tachyon master's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
 </tr>
 <tr>
   <td>tachyon.master.web.port</td>
@@ -244,7 +243,7 @@ the port number.
 <tr>
   <td>tachyon.master.whitelist</td>
   <td>/</td>
-  <td>The comma-separated list of prefixes of the paths which are cacheable, separated by
+  <td>A comma-separated list of prefixes of the paths which are cacheable, separated by
     semi-colons. Tachyon will try to cache the cacheable file when it is read for the first
     time.</td>
 </tr>
@@ -278,7 +277,7 @@ the port number.
 <tr>
   <td>tachyon.worker.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon's worker node binds to.</td>
+  <td>The hostname Tachyon's worker node binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
 </tr>
 <tr>
   <td>tachyon.worker.block.heartbeat.interval.ms</td>
@@ -293,17 +292,18 @@ the port number.
 <tr>
   <td>tachyon.worker.block.threads.max</td>
   <td>2048</td>
-  <td>The maximum number of incoming RPC requests to block worker that can be handled. This value is used for configuring the Thrift server for RPC with block worker</td>
+  <td>The maximum number of incoming RPC requests to block worker that can be handled. This value is used for configuring the Thrift server for RPC with block worker.</td>
 </tr>
 <tr>
   <td>tachyon.worker.block.threads.min</td>
   <td>1</td>
-  <td>The minimum number of incoming RPC requests to block worker that can be handled. This value is used for configuring the Thrift server for RPC with block worker</td>
+  <td>The minimum number of incoming RPC requests to block worker that can be handled. This value is used for configuring the Thrift server for RPC with block worker.</td>
 </tr>
 <tr>
   <td>tachyon.worker.data.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname that the Tachyon worker's data server runs on.</td>
+  <td>The hostname that the Tachyon worker's data server runs on. See
+    <a href="#configure-multihomed-networks">multi-homed networks</a></td>
 </tr>
 <tr>
   <td>tachyon.worker.data.folder</td>
@@ -377,7 +377,7 @@ the port number.
 <tr>
   <td>tachyon.worker.network.netty.worker.threads</td>
   <td>0</td>
-  <td>How many threads to use for processing requests. Zero defaults to #cpuCores * 2</td>
+  <td>How many threads to use for processing requests. Zero defaults to #cpuCores * 2.</td>
 </tr>
 <tr>
   <td>tachyon.worker.port</td>
@@ -436,7 +436,7 @@ the port number.
 <tr>
   <td>tachyon.worker.web.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon's worker's web server binds to.</td>
+  <td>The hostname Tachyon's worker's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
 </tr>
 <tr>
   <td>tachyon.worker.web.port</td>
@@ -516,9 +516,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.lineage.enabled</td>
   <td>false</td>
-  <td>
-  Flag to enable lineage feature.
-  </td>
+  <td>Flag to enable lineage feature.</td>
 </tr>
 <tr>
   <td>tachyon.user.network.netty.timeout.ms</td>
@@ -538,7 +536,7 @@ The user configuration specifies values regarding file system access.
 </tr>
 </table>
 
-## How to configuration of multihomed networks
+## Configure multihomed networks
 
 Tachyon configuration provides a way to take advantage of multi-homed networks. If you have more
 than one NICs and you want your Tachyon master to listen on all NICs, you can specify

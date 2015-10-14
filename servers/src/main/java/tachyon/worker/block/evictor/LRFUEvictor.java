@@ -25,11 +25,14 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 
 import tachyon.Constants;
 import tachyon.collections.Pair;
 import tachyon.conf.TachyonConf;
+import tachyon.worker.WorkerContext;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreLocation;
 import tachyon.worker.block.allocator.Allocator;
@@ -68,7 +71,7 @@ public final class LRFUEvictor extends EvictorBase {
    */
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
-    mTachyonConf = new TachyonConf();
+    mTachyonConf = WorkerContext.getConf();
     mStepFactor = mTachyonConf
         .getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor = mTachyonConf
@@ -123,8 +126,14 @@ public final class LRFUEvictor extends EvictorBase {
   }
 
   @Override
-  protected Iterator<Map.Entry<Long, Object>> getBlockIterator() {
-    return (Iterator) getSortedCRF().iterator();
+  protected Iterator<Long> getBlockIterator() {
+    return Iterators.transform(getSortedCRF().iterator(),
+        new Function<Map.Entry<Long, Double>, Long>() {
+          @Override
+          public Long apply(Entry<Long, Double> input) {
+            return input.getKey();
+          }
+        });
   }
 
   /**
