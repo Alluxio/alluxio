@@ -8,7 +8,7 @@ priority: 4
 
 Tachyon can be deployed on EC2 using Apache Mesos, which is in turn deployed on EC2 using the
 [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
-Tachyon. The scripts let you create, configure and destroy clusters that come automatically
+Tachyon. The scripts let you create, configure, and destroy clusters that come automatically
 configured with HDFS.
 
 # Prerequisites
@@ -86,7 +86,7 @@ In the configuration file `deploy/vagrant/conf/mesos.yml`, set the value of `Typ
 release.
 
 Now you can launch the Mesos cluster and Tachyon Mesos Framework which in turn launches a Tachyon
-cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running the script under
+cluster with Hadoop version 2.4.1 as under filesystem in us-east-1a by running the script under
 `deploy/vagrant`:
 
 ```bash
@@ -111,8 +111,9 @@ Default port for Hadoop Web UI is **50070**.
 
 Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Web UIs.
 
-NOTE: Tachyon Mesos framework does not guarantee to start the Tachyon master on the TachyonMaster
-machine; use the Mesos Web UI to find out which machine is Tachyon master running on.
+NOTE: Tachyon Mesos framework does not guarantee to start the Tachyon master service on the 
+TachyonMaster machine; use the Mesos Web UI to find out which machine is the Tachyon master 
+service running on.
 
 You can also monitor the instances state through [AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1).
 
@@ -120,34 +121,34 @@ You can also monitor the instances state through [AWS web console](https://conso
 
 The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2` and so on.
 
-To ssh into a node, run
+To ssh into a node, run:
 
 ```bash
 $ vagrant ssh <node name>
 ```
 
-For example, you can ssh into `TachyonMaster` with
+For example, you can ssh into `TachyonMaster` with:
 
 ```bash
 $ vagrant ssh TachyonMaster
 ```
 
-All software are installed under root directory, e.g. Tachyon is installed in /tachyon, Hadoop is
-installed in /hadoop, Mesos is installed in /mesos.
+All software are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
+installed in `/hadoop`, Mesos is installed in `/mesos`.
 
-You can run some tests against Tachyon to check its health:
+You can run tests against Tachyon to check its health:
 
 ```bash
 $ /tachyon/bin/tachyon runTests
 ```
 
-After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
+After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
 
 # Destroy the cluster
 
-Under `deploy/vagrant` directory, you can run
+Under `deploy/vagrant` directory, you can run:
 
 ```bash
 $ ./destroy
