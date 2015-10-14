@@ -3,7 +3,7 @@ layout: global
 title: Thrift
 ---
 
-# Mac OSX
+# Mac OS X
 
 Before you can get [Apache Thift](http://thrift.apache.org) installed, you will first need to setup
 command-line support.  To do this, you will need to:
@@ -15,9 +15,9 @@ Launch Xcode, open the Preferences, select Downloads, and install
 
 ## Homebrew
 
-This section explains install Apache Thrift via [Homebrew](http://brew.sh/).
+This section explains how to install Apache Thrift via [Homebrew](http://brew.sh/).
 
-First, install [Homebrew](http://brew.sh/)
+First, install [Homebrew](http://brew.sh/).
 
 Here are the commands for Homebrew installation:
 
@@ -46,11 +46,11 @@ $ brew install thrift
 
 ## MacPorts
 
-This section explains install Apache Thrift via [MacPorts](http://macports.org).
+This section explains how to install Apache Thrift via [MacPorts](http://macports.org).
 
-If you use [MacPorts](http://macports.org), the following instruction may help
+If you use [MacPorts](http://macports.org), the following instructions may help.
 
-Install MacPorts from [sourceforge](http://sourceforge.net/projects/macports/)
+Install MacPorts from [sourceforge](http://sourceforge.net/projects/macports/).
 
 Update Port itself:
 
@@ -78,7 +78,7 @@ $ sudo port install thrift
 
 The last command MAY fail, according to this [issue](https://trac.macports.org/ticket/41172). In
 this case, we recommend building Thrift 0.9.2 from source (Assuming you use MacPort's default
-directory /opt/local):
+directory `/opt/local`):
 
 ```bash
 $ ./configure --prefix=/opt/local/ --with-boost=/opt/local/lib --with-libevent=/opt/local/lib CXXFLAGS="-I/usr/include/4.2.1 -L/opt/local/lib"
@@ -86,9 +86,9 @@ $ make
 $ make install
 ```
 
-You may change CXXFLAGS. Here we include /usr/include/4.2.1 for std::tr1 on Mavericks and
-/opt/local/lib for libraries installed by port. Without the -I, you may fail with "tr1/functional
-not found". Without the -L, you may fail during linking.
+You may change CXXFLAGS. Here we include `/usr/include/4.2.1` for `std::tr1` on Mavericks and
+`/opt/local/lib` for libraries installed by port. Without the `-I`, the installation may fail with 
+`tr1/functional not found`. Without the `-L`, the installation may fail during linking.
 
 # Linux
 
@@ -96,7 +96,7 @@ not found". Without the -L, you may fail during linking.
 
 ## Debian/Ubuntu
 
-The following command install all the required tools and libraries to
+The following command installs all the required tools and libraries to
 build and install the Apache Thrift compiler on a Debian/Ubuntu Linux
 based system.
 
@@ -110,16 +110,16 @@ or
 $ sudo yum install automake libtool flex bison pkgconfig gcc-c++ boost-devel libevent-devel zlib-devel python-devel ruby-devel ant python-dev
 ```
 
-Then install the Java JDK of your choice. Type javac to see a list of
-available packages, pick the one you prefer, and apt-get install it.
+Then install the Java JDK of your choice. Type javac to see a list of available packages, 
+pick the one you prefer, and use your package manager to install it.
 
-Debian Lenny Users need some packages from backports
+Debian Lenny Users need some packages from backports:
 
 ```bash
 $ sudo apt-get -t lenny-backports install automake libboost-test-dev
 ```
 
-[Build The Thrift](http://thrift.apache.org/docs/BuildingFromSource)
+[Build Thrift](http://thrift.apache.org/docs/BuildingFromSource):
 
 ```bash
 $ ./configure --with-boost=/usr/local
@@ -131,19 +131,19 @@ $ make install
 
 The following steps can be used to setup a CentOS 6.4 system.
 
-Install basic utils
+Install dependencies:
 
 ```bash
 $ sudo yum install automake libtool flex bison pkgconfig gcc-c++ make
 ```
 
-Upgraded autoconf to 2.69 (yum will most likely pull 2.63 which won't work with Apache Thrift)
+Upgrade autoconf to 2.69 (yum will most likely pull 2.63 which won't work with Apache Thrift):
 
 ```bash
 $ sudo yum install 'ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/monkeyiq:/centos6updates/CentOS_CentOS-6/noarch/autoconf-2.69-12.2.noarch.rpm'
 ```
 
-Download and install Apache Thrift source
+Download and install Apache Thrift source:
 
 ```bash
 $ wget 'https://github.com/apache/thrift/archive/0.9.2.tar.gz'
@@ -157,15 +157,15 @@ $ sudo make install
 
 # Generate Java files from Thrift
 
-Tachyon defines a .thrift in:
+Tachyon defines a its RPC services using the thrift file located in in:
 
     ./common/src/thrift/tachyon.thrift
 
-And generates java files from it in:
+and generates Java files from it into:
 
     ./common/src/main/java/tachyon/thrift/
 
-To generate the java files on your own, type:
+To regenerate the java files if the thrift file is modified, you can run:
 
 ```bash
     $ ./bin/tachyon thriftGen
