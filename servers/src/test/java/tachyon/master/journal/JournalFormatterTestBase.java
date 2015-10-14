@@ -20,7 +20,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -36,6 +38,10 @@ import com.google.common.collect.Range;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.client.file.TachyonFile;
+import tachyon.job.CommandLineJob;
+import tachyon.job.Job;
+import tachyon.job.JobConf;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
 import tachyon.master.block.journal.BlockInfoEntry;
 import tachyon.master.file.journal.AddMountPointEntry;
@@ -50,7 +56,16 @@ import tachyon.master.file.journal.InodeLastModificationTimeEntry;
 import tachyon.master.file.journal.PersistDirectoryEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
+import tachyon.master.file.journal.ReinitializeFileEntry;
+import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
+import tachyon.master.lineage.journal.DeleteLineageEntry;
+import tachyon.master.lineage.journal.LineageEntry;
+import tachyon.master.lineage.journal.LineageIdGeneratorEntry;
+import tachyon.master.lineage.journal.PersistFilesEntry;
+import tachyon.master.lineage.journal.RequestFilePersistenceEntry;
+import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.rawtable.journal.RawTableEntry;
+import tachyon.master.rawtable.journal.UpdateMetadataEntry;
 import tachyon.util.io.BufferUtils;
 
 /**
@@ -66,6 +81,7 @@ public abstract class JournalFormatterTestBase {
   protected static final long TEST_CONTAINER_ID = 2011L;
   protected static final long TEST_BLOCK_ID = 2015L;
   protected static final long TEST_FILE_ID = 1L;
+  protected static final long TEST_LINEAGE_ID = 1L;
   protected static final String TEST_FILE_NAME = "journalFormatter.test";
   protected static final long TEST_LENGTH_BYTES = 256L;
   protected static final long TEST_BLOCK_SIZE_BYTES = 256L;
@@ -74,12 +90,13 @@ public abstract class JournalFormatterTestBase {
   protected static final long TEST_SEQUENCE_NUMBER = 1945L;
   protected static final TachyonURI TEST_TACHYON_PATH = new TachyonURI("/test/path");
   protected static final TachyonURI TEST_UFS_PATH = new TachyonURI("hdfs://host:port/test/path");
+  protected static final Job TEST_JOB = new CommandLineJob("Command", new JobConf("/test/path"));
 
   protected JournalFormatter mFormatter = getFormatter();
   protected OutputStream mOs;
   protected InputStream mIs;
 
-  //map that holds test journal entries
+  // map that holds test journal entries
   protected Map<JournalEntryType, JournalEntry> mDataSet =
       ImmutableMap.<JournalEntryType, JournalEntry>builder()
           .put(JournalEntryType.BLOCK_CONTAINER_ID_GENERATOR,
@@ -112,7 +129,20 @@ public abstract class JournalFormatterTestBase {
           new AddMountPointEntry(TEST_TACHYON_PATH, TEST_UFS_PATH))
       .put(JournalEntryType.DELETE_MOUNTPOINT, new DeleteMountPointEntry(TEST_TACHYON_PATH))
       .put(JournalEntryType.RAW_TABLE,
-          new RawTableEntry(TEST_BLOCK_ID, 100, BufferUtils.getIncreasingByteBuffer(10))).build();
+          new RawTableEntry(TEST_BLOCK_ID, 100, BufferUtils.getIncreasingByteBuffer(10)))
+      .put(JournalEntryType.UPDATE_METADATA,
+          new UpdateMetadataEntry(TEST_BLOCK_ID, ByteBuffer.wrap(new byte[10])))
+      .put(JournalEntryType.REINITIALIZE_FILE,
+          new ReinitializeFileEntry(TEST_FILE_NAME, TEST_BLOCK_SIZE_BYTES, TEST_OP_TIME_MS))
+      .put(JournalEntryType.ASYNC_COMPLETE_FILE, new AsyncCompleteFileEntry(TEST_FILE_ID))
+      .put(JournalEntryType.DELETE_LINEAGE, new DeleteLineageEntry(TEST_LINEAGE_ID, false))
+      .put(JournalEntryType.LINEAGE,
+          new LineageEntry(TEST_LINEAGE_ID, Collections.<TachyonFile>emptyList(),
+              Collections.<LineageFile>emptyList(), TEST_JOB, TEST_OP_TIME_MS))
+      .put(JournalEntryType.LINEAGE_ID_GENERATOR, new LineageIdGeneratorEntry(TEST_LINEAGE_ID))
+      .put(JournalEntryType.PERSIST_FILES, new PersistFilesEntry(Arrays.asList(1L, 2L)))
+      .put(JournalEntryType.REQUEST_FILE_PERSISTENCE,
+          new RequestFilePersistenceEntry(Arrays.asList(1L, 2L))).build();
 
   /**
    * Returns the implementation of {@link JournalFormatter} that wants to be tested.
@@ -124,6 +154,7 @@ public abstract class JournalFormatterTestBase {
 
   @Before
   public final void before() throws Exception {
+
     String path = mTestFolder.newFile().getAbsolutePath();
     mOs = new FileOutputStream(path);
     mIs = new FileInputStream(path);
@@ -131,14 +162,12 @@ public abstract class JournalFormatterTestBase {
 
   protected void write(JournalEntry entry) throws IOException {
     mFormatter.serialize(new SerializableJournalEntry(TEST_SEQUENCE_NUMBER, entry), mOs);
-    mOs.close();
   }
 
   protected JournalEntry read() throws IOException {
     JournalInputStream jis = mFormatter.deserialize(mIs);
     JournalEntry entry = jis.getNextEntry();
     Assert.assertEquals(TEST_SEQUENCE_NUMBER, jis.getLatestSequenceNumber());
-    jis.close();
     return entry;
   }
 
@@ -152,85 +181,16 @@ public abstract class JournalFormatterTestBase {
     assertSameEntry(entry, readEntry);
   }
 
-  // Block
-
   @Test
-  public void blockIdGeneratorEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.BLOCK_CONTAINER_ID_GENERATOR));
+  public void checkEntriesNumberTest() {
+    Assert.assertEquals(JournalEntryType.values().length, mDataSet.size());
   }
 
   @Test
-  public void blockInfoEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.BLOCK_INFO));
-  }
-
-  // FileSystem
-
-  @Test
-  public void inodeFileEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.INODE_FILE));
-  }
-
-  @Test
-  public void inodeDirectoryEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.INODE_DIRECTORY));
-  }
-
-  @Test
-  public void inodeLastModificationTimeEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.INODE_MTIME));
-  }
-
-  @Test
-  public void persistedDirectoryEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.INODE_PERSISTED));
-  }
-
-  @Test
-  public void persistFileEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.ADD_CHECKPOINT));
-  }
-
-  @Test
-  public void completeFileEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.COMPLETE_FILE));
-  }
-
-  @Test
-  public void setPinnedEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.SET_PINNED));
-  }
-
-  @Test
-  public void deleteFileEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.DELETE_FILE));
-  }
-
-  @Test
-  public void renameEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.RENAME));
-  }
-
-  @Test
-  public void inodeDirectoryIdGeneratorEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.INODE_DIRECTORY_ID_GENERATOR));
-  }
-
-  @Test
-  public void addMountPointEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.ADD_MOUNTPOINT));
-  }
-
-  @Test
-  public void deleteMountPointEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.DELETE_MOUNTPOINT));
-  }
-
-  // RawTable
-
-  @Test
-  public void rawTableEntryTest() throws IOException {
-    entryTest(mDataSet.get(JournalEntryType.RAW_TABLE));
+  public void entriesTest() throws IOException {
+    for (Map.Entry<JournalEntryType, JournalEntry> entry : mDataSet.entrySet()) {
+      entryTest(entry.getValue());
+    }
   }
 
 }
