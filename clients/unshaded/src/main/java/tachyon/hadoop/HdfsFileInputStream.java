@@ -168,6 +168,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
+        mTachyonFileInputStream.close();
         mTachyonFileInputStream = null;
       }
     }
@@ -196,6 +197,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
+        mTachyonFileInputStream.close();
         mTachyonFileInputStream = null;
       }
     }
