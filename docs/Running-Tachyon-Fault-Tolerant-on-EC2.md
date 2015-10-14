@@ -8,7 +8,7 @@ priority: 4
 
 Tachyon with Fault Tolerance can be deployed on EC2 using the
 [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
-Tachyon. The scripts let you create, configure and destroy clusters that come automatically
+Tachyon. The scripts let you create, configure, and destroy clusters that come automatically
 configured with HDFS.
 
 # Prerequisites
@@ -101,7 +101,7 @@ $ ./create <number of machines> aws
 Note that the `<number of machines>` above should be larger than or equal to `Masters` set in
 `deploy/vagrant/conf/tachyon.yml`.
 
-Each node of the cluster has a Tachyon worker, and each master node has a Tachyon master. The leader
+Each node of the cluster has a Tachyon worker and each master node has a Tachyon master. The leader
 is in one of the master nodes.
 
 # Access the cluster
@@ -134,33 +134,33 @@ The nodes created are placed in one of two categories.
 
 One category contains `TachyonMaster`, `TachyonMaster2` and so on, representing all Tachyon masters;
 one of them is the leader, and the others are standbys. `TachyonMaster` is also the master for other
-software, like Hadoop. Each node also runs workers for Tachyon and and for other software like Hadoop.
+software, like Hadoop. Each node also runs workers for Tachyon and other software like Hadoop.
 
-Another group contains `TachyonWorker1`, `TachyonWorker2` and so on, each node runs workers
+Another group contains `TachyonWorker1`, `TachyonWorker2` and so on. Each node runs workers
 for Tachyon and other software like Hadoop.
 
-To ssh into a node, run
+To ssh into a node, run:
 
 ```bash
 $ vagrant ssh <node name>
 ```
 
-For example, you can ssh into `TachyonMaster` with
+For example, you can ssh into `TachyonMaster` with:
 
 ```bash
 $ vagrant ssh TachyonMaster
 ```
 
-All software are installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
+All software is installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
 Hadoop is installed in `/hadoop`, and Zookeeper is installed in `/zookeeper`.
 
-On the leader master node, you can run some tests against Tachyon to check its health:
+On the leader master node, you can run tests against Tachyon to check its health:
 
 ```bash
 $ /tachyon/bin/tachyon runTests
 ```
 
-After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click
+After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click
 `Browse File System` in the navigation bar, and you should see the files written to Tachyon by the
 above tests.
 
