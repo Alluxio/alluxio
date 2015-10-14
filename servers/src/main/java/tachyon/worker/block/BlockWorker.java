@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
@@ -46,6 +45,7 @@ import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.lineage.LineageWorker;
 
@@ -202,6 +202,8 @@ public final class BlockWorker {
     mWorkerNetAddress =
         new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
             mPort, mDataServer.getPort());
+    // Get the worker id
+    WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mWorkerNetAddress);
 
     // Set up web server
     mWebServer =
@@ -218,9 +220,6 @@ public final class BlockWorker {
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
         mBlockMasterClient);
-    // Get the worker id
-    // TODO(calvin): Do this at TachyonWorker.
-    mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mFileSystemMasterClient);
@@ -233,19 +232,9 @@ public final class BlockWorker {
       mSpaceReserver = new SpaceReserver(mBlockDataManager);
     }
 
-    // Setup session metadata mapping
-    // TODO(calvin): Have a top level register that gets the worker id.
-    long workerId = mBlockMasterSync.getWorkerId();
-    Sessions sessions = new Sessions();
-
-    // Give BlockDataManager a pointer to the session metadata mapping
-    // TODO(calvin): Fix this hack when we have a top level register.
-    mBlockDataManager.setSessions(sessions);
-    mBlockDataManager.setWorkerId(workerId);
-
     // Setup the lineage worker
-    LOG.info("Started lineage worker at " + workerId);
-    mLineageWorker = new LineageWorker(mBlockDataManager, workerId);
+    LOG.info("Started lineage worker at worker with ID " + WorkerIdRegistry.getWorkerId());
+    mLineageWorker = new LineageWorker(mBlockDataManager);
   }
 
   /**
