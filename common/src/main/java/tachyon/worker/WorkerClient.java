@@ -31,10 +31,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.HeartbeatThread;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonExceptionType;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonTException;
@@ -235,10 +236,10 @@ public final class WorkerClient implements Closeable {
       // only start the heartbeat thread if the connection is successful and if there is not
       // another heartbeat thread running
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-        final String threadName = "worker-heartbeat-" + mWorkerAddress;
         final int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
-          mExecutorService.submit(new HeartbeatThread(threadName, mHeartbeatExecutor, interval));
+            mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
+                mHeartbeatExecutor, interval));
       }
     }
 

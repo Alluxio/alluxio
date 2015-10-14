@@ -13,28 +13,15 @@
  * the License.
  */
 
-package tachyon.worker;
-
-import java.io.IOException;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
-import tachyon.heartbeat.HeartbeatExecutor;
+package tachyon.heartbeat;
 
 /**
- * Session client sends periodical heartbeats to the worker it is talking to. If it fails to do so,
- * the worker may withdraw the space granted to the particular session.
+ * An interface for a heartbeat execution. The {@link HeartbeatThread} calls the
+ * {@link #heartbeat()} method.
  */
-final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient mWorkerClient;
-
-  public WorkerClientHeartbeatExecutor(WorkerClient workerClient) {
-    mWorkerClient = Preconditions.checkNotNull(workerClient);
-  }
-
-  @Override
-  public void heartbeat() {
-    mWorkerClient.periodicHeartbeat();
-  }
+public interface HeartbeatExecutor {
+  /**
+   * Implements the heartbeat logic.
+   */
+  void heartbeat();
 }
