@@ -6,18 +6,18 @@ group: Home
 
 Tachyon is an open source memory-centric distributed storage system enabling reliable data sharing
 at memory-speed across cluster jobs, possibly written in different computation frameworks, such as
-Spark and MapReduce. In the ecosystem, Tachyon lies between computation frameworks or jobs, such as
-Apache Spark, Apache MapReduce, and Apache Flink, and various kinds of stroage systems, such as
-Amazon S3, OpenStack Swift, GlusterFS, HDFS, and Ceph. Tachyon brings significant performance
+Spark and MapReduce. In the big data ecosystem, Tachyon lies between computation frameworks or jobs, 
+such as Apache Spark, Apache MapReduce, or Apache Flink, and various kinds of storage systems, such as
+Amazon S3, OpenStack Swift, GlusterFS, HDFS, or Ceph. Tachyon brings significant performance
 improvement to the stack; for example, [Baidu](https://www.baidu.com) uses Tachyon to improve their data
 analytics performance by 30 times. Beyond performance, Tachyon bridges new workloads with data stored
 in traditional storage systems. Users can run Tachyon using its standalone cluster mode, for example
 on Amazon EC2, or launch Tachyon with Apache Mesos or Apache Yarn.
 
-Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on top of it without
-any code change. The project is open source
+Tachyon is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top of 
+Tachyon without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
-multiple companies. It is one of the fastest growing open source project. With less than three years
+multiple companies. It is one of the fastest growing open source projects. With less than three years
 open source history, Tachyon has attracted more than
 [130 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
 including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/),
@@ -42,10 +42,10 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 ``java.io.File`` class, providing InputStream and OutputStream interfaces and efficient support for
 memory-mapped I/O. We recommend using this API to get the best performance from Tachyon.
 Alternatively, Tachyon provides a Hadoop compatible FileSystem interface, allowing Hadoop MapReduce
-and Spark can run with Tachyon without modification.
+and Spark to use Tachyon in place of HDFS.
 
 * **Pluggable Under Storage** To provide fault-tolerance, Tachyon checkpoints in-memory data to the
-underlayer storage system. It has a generic interface to make plugging different underlayer storage
+underlying storage system. It has a generic interface to make plugging different underlayer storage
 systems easy. We currently support HDFS, S3, Swift, GlusterFS, and single-node local file systems,
 and support for many other file systems is coming.
 
@@ -66,11 +66,9 @@ information of each file, including locations, checkpoint path, etc. Users can a
 ``./bin/tachyon tfs`` to interact with Tachyon, e.g. copy data in and out of the file system.
 
 * **[Mounting & Transparency](Mounting-and-Transparent-Naming.html)** Tachyon enables effective
-data management across different storage systems through the mount feature. Mounting allows a data
-source to be linked to a directory in Tachyon, effectively adding the contents of the data source
-into the Tachyon name space under its mount point. On the other hand, transparent naming ensures
-data written into Tachyon and through to an underlying store can be identified with the same file
-name.
+data management across different storage systems through the mount feature. Furthermore, 
+transparent naming ensures that file names and directory hierarchy for objects created in Tachyon 
+is preserved when persisting these object to the underlying storage system.
 
 # Getting Started
 
