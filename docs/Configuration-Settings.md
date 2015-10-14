@@ -433,36 +433,17 @@ The user configuration specifies values regarding file system access.
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
-  <td>tachyon.user.failed.space.request.limits</td>
-  <td>3</td>
-  <td>The number of times to request space from the file system before aborting.</td>
+  <td>tachyon.user.block.master.client.threads</td>
+  <td>10</td>
+  <td>How many threads to use for block master client to talk to block master.</td>
 </tr>
 <tr>
-  <td>tachyon.user.file.writetype.default</td>
-  <td>CACHE_THROUGH</td>
-  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
-    Valid options are `MUST_CACHE` (write must cache), `TRY_CACHE` (write will try to cache),
-    `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
-    UnderFS synchronously), `ASYNC_THROUGH` (Experimental, must cache and write to UnderFS
-    asynchronously, or synchronous write to UnderFS).</td>
+  <td>tachyon.user.block.worker.client.threads</td>
+  <td>10000</td>
+  <td>How many threads to use for block worker client pool to read from a local block worker.</td>
 </tr>
 <tr>
-  <td>tachyon.user.quota.unit.bytes</td>
-  <td>8 MB</td>
-  <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
-</tr>
-<tr>
-  <td>tachyon.user.file.buffer.bytes</td>
-  <td>1 MB</td>
-  <td>The size of the file buffer to use for file system reads/writes.</td>
-</tr>
-<tr>
-  <td>tachyon.user.block.size.bytes.default</td>
-  <td>1 GB</td>
-  <td>Default block size for Tachyon files.</td>
-</tr>
-<tr>
-  <td>tachyon.user.remote.read.buffer.size.bytes</td>
+  <td>tachyon.user.block.remote.read.buffer.size.bytes</td>
   <td>8 MB</td>
   <td>The size of the file buffer to read data from remote Tachyon worker.</td>
 </tr>
@@ -479,25 +460,19 @@ The user configuration specifies values regarding file system access.
   <td>Selects networking stack to run the client with for block writes.</td>
 </tr>
 <tr>
-  <td>tachyon.user.network.netty.timeout.ms</td>
-  <td>3000</td>
-  <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to
-  wait for a response from the data server.</td>
+  <td>tachyon.user.block.size.bytes.default</td>
+  <td>512MB</td>
+  <td>Default block size for Tachyon files.</td>
 </tr>
 <tr>
-  <td>tachyon.user.block.remote.worker.client.threads</td>
-  <td>10</td>
-  <td>How many threads to use for remote block worker client to read from remote block workers.</td>
+  <td>tachyon.user.failed.space.request.limits</td>
+  <td>3</td>
+  <td>The number of times to request space from the file system before aborting.</td>
 </tr>
 <tr>
-  <td>tachyon.user.block.local.worker.client.threads</td>
-  <td>10000</td>
-  <td>How many threads to use for block worker client pool to read from a local block worker.</td>
-</tr>
-<tr>
-  <td>tachyon.user.block.master.client.threads</td>
-  <td>10</td>
-  <td>How many threads to use for block master client to talk to block master.</td>
+  <td>tachyon.user.file.buffer.bytes</td>
+  <td>1 MB</td>
+  <td>The size of the file buffer to use for file system reads/writes.</td>
 </tr>
 <tr>
   <td>tachyon.user.file.master.client.threads</td>
@@ -505,11 +480,41 @@ The user configuration specifies values regarding file system access.
   <td>How many threads to use for file system master client to talk to block master.</td>
 </tr>
 <tr>
+  <td>tachyon.user.file.writetype.default</td>
+  <td>CACHE_THROUGH</td>
+  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
+    Valid options are `MUST_CACHE` (write must cache), `TRY_CACHE` (write will try to cache),
+    `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
+    UnderFS synchronously), `ASYNC_THROUGH` (Experimental, must cache and write to UnderFS
+    asynchronously, or synchronous write to UnderFS).</td>
+</tr>
+<tr>
+  <td>tachyon.user.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>The interval (in milliseconds) between Tachyon worker's heartbeats</td>
+</tr>
+<tr>
   <td>tachyon.user.lineage.enabled</td>
   <td>false</td>
   <td>
   Flag to enable lineage feature.
   </td>
+</tr>
+<tr>
+  <td>tachyon.user.network.netty.timeout.ms</td>
+  <td>3000</td>
+  <td>The maximum number of milliseconds for a netty client (for block reads and block writes) to
+  wait for a response from the data server.</td>
+</tr>
+<tr>
+  <td>tachyon.user.network.netty.worker.threads</td>
+  <td>0</td>
+  <td>How many threads to use for remote block worker client to read from remote block workers.</td>
+</tr>
+<tr>
+  <td>tachyon.user.quota.unit.bytes</td>
+  <td>8 MB</td>
+  <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
 </tr>
 </table>
 
