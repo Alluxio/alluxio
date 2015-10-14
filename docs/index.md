@@ -20,9 +20,9 @@ any code change. The project is open source
 multiple companies. It is one of the fastest growing open source project. With less than three years
 open source history, Tachyon has attracted more than
 [130 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
-including [Alibaba](https://www.alibaba.com), [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/),
-[IBM](https://www.ibm.com), [Intel](https://www.intel.com/), [Red Hat](https://www.redhat.com/),
-[Tachyon Nexus](https://www.tachyonnexus.com/),
+including [Alibaba](http://www.alibaba.com), [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/),
+[IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [Red Hat](https://www.redhat.com/),
+[Tachyon Nexus](http://www.tachyonnexus.com/),
 [UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics
 Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
