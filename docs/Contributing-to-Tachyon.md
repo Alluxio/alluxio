@@ -25,8 +25,8 @@ There is a few things that new contributors can do to familiarize themselves wit
     [Command-Line Interface](Command-Line-Interface.html)
     (Optional)
 
-4.  Read a  
-[Code Example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
+4.  Read a
+    [Code Example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
 
 5.  [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
