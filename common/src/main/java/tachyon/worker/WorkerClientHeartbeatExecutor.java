@@ -35,10 +35,6 @@ final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    try {
-      mWorkerClient.sessionHeartbeat();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
+    mWorkerClient.periodicHeartbeat();
   }
 }
