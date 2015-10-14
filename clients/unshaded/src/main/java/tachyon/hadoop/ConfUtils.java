@@ -16,6 +16,7 @@
 package tachyon.hadoop;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
@@ -63,9 +64,9 @@ public class ConfUtils {
   public static TachyonConf loadFromHadoopConfiguration(Configuration source) {
     // Load TachyonConf if any and merge to the one in TachyonFS
     // Push TachyonConf to the Job conf
+    Properties tachyonConfProperties = null;
     if (source.get(Constants.TACHYON_CONF_SITE) != null) {
       LOG.info("Found TachyonConf site from Job configuration for Tachyon");
-      Properties tachyonConfProperties = null;
       try {
         tachyonConfProperties = DefaultStringifier.load(source, Constants.TACHYON_CONF_SITE,
             Properties.class);
@@ -73,9 +74,21 @@ public class ConfUtils {
         LOG.error("Unable to load TachyonConf from Hadoop configuration", e);
         throw new RuntimeException(e);
       }
-
-      return tachyonConfProperties != null ? new TachyonConf(tachyonConfProperties) : null;
     }
-    return null;
+    if (tachyonConfProperties == null) {
+      tachyonConfProperties = new Properties();
+    }
+    // Load any Tachyon configuration parameters existing in the Hadoop configuration.
+    for (Map.Entry<String, String> entry : source) {
+      String propertyName = entry.getKey();
+      // TODO: a better way to enumerate every Tachyon configuration parameter
+      if (propertyName.startsWith("tachyon.")
+          || propertyName.equals(Constants.S3_ACCESS_KEY)
+          || propertyName.equals(Constants.S3_SECRET_KEY)) {
+        tachyonConfProperties.put(propertyName, entry.getValue());
+      }
+    }
+    LOG.info("Loading Tachyon properties from Hadoop configuration: " + tachyonConfProperties);
+    return new TachyonConf(tachyonConfProperties);
   }
 }

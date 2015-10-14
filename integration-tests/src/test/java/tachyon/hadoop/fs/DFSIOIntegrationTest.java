@@ -674,6 +674,7 @@ public class DFSIOIntegrationTest implements Tool {
     for (int i = 0; i < nrFiles; i ++) {
       ioer.doIO(Reporter.NULL, BASE_FILE_NAME + Integer.toString(i), fileSize);
     }
+    ioer.close();
   }
 
   public static void main(String[] args) {
