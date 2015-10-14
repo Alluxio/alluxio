@@ -52,7 +52,6 @@ $ ./bin/tachyon runTest Basic CACHE_THROUGH
 You should be able to see results similar to the following:
 
 ```bash
-/default_tests_files/BasicFile_CACHE_THROUGH has been removed
 2015-09-06 13:27:17,358 INFO   (MasterClient.java:connect) - Tachyon client (version 0.8.0-SNAPSHOT) is trying to connect with master @ localhost/127.0.0.1:19998
 2015-09-06 13:27:17,375 INFO   (MasterClient.java:connect) - User registered with the master @ localhost/127.0.0.1:19998; got UserId 9
 2015-09-06 13:27:17,380 INFO   (BasicOperations.java:createFile) - createFile with fileId 5 took 25 ms.
@@ -103,7 +102,7 @@ To have the logs output to STDOUT, append the following to the `mvn` command
 
 # Distro Support
 
-To build master against one of the different distros of hadoop, you only need to change the
+To build Tachyon against one of the different distros of hadoop, you only need to change the
 `hadoop.version`.
 
 ## Apache
@@ -154,8 +153,6 @@ In order to increase the number of files and processes allowed, run the followin
 ```bash
 $ sudo launchctl limit maxfiles 16384 16384
 $ sudo launchctl limit maxproc 2048 2048
-$ sudo ulimit -n 16384
-$ sudo ulimit -u 2048
 ```
 
 It is also recommended to exclude your local clone of Tachyon from Spotlight indexing. Otherwise,
