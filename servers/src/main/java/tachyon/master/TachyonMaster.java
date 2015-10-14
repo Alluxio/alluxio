@@ -182,14 +182,14 @@ public class TachyonMaster {
   }
 
   /**
-   * @return the externally resolvable address of this master.
+   * @return the externally resolvable address of this master
    */
   public InetSocketAddress getMasterAddress() {
     return mMasterAddress;
   }
 
   /**
-   * @return the actual bind hostname on RPC service (used by unit test only).
+   * @return the actual bind hostname on RPC service (used by unit test only)
    */
   public String getRPCBindHost() {
     return NetworkAddressUtils.getThriftSocket(mTServerSocket).getLocalSocketAddress().toString();
@@ -203,7 +203,7 @@ public class TachyonMaster {
   }
 
   /**
-   * @return the actual bind hostname on web service (used by unit test only).
+   * @return the actual bind hostname on web service (used by unit test only)
    */
   public String getWebBindHost() {
     return mWebServer.getBindHost();
@@ -217,35 +217,35 @@ public class TachyonMaster {
   }
 
   /**
-   * @return internal {@link FileSystemMaster}, for unit test only.
+   * @return internal {@link FileSystemMaster}, for unit test only
    */
   public FileSystemMaster getFileSystemMaster() {
     return mFileSystemMaster;
   }
 
   /**
-   * @return internal {@link RawTableMaster}, for unit test only.
+   * @return internal {@link RawTableMaster}, for unit test only
    */
   public RawTableMaster getRawTableMaster() {
     return mRawTableMaster;
   }
 
   /**
-   * @return internal {@link BlockMaster}, for unit test only.
+   * @return internal {@link BlockMaster}, for unit test only
    */
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
   }
 
   /**
-   * @return the millisecond when Tachyon Master starts serving, return -1 when not started.
+   * @return the millisecond when Tachyon Master starts serving, return -1 when not started
    */
   public long getStarttimeMs() {
     return mStartTimeMs;
   }
 
   /**
-   * @return true if the system is the leader (serving the rpc server), false otherwise.
+   * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   boolean isServing() {
     return mIsServing;

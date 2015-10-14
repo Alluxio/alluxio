@@ -52,7 +52,7 @@ public final class StorageTierView {
   }
 
   /**
-   * @return a list of directory views in this storage tier view.
+   * @return a list of directory views in this storage tier view
    */
   public List<StorageDirView> getDirViews() {
     return Collections.unmodifiableList(mDirViews);

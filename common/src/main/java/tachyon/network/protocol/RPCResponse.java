@@ -56,7 +56,7 @@ public abstract class RPCResponse extends RPCMessage {
     /**
      * Returns the short identifier of the status.
      *
-     * @return the short representing the status.
+     * @return the short representing the status
      */
     public short getId() {
       return mId;
@@ -65,7 +65,7 @@ public abstract class RPCResponse extends RPCMessage {
     /**
      * Returns the message for the status.
      *
-     * @return A string representing the status.
+     * @return A string representing the status
      */
     public String getMessage() {
       String message = STATUS_TO_MESSAGE_MAP.get(this);
@@ -79,7 +79,7 @@ public abstract class RPCResponse extends RPCMessage {
      * Returns the {@link tachyon.network.protocol.RPCResponse.Status} represented by the short.
      *
      * @param id the short representing a {@link tachyon.network.protocol.RPCResponse.Status}
-     * @return the {@link tachyon.network.protocol.RPCResponse.Status} representing the given short.
+     * @return the {@link tachyon.network.protocol.RPCResponse.Status} representing the given short
      */
     public static Status fromShort(short id) {
       Status status = SHORT_TO_STATUS_MAP.get(id);
@@ -95,8 +95,8 @@ public abstract class RPCResponse extends RPCMessage {
      *
      * This method must be updated when a new Status is added.
      *
-     * @param status The {@link tachyon.network.protocol.RPCResponse.Status} to get the message for.
-     * @return The String message for the status.
+     * @param status The {@link tachyon.network.protocol.RPCResponse.Status} to get the message for
+     * @return The String message for the status
      */
     private static String statusToMessage(Status status) {
       switch (status) {
