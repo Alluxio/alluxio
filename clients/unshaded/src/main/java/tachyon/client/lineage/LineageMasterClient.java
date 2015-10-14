@@ -24,11 +24,8 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
-
 import tachyon.Constants;
 import tachyon.MasterClientBase;
-import tachyon.TachyonURI;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonException;
 import tachyon.job.CommandLineJob;
