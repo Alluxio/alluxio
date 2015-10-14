@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
 import tachyon.client.lineage.LineageMasterClient;
+import tachyon.heartbeat.HeartbeatExecutor;
 import tachyon.thrift.CheckpointFile;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.LineageCommand;

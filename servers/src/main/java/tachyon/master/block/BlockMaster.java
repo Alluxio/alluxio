@@ -37,8 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.HeartbeatThread;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
 import tachyon.collections.IndexedSet;
@@ -46,6 +44,9 @@ import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NoWorkerException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
@@ -186,9 +187,10 @@ public final class BlockMaster extends MasterBase
     super.start(isLeader);
     if (isLeader) {
       mLostWorkerDetectionService =
-          getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
-              new LostWorkerDetectionHeartbeatExecutor(),
-              MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+          getExecutorService().submit(
+              new HeartbeatThread(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
+                  new LostWorkerDetectionHeartbeatExecutor(), MasterContext.getConf().getInt(
+                      Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 

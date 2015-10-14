@@ -34,8 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.HeartbeatThread;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.collections.Pair;
@@ -47,7 +45,9 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.SuspectedFileSizeException;
-import tachyon.exception.TachyonException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
@@ -215,8 +215,9 @@ public final class FileSystemMaster extends MasterBase {
       }
       mTTLCheckerService =
           getExecutorService().submit(
-              new HeartbeatThread("InodeFile TTL Check", new MasterInodeTTLCheckExecutor(),
-                  conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+              new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
+                  new MasterInodeTTLCheckExecutor(), conf
+                  .getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
   }
