@@ -46,14 +46,14 @@ public final class Pair<T1, T2> {
   }
 
   /**
-   * @return the first element of the pair.
+   * @return the first element of the pair
    */
   public T1 getFirst() {
     return mFirst;
   }
 
   /**
-   * @return the second element of the pair.
+   * @return the second element of the pair
    */
   public T2 getSecond() {
     return mSecond;
@@ -67,7 +67,7 @@ public final class Pair<T1, T2> {
   /**
    * Set the first value.
    *
-   * @param first the value to be set.
+   * @param first the value to be set
    */
   public void setFirst(T1 first) {
     mFirst = first;

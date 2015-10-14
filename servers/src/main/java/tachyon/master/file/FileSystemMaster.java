@@ -617,7 +617,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Get the total number of files and directories.
    *
-   * @return the number of files and directories.
+   * @return the number of files and directories
    */
   public int getNumberOfFiles() {
     synchronized (mInodeTree) {
@@ -628,7 +628,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Get the number of pinned files and directories.
    *
-   * @return the number of pinned files and directories.
+   * @return the number of pinned files and directories
    */
   public int getNumberOfPinnedFiles() {
     synchronized (mInodeTree) {
@@ -641,7 +641,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the file id to delete
    * @param recursive if true, will delete all its children.
-   * @return true if the file was deleted, false otherwise.
+   * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
@@ -772,7 +772,7 @@ public final class FileSystemMaster extends MasterBase {
    * Returns all the {@link FileBlockInfo} of the given file. Called via RPC, and internal masters.
    *
    * @param fileId the file id to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file.
+   * @return a list of {@link FileBlockInfo} for all the blocks of the file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public List<FileBlockInfo> getFileBlockInfoList(long fileId)
@@ -798,7 +798,7 @@ public final class FileSystemMaster extends MasterBase {
    * Returns all the {@link FileBlockInfo} of the given file. Called by web UI.
    *
    * @param path the path to the file
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file.
+   * @return a list of {@link FileBlockInfo} for all the blocks of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
@@ -871,7 +871,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Gets absolute paths of all in memory files. Called by the web ui.
    *
-   * @return absolute paths of all in memory files.
+   * @return absolute paths of all in memory files
    */
   public List<TachyonURI> getInMemoryFiles() {
     List<TachyonURI> ret = new ArrayList<TachyonURI>();
@@ -1214,7 +1214,7 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    *
-   * @return the set of inode ids which are pinned. Called via RPC.
+   * @return the set of inode ids which are pinned. Called via RPC
    */
   public Set<Long> getPinIdList() {
     synchronized (mInodeTree) {
@@ -1223,7 +1223,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the ufs address for this master.
+   * @return the ufs address for this master
    */
   public String getUfsAddress() {
     return MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);

@@ -116,7 +116,7 @@ public class TieredBlockStoreTestUtils {
    *        turns into `baseDir/tierPath`.
    * @param tierCapacity Capacity of this tier.
    * @param workerDataFolder When specified it sets up the tachyon.worker.data.folder property.
-   * @return The created TachyonConf.
+   * @return The created TachyonConf
    * @throws Exception When error happens during creating temporary folder.
    */
   public static void setupTachyonConfWithSingleTier(String baseDir, int tierLevel,
@@ -164,7 +164,7 @@ public class TieredBlockStoreTestUtils {
    *
    * @param baseDir The directory path as prefix for all the paths in the array 'dirs'.
    * @param dirs 2-D array of directory paths.
-   * @return New joined and created paths array.
+   * @return New joined and created paths array
    * @throws Exception When error happens during creating temporary folder.
    */
   private static String[][] createDirHierarchy(String baseDir, final String[][] dirs)
@@ -184,7 +184,7 @@ public class TieredBlockStoreTestUtils {
    *
    * @param baseDir The directory path as prefix for all the paths in the array 'dirs'.
    * @param dirs 1-D array of directory paths.
-   * @return New joined and created paths array.
+   * @return New joined and created paths array
    * @throws IOException When error happens during creating temporary folder.
    */
   private static String[] createDirHierarchy(String baseDir, final String[] dirs)
@@ -205,7 +205,7 @@ public class TieredBlockStoreTestUtils {
    *
    * @param baseDir The directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
-   * @return The created metadata manager.
+   * @return The created metadata manager
    * @throws Exception When error happens during creating temporary folder.
    */
   public static BlockMetadataManager defaultMetadataManager(String baseDir) throws Exception {
@@ -218,7 +218,7 @@ public class TieredBlockStoreTestUtils {
    *
    * @param baseDir The directory path as prefix for paths of directories in the tiered storage. The
    *        directory needs to exist before calling this method.
-   * @return The created metadata manager view.
+   * @return The created metadata manager view
    * @throws Exception When error happens during creating temporary folder.
    */
   public static BlockMetadataManagerView defaultMetadataManagerView(String baseDir)
@@ -336,7 +336,7 @@ public class TieredBlockStoreTestUtils {
   /**
    * Gets the total capacity of all tiers in bytes.
    *
-   * @return Total capacity of all tiers in bytes.
+   * @return Total capacity of all tiers in bytes
    */
   public static long getDefaultTotalCapacityBytes() {
     long totalCapacity = 0;
@@ -351,7 +351,7 @@ public class TieredBlockStoreTestUtils {
   /**
    * Gets the number of testing directories of all tiers.
    *
-   * @return Number of testing directories of all tiers.
+   * @return Number of testing directories of all tiers
    */
   public static long getDefaultDirNum() {
     int dirNum = 0;

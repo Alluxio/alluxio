@@ -138,7 +138,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * @return the replication factor.
+   * @return the replication factor
    */
   public int getDiskReplication() {
     // TODO(hy): Implement it.
@@ -381,7 +381,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Currently unsupported.
    *
    * @param blockIndex The block index of the current file to read.
-   * @return TachyonByteBuffer containing the block.
+   * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   @Deprecated
@@ -395,7 +395,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Currently unsupported.
    *
    * @param blockIndex The block index of the current file to read.
-   * @return TachyonByteBuffer containing the block.
+   * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   TachyonByteBuffer readLocalByteBuffer(int blockIndex) throws IOException {

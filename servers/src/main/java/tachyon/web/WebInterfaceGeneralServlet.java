@@ -115,7 +115,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * List the StorageTierInfo objects of each storage level(alias).
    *
-   * @return the list of StorageTierInfo objects.
+   * @return the list of StorageTierInfo objects
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
     List<StorageTierInfo> infos = new ArrayList<StorageTierInfo>();
