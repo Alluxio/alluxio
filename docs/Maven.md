@@ -3,7 +3,7 @@ layout: global
 title: Maven
 ---
 
-# Mac OSX
+# Mac OS X
 
 Before OS X Mavericks, Mac OS X comes with Apache Maven 3 built in, and can be located at
 `/usr/share/maven`
