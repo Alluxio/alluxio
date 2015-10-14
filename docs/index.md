@@ -38,7 +38,7 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 
 # Current Features
 
-* **[Flexible File API](File-System-API.md)** Tachyon's native API is similar to that of the
+* **[Flexible File API](File-System-API.html)** Tachyon's native API is similar to that of the
 ``java.io.File`` class, providing InputStream and OutputStream interfaces and efficient support for
 memory-mapped I/O. We recommend using this API to get the best performance from Tachyon.
 Alternatively, Tachyon provides a Hadoop compatible FileSystem interface, allowing Hadoop MapReduce
@@ -72,8 +72,6 @@ into the Tachyon name space under its mount point. On the other hand, transparen
 data written into Tachyon and through to an underlying store can be identified with the same file
 name.
 
-
-
 # Getting Started
 
 To quickly get Tachyon up and running, take a look at our [Getting Started](Getting-Started.html)
@@ -82,7 +80,7 @@ page which will go through how to deploy Tachyon and run some basic examples in 
 # Downloads
 
 You can get the released versions of Tachyon from the
-[Project Downloads Page](https://tachyon-project.org/downloads). Each release comes with prebuilt
+[Project Downloads Page](http://tachyon-project.org/downloads). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
 [Building From Master Branch Documentation](Building-Tachyon-Master-Branch.html).
