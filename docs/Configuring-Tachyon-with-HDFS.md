@@ -74,9 +74,9 @@ Next, you can run a simple example program:
 $ ./bin/tachyon runTest Basic CACHE_THROUGH
 ```
 
-After this succeeds, you can visit [HDFS webUI](http://localhost:50070) to verify the files and
-directories created by Tachyon exist. For this test, you should see a file named:
-`/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH`
+After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070) 
+to verify the files and directories created by Tachyon exist. For this test, you should see a 
+file named: `/tachyon/data/default_tests_files/BasicFile_CACHE_THROUGH`
 
 To stop Tachyon, you can run:
 
