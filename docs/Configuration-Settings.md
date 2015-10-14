@@ -141,6 +141,16 @@ the port number.
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
+  <td>tachyon.master.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname that Tachyon master binds to.</td>
+</tr>
+<tr>
+  <td>tachyon.master.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>The interval (in milliseconds) between Tachyon's heartbeats</td>
+</tr>
+<tr>
   <td>tachyon.master.journal.folder</td>
   <td>"${tachyon.home}/journal/"</td>
   <td>The path to store master journal logs.</td>
@@ -151,10 +161,9 @@ the port number.
   <td>The class to serialize the journal in a specified format.</td>
 </tr>
 <tr>
-  <td>tachyon.master.journal.tailer.sleep.time.ms</td>
-  <td>1000</td>
-  <td>Time (in milliseconds) the standby master sleeps for when it cannot find anything new in leader
-    master's journal.</td>
+  <td>tachyon.master.journal.log.size.bytes.max</td>
+  <td>10MB</td>
+  <td>If a log file is bigger than this value, it will rotate to next file</td>
 </tr>
 <tr>
   <td>tachyon.master.journal.tailer.shutdown.quiet.wait.time.ms</td>
@@ -163,52 +172,10 @@ the port number.
     leader master's journal in this specified time period (in milliseconds).</td>
 </tr>
 <tr>
-  <td>tachyon.master.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of address of Tachyon master.</td>
-</tr>
-<tr>
-  <td>tachyon.master.bind.host</td>
-  <td>0.0.0.0</td>
-  <td>The hostname that Tachyon master binds to.</td>
-</tr>
-<tr>
-  <td>tachyon.master.port</td>
-  <td>19998</td>
-  <td>The port that Tachyon master node runs on.</td>
-</tr>
-<tr>
-  <td>tachyon.master.web.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of master's web service that a client uses to communicate
-  with the service.</td>
-</tr>
-<tr>
-  <td>tachyon.master.web.bind.host</td>
-  <td>0.0.0.0</td>
-  <td>The hostname Tachyon master's web server binds to.</td>
-</tr>
-<tr>
-  <td>tachyon.master.web.port</td>
-  <td>19999</td>
-  <td>The port Tachyon's web interface runs on.</td>
-</tr>
-<tr>
-  <td>tachyon.master.whitelist</td>
-  <td>/</td>
-  <td>The comma-separated list of prefixes of the paths which are cacheable, separated by
-    semi-colons. Tachyon will try to cache the cacheable file when it is read for the first
-    time.</td>
-</tr>
-<tr>
-  <td>tachyon.master.worker.timeout.ms</td>
-  <td>10000</td>
-  <td>Timeout (in milliseconds) between master and worker indicating a lost worker.</td>
-</tr>
-<tr>
-  <td>tachyon.master.ttlchecker.interval.ms</td>
-  <td>3600000</td>
-  <td>Time interval (in milliseconds) to periodically delete the files with expired ttl value.</td>
+  <td>tachyon.master.journal.tailer.sleep.time.ms</td>
+  <td>1000</td>
+  <td>Time (in milliseconds) the standby master sleeps for when it cannot find anything new in leader
+    master's journal.</td>
 </tr>
 <tr>
   <td>tachyon.master.lineage.checkpoint.interval.ms</td>
@@ -241,6 +208,48 @@ the port number.
   <td>
   The path to the log that the recompute executor redirects the job's stdout into.
   </td>
+</tr>
+<tr>
+  <td>tachyon.master.port</td>
+  <td>19998</td>
+  <td>The port that Tachyon master node runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.master.retry</td>
+  <td>29</td>
+  <td>The number of retries that the client connects to master</td>
+</tr>
+<tr>
+  <td>tachyon.master.ttlchecker.interval.ms</td>
+  <td>3600000</td>
+  <td>Time interval (in milliseconds) to periodically delete the files with expired ttl value.</td>
+</tr>
+<tr>
+  <td>tachyon.master.web.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon master's web server binds to.</td>
+</tr>
+<tr>
+  <td>tachyon.master.web.port</td>
+  <td>19999</td>
+  <td>The port Tachyon's web interface runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.master.whitelist</td>
+  <td>/</td>
+  <td>The comma-separated list of prefixes of the paths which are cacheable, separated by
+    semi-colons. Tachyon will try to cache the cacheable file when it is read for the first
+    time.</td>
+</tr>
+<tr>
+  <td>tachyon.master.worker.threads.max</td>
+  <td>2048</td>
+  <td>The max number of workers that connect to master</td>
+</tr>
+<tr>
+  <td>tachyon.master.worker.timeout.ms</td>
+  <td>10000</td>
+  <td>Timeout (in milliseconds) between master and worker indicating a lost worker.</td>
 </tr>
 </table>
 
