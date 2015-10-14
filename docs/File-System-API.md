@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Tachyon Filesystem Client API
+title: Filesystem Client API
 nickname: Filesystem API
 group: Features
 priority: 1
