@@ -40,7 +40,7 @@ the `hdfs-site.xml` file as well.
 If you are using a 2.x Hadoop cluster, you should not need the properties above in your `core-site.xml`
 file. However, in some cases you may encounter the error:
 `java.io.IOException: No FileSystem for scheme: tachyon`. For instance, this may happen when Yarn 
-(as opposed to Hadoop)tries to access Tachyon files. If this error is encountered, add these 
+(as opposed to Hadoop) tries to access Tachyon files. If this error is encountered, add these 
 properties to your `core-site.xml` file, and restart Yarn.
 
 ```xml

@@ -71,7 +71,7 @@ SetStateOptions pinOpt = new SetStateOptions.Builder(ClientContext.getConf()).se
 TachyonFileSystem.setState(file, pinOpt);
 ```
 
-Similarly the file can be unpinned through:
+Similarly, the file can be unpinned through:
 
 ```java
 TachyonFile file = TachyonFileSystem.open("/myFile");
