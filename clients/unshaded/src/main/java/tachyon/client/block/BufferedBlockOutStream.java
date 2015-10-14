@@ -134,7 +134,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   protected abstract void unBufferedWrite(byte[] b, int off, int len) throws IOException;
 
   /**
-   * @return a newly allocated byte buffer of the user defined default size.
+   * @return a newly allocated byte buffer of the user defined default size
    */
   private ByteBuffer allocateBuffer() {
     TachyonConf conf = ClientContext.getConf();

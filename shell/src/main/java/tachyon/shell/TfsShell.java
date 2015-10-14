@@ -102,7 +102,7 @@ public class TfsShell implements Closeable {
    * Prints the file's contents to the console.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int cat(TachyonURI path) throws IOException {
@@ -150,7 +150,7 @@ public class TfsShell implements Closeable {
    * Load a file or directory in Tachyon space, makes it resident in memory.
    *
    * @param filePath The TachyonURI path to load into Tachyon memory
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int load(TachyonURI filePath) throws IOException {
@@ -218,7 +218,7 @@ public class TfsShell implements Closeable {
    *
    * @param srcFiles The list of files in the local filesystem
    * @param dstPath The TachyonURI of the destination
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int copyFromLocalWildcard(List<File> srcFiles, TachyonURI dstPath) throws IOException {
@@ -273,7 +273,7 @@ public class TfsShell implements Closeable {
    *
    * @param srcFile The source file in the local filesystem
    * @param dstPath The TachyonURI of the destination
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int copyFromLocal(File srcFile, TachyonURI dstPath) throws IOException {
@@ -341,7 +341,7 @@ public class TfsShell implements Closeable {
    *
    * @param srcPaths The list of files in the Tachyon filesystem
    * @param dstFile The destination directory in the local filesystem
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int copyWildcardToLocal(List<TachyonURI> srcPaths, File dstFile) throws IOException {
@@ -375,7 +375,7 @@ public class TfsShell implements Closeable {
    *
    * @param srcPath The source TachyonURI (could be a file or a directory)
    * @param dstFile The destination file in the local filesystem
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   private int copyToLocal(TachyonURI srcPath, File dstFile) throws IOException {
@@ -428,7 +428,7 @@ public class TfsShell implements Closeable {
    *
    * @param srcPath The source TachyonURI (has to be a file)
    * @param dstFile The destination file in the local filesystem
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int copyFileToLocal(TachyonURI srcPath, File dstFile)  throws IOException {
@@ -468,7 +468,7 @@ public class TfsShell implements Closeable {
    * Displays the number of folders and files matching the specified prefix in argv.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int count(TachyonURI path) throws IOException {
@@ -518,7 +518,7 @@ public class TfsShell implements Closeable {
    * Displays the file's all blocks info
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int fileinfo(TachyonURI path) throws IOException {
@@ -551,7 +551,7 @@ public class TfsShell implements Closeable {
    * Displays a list of hosts that have the file specified in argv stored.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int location(TachyonURI path) throws IOException {
@@ -620,7 +620,7 @@ public class TfsShell implements Closeable {
    * Displays information for all directories and files directly under the path specified in argv.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int ls(TachyonURI path) throws IOException {
@@ -651,7 +651,7 @@ public class TfsShell implements Closeable {
    * recursively.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int lsr(TachyonURI path) throws IOException {
@@ -680,7 +680,7 @@ public class TfsShell implements Closeable {
    * required. This method fails if a directory or file with the same path already exists.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    */
   public int mkdir(TachyonURI path) {
     try {
@@ -698,7 +698,7 @@ public class TfsShell implements Closeable {
   /**
    * Get number of bytes used in the TachyonFileSystem
    *
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    */
   public int getUsedBytes() {
     try {
@@ -713,7 +713,7 @@ public class TfsShell implements Closeable {
   /**
    * Get the capacity of the TachyonFileSystem
    *
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    */
   public int getCapacityBytes() {
     try {
@@ -730,7 +730,7 @@ public class TfsShell implements Closeable {
    * never evicted from memory.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    */
   public int pin(TachyonURI path) {
     try {
@@ -891,7 +891,7 @@ public class TfsShell implements Closeable {
    * Renames a file or directory specified by argv. Will fail if the new path name already exists.
    *
    * @param argv [] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int rename(String[] argv) throws IOException {
@@ -936,7 +936,7 @@ public class TfsShell implements Closeable {
    * Removes the file specified by argv.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int rm(TachyonURI path) throws IOException {
@@ -974,7 +974,7 @@ public class TfsShell implements Closeable {
    * directory if a directory is specified.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    */
   public int rmr(TachyonURI path) {
     try {
@@ -998,7 +998,7 @@ public class TfsShell implements Closeable {
    * Displays the size of a file or a directory specified by argv.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    */
   public int du(TachyonURI path) throws IOException {
     long sizeInBytes = getFileOrFolderSize(mTfs, path);
@@ -1212,7 +1212,7 @@ public class TfsShell implements Closeable {
    * Creates a 0 byte file specified by argv. The file will be written to UnderFileSystem.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command if successful, -1 if an error occurred.
+   * @return 0 if command if successful, -1 if an error occurred
    * @throws IOException
    */
   public int touch(TachyonURI path) throws IOException {
@@ -1231,7 +1231,7 @@ public class TfsShell implements Closeable {
    * are never evicted from memory, so this method will allow such files to be evicted.
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command is successful, -1 if an error occurred.
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws IOException
    */
   public int unpin(TachyonURI path) throws IOException {
@@ -1257,7 +1257,7 @@ public class TfsShell implements Closeable {
    * folder)
    *
    * @param path The TachyonURI path as the input of the command
-   * @return 0 if command if successful, -1 if an error occurred.
+   * @return 0 if command if successful, -1 if an error occurred
    */
   public int free(TachyonURI path) throws IOException {
     try {
@@ -1280,7 +1280,7 @@ public class TfsShell implements Closeable {
    *
    * @param tachyonFS A TachyonFileSystem
    * @param path A TachyonURI denoting the path
-   * @return total size of the specified path in byte.
+   * @return total size of the specified path in byte
    * @throws IOException
    */
   private long getFileOrFolderSize(TachyonFileSystem tachyonFS, TachyonURI path)
