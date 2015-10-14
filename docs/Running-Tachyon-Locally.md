@@ -34,7 +34,9 @@ filesystem (e.g., `export TACHYON_UNDERFS_ADDRESS=/tmp`).
 
 Then, you can format Tachyon FileSystem and start it. *Note: since Tachyon needs to setup
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt), starting a
-local system requires users to input their root password for Linux based users.*
+local system requires users to input their root password for Linux based users. To avoid the need to
+repeatedly input the root password, you can add the public ssh key for the host into 
+`~/.ssh/authorized_keys`.*
 
 ```bash
 $ ./bin/tachyon format
@@ -72,7 +74,7 @@ For the first sample program, you should be able to see something similar to the
     Passed the test!
 
 And you can visit Tachyon web UI at **[http://localhost:19999](http://localhost:19999)** again.
-Click `Browse File System` in the navigation bar, and you should see the files written to Tachyon by
+Click `Browse File System` in the navigation bar and you should see the files written to Tachyon by
 the above test.
 
 To run a more comprehensive sanity check:
