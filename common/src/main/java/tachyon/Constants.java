@@ -250,8 +250,6 @@ public final class Constants {
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
-  public static final String WORKER_RESOURCE_CPU = "tachyon.worker.resource.cpu";
-  public static final String WORKER_RESOURCE_MEM = "tachyon.worker.resource.mem";
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
