@@ -324,5 +324,9 @@ public final class Constants {
   public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER =
       "tachyon.security.authentication.custom.provider.class";
 
+  // Relative path to Tachyon target jar
+  public static final String TACHYON_JAR = "target/tachyon-" + Version.VERSION
+      + "-jar-with-dependencies.jar";
+
   private Constants() {} // prevent instantiation
 }

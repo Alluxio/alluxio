@@ -186,10 +186,10 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public long loadFileInfoFromUfs(String tachyonPath, boolean recursive)
+  public long loadMetadata(String tachyonPath, boolean recursive)
       throws TachyonTException, ThriftIOException {
     try {
-      return mFileSystemMaster.loadFileInfoFromUfs(new TachyonURI(tachyonPath), recursive);
+      return mFileSystemMaster.loadMetadata(new TachyonURI(tachyonPath), recursive);
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     } catch (IOException e) {
