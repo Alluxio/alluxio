@@ -9,7 +9,7 @@ at memory-speed across cluster jobs, possibly written in different computation f
 Spark and MapReduce. In the ecosystem, Tachyon lies between computation frameworks or jobs, such as
 Apache Spark, Apache MapReduce, and Apache Flink, and various kinds of stroage systems, such as
 Amazon S3, OpenStack Swift, GlusterFS, HDFS, and Ceph. Tachyon brings significant performance
-improvement to the stack; for example, [Baidu](www.baidu.com) uses Tachyon to improve their data
+improvement to the stack; for example, [Baidu](https://www.baidu.com) uses Tachyon to improve their data
 analytics performance by 30 times. Beyond performance, Tachyon bridges new workloads with data stored
 in traditional storage systems. Users can run Tachyon using its standalone cluster mode, for example
 on Amazon EC2, or launch Tachyon with Apache Mesos or Apache Yarn.
@@ -20,9 +20,9 @@ any code change. The project is open source
 multiple companies. It is one of the fastest growing open source project. With less than three years
 open source history, Tachyon has attracted more than
 [130 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 50 institutions,
-including [Alibaba](www.alibaba.com), [Baidu](www.baidu.com), [CMU](http://www.cmu.edu/),
-[IBM](www.ibm.com), [Intel](http://www.intel.com/), [Red Hat](http://www.redhat.com/),
-[Tachyon Nexus](http://www.tachyonnexus.com/),
+including [Alibaba](https://www.alibaba.com), [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/),
+[IBM](https://www.ibm.com), [Intel](https://www.intel.com/), [Red Hat](https://www.redhat.com/),
+[Tachyon Nexus](https://www.tachyonnexus.com/),
 [UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics
 Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
@@ -32,7 +32,7 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Releases and Downloads](https://github.com/amplab/tachyon/releases) |
 [User Documentation](Getting-Started.html) |
 [Developer Documentation](Contributing-To-Tachyon.html) |
-[Meetup Group](http://www.meetup.com/Tachyon/) |
+[Meetup Group](https://www.meetup.com/Tachyon/) |
 [JIRA](https://tachyon.atlassian.net/browse/TACHYON) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
 
@@ -82,7 +82,7 @@ page which will go through how to deploy Tachyon and run some basic examples in 
 # Downloads
 
 You can get the released versions of Tachyon from the
-[Project Downloads Page](http://tachyon-project.org/downloads). Each release comes with prebuilt
+[Project Downloads Page](https://tachyon-project.org/downloads). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
 [Building From Master Branch Documentation](Building-Tachyon-Master-Branch.html).
