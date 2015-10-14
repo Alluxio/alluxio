@@ -6,10 +6,10 @@ group: User Guide
 priority: 2
 ---
 
-Tachyon can be deployed on VirtualBox on your local machine using the
-[Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
-Tachyon. The scripts let you create, configure and destroy clusters that come automatically
-configured with HDFS.
+Tachyon can be deployed on [VirtualBox](https://www.virtualbox.org/) on your local machine
+using the [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)
+that come with Tachyon. The scripts let you create, configure and destroy clusters that come
+automatically configured with HDFS.
 
 # Prerequisites
 
@@ -56,14 +56,14 @@ under `deploy/vagrant`:
 ./create <number of machines> vb
 ```
 
-Each node of the cluster has a Tachyon worker, `TachyonMaster` has a Tachyon master.
+Each node of the cluster runs a Tachyon worker, and the `TachyonMaster` runs a Tachyon master.
 
 # Access the cluster
 
 **Access through Web UI**
 
-After command `./create <number of machines> vb` succeeds, you can see two green lines like below
-shown at the end of the shell output:
+After the command `./create <number of machines> vb` succeeds, you can see two green lines like
+below shown at the end of the shell output:
 
     >>> TachyonMaster public IP is xxx, visit xxx:19999 for Tachyon web UI<<<
     >>> visit default port of the web UI of what you deployed <<<
@@ -76,24 +76,24 @@ Visit `http://{MASTER_IP}:{PORT}` in the browser to access the Web UIs.
 
 **Access with ssh**
 
-The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2` and so on.
+The nodes set up are named as `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2` and so on.
 
-To ssh into a node, run
+To ssh into a node, run:
 
 ```bash
 $ vagrant ssh <node name>
 ```
 
-For example, you can ssh into `TachyonMaster` with
+For example, you can ssh into `TachyonMaster` with:
 
 ```bash
 $ vagrant ssh TachyonMaster
 ```
 
-All software are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
-installed in `/hadoop`.
+All software are installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
+and Hadoop is installed in `/hadoop`.
 
-On `TachyonMaster` node, you can run some tests against Tachyon to check its health:
+On the `TachyonMaster` node, you can run some tests against Tachyon to check its health:
 
 ```bash
 $ /tachyon/bin/tachyon runTests
@@ -103,7 +103,7 @@ After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` aga
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
 
-From a node in the cluster, you can ssh to other nodes in the cluster without password like
+From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
 ```bash
 $ ssh TachyonWorker1
@@ -111,7 +111,7 @@ $ ssh TachyonWorker1
 
 # Destroy the cluster
 
-Under `deploy/vagrant` directory, you can run
+Under `deploy/vagrant` directory, you can run:
 
 ```bash
 $ ./destroy
