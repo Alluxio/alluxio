@@ -303,7 +303,7 @@ the port number.
 <tr>
   <td>tachyon.worker.data.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon's worker's data server runs on.</td>
+  <td>The hostname that the Tachyon worker's data server runs on.</td>
 </tr>
 <tr>
   <td>tachyon.worker.data.folder</td>
