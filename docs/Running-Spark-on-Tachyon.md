@@ -46,15 +46,15 @@ out-of-the-box.
 
 If the version of Spark is not supported by your Tachyon installation by default (e.g., you are
 trying out the latest Tachyon release with some older Spark installation), one can recompile Spark
-by updating the correct version of tachyon-client in Spark dependency. To be more specific, edit
-`spark/core/pom.xml` and change the dependency version of `tachyon-client` to
-`your_tachyon_version`:
+by updating the correct version of tachyon-client in Spark dependency. To do that, edit
+`spark/core/pom.xml` and change the dependency version of `tachyon-client` to 
+`target_tachyon_version`:
 
 ```xml
 <dependency>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-client</artifactId>
-  <version>your_tachyon_version</version>
+  <version>target_tachyon_version</version>
   ...
 </dependency>
 ```
@@ -72,28 +72,6 @@ by updating the correct version of tachyon-client in Spark dependency. To be mor
 export SPARK_CLASSPATH=/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
 ```
 
-
-* If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x
-cluster, additionally add new entry in previously created `spark/conf/core-site.xml`:
-
-```xml
-<property>
-  <name>fs.tachyon-ft.impl</name>
-  <value>tachyon.hadoop.TFSFT</value>
-</property>
-```
-
-
-Add the following line to `spark/conf/spark-env.sh`:
-
-```bash
-export SPARK_JAVA_OPTS="
-  -Dtachyon.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181
-  -Dtachyon.usezookeeper=true
-  $SPARK_JAVA_OPTS
-"
-```
-
 * If Tachyon is run on top of a Hadoop 1.x cluster, create a new file `spark/conf/core-site.xml`
 with the following content:
 
@@ -107,7 +85,28 @@ with the following content:
 ```
 
 
+* If you are running tachyon in fault tolerant mode with zookeeper and the Hadoop cluster is a 1.x, 
+add the following additionally entry to the previously created `spark/conf/core-site.xml`:
+
+```xml
+<property>
+  <name>fs.tachyon-ft.impl</name>
+  <value>tachyon.hadoop.TFSFT</value>
+</property>
+```
+
+and the following line to `spark/conf/spark-env.sh`:
+
+```bash
+export SPARK_JAVA_OPTS="
+  -Dtachyon.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 \
+  -Dtachyon.usezookeeper=true \
+  $SPARK_JAVA_OPTS
+"
+```
+
 ## Use Tachyon as Input and Output
+
 This section shows how to use Tachyon as input and output sources for your Spark applications.
 
 Put a file `foo` into HDFS, assuming namenode is running on `localhost`:
@@ -116,7 +115,7 @@ Put a file `foo` into HDFS, assuming namenode is running on `localhost`:
 $ hadoop fs -put -f foo hdfs://localhost:9000/foo
 ```
 
-Run the following commands from Spark shell, assuming Tachyon Master is running on `localhost`
+Run the following commands from Spark shell, assuming Tachyon Master is running on `localhost`:
 
 ```bash
 $ ./spark-shell
@@ -140,8 +139,8 @@ $ ./spark-shell
 ## Persist Spark RDDs into Tachyon
 
 This feature requires Spark 1.0 or later and Tachyon 0.4.1 or later.  Please refer to
-[Spark guide](http://spark.apache.org/docs/latest/programming-guide.html#rdd-persistence) on its
-benefit.
+[Spark guide](http://spark.apache.org/docs/latest/programming-guide.html#rdd-persistence) for 
+more details about RDD persistence.
 
 To persist Spark RDDs, your Spark programs need to have two parameters set:
 `spark.externalBlockStore.url` and `spark.externalBlockStore.baseDir`.
@@ -161,8 +160,7 @@ $ ./spark-shell
 > rdd.persist(StorageLevel.OFF_HEAP)
 ```
 
-Check the `spark.externalBlockStore.baseDir` on Tachyon's WebUI (the default URI is
-[http://localhost:19999](http://localhost:19999)), when the Spark application is running. There
-should be a bunch of files there; they are RDD blocks. Currently, the files will be cleaned up when
-the spark application finishes.
-
+Check the `spark.externalBlockStore.baseDir` using Tachyon's web UI (the default URI is
+[http://localhost:19999](http://localhost:19999)), when the Spark application is running. You should
+see a number of files there; they are the persisted RDD blocks. Currently, the files will be cleaned 
+up when the Spark application finishes.
