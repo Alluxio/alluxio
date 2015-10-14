@@ -23,8 +23,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
@@ -48,7 +46,6 @@ import tachyon.thrift.FileInfo;
 import tachyon.thrift.RawTableInfo;
 import tachyon.thrift.WorkerInfo;
 import tachyon.util.IdUtils;
-import tachyon.util.ThreadFactoryUtils;
 import tachyon.util.io.FileUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
@@ -77,7 +74,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Deprecated
   public static synchronized TachyonFS get(String tachyonPath) {
-    return get(new TachyonURI(tachyonPath), new TachyonConf());
+    return get(new TachyonURI(tachyonPath), ClientContext.getConf());
   }
 
   /**
@@ -90,7 +87,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Deprecated
   public static synchronized TachyonFS get(final TachyonURI tachyonURI) {
-    return get(tachyonURI, new TachyonConf());
+    return get(tachyonURI, ClientContext.getConf());
   }
 
   /**
@@ -131,7 +128,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the corresponding TachyonFS handler
    */
   public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zkMode) {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
     tachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(zkMode));
@@ -186,8 +183,8 @@ public class TachyonFS extends AbstractTachyonFS {
     mZookeeperMode = mTachyonConf.getBoolean(Constants.ZOOKEEPER_ENABLED);
     mFSMasterClient = mCloser.register(FileSystemContext.INSTANCE.acquireMasterClient());
     mBlockMasterClient = mCloser.register(BlockStoreContext.INSTANCE.acquireMasterClient());
-    mRawTableMasterClient = mCloser.register(new RawTableMasterClient(mMasterAddress,
-        ClientContext.getExecutorService(), mTachyonConf));
+    mRawTableMasterClient =
+        mCloser.register(new RawTableMasterClient(mMasterAddress, mTachyonConf));
     mWorkerClient = mCloser.register(BlockStoreContext.INSTANCE.acquireWorkerClient());
     mUserFailedSpaceRequestLimits = mTachyonConf.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
     String scheme = mZookeeperMode ? Constants.SCHEME_FT : Constants.SCHEME;
@@ -793,8 +790,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized List<FileInfo> listStatus(TachyonURI path) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.getFileInfoList(getFileStatus(IdUtils.INVALID_FILE_ID, path)
-          .getFileId());
+      return mFSMasterClient.getFileInfoList(
+          getFileStatus(IdUtils.INVALID_FILE_ID, path).getFileId());
     } catch (TachyonException e) {
       throw new IOException(e);
     }
