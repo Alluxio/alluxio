@@ -116,8 +116,10 @@ $ hadoop jar hadoop-examples-1.2.1.jar wordcount -libjars /<PATH_TO_TACHYON>/cli
 For installing Tachyon on each node, you must place the client jar
 `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
 (located in the `/<PATH_TO_TACHYON>/clients/client/target/` directory), in the `$HADOOP_HOME/lib`
-directory of every MapReduce node, and then restart all of the TaskTrackers. One downfall of this
-approach is that the jars must be installed again for each update to a new release.
+(may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
+MapReduce node, and then restart all of the TaskTrackers. One downfall of this approach is that the
+jars must be installed again for each update to a new release. When the jar is already on every
+node, then the `-libjars` command line option is not needed.
 
 # Running Hadoop wordcount with Tachyon Locally
 
