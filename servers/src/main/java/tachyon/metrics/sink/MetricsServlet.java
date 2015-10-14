@@ -72,7 +72,7 @@ public class MetricsServlet implements Sink {
   /***
    * Get the ServletContextHandler of the metrics servlet.
    *
-   * @return the ServletContextHandler object.
+   * @return the ServletContextHandler object
    */
   public ServletContextHandler getHandler() {
     ServletContextHandler contextHandler = new ServletContextHandler();

@@ -180,7 +180,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param tachyonFileSystem the TachyonFileSystem client.
    * @param fileId the file id of the file.
-   * @return the UiFileInfo object of the file.
+   * @return the UiFileInfo object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */
@@ -194,7 +194,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    *
    * @param tachyonFileSystem the TachyonFileSystem client.
    * @param filePath the path of the file.
-   * @return the UiFileInfo object of the file.
+   * @return the UiFileInfo object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */
@@ -209,7 +209,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @param tachyonFileSystem the TachyonFileSystem client.
    * @param fileId the file id of the file.
    * @param filePath the path of the file. valid iff fileId is -1.
-   * @return the UiFileInfo object of the file.
+   * @return the UiFileInfo object of the file
    * @throws FileDoesNotExistException
    * @throws IOException
    */

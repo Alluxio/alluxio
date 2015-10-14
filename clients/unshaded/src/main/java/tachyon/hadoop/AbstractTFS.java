@@ -318,7 +318,7 @@ abstract class AbstractTFS extends FileSystem {
    * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so cannot put
    * @Override.
    *
-   * @return schema hadoop should map to.
+   * @return schema hadoop should map to
    *
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
@@ -328,7 +328,7 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * Returns an object implementing the Tachyon-specific client API.
    *
-   * @return null if initialize() hasn't been called.
+   * @return null if initialize() hasn't been called
    */
   public TachyonFS getTachyonFS() {
     return mTFS;

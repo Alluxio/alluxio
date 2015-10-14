@@ -186,7 +186,7 @@ public class BlockMetadataManagerView {
    * Get the next storage tier view.
    *
    * @param tierView the storage tier view
-   * @return the next storage tier view, null if this is the last tier view.
+   * @return the next storage tier view, null if this is the last tier view
    */
   public StorageTierView getNextTier(StorageTierView tierView) {
     int nextLevel = tierView.getTierViewLevel() + 1;

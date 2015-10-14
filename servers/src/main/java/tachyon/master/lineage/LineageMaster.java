@@ -356,7 +356,7 @@ public final class LineageMaster extends MasterBase {
   }
 
   /**
-   * @return the list of all the {@link LineageInfo}s.
+   * @return the list of all the {@link LineageInfo}s
    */
   public synchronized List<LineageInfo> getLineageInfoList() {
     List<LineageInfo> lineages = Lists.newArrayList();
