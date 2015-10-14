@@ -1,3 +1,6 @@
+Tachyon Documentation
+=====================
+
 Welcome to the Tachyon documentation!
 
 This README will walk you through navigating and building the Tachyon documentation, which is
