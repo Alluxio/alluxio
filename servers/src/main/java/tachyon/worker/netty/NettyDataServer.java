@@ -112,7 +112,7 @@ public final class NettyDataServer implements DataServer {
   public String getBindHost() {
     // Return value of io.netty.channel.Channel.localAddress() must be down-cast into types like
     // InetSocketAddress to get detailed info such as port.
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostString();
+    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getHostName();
   }
 
   /**

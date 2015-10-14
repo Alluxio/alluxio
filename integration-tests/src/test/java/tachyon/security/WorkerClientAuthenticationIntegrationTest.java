@@ -158,8 +158,12 @@ public class WorkerClientAuthenticationIntegrationTest {
         new WorkerClient(mLocalTachyonCluster.getWorkerAddress(), mExecutorService,
             mLocalTachyonCluster.getWorkerTachyonConf(), 1 /* fake session id */, true,
             new ClientMetrics());
-    Assert.assertFalse(workerClient.isConnected());
-    workerClient.mustConnect();
+    try {
+      Assert.assertFalse(workerClient.isConnected());
+      workerClient.mustConnect();
+    } finally {
+      workerClient.close();
+    }
   }
 
   /**
