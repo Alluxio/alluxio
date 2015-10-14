@@ -148,7 +148,7 @@ the port number.
 <tr>
   <td>tachyon.master.heartbeat.interval.ms</td>
   <td>1000</td>
-  <td>The interval (in milliseconds) between Tachyon's heartbeats</td>
+  <td>The interval (in milliseconds) between Tachyon master's heartbeats</td>
 </tr>
 <tr>
   <td>tachyon.master.journal.folder</td>
@@ -261,10 +261,12 @@ the port number.
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
-  <td>tachyon.worker.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of worker's RPC service that a client uses to communicate
-  with the service.</td>
+  <td>tachyon.worker.allocator.class</td>
+  <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
+  <td>The strategy that a worker uses to allocate space among storage directories in certain storage 
+  layer. Valid options include: `tachyon.worker.block.allocator.MaxFreeAllocator`,
+  `tachyon.worker.block.allocator.GreedyAllocator`,
+  `tachyon.worker.block.allocator.RoundRobinAllocator`.</td>
 </tr>
 <tr>
   <td>tachyon.worker.bind.host</td>
@@ -272,52 +274,107 @@ the port number.
   <td>The hostname Tachyon's worker node binds to.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.port</td>
-  <td>29998</td>
-  <td>The port Tachyon's worker node runs on.</td>
+  <td>tachyon.worker.block.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>The interval (in milliseconds) between block worker's heartbeats</td>
 </tr>
 <tr>
-  <td>tachyon.worker.data.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of worker's data service that a client uses to communicate
-  with the service.</td>
+  <td>tachyon.worker.block.heartbeat.timeout.ms</td>
+  <td>10000</td>
+  <td>The timeout value (in milliseconds) of block worker's heartbeat</td>
+</tr>
+<tr>
+  <td>tachyon.worker.block.threads.max</td>
+  <td>2048</td>
+  <td>The maximum number of incoming RPC requests to block worker that can be handled. This value is used for configuring the Thrift server for RPC with block worker</td>
+</tr>
+<tr>
+  <td>tachyon.worker.block.threads.min</td>
+  <td>1</td>
+  <td>The minimum number of incoming RPC requests to block worker that can be handled. This value is used for configuring the Thrift server for RPC with block worker</td>
 </tr>
 <tr>
   <td>tachyon.worker.data.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon's data server binds to.</td>
+  <td>The hostname Tachyon's worker's data server runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.data.folder</td>
+  <td>/tachyonworker/</td>
+  <td>A relative path within each storage directory used as the data folder for Tachyon worker to put data for tiered store.</td>
 </tr>
 <tr>
   <td>tachyon.worker.data.port</td>
   <td>29999</td>
   <td>The port Tachyon's worker's data server runs on.</td>
 </tr>
-<tr>
-  <td>tachyon.worker.web.hostname</td>
-  <td>localhost</td>
-  <td>The externally resolvable hostname of worker's web service that a client uses to communicate
-  with the service.</td>
+<tr> <td>tachyon.worker.data.server.class</td>
+  <td>tachyon.worker.netty.NettyDataServer</td>
+  <td>Selects the networking stack to run the worker with. Valid options are:
+  `tachyon.worker.netty.NettyDataServer`, `tachyon.worker.nio.NIODataServer`.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.web.bind.host</td>
-  <td>0.0.0.0</td>
-  <td>The hostname Tachyon's worker's web server binds to.</td>
+  <td>tachyon.worker.evictor.class</td>
+  <td>tachyon.worker.block.evictor.LRUEvictor</td>
+  <td>The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid
+  options include `tachyon.worker.block.evictor.LRFUEvictor`,
+  `tachyon.worker.block.evictor.GreedyEvictor`, `tachyon.worker.block.evictor.LRUEvictor`.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.web.port</td>
-  <td>30000</td>
-  <td>The port Tachyon's worker's web server runs on.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.data.folder</td>
-  <td>/tachyonworker/</td>
-  <td>A relative path within each storage directory used as the data folder for Tachyon worker to put data
-  for tiered store.</td>
+  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>
+  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
+  </td>
 </tr>
 <tr>
   <td>tachyon.worker.memory.size</td>
   <td>128 MB</td>
   <td>Memory capacity of each worker node.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.boss.threads</td>
+  <td>1</td>
+  <td>How many threads to use for accepting new requests.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.file.transfer</td>
+  <td>MAPPED</td>
+  <td>When returning files to the user, select how the data is transferred; valid options are
+    `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.watermark.high</td>
+  <td>32768</td>
+  <td>Determines how many bytes can be in the write queue before switching to non-writable.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.watermark.low</td>
+  <td>8192</td>
+  <td>Once the high watermark limit is reached, the queue must be flushed down to the low watermark
+    before switching back to writable.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.worker.threads</td>
+  <td>0</td>
+  <td>How many threads to use for processing requests. Zero defaults to #cpuCores * 2</td>
+</tr>
+<tr>
+  <td>tachyon.worker.port</td>
+  <td>29998</td>
+  <td>The port Tachyon's worker node runs on.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.session.timeout.ms</td>
+  <td>10000</td>
+  <td>Timeout (in milliseconds) between worker and client connection indicating a lost session 
+  connection.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.tieredstore.block.locks</td>
+  <td>1000</td>
+  <td>Total number of block locks for a Tachyon block worker. Larger value leads to finer locking
+  granularity, but uses more space.</td>
 </tr>
 <tr>
   <td>tachyon.worker.tieredstore.level.max</td>
@@ -357,92 +414,14 @@ the port number.
   available space on each layer.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.allocator.class</td>
-  <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
-  <td>The strategy that a worker uses to allocate space among storage directories in certain storage 
-  layer. Valid options include: `tachyon.worker.block.allocator.MaxFreeAllocator`,
-  `tachyon.worker.block.allocator.GreedyAllocator`,
-  `tachyon.worker.block.allocator.RoundRobinAllocator`.</td>
+  <td>tachyon.worker.web.bind.host</td>
+  <td>0.0.0.0</td>
+  <td>The hostname Tachyon's worker's web server binds to.</td>
 </tr>
 <tr>
-  <td>tachyon.worker.evictor.class</td>
-  <td>tachyon.worker.block.evictor.LRUEvictor</td>
-  <td>The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid
-  options include `tachyon.worker.block.evictor.LRFUEvictor`,
-  `tachyon.worker.block.evictor.GreedyEvictor`, `tachyon.worker.block.evictor.LRUEvictor`.</td>
-</tr>
-<tr> <td>tachyon.worker.data.server.class</td>
-  <td>tachyon.worker.netty.NettyDataServer</td>
-  <td>Selects the networking stack to run the worker with. Valid options are:
-  `tachyon.worker.netty.NettyDataServer`, `tachyon.worker.nio.NIODataServer`.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.channel</td>
-  <td>EPOLL</td>
-  <td>Selects netty's channel implementation. On linux, epoll is used; valid options are `NIO` and
-  `EPOLL`.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.boss.threads</td>
-  <td>1</td>
-  <td>How many threads to use for accepting new requests.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.worker.threads</td>
-  <td>0</td>
-  <td>How many threads to use for processing requests. Zero defaults to #cpuCores * 2</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.file.transfer</td>
-  <td>MAPPED</td>
-  <td>When returning files to the user, select how the data is transferred; valid options are
-    `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.watermark.high</td>
-  <td>32768</td>
-  <td>Determines how many bytes can be in the write queue before switching to non-writable.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.watermark.low</td>
-  <td>8192</td>
-  <td>Once the high watermark limit is reached, the queue must be flushed down to the low watermark
-    before switching back to writable.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.backlog</td>
-  <td>platform specific, 128 on linux</td>
-  <td>How many requests can be queued up before new requests are rejected; this value is platform
-  dependent.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.buffer.send</td>
-  <td>platform specific</td>
-  <td>Sets SO_SNDBUF for the socket; more details can be found in the socket man page.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.network.netty.buffer.receive</td>
-  <td>platform specific</td>
-  <td>Sets SO_RCVBUF for the socket; more details can be found in the socket man page.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.session.timeout.ms</td>
-  <td>10000</td>
-  <td>Timeout (in milliseconds) between worker and client connection indicating a lost session 
-  connection.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.tieredstore.block.locks</td>
-  <td>1000</td>
-  <td>Total number of block locks for a Tachyon block worker. Larger value leads to finer locking
-  granularity, but uses more space.</td>
-</tr>
-<tr>
-  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
-  <td>1000</td>
-  <td>
-  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
-  </td>
+  <td>tachyon.worker.web.port</td>
+  <td>30000</td>
+  <td>The port Tachyon's worker's web server runs on.</td>
 </tr>
 </table>
 
