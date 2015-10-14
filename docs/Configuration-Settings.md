@@ -46,49 +46,9 @@ The common configuration contains constants which specify paths and the log appe
   <td>Tachyon installation folder.</td>
 </tr>
 <tr>
-  <td>tachyon.web.threads</td>
-  <td>1</td>
-  <td>How many threads to use for the web server.</td>
-</tr>
-<tr>
   <td>tachyon.logs.dir</td>
   <td>"${tachyon.home}/logs"</td>
   <td>The path to store log files.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.address</td>
-  <td>"${tachyon.home}/underFSStorage"</code></td>
-  <td>Tachyon folder in the underlayer file system.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.data.folder</td>
-  <td>"${tachyon.underfs.address}/tachyon/data"</td>
-  <td>(Deprecated) Tachyon's data folder in the under storage system.</td>
-</tr>
-<tr>
-  <td>tachyon.zookeeper.enabled</td>
-  <td>false</td>
-  <td>If true, setup master fault tolerant mode using ZooKeeper.</td>
-</tr>
-<tr>
-  <td>tachyon.zookeeper.address</td>
-  <td>null</td>
-  <td>ZooKeeper address for master fault tolerance.</td>
-</tr>
-<tr>
-  <td>tachyon.zookeeper.election.path</td>
-  <td>"/election"</td>
-  <td>Election folder in ZooKeeper.</td>
-</tr>
-<tr>
-  <td>tachyon.zookeeper.leader.path</td>
-  <td>"/leader"</td>
-  <td>Leader folder in ZooKeeper.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.hdfs.impl</td>
-  <td>"org.apache.hadoop.hdfs.DistributedFileSystem"</td>
-  <td>The implementation class of the HDFS as the under storage system.</td>
 </tr>
 <tr>
   <td>tachyon.max.columns</td>
@@ -96,45 +56,9 @@ The common configuration contains constants which specify paths and the log appe
   <td>Maximum number of columns allowed in RawTable, must be set on the client and server side.</td>
 </tr>
 <tr>
-  <td>tachyon.table.metadata.byte</td>
-  <td>5242880</td>
+  <td>tachyon.max.table.metadata.byte</td>
+  <td>5MB</td>
   <td>Maximum allowable size (in bytes) of RawTable metadata, must be set on the server side.</td>
-</tr>
-<tr>
-  <td>fs.s3n.awsAccessKeyId</td>
-  <td>null</td>
-  <td>S3 AWS access key id when using S3 as the under storage system.</td>
-</tr>
-<tr>
-  <td>fs.s3n.awsSecretAccessKey</td>
-  <td>null</td>
-  <td>S3 AWS secret access key id when using S3 as the under storage system.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.glusterfs.mounts</td>
-  <td>null</td>
-  <td>GlusterFS volume mount points, e.g. `/vol`.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.glusterfs.volumes</td>
-  <td>null</td>
-  <td>GlusterFS volume names, e.g. `tachyon_vol`.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
-  <td>glusterfs:///mapred/system</td>
-  <td>Optionally, specify subdirectory under GlusterFS for intermediary MapReduce data.</td>
-</tr>
-<tr>
-  <td>tachyon.underfs.hdfs.prefixes</td>
-  <td>hdfs:// glusterfs:///</td>
-  <td>Optionally, specify which prefixes should run through the Apache Hadoop implementation of
-    UnderFileSystem. The delimiter is any whitespace and/or ','</td>
-</tr>
-<tr>
-  <td>tachyon.master.retry</td>
-  <td>29</td>
-  <td>How many times to try reconnect with master when an RPC fails.</td>
 </tr>
 <tr>
   <td>tachyon.metrics.conf.file</td>
@@ -150,6 +74,62 @@ The common configuration contains constants which specify paths and the log appe
     attempt to select an appropriate host name if one was not explicitly specified.  This represents
     the maximum amount of time spent waiting to determine if a candidate host name is resolvable
     over the network.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.address</td>
+  <td>"${tachyon.home}/underFSStorage"</code></td>
+  <td>Tachyon folder in the underlayer file system.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.impl</td>
+  <td>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</td>
+  <td>Glusterfs hook with hadoop</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
+  <td>glusterfs:///mapred/system</td>
+  <td>Optionally, specify subdirectory under GlusterFS for intermediary MapReduce data.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.hdfs.configuration</td>
+  <td>${tachyon.home}/conf/core-site.xml</td>
+  <td>Location of the hdfs configuration file</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.hdfs.impl</td>
+  <td>"org.apache.hadoop.hdfs.DistributedFileSystem"</td>
+  <td>The implementation class of the HDFS as the under storage system.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.hdfs.prefixes</td>
+  <td>hdfs:// glusterfs:///</td>
+  <td>Optionally, specify which prefixes should run through the Apache Hadoop implementation of
+    UnderFileSystem. The delimiter is any whitespace and/or ','</td>
+</tr>
+<tr>
+  <td>tachyon.web.resources</td>
+  <td>${tachyon.home}/servers/src/main/webapp</td>
+  <td>Path to the web application resources</td>
+</tr>
+<tr>
+  <td>tachyon.web.threads</td>
+  <td>1</td>
+  <td>How many threads to use for the web server.</td>
+</tr>
+<tr>
+  <td>tachyon.zookeeper.election.path</td>
+  <td>"/election"</td>
+  <td>Election folder in ZooKeeper.</td>
+</tr>
+<tr>
+  <td>tachyon.zookeeper.enabled</td>
+  <td>false</td>
+  <td>If true, setup master fault tolerant mode using ZooKeeper.</td>
+</tr>
+<tr>
+  <td>tachyon.zookeeper.leader.path</td>
+  <td>"/leader"</td>
+  <td>Leader folder in ZooKeeper.</td>
 </tr>
 </table>
 
