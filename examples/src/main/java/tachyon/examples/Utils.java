@@ -21,8 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.client.ReadType;
-import tachyon.client.WriteType;
+import tachyon.client.TachyonStorageType;
+import tachyon.client.UnderStorageType;
 
 public final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -68,12 +68,13 @@ public final class Utils {
     }
   }
 
-  public static WriteType option(String[] args, int index, WriteType defaultValue) {
+  public static TachyonStorageType option(String[] args, int index,
+      TachyonStorageType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
-        return WriteType.valueOf(args[index]);
+        return TachyonStorageType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unable to parse WriteType;" + e.getMessage());
+        System.err.println("Unable to parse TachyonStorageType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
       }
@@ -82,12 +83,12 @@ public final class Utils {
     }
   }
 
-  public static ReadType option(String[] args, int index, ReadType defaultValue) {
+  public static UnderStorageType option(String[] args, int index, UnderStorageType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
-        return ReadType.valueOf(args[index]);
+        return UnderStorageType.valueOf(args[index]);
       } catch (IllegalArgumentException e) {
-        System.err.println("Unable to parse ReadType;" + e.getMessage());
+        System.err.println("Unable to parse UnderStorageType;" + e.getMessage());
         System.err.println("Defaulting to " + defaultValue);
         return defaultValue;
       }

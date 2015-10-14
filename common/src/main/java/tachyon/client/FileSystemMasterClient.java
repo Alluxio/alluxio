@@ -433,13 +433,13 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * @throws TachyonException if a tachyon error occurs
    * @throws IOException if an I/O error occurs
    */
-  public synchronized long loadFileInfoFromUfs(String path, boolean recursive)
+  public synchronized long loadMetadata(String path, boolean recursive)
       throws IOException, TachyonException {
     int retry = 0;
     while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
       connect();
       try {
-        return mClient.loadFileInfoFromUfs(path, recursive);
+        return mClient.loadMetadata(path, recursive);
       } catch (TachyonTException e) {
         throw new TachyonException(e);
       } catch (TException e) {
