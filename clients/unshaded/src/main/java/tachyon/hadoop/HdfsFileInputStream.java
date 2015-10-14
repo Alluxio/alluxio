@@ -262,7 +262,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       if (mStatistics != null) {
         mStatistics.incrementBytesRead(1);
       }
-      return mBuffer[mBufferPosition ++];
+      return BufferUtils.byteToInt(mBuffer[mBufferPosition ++]);
     }
     LOG.error("Reading from HDFS directly");
     while ((mBufferLimit = mHdfsInputStream.read(mBuffer)) == 0) {
