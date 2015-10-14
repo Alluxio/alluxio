@@ -12,7 +12,7 @@ that you can easily work with files stored in Tachyon.
 # Prerequisites
 
 The prerequisite for this part is that you have
-[Java](https://github.com/amplab/tachyon/wiki/Java-setup/). We also assume that you have set up
+[Java](Java-Setup.html). We also assume that you have set up
 Tachyon in accordance to these guides [Local Mode](Running-Tachyon-Locally.html) or
 [Cluster Mode](Running-Tachyon-on-a-Cluster.html).
 
