@@ -351,6 +351,19 @@ the port number.
     `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).</td>
 </tr>
 <tr>
+  <td>tachyon.worker.network.netty.shutdown.quiet.period</td>
+  <td>2</td>
+  <td>The quiet period (in seconds). When the netty server is shutting down, it will ensure that no
+    RPCs occur during the quiet period. If an RPC occurs, then the quiet period will restart before
+    shutting down the netty server.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.shutdown.timeout</td>
+  <td>15</td>
+  <td>Maximum amount of time to wait (in seconds) until the netty server is shutdown (regardless of
+    the quiet period).</td>
+</tr>
+<tr>
   <td>tachyon.worker.network.netty.watermark.high</td>
   <td>32768</td>
   <td>Determines how many bytes can be in the write queue before switching to non-writable.</td>
