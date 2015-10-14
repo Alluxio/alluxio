@@ -128,9 +128,13 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.fileId, fileId);
+    // Wait for the TTL check executor to be ready to execute its heartbeat.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
         TimeUnit.SECONDS));
+    // Execute the TTL check executor heartbeat.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
+    // Wait for the TLL check executor to be ready to execute its heartbeat again. This is needed to
+    // avoid a race between the subsequent test logic and the heartbeat thread.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
         TimeUnit.SECONDS));
     mThrown.expect(FileDoesNotExistException.class);
