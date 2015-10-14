@@ -17,10 +17,14 @@ package tachyon.master.journal;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class JsonJournalFormatterTest extends JournalFormatterTestBase {
@@ -36,98 +40,23 @@ public class JsonJournalFormatterTest extends JournalFormatterTestBase {
 
   @BeforeClass
   public static void beforeClass() throws IOException {
-    String entriesFile =
-        JsonJournalFormatterTest.class.getResource(JSON_SAMPLE_PATH).getFile();
+    String entriesFile = JsonJournalFormatterTest.class.getResource(JSON_SAMPLE_PATH).getFile();
     sRootNode = new ObjectMapper().readTree(new File(entriesFile));
   }
 
-  // given an entry type, it checks if a given json is deserialized properly
-  private final void entryJsonTest(JournalEntryType type) throws IOException {
-    JsonNode n = sRootNode.get(type.toString());
-    new ObjectMapper().writeValue(mOs, n);
-    JournalEntry readEntry = read();
-    assertSameEntry(mDataSet.get(type), readEntry);
-  }
-
-  // Block
-
   @Test
-  public void blockIdGeneratorEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.BLOCK_CONTAINER_ID_GENERATOR);
-  }
+  public void entriesJsonTest() throws IOException {
 
-  @Test
-  public void blockInfoEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.BLOCK_INFO);
-  }
+    ObjectMapper om = new ObjectMapper().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false)
+        .configure(SerializationFeature.CLOSE_CLOSEABLE, false);
 
-  // FileSystem
-
-  @Test
-  public void inodeFileEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.INODE_FILE);
-  }
-
-  @Test
-  public void inodeDirectoryEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.INODE_DIRECTORY);
-  }
-
-  @Test
-  public void inodeLastModificationTimeEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.INODE_MTIME);
-  }
-
-  @Test
-  public void persistedDirectoryEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.INODE_PERSISTED);
-  }
-
-  @Test
-  public void persistFileEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.ADD_CHECKPOINT);
-  }
-
-  @Test
-  public void completeFileEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.COMPLETE_FILE);
-  }
-
-  @Test
-  public void setPinnedEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.SET_PINNED);
-  }
-
-  @Test
-  public void deleteFileEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.DELETE_FILE);
-  }
-
-  @Test
-  public void renameEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.RENAME);
-  }
-
-  @Test
-  public void inodeDirectoryIdGeneratorEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.INODE_DIRECTORY_ID_GENERATOR);
-  }
-
-  @Test
-  public void addMountPointEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.ADD_MOUNTPOINT);
-  }
-
-  @Test
-  public void deleteMountPointEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.DELETE_MOUNTPOINT);
-  }
-
-  // RawTable
-
-  @Test
-  public void rawTableEntryJsonTest() throws IOException {
-    entryJsonTest(JournalEntryType.RAW_TABLE);
+    for (Map.Entry<JournalEntryType, JournalEntry> entry : mDataSet.entrySet()) {
+      JournalEntryType type = entry.getKey();
+      JsonNode n = sRootNode.get(type.toString());
+      om.writeValue(mOs, n);
+      JournalEntry readEntry = read();
+      assertSameEntry(entry.getValue(), readEntry);
+    }
   }
 
 }
