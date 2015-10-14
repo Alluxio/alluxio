@@ -230,6 +230,38 @@ the port number.
   <td>3600000</td>
   <td>Time interval (in milliseconds) to periodically delete the files with expired ttl value.</td>
 </tr>
+<tr>
+  <td>tachyon.master.lineage.checkpoint.interval.ms</td>
+  <td>600000</td>
+  <td>
+  The interval (in milliseconds) between Tachyon's checkpoint scheduling.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.master.lineage.checkpoint.class</td>
+  <td>tachyon.master.lineage.checkpoint
+    .CheckpointLatestScheduler</td>
+  <td>
+  The class name of the checkpoint strategy for lineage output files. The default strategy is to
+  checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.master.lineage.recompute.interval.ms</td>
+  <td>600000</td>
+  <td>
+  The interval (in milliseconds) between Tachyon's recompute execution. The executor scans the 
+  all the lost files tracked by lineage, and re-executes the corresponding jobs.
+  every 10 minutes.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.master.lineage.recompute.log.path</td>
+  <td>${tachyon.home}/logs/recompute.log</td>
+  <td>
+  The path to the log that the recompute executor redirects the job's stdout into.
+  </td>
+</tr>
 </table>
 
 ## Worker Configuration
@@ -416,6 +448,13 @@ the port number.
   <td>Total number of block locks for a Tachyon block worker. Larger value leads to finer locking
   granularity, but uses more space.</td>
 </tr>
+<tr>
+  <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
+  <td>1000</td>
+  <td>
+  The heartbeat interval (in milliseconds) between the lineage worker and lineage master.
+  </td>
+</tr>
 </table>
 
 
@@ -496,6 +535,13 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.file.master.client.threads</td>
   <td>10</td>
   <td>How many threads to use for file system master client to talk to block master.</td>
+</tr>
+<tr>
+  <td>tachyon.user.lineage.enabled</td>
+  <td>false</td>
+  <td>
+  Flag to enable lineage feature.
+  </td>
 </tr>
 </table>
 
