@@ -111,26 +111,26 @@ You can also monitor the instances state through
 
 The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2` and so on.
 
-To ssh into a node, run
+To ssh into a node, run:
 
 ```bash
 $ vagrant ssh <node name>
 ```
 
-For example, you can ssh into `TachyonMaster` with
+For example, you can ssh into `TachyonMaster` with:
 
 ```bash
 $ vagrant ssh TachyonMaster
 ```
 
-All software are installed under root directory, e.g. Tachyon is installed in /tachyon, Hadoop is
-installed in /hadoop.
+All software is installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
+installed in `/hadoop`.
 
 # Configure Tachyon integration with Yarn
 
-Yarn has been installed as a part of Hadoop2.4.1. Notice that, by default Tachyon binaries built by
-vagrant script do not include this YARN integration. You should first stop the default Tachyon
-service, re-compile Tachyon with profile yarn specified to have the Yarn client and
+Yarn has been installed as a part of Hadoop version 2.4.1. Notice that, by default Tachyon binaries 
+built by vagrant script do not include this YARN integration. You should first stop the default 
+Tachyon service, re-compile Tachyon with profile yarn specified to have the Yarn client and
 ApplicationMaster for Tachyon.
 
 ```bash
@@ -146,9 +146,9 @@ master/workers, put `tachyon-site.properties` under `${TACHYON_HOME}/conf` on ea
 
 # Start Tachyon
 
-Use script `integration/bin/tachyon-yarn.sh` to start Tachyon. This script requires three parameters in order:
-1. A dir pointing to `${TACHYON_HOME}` on each machine so Yarn NodeManager could access Tachyon
-scripts and binaries to launch masters and workers. With our EC2 setup, this dir is `/tachyon`.
+Use script `integration/bin/tachyon-yarn.sh` to start Tachyon. This script requires three parameters:
+1. A path pointing to `${TACHYON_HOME}` on each machine so Yarn NodeManager can access Tachyon
+scripts and binaries to launch masters and workers. With our EC2 setup, this path is `/tachyon`.
 2. The total number of Tachyon workers to start.
 3. A HDFS path to distribute the binaries for Tachyon ApplicationMaster.
 
@@ -162,20 +162,20 @@ $ /tachyon/integration/bin/tachyon-yarn.sh /tachyon 3 hdfs://TachyonMaster:9000/
 This script will first upload the binaries with Yarn client and ApplicationMaster to the HDFS path
 specified, then inform Yarn to run the client binary jar. The script will keep running with
 ApplicationMaster status reported. You can also check `http://TachyonMaster:8088` in the browser to
-access the Web UIs and watch the status of Tachyon job as well as the application ID.
+access the Web UIs and watch the status of the Tachyon job as well as the application ID.
 
 NOTE: currently Tachyon Yarn framework does not guarantee to start the Tachyon master on the
 TachyonMaster machine; use the Yarn Web UI to find out which machine is Tachyon master running on.
 
 # Test Tachyon
 
-You can run some tests against Tachyon to check its health:
+You can run tests against Tachyon to check its health:
 
 ```bash
 $ /tachyon/bin/tachyon runTests
 ```
 
-After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
+After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
 
@@ -183,7 +183,7 @@ tests.
 # Stop Tachyon
 
 Tachyon can be stopped by using the following Yarn command where the application ID of Tachyon can
- be either retrieved from Yarn web UI or the output of `tachyon-yarn.sh`.
+be retrieved from either Yarn web UI or the output of `tachyon-yarn.sh`:
 
 ```bash
 $ /hadoop/bin/yarn application -kill TACHYON_APPLICATION_ID
@@ -191,7 +191,7 @@ $ /hadoop/bin/yarn application -kill TACHYON_APPLICATION_ID
 
 # Destroy the cluster
 
-Under `deploy/vagrant` directory, you can run
+Under `deploy/vagrant` directory, you can run:
 
 ```bash
 $ ./destroy
