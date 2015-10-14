@@ -23,14 +23,11 @@ $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 
 # Configuring Tachyon
 
-Assuming the GlusterFS bricks are co-located with Tachyon nodes, the GlusterFS volume name is `gvol`,
-and the mount point is `/tachyon_vol`, the following environment variable assignments need to be added to
+Assuming the GlusterFS bricks are co-located with Tachyon nodes, the GlusterFS volume is mounted at `/tachyon_vol`, the following environment variable assignment needs to be added to
 `conf/tachyon-env.sh`:
 
 ```bash
-export TACHYON_UNDERFS_ADDRESS=glusterfs://gvol
-export TACHYON_UNDERFS_GLUSTERFS_VOLUMES=gvol
-export TACHYON_UNDERFS_GLUSTERFS_MOUNTS=/tachyon_vol
+export TACHYON_UNDERFS_ADDRESS=/tachyon_vol
 ```
 
 # Running Tachyon Locally with GlusterFS
