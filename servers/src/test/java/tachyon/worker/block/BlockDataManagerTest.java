@@ -38,6 +38,7 @@ import tachyon.underfs.UnderFileSystem;
 import tachyon.underfs.local.LocalUnderFileSystem;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.block.meta.BlockMeta;
 import tachyon.worker.block.meta.StorageDir;
@@ -81,17 +82,17 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
       mSessions = PowerMockito.mock(Sessions.class);
       mTachyonConf = PowerMockito.mock(TachyonConf.class);
       mWorkerId = mRandom.nextLong();
+      WorkerIdRegistry.setWorkerIdForTesting(mWorkerId);
       mWorkerSource = PowerMockito.mock(WorkerSource.class);
 
       mManager =
           new BlockDataManager(mWorkerSource, mBlockMasterClient, mFileSystemMasterClient,
               mBlockStore);
-      mManager.setSessions(mSessions);
-      mManager.setWorkerId(mWorkerId);
 
       mManager.grantAccess(BlockDataManagerTest.this); // initializes mPrivateAccess
       mPrivateAccess.setHeartbeatReporter(mHeartbeatReporter);
       mPrivateAccess.setMetricsReporter(mMetricsReporter);
+      mPrivateAccess.setSessions(mSessions);
     }
   }
 
