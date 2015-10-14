@@ -85,7 +85,7 @@ By default, the Vagrant script creates a
 named *tachyon-vagrant-test* at
 [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
-traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
+traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`.
 
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
@@ -94,14 +94,14 @@ the script under `deploy/vagrant`:
 $ ./create <number of machines> aws
 ```
 
-Each node of the cluster has a Tachyon worker, `TachyonMaster` has a Tachyon master.
+Each node of the cluster runs a Tachyon worker, and the `TachyonMaster` runs the Tachyon master.
 
 # Access the cluster
 
 **Access through Web UI**
 
-After command `./create <number of machines> aws` succeeds, you can see two green lines like below
-shown at the end of the shell output:
+After the command `./create <number of machines> aws` succeeds, you can see two green lines like
+below shown at the end of the shell output:
 
     >>> TachyonMaster public IP is xxx, visit xxx:19999 for Tachyon web UI<<<
     >>> visit default port of the web UI of what you deployed <<<
@@ -119,22 +119,22 @@ You can also monitor the instances state through
 
 The nodes set up are named to `TachyonMaster`, `TachyonWorker1`, `TachyonWorker2` and so on.
 
-To ssh into a node, run
+To ssh into a node, run:
 
 ```bash
 $ vagrant ssh <node name>
 ```
 
-For example, you can ssh into `TachyonMaster` with
+For example, you can ssh into `TachyonMaster` with:
 
 ```bash
 $ vagrant ssh TachyonMaster
 ```
 
-All software are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
-installed in `/hadoop`.
+All software are installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
+and Hadoop is installed in `/hadoop`.
 
-On `TachyonMaster` node, you can run some tests against Tachyon to check its health:
+On the `TachyonMaster` node, you can run some tests against Tachyon to check its health:
 
 ```bash
 $ /tachyon/bin/tachyon runTests
@@ -144,7 +144,7 @@ After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` aga
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
 
-From a node in the cluster, you can ssh to other nodes in the cluster without password like
+From a node in the cluster, you can ssh to other nodes in the cluster without password with:
 
 ```bash
 $ ssh TachyonWorker1
