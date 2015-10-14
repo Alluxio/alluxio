@@ -12,11 +12,11 @@ Thank you for your interest in Tachyon! We greatly appreciate any new features o
 
 ### Startup Tasks for New Contributors
 
-Here are a few things that everyone should do before developing on Tachyon.
+There is a few things that new contributors can do to familiarize themselves with Tachyon:
 
-1.  [Running Tachyon Locally](Running-Tachyon-Locally.html)
+1.  [Run Tachyon Locally](Running-Tachyon-Locally.html)
 
-2.  [Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
+2.  [Run Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html)
     (Optional)
 
 3.  Read
@@ -25,15 +25,15 @@ Here are a few things that everyone should do before developing on Tachyon.
     [Command-Line Interface](Command-Line-Interface.html)
     (Optional)
 
-4.  Read and understand
-[an example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java).
+4.  Read a  
+[Code Example](https://github.com/amplab/tachyon/blob/master/examples/src/main/java/tachyon/examples/BasicOperations.java)
 
-5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
+5.  [Build Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
 6.  Fork the repository, add unit tests or javadoc for one or two files in the
 following list, and then submit a pull request. You are also welcome to address
 issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
-Here are a list of
+Here is a list of
 [tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
 for New Contributors. Please limit 2 tasks per New Contributor.
 Afterwards, try some Beginner/Intermediate tasks, or ask in the
@@ -44,14 +44,14 @@ For a tutorial, see the GitHub guides on
 
 ### Submitting Code
 
--   We encourage you to break your work into small, single-purpose patches if possible. It’s much
+-   We encourage you to break your work into small, single-purpose patches if possible. It is much
     harder to merge in a large change with a lot of disjoint features.
 
--   We track issues and features in our [JIRA](https://tachyon.atlassian.net/). If you haven't
-registered an account, please do so!
+-   We track issues and features in our [JIRA](https://tachyon.atlassian.net/). If you have not
+    registered an account, please do so!
 
 -   Open a ticket in [JIRA](https://tachyon.atlassian.net/) detailing the proposed change and what
-purpose it serves.
+    purpose it serves.
 
 -   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
@@ -77,7 +77,7 @@ purpose it serves.
 #### Testing
 
 -   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem and
-HDFS 1.0.4 as the under filesystem in the HDFS module.). ``mvn -Dhadoop.version=2.4.0 test`` will
+HDFS 1.0.4 as the under filesystem in the HDFS module). ``mvn -Dhadoop.version=2.4.0 test`` will
 use HDFS 2.4.0 as the under filesystem for the HDFS module tests.
 
 -   To run tests against specific under filesystems, execute the maven command from the desired
@@ -86,10 +86,10 @@ submodule directory, for example for HDFS, tachyon/underfs/hdfs.
 -   In GlusterFS environment, GlusterFS unit tests can be run from tachyon/underfs/glusterfs with:
 `mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol
 -Dtachyon.underfs.glusterfs.volumes=testvol test` (use GlusterFS as under filesystem,
-where /vol is a valid GlusterFS mount point)
+where `/vol` is a valid GlusterFS mount point)
 
--   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.
-`mvn -Dtest=TachyonFSTest#createFileTest test` ;
+-   Run a single unit test: `mvn -Dtest=TestCircle#mytest test` e.g.
+`mvn -Dtest=TachyonFSTest#createFileTest test`
 
 -   To quickly test the working of some APIs in an interactive manner, you may
 leverage the Scala shell, as discussed in this
