@@ -36,7 +36,24 @@ This will allow your MapReduce jobs to use Tachyon for their input and output fi
 using HDFS as the under storage system for Tachyon, it may be necessary to add these properties to
 the `hdfs-site.xml` conf file as well.
 
-If the Hadoop is a 2.x cluster, then these properties do not need to be added.
+## Using Hadoop 2.x
+
+If you are using a 2.x Hadoop cluster, you may not need the properties above in your `core-site.xml`
+file. However, there are some cases where you may get the error:
+`java.io.IOException: No FileSystem for scheme: tachyon`. This may happen when yarn tries to access
+Tachyon (not the actual mappers and reducers). If this error happens, you can add these properties
+to your `core-site.xml` file, and restart yarn.
+
+```xml
+<property>
+  <name>fs.tachyon.impl</name>
+  <value>tachyon.hadoop.TFS</value>
+</property>
+<property>
+  <name>fs.tachyon-ft.impl</name>
+  <value>tachyon.hadoop.TFSFT</value>
+</property>
+```
 
 # Compiling the Tachyon Client
 
