@@ -28,29 +28,52 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
 import tachyon.conf.TachyonConf;
+import tachyon.util.network.NetworkAddressUtils;
 
 /**
  * Unit test for methods of {@link AuthenticationUtils}
  *
- * In order to test methods that return kinds of TTransport for connection in different mode,
- * we build Thrift servers and clients with specific TTransport, and let them connect.
+ * In order to test methods that return kinds of TTransport for connection in different mode, we
+ * build Thrift servers and clients with specific TTransport, and let them connect.
  */
 public class AuthenticationUtilsTest {
 
-  TThreadPoolServer mServer;
-  TachyonConf mTachyonConf = new TachyonConf();
-  InetSocketAddress mServerAddress = new InetSocketAddress("localhost",
-      Constants.DEFAULT_MASTER_PORT);
-  TSocket mServerTSocket = AuthenticationUtils.createTSocket(mServerAddress);
+  private TThreadPoolServer mServer;
+  private TachyonConf mTachyonConf;
+  private InetSocketAddress mServerAddress;
+  private TSocket mServerTSocket;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  @Before
+  public void before() throws Exception {
+    mTachyonConf = new TachyonConf();
+    mTachyonConf.set(Constants.IN_TEST_MODE, "true");
+    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(0));
+
+    TServerSocket serverSocket =
+        new TServerSocket(NetworkAddressUtils.getBindAddress(
+            NetworkAddressUtils.ServiceType.MASTER_RPC, mTachyonConf));
+    int port = NetworkAddressUtils.getThriftPort(serverSocket);
+    serverSocket.close();
+
+    // reset master port
+    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(port));
+
+    mServerAddress =
+        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC,
+            mTachyonConf);
+    mServerTSocket = AuthenticationUtils.createTSocket(mServerAddress);
+
+  }
 
   /**
    * In NOSASL mode, the TTransport used should be the same as Tachyon original code.
@@ -60,7 +83,7 @@ public class AuthenticationUtilsTest {
     mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL");
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // create client and connect to server
     TTransport client = AuthenticationUtils.getClientTransport(mTachyonConf, mServerAddress);
@@ -81,7 +104,7 @@ public class AuthenticationUtilsTest {
     mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // when connecting, authentication happens. It is a no-op in Simple mode.
     TTransport client =
@@ -128,7 +151,7 @@ public class AuthenticationUtilsTest {
     mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // check case that user is empty
     mThrown.expect(TTransportException.class);
@@ -152,7 +175,7 @@ public class AuthenticationUtilsTest {
     mTachyonConf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // check case that password is empty
     mThrown.expect(TTransportException.class);
@@ -168,8 +191,8 @@ public class AuthenticationUtilsTest {
 
   /**
    * In CUSTOM mode, the TTransport mechanism is PLAIN. When server authenticate the connected
-   * client user, it use configured AuthenticationProvider.
-   * If the username:password pair matches, a connection should be built.
+   * client user, it use configured AuthenticationProvider. If the username:password pair matches, a
+   * connection should be built.
    */
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
@@ -178,7 +201,7 @@ public class AuthenticationUtilsTest {
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client =
@@ -202,7 +225,7 @@ public class AuthenticationUtilsTest {
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient =
@@ -254,7 +277,7 @@ public class AuthenticationUtilsTest {
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // check case that user is empty
     mThrown.expect(TTransportException.class);
@@ -279,7 +302,7 @@ public class AuthenticationUtilsTest {
         ExactlyMatchAuthenticationProvider.class.getName());
 
     // start server
-    startServerThread(mTachyonConf);
+    startServerThread();
 
     // check case that password is empty
     mThrown.expect(TTransportException.class);
@@ -303,19 +326,20 @@ public class AuthenticationUtilsTest {
     // throw unsupported exception currently
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("Kerberos is not supported currently.");
-    startServerThread(mTachyonConf);
+    startServerThread();
   }
 
-  private void startServerThread(TachyonConf conf) throws Exception {
+  private void startServerThread() throws Exception {
     // create args and use them to build a Thrift TServer
-    TTransportFactory tTransportFactory = AuthenticationUtils.getServerTransportFactory(conf);
+    TTransportFactory tTransportFactory =
+        AuthenticationUtils.getServerTransportFactory(mTachyonConf);
 
     TServerSocket wrappedServerSocket = new TServerSocket(mServerAddress);
 
-    mServer = new TThreadPoolServer(new TThreadPoolServer.Args(wrappedServerSocket)
-        .maxWorkerThreads(2).minWorkerThreads(1)
-        .processor(null).transportFactory(tTransportFactory)
-        .protocolFactory(new TBinaryProtocol.Factory(true, true)));
+    mServer =
+        new TThreadPoolServer(new TThreadPoolServer.Args(wrappedServerSocket).maxWorkerThreads(2)
+            .minWorkerThreads(1).processor(null).transportFactory(tTransportFactory)
+            .protocolFactory(new TBinaryProtocol.Factory(true, true)));
 
     // start the server in a new thread
     Thread serverThread = new Thread(new Runnable() {
