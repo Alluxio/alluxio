@@ -110,7 +110,7 @@ These are the configuration parameters related to Tachyon's lineage feature.
   </td>
 </tr>
 <tr>
-  <td>tachyon.master.lineage.checkpoint.strategy.class</td>
+  <td>tachyon.master.lineage.checkpoint.class</td>
   <td>tachyon.master.lineage.checkpoint.CheckpointLatestScheduler</td>
   <td>
   The class name of the checkpoint strategy for lineage output files. The default strategy is to
