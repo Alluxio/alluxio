@@ -8,7 +8,7 @@ priority: 2
 
 Tachyon can be deployed on [VirtualBox](https://www.virtualbox.org/) on your local machine
 using the [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant)
-that come with Tachyon. The scripts let you create, configure and destroy clusters that come
+that come with Tachyon. The scripts let you create, configure, and destroy clusters that come
 automatically configured with HDFS.
 
 # Prerequisites
@@ -90,16 +90,16 @@ For example, you can ssh into `TachyonMaster` with:
 $ vagrant ssh TachyonMaster
 ```
 
-All software are installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
+All software is installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
 and Hadoop is installed in `/hadoop`.
 
-On the `TachyonMaster` node, you can run some tests against Tachyon to check its health:
+On the `TachyonMaster` node, you can run tests against Tachyon to check its health:
 
 ```bash
 $ /tachyon/bin/tachyon runTests
 ```
 
-After the tests all pass, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
+After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again. Click `Browse
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
 
