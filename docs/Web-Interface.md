@@ -15,9 +15,9 @@ master and 30000 for the workers.
 # Tachyon Master Web Interface
 
 The Tachyon master serves a web interface to help manage the system. The default port for the
-Tachyon master web interface is 19999, so the web interface can be viewed by visiting:
-`http://<MASTER IP>:19999`. If you started Tachyon locally, the master web interface can be viewed
-at: [localhost:19999](http://localhost:19999).
+Tachyon master web interface is 19999, so the web interface can be viewed by visiting
+`http://<MASTER IP>:19999`. For instnace, if you started Tachyon locally, the master web interface 
+can be viewed by visiting [localhost:19999](http://localhost:19999).
 
 The Tachyon master web interface contains several different pages, described below.
 
@@ -27,7 +27,7 @@ The Tachyon master home page looks something like below:
 
 ![Tachyon Master Home Page](./img/screenshot_overview.png)
 
-The home page gives an overview of the system's status. It includes the following sections:
+The home page gives an overview of the system status. It includes the following sections:
 
 * **Tachyon Summary**
 
@@ -44,8 +44,9 @@ The home page gives an overview of the system's status. It includes the followin
     across the Tachyon cluster.
 
 ## Configuration Page
-To check the current system configuration information, click "System Configuration" in the navbar on
-the top of the screen.
+
+To check the current system configuration information, click "System Configuration" in the 
+navigation bar on the top of the screen.
 
 ![configurations](./img/screenshot_systemConfiguration.png)
 
@@ -53,18 +54,18 @@ The configuration page has two sections:
 
 * **Tachyon Configuration**
 
-	A map of all the Tachyon configuration properties and their set values.
+    A map of all the Tachyon configuration properties and their set values.
 
 * **White List**
 
     Contains all the Tachyon path prefixes eligible to be stored in Tachyon. A request may still be
-    made to a file not prefixed by a path in the white list. Only white listed files will be stored
+    made to a file not prefixed by a path in the white list. Only whitelisted files will be stored
     in Tachyon.
 
 ## Browse File System Page
 
 You can browse the Tachyon file system through the UI. When selecting the "Browse File System" tab
-in the navbar, you will see something like this:
+in the navigation bar, you will see something like this:
 
 ![browse](./img/screenshot_browseFileSystem.png)
 
@@ -73,7 +74,8 @@ percentage of in-memory data, creation time, and the modification time. To view 
 file, click on that file.
 
 ## Browse In-Memory Files Piage
-To browse all in-memory files, click on the "In-Memory Files" tab in the navbar.
+
+To browse all in-memory files, click on the "In-Memory Files" tab in the navigation bar.
 
 ![inMemFiles](./img/screenshot_inMemoryFiles.png)
 
@@ -98,22 +100,21 @@ The workers page gives an overview of all Tachyon worker nodes divided into two 
     A list of all workers proclaimed as dead by the master, usually due to a long timeout waiting
     for the worker heartbeat. Possible causes include system restart or network failures.
 
-
 # Tachyon Workers Web Interface
 
 Each Tachyon worker also serves a web interface to show worker information. The default port for the
-worker web interface is 30000 so the web interface can be viewed by visiting:
-`http://<WORKER IP>:30000`. If you started Tachyon locally, the worker web interface can be viewed
-at: [localhost:30000](http://localhost:30000).
+worker web interface is 30000 so the web interface can be viewed by visiting
+`http://<WORKER IP>:30000`. For instance, if you started Tachyon locally, the worker web interface can 
+be viewed by visiting [localhost:30000](http://localhost:30000).
 
 ## Home Page
 
 The home page for the Tachyon worker web interface is similar to the home page for the Tachyon
-master, but shows information local to a single worker. Therefore, it has similar sections:
+master, but shows information specific to a single worker. Therefore, it has similar sections:
 **Worker Summary**, **Storage Usage Summary**, **Tiered Storage Details**.
 
 ## BlockInfo Page
 
-In the "BlockInfo" page, you can see the files on the worker, and other information such the file
-size and which tiers the files is stored on. Also, if you click on a file, you can view all the
-blocks of that file.
+In the "BlockInfo" page, you can see the files on the worker, and other information such as the 
+file size and which tiers the files is stored on. Also, if you click on a file, you can view all 
+the blocks of that file.
