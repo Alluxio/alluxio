@@ -563,7 +563,7 @@
 
     <!-- profile that Tachyon developers should use -->
     <profile>
-      <id>developer</id>
+      <id>dev</id>
       <modules>
         <module>integration</module>
       </modules>
