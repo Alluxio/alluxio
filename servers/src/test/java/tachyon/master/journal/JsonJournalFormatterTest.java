@@ -45,7 +45,6 @@ public class JsonJournalFormatterTest extends JournalFormatterTestBase {
 
   @Test
   public void entriesJsonTest() throws IOException {
-
     ObjectMapper om = new ObjectMapper().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false)
         .configure(SerializationFeature.CLOSE_CLOSEABLE, false);
 
