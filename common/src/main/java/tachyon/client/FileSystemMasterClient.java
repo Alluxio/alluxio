@@ -18,7 +18,6 @@ package tachyon.client;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -50,12 +49,10 @@ public final class FileSystemMasterClient extends MasterClientBase {
    * Creates a new file system master client.
    *
    * @param masterAddress the master address
-   * @param executorService the executor service
    * @param tachyonConf the Tachyon configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress, ExecutorService executorService,
-      TachyonConf tachyonConf) {
-    super(masterAddress, executorService, tachyonConf);
+  public FileSystemMasterClient(InetSocketAddress masterAddress, TachyonConf tachyonConf) {
+    super(masterAddress, tachyonConf);
   }
 
   @Override
