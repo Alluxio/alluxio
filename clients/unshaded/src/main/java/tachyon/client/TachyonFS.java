@@ -74,7 +74,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Deprecated
   public static synchronized TachyonFS get(String tachyonPath) {
-    return get(new TachyonURI(tachyonPath), new TachyonConf());
+    return get(new TachyonURI(tachyonPath), ClientContext.getConf());
   }
 
   /**
@@ -87,7 +87,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   @Deprecated
   public static synchronized TachyonFS get(final TachyonURI tachyonURI) {
-    return get(tachyonURI, new TachyonConf());
+    return get(tachyonURI, ClientContext.getConf());
   }
 
   /**
@@ -128,7 +128,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the corresponding TachyonFS handler
    */
   public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zkMode) {
-    TachyonConf tachyonConf = new TachyonConf();
+    TachyonConf tachyonConf = ClientContext.getConf();
     tachyonConf.set(Constants.MASTER_HOSTNAME, masterHost);
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(masterPort));
     tachyonConf.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(zkMode));
@@ -311,7 +311,7 @@ public class TachyonFS extends AbstractTachyonFS {
         return mFSMasterClient.create(path.getPath(), blockSizeByte, recursive,
             Constants.NO_TTL);
       } else {
-        return mFSMasterClient.loadFileInfoFromUfs(path.getPath(), recursive);
+        return mFSMasterClient.loadMetadata(path.getPath(), recursive);
       }
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -790,8 +790,8 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized List<FileInfo> listStatus(TachyonURI path) throws IOException {
     validateUri(path);
     try {
-      return mFSMasterClient.getFileInfoList(getFileStatus(IdUtils.INVALID_FILE_ID, path)
-          .getFileId());
+      return mFSMasterClient.getFileInfoList(
+          getFileStatus(IdUtils.INVALID_FILE_ID, path).getFileId());
     } catch (TachyonException e) {
       throw new IOException(e);
     }

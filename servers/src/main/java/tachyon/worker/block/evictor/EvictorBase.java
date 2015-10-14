@@ -18,7 +18,6 @@ package tachyon.worker.block.evictor;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +25,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.collections.Pair;
 import tachyon.Sessions;
+import tachyon.collections.Pair;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.worker.block.BlockMetadataManagerView;
 import tachyon.worker.block.BlockStoreEventListenerBase;
@@ -84,9 +83,9 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
     // 2. Iterate over blocks in order until we find a StorageDirView that is in the range of
     // location and can satisfy bytesToBeAvailable after evicting its blocks iterated so far
     EvictionDirCandidates dirCandidates = new EvictionDirCandidates();
-    Iterator<Map.Entry<Long, Object>> it = getBlockIterator();
+    Iterator<Long> it = getBlockIterator();
     while (it.hasNext() && dirCandidates.candidateSize() < bytesToBeAvailable) {
-      long blockId = it.next().getKey();
+      long blockId = it.next();
       try {
         BlockMeta block = mManagerView.getBlockMeta(blockId);
         if (block != null) { // might not present in this view
@@ -183,12 +182,11 @@ public abstract class EvictorBase extends BlockStoreEventListenerBase implements
   }
 
   /**
-   * @return an iterator over the blocks in the evictor cache. The evictor is responsible for
-   * specifying the iteration order using its own strategy. For example, LRUEvictor returns an
-   * iterator that iterates the blocks in LRU order. The key of the map entry is the block Id.
+   * @return an iterator over the IDs of the blocks in the evictor cache. The evictor is responsible
+   * for specifying the iteration order using its own strategy. For example, LRUEvictor returns an
+   * iterator that iterates through the block IDs in LRU order.
    */
-  // TODO(calvin): Is a key iterator sufficient?
-  protected abstract Iterator<Map.Entry<Long, Object>> getBlockIterator();
+  protected abstract Iterator<Long> getBlockIterator();
 
   /**
    * Perform additional cleanup when a block is removed from the iterator returned by
