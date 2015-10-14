@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Lineage Client API (Alpha)
+title: Lineage Client API (alpha)
 nickname: Lineage API
 group: Features
 priority: 2
@@ -41,7 +41,7 @@ Lineage can be created by calling
 `TachyonLineage#createLineage(List<TachyonURI>, List<TachyonURI>, Job)`. A lineage record takes (1)
 a list of URIs of the input files, (2) a list of URIs of the output files, and (3) a *job*. A job
 is description of a program that can be run by Tachyon to recompute the output files given the input 
-files. *Note: In the current Alpha version, only a built-in `CommandLineJob` is supported, which 
+files. *Note: In the current alpha version, only a built-in `CommandLineJob` is supported, which 
 simply takes a command String that can be run in a terminal. The user needs to provide the necessary 
 configurations and execution environments to ensure the command can be executed both at the client 
 and at Tachyon master (during recomputation).*
