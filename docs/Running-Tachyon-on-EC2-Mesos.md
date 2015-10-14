@@ -133,7 +133,7 @@ For example, you can ssh into `TachyonMaster` with:
 $ vagrant ssh TachyonMaster
 ```
 
-All software are installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
+All software is installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
 installed in `/hadoop`, Mesos is installed in `/mesos`.
 
 You can run tests against Tachyon to check its health:

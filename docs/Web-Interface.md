@@ -16,7 +16,7 @@ master and 30000 for the workers.
 
 The Tachyon master serves a web interface to help manage the system. The default port for the
 Tachyon master web interface is 19999, so the web interface can be viewed by visiting
-`http://<MASTER IP>:19999`. For instnace, if you started Tachyon locally, the master web interface 
+`http://<MASTER IP>:19999`. For instance, if you started Tachyon locally, the master web interface 
 can be viewed by visiting [localhost:19999](http://localhost:19999).
 
 The Tachyon master web interface contains several different pages, described below.

@@ -110,7 +110,7 @@ or
 $ sudo yum install automake libtool flex bison pkgconfig gcc-c++ boost-devel libevent-devel zlib-devel python-devel ruby-devel ant python-dev
 ```
 
-Then install the Java JDK of your choice. Type javac to see a list of available packages, 
+Then install the Java JDK of your choice. Type javac to see a list of available packages,
 pick the one you prefer, and use your package manager to install it.
 
 Debian Lenny Users need some packages from backports:
