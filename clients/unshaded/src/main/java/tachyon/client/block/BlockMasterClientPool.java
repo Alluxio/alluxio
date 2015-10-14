@@ -16,14 +16,11 @@
 package tachyon.client.block;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import tachyon.Constants;
 import tachyon.client.BlockMasterClient;
 import tachyon.client.ClientContext;
 import tachyon.resource.ResourcePool;
-import tachyon.util.ThreadFactoryUtils;
 
 /**
  * Class for managing block master clients. After obtaining a client with
@@ -31,7 +28,6 @@ import tachyon.util.ThreadFactoryUtils;
  * using the client.
  */
 public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
-  private final ExecutorService mExecutorService;
   private final InetSocketAddress mMasterAddress;
 
   /**
@@ -41,19 +37,16 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    */
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
     super(ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS));
-    mExecutorService = Executors.newFixedThreadPool(mMaxCapacity,
-        ThreadFactoryUtils.build("block-master-heartbeat-%d", true));
     mMasterAddress = masterAddress;
   }
 
   @Override
   public void close() {
     // TODO(calvin): Consider collecting all the clients and shutting them down.
-    mExecutorService.shutdown();
   }
 
   @Override
   protected BlockMasterClient createNewResource() {
-    return new BlockMasterClient(mMasterAddress, mExecutorService, ClientContext.getConf());
+    return new BlockMasterClient(mMasterAddress, ClientContext.getConf());
   }
 }

@@ -66,8 +66,8 @@ public final class WorkerClient implements Closeable {
   // independent from thrift exceptions.
   private boolean mConnected = false;
   private final ExecutorService mExecutorService;
+  private final HeartbeatExecutor mHeartbeatExecutor;
   private Future<?> mHeartbeat;
-  private HeartbeatExecutor mHeartbeatExecutor;
 
   private final TachyonConf mTachyonConf;
   private final ClientMetrics mClientMetrics;
@@ -88,6 +88,7 @@ public final class WorkerClient implements Closeable {
     mSessionId = sessionId;
     mIsLocal = isLocal;
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
+    mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
   }
 
   /**
@@ -224,12 +225,6 @@ public final class WorkerClient implements Closeable {
           mTachyonConf, new InetSocketAddress(host, port)));
       mClient = new WorkerService.Client(mProtocol);
 
-      mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
-      int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
-      mHeartbeat =
-          mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
-              mHeartbeatExecutor, interval));
-
       try {
         mProtocol.getTransport().open();
       } catch (TTransportException e) {
@@ -237,6 +232,15 @@ public final class WorkerClient implements Closeable {
         return false;
       }
       mConnected = true;
+
+      // only start the heartbeat thread if the connection is successful and if there is not
+      // another heartbeat thread running
+      if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
+        final int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+        mHeartbeat =
+            mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
+                mHeartbeatExecutor, interval));
+      }
     }
 
     return mConnected;
@@ -421,12 +425,28 @@ public final class WorkerClient implements Closeable {
    */
   public synchronized void sessionHeartbeat() throws IOException {
     mustConnect();
-
     try {
       mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
+    }
+  }
+
+  /**
+   * Called only by {@link WorkerClientHeartbeatExecutor}, encapsulates
+   * {@link #sessionHeartbeat()} in order to cancel and cleanup the
+   * heartbeating thread in case of failures
+   */
+  public synchronized void periodicHeartbeat() {
+    try {
+      sessionHeartbeat();
+    } catch (IOException e) {
+      LOG.error("Periodic heartbeat failed, cleaning up.", e);
+      if (mHeartbeat != null) {
+        mHeartbeat.cancel(true);
+        mHeartbeat = null;
+      }
     }
   }
 }
