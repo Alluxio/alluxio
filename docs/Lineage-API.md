@@ -111,7 +111,8 @@ These are the configuration parameters related to Tachyon's lineage feature.
 </tr>
 <tr>
   <td>tachyon.master.lineage.checkpoint.class</td>
-  <td>tachyon.master.lineage.checkpoint.CheckpointLatestScheduler</td>
+  <td>tachyon.master.lineage.checkpoint
+    .CheckpointLatestScheduler</td>
   <td>
   The class name of the checkpoint strategy for lineage output files. The default strategy is to
   checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
