@@ -28,7 +28,7 @@ import org.junit.Test;
 
 public class JsonJournalFormatterTest extends JournalFormatterTestBase {
 
-  public static final String JSON_SAMPLE_PATH = "/JournalEntries.json";
+  public static final String JSON_SAMPLE_PATH = "/JsonJournalEntries.json";
 
   private static JsonNode sRootNode;
 

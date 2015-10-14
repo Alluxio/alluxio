@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -154,10 +155,15 @@ public abstract class JournalFormatterTestBase {
 
   @Before
   public final void before() throws Exception {
-
     String path = mTestFolder.newFile().getAbsolutePath();
     mOs = new FileOutputStream(path);
     mIs = new FileInputStream(path);
+  }
+
+  @After
+  public final void after() throws Exception {
+    mOs.close();
+    mIs.close();
   }
 
   protected void write(JournalEntry entry) throws IOException {
