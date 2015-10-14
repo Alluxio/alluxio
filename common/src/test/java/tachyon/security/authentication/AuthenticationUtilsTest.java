@@ -57,20 +57,11 @@ public class AuthenticationUtilsTest {
   @Before
   public void before() throws Exception {
     mTachyonConf = new TachyonConf();
-    mTachyonConf.set(Constants.IN_TEST_MODE, "true");
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(0));
-
-    mServerTSocket =
-        new TServerSocket(NetworkAddressUtils.getBindAddress(
-            NetworkAddressUtils.ServiceType.MASTER_RPC, mTachyonConf));
+    // Use port 0 to assign each test case an available port (possibly different)
+    mServerTSocket = new TServerSocket(new InetSocketAddress("localhost", 0));
     int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
-
-    // reset master port
-    mTachyonConf.set(Constants.MASTER_PORT, Integer.toString(port));
-
-    mServerAddress =  new InetSocketAddress("localhost", port);
+    mServerAddress = new InetSocketAddress("localhost", port);
     mClientTSocket = AuthenticationUtils.createTSocket(mServerAddress);
-
   }
 
   /**
