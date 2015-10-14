@@ -181,6 +181,7 @@ public abstract class JournalFormatterTestBase {
     assertSameEntry(entry, readEntry);
   }
 
+  // check if every entry is covered by this test
   @Test
   public void checkEntriesNumberTest() {
     Assert.assertEquals(JournalEntryType.values().length, mDataSet.size());
