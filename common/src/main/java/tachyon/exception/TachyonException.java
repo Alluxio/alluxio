@@ -15,6 +15,8 @@
 
 package tachyon.exception;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,11 +67,22 @@ public class TachyonException extends Exception {
       if (e.getType() == throwInstance.getType()) {
         throw throwInstance;
       }
-      // TODO(andrew): Change this to something supported in Java 6
-    } catch (ReflectiveOperationException roe) {
-      // They passed us an exception class that couldn't be instantiated with a string and
-      // throwable, so we can ignore it
-      LOG.error("Class passed to unwrap is invalid: ", throwClass.getName());
+      // This will be easier when we move to Java 7, when instead of catching Exception we can catch
+      // ReflectiveOperationException, the Java 7 superclass for these Exceptions
+    } catch (InstantiationException e1) {
+      handleUnwrapExceptionError(throwClass);
+    } catch (IllegalAccessException e1) {
+      handleUnwrapExceptionError(throwClass);
+    } catch (InvocationTargetException e1) {
+      handleUnwrapExceptionError(throwClass);
+    } catch (NoSuchMethodException e1) {
+      handleUnwrapExceptionError(throwClass);
     }
+  }
+
+  private static void handleUnwrapExceptionError(Class<?> throwClass) {
+    // They passed us an exception class that couldn't be instantiated with a string and
+    // throwable, so we can ignore it
+    LOG.error("Class passed to unwrap is invalid: ", throwClass.getName());
   }
 }
