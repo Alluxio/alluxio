@@ -151,6 +151,13 @@ the port number.
   <td>The interval (in milliseconds) between Tachyon master's heartbeats</td>
 </tr>
 <tr>
+  <td>tachyon.master.format.file_prefix</td>
+  <td>"_format_"</td>
+  <td>The file prefix of the file generated in the journal directory when the journal is
+    formatted. The master will search for a file with this prefix when determining of the journal
+    was once formatted.</td>
+</tr>
+<tr>
   <td>tachyon.master.journal.folder</td>
   <td>"${tachyon.home}/journal/"</td>
   <td>The path to store master journal logs.</td>
