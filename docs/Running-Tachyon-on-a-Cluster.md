@@ -29,34 +29,31 @@ $ ./bin/tachyon-start.sh # use the right parameters here. e.g. all Mount
 
 To verify that Tachyon is running, you can visit
 [http://tachyon.master.hostname:19999](http://tachyon.master.hostname:19999), check the log in the
-folder tachyon/logs, or run a sample program:
+direcotry `tachyon/logs`, or run a sample program:
 
 ```bash
 $ ./bin/tachyon runTests
 ```
 
-**Note**: If you are using EC2, make sure the security group settings on the master node allow
+**Note**: If you are using EC2, make sure the security group settings on the master node allows
  incoming connections on the tachyon web UI port.
 
 ## Using the bootstrap-conf argument to the bin/tachyon script
 
-The tachyon script also contains logic to create a basic config for a
-cluster.  If you run:
+The tachyon script also contains logic to create a basic config for a cluster. If you run:
 
 ```bash
 $ cd tachyon
 $ ./bin/tachyon bootstrap-conf <tachyon_master_hostname>
 ```
 
-and there is no existing `tachyon/conf/tachyon-env.sh` file, then the
-script will create one with the appropriate settings for a cluster
-with a master node running at `<tachyon_master_hostname>`.
+and there is no existing `tachyon/conf/tachyon-env.sh` file, then the script will create one 
+with the appropriate settings for a cluster with a master node running at `<tachyon_master_hostname>`.
 
 This script needs to be run on each node you wish to configure.
 
-The script will configure your workers to use 2/3 of the total memory
-on each worker.  This amount can be changed by editing the created
-`tachyon/conf/tachyon-env.sh` file on the worker.
+The script will configure your workers to use 2/3 of the total memory on each worker. This amount 
+can be changed by editing the created `tachyon/conf/tachyon-env.sh` file on the worker.
 
 ## EC2 cluster with Spark
 
