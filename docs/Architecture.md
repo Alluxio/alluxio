@@ -39,9 +39,9 @@ portion of Tachyon.
 ### Master
 
 Tachyon may be deployed in one of two master modes, [single master](Running-Tachyon-Locally.html) or
-[multiple masters (one primary plus standbys)](Running-Tachyon-Fault-Tolerant-on-EC2). The master is 
-primarily responsible for managing the global metadata of the system, for example, the file system tree.
-Clients may interact with the master to read or modify this metadata. In addition, all workers
+[multiple masters (one primary plus standbys)](Running-Tachyon-Fault-Tolerant-on-EC2.html). The master 
+is primarily responsible for managing the global metadata of the system, for example, the file system 
+tree. Clients may interact with the master to read or modify this metadata. In addition, all workers
 periodically heartbeat to the master to maintain their participation in the cluster. The master
 does not initiate communication with other components; it only interacts with other components by
 responding to requests.
