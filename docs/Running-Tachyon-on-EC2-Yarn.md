@@ -1,15 +1,15 @@
 ---
 layout: global
-title: Running Tachyon on EC2
-nickname: Tachyon on EC2
+title: Running Tachyon with Yarn on EC2
+nickname: Tachyon on EC2 with Yarn
 group: User Guide
-priority: 3
+priority: 5
 ---
 
-Tachyon can be deployed on Amazon EC2 using the
+Tachyon can be started and managed by Apache Yarn. This guide demonstrates how to launch Tachyon
+with Yarn on EC2 machines using the
 [Vagrant scripts](https://github.com/amplab/tachyon/tree/master/deploy/vagrant) that come with
-Tachyon. The scripts let you create, configure, and destroy clusters that come automatically
-configured with HDFS.
+Tachyon.
 
 # Prerequisites
 
@@ -71,12 +71,6 @@ the permissions of your private key file that only you can read it:
 $ chmod 400 <your key pair>.pem
 ```
 
-Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
-
-```bash
-$ cp deploy/vagrant/conf/ec2.yml.template deploy/vagrant/conf/ec2.yml
-```
-
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
 
@@ -85,7 +79,7 @@ By default, the Vagrant script creates a
 named *tachyon-vagrant-test* at
 [Region(**us-east-1**) and Availability Zone(**us-east-1a**)](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
 The security group will be set up automatically in the region with all inbound/outbound network
-traffic opened. You can change the *security group*, *region* and *availability zone* in `ec2.yml`.
+traffic opened. You can change the security group, region and availability zone in `ec2.yml`.
 
 Now you can launch the Tachyon cluster with Hadoop2.4.1 as under filesystem in us-east-1a by running
 the script under `deploy/vagrant`:
@@ -94,14 +88,12 @@ the script under `deploy/vagrant`:
 $ ./create <number of machines> aws
 ```
 
-Each node of the cluster runs a Tachyon worker, and the `TachyonMaster` runs the Tachyon master.
-
 # Access the cluster
 
 **Access through Web UI**
 
-After the command `./create <number of machines> aws` succeeds, you can see two green lines like
-below shown at the end of the shell output:
+After command `./create <number of machines> aws` succeeds, you can see two green lines like below
+shown at the end of the shell output:
 
     >>> TachyonMaster public IP is xxx, visit xxx:19999 for Tachyon web UI<<<
     >>> visit default port of the web UI of what you deployed <<<
@@ -131,10 +123,53 @@ For example, you can ssh into `TachyonMaster` with:
 $ vagrant ssh TachyonMaster
 ```
 
-All software is installed under the root directory, e.g. Tachyon is installed in `/tachyon`,
-and Hadoop is installed in `/hadoop`.
+All software is installed under root directory, e.g. Tachyon is installed in `/tachyon`, Hadoop is
+installed in `/hadoop`.
 
-On the `TachyonMaster` node, you can run tests against Tachyon to check its health:
+# Configure Tachyon integration with Yarn
+
+Yarn has been installed as a part of Hadoop version 2.4.1. Notice that, by default Tachyon binaries 
+built by vagrant script do not include this YARN integration. You should first stop the default 
+Tachyon service, re-compile Tachyon with profile yarn specified to have the Yarn client and
+ApplicationMaster for Tachyon.
+
+```bash
+$ cd /tachyon
+$ ./bin/tachyon-stop.sh
+$ mvn clean install -Dhadoop.version=2.4.1 -Pyarn
+```
+
+To customize Tachyon master and worker with specific properties (e.g., tiered storage setup on each
+worker), one can refer to [Configuration settings](Configuration-Settings.html) for more
+information. To ensure your configuration can be read by both the ApplicationMaster and Tachyon
+master/workers, put `tachyon-site.properties` under `${TACHYON_HOME}/conf` on each EC2 machine.
+
+# Start Tachyon
+
+Use script `integration/bin/tachyon-yarn.sh` to start Tachyon. This script requires three parameters:
+1. A path pointing to `${TACHYON_HOME}` on each machine so Yarn NodeManager can access Tachyon
+scripts and binaries to launch masters and workers. With our EC2 setup, this path is `/tachyon`.
+2. The total number of Tachyon workers to start.
+3. A HDFS path to distribute the binaries for Tachyon ApplicationMaster.
+
+For example, here we launch a Tachyon cluster with 3 worker nodes, where an HDFS temp directory is
+`hdfs://TachyonMaster:9000/tmp/` and each Yarn container can access Tachyon in `/tachyon`
+
+```bash
+$ /tachyon/integration/bin/tachyon-yarn.sh /tachyon 3 hdfs://TachyonMaster:9000/tmp/
+```
+
+This script will first upload the binaries with Yarn client and ApplicationMaster to the HDFS path
+specified, then inform Yarn to run the client binary jar. The script will keep running with
+ApplicationMaster status reported. You can also check `http://TachyonMaster:8088` in the browser to
+access the Web UIs and watch the status of the Tachyon job as well as the application ID.
+
+NOTE: currently Tachyon Yarn framework does not guarantee to start the Tachyon master on the
+TachyonMaster machine; use the Yarn Web UI to find out which machine is Tachyon master running on.
+
+# Test Tachyon
+
+You can run tests against Tachyon to check its health:
 
 ```bash
 $ /tachyon/bin/tachyon runTests
@@ -144,10 +179,14 @@ After the tests finish, visit Tachyon web UI at `http://{MASTER_IP}:19999` again
 File System` in the navigation bar, and you should see the files written to Tachyon by the above
 tests.
 
-From a node in the cluster, you can ssh to other nodes in the cluster without password with:
+
+# Stop Tachyon
+
+Tachyon can be stopped by using the following Yarn command where the application ID of Tachyon can
+be retrieved from either Yarn web UI or the output of `tachyon-yarn.sh`:
 
 ```bash
-$ ssh TachyonWorker1
+$ /hadoop/bin/yarn application -kill TACHYON_APPLICATION_ID
 ```
 
 # Destroy the cluster
