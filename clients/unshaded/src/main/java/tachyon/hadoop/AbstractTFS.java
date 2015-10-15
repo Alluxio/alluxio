@@ -122,47 +122,22 @@ abstract class AbstractTFS extends FileSystem {
       mStatistics.incrementWriteOps(1);
     }
 
-    boolean asyncEnabled = mTachyonConf.getBoolean(Constants.ASYNC_ENABLED);
-    if (!asyncEnabled) {
-      TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-      if (mTFS.exist(path)) {
-        if (overwrite && !mTFS.getFileStatus(-1, path).isFolder) {
-          if (!mTFS.delete(path, false)) {
-            throw new IOException("Failed to delete existing data " + cPath);
-          }
-        } else {
-          throw new IOException(cPath.toString() + " already exists. Directories cannot be "
-              + "overwritten with create.");
-        }
-      }
-      long fileId = mTFS.createFile(path, blockSize);
-      TachyonFile file = mTFS.getFile(fileId);
-      file.setUFSConf(getConf());
-
-      WriteType type = getWriteType();
-      return new FSDataOutputStream(file.getOutStream(type), mStatistics);
-    }
-
-    if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
-      throw new UnsupportedOperationException("operation not supported");
-    }
-
-    if (cPath.toString().contains(RECOMPUTE_PATH) && !cPath.toString().contains("SUCCESS")) {
-      throw new UnsupportedOperationException("operation not supported");
-    }
-
     TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
-    long fileId;
-    WriteType type = getWriteType();
     if (mTFS.exist(path)) {
-      fileId = mTFS.getFileId(path);
-      type = WriteType.MUST_CACHE;
-    } else {
-      fileId = mTFS.createFile(path, blockSize);
+      if (overwrite && !mTFS.getFileStatus(-1, path).isFolder) {
+        if (!mTFS.delete(path, false)) {
+          throw new IOException("Failed to delete existing data " + cPath);
+        }
+      } else {
+        throw new IOException(cPath.toString() + " already exists. Directories cannot be "
+            + "overwritten with create.");
+      }
     }
-
+    long fileId = mTFS.createFile(path, blockSize);
     TachyonFile file = mTFS.getFile(fileId);
     file.setUFSConf(getConf());
+
+    WriteType type = getWriteType();
     return new FSDataOutputStream(file.getOutStream(type), mStatistics);
   }
 
