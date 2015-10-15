@@ -585,6 +585,21 @@ configuration options.
   <td>Memory resource required to run a Tachyon master.</td>
 </tr>
 <tr>
+  <td>tachyon.integration.mesos.executor.dependency.path</td>
+  <td>https://s3.amazonaws.com/tachyon-mesos</td>
+  <td>The URL from which Mesos executor can download Tachyon dependencies.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.jre.url</td>
+  <td>https://s3.amazonaws.com/tachyon-mesos/jre-7u79-linux-x64.tar.gz</td>
+  <td>The URL from which Mesos executor can download the JRE to use.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.mesos.jre.version</td>
+  <td>jre1.7.0_79</td>
+  <td>The relative path to the JRE directory included in the tarball available at the JRE URL.</td>
+</tr>
+<tr>
   <td>tachyon.integration.worker.resource.cpu</td>
   <td>1</td>
   <td>CPU resource in terms of number of cores required to run a Tachyon worker.</td>
