@@ -175,16 +175,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } else {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
-    tachyon.client.file.TachyonFile newFile;
     try {
-      newFile = mTFS.open(uri);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
-    if (newFile == null) {
-      throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
-    }
-    try {
+      tachyon.client.file.TachyonFile newFile = mTFS.open(uri);
       return mTFS.getInStream(newFile, optionsBuilder.build());
     } catch (TachyonException e) {
       throw new IOException(e);
