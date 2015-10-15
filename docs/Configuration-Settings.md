@@ -36,7 +36,7 @@ All Tachyon configuration properties fall into one of the four categories:
 
 ## Common Configuration
 
-The common configuration contains constants which specify paths and the log appender name.
+The common configuration contains constants shared by different components.
 
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
@@ -135,7 +135,7 @@ The common configuration contains constants which specify paths and the log appe
 
 ## Master Configuration
 
-The master configuration specifies information regarding the master node, such as the address and 
+The master configuration specifies information regarding the master node, such as the address and
 the port number.
 
 <table class="table">
@@ -208,7 +208,7 @@ the port number.
   <td>tachyon.master.lineage.recompute.interval.ms</td>
   <td>600000</td>
   <td>
-  The interval (in milliseconds) between Tachyon's recompute execution. The executor scans the 
+  The interval (in milliseconds) between Tachyon's recompute execution. The executor scans the
   all the lost files tracked by lineage, and re-executes the corresponding jobs.
   every 10 minutes.
   </td>
@@ -271,7 +271,7 @@ the port number.
 
 ## Worker Configuration
 
-The worker configuration specifies information regarding the worker nodes, such as the address and 
+The worker configuration specifies information regarding the worker nodes, such as the address and
 the port number.
 
 <table class="table">
@@ -279,7 +279,7 @@ the port number.
 <tr>
   <td>tachyon.worker.allocator.class</td>
   <td>tachyon.worker.block.allocator.MaxFreeAllocator</td>
-  <td>The strategy that a worker uses to allocate space among storage directories in certain storage 
+  <td>The strategy that a worker uses to allocate space among storage directories in certain storage
   layer. Valid options include: `tachyon.worker.block.allocator.MaxFreeAllocator`,
   `tachyon.worker.block.allocator.GreedyAllocator`,
   `tachyon.worker.block.allocator.RoundRobinAllocator`.</td>
@@ -413,7 +413,7 @@ the port number.
 <tr>
   <td>tachyon.worker.session.timeout.ms</td>
   <td>10000</td>
-  <td>Timeout (in milliseconds) between worker and client connection indicating a lost session 
+  <td>Timeout (in milliseconds) between worker and client connection indicating a lost session
   connection.</td>
 </tr>
 <tr>
@@ -435,7 +435,7 @@ the port number.
 <tr>
   <td>tachyon.worker.tieredstore.level0.dirs.path</td>
   <td>/mnt/ramdisk/</td>
-  <td>The path of storage directory path for the top storage layer. Note for MacOS the value 
+  <td>The path of storage directory path for the top storage layer. Note for MacOS the value
   should be `/Volumes/`</td>
 </tr>
 <tr>
@@ -456,7 +456,7 @@ the port number.
 <tr>
   <td>tachyon.worker.tieredstore.reserver.interval.ms</td>
   <td>1000</td>
-  <td>The time period (in milliseconds) of space reserver service, which keeps certain portion of 
+  <td>The time period (in milliseconds) of space reserver service, which keeps certain portion of
   available space on each layer.</td>
 </tr>
 <tr>
@@ -466,7 +466,7 @@ the port number.
 </tr>
 <tr>
   <td>tachyon.worker.web.hostname</td>
-  <td></td>
+  <td>localhost</td>
   <td>The hostname Tachyon worker's web UI binds to.</td>
 </tr>
 <tr>
@@ -564,6 +564,36 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.quota.unit.bytes</td>
   <td>8 MB</td>
   <td>The minimum number of bytes that will be requested from a client to a worker at a time.</td>
+</tr>
+</table>
+
+## Cluster Management
+
+When running Tachyon with cluster managers like Mesos and YARN, Tachyon has additional
+configuration options.
+
+<table class="table">
+<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr>
+  <td>tachyon.integration.master.resource.cpu</td>
+  <td>1</td>
+  <td>CPU resource in terms of number of cores required to run a Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.master.resource.mem</td>
+  <td>1024 MB</td>
+  <td>Memory resource required to run a Tachyon master.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.worker.resource.cpu</td>
+  <td>1</td>
+  <td>CPU resource in terms of number of cores required to run a Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.integration.master.resource.mem</td>
+  <td>1024 MB</td>
+  <td>Memory resource required to run a Tachyon worker. This memory does not include the memory
+  configured for tiered storage.</td>
 </tr>
 </table>
 
