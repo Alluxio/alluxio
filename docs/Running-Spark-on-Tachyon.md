@@ -100,7 +100,7 @@ and the following line to `spark/conf/spark-env.sh`:
 ```bash
 export SPARK_JAVA_OPTS="
   -Dtachyon.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 \
-  -Dtachyon.usezookeeper=true \
+  -Dtachyon.zookeeper.enabled=true \
   $SPARK_JAVA_OPTS
 "
 ```
