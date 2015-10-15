@@ -220,6 +220,9 @@ service FileSystemMasterService {
   void setPinned(1: i64 fileId, 2: bool pinned)
     throws (1: TachyonTException e)
 
+  void setTTL(1: i64 fileId, 2: i64 ttl)
+    throws (1: TachyonTException e)
+
   /**
    * Deletes an existing "mount point", voiding the Tachyon namespace at the given path. The path
    * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
