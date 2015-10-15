@@ -320,6 +320,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       mTachyonFileInputStream.seek(pos);
     } else {
       getHdfsInputStream(pos);
+      // TODO(calvin): Optimize for the case when the data is still valid in the buffer
+      // Invalidate buffer
+      mBufferLimit = -1;
     }
 
     mCurrentPosition = pos;
