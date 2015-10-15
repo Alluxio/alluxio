@@ -101,7 +101,7 @@ public final class JournalWriter {
    * @param latestSequenceNumber the sequence number of the latest journal entry. This sequence
    *        number will be used to determine the next sequence numbers for the subsequent journal
    *        entries.
-   * @return the output stream for the journal checkpoint.
+   * @return the output stream for the journal checkpoint
    * @throws IOException
    */
   public synchronized JournalOutputStream getCheckpointOutputStream(long latestSequenceNumber)
@@ -125,7 +125,7 @@ public final class JournalWriter {
    * Returns an output stream for the journal entries. The returned output stream is a singleton for
    * this writer.
    *
-   * @return the output stream for the journal entries.
+   * @return the output stream for the journal entries
    * @throws IOException
    */
   public synchronized JournalOutputStream getEntryOutputStream() throws IOException {

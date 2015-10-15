@@ -13,39 +13,15 @@
  * the License.
  */
 
-package tachyon.job;
-
-import java.io.Serializable;
-
-import com.google.common.base.Preconditions;
+package tachyon.heartbeat;
 
 /**
- * A Job that can run at Tachyon.
+ * An interface for a heartbeat execution. The {@link HeartbeatThread} calls the
+ * {@link #heartbeat()} method.
  */
-@SuppressWarnings("serial")
-public abstract class Job implements Serializable {
-  private final JobConf mJobConf;
-
+public interface HeartbeatExecutor {
   /**
-   * Constructs with job configuration.
-   *
-   * @param jobConf the job configuration
+   * Implements the heartbeat logic.
    */
-  public Job(JobConf jobConf) {
-    mJobConf = Preconditions.checkNotNull(jobConf);
-  }
-
-  /**
-   * @return the job configuration
-   */
-  public JobConf getJobConf() {
-    return mJobConf;
-  }
-
-  /**
-   * Runs the job.
-   *
-   * @return true if the run succeeds, false otherwise
-   */
-  public abstract boolean run();
+  void heartbeat();
 }

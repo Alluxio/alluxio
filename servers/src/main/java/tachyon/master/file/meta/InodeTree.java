@@ -358,7 +358,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * precedes its descendants in the list.
    *
    * @param inodeDirectory The root {@link InodeDirectory} to retrieve all descendants from.
-   * @return A list of all descendants.
+   * @return A list of all descendants
    */
   public List<Inode> getInodeChildrenRecursive(InodeDirectory inodeDirectory) {
     List<Inode> ret = new ArrayList<Inode>();
@@ -434,7 +434,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * @return the set of file ids which are pinned.
+   * @return the set of file ids which are pinned
    */
   public Set<Long> getPinIdSet() {
     return Sets.newHashSet(mPinnedInodeFileIds);
@@ -646,14 +646,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
 
     /**
-     * @return the list of inodes modified during path creation.
+     * @return the list of inodes modified during path creation
      */
     public List<Inode> getModified() {
       return mModified;
     }
 
     /**
-     * @return the list of inodes created during path creation.
+     * @return the list of inodes created during path creation
      */
     public List<Inode> getCreated() {
       return mCreated;
