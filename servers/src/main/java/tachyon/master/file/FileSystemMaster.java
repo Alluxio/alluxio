@@ -63,6 +63,7 @@ import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
+import tachyon.master.file.journal.SetTTLEntry;
 import tachyon.master.file.meta.Inode;
 import tachyon.master.file.meta.InodeDirectory;
 import tachyon.master.file.meta.InodeDirectoryIdGenerator;
@@ -167,6 +168,8 @@ public final class FileSystemMaster extends MasterBase {
       persistFileFromEntry((PersistFileEntry) entry);
     } else if (entry instanceof SetPinnedEntry) {
       setPinnedFromEntry((SetPinnedEntry) entry);
+    } else if (entry instanceof SetTTLEntry) {
+      setTTLFromEntry((SetTTLEntry) entry);
     } else if (entry instanceof DeleteFileEntry) {
       deleteFileFromEntry((DeleteFileEntry) entry);
     } else if (entry instanceof RenameEntry) {
@@ -1410,29 +1413,41 @@ public final class FileSystemMaster extends MasterBase {
    */
   public void setTTL(long fileId, long ttl) throws FileDoesNotExistException {
     synchronized (mInodeTree) {
-      InodeFile file = (InodeFile) mInodeTree.getInodeById(fileId);
-      if (file.getTTL() == Constants.NO_TTL) {
-        if (ttl != Constants.NO_TTL) {
-          // The file doesn't have a valid TTL before and the new TTL is valid, set the new TTL
-          // value and add the file to buckets.
-          file.setTTL(ttl);
-          mTTLBuckets.insert(file);
-        }
-      } else if (ttl == Constants.NO_TTL) {
-        // The file has a valid TTL before, the new TTL is NO_TTL, remove the file from
-        // buckets and set TTL value to NO_TTL.
+      setTTLInternal(fileId, ttl);
+      writeJournalEntry(new SetTTLEntry(fileId, ttl));
+    }
+  }
+
+  private void setTTLFromEntry(SetTTLEntry entry) {
+    try {
+      setTTLInternal(entry.getId(), entry.getTTL());
+    } catch (FileDoesNotExistException fdnee) {
+      throw new RuntimeException(fdnee);
+    }
+  }
+
+  private void setTTLInternal(long fileId, long ttl) throws FileDoesNotExistException {
+    InodeFile file = (InodeFile) mInodeTree.getInodeById(fileId);
+    if (file.getTTL() == Constants.NO_TTL) {
+      if (ttl != Constants.NO_TTL) {
+        // The file doesn't have a valid TTL before and the new TTL is valid, set the new TTL
+        // value and add the file to buckets.
+        file.setTTL(ttl);
+        mTTLBuckets.insert(file);
+      }
+    } else if (ttl == Constants.NO_TTL) {
+      // The file has a valid TTL before, the new TTL is NO_TTL, remove the file from
+      // buckets and set TTL value to NO_TTL.
+      mTTLBuckets.remove(file);
+      file.setTTL(ttl);
+    } else {
+      // The file has a valid TTL before, the new TTL is also valid, if the two TTLs are
+      // different, update the TTL value of the file, and relocate the file in the buckets.
+      if (file.getTTL() != ttl) {
         mTTLBuckets.remove(file);
         file.setTTL(ttl);
-      } else {
-        // The file has a valid TTL before, the new TTL is also valid, if the two TTLs are
-        // different, update the TTL value of the file, and relocate the file in the buckets.
-        if (file.getTTL() != ttl) {
-          mTTLBuckets.remove(file);
-          file.setTTL(ttl);
-          mTTLBuckets.insert(file);
-        }
+        mTTLBuckets.insert(file);
       }
-      // TODO(cc): Journal
     }
   }
 
