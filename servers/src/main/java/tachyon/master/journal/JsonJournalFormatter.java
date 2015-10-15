@@ -59,6 +59,7 @@ import tachyon.master.file.journal.PersistFileEntry;
 import tachyon.master.file.journal.ReinitializeFileEntry;
 import tachyon.master.file.journal.RenameEntry;
 import tachyon.master.file.journal.SetPinnedEntry;
+import tachyon.master.file.journal.SetTTLEntry;
 import tachyon.master.lineage.journal.AsyncCompleteFileEntry;
 import tachyon.master.lineage.journal.DeleteLineageEntry;
 import tachyon.master.lineage.journal.LineageEntry;
@@ -328,6 +329,11 @@ public final class JsonJournalFormatter implements JournalFormatter {
                 entry.getLong("id"),
                 entry.getBoolean("pinned"),
                 entry.getLong("operationTimeMs"));
+          }
+          case SET_TTL: {
+            return new SetTTLEntry(
+                entry.getLong("id"),
+                entry.getLong("ttl"));
           }
           case DELETE_FILE: {
             return new DeleteFileEntry(
