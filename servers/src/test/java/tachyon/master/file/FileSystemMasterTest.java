@@ -123,11 +123,7 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
   }
 
-  @Test
-  public void createFileWithTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    Assert.assertEquals(fileInfo.fileId, fileId);
+  private void executeTTLCheckOnce() throws Exception {
     // Wait for the TTL check executor to be ready to execute its heartbeat.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
         TimeUnit.SECONDS));
@@ -137,8 +133,65 @@ public final class FileSystemMasterTest {
     // avoid a race between the subsequent test logic and the heartbeat thread.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
         TimeUnit.SECONDS));
+  }
+
+  @Test
+  public void createFileWithTTLTest() throws Exception {
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(fileInfo.fileId, fileId);
+    executeTTLCheckOnce();
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
+  }
+
+  @Test
+  public void setTTLForFileWithNoTTLTest() throws Exception {
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
+    executeTTLCheckOnce();
+    // Since no valid TTL is set, the file should not be deleted.
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+
+    mFileSystemMaster.setTTL(fileId, 0);
+    executeTTLCheckOnce();
+    // TTL is set to 0, the file should have been deleted during last TTL check.
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.getFileInfo(fileId);
+  }
+
+  @Test
+  public void setSmallerTTLForFileWithTTLTest() throws Exception {
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, Constants.HOUR_MS);
+    executeTTLCheckOnce();
+    // Since TTL is 1 hour, the file won't be deleted during last TTL check.
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+
+    mFileSystemMaster.setTTL(fileId, 0);
+    executeTTLCheckOnce();
+    // TTL is reset to 0, the file should have been deleted during last TTL check.
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.getFileInfo(fileId);
+  }
+
+  @Test
+  public void setLargerTTLForFileWithTTLTest() throws Exception {
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+
+    mFileSystemMaster.setTTL(fileId, Constants.HOUR_MS);
+    executeTTLCheckOnce();
+    // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
+  }
+
+  @Test
+  public void setNoTTLForFileWithTTLTest() throws Exception {
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
+    // After setting TTL to NO_TTL, the original TTL will be removed, and the file will not be
+    // deleted during next TTL check.
+    mFileSystemMaster.setTTL(fileId, Constants.NO_TTL);
+    executeTTLCheckOnce();
+    Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).fileId);
   }
 
   @Test
