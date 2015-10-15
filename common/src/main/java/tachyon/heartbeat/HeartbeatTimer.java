@@ -13,12 +13,16 @@
  * the License.
  */
 
-package tachyon;
+package tachyon.heartbeat;
 
 /**
- * The interface for a periodical heartbeat. <code>HeartbeatThread</code> calls the
- * <code>heartbeat()</code> method.
+ * An interface for heartbeat timers. The {@link HeartbeatThread} calls the {@link #tick()} method.
  */
-public interface HeartbeatExecutor {
-  void heartbeat();
+public interface HeartbeatTimer {
+  /**
+   * Waits until next heartbeat should be executed.
+   *
+   * @throws InterruptedException if the thread is interrupted while waiting
+   */
+  void tick() throws InterruptedException;
 }

@@ -60,9 +60,6 @@ public final class Constants {
   public static final int DEFAULT_WORKER_DATA_PORT = DEFAULT_WORKER_PORT + 1;
   public static final int DEFAULT_WORKER_WEB_PORT = DEFAULT_WORKER_PORT + 2;
 
-  public static final int DEFAULT_MASTER_MAX_WORKER_THREADS = 2048;
-  public static final int DEFAULT_WORKER_MAX_WORKER_THREADS = 2048;
-
   public static final int DEFAULT_USER_FAILED_SPACE_REQUEST_LIMITS = 3;
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
@@ -100,7 +97,6 @@ public final class Constants {
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "tachyon.underfs.hdfs.configuration";
   public static final String UNDERFS_HDFS_PREFIXS = "tachyon.underfs.hdfs.prefixes";
-  public static final String ASYNC_ENABLED = "tachyon.async.enabled";
   public static final String MAX_COLUMNS = "tachyon.max.columns";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
