@@ -100,7 +100,7 @@ $ ./create <number of machines> aws
 After command `./create <number of machines> aws` succeeds, you can see two green lines like below
 shown at the end of the shell output:
 
-    >>> TachyonMaster public IP is xxx <<<
+    >>> TachyonMaster public IP is xxx, visit xxx:19999 for Tachyon web UI<<<
     >>> visit default port of the web UI of what you deployed <<<
 
 Default port for Tachyon Web UI is **19999**.
