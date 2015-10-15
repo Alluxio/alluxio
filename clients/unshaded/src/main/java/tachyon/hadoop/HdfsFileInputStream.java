@@ -264,6 +264,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       if (mStatistics != null) {
         mStatistics.incrementBytesRead(1);
       }
+      mCurrentPosition ++;
       return BufferUtils.byteToInt(mBuffer[mBufferPosition ++]);
     }
     LOG.error("Reading from HDFS directly");
@@ -277,6 +278,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mStatistics != null) {
       mStatistics.incrementBytesRead(1);
     }
+    mCurrentPosition ++;
     return BufferUtils.byteToInt(mBuffer[mBufferPosition ++]);
   }
 
