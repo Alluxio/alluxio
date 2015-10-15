@@ -21,8 +21,8 @@ On startup, Tachyon loads the default (and optionally a site specific) configura
 to set the configuration properties.
 
 1. The default values of configuration properties of Tachyon are defined in
-`tachyon-default.properties`. This file can be found in Tachyon source tree and is typically distributed
-with Tachyon binaries. We do not recommend beginner users to edit this file directly.
+`tachyon-default.properties`. This file can be found in Tachyon source tree and is typically
+distributed with Tachyon binaries. We do not recommend beginner users to edit this file directly.
 
 2. Each site deployment and application client can also override the default property values via
 `tachyon-site.properties` file. Note that, this file **must be in the classpath** of the Java VM in
@@ -40,6 +40,11 @@ The common configuration contains constants shared by different components.
 
 <table class="table">
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+<tr>
+  <td>tachyon.debug</td>
+  <td>false</td>
+  <td>Set to true to enable debug mode which has additional logging and info in the Web UI.</td>
+</tr>
 <tr>
   <td>tachyon.home</td>
   <td>/mnt/tachyon_default_home</td>
@@ -63,17 +68,22 @@ The common configuration contains constants shared by different components.
 <tr>
   <td>tachyon.metrics.conf.file</td>
   <td>${tachyon.home}/conf/metrics.properties</td>
-  <td>The file path of the metrics system configuration file. By default it is `metrics.properties` in
-  the `conf` directory.</td>
+  <td>The file path of the metrics system configuration file. By default it is `metrics.properties`
+  in the `conf` directory.</td>
 </tr>
 <tr>
   <td>tachyon.network.host.resolution.timeout.ms</td>
   <td>5000</td>
-  <td>During startup of the Master and Worker processes Tachyon needs to ensure that they are listening
-    on externally resolvable and reachable host names.  To do this, Tachyon will automatically
-    attempt to select an appropriate host name if one was not explicitly specified.  This represents
-    the maximum amount of time spent waiting to determine if a candidate host name is resolvable
-    over the network.</td>
+  <td>During startup of the Master and Worker processes Tachyon needs to ensure that they are
+    listening on externally resolvable and reachable host names.  To do this, Tachyon will
+    automatically attempt to select an appropriate host name if one was not explicitly specified.
+    This represents the maximum amount of time spent waiting to determine if a candidate host name
+    is resolvable over the network.</td>
+</tr>
+<tr>
+  <td>tachyon.test.mode</td>
+  <td>false</td>
+  <td>Flag used only during tests to allow special behavior.</td>
 </tr>
 <tr>
   <td>tachyon.underfs.address</td>
@@ -531,7 +541,32 @@ The user configuration specifies values regarding file system access.
   <td>How many threads to use for file system master client to talk to block master.</td>
 </tr>
 <tr>
-  <td>tachyon.user.file.writetype.default</td>
+  <td>tachyon.user.file.tachyonstoragetype.default</td>
+  <td>STORE</td>
+  <td>The default interaction with Tachyon. Possible values are PROMOTE, STORE, and NO_STORE.
+  Store will attempt to write data to Tachyon if the local worker does not have the data. This
+  applies to writing new data as well as reading data which is not already on the local worker.
+  Promote behaves the same as store, except if the data is on the local worker, promote will
+  migrate the data to the highest tier. No store will never attempt to write data into Tachyon
+  storage. This is useful to prevent one-time data access from interfering with Tachyon.</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.understoragetype.default</td>
+  <td>SYNC_PERSIST</td>
+  <td>The default interaction with the under storage. Possible values are SYNC_PERSIST, NO_PERSIST,
+  and ASYNC_PERSIST. This value only affects writes in Tachyon. Sync persist will attempt to write
+  data to the under storage as the data is written to Tachyon. When the write completes, the data
+  will be available in both locations. Async persist will only write the data to the under storage
+  after the files is completed. See the lineage documentation for more details. No persist will
+  bypass the under storage, only writing to Tachyon.</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.waitcompleted.poll.ms</td>
+  <td>1000</td>
+  <td>The time interval to poll a file for its completion status when using waitCompleted.</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.writetype.default [DEPRECATED]</td>
   <td>CACHE_THROUGH</td>
   <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface.
     Valid options are `MUST_CACHE` (write must cache), `TRY_CACHE` (write will try to cache),
