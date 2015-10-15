@@ -95,10 +95,10 @@ public class TachyonFramework {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-      double masterCpu = sConf.getInt(Constants.MASTER_RESOURCE_CPU);
-      double masterMem = sConf.getBytes(Constants.MASTER_RESOURCE_MEM) / Constants.MB;
-      double workerCpu = sConf.getInt(Constants.WORKER_RESOURCE_CPU);
-      double workerMem = sConf.getBytes(Constants.WORKER_RESOURCE_MEM) / Constants.MB;
+      double masterCpu = sConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+      double masterMem = sConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+      double workerCpu = sConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+      double workerMem = sConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
