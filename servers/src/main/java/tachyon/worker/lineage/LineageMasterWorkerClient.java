@@ -66,18 +66,13 @@ public final class LineageMasterWorkerClient extends ClientBase {
    * @return the command for checkpointing the blocks of a file
    * @throws IOException if file persistence fails
    */
-  public synchronized LineageCommand workerLineageHeartbeat(long workerId,
-      List<Long> persistedFiles) throws IOException {
-    int retry = 0;
-    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
-      connect();
-      try {
+  public synchronized LineageCommand workerLineageHeartbeat(final long workerId,
+      final List<Long> persistedFiles) throws IOException {
+    return retryRPC(new RpcCallable<LineageCommand>() {
+      @Override
+      public LineageCommand call() throws TException {
         return mClient.workerLineageHeartbeat(workerId, persistedFiles);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
       }
-    }
-    throw new IOException("Failed after " + retry + " retries.");
+    });
   }
 }
