@@ -590,14 +590,14 @@ configuration options.
   <td>The URL from which Mesos executor can download Tachyon dependencies.</td>
 </tr>
 <tr>
+  <td>tachyon.integration.mesos.jre.path</td>
+  <td>jre1.7.0_79</td>
+  <td>The relative path to the JRE directory included in the tarball available at the JRE URL.</td>
+</tr>
+<tr>
   <td>tachyon.integration.mesos.jre.url</td>
   <td>https://s3.amazonaws.com/tachyon-mesos/jre-7u79-linux-x64.tar.gz</td>
   <td>The URL from which Mesos executor can download the JRE to use.</td>
-</tr>
-<tr>
-  <td>tachyon.integration.mesos.jre.version</td>
-  <td>jre1.7.0_79</td>
-  <td>The relative path to the JRE directory included in the tarball available at the JRE URL.</td>
 </tr>
 <tr>
   <td>tachyon.integration.worker.resource.cpu</td>

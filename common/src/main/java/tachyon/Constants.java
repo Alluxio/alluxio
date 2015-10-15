@@ -120,9 +120,9 @@ public final class Constants {
       "tachyon.integration.master.resource.mem";
   public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH =
       "tachyon.integration.mesos.executor.dependency.path";
+  public static final String INTEGRATION_MESOS_JRE_PATH =
+      "tachyon.integration.mesos.jre.path";
   public static final String INTEGRATION_MESOS_JRE_URL = "tachyon.integration.mesos.jre.url";
-  public static final String INTEGRATION_MESOS_JRE_VERSION =
-      "tachyon.integration.mesos.jre.version";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NAME =
       "tachyon.integration.mesos.master.name";
   public static final String INTEGRATION_MESOS_TACHYON_WORKER_NAME =
