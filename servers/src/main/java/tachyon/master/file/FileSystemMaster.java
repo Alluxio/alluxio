@@ -47,7 +47,6 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.SuspectedFileSizeException;
-import tachyon.exception.TachyonException;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
@@ -516,7 +515,7 @@ public final class FileSystemMaster extends MasterBase {
    */
   public long create(TachyonURI path, long blockSizeBytes, boolean recursive)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
-    return this.create(path, blockSizeBytes, recursive, Constants.NO_TTL);
+    return create(path, blockSizeBytes, recursive, Constants.NO_TTL);
   }
 
   /**
@@ -1387,6 +1386,53 @@ public final class FileSystemMaster extends MasterBase {
       free(fileId, false);
       InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
       inodeFile.reinit();
+    }
+  }
+
+  /**
+   * Sets TTL of a file no matter whether the file already has a TTL.
+   *
+   * <p>
+   * If the file already has a TTL, and the new TTL doesn't equal {@link Constants#NO_TTL}, the
+   * corresponding {@link InodeFile} in {@link #mTTLBuckets} will be moved to a new appropriate
+   * bucket according to the new TTL.
+   * <p>
+   * If the file already has a TTL, and the new TTL equals {@link Constants#NO_TTL}, the
+   * corresponding {@link InodeFile} will be moved out of {@link #mTTLBuckets}.
+   * <p>
+   * If the file doesn't have a TTL before, and the new TTL doesn't equal {@link Constants#NO_TTL},
+   * then the new TTL will be set and the corresponding {@link InodeFile} will be added to
+   * {@link #mTTLBuckets}.
+   *
+   * @param fileId the id of the file
+   * @param ttl the new ttl value to be set for the file
+   * @throws FileDoesNotExistException if the file doesn't exist
+   */
+  public void setTTL(long fileId, long ttl) throws FileDoesNotExistException {
+    synchronized (mInodeTree) {
+      InodeFile file = (InodeFile) mInodeTree.getInodeById(fileId);
+      if (file.getTTL() == Constants.NO_TTL) {
+        if (ttl != Constants.NO_TTL) {
+          // The file doesn't have a valid TTL before and the new TTL is valid, set the new TTL
+          // value and add the file to buckets.
+          file.setTTL(ttl);
+          mTTLBuckets.insert(file);
+        }
+      } else if (ttl == Constants.NO_TTL) {
+        // The file has a valid TTL before, the new TTL is NO_TTL, remove the file from
+        // buckets and set TTL value to NO_TTL.
+        mTTLBuckets.remove(file);
+        file.setTTL(ttl);
+      } else {
+        // The file has a valid TTL before, the new TTL is also valid, if the two TTLs are
+        // different, update the TTL value of the file, and relocate the file in the buckets.
+        if (file.getTTL() != ttl) {
+          mTTLBuckets.remove(file);
+          file.setTTL(ttl);
+          mTTLBuckets.insert(file);
+        }
+      }
+      // TODO(cc): Journal
     }
   }
 

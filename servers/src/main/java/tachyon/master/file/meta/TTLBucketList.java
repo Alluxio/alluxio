@@ -40,6 +40,32 @@ public final class TTLBucketList {
   }
 
   /**
+   * Gets the bucket in the list that contains the file.
+   *
+   * @param file the file to be contained
+   * @return the bucket containing the file, or null if no such bucket exists
+   */
+  private TTLBucket getBucketContaining(InodeFile file) {
+    if (file.getTTL() == Constants.NO_TTL) {
+      // no bucket will contain a file with NO_TTL.
+      return null;
+    }
+
+    long ttlEndTimeMs = file.getCreationTimeMs() + file.getTTL();
+    // Gets the last bucket with interval start time less than or equal to the file's life end
+    // time.
+    TTLBucket bucket = mBucketList.floor(new TTLBucket(ttlEndTimeMs));
+    if (bucket == null || bucket.getTTLIntervalEndTimeMs() <= ttlEndTimeMs) {
+      // 1. There is no bucket in the list, or
+      // 2. All buckets' interval start time is larger than the file's life end time, or
+      // 3. No bucket actually contains ttlEndTimeMs in its interval.
+      return null;
+    }
+
+    return bucket;
+  }
+
+  /**
    * Inserts an {@link InodeFile} to the appropriate bucket where its ttl end time lies in the
    * bucket's interval, if no appropriate bucket exists, a new bucket will be created to contain
    * this file, if ttl value is {@link Constants#NO_TTL}, the file won't be inserted to any buckets
@@ -52,23 +78,41 @@ public final class TTLBucketList {
       return;
     }
 
-    long ttlEndTimeMs = file.getCreationTimeMs() + file.getTTL();
-    // Gets the last bucket with interval start time less than or equal to the file's life end
-    // time.
-    TTLBucket bucket = mBucketList.floor(new TTLBucket(ttlEndTimeMs));
-    if (bucket == null || bucket.getTTLIntervalEndTimeMs() <= ttlEndTimeMs) {
-      // 1. There is no bucket in the list, or
-      // 2. All buckets' interval start time is larger than the file's life end time, or
-      // 3. No bucket actually contains ttlEndTimeMs in its interval.
-      // So a new bucket should should be added with an appropriate interval start. Assume the list
-      // of buckets have continuous intervals, and the first interval starts at 0, then ttlEndTimeMs
-      // should be in number (ttlEndTimeMs / interval) interval, so the start time of this interval
-      // should be (ttlEndTimeMs / interval) * interval.
+    TTLBucket bucket = getBucketContaining(file);
+    if (bucket == null) {
+      long ttlEndTimeMs = file.getCreationTimeMs() + file.getTTL();
+      // No bucket contains the file, so a new bucket should be added with an appropriate interval
+      // start. Assume the list of buckets have continuous intervals, and the first interval starts
+      // at 0, then ttlEndTimeMs should be in number (ttlEndTimeMs / interval) interval, so the
+      // start time of this interval should be (ttlEndTimeMs / interval) * interval.
       long interval = TTLBucket.getTTLIntervalMs();
       bucket = new TTLBucket(ttlEndTimeMs / interval * interval);
       mBucketList.add(bucket);
     }
     bucket.addFile(file);
+  }
+
+  /**
+   * Removes a file from the bucket containing it if the file is in one of the buckets, otherwise,
+   * do nothing.
+   *
+   * <p>
+   * Assume that no file in the buckets has ttl value that equals {@link Constants#NO_TTL}.
+   * If a file with valid ttl value is inserted to the buckets and its ttl value is going to be set
+   * to {@link Constants#NO_TTL} later, be sure to remove the file from the buckets first.
+   *
+   * @param file the file to be removed
+   */
+  public void remove(InodeFile file) {
+    if (file.getTTL() == Constants.NO_TTL) {
+      // no buckets will contain file with NO_TTL.
+      return;
+    }
+
+    TTLBucket bucket = getBucketContaining(file);
+    if (bucket != null) {
+      bucket.removeFile(file);
+    }
   }
 
   /**
