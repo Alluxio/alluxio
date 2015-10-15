@@ -15,14 +15,14 @@
 
 package tachyon.client.file.options;
 
+import tachyon.Constants;
 import tachyon.client.ClientContext;
 import tachyon.conf.TachyonConf;
 
 public class SetStateOptions {
   public static class Builder {
     private Boolean mPinned;
-    // TODO(cc) Have an option to change TTL, would be used in a shell command like "setTTL", should
-    // also update logic of TTLBucketList when ttl value of an existing file is updated.
+    private Long mTTL;
 
     /**
      * Creates a new builder for {@link SetStateOptions}.
@@ -31,6 +31,7 @@ public class SetStateOptions {
      */
     public Builder(TachyonConf conf) {
       mPinned = null;
+      mTTL = null;
     }
 
     /**
@@ -41,6 +42,17 @@ public class SetStateOptions {
      */
     public Builder setPinned(boolean pinned) {
       mPinned = pinned;
+      return this;
+    }
+
+    /**
+     * @param ttl the ttl(time to live) value (in milliseconds) to use; it specifies how long should
+     *            the file be deleted after creation, if it is set to {@link Constants#NO_TTL} and
+     *            the file originally has a ttl value, then it means remove the original ttl value
+     * @return the builder
+     */
+    public Builder setTTL(long ttl) {
+      mTTL = ttl;
       return this;
     }
 
@@ -62,9 +74,11 @@ public class SetStateOptions {
   }
 
   private final Boolean mPinned;
+  private final Long mTTL;
 
   private SetStateOptions(SetStateOptions.Builder builder) {
     mPinned = builder.mPinned;
+    mTTL = builder.mTTL;
   }
 
   /**
@@ -72,5 +86,15 @@ public class SetStateOptions {
    */
   public Boolean getPinned() {
     return mPinned;
+  }
+
+  /**
+   * @return the ttl value, null if it is not set in builder; it specifies how long should the file
+   *         be deleted after creation, if it is equal to {@link Constants#NO_TTL}, it means that
+   *         no valid TTL value should be set for the file and the file won't be deleted due to
+   *         expiration later
+   */
+  public Long getTTL() {
+    return mTTL;
   }
 }

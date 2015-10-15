@@ -38,6 +38,7 @@ public enum JournalEntryType {
   REINITIALIZE_FILE,
   RENAME,
   SET_PINNED,
+  SET_TTL,
 
   // Raw table master entries
   RAW_TABLE,
