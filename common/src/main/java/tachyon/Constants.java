@@ -138,7 +138,6 @@ public final class Constants {
   public static final String INTEGRATION_WORKER_RESOURCE_MEM =
       "tachyon.integration.worker.resource.mem";
 
-
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";
   public static final String MASTER_JOURNAL_FORMATTER_CLASS =
