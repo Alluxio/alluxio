@@ -100,7 +100,6 @@ public final class Constants {
   public static final String UNDERFS_HDFS_IMPL = "tachyon.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "tachyon.underfs.hdfs.configuration";
   public static final String UNDERFS_HDFS_PREFIXS = "tachyon.underfs.hdfs.prefixes";
-  public static final String ASYNC_ENABLED = "tachyon.async.enabled";
   public static final String MAX_COLUMNS = "tachyon.max.columns";
   public static final String IN_TEST_MODE = "tachyon.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
