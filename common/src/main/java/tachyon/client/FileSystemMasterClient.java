@@ -353,6 +353,32 @@ public final class FileSystemMasterClient extends MasterClientBase {
   }
 
   /**
+   * Sets a new TTL value for the file. If the new TTL value equals {@link Constants#NO_TTL} and the
+   * file originally has a valid TTL, it means remove the original TTL value and the file won't be
+   * deleted due to expiration later.
+   *
+   * @param ttl the new TTL value
+   * @throws IOException if an I/O error occurs
+   * @throws TachyonException if a Tachyon error occurs
+   */
+  public synchronized void setTTL(long fileId, long ttl) throws IOException, TachyonException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        mClient.setTTL(fileId, ttl);
+        return;
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  /**
    * Creates a new directory.
    *
    * @param path the directory path
