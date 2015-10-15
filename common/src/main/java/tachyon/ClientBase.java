@@ -19,6 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -29,9 +30,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.conf.TachyonConf;
+import tachyon.exception.TachyonException;
 import tachyon.retry.ExponentialBackoffRetry;
 import tachyon.retry.RetryPolicy;
 import tachyon.security.authentication.AuthenticationUtils;
+import tachyon.thrift.TachyonTException;
 
 /**
  * The base class for clients.
@@ -188,4 +191,90 @@ public abstract class ClientBase implements Closeable {
     return mAddress;
   }
 
+  /**
+   * The RPC to be executed in {@link #retryRPC(RpcCallable)}.
+   *
+   * @param <V> the return value of {@link #call()}
+   */
+  protected interface RpcCallable<V> {
+    /**
+     * The task where RPC happens.
+     *
+     * @return RPC result
+     * @throws TException when any exception defined in thrift happens
+     */
+    V call() throws TException;
+  }
+
+  /**
+   * Same with {@link RpcCallable} except that this RPC call throws {@link TachyonTException} and
+   * is to be executed in {@link #retryRPC(RpcCallableThrowsTachyonTException)}.
+   *
+   * @param <V> the return value of {@link #call()}
+   */
+  protected interface RpcCallableThrowsTachyonTException<V> {
+    /**
+     * The task where RPC happens.
+     *
+     * @return RPC result
+     * @throws TachyonTException when any {@link TachyonException} happens during RPC and is wrapped
+     *                           into {@link TachyonTException}
+     * @throws TException when any exception defined in thrift happens
+     */
+    V call() throws TachyonTException, TException;
+  }
+
+  /**
+   * Tries to execute a RPC defined as a {@link RpcCallable}, if error
+   * happens in one execution, a reconnection will be tried through {@link #connect()} and the
+   * action will be re-executed.
+   *
+   * @param rpc the RPC call to be executed
+   * @param <V> type of return value of the RPC call
+   * @return the return value of the RPC call
+   * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
+   *                     been called before calling this method or during the retry
+   */
+  protected <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return rpc.call();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
+
+  /**
+   * Similar to {@link #retryRPC(RpcCallable)} except that the RPC call may throw
+   * {@link TachyonTException} and once it is thrown, it will be transformed into
+   * {@link TachyonException} and be thrown out.
+   *
+   * @param rpc the RPC call to be executed
+   * @param <V> type of return value of the RPC call
+   * @return the return value of the RPC call
+   * @throws TachyonException when {@link TachyonTException} is thrown by the RPC call
+   * @throws IOException when retries exceeds {@link #RPC_MAX_NUM_RETRY} or {@link #close()} has
+   *                     been called before calling this method or during the retry
+   */
+  protected <V> V retryRPC(RpcCallableThrowsTachyonTException<V> rpc)
+      throws TachyonException, IOException {
+    int retry = 0;
+    while (!mClosed && (retry ++) <= RPC_MAX_NUM_RETRY) {
+      connect();
+      try {
+        return rpc.call();
+      } catch (TachyonTException e) {
+        throw new TachyonException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    throw new IOException("Failed after " + retry + " retries.");
+  }
 }
