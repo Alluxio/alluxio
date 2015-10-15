@@ -328,6 +328,17 @@ the port number.
   `tachyon.worker.block.evictor.GreedyEvictor`, `tachyon.worker.block.evictor.LRUEvictor`.</td>
 </tr>
 <tr>
+  <td>tachyon.worker.evictor.lrfu.attenuation.factor</td>
+  <td>2.0</td>
+  <td>A attenuation factor in [2, INF) to control the behavior of LRFU.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.evictor.lrfu.step.factor</td>
+  <td>0.25</td>
+  <td>A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to
+  LFU; and larger value makes LRFU closer to LRU.</td>
+</tr>
+<tr>
   <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
   <td>1000</td>
   <td>
