@@ -78,14 +78,14 @@ patch on Hadoop and then build Tachyon, enabling access to SoftLayer object stor
 
 Hadoop patch for SoftLayer object store. We demonstrate for version 2.4.0:
 
-1.	Download hadoop-2.4.0-src.tar.gz and extract it under hadoop-2.4.0 folder.
+1.	Download `hadoop-2.4.0-src.tar.gz` and extract it under `hadoop-2.4.0` folder.
 2.	Download https://issues.apache.org/jira/secure/attachment/12662347/HADOOP-10420-007.patch and
 save it under `hadoop-2.4.0` folder.
 3.	Check that changes are visible and can be applied, by executing:
 `git apply --stat HADOOP-10420-007.patch` or `git apply --check HADOOP-10420-007.patch` from
 `hadoop-2.4.0` folder.
 4.	Apply the patch: `git apply HADOOP-10420-007.patch`.
-5.	Navigate to /hadoop-2.4.0/hadoop-tools/hadoop-openstack folder and execute: `mvn -DskipTests
+5.	Navigate to `/hadoop-2.4.0/hadoop-tools/hadoop-openstack` folder and execute: `mvn -DskipTests
 install`.
 6.	Build Tachyon as described above.
 
@@ -103,7 +103,9 @@ This should start a Tachyon master and a Tachyon worker. You can see the master 
 
 Next, you can run a simple example program:
 
-    $ ./bin/tachyon runTest Basic CACHE_THROUGH
+```bash
+$ ./bin/tachyon runTest Basic CACHE_THROUGH
+```
 
 After this succeeds, you can visit your Swift container to verify the files and directories created
 by Tachyon exist. For this test, you should see a file named:
@@ -112,4 +114,6 @@ by Tachyon exist. For this test, you should see a file named:
 
 To stop Tachyon, you can run:
 
-    $ ./bin/tachyon-stop.sh
+```bash
+$ ./bin/tachyon-stop.sh
+```
