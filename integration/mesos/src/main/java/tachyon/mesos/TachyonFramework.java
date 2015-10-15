@@ -48,9 +48,11 @@ public class TachyonFramework {
     private String mMasterHostname = "";
     private String mTaskName = "";
     private int mMasterTaskId;
+    private int mWorkerTaskId;
     private Set<String> mWorkers = new HashSet<String>();
     int mLaunchedTasks = 0;
     int mMasterCount = 0;
+    int mWorkerCount = 0;
 
     @Override
     public void disconnected(SchedulerDriver driver) {
@@ -144,7 +146,8 @@ public class TachyonFramework {
           mMasterTaskId = mLaunchedTasks;
 
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
-            && offerCpu >= workerCpu && offerMem >= workerMem) {
+            && offerCpu >= workerCpu && offerMem >= workerMem
+            && mWorkerCount < sConf.getInt(Constants.INTEGRATION_MESOS_TACHYON_WORKER_NODE_COUNT)) {
           final String MEM_SIZE = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
           executorBuilder
               .setName("Tachyon Worker Executor")
@@ -175,6 +178,8 @@ public class TachyonFramework {
           targetMem = workerMem;
           mWorkers.add(offer.getHostname());
           mTaskName = sConf.get(Constants.INTEGRATION_MESOS_TACHYON_WORKER_NAME);
+          mWorkerCount ++;
+          mWorkerTaskId = mLaunchedTasks;
         } else {
           // The resource offer cannot be used to start either master or a worker.
           driver.declineOffer(offer.getId());
@@ -242,6 +247,8 @@ public class TachyonFramework {
         case TASK_ERROR:
           if (status.getTaskId().getValue().equals(String.valueOf(mMasterTaskId))) {
             mMasterCount --;
+          } else if (status.getTaskId().getValue().equals(String.valueOf(mWorkerTaskId))) {
+            mWorkerCount --;
           }
           break;
         case TASK_RUNNING:
