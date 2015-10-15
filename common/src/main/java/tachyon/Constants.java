@@ -113,6 +113,11 @@ public final class Constants {
   public static final String MAX_TABLE_METADATA_BYTE = "tachyon.max.table.metadata.bytes";
   public static final String METRICS_CONF_FILE = "tachyon.metrics.conf.file";
   public static final String FORMAT_FILE_PREFIX = "_format_";
+
+  public static final String INTEGRATION_MASTER_RESOURCE_CPU =
+      "tachyon.integration.master.resource.cpu";
+  public static final String INTEGRATION_MASTER_RESOURCE_MEM =
+      "tachyon.integration.master.resource.mem";
   public static final String INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH =
       "tachyon.integration.mesos.executor.dependency.path";
   public static final String INTEGRATION_MESOS_JRE_URL = "tachyon.integration.mesos.jre.url";
@@ -124,6 +129,10 @@ public final class Constants {
       "tachyon.integration.mesos.worker.name";
   public static final String INTEGRATION_MESOS_TACHYON_MASTER_NODE_COUNT =
       "tachyon.integration.mesos.master.node.count";
+  public static final String INTEGRATION_WORKER_RESOURCE_CPU =
+      "tachyon.integration.worker.resource.cpu";
+  public static final String INTEGRATION_WORKER_RESOURCE_MEM =
+      "tachyon.integration.worker.resource.mem";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "tachyon.master.format.file_prefix";
   public static final String MASTER_JOURNAL_FOLDER = "tachyon.master.journal.folder";
@@ -152,9 +161,6 @@ public final class Constants {
   public static final String MASTER_KEYTAB_KEY = "tachyon.master.keytab.file";
   public static final String MASTER_PRINCIPAL_KEY = "tachyon.master.principal";
   public static final String MASTER_RETRY_COUNT = "tachyon.master.retry";
-  public static final String MASTER_RESOURCE_CPU = "tachyon.master.resource.cpu";
-  public static final String MASTER_RESOURCE_MEM = "tachyon.master.resource.mem";
-
   public static final String MASTER_LINEAGE_CHECKPOINT_CLASS =
       "tachyon.master.lineage.checkpoint.class";
   public static final String MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS =
@@ -248,8 +254,6 @@ public final class Constants {
   public static final String WORKER_KEYTAB_KEY = "tachyon.worker.keytab.file";
   public static final String WORKER_PRINCIPAL_KEY = "tachyon.worker.principal";
   public static final String WORKER_DATA_SERVER = "tachyon.worker.data.server.class";
-  public static final String WORKER_RESOURCE_CPU = "tachyon.worker.resource.cpu";
-  public static final String WORKER_RESOURCE_MEM = "tachyon.worker.resource.mem";
 
   public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
       "tachyon.user.failed.space.request.limits";
