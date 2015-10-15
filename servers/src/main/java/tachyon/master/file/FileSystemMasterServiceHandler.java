@@ -158,6 +158,15 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
+  public void setTTL(long fileId, long ttl) throws TachyonTException {
+    try {
+      mFileSystemMaster.setTTL(fileId, ttl);
+    } catch (TachyonException e) {
+      throw e.toTachyonTException();
+    }
+  }
+
+  @Override
   public boolean mkdir(String path, boolean recursive) throws TachyonTException {
     try {
       mFileSystemMaster.mkdir(new TachyonURI(path), recursive);
