@@ -31,7 +31,10 @@ Furthermore, Tachyon transparently discovers content present in the underlying s
 was not created through Tachyon. For instance, if the underlying storage system contains a directory
 `Data` with files `Reports` and `Sales`, all of which were not created through Tachyon, their
 metadata will be loaded into Tachyon the first time they are accessed (e.g. when the user asks to
-list the contents of the top-level directory or when they request to open a file).
+list the contents of the top-level directory or when they request to open a file). The data of file
+is not loaded to Tachyon during this process. To load the data into Tachyon, one can set the 
+`TachyonStorageType` to `STORE` when reading the data for the first time or use the `load` command
+of the Tachyon shell.
 
 ## Mounting API
 
@@ -106,7 +109,7 @@ $ ls /tmp/tachyon-demo
 ```
 
 Finally, let's unmount the mounted directory and verify that it is removed from the Tachyon
-namespace, but it contents are preserved in the underlying file system:
+namespace, but its contents are preserved in the underlying file system:
 
 ```bash
 ${TACHYON_HOME}/bin/tachyon tfs unmount /demo
