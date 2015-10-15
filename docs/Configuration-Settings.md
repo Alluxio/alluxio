@@ -151,6 +151,11 @@ the port number.
   <td>The interval (in milliseconds) between Tachyon master's heartbeats</td>
 </tr>
 <tr>
+  <td>tachyon.master.hostname</td>
+  <td>localhost</td>
+  <td>The hostname of Tachyon master.</td>
+</tr>
+<tr>
   <td>tachyon.master.format.file_prefix</td>
   <td>"_format_"</td>
   <td>The file prefix of the file generated in the journal directory when the journal is
@@ -233,12 +238,17 @@ the port number.
 <tr>
   <td>tachyon.master.web.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon master's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
+  <td>The hostname Tachyon master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
+</tr>
+<tr>
+  <td>tachyon.master.web.hostname</td>
+  <td>localhost</td>
+  <td>The hostname of Tachyon Master web UI.</td>
 </tr>
 <tr>
   <td>tachyon.master.web.port</td>
   <td>19999</td>
-  <td>The port Tachyon's web interface runs on.</td>
+  <td>The port Tachyon web UI runs on.</td>
 </tr>
 <tr>
   <td>tachyon.master.whitelist</td>
@@ -337,6 +347,11 @@ the port number.
   <td>0.25</td>
   <td>A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to
   LFU; and larger value makes LRFU closer to LRU.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.hostname</td>
+  <td>localhost</td>
+  <td>The hostname of Tachyon worker.</td>
 </tr>
 <tr>
   <td>tachyon.worker.lineage.heartbeat.interval.ms</td>
@@ -447,12 +462,17 @@ the port number.
 <tr>
   <td>tachyon.worker.web.bind.host</td>
   <td>0.0.0.0</td>
-  <td>The hostname Tachyon's worker's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
+  <td>The hostname Tachyon worker's web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a></td>
+</tr>
+<tr>
+  <td>tachyon.worker.web.hostname</td>
+  <td></td>
+  <td>The hostname Tachyon worker's web UI binds to.</td>
 </tr>
 <tr>
   <td>tachyon.worker.web.port</td>
   <td>30000</td>
-  <td>The port Tachyon's worker's web server runs on.</td>
+  <td>The port Tachyon worker's web UI runs on.</td>
 </tr>
 </table>
 
