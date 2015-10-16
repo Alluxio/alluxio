@@ -55,9 +55,9 @@ public class FileOutStream extends OutputStream implements Cancelable {
 
   // Error strings for preconditions in order to improve performance
   private static final String ERR_BLOCK_REMAINING =
-      "The current block still has space left, no need to get new block";
-  private static final String ERR_BUFFER_NULL = "Buffer is null";
-  private static final String ERR_BUFFER_POS = "Buffer length (%d), offset(%d), len(%d)";
+      "The current block still has space left, no need to get new block.";
+  private static final String ERR_BUFFER_NULL = "Cannot write a null input buffer.";
+  private static final String ERR_BUFFER_STATE = "Buffer length (%d), offset(%d), len(%d)";
 
   private final long mBlockSize;
   protected final TachyonStorageType mTachyonStorageType;
@@ -220,7 +220,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   public void write(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, ERR_BUFFER_NULL);
     Preconditions.checkArgument(
-        off >= 0 && len >= 0 && len + off <= b.length, ERR_BUFFER_POS, b.length, off, len);
+        off >= 0 && len >= 0 && len + off <= b.length, ERR_BUFFER_STATE, b.length, off, len);
 
     if (mShouldCacheCurrentBlock) {
       try {
