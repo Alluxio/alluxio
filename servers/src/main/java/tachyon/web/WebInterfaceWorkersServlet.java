@@ -16,8 +16,10 @@
 package tachyon.web;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -130,18 +132,19 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * @param workerInfos The list of WorkerInfo objects
    * @return The list of NodeInfo objects
    */
-  private NodeInfo[] generateOrderedNodeInfos(List<WorkerInfo> workerInfos) {
+  private NodeInfo[] generateOrderedNodeInfos(Collection<WorkerInfo> workerInfos) {
     NodeInfo[] ret = new NodeInfo[workerInfos.size()];
-    Collections.sort(workerInfos, new Ordering<WorkerInfo>() {
-      @Override
-      public int compare(WorkerInfo info0, WorkerInfo info1) {
-        return info0.getAddress().getHost().compareTo(info1.getAddress().getHost());
-      }
-    });
     int index = 0;
     for (WorkerInfo workerInfo : workerInfos) {
       ret[index ++] = new NodeInfo(workerInfo);
     }
+
+    Arrays.sort(ret, new Ordering<NodeInfo>() {
+      @Override
+      public int compare(NodeInfo info0, NodeInfo info1) {
+        return info0.getHost().compareTo(info1.getHost());
+      }
+    });
 
     return ret;
   }
@@ -159,7 +162,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
     request.setAttribute("normalNodeInfos", normalNodeInfos);
 
-    List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfo();
+    Set<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfo();
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
 

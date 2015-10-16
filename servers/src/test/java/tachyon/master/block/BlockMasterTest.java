@@ -41,6 +41,7 @@ import tachyon.test.Tester;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.WorkerInfo;
 
 /**
  * Unit tests for tachyon.master.block.BlockMaster.
@@ -90,12 +91,14 @@ public class BlockMasterTest implements Tester<BlockMaster> {
     MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, new NetAddress("localhost", 80, 81));
     MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, new NetAddress("localhost", 82, 83));
     mPrivateAccess.addLostWorker(workerInfo1);
-    Assert.assertEquals(ImmutableList.of(workerInfo1.generateClientWorkerInfo()),
+    Assert.assertEquals(ImmutableSet.of(workerInfo1.generateClientWorkerInfo()),
         mMaster.getLostWorkersInfo());
     mPrivateAccess.addLostWorker(workerInfo2);
-    Assert.assertEquals(
-        ImmutableList.of(workerInfo1.generateClientWorkerInfo(),
-            workerInfo2.generateClientWorkerInfo()), mMaster.getLostWorkersInfo());
+
+    final Set<WorkerInfo> expected = ImmutableSet.of(workerInfo1.generateClientWorkerInfo(),
+        workerInfo2.generateClientWorkerInfo());
+
+    Assert.assertEquals(expected, mMaster.getLostWorkersInfo());
   }
 
   @Test
