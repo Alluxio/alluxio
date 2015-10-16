@@ -29,7 +29,7 @@ import tachyon.master.MasterContext;
  */
 public abstract class Journal {
   /** The log number for the first completed log file. */
-  public static final int FIRST_COMPLETED_LOG_NUMBER = 1;
+  public static final long FIRST_COMPLETED_LOG_NUMBER = 1L;
   /** The directory for completed log files, relative to the base journal directory. */
   private static final String COMPLETED_DIRECTORY = "completed/";
   /** The file extension for the current log file. */
@@ -77,7 +77,7 @@ public abstract class Journal {
   }
 
   /**
-   * @return the absolute path for the current log file.
+   * @return the absolute path for the current log file
    */
   public String getCurrentLogFilePath() {
     return mDirectory + ENTRY_LOG_FILENAME_BASE + CURRENT_LOG_EXTENSION;
@@ -87,10 +87,10 @@ public abstract class Journal {
    * Returns the completed log filename for a particular log number.
    *
    * @param logNumber the log number to get the path for.
-   * @return The absolute path of the completed log for a given log number.
+   * @return The absolute path of the completed log for a given log number
    */
-  public String getCompletedLogFilePath(int logNumber) {
-    return getCompletedDirectory() + String.format("%s.%07d", ENTRY_LOG_FILENAME_BASE, logNumber);
+  public String getCompletedLogFilePath(long logNumber) {
+    return getCompletedDirectory() + String.format("%s.%020d", ENTRY_LOG_FILENAME_BASE, logNumber);
   }
 
   /**

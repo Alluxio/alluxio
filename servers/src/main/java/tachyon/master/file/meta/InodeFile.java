@@ -128,7 +128,7 @@ public final class InodeFile extends Inode {
   }
 
   /**
-   * @return the length of the file in bytes. This is not accurate before the file is closed.
+   * @return the length of the file in bytes. This is not accurate before the file is closed
    */
   public synchronized long getLength() {
     return mLength;

@@ -20,7 +20,7 @@ package tachyon.master.journal;
  */
 public interface JournalEntryRepresentable {
   /**
-   * @return the {@link JournalEntry} representing this object.
+   * @return the {@link JournalEntry} representing this object
    */
   JournalEntry toJournalEntry();
 }

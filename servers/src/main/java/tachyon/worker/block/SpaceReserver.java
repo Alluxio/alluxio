@@ -29,6 +29,8 @@ import tachyon.exception.BlockAlreadyExistsException;
 import tachyon.exception.BlockDoesNotExistException;
 import tachyon.exception.InvalidWorkerStateException;
 import tachyon.exception.WorkerOutOfSpaceException;
+import tachyon.test.Testable;
+import tachyon.test.Tester;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerContext;
 
@@ -36,7 +38,7 @@ import tachyon.worker.WorkerContext;
  * SpaceReserver periodically checks if there is enough space reserved on each storage tier, if
  * there is no enough free space on some tier, free space from it.
  */
-public class SpaceReserver implements Runnable {
+public class SpaceReserver implements Runnable, Testable<SpaceReserver> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockDataManager mBlockManager;
   /** Mapping from tier alias to space size to be reserved on the tier */
@@ -54,7 +56,7 @@ public class SpaceReserver implements Runnable {
     long lastTierReservedBytes = 0;
     for (int idx = 0; idx < aliasOnTiers.size(); idx ++) {
       String tierReservedSpaceProp =
-          String.format(Constants.WORKER_TIERED_STORAGE_LEVEL_RESERVED_RATIO_FORMAT, idx);
+          String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, idx);
       int tierAlias = aliasOnTiers.get(idx);
       /** Similar to {@link BlockStoreMeta}, the alias index is the value of alias - 1 */
       long reservedSpaceBytes =
@@ -65,7 +67,7 @@ public class SpaceReserver implements Runnable {
       lastTierReservedBytes += reservedSpaceBytes;
     }
     mCheckIntervalMs =
-        WorkerContext.getConf().getInt(Constants.WORKER_SPACE_RESERVER_INTERVAL_MS);
+        WorkerContext.getConf().getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
     mRunning = true;
   }
 
@@ -81,24 +83,7 @@ public class SpaceReserver implements Runnable {
       } else {
         LOG.warn("Space reserver took: " + lastIntervalMs + ", expected: " + mCheckIntervalMs);
       }
-      for (int tierIdx = mBytesToReserveOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
-        Pair<Integer, Long> bytesReservedOnTier = mBytesToReserveOnTiers.get(tierIdx);
-        int tierAlias = bytesReservedOnTier.getFirst();
-        long bytesReserved = bytesReservedOnTier.getSecond();
-        try {
-          mBlockManager.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
-        } catch (WorkerOutOfSpaceException e) {
-          LOG.warn(e.getMessage());
-        } catch (BlockDoesNotExistException e) {
-          LOG.warn(e.getMessage());
-        } catch (BlockAlreadyExistsException e) {
-          LOG.warn(e.getMessage());
-        } catch (InvalidWorkerStateException e) {
-          LOG.warn(e.getMessage());
-        } catch (IOException e) {
-          LOG.warn(e.getMessage());
-        }
-      }
+      reserveSpace();
     }
   }
 
@@ -108,5 +93,40 @@ public class SpaceReserver implements Runnable {
   public void stop() {
     LOG.info("Space reserver exits!");
     mRunning = false;
+  }
+
+  @Override
+  public void grantAccess(Tester<SpaceReserver> tester) {
+    tester.receiveAccess(new PrivateAccess());
+  }
+
+  private void reserveSpace() {
+    for (int tierIdx = mBytesToReserveOnTiers.size() - 1; tierIdx >= 0 ; tierIdx --) {
+      Pair<Integer, Long> bytesReservedOnTier = mBytesToReserveOnTiers.get(tierIdx);
+      int tierAlias = bytesReservedOnTier.getFirst();
+      long bytesReserved = bytesReservedOnTier.getSecond();
+      try {
+        mBlockManager.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
+      } catch (WorkerOutOfSpaceException e) {
+        LOG.warn(e.getMessage());
+      } catch (BlockDoesNotExistException e) {
+        LOG.warn(e.getMessage());
+      } catch (BlockAlreadyExistsException e) {
+        LOG.warn(e.getMessage());
+      } catch (InvalidWorkerStateException e) {
+        LOG.warn(e.getMessage());
+      } catch (IOException e) {
+        LOG.warn(e.getMessage());
+      }
+    }
+  }
+
+  /** Grants access to private members to testers of this class. */
+  class PrivateAccess {
+    private PrivateAccess() {}
+
+    public void reserveSpace() {
+      SpaceReserver.this.reserveSpace();
+    }
   }
 }

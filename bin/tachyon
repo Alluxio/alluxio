@@ -75,7 +75,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
+  Usage="Usage: tachyon runTest <Basic|BasicNonByteBuffer|BasicRawTable> <STORE|NO_STORE>"
 
   if [ "$#" -ne 2 ]; then
     echo $Usage
@@ -234,7 +234,7 @@ elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit $?
 elif [ "$COMMAND" == "runTests" ]; then
-  declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
+  declare -a opArr=(STORE NO_STORE)
 
   failed=0
   for op in ${opArr[@]}

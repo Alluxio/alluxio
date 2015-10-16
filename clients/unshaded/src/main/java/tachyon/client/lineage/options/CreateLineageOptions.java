@@ -38,7 +38,7 @@ public final class CreateLineageOptions {
   }
 
   /**
-   * @return the default options.
+   * @return the default options
    */
   public static CreateLineageOptions defaults() {
     return new Builder(ClientContext.getConf()).build();

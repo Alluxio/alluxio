@@ -138,7 +138,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * @return the replication factor.
+   * @return the replication factor
    */
   public int getDiskReplication() {
     // TODO(hy): Implement it.
@@ -175,16 +175,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } else {
       optionsBuilder.setTachyonStorageType(TachyonStorageType.NO_STORE);
     }
-    tachyon.client.file.TachyonFile newFile;
     try {
-      newFile = mTFS.open(uri);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    }
-    if (newFile == null) {
-      throw new IOException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
-    }
-    try {
+      tachyon.client.file.TachyonFile newFile = mTFS.open(uri);
       return mTFS.getInStream(newFile, optionsBuilder.build());
     } catch (TachyonException e) {
       throw new IOException(e);
@@ -381,7 +373,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Currently unsupported.
    *
    * @param blockIndex The block index of the current file to read.
-   * @return TachyonByteBuffer containing the block.
+   * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   @Deprecated
@@ -395,7 +387,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * Currently unsupported.
    *
    * @param blockIndex The block index of the current file to read.
-   * @return TachyonByteBuffer containing the block.
+   * @return TachyonByteBuffer containing the block
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   TachyonByteBuffer readLocalByteBuffer(int blockIndex) throws IOException {

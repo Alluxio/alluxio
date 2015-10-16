@@ -20,7 +20,7 @@ import java.io.IOException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
-import tachyon.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatExecutor;
 
 /**
  * Session client sends periodical heartbeats to the worker it is talking to. If it fails to do so,
@@ -30,7 +30,7 @@ final class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   private final WorkerClient mWorkerClient;
 
   public WorkerClientHeartbeatExecutor(WorkerClient workerClient) {
-    mWorkerClient = Preconditions.checkNotNull(workerClient);;
+    mWorkerClient = Preconditions.checkNotNull(workerClient);
   }
 
   @Override

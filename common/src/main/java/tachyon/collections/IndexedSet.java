@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
@@ -188,7 +187,8 @@ public class IndexedSet<T> implements Iterable<T> {
             success = fieldValueToSet.get(fieldValue).add(objToAdd);
             if (!success) {
               // this call can never return false because:
-              //   a. toAddSet is an HashSet of unbounded space
+              //   a. the second-level sets in the indices are all
+              //      {@link kava.util.HashSet} instances of unbounded space
               //   b. We have already successfully added objToAdd on mObjects,
               //      meaning that it cannot be already in any of the sets.
               //      (mObjects is exactly the set-union of all the other second-level sets)

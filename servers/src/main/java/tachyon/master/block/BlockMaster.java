@@ -35,15 +35,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.HeartbeatThread;
-import tachyon.collections.IndexedSet;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
+import tachyon.collections.IndexedSet;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.BlockInfoException;
 import tachyon.exception.ExceptionMessage;
 import tachyon.exception.NoWorkerException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.journal.BlockContainerIdGeneratorEntry;
@@ -184,9 +185,10 @@ public final class BlockMaster extends MasterBase
     super.start(isLeader);
     if (isLeader) {
       mLostWorkerDetectionService =
-          getExecutorService().submit(new HeartbeatThread("Lost worker detection service",
-              new LostWorkerDetectionHeartbeatExecutor(),
-              MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+          getExecutorService().submit(
+              new HeartbeatThread(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
+                  new LostWorkerDetectionHeartbeatExecutor(), MasterContext.getConf().getInt(
+                      Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -291,7 +293,7 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
-   * @return a new block container id. Called by internal masters.
+   * @return a new block container id. Called by internal masters
    */
   @Override
   public long getNewContainerId() {
@@ -361,7 +363,7 @@ public final class BlockMaster extends MasterBase
 
   /**
    * @param blockId the block id to get information for
-   * @return the {@link BlockInfo} for the given block id. Called via RPC.
+   * @return the {@link BlockInfo} for the given block id. Called via RPC
    * @throws BlockInfoException
    */
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
@@ -382,7 +384,7 @@ public final class BlockMaster extends MasterBase
    *
    * @param blockIds A list of block ids to retrieve the information for
    * @return A list of {@link BlockInfo} objects corresponding to the input list of block ids. The
-   *         list is in the same order as the input list.
+   *         list is in the same order as the input list
    */
   public List<BlockInfo> getBlockInfoList(List<Long> blockIds) {
     List<BlockInfo> ret = new ArrayList<BlockInfo>(blockIds.size());
@@ -401,7 +403,7 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
-   * @return the total bytes on each storage tier. Called by internal web ui.
+   * @return the total bytes on each storage tier. Called by internal web ui
    */
   public List<Long> getTotalBytesOnTiers() {
     List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
@@ -416,7 +418,7 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
-   * @return the used bytes on each storage tier. Called by internal web ui.
+   * @return the used bytes on each storage tier. Called by internal web ui
    */
   public List<Long> getUsedBytesOnTiers() {
     List<Long> ret = new ArrayList<Long>(Collections.nCopies(StorageLevelAlias.SIZE, 0L));
@@ -610,7 +612,7 @@ public final class BlockMaster extends MasterBase
    * mWorkers should already be locked before calling this method.
    *
    * @param masterBlockInfo the {@link MasterBlockInfo}
-   * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations.
+   * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations
    */
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) {
     // "Join" to get all the addresses of the workers.
@@ -678,7 +680,7 @@ public final class BlockMaster extends MasterBase
      * Looks up the {@link MasterWorkerInfo} for a given worker ID.
      *
      * @param workerId the worker ID to look up
-     * @return the {@link MasterWorkerInfo} for the given workerId.
+     * @return the {@link MasterWorkerInfo} for the given workerId
      */
     public MasterWorkerInfo getWorkerById(long workerId) {
       synchronized (mWorkers) {
@@ -690,7 +692,7 @@ public final class BlockMaster extends MasterBase
      * Looks up the {@link MasterBlockInfo} for the given block ID.
      *
      * @param blockId the block ID
-     * @return the {@link MasterBlockInfo}.
+     * @return the {@link MasterBlockInfo}
      */
     public MasterBlockInfo getMasterBlockInfo(long blockId) {
       synchronized (mBlocks) {

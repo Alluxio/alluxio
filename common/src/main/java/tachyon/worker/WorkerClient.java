@@ -31,10 +31,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.HeartbeatThread;
 import tachyon.conf.TachyonConf;
 import tachyon.exception.TachyonExceptionType;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.security.authentication.AuthenticationUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.TachyonTException;
@@ -89,7 +90,6 @@ public final class WorkerClient implements Closeable {
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
     mHeartbeatExecutor = new WorkerClientHeartbeatExecutor(this);
   }
-
 
   /**
    * Updates the latest block access time on the worker.
@@ -236,13 +236,12 @@ public final class WorkerClient implements Closeable {
       // only start the heartbeat thread if the connection is successful and if there is not
       // another heartbeat thread running
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-        final String threadName = "worker-heartbeat-" + mWorkerAddress;
         final int interval = mTachyonConf.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
-          mExecutorService.submit(new HeartbeatThread(threadName, mHeartbeatExecutor, interval));
+            mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
+                mHeartbeatExecutor, interval));
       }
     }
-
 
     return mConnected;
   }
@@ -259,14 +258,14 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * @return the address of the worker.
+   * @return the address of the worker
    */
   public synchronized InetSocketAddress getAddress() {
     return mWorkerAddress;
   }
 
   /**
-   * @return the address of the worker's data server.
+   * @return the address of the worker's data server
    */
   public synchronized InetSocketAddress getDataServerAddress() {
     return mWorkerDataServerAddress;
@@ -277,14 +276,14 @@ public final class WorkerClient implements Closeable {
   }
 
   /**
-   * @return true if it's connected to the worker, false otherwise.
+   * @return true if it's connected to the worker, false otherwise
    */
   public synchronized boolean isConnected() {
     return mConnected;
   }
 
   /**
-   * @return true if the worker is local, false otherwise.
+   * @return true if the worker is local, false otherwise
    */
   public synchronized boolean isLocal() {
     return mIsLocal;

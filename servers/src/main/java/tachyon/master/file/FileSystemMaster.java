@@ -15,7 +15,6 @@
 
 package tachyon.master.file;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -35,8 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.HeartbeatThread;
 import tachyon.StorageLevelAlias;
 import tachyon.TachyonURI;
 import tachyon.collections.Pair;
@@ -48,6 +45,9 @@ import tachyon.exception.FileAlreadyExistsException;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
 import tachyon.exception.SuspectedFileSizeException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatExecutor;
+import tachyon.heartbeat.HeartbeatThread;
 import tachyon.master.MasterBase;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockId;
@@ -215,8 +215,9 @@ public final class FileSystemMaster extends MasterBase {
       }
       mTTLCheckerService =
           getExecutorService().submit(
-              new HeartbeatThread("InodeFile TTL Check", new MasterInodeTTLCheckExecutor(),
-                  conf.getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
+              new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
+                  new MasterInodeTTLCheckExecutor(), conf
+                  .getInt(Constants.MASTER_TTLCHECKER_INTERVAL_MS)));
     }
     super.start(isLeader);
   }
@@ -325,7 +326,8 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * Returns the file id for a given path. Called via RPC, as well as internal masters.
+   * Returns the file id for a given path. Called via RPC, as well as internal masters. If the given
+   * path does not exist in Tachyon, the method attempts to load it from UFS.
    *
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
@@ -336,7 +338,11 @@ public final class FileSystemMaster extends MasterBase {
       try {
         inode = mInodeTree.getInodeByPath(path);
       } catch (InvalidPathException e) {
-        return IdUtils.INVALID_FILE_ID;
+        try {
+          return loadMetadata(path, true);
+        } catch (Exception e2) {
+          return IdUtils.INVALID_FILE_ID;
+        }
       }
       return inode.getId();
     }
@@ -611,7 +617,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Get the total number of files and directories.
    *
-   * @return the number of files and directories.
+   * @return the number of files and directories
    */
   public int getNumberOfFiles() {
     synchronized (mInodeTree) {
@@ -622,7 +628,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Get the number of pinned files and directories.
    *
-   * @return the number of pinned files and directories.
+   * @return the number of pinned files and directories
    */
   public int getNumberOfPinnedFiles() {
     synchronized (mInodeTree) {
@@ -635,7 +641,7 @@ public final class FileSystemMaster extends MasterBase {
    *
    * @param fileId the file id to delete
    * @param recursive if true, will delete all its children.
-   * @return true if the file was deleted, false otherwise.
+   * @return true if the file was deleted, false otherwise
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    */
@@ -766,7 +772,7 @@ public final class FileSystemMaster extends MasterBase {
    * Returns all the {@link FileBlockInfo} of the given file. Called via RPC, and internal masters.
    *
    * @param fileId the file id to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file.
+   * @return a list of {@link FileBlockInfo} for all the blocks of the file
    * @throws FileDoesNotExistException if the file does not exist
    */
   public List<FileBlockInfo> getFileBlockInfoList(long fileId)
@@ -792,7 +798,7 @@ public final class FileSystemMaster extends MasterBase {
    * Returns all the {@link FileBlockInfo} of the given file. Called by web UI.
    *
    * @param path the path to the file
-   * @return a list of {@link FileBlockInfo} for all the blocks of the file.
+   * @return a list of {@link FileBlockInfo} for all the blocks of the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
@@ -865,7 +871,7 @@ public final class FileSystemMaster extends MasterBase {
   /**
    * Gets absolute paths of all in memory files. Called by the web ui.
    *
-   * @return absolute paths of all in memory files.
+   * @return absolute paths of all in memory files
    */
   public List<TachyonURI> getInMemoryFiles() {
     List<TachyonURI> ret = new ArrayList<TachyonURI>();
@@ -939,6 +945,8 @@ public final class FileSystemMaster extends MasterBase {
    * @param path the path of the directory
    * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,
    *        the parent directories must already exist
+   * @return a {@link InodeTree.CreatePathResult} representing the modified inodes and created
+   *         inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
@@ -1206,7 +1214,7 @@ public final class FileSystemMaster extends MasterBase {
 
   /**
    *
-   * @return the set of inode ids which are pinned. Called via RPC.
+   * @return the set of inode ids which are pinned. Called via RPC
    */
   public Set<Long> getPinIdList() {
     synchronized (mInodeTree) {
@@ -1215,7 +1223,7 @@ public final class FileSystemMaster extends MasterBase {
   }
 
   /**
-   * @return the ufs address for this master.
+   * @return the ufs address for this master
    */
   public String getUfsAddress() {
     return MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
@@ -1264,9 +1272,21 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-
-  // TODO(jiri): Make it possible to load directories and not just individual files.
-  public long loadFileInfoFromUfs(TachyonURI path, boolean recursive)
+  /**
+   * Loads metadata for the object identified by the given path from UFS into Tachyon.
+   *
+   * @param path the path for which metadata should be loaded
+   * @param recursive whether parent directories should be created if they do not already exist
+   * @return the file id of the loaded path
+   * @throws BlockInfoException if an invalid block size is encountered
+   * @throws FileAlreadyExistsException if the object to be loaded already exists
+   * @throws FileDoesNotExistException if a parent directory does not exist and recursive is false
+   * @throws InvalidPathException if invalid path is encountered
+   * @throws SuspectedFileSizeException if invalid file size is encountered
+   * @throws IOException if an I/O error occurs
+   */
+  // TODO(jiri): Make it possible to load UFS objects recursively.
+  public long loadMetadata(TachyonURI path, boolean recursive)
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
       InvalidPathException, SuspectedFileSizeException, IOException {
     TachyonURI ufsPath;
@@ -1278,12 +1298,18 @@ public final class FileSystemMaster extends MasterBase {
       if (!ufs.exists(ufsPath.getPath())) {
         throw new FileDoesNotExistException(ufsPath.getPath());
       }
-      long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
-      long fileSizeByte = ufs.getFileSize(ufsPath.toString());
-      // Metadata loaded from UFS has no TTL set.
-      long fileId = create(path, ufsBlockSizeByte, recursive, Constants.NO_TTL);
-      persistFile(fileId, fileSizeByte);
-      return fileId;
+      if (ufs.isFile(ufsPath.getPath())) {
+        long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
+        long fileSizeByte = ufs.getFileSize(ufsPath.toString());
+        // Metadata loaded from UFS has no TTL set.
+        long fileId = create(path, ufsBlockSizeByte, recursive, Constants.NO_TTL);
+        persistFile(fileId, fileSizeByte);
+        return fileId;
+      } else {
+        InodeTree.CreatePathResult result = mkdir(path, recursive);
+        List<Inode> created = result.getCreated();
+        return created.get(created.size() - 1).getId();
+      }
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
       throw e;

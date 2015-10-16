@@ -149,7 +149,7 @@ public final class StorageDir {
    * Gets the total capacity of this StorageDir in bytes, which is a constant once this StorageDir
    * has been initialized.
    *
-   * @return the total capacity of this StorageDir in bytes.
+   * @return the total capacity of this StorageDir in bytes
    */
   public long getCapacityBytes() {
     return mCapacityBytes;
@@ -168,7 +168,7 @@ public final class StorageDir {
   /**
    * Gets the total size of committed blocks in this StorageDir in bytes.
    *
-   * @return number of committed bytes.
+   * @return number of committed bytes
    */
   public long getCommittedBytes() {
     return mCommittedBytes.get();
@@ -453,7 +453,7 @@ public final class StorageDir {
   }
 
   /**
-   * @return the block store location of this directory.
+   * @return the block store location of this directory
    */
   public BlockStoreLocation toBlockStoreLocation() {
     return new BlockStoreLocation(mTier.getTierAlias(), mTier.getTierLevel(), mDirIndex);
