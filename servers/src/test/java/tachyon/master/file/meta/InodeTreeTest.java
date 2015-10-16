@@ -172,14 +172,17 @@ public final class InodeTreeTest {
     CommonUtils.sleepMs(10);
 
     // creating the directory path again results in no new inodes.
-    createResult = mTree.createPath(NESTED_URI, sNestedFileOptions);
+    createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     modified = createResult.getModified();
     created = createResult.getCreated();
     Assert.assertEquals(0, modified.size());
     Assert.assertEquals(0, created.size());
 
     // create a file
-    createResult = mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
+    CreatePathOptions options =
+        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).build();
+    createResult = mTree.createPath(NESTED_FILE_URI, options);
     modified = createResult.getModified();
     created = createResult.getCreated();
     // test directory was modified
