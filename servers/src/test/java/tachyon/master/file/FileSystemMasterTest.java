@@ -16,6 +16,7 @@
 package tachyon.master.file;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,16 +30,17 @@ import com.google.common.collect.Maps;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
+import tachyon.exception.ExceptionMessage;
 import tachyon.exception.FileDoesNotExistException;
 import tachyon.exception.InvalidPathException;
+import tachyon.heartbeat.HeartbeatContext;
+import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
-import tachyon.exception.ExceptionMessage;
 import tachyon.master.block.BlockMaster;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
 import tachyon.util.IdUtils;
 
 /**
@@ -63,9 +65,11 @@ public final class FileSystemMasterTest {
 
   @Before
   public void before() throws Exception {
-    MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, "1000");
+    MasterContext.getConf().set(Constants.MASTER_TTLCHECKER_INTERVAL_MS, "0");
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
+    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
     mBlockMaster = new BlockMaster(blockJournal);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
@@ -121,10 +125,18 @@ public final class FileSystemMasterTest {
 
   @Test
   public void createFileWithTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 1);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.fileId, fileId);
-    CommonUtils.sleepMs(5000);
+    // Wait for the TTL check executor to be ready to execute its heartbeat.
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
+        TimeUnit.SECONDS));
+    // Execute the TTL check executor heartbeat.
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
+    // Wait for the TLL check executor to be ready to execute its heartbeat again. This is needed to
+    // avoid a race between the subsequent test logic and the heartbeat thread.
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
+        TimeUnit.SECONDS));
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }

@@ -21,7 +21,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.server.TThreadPoolServer;
-import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
@@ -31,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.Sessions;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
 import tachyon.conf.TachyonConf;
@@ -41,13 +39,13 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.ThreadFactoryUtils;
-import tachyon.util.io.PathUtils;
 import tachyon.util.network.NetworkAddressUtils;
 import tachyon.util.network.NetworkAddressUtils.ServiceType;
 import tachyon.web.UIWebServer;
 import tachyon.web.WorkerUIWebServer;
 import tachyon.worker.DataServer;
 import tachyon.worker.WorkerContext;
+import tachyon.worker.WorkerIdRegistry;
 import tachyon.worker.WorkerSource;
 import tachyon.worker.lineage.LineageWorker;
 
@@ -79,8 +77,6 @@ public final class BlockWorker {
   private final WorkerBlockMasterClient mBlockMasterClient;
   /** Client for all file system master communication */
   private final WorkerFileSystemMasterClient mFileSystemMasterClient;
-  /** The executor service for the master client thread */
-  private final ExecutorService mMasterClientExecutorService;
   /** Threadpool for the master sync */
   private final ExecutorService mSyncExecutorService;
   /** Net address of this worker */
@@ -163,17 +159,12 @@ public final class BlockWorker {
     mTachyonConf = WorkerContext.getConf();
     mStartTimeMs = System.currentTimeMillis();
 
-    // Setup MasterClientBase along with its heartbeat ExecutorService
-    mMasterClientExecutorService =
-        Executors.newFixedThreadPool(1,
-            ThreadFactoryUtils.build("worker-client-heartbeat-%d", true));
-    mBlockMasterClient =
-        new WorkerBlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC,
-            mTachyonConf), mMasterClientExecutorService, mTachyonConf);
+    // Setup MasterClientBase
+    mBlockMasterClient = new WorkerBlockMasterClient(
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
     mFileSystemMasterClient = new WorkerFileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf),
-        mMasterClientExecutorService, mTachyonConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mTachyonConf), mTachyonConf);
 
     // Set up BlockDataManager
     WorkerSource workerSource = new WorkerSource();
@@ -204,6 +195,8 @@ public final class BlockWorker {
     mWorkerNetAddress =
         new NetAddress(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mTachyonConf),
             mPort, mDataServer.getPort());
+    // Get the worker id
+    WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mWorkerNetAddress);
 
     // Set up web server
     mWebServer =
@@ -220,9 +213,6 @@ public final class BlockWorker {
 
     mBlockMasterSync = new BlockMasterSync(mBlockDataManager, mWorkerNetAddress,
         mBlockMasterClient);
-    // Get the worker id
-    // TODO(calvin): Do this at TachyonWorker.
-    mBlockMasterSync.setWorkerId();
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(mBlockDataManager, mFileSystemMasterClient);
@@ -231,23 +221,13 @@ public final class BlockWorker {
     mSessionCleanerThread = new SessionCleaner(mBlockDataManager);
 
     // Setup space reserver
-    if (mTachyonConf.getBoolean(Constants.WORKER_SPACE_RESERVER_ENABLE)) {
+    if (mTachyonConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(mBlockDataManager);
     }
 
-    // Setup session metadata mapping
-    // TODO(calvin): Have a top level register that gets the worker id.
-    long workerId = mBlockMasterSync.getWorkerId();
-    Sessions sessions = new Sessions();
-
-    // Give BlockDataManager a pointer to the session metadata mapping
-    // TODO(calvin): Fix this hack when we have a top level register.
-    mBlockDataManager.setSessions(sessions);
-    mBlockDataManager.setWorkerId(workerId);
-
     // Setup the lineage worker
-    LOG.info("Started lineage worker at " + workerId);
-    mLineageWorker = new LineageWorker(mBlockDataManager, workerId);
+    LOG.info("Started lineage worker at worker with ID " + WorkerIdRegistry.getWorkerId());
+    mLineageWorker = new LineageWorker(mBlockDataManager);
   }
 
   /**
@@ -308,7 +288,6 @@ public final class BlockWorker {
       mSpaceReserver.stop();
     }
     mFileSystemMasterClient.close();
-    mMasterClientExecutorService.shutdown();
     mSyncExecutorService.shutdown();
     mWorkerMetricsSystem.stop();
     try {
@@ -333,8 +312,8 @@ public final class BlockWorker {
    * @return a thrift server
    */
   private TThreadPoolServer createThriftServer() {
-    int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MIN_WORKER_THREADS);
-    int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_MAX_WORKER_THREADS);
+    int minWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
+    int maxWorkerThreads = mTachyonConf.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
     WorkerService.Processor<BlockServiceHandler> processor =
         new WorkerService.Processor<BlockServiceHandler>(mServiceHandler);
     TTransportFactory tTransportFactory;

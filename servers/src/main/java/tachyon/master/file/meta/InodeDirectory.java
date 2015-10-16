@@ -120,7 +120,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * @return an unmodifiable set of the children inodes.
+   * @return an unmodifiable set of the children inodes
    */
   public synchronized Set<Inode> getChildren() {
     return ImmutableSet.copyOf(mChildren.iterator());
@@ -138,7 +138,7 @@ public final class InodeDirectory extends Inode {
   }
 
   /**
-   * @return the number of children in the directory.
+   * @return the number of children in the directory
    */
   public synchronized int getNumberOfChildren() {
     return mChildren.size();
@@ -148,7 +148,7 @@ public final class InodeDirectory extends Inode {
    * Removes the given inode from the directory.
    *
    * @param child The Inode to remove
-   * @return true if the inode was removed, false otherwise.
+   * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(Inode child) {
     return mChildren.remove(child);
@@ -158,7 +158,7 @@ public final class InodeDirectory extends Inode {
    * Removes the given child by its name from the directory.
    *
    * @param name The name of the Inode to remove.
-   * @return true if the inode was removed, false otherwise.
+   * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(String name) {
     return mChildren.removeByField(mNameIndex, name);

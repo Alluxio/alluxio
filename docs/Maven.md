@@ -3,11 +3,12 @@ layout: global
 title: Maven
 ---
 
-# Mac OSX
+# Mac OS X
 
-Before OS X Mavericks, Mac OS X comes with Apache Maven 3 built in, and can be located at `/usr/share/maven`
+Before OS X Mavericks, Mac OS X comes with Apache Maven 3 built in, and can be located at
+`/usr/share/maven`
 
-After the upgrade of Mac OS X Mavericks, Maven was removed and hence needs to be installed manually.
+Since Mac OS X Mavericks, Maven was removed and hence needs to be installed manually.
 
 1.  Download [Maven Binary](http://maven.apache.org/download.cgi)
 2.  Extract the distribution archive, i.e.
@@ -25,6 +26,7 @@ After the upgrade of Mac OS X Mavericks, Maven was removed and hence needs to be
     is in your `PATH` environment variable.
 7.  Run `mvn --version` to verify that it is correctly installed.
 
+Alternatively, Maven can be installed through [Homebrew](http://brew.sh/) using `brew install maven`.
 
 # Linux
 
@@ -44,3 +46,4 @@ After the upgrade of Mac OS X Mavericks, Maven was removed and hence needs to be
     is in your `PATH` environment variable.
 7.  Run `mvn --version` to verify that it is correctly installed.
 
+Alternatively, Maven can be installed through a package manager (e.g. `sudo apt-get install maven`).

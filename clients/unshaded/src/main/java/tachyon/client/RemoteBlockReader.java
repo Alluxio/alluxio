@@ -39,7 +39,7 @@ public interface RemoteBlockReader extends Closeable {
     public static RemoteBlockReader createRemoteBlockReader(TachyonConf conf) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<RemoteBlockReader>getClass(Constants.USER_REMOTE_BLOCK_READER), null, null);
+            conf.<RemoteBlockReader>getClass(Constants.USER_BLOCK_REMOTE_READER), null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
@@ -53,7 +53,7 @@ public interface RemoteBlockReader extends Closeable {
    * @param blockId the id of the block trying to read.
    * @param offset the offset of the block.
    * @param length the length the client wants to read.
-   * @return a byte buffer containing the remote data block.
+   * @return a byte buffer containing the remote data block
    * @throws IOException if the remote server is not reachable or responds with failures.
    */
   ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,

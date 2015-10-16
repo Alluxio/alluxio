@@ -75,7 +75,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   /**
    * Convenience method for {@link #create(TachyonURI, CreateOptions)} with default options.
    */
-  public long create(TachyonURI path)
+  public TachyonFile create(TachyonURI path)
       throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
     return create(path, CreateOptions.defaults());
   }
@@ -159,7 +159,8 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
       throws IOException, TachyonException, FileAlreadyExistsException, InvalidPathException {
     CreateOptions createOptions = (new CreateOptions.Builder(ClientContext.getConf()))
         .setBlockSize(options.getBlockSize()).setRecursive(true).setTTL(options.getTTL()).build();
-    long fileId = create(path, createOptions);
+    TachyonFile tFile = create(path, createOptions);
+    long fileId = tFile.getFileId();
     return new FileOutStream(fileId, options);
   }
 
@@ -188,7 +189,7 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
    * Convenience method for {@link #loadMetadata(TachyonURI, LoadMetadataOptions)} with default
    * options.
    */
-  public long loadMetadata(TachyonURI path)
+  public TachyonFile loadMetadata(TachyonURI path)
       throws IOException, TachyonException, FileDoesNotExistException {
     return loadMetadata(path, LoadMetadataOptions.defaults());
   }
@@ -213,8 +214,16 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   /**
    * Convenience method for {@link #open(TachyonURI, OpenOptions)} with default options.
    */
-  public TachyonFile open(TachyonURI path) throws IOException, TachyonException {
+  public TachyonFile open(TachyonURI path) throws IOException, InvalidPathException,
+      TachyonException {
     return open(path, OpenOptions.defaults());
+  }
+
+  /**
+   * Convenience method for {@link #openIfExists(TachyonURI, OpenOptions)} with default options.
+   */
+  public TachyonFile openIfExists(TachyonURI path) throws IOException, TachyonException {
+    return openIfExists(path, OpenOptions.defaults());
   }
 
   /**

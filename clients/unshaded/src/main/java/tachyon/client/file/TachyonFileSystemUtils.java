@@ -36,7 +36,6 @@ import tachyon.util.CommonUtils;
 public final class TachyonFileSystemUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-
   // prevent instantiation
   private TachyonFileSystemUtils() {}
 
@@ -65,62 +64,55 @@ public final class TachyonFileSystemUtils {
   /**
    * Wait for a file to be marked as completed.
    *
-   * The calling thread will block for <i>at most</i> {@code timeout} time units (as specified
-   * via {@code tunit} or until the TachyonFile is reported as complete by the
-   * master. The method will return
-   * the last known completion status of the file (hence, false only if the method
-   * has timed out).  A zero value on the {@code timeout} parameter will make the calling thread
-   * check once and return; a negative value will make it block indefinitely. Note that, in
-   * this last case, if a file is never completed, the thread will block
-   * forever, so use with care.
+   * The calling thread will block for <i>at most</i> {@code timeout} time units (as specified via
+   * {@code tunit} or until the TachyonFile is reported as complete by the master. The method will
+   * return the last known completion status of the file (hence, false only if the method has timed
+   * out). A zero value on the {@code timeout} parameter will make the calling thread check once and
+   * return; a negative value will make it block indefinitely. Note that, in this last case, if a
+   * file is never completed, the thread will block forever, so use with care.
    *
-   * Note that the file whose uri is specified, might not exist at the moment this method this
-   * call. The method will deliberately block anyway for the specified amount of time, waiting
-   * for the file to be created and eventually completed. Note also that the file might be moved
-   * or deleted while it is waited upon. In such cases the method will throw the a
-   * {@link TachyonException} with the appropriate {@link tachyon.exception.TachyonExceptionType}
+   * Note that the file whose uri is specified, might not exist at the moment this method this call.
+   * The method will deliberately block anyway for the specified amount of time, waiting for the
+   * file to be created and eventually completed. Note also that the file might be moved or deleted
+   * while it is waited upon. In such cases the method will throw the a {@link TachyonException}
+   * with the appropriate {@link tachyon.exception.TachyonExceptionType}
    *
    * <i>IMPLEMENTATION NOTES</i> This method is implemented
    * by periodically polling the master about the file status. The
-   * polling period is controlled by the {@link Constants#USER_WAITCOMPLETED_POLL}
+   * polling period is controlled by the {@link Constants#USER_FILE_WAITCOMPLETED_POLL_MS}
    * java property and defaults to a generous 1 second.
    *
    * @param tfs an instance of {@link TachyonFileSystemCore}
    * @param uri the URI of the file whose completion status is to be watied for.
    * @param timeout maximum time the calling thread should be blocked on this call.
    * @param tunit the @{link TimeUnit} instance describing the {@code timeout} parameter
-   * @return true if the file is complete when this method returns and false
-   * if the method timed out before the file was complete.
+   * @return true if the file is complete when this method returns and false if the method timed out
+   *         before the file was complete.
    *
-   * @throws IOException in case there are problems contacting the Tachyonmaster
-   * for the file status
+   * @throws IOException in case there are problems contacting the Tachyonmaster for the file status
    * @throws TachyonException if a Tachyon Exception occurs
-   * @throws InterruptedException if the thread receives an interrupt while
-   * waiting for file completion
+   * @throws InterruptedException if the thread receives an interrupt while waiting for file
+   *         completion
    */
-  public static boolean waitCompleted(final TachyonFileSystemCore tfs,
-      final TachyonURI uri, final long timeout, final TimeUnit tunit)  throws IOException,
-      TachyonException, InterruptedException {
+  public static boolean waitCompleted(final TachyonFileSystemCore tfs, final TachyonURI uri,
+      final long timeout, final TimeUnit tunit) throws IOException, TachyonException,
+      InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod = ClientContext.getConf().getLong(Constants.USER_WAITCOMPLETED_POLL);
+    final long pollPeriod =
+        ClientContext.getConf().getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
     TachyonFile file = null;
-    boolean completed = false ;
+    boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
     long toSleep = 0;
 
     while (!completed && (timeout <= 0 || timeleft > 0)) {
 
       if (file == null) {
-        try {
-          file = tfs.open(uri, OpenOptions.defaults());
-        } catch (TachyonException e) {
-          if (e.getType() == TachyonExceptionType.INVALID_PATH) {
-            LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
-                + "created.", uri);
-          } else {
-            throw e;
-          }
+        file = tfs.openIfExists(uri, OpenOptions.defaults());
+        if (file == null) {
+          LOG.debug("The file {} being waited upon does not exist yet. Waiting for it to be "
+              + "created.", uri);
         }
       }
 

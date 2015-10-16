@@ -167,7 +167,7 @@ public final class TachyonFSTestUtils {
    * @return an InStreamOptions object with a matching Tachyon storage type
    */
   public static InStreamOptions toInStreamOptions(OutStreamOptions op) {
-    return new InStreamOptions.Builder(new TachyonConf())
+    return new InStreamOptions.Builder(ClientContext.getConf())
         .setTachyonStorageType(op.getTachyonStorageType()).build();
   }
 

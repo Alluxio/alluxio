@@ -15,7 +15,6 @@
 
 package tachyon.util.io;
 
-import java.nio.file.Path;
 import java.util.LinkedList;
 
 import org.junit.Assert;

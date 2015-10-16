@@ -74,6 +74,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public UnderFSType getUnderFSType() {
+    return UnderFSType.S3;
+  }
+
+  @Override
   public void close() throws IOException {
   }
 
@@ -360,7 +365,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * Gets the StorageObject representing the metadata of a key. If the key does not exist as a
    * file or folder, null is returned
    * @param key the key to get the object details of
-   * @return StorageObject of the key, or null if the key does not exist as a file or folder.
+   * @return StorageObject of the key, or null if the key does not exist as a file or folder
    */
   private StorageObject getObjectDetails(String key) {
     try {
@@ -520,9 +525,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the s3 bucket prefix from the key if it is present. For example, for input key
-   * s3n://my-bucket-name/my-path/file, the output would be my-path/file. This method will leave
-   * keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   * Strips the s3 bucket prefix or the preceding path separator from the key if it is present.
+   * For example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file.
+   * If key is an absolute path like /my-path/file, the output would be my-path/file.
+   * This method will leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    * @param key the key to strip
    * @return the key without the s3 bucket prefix
    */
@@ -530,7 +536,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
     if (key.startsWith(mBucketPrefix)) {
       return key.substring(mBucketPrefix.length());
     }
-    LOG.warn("Attempted to strip key with invalid prefix: " + key);
+    if (key.startsWith(PATH_SEPARATOR)) {
+      return key.substring(PATH_SEPARATOR.length());
+    }
     return key;
   }
 }
