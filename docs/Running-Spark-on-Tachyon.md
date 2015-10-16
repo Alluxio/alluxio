@@ -47,7 +47,7 @@ out-of-the-box.
 If the version of Spark is not supported by your Tachyon installation by default (e.g., you are
 trying out the latest Tachyon release with some older Spark installation), one can recompile Spark
 by updating the correct version of tachyon-client in Spark dependency. To do that, edit
-`spark/core/pom.xml` and change the dependency version of `tachyon-client` to 
+`spark/core/pom.xml` and change the dependency version of `tachyon-client` to
 `target_tachyon_version`:
 
 ```xml
@@ -85,7 +85,7 @@ with the following content:
 ```
 
 
-* If you are running tachyon in fault tolerant mode with zookeeper and the Hadoop cluster is a 1.x, 
+* If you are running tachyon in fault tolerant mode with zookeeper and the Hadoop cluster is a 1.x,
 add the following additionally entry to the previously created `spark/conf/core-site.xml`:
 
 ```xml
@@ -115,31 +115,29 @@ Put a file `foo` into HDFS, assuming namenode is running on `localhost`:
 $ hadoop fs -put -f foo hdfs://localhost:9000/foo
 ```
 
-Run the following commands from Spark shell, assuming Tachyon Master is running on `localhost`:
+Run the following commands from `spark-shell`, assuming Tachyon Master is running on `localhost`:
 
-```bash
-$ ./spark-shell
+```scala
 > val s = sc.textFile("tachyon://localhost:19998/foo")
-> s.count()
-> s.saveAsTextFile("tachyon://localhost:19998/bar")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("tachyon://localhost:19998/bar")
 ```
 
 Open your browser and check [http://localhost:19999](http://localhost:19999). There should be an
-output file `bar` which contains the number of words in the file `foo`.
+output file `bar` which doubles each line in the file `foo`.
 
 When running Tachyon with fault tolerant mode, you can point to any Tachyon master:
 
-```bash
-$ ./spark-shell
+```scala
 > val s = sc.textFile("tachyon-ft://stanbyHost:19998/foo")
-> s.count()
-> s.saveAsTextFile("tachyon-ft://activeHost:19998/bar")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("tachyon-ft://activeHost:19998/bar")
 ```
 
 ## Persist Spark RDDs into Tachyon
 
 This feature requires Spark 1.0 or later and Tachyon 0.4.1 or later.  Please refer to
-[Spark guide](http://spark.apache.org/docs/latest/programming-guide.html#rdd-persistence) for 
+[Spark guide](http://spark.apache.org/docs/latest/programming-guide.html#rdd-persistence) for
 more details about RDD persistence.
 
 To persist Spark RDDs, your Spark programs need to have two parameters set:
@@ -162,5 +160,5 @@ $ ./spark-shell
 
 Check the `spark.externalBlockStore.baseDir` using Tachyon's web UI (the default URI is
 [http://localhost:19999](http://localhost:19999)), when the Spark application is running. You should
-see a number of files there; they are the persisted RDD blocks. Currently, the files will be cleaned 
+see a number of files there; they are the persisted RDD blocks. Currently, the files will be cleaned
 up when the Spark application finishes.

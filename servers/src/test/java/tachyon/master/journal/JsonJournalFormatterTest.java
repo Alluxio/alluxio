@@ -19,28 +19,31 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class JsonJournalFormatterTest extends JournalFormatterTestBase {
 
-  public static final String JSON_SAMPLE_PATH = "/JsonJournalEntries.json";
+  public static final String JSON_SAMPLE_PATH = "JsonJournalEntries.json";
 
-  private static JsonNode sRootNode;
+  private JsonNode mRootNode;
 
   @Override
   protected JournalFormatter getFormatter() {
     return new JsonJournalFormatter();
   }
 
-  @BeforeClass
-  public static void beforeClass() throws IOException {
+  @Override
+  @Before
+  public void before() throws Exception {
     String entriesFile = JsonJournalFormatterTest.class.getResource(JSON_SAMPLE_PATH).getFile();
-    sRootNode = new ObjectMapper().readTree(new File(entriesFile));
+    mRootNode = new ObjectMapper().readTree(new File(entriesFile));
+    super.before();
   }
 
   @Test
@@ -50,7 +53,7 @@ public class JsonJournalFormatterTest extends JournalFormatterTestBase {
 
     for (Map.Entry<JournalEntryType, JournalEntry> entry : mDataSet.entrySet()) {
       JournalEntryType type = entry.getKey();
-      JsonNode n = sRootNode.get(type.toString());
+      JsonNode n = mRootNode.get(type.toString());
       om.writeValue(mOs, n);
       JournalEntry readEntry = read();
       assertSameEntry(entry.getValue(), readEntry);
