@@ -34,7 +34,7 @@ public class CreatePathOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mBlockSizeBytes = conf.getBytes(Constants.USER_DEFAULT_BLOCK_SIZE_BYTE);
+      mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mDirectory = false;
       mOperationTimeMs = System.currentTimeMillis();
       mRecursive = false;

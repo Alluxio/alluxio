@@ -37,9 +37,11 @@ public final class CreateOptions {
      * @param conf a Tachyon configuration
      */
     public Builder(TachyonConf conf) {
-      mTTL = Constants.NO_TTL;
       mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
       mRecursive = false;
+      mTTL = Constants.NO_TTL;
+      mUnderStorageType =
+          conf.getEnum(Constants.USER_FILE_UNDER_STORAGE_TYPE_DEFAULT, UnderStorageType.class);
     }
 
     /**
@@ -131,6 +133,13 @@ public final class CreateOptions {
    */
   public long getTTL() {
     return mTTL;
+  }
+
+  /**
+   * @return the under storage type
+   */
+  public UnderStorageType getUnderStorageType() {
+    return mUnderStorageType;
   }
 
   public CreateTOptions toThrift() {
