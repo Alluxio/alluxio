@@ -38,9 +38,9 @@ public class CreateOptionsTest {
     boolean recursive = random.nextBoolean();
     long ttl = random.nextLong();
     CreateOptions options =
-        new CreateOptions.Builder(new TachyonConf()).setBlockSize(blockSize)
+        new CreateOptions.Builder(new TachyonConf()).setBlockSizeBytes(blockSize)
             .setRecursive(recursive).setTTL(ttl).build();
-    Assert.assertEquals(blockSize, options.getBlockSize());
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTTL());
   }
@@ -51,7 +51,7 @@ public class CreateOptionsTest {
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
     Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
     CreateOptions options = CreateOptions.defaults();
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
+    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
   }
