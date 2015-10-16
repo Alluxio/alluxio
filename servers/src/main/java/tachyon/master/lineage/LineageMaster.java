@@ -343,8 +343,10 @@ public final class LineageMaster extends MasterBase {
    */
   public synchronized LineageCommand lineageWorkerHeartbeat(long workerId,
       List<Long> persistedFiles) throws FileDoesNotExistException, InvalidPathException {
-    // notify checkpoint manager the persisted files
-    persistFiles(workerId, persistedFiles);
+    if (!persistedFiles.isEmpty()) {
+      // notify checkpoint manager the persisted files
+      persistFiles(workerId, persistedFiles);
+    }
 
     // get the files for the given worker to checkpoint
     List<CheckpointFile> filesToCheckpoint = null;
@@ -465,7 +467,7 @@ public final class LineageMaster extends MasterBase {
    * @param workerId the worker id
    * @param persistedFiles the persisted files
    */
-  public synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
+  private synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
     Preconditions.checkNotNull(persistedFiles);
 
     if (!persistedFiles.isEmpty()) {
