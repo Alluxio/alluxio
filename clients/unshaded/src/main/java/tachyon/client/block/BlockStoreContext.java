@@ -43,20 +43,13 @@ public enum BlockStoreContext {
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockWorkerClientPool mLocalBlockWorkerClientPool;
 
+  private boolean mLocalBlockWorkerClientPoolInitialized;
+
   /**
    * Creates a new block store context.
    */
   BlockStoreContext() {
-    mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    NetAddress localWorkerAddress =
-        getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-
-    // If the local worker is not available, do not initialize the local worker client pool.
-    if (localWorkerAddress == null) {
-      mLocalBlockWorkerClientPool = null;
-    } else {
-      mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
-    }
+    reset();
   }
 
   /**
@@ -112,12 +105,12 @@ public enum BlockStoreContext {
    * @return a WorkerClient to a worker in the Tachyon system
    */
   public WorkerClient acquireWorkerClient() {
-    if (mLocalBlockWorkerClientPool != null) {
-      return mLocalBlockWorkerClientPool.acquire();
-    } else {
+    WorkerClient client = acquireLocalWorkerClient();
+    if (client == null) {
       // Get a worker client for any worker in the system.
       return acquireRemoteWorkerClient("");
     }
+    return client;
   }
 
   /**
@@ -128,14 +121,42 @@ public enum BlockStoreContext {
    * @return a WorkerClient connected to the worker with the given hostname
    */
   public WorkerClient acquireWorkerClient(String hostname) {
+    WorkerClient client;
     if (hostname.equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
-      if (mLocalBlockWorkerClientPool != null) {
-        return mLocalBlockWorkerClientPool.acquire();
+      client = acquireLocalWorkerClient();
+      if (client == null) {
+        // TODO(calvin): Recover from initial worker failure.
+        throw new RuntimeException("No Tachyon worker available for host: " + hostname);
       }
-      // TODO(calvin): Recover from initial worker failure.
-      throw new RuntimeException("No Tachyon worker available for host: " + hostname);
+    } else {
+      client = acquireRemoteWorkerClient(hostname);
     }
-    return acquireRemoteWorkerClient(hostname);
+    return client;
+  }
+
+  /**
+   * Obtains a worker client on the local worker in the system.
+   *
+   * @return a WorkerClient to a worker in the Tachyon system or null if failed
+   */
+  public WorkerClient acquireLocalWorkerClient() {
+    if (!mLocalBlockWorkerClientPoolInitialized) {
+      NetAddress localWorkerAddress =
+          getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+
+      // If the local worker is not available, do not initialize the local worker client pool.
+      if (localWorkerAddress == null) {
+        mLocalBlockWorkerClientPool = null;
+      } else {
+        mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
+      }
+      mLocalBlockWorkerClientPoolInitialized = true;
+    }
+
+    if (mLocalBlockWorkerClientPool == null) {
+      return null;
+    }
+    return mLocalBlockWorkerClientPool.acquire();
   }
 
   /**
@@ -193,37 +214,18 @@ public enum BlockStoreContext {
   }
 
   /**
-   * PrivateReinitializer can be used to reset the context. This access is limited only to classes
-   * that implement ReinitializeAccess class.
+   * Re-initializes the Block Store context. This method should only be used in
+   * {@link ClientContext}.
    */
-  public class PrivateReinitializer {
-    /**
-     * Re-initializes the Block Store context. This method should only be used in
-     * {@link ClientContext}.
-     */
-    public void resetContext() {
+  public void reset() {
+    if (mBlockMasterClientPool != null) {
       mBlockMasterClientPool.close();
-      if (mLocalBlockWorkerClientPool != null) {
-        mLocalBlockWorkerClientPool.close();
-      }
-      mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-      NetAddress localWorkerAddress =
-          getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-
-      // If the local worker is not available, do not initialize the local worker client pool.
-      if (localWorkerAddress == null) {
-        mLocalBlockWorkerClientPool = null;
-      } else {
-        mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
-      }
     }
-  }
-
-  public interface ReinitializerAccesser {
-    void receiveAccess(PrivateReinitializer access);
-  }
-
-  public void accessReinitializer(ReinitializerAccesser accesser) {
-    accesser.receiveAccess(new PrivateReinitializer());
+    if (mLocalBlockWorkerClientPool != null) {
+      mLocalBlockWorkerClientPool.close();
+    }
+    mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
+    // mLocalBlockWorkerClientPool is initialized in a lazy manner
+    mLocalBlockWorkerClientPoolInitialized = false;
   }
 }
