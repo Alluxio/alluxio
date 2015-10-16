@@ -34,6 +34,8 @@ import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
+
 import tachyon.Constants;
 import tachyon.StorageDirId;
 import tachyon.StorageLevelAlias;
@@ -571,6 +573,17 @@ public final class BlockMaster extends MasterBase
   }
 
   /**
+   * Called by the heartbeat thread whenever a worker is lost.
+   * @param latest the latest {@link MasterWorkerInfo} available at the time of worker loss
+   */
+  private void processLostWorker(MasterWorkerInfo latest) {
+    synchronized (mBlocks) {
+      final Set<Long> lostBlocks = latest.getBlocks();
+      processWorkerRemovedBlocks(latest, lostBlocks);
+    }
+  }
+
+  /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
    * mBlocks should already be locked before calling this method.
@@ -602,7 +615,9 @@ public final class BlockMaster extends MasterBase
    * @return the lost blocks in Tachyon Storage
    */
   public Set<Long> getLostBlocks() {
-    return Collections.unmodifiableSet(mLostBlocks);
+    synchronized (mLostBlocks) {
+      return ImmutableSet.copyOf(mLostBlocks);
+    }
   }
 
   /**
@@ -642,7 +657,7 @@ public final class BlockMaster extends MasterBase
   /**
    * Lost worker periodic check.
    */
-  public final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+  private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
@@ -657,11 +672,12 @@ public final class BlockMaster extends MasterBase
             LOG.error("The worker " + worker + " got timed out!");
             mLostWorkers.add(worker);
             iter.remove();
+            processLostWorker(worker);
           }
         }
-
       }
     }
+
   }
 
   class PrivateAccess {
