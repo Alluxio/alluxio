@@ -467,7 +467,7 @@ public final class LineageMaster extends MasterBase {
    * @param workerId the worker id
    * @param persistedFiles the persisted files
    */
-  public synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
+  private synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
     Preconditions.checkNotNull(persistedFiles);
 
     if (!persistedFiles.isEmpty()) {
