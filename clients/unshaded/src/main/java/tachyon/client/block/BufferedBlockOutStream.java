@@ -39,6 +39,10 @@ import tachyon.util.io.BufferUtils;
  * which will write the data through a Tachyon worker.
  */
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
+  // Error strings for preconditions in order to improve performance
+  private static final String ERR_CLOSED = "Cannot do operations on a closed BlockOutStream.";
+  private static final String ERR_END_OF_BLOCK = "Block has no more space";
+
   /** The block id of the block being written */
   protected final long mBlockId;
   /** Size of the block */
@@ -70,7 +74,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
   @Override
   public void write(int b) throws IOException {
     checkIfClosed();
-    Preconditions.checkState(mWrittenBytes + 1 <= mBlockSize, "Out of capacity.");
+    Preconditions.checkState(mWrittenBytes + 1 <= mBlockSize, ERR_END_OF_BLOCK);
     if (mBuffer.position() >= mBuffer.limit()) {
       flush();
     }
@@ -85,11 +89,6 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    checkIfClosed();
-    Preconditions.checkArgument(b != null, "Buffer is null");
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        String.format("Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
-    Preconditions.checkState(mWrittenBytes + len <= mBlockSize, "Out of capacity.");
     if (len == 0) {
       return;
     }
@@ -119,7 +118,7 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
    * Convenience method for checking the state of the stream.
    */
   protected void checkIfClosed() {
-    Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockOutStream.");
+    Preconditions.checkState(!mClosed, ERR_CLOSED);
   }
 
   /**
