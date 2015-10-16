@@ -15,12 +15,12 @@
 
 package tachyon.master.journal;
 
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonGetter;
 
 /**
  * A {@link JournalEntry} with a sequence number.
  */
-public class SerializableJournalEntry implements JournalEntry {
+public class SerializableJournalEntry {
   private final long mSequenceNumber;
   private final JournalEntry mEntry;
 
@@ -32,17 +32,18 @@ public class SerializableJournalEntry implements JournalEntry {
   /**
    * @return the sequence number for this entry
    */
+  @JsonGetter("mSequenceNumber")
   public long getSequenceNumber() {
     return mSequenceNumber;
   }
 
-  @Override
+  @JsonGetter("mType")
   public JournalEntryType getType() {
     return mEntry.getType();
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    return mEntry.getParameters();
+  @JsonGetter("mParameters")
+  public JournalEntry getEntry() {
+    return mEntry;
   }
 }

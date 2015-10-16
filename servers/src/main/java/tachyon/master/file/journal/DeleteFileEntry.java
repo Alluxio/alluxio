@@ -15,19 +15,22 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public class DeleteFileEntry implements JournalEntry {
+public class DeleteFileEntry extends JournalEntry {
   public final long mFileId;
   public final boolean mRecursive;
   public final long mOpTimeMs;
 
-  public DeleteFileEntry(long fileId, boolean recursive, long opTimeMs) {
+  @JsonCreator
+  public DeleteFileEntry(@JsonProperty("fileId") long fileId,
+      @JsonProperty("recursive") boolean recursive,
+      @JsonProperty("operationTimeMs") long opTimeMs) {
     mFileId = fileId;
     mRecursive = recursive;
     mOpTimeMs = opTimeMs;
@@ -38,12 +41,18 @@ public class DeleteFileEntry implements JournalEntry {
     return JournalEntryType.DELETE_FILE;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
-    parameters.put("fileId", mFileId);
-    parameters.put("recursive", mRecursive);
-    parameters.put("operationTimeMs", mOpTimeMs);
-    return parameters;
+  @JsonGetter
+  public long getFileId() {
+    return mFileId;
+  }
+
+  @JsonGetter
+  public boolean getRecursive() {
+    return mRecursive;
+  }
+
+  @JsonGetter("operationTimeMs")
+  public long getOpTimeMs() {
+    return mOpTimeMs;
   }
 }

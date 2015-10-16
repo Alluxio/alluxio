@@ -15,9 +15,10 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.TachyonURI;
 import tachyon.master.journal.JournalEntry;
@@ -26,7 +27,7 @@ import tachyon.master.journal.JournalEntryType;
 /**
  * This class represents a journal entry for recording the addition of a new mount point.
  */
-public class AddMountPointEntry implements JournalEntry {
+public class AddMountPointEntry extends JournalEntry {
   private final String mTachyonPath;
   private final String mUfsPath;
 
@@ -36,7 +37,9 @@ public class AddMountPointEntry implements JournalEntry {
    * @param tachyonPath the Tachyon path
    * @param ufsPath the UFS path
    */
-  public AddMountPointEntry(TachyonURI tachyonPath, TachyonURI ufsPath) {
+  @JsonCreator
+  public AddMountPointEntry(@JsonProperty("tachyonPath") TachyonURI tachyonPath,
+      @JsonProperty("ufsPath") TachyonURI ufsPath) {
     mTachyonPath = tachyonPath.toString();
     mUfsPath = ufsPath.toString();
   }
@@ -44,27 +47,37 @@ public class AddMountPointEntry implements JournalEntry {
   /**
    * @return the Tachyon path
    */
-  public TachyonURI getTachyonPath() {
+  @JsonIgnore
+  public TachyonURI getTachyonURI() {
     return new TachyonURI(mTachyonPath);
   }
 
   /**
    * @return the UFS path
    */
-  public TachyonURI getUfsPath() {
+  @JsonIgnore
+  public TachyonURI getUfsURI() {
     return new TachyonURI(mUfsPath);
+  }
+
+  /**
+   * @return the Tachyon path
+   */
+  @JsonGetter
+  public String getTachyonPath() {
+    return mTachyonPath;
+  }
+
+  /**
+   * @return the UFS path
+   */
+  @JsonGetter
+  public String getUfsPath() {
+    return mUfsPath;
   }
 
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.ADD_MOUNTPOINT;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("tachyonPath", mTachyonPath);
-    parameters.put("ufsPath", mUfsPath);
-    return parameters;
   }
 }

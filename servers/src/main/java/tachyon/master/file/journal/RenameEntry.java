@@ -15,9 +15,9 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
@@ -25,7 +25,7 @@ import tachyon.master.journal.JournalEntryType;
 /**
  * This class represents a journal entry for renaming a file.
  */
-public class RenameEntry implements JournalEntry {
+public class RenameEntry extends JournalEntry {
   public final long mFileId;
   public final String mDstPath;
   public final long mOpTimeMs;
@@ -37,7 +37,11 @@ public class RenameEntry implements JournalEntry {
    * @param dstPath the destination path.
    * @param opTimeMs the operation timestamp (in millisecs).
    */
-  public RenameEntry(long fileId, String dstPath, long opTimeMs) {
+  @JsonCreator
+  public RenameEntry(@JsonProperty("fileId") long fileId,
+      @JsonProperty("destinationPath") String dstPath,
+      @JsonProperty("operationTimeMs") long opTimeMs) {
+
     mFileId = fileId;
     mDstPath = dstPath;
     mOpTimeMs = opTimeMs;
@@ -48,12 +52,18 @@ public class RenameEntry implements JournalEntry {
     return JournalEntryType.RENAME;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
-    parameters.put("fileId", mFileId);
-    parameters.put("destinationPath", mDstPath);
-    parameters.put("operationTimeMs", mOpTimeMs);
-    return parameters;
+  @JsonGetter("fileId")
+  public long getFileId() {
+    return mFileId;
+  }
+
+  @JsonGetter("operationTimeMs")
+  public long getOpTimeMs() {
+    return mOpTimeMs;
+  }
+
+  @JsonGetter("destinationPath")
+  public String getDstPath() {
+    return mDstPath;
   }
 }
