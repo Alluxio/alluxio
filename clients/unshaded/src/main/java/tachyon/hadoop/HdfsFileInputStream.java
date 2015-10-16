@@ -168,6 +168,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
+        mTachyonFileInputStream.close();
         mTachyonFileInputStream = null;
       }
     }
@@ -196,6 +197,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
+        mTachyonFileInputStream.close();
         mTachyonFileInputStream = null;
       }
     }
@@ -262,7 +264,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       if (mStatistics != null) {
         mStatistics.incrementBytesRead(1);
       }
-      return mBuffer[mBufferPosition ++];
+      mCurrentPosition ++;
+      return BufferUtils.byteToInt(mBuffer[mBufferPosition ++]);
     }
     LOG.error("Reading from HDFS directly");
     while ((mBufferLimit = mHdfsInputStream.read(mBuffer)) == 0) {
@@ -275,6 +278,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mStatistics != null) {
       mStatistics.incrementBytesRead(1);
     }
+    mCurrentPosition ++;
     return BufferUtils.byteToInt(mBuffer[mBufferPosition ++]);
   }
 
@@ -316,6 +320,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       mTachyonFileInputStream.seek(pos);
     } else {
       getHdfsInputStream(pos);
+      // TODO(calvin): Optimize for the case when the data is still valid in the buffer
+      // Invalidate buffer
+      mBufferLimit = -1;
     }
 
     mCurrentPosition = pos;
