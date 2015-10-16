@@ -54,6 +54,9 @@ public class RecomputePlanner {
       // report lost files
       for (long lostFile : lostFiles) {
         Lineage lineage = mLineageStore.reportLostFile(lostFile);
+        if (lineage == null) {
+          continue;
+        }
         if (!lineage.isPersisted()) {
           toRecompute.add(lineage);
         }
