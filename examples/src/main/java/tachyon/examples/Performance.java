@@ -49,15 +49,6 @@ public class Performance {
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
-  // private access to the reinitializer of ClientContext
-  private static ClientContext.ReinitializerAccesser sReinitializerAccesser =
-      new ClientContext.ReinitializerAccesser() {
-        @Override
-        public void receiveAccess(ClientContext.PrivateReinitializer access) {
-          sReinitializer = access;
-        }
-      };
-  private static ClientContext.PrivateReinitializer sReinitializer;
 
   private static TachyonFileSystem sTFS = null;
   private static TachyonURI sMasterAddress = null;
@@ -546,10 +537,7 @@ public class Performance {
 
     tachyonConf.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHost());
     tachyonConf.set(Constants.MASTER_PORT, Integer.toString(sMasterAddress.getPort()));
-    if (sReinitializer == null) {
-      ClientContext.accessReinitializer(sReinitializerAccesser);
-    }
-    sReinitializer.reinitializeWithConf(tachyonConf);
+    ClientContext.reset(tachyonConf);
 
     if (testCase == 1) {
       sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
