@@ -72,6 +72,9 @@ import tachyon.master.file.meta.InodeTree;
 import tachyon.master.file.meta.MountTable;
 import tachyon.master.file.meta.TTLBucket;
 import tachyon.master.file.meta.TTLBucketList;
+import tachyon.master.file.meta.options.CreatePathOptions;
+import tachyon.master.file.options.CreateOptions;
+import tachyon.master.file.options.MkdirOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalOutputStream;
@@ -508,36 +511,17 @@ public final class FileSystemMaster extends MasterBase {
    * Creates a file (not a directory) for a given path. Called via RPC.
    *
    * @param path the file to create
-   * @param blockSizeBytes the block size of the file
-   * @param recursive if true, will recursively create all the missing directories along the path.
+   * @param options method options
    * @return the file id of the create file
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileAlreadyExistsException if there is already a file at the given path
-   * @throws BlockInfoException if the block size is invalid
+   * @throws InvalidPathException
+   * @throws FileAlreadyExistsException
+   * @throws BlockInfoException
    */
-  public long create(TachyonURI path, long blockSizeBytes, boolean recursive)
-      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
-    return this.create(path, blockSizeBytes, recursive, Constants.NO_TTL);
-  }
-
-  /**
-   * Creates a file (not a directory) for a given path. Called via RPC.
-   *
-   * @param path the file to create
-   * @param blockSizeBytes the block size of the file
-   * @param recursive if true, will recursively create all the missing directories along the path.
-   * @param ttl time to live for file
-   * @return the file id of the create file
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileAlreadyExistsException if there is already a file at the given path
-   * @throws BlockInfoException if the block size is invalid
-   */
-  public long create(TachyonURI path, long blockSizeBytes, boolean recursive, long ttl)
+  public long create(TachyonURI path, CreateOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
     MasterContext.getMasterSource().incCreateFileOps();
     synchronized (mInodeTree) {
-      InodeTree.CreatePathResult createResult =
-          createInternal(path, blockSizeBytes, recursive, System.currentTimeMillis(), ttl);
+      InodeTree.CreatePathResult createResult = createInternal(path, options);
       List<Inode> created = createResult.getCreated();
 
       writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -547,12 +531,16 @@ public final class FileSystemMaster extends MasterBase {
     }
   }
 
-  InodeTree.CreatePathResult createInternal(TachyonURI path, long blockSizeBytes,
-      boolean recursive, long opTimeMs, long ttl)
-          throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
+  InodeTree.CreatePathResult createInternal(TachyonURI path, CreateOptions options)
+      throws InvalidPathException, FileAlreadyExistsException, BlockInfoException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
+    CreatePathOptions createPathOptions =
+        new CreatePathOptions.Builder(MasterContext.getConf())
+            .setBlockSizeBytes(options.getBlockSizeBytes()).setDirectory(false)
+            .setPersisted(options.isPersisted()).setRecursive(options.isRecursive())
+            .setTTL(options.getTTL()).build();
     InodeTree.CreatePathResult createResult =
-        mInodeTree.createPath(path, blockSizeBytes, recursive, false, opTimeMs, ttl);
+        mInodeTree.createPath(path, createPathOptions);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
@@ -943,20 +931,32 @@ public final class FileSystemMaster extends MasterBase {
    * Creates a directory for a given path. Called via RPC, and internal masters.
    *
    * @param path the path of the directory
-   * @param recursive if it is true, create necessary but nonexistent parent directories, otherwise,
-   *        the parent directories must already exist
+   * @param options method options
    * @return a {@link InodeTree.CreatePathResult} representing the modified inodes and created
    *         inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on
    *         {@link InodeTree#createPath} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
+   * @throws IOException
    */
-  public InodeTree.CreatePathResult mkdir(TachyonURI path, boolean recursive)
-      throws InvalidPathException, FileAlreadyExistsException {
+  public InodeTree.CreatePathResult mkdir(TachyonURI path, MkdirOptions options)
+      throws InvalidPathException, FileAlreadyExistsException, IOException {
     // TODO(gene): metrics
     synchronized (mInodeTree) {
       try {
-        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, 0, recursive, true);
+        CreatePathOptions createPathOptions =
+            new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
+                .setPersisted(options.isPersisted()).setRecursive(options.isRecursive()).build();
+        InodeTree.CreatePathResult createResult = mInodeTree.createPath(path, createPathOptions);
+        for (Inode created : createResult.getCreated()) {
+          String createdPath = mInodeTree.getPath(created).toString();
+          // TODO(jiri): Move this to the client.
+          if (created.isPersisted()) {
+            String ufsPath = mMountTable.resolve(mInodeTree.getPath(created)).getPath();
+            UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+            ufs.mkdirs(ufsPath, false);
+          }
+        }
 
         writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
         journalCreatePathResult(createResult);
@@ -1302,11 +1302,18 @@ public final class FileSystemMaster extends MasterBase {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long fileSizeByte = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
-        long fileId = create(path, ufsBlockSizeByte, recursive, Constants.NO_TTL);
+        // Metadata loaded from UFS has no TTL set.
+        CreateOptions options =
+            new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(ufsBlockSizeByte)
+                .setRecursive(recursive).setPersisted(true).build();
+        long fileId = create(path, options);
         persistFile(fileId, fileSizeByte);
         return fileId;
       } else {
-        InodeTree.CreatePathResult result = mkdir(path, recursive);
+        MkdirOptions options =
+            new MkdirOptions.Builder(MasterContext.getConf()).setRecursive(recursive)
+                .setPersisted(true).build();
+        InodeTree.CreatePathResult result = mkdir(path, options);
         List<Inode> created = result.getCreated();
         return created.get(created.size() - 1).getId();
       }
@@ -1320,7 +1327,9 @@ public final class FileSystemMaster extends MasterBase {
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       IOException {
     synchronized (mInodeTree) {
-      InodeTree.CreatePathResult createResult = mkdir(tachyonPath, false);
+      MkdirOptions options =
+          new MkdirOptions.Builder(MasterContext.getConf()).setPersisted(true).build();
+      InodeTree.CreatePathResult createResult = mkdir(tachyonPath, options);
       if (mountInternal(tachyonPath, ufsPath)) {
         writeJournalEntry(new AddMountPointEntry(tachyonPath, ufsPath));
         flushJournal();

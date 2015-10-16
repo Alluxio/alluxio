@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,6 +38,8 @@ import tachyon.heartbeat.HeartbeatContext;
 import tachyon.heartbeat.HeartbeatScheduler;
 import tachyon.master.MasterContext;
 import tachyon.master.block.BlockMaster;
+import tachyon.master.file.meta.options.CreatePathOptions;
+import tachyon.master.file.options.CreateOptions;
 import tachyon.master.journal.Journal;
 import tachyon.master.journal.ReadWriteJournal;
 import tachyon.thrift.FileInfo;
@@ -52,6 +55,7 @@ public final class FileSystemMasterTest {
   private static final TachyonURI ROOT_URI = new TachyonURI("/");
   private static final TachyonURI ROOT_FILE_URI = new TachyonURI("/file");
   private static final TachyonURI TEST_URI = new TachyonURI("/test");
+  private static CreateOptions sOptions;
 
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
@@ -82,6 +86,13 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId, Lists.newArrayList(Constants.MB * 1L, Constants.MB * 1L),
         Lists.<Long>newArrayList(Constants.KB * 1L, Constants.KB * 1L),
         Maps.<Long, List<Long>>newHashMap());
+  }
+
+  @BeforeClass
+  public static void beforeClass() {
+    sOptions =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).build();
   }
 
   @Test
@@ -117,7 +128,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
@@ -125,7 +136,10 @@ public final class FileSystemMasterTest {
 
   @Test
   public void createFileWithTTLTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true, 0);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+            .setRecursive(true).setTTL(1).build();
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.fileId, fileId);
     // Wait for the TTL check executor to be ready to execute its heartbeat.
@@ -143,7 +157,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void isDirectoryTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sOptions);
     Assert.assertFalse(mFileSystemMaster.isDirectory(fileId));
     Assert.assertTrue(mFileSystemMaster.isDirectory(mFileSystemMaster.getFileId(NESTED_URI)));
   }
@@ -151,7 +165,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
@@ -166,7 +180,7 @@ public final class FileSystemMasterTest {
 
   @Test
   public void renameTest() throws Exception {
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sOptions);
 
     // move a nested file to root
     Assert.assertFalse(mFileSystemMaster.rename(fileId, ROOT_URI));
@@ -187,7 +201,9 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nested/test"));
 
-    long fileId = mFileSystemMaster.create(TEST_URI, Constants.KB, false);
+    CreateOptions options =
+        new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB).build();
+    long fileId = mFileSystemMaster.create(TEST_URI, options);
 
     // nested dir
     Assert.assertFalse(mFileSystemMaster.rename(fileId, NESTED_FILE_URI));
@@ -198,7 +214,7 @@ public final class FileSystemMasterTest {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Failed to rename: /nested/test is a prefix of /nested/test/file");
 
-    long fileId = mFileSystemMaster.create(NESTED_URI, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(NESTED_URI, sOptions);
     mFileSystemMaster.rename(fileId, NESTED_FILE_URI);
   }
 
@@ -228,7 +244,7 @@ public final class FileSystemMasterTest {
   }
 
   private long createFileWithSingleBlock(TachyonURI uri) throws Exception {
-    long fileId = mFileSystemMaster.create(uri, Constants.KB, true);
+    long fileId = mFileSystemMaster.create(uri, sOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(fileId);
     mBlockMaster.commitBlock(mWorkerId, Constants.KB, 1, blockId, Constants.KB);
     mFileSystemMaster.completeFile(fileId);
