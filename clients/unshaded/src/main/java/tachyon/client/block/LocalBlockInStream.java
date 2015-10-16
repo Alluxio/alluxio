@@ -84,6 +84,9 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
     } finally {
       mContext.releaseWorkerClient(mWorkerClient);
       mCloser.close();
+      if (mBuffer != null && mBuffer.isDirect()) {
+        BufferUtils.cleanDirectBuffer(mBuffer);
+      }
     }
 
     // TODO(calvin): Perhaps verify something was read from this stream
