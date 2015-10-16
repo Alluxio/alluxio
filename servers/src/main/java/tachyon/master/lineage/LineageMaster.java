@@ -468,9 +468,12 @@ public final class LineageMaster extends MasterBase {
   public synchronized void persistFiles(long workerId, List<Long> persistedFiles) {
     Preconditions.checkNotNull(persistedFiles);
 
-    if (!persistedFiles.isEmpty()) {
-      LOG.info("Files persisted on worker " + workerId + ":" + persistedFiles);
+    if (persistedFiles.isEmpty()) {
+      // no files persisted
+      return;
     }
+    LOG.info("Files persisted on worker " + workerId + ":" + persistedFiles);
+
     for (Long fileId : persistedFiles) {
       mLineageStore.commitFilePersistence(fileId);
     }
