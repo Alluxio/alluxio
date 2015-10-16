@@ -21,9 +21,13 @@ import java.util.Set;
 
 import tachyon.TachyonURI;
 import tachyon.exception.TachyonException;
+import tachyon.master.file.options.CreateOptions;
+import tachyon.master.file.options.MkdirOptions;
+import tachyon.thrift.CreateTOptions;
 import tachyon.thrift.FileBlockInfo;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.FileSystemMasterService;
+import tachyon.thrift.MkdirTOptions;
 import tachyon.thrift.TachyonTException;
 import tachyon.thrift.ThriftIOException;
 
@@ -106,10 +110,9 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
 
   // TODO: need to add another create option object for passing ttl
   @Override
-  public long create(String path, long blockSizeBytes, boolean recursive, long ttl)
-      throws TachyonTException {
+  public long create(String path, CreateTOptions options) throws TachyonTException {
     try {
-      return mFileSystemMaster.create(new TachyonURI(path), blockSizeBytes, recursive, ttl);
+      return mFileSystemMaster.create(new TachyonURI(path), new CreateOptions(options));
     } catch (TachyonException e) {
       throw e.toTachyonTException();
     }
@@ -158,12 +161,15 @@ public final class FileSystemMasterServiceHandler implements FileSystemMasterSer
   }
 
   @Override
-  public boolean mkdir(String path, boolean recursive) throws TachyonTException {
+  public boolean mkdir(String path, MkdirTOptions options) throws TachyonTException,
+      ThriftIOException {
     try {
-      mFileSystemMaster.mkdir(new TachyonURI(path), recursive);
+      mFileSystemMaster.mkdir(new TachyonURI(path), new MkdirOptions(options));
       return true;
     } catch (TachyonException e) {
       throw e.toTachyonTException();
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 
