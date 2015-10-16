@@ -15,26 +15,30 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
-import com.google.common.collect.Maps;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class PersistDirectoryEntry implements JournalEntry {
+public final class PersistDirectoryEntry extends JournalEntry {
   protected final long mId;
   protected final boolean mPersisted;
 
-  public PersistDirectoryEntry(long id, boolean persisted) {
+  @JsonCreator
+  public PersistDirectoryEntry(@JsonProperty("id") long id,
+      @JsonProperty("persisted") boolean persisted) {
     mId = id;
     mPersisted = persisted;
   }
 
+  @JsonGetter
   public long getId() {
     return mId;
   }
 
+  @JsonGetter("persisted")
   public boolean isPersisted() {
     return mPersisted;
   }
@@ -42,13 +46,5 @@ public final class PersistDirectoryEntry implements JournalEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.INODE_PERSISTED;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("id", mId);
-    parameters.put("persisted", mPersisted);
-    return parameters;
   }
 }

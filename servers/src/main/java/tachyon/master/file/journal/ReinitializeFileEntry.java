@@ -15,33 +15,38 @@
 
 package tachyon.master.file.journal;
 
-import java.util.Map;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class ReinitializeFileEntry implements JournalEntry {
+public final class ReinitializeFileEntry extends JournalEntry {
   private final String mPath;
   private final long mBlockSizeBytes;
   private final long mTTL;
 
-  public ReinitializeFileEntry(String path, long blockSizeBytes, long ttl) {
+  @JsonCreator
+  public ReinitializeFileEntry(@JsonProperty("path") String path,
+      @JsonProperty("blockSizeBytes") long blockSizeBytes, @JsonProperty("ttl") long ttl) {
     mPath = Preconditions.checkNotNull(path);
     mBlockSizeBytes = blockSizeBytes;
     mTTL = ttl;
   }
 
+  @JsonGetter
   public String getPath() {
     return mPath;
   }
 
+  @JsonGetter
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
+  @JsonGetter("ttl")
   public long getTTL() {
     return mTTL;
   }
@@ -51,12 +56,4 @@ public final class ReinitializeFileEntry implements JournalEntry {
     return JournalEntryType.REINITIALIZE_FILE;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(2);
-    parameters.put("path", mPath);
-    parameters.put("blockSizeBytes", mBlockSizeBytes);
-    parameters.put("ttl", mTTL);
-    return parameters;
-  }
 }

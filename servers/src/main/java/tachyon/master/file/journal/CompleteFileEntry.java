@@ -16,39 +16,46 @@
 package tachyon.master.file.journal;
 
 import java.util.List;
-import java.util.Map;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 import tachyon.master.journal.JournalEntry;
 import tachyon.master.journal.JournalEntryType;
 
-public final class CompleteFileEntry implements JournalEntry {
+public final class CompleteFileEntry extends JournalEntry {
   private final List<Long> mBlockIds;
   private final long mId;
   private final long mLength;
   private final long mOpTimeMs;
 
-  public CompleteFileEntry(List<Long> blockIds, long id, long length, long opTimeMs) {
+  @JsonCreator
+  public CompleteFileEntry(@JsonProperty("blockIds") List<Long> blockIds,
+      @JsonProperty("id") long id, @JsonProperty("length") long length,
+      @JsonProperty("operationTimeMs") long opTimeMs) {
     mBlockIds = Preconditions.checkNotNull(blockIds);
     mId = id;
     mLength = length;
     mOpTimeMs = opTimeMs;
   }
 
+  @JsonGetter("blockIds")
   public List<Long> getBlockIds() {
     return mBlockIds;
   }
 
+  @JsonGetter("id")
   public long getFileId() {
     return mId;
   }
 
+  @JsonGetter("length")
   public long getFileLength() {
     return mLength;
   }
 
+  @JsonGetter("operationTimeMs")
   public long getOperationTimeMs() {
     return mOpTimeMs;
   }
@@ -56,15 +63,5 @@ public final class CompleteFileEntry implements JournalEntry {
   @Override
   public JournalEntryType getType() {
     return JournalEntryType.COMPLETE_FILE;
-  }
-
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(3);
-    parameters.put("blockIds", mBlockIds);
-    parameters.put("id", mId);
-    parameters.put("length", mLength);
-    parameters.put("operationTimeMs", mOpTimeMs);
-    return parameters;
   }
 }

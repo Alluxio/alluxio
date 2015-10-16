@@ -16,11 +16,12 @@
 package tachyon.master.lineage.journal;
 
 import java.util.List;
-import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import tachyon.client.file.TachyonFile;
 import tachyon.job.CommandLineJob;
@@ -32,7 +33,7 @@ import tachyon.master.lineage.meta.Lineage;
 import tachyon.master.lineage.meta.LineageFile;
 import tachyon.master.lineage.meta.LineageFileState;
 
-public class LineageEntry implements JournalEntry {
+public class LineageEntry extends JournalEntry {
   private final long mId;
   private final List<Long> mInputFiles;
   private final List<Long> mOutputFileIds;
@@ -41,6 +42,23 @@ public class LineageEntry implements JournalEntry {
   private final String mJobCommand;
   private final String mJobOutputPath;
   private final long mCreationTimeMs;
+
+  @JsonCreator
+  public LineageEntry(@JsonProperty("id") long id,
+      @JsonProperty("inputFiles") List<Long> inputFiles,
+      @JsonProperty("outputFileIds") List<Long> outputFileIds,
+      @JsonProperty("outputFileStates") List<LineageFileState> outputFileStates,
+      @JsonProperty("jobCommand") String jobCommand,
+      @JsonProperty("jobOutputPath") String jobOutputPath,
+      @JsonProperty("creationTimeMs") long creationTimeMs) {
+    mId = id;
+    mInputFiles = inputFiles;
+    mOutputFileIds = outputFileIds;
+    mOutputFileStates = outputFileStates;
+    mJobCommand = jobCommand;
+    mJobOutputPath = jobOutputPath;
+    mCreationTimeMs = creationTimeMs;
+  }
 
   public LineageEntry(long id, List<TachyonFile> inputFiles, List<LineageFile> outputFiles, Job job,
       long creationTimeMs) {
@@ -84,17 +102,38 @@ public class LineageEntry implements JournalEntry {
     return JournalEntryType.LINEAGE;
   }
 
-  @Override
-  public Map<String, Object> getParameters() {
-    Map<String, Object> parameters = Maps.newHashMapWithExpectedSize(5);
-    parameters.put("id", mId);
-    parameters.put("inputFiles", mInputFiles);
-    parameters.put("outputFileIds", mOutputFileIds);
-    parameters.put("outputFileStates", mOutputFileStates);
-    parameters.put("jobCommand", mJobCommand);
-    parameters.put("jobOutputPath", mJobOutputPath);
-    parameters.put("creationTimeMs", mCreationTimeMs);
-    return parameters;
+  @JsonGetter
+  public long getCreationTimeMs() {
+    return mCreationTimeMs;
   }
 
+  @JsonGetter
+  public long getId() {
+    return mId;
+  }
+
+  @JsonGetter("inputFiles")
+  public List<Long> getInputFiles() {
+    return mInputFiles;
+  }
+
+  @JsonGetter("outputFileIds")
+  public List<Long> getOutputFileIds() {
+    return mOutputFileIds;
+  }
+
+  @JsonGetter("outputFileStates")
+  public List<LineageFileState> getOutputFileStates() {
+    return mOutputFileStates;
+  }
+
+  @JsonGetter
+  public String getJobCommand() {
+    return mJobCommand;
+  }
+
+  @JsonGetter
+  public String getJobOutputPath() {
+    return mJobOutputPath;
+  }
 }
