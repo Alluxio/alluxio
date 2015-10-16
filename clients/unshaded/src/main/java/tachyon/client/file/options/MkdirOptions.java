@@ -98,6 +98,9 @@ public final class MkdirOptions {
     return mUnderStorageType;
   }
 
+  /**
+   * @return Thrift representation of the options
+   */
   public MkdirTOptions toThrift() {
     MkdirTOptions options = new MkdirTOptions();
     options.setPersisted(mUnderStorageType.isSyncPersist());

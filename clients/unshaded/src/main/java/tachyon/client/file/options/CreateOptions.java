@@ -142,6 +142,9 @@ public final class CreateOptions {
     return mUnderStorageType;
   }
 
+  /**
+   * @return Thrift representation of the options
+   */
   public CreateTOptions toThrift() {
     CreateTOptions options = new CreateTOptions();
     options.setBlockSizeBytes(mBlockSizeBytes);
