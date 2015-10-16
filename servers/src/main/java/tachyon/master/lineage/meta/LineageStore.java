@@ -195,10 +195,13 @@ public final class LineageStore implements JournalCheckpointStreamable {
    * Reports an output file as lost.
    *
    * @param fileId the file id
-   * @return the lineage containing the output file
+   * @return the lineage containing the output file, null if no lineage outputs the given file
    */
   public synchronized Lineage reportLostFile(long fileId) {
     Lineage lineage = mOutputFileIndex.get(fileId);
+    if (lineage == null) {
+      return null;
+    }
     // TODO(yupeng) push the persisted info to FS master
     if (lineage.getOutputFileState(fileId) != LineageFileState.PERSISTED) {
       lineage.updateOutputFileState(fileId, LineageFileState.LOST);
@@ -250,6 +253,17 @@ public final class LineageStore implements JournalCheckpointStreamable {
     for (Lineage lineage : mLineageDAG.getAllInTopologicalOrder()) {
       outputStream.writeEntry(lineage.toJournalEntry());
     }
+  }
+
+  /**
+   * Checks if there's an output file with given file id
+   *
+   * @param fileId the file id
+   * @return true if there's a lineage in the store that has the output file of the given id, false
+   *         otherwise
+   */
+  public boolean hasOutputFile(long fileId) {
+    return mOutputFileIndex.containsKey(fileId);
   }
 
   /**
