@@ -258,9 +258,9 @@ public final class BlockMaster extends MasterBase
    *
    * @return a list of worker info
    */
-  public List<WorkerInfo> getLostWorkersInfo() {
+  public Set<WorkerInfo> getLostWorkersInfo() {
     synchronized (mWorkers) {
-      List<WorkerInfo> ret = new ArrayList<WorkerInfo>(mLostWorkers.size());
+      Set<WorkerInfo> ret = new HashSet<WorkerInfo>(mLostWorkers.size());
       for (MasterWorkerInfo worker : mLostWorkers) {
         ret.add(worker.generateClientWorkerInfo());
       }
