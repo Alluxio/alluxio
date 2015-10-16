@@ -227,7 +227,11 @@ public final class BlockWorker {
 
     // Setup the lineage worker
     LOG.info("Started lineage worker at worker with ID " + WorkerIdRegistry.getWorkerId());
-    mLineageWorker = new LineageWorker(mBlockDataManager);
+
+    boolean enableLineage = WorkerContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED);
+    if (enableLineage) {
+      mLineageWorker = new LineageWorker(mBlockDataManager);
+    }
   }
 
   /**
@@ -259,7 +263,9 @@ public final class BlockWorker {
     mSyncExecutorService.submit(mSessionCleanerThread);
 
     // Start the lineage worker
-    mLineageWorker.start();
+    if (mLineageWorker != null) {
+      mLineageWorker.start();
+    }
 
     // Start the space reserver
     if (mSpaceReserver != null) {
@@ -279,7 +285,9 @@ public final class BlockWorker {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
-    mLineageWorker.stop();
+    if (mLineageWorker != null) {
+      mLineageWorker.stop();
+    }
     mBlockMasterSync.stop();
     mPinListSync.stop();
     mSessionCleanerThread.stop();
