@@ -175,7 +175,7 @@ service FileSystemMasterService {
   void completeFile(1: i64 fileId) throws (1: TachyonTException e)
 
   bool mkdir(1: string path, 2: MkdirTOptions options)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   i64 create(1: string path, 2: CreateTOptions options)
     throws (1: TachyonTException e)

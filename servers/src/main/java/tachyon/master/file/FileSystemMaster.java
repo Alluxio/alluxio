@@ -1302,7 +1302,6 @@ public final class FileSystemMaster extends MasterBase {
         long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
         long fileSizeByte = ufs.getFileSize(ufsPath.toString());
         // Metadata loaded from UFS has no TTL set.
-        // Metadata loaded from UFS has no TTL set.
         CreateOptions options =
             new CreateOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(ufsBlockSizeByte)
                 .setRecursive(recursive).setPersisted(true).build();
