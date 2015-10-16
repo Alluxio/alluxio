@@ -38,10 +38,12 @@ public class JsonJournalFormatterTest extends JournalFormatterTestBase {
     return new JsonJournalFormatter();
   }
 
+  @Override
   @Before
-  public void beforeClass() throws IOException {
+  public void before() throws Exception {
     String entriesFile = JsonJournalFormatterTest.class.getResource(JSON_SAMPLE_PATH).getFile();
     mRootNode = new ObjectMapper().readTree(new File(entriesFile));
+    super.before();
   }
 
   @Test
