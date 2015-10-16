@@ -41,7 +41,7 @@ import tachyon.util.io.BufferUtils;
 public abstract class BufferedBlockOutStream extends OutputStream implements Cancelable {
   // Error strings for preconditions in order to improve performance
   private static final String ERR_CLOSED = "Cannot do operations on a closed BlockOutStream.";
-  private static final String ERR_END_OF_BLOCK = "Block has no more space";
+  private static final String ERR_END_OF_BLOCK = "Cannot write past end of block.";
 
   /** The block id of the block being written */
   protected final long mBlockId;
