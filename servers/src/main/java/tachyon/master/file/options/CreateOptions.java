@@ -51,20 +51,21 @@ public final class CreateOptions {
     }
 
     /**
-     * @param persisted TODO
-     * @return the builder
-     */
-    public Builder setPersisted(boolean persisted) {
-      mPersisted = persisted;
-      return this;
-    }
-
-    /**
-     * @param operationTimeMs TODO
+     * @param operationTimeMs the operation time to use
      * @return the builder
      */
     public Builder setOperationTimeMs(long operationTimeMs) {
       mOperationTimeMs = operationTimeMs;
+      return this;
+    }
+
+    /**
+     * @param persisted the persisted flag to use; it specifies whether the object to created is
+     *        persisted in UFS
+     * @return the builder
+     */
+    public Builder setPersisted(boolean persisted) {
+      mPersisted = persisted;
       return this;
     }
 
@@ -133,43 +134,37 @@ public final class CreateOptions {
   }
 
   /**
-   * TODO
-   *
-   * @return
+   * @return the block size
    */
   public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
   /**
-   * @return TODO
+   * @return the operation time
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
   }
 
   /**
-   * TODO
-   *
-   * @return
+   * @return the persisted flag; it specifies whether the object to create is persisted in UFS
    */
   public boolean isPersisted() {
     return mPersisted;
   }
 
   /**
-   * TODO
-   *
-   * @return
+   * @return the recursive flag value; it specifies whether parent directories should be created if
+   * they do not already exist
    */
   public boolean isRecursive() {
     return mRecursive;
   }
 
   /**
-   * TODO
-   *
-   * @return
+   * @return the TTL (time to live) value; it identifies duration (in seconds) the created file
+   * should be kept around before it is automatically deleted
    */
   public long getTTL() {
     return mTTL;

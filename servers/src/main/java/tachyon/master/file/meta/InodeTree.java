@@ -182,7 +182,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param path the path
    * @param options method options
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
-   *         path creation.
+   *         path creation
    * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
    *         directory there
    * @throws BlockInfoException when blockSizeBytes is invalid

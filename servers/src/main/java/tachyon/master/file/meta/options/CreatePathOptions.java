@@ -52,7 +52,8 @@ public class CreatePathOptions {
     }
 
     /**
-     * @param directory TODO
+     * @param directory the directory flag to use; it specifies whether the object to create is a
+     *        directory
      * @return the builder
      */
     public Builder setDirectory(boolean directory) {
@@ -61,7 +62,7 @@ public class CreatePathOptions {
     }
 
     /**
-     * @param operationTimeMs TODO
+     * @param operationTimeMs the operation time to use
      * @return the builder
      */
     public Builder setOperationTimeMs(long operationTimeMs) {
@@ -70,7 +71,8 @@ public class CreatePathOptions {
     }
 
     /**
-     * @param persisted TODO
+     * @param persisted the persisted flag to use; it specifies whether the object to created is
+     *        persisted in UFS
      * @return the builder
      */
     public Builder setPersisted(boolean persisted) {
@@ -80,7 +82,7 @@ public class CreatePathOptions {
 
     /**
      * @param recursive the recursive flag value to use; it specifies whether parent directories
-     *                  should be created if they do not already exist
+     *        should be created if they do not already exist
      * @return the builder
      */
     public Builder setRecursive(boolean recursive) {
@@ -139,21 +141,21 @@ public class CreatePathOptions {
   }
 
   /**
-   * @return TODO
+   * @return the directory flag; it specifies whether the object to create is a directory
    */
   public boolean isDirectory() {
     return mDirectory;
   }
 
   /**
-   * @return TODO
+   * @return the operation time
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
   }
 
   /**
-   * @return TODO
+   * @return the persisted flag; it specifies whether the object to create is persisted in UFS
    */
   public boolean isPersisted() {
     return mPersisted;
