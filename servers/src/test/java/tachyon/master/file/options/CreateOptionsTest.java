@@ -25,12 +25,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import tachyon.Constants;
-import tachyon.client.ClientContext;
-import tachyon.client.UnderStorageType;
 import tachyon.conf.TachyonConf;
+import tachyon.master.MasterContext;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(ClientContext.class)
+@PrepareForTest(MasterContext.class)
 public class CreateOptionsTest {
   @Test
   public void builderTest() {
@@ -61,7 +60,7 @@ public class CreateOptionsTest {
   public void defaultsTest() {
     TachyonConf conf = new TachyonConf();
     conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    Whitebox.setInternalState(ClientContext.class, "sTachyonConf", conf);
+    Whitebox.setInternalState(MasterContext.class, "sTachyonConf", conf);
 
     CreateOptions options = CreateOptions.defaults();
 
