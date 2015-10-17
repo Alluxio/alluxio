@@ -29,7 +29,9 @@ public class SetStateOptionsTest {
     boolean recursive = random.nextBoolean();
 
     SetStateOptions options =
-        new SetStateOptions.Builder(new TachyonConf()).setPinned(recursive).build();
+        new SetStateOptions.Builder(new TachyonConf())
+            .setPinned(recursive)
+            .build();
 
     Assert.assertEquals(recursive, options.getPinned());
   }
@@ -37,6 +39,7 @@ public class SetStateOptionsTest {
   @Test
   public void defaultsTest() {
     SetStateOptions options = SetStateOptions.defaults();
+
     Assert.assertNull(options.getPinned());
   }
 }
