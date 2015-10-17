@@ -157,7 +157,7 @@ public class MasterFaultToleranceIntegrationTest {
   public void createFilesTest() throws Exception {
     int clients = 10;
     OutStreamOptions option =
-        new OutStreamOptions.Builder(new TachyonConf()).setBlockSize(1024)
+        new OutStreamOptions.Builder(new TachyonConf()).setBlockSizeBytes(1024)
             .setUnderStorageType(UnderStorageType.SYNC_PERSIST).build();
     for (int k = 0; k < clients; k ++) {
       TachyonFileSystem tfs = mLocalTachyonClusterMultiMaster.getClient();

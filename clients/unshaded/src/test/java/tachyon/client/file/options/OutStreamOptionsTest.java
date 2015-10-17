@@ -44,14 +44,14 @@ public class OutStreamOptionsTest {
 
     OutStreamOptions options =
         new OutStreamOptions.Builder(new TachyonConf())
-            .setBlockSize(blockSize)
+            .setBlockSizeBytes(blockSize)
             .setHostname(hostname)
             .setTachyonStorageType(tachyonType)
             .setTTL(ttl)
             .setUnderStorageType(ufsType)
             .build();
 
-    Assert.assertEquals(blockSize, options.getBlockSize());
+    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(hostname, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(ttl, options.getTTL());
@@ -70,7 +70,7 @@ public class OutStreamOptionsTest {
 
     OutStreamOptions options = OutStreamOptions.defaults();
 
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSize());
+    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals(null, options.getHostname());
     Assert.assertEquals(tachyonType, options.getTachyonStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTTL());
