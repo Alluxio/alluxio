@@ -91,7 +91,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
     }
     flush();
     mRemoteWriter.close();
-    if (mFlushedBytes > 0) {
+    if (mFlushedBytes == mBlockSize) {
       mWorkerClient.cacheBlock(mBlockId);
       ClientContext.getClientMetrics().incBlocksWrittenRemote(1);
     } else {
