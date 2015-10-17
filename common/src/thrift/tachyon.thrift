@@ -264,7 +264,7 @@ service LineageMasterService {
 
 service RawTableMasterService {
   i64 createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
-    throws (1: TachyonTException e)
+    throws (1: TachyonTException e, 2: ThriftIOException ioe)
 
   RawTableInfo getClientRawTableInfoById(1: i64 id)
     throws (1: TachyonTException e)
