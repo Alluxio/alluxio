@@ -80,7 +80,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   public FileOutStream(long fileId, OutStreamOptions options) throws IOException {
     mFileId = fileId;
     mNonce = ClientContext.getRandomNonNegativeLong();
-    mBlockSize = options.getBlockSize();
+    mBlockSize = options.getBlockSizeBytes();
     mTachyonStorageType = options.getTachyonStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
