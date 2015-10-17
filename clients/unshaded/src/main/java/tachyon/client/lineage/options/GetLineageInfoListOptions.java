@@ -38,7 +38,7 @@ public final class GetLineageInfoListOptions {
   }
 
   /**
-   * @return the default options.
+   * @return the default options
    */
   public static GetLineageInfoListOptions defaults() {
     return new Builder(ClientContext.getConf()).build();

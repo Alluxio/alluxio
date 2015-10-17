@@ -26,12 +26,12 @@ import tachyon.master.journal.ReadWriteJournal;
 
 public interface Master extends JournalCheckpointStreamable {
   /**
-   * @return the {@link TProcessor} serving RPC service for this master.
+   * @return the {@link TProcessor} serving RPC service for this master
    */
   TProcessor getProcessor();
 
   /**
-   * @return a {@link String} representing this master service name.
+   * @return a {@link String} representing this master service name
    */
   String getServiceName();
 

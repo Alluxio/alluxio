@@ -90,7 +90,7 @@ public class StorageDirId {
    * Check whether the value of StorageDirId is UNKNOWN
    *
    * @param storageDirId Id of the StorageDir
-   * @return true if StorageDirId is UNKNOWN, false otherwise.
+   * @return true if StorageDirId is UNKNOWN, false otherwise
    */
   public static boolean isUnknown(long storageDirId) {
     return storageDirId == UNKNOWN;

@@ -110,7 +110,7 @@ public abstract class RPCMessage implements EncodedMessage {
    * Returns true if the message has a payload. The encoder will send the payload with a more
    * efficient method.
    *
-   * @return true if the message has a payload, false otherwise.
+   * @return true if the message has a payload, false otherwise
    */
   public boolean hasPayload() {
     return getPayloadDataBuffer() != null;
@@ -119,7 +119,7 @@ public abstract class RPCMessage implements EncodedMessage {
   /**
    * Returns the data buffer of the payload.
    *
-   * @return The DataBuffer representing the payload.
+   * @return The DataBuffer representing the payload
    */
   public DataBuffer getPayloadDataBuffer() {
     return null;

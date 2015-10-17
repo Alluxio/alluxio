@@ -29,6 +29,7 @@ import tachyon.Version;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonStorageType;
 import tachyon.client.WriteType;
 import tachyon.client.file.FileInStream;
 import tachyon.client.file.FileOutStream;
@@ -49,10 +50,10 @@ public class BasicRawTableOperations implements Callable<Boolean> {
   private long mId;
 
   public BasicRawTableOperations(TachyonURI masterAddress, TachyonURI tablePath,
-      WriteType writeType) {
+      TachyonStorageType writeType) {
     mMasterAddress = masterAddress;
     mTablePath = tablePath;
-    mWriteType = writeType;
+    mWriteType = writeType.isStore() ? WriteType.MUST_CACHE : WriteType.THROUGH;
   }
 
   @Override
@@ -132,6 +133,6 @@ public class BasicRawTableOperations implements Callable<Boolean> {
       System.exit(-1);
     }
     Utils.runExample(new BasicRawTableOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
-        WriteType.valueOf(args[2])));
+        TachyonStorageType.valueOf(args[2])));
   }
 }
