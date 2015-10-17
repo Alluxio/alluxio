@@ -69,6 +69,10 @@ public final class ClientContext {
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
     sClientMetrics = new ClientMetrics();
     sRandom = new Random();
+
+    if (sExecutorService != null) {
+      sExecutorService.shutdown();
+    }
     sExecutorService = Executors.newFixedThreadPool(
         sTachyonConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
