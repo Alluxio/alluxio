@@ -54,9 +54,9 @@ public final class FileInStream extends InputStream implements BoundedStream, Se
   // Error strings for preconditions in order to improve performance
   private static final String ERR_BLOCK_INDEX = "Current block index exceeds max index.";
   private static final String ERR_BUFFER_NULL = "Cannot read with a null buffer.";
-  private static final String ERR_BUFFER_STATE = "Buffer length (%d), offset(%d), len(%d)";
-  private static final String ERR_SEEK_PAST_END_OF_FILE = "Seek position past end of file: (%d)";
-  private static final String ERR_SEEK_NEGATIVE = "Seek position is negative (%d)";
+  private static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
+  private static final String ERR_SEEK_PAST_END_OF_FILE = "Seek position past end of file: %s";
+  private static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
 
   /** How the data should be written into Tachyon space, if at all */
   private final TachyonStorageType mTachyonStorageType;
