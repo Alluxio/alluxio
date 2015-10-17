@@ -76,9 +76,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     TachyonFileSystem tFS = TachyonFileSystemFactory.get();
     TachyonFile tFile = tFS.open(path);
     String fileData = null;
-    if (tFile == null) {
-      throw new FileDoesNotExistException(path.toString());
-    }
     FileInfo fileInfo = tFS.getInfo(tFile);
     if (fileInfo.isCompleted) {
       InStreamOptions readNoCache = new InStreamOptions.Builder(mTachyonConf)

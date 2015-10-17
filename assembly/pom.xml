@@ -89,7 +89,7 @@
     </profile>
 
     <profile>
-      <id>dev</id>
+      <id>developer</id>
       <dependencies>
         <dependency>
           <groupId>org.tachyonproject</groupId>

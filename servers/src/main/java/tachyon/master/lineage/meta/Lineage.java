@@ -96,7 +96,7 @@ public final class Lineage implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the input files.
+   * @return the input files
    */
   public synchronized List<TachyonFile> getInputFiles() {
     return Collections.unmodifiableList(mInputFiles);
@@ -194,7 +194,7 @@ public final class Lineage implements JournalEntryRepresentable {
   }
 
   /**
-   * @return all the output files that are lost on the workers.
+   * @return all the output files that are lost on the workers
    */
   public synchronized List<Long> getLostFiles() {
     List<Long> result = Lists.newArrayList();

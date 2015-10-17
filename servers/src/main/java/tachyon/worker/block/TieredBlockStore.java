@@ -711,7 +711,7 @@ public final class TieredBlockStore implements BlockStore {
    * Get the most updated view with most recent information on pinned inodes, and currently locked
    * blocks.
    *
-   * @return BlockMetadataManagerView, an updated view with most recent information.
+   * @return BlockMetadataManagerView, an updated view with most recent information
    */
   private BlockMetadataManagerView getUpdatedView() {
     // TODO(calvin): Update the view object instead of creating new one every time.
