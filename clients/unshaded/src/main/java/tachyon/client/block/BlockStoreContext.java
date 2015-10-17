@@ -35,7 +35,7 @@ import tachyon.worker.WorkerClient;
 /**
  * A shared context in each client JVM for common Block Store client functionality such as a pool of
  * master clients and a pool of local worker clients. Any remote clients will be created and
- * destroyed on a per use basis.
+ * destroyed on a per use basis. This class is thread safe.
  */
 public enum BlockStoreContext {
   INSTANCE;

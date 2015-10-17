@@ -21,7 +21,7 @@ import tachyon.client.block.TachyonBlockStore;
 
 /**
  * A shared context in each client JVM for common File System client functionality such as a pool
- * of master clients.
+ * of master clients. This class is thread safe.
  */
 public enum FileSystemContext {
   INSTANCE;

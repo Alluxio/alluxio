@@ -34,7 +34,7 @@ import tachyon.worker.ClientMetrics;
  * configuration and master address. This class is thread safe.
  */
 public final class ClientContext {
-
+  private static final String ERR_NOT_INITIALIZED = "Client Context not initialized.";
   private static ExecutorService sExecutorService;
   private static TachyonConf sTachyonConf;
   private static InetSocketAddress sMasterAddress;
@@ -87,7 +87,7 @@ public final class ClientContext {
    * @return the tachyonConf for the client process
    */
   public static synchronized TachyonConf getConf() {
-    Preconditions.checkState(sInitialized, "Client Context not initialized.");
+    checkContextInitialized();
     return sTachyonConf;
   }
 
@@ -95,7 +95,7 @@ public final class ClientContext {
    * @return the ClientMetrics for this client
    */
   public static synchronized ClientMetrics getClientMetrics() {
-    Preconditions.checkState(sInitialized, "Client Context not initialized.");
+    checkContextInitialized();
     return sClientMetrics;
   }
 
@@ -103,7 +103,7 @@ public final class ClientContext {
    * @return the master address
    */
   public static synchronized InetSocketAddress getMasterAddress() {
-    Preconditions.checkState(sInitialized, "Client Context not initialized.");
+    checkContextInitialized();
     return sMasterAddress;
   }
 
@@ -111,14 +111,18 @@ public final class ClientContext {
    * @return a random non-negative long
    */
   public static synchronized long getRandomNonNegativeLong() {
-    Preconditions.checkState(sInitialized, "Client Context not initialized.");
+    checkContextInitialized();
     return Math.abs(sRandom.nextLong());
   }
 
   public static synchronized ExecutorService getExecutorService() {
-    Preconditions.checkState(sInitialized, "Client Context not initialized.");
+    checkContextInitialized();
     return sExecutorService;
   }
 
-  private ClientContext() {}
+  private static void checkContextInitialized() {
+    Preconditions.checkState(sInitialized, ERR_NOT_INITIALIZED);
+  }
+
+  private ClientContext() {} // prevent instantiation
 }
