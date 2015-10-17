@@ -53,6 +53,22 @@ public enum BlockStoreContext {
   }
 
   /**
+   * Initializes {#mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy manner.
+   */
+  private void initializeLocalBlockWorkerClientPool() {
+    NetAddress localWorkerAddress =
+        getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
+
+    // If the local worker is not available, do not initialize the local worker client pool.
+    if (localWorkerAddress == null) {
+      mLocalBlockWorkerClientPool = null;
+    } else {
+      mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
+    }
+    mLocalBlockWorkerClientPoolInitialized = true;
+  }
+
+  /**
    * Gets the worker address based on its hostname by querying the master.
    *
    * @param hostname hostname of the worker to query, empty string denotes any worker
@@ -141,16 +157,7 @@ public enum BlockStoreContext {
    */
   public WorkerClient acquireLocalWorkerClient() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
-      NetAddress localWorkerAddress =
-          getWorkerAddress(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()));
-
-      // If the local worker is not available, do not initialize the local worker client pool.
-      if (localWorkerAddress == null) {
-        mLocalBlockWorkerClientPool = null;
-      } else {
-        mLocalBlockWorkerClientPool = new BlockWorkerClientPool(localWorkerAddress);
-      }
-      mLocalBlockWorkerClientPoolInitialized = true;
+      initializeLocalBlockWorkerClientPool();
     }
 
     if (mLocalBlockWorkerClientPool == null) {
@@ -210,6 +217,9 @@ public enum BlockStoreContext {
   // TODO(calvin): Handle the case when the local worker starts up after the client or shuts down
   // before the client does.
   public boolean hasLocalWorker() {
+    if (!mLocalBlockWorkerClientPoolInitialized) {
+      initializeLocalBlockWorkerClientPool();
+    }
     return mLocalBlockWorkerClientPool != null;
   }
 
