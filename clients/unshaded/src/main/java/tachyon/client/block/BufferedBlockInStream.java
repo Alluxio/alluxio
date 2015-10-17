@@ -39,10 +39,10 @@ import tachyon.util.io.BufferUtils;
 public abstract class BufferedBlockInStream extends BlockInStream {
   // Error strings for preconditions in order to improve performance
   private static final String ERR_BUFFER_NULL = "Read buffer cannot be null";
-  private static final String ERR_BUFFER_STATE = "Buffer length (%d), offset(%d), len(%d)";
+  private static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
   private static final String ERR_CLOSED = "Cannot do operations on a closed BlockInStream";
-  private static final String ERR_SEEK_PAST_END_OF_BLOCK = "Seek position past end of block: (%d)";
-  private static final String ERR_SEEK_NEGATIVE = "Seek position is negative (%d)";
+  private static final String ERR_SEEK_PAST_END_OF_BLOCK = "Seek position past end of block: %s";
+  private static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;

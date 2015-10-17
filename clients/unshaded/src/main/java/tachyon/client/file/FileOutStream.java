@@ -57,7 +57,7 @@ public class FileOutStream extends OutputStream implements Cancelable {
   private static final String ERR_BLOCK_REMAINING =
       "The current block still has space left, no need to get new block.";
   private static final String ERR_BUFFER_NULL = "Cannot write a null input buffer.";
-  private static final String ERR_BUFFER_STATE = "Buffer length (%d), offset(%d), len(%d)";
+  private static final String ERR_BUFFER_STATE = "Buffer length: %s, offset: %s, len: %s";
 
   private final long mBlockSize;
   protected final TachyonStorageType mTachyonStorageType;
