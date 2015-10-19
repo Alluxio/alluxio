@@ -221,7 +221,7 @@ public class LocalBlockInStreamIntegrationTest {
   @Test
   public void seekExceptionTest2() throws IOException, TachyonException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage("Seek position is past EOF: 1, fileSize = 0");
+    mThrown.expectMessage("Seek position past end of file: 1");
 
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
