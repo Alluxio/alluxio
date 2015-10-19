@@ -84,13 +84,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
     mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
-    if (tachyonConf.containsKey(Constants.S3_PROXY_HOST)) {
+    if (tachyonConf.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
       props.setProperty("httpclient.proxy-autodetect", "false");
-      props.setProperty("httpclient.proxy-host", tachyonConf.get(Constants.S3_PROXY_HOST));
-      props.setProperty("httpclient.proxy-port", tachyonConf.get(Constants.S3_PROXY_PORT));
+      props.setProperty("httpclient.proxy-host", tachyonConf.get(Constants.UNDERFS_S3_PROXY_HOST));
+      props.setProperty("httpclient.proxy-port", tachyonConf.get(Constants.UNDERFS_S3_PROXY_PORT));
     }
-    if (tachyonConf.containsKey(Constants.S3_HTTPS_ONLY)) {
-      props.setProperty("s3service.https-only", tachyonConf.get(Constants.S3_HTTPS_ONLY));
+    if (tachyonConf.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+      props.setProperty("s3service.https-only",
+          tachyonConf.get(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY));
     }
     LOG.debug("Initializing S3 underFs with properties: " + props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
