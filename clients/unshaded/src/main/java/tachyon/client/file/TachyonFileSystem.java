@@ -214,8 +214,16 @@ public class TachyonFileSystem extends AbstractTachyonFileSystem {
   /**
    * Convenience method for {@link #open(TachyonURI, OpenOptions)} with default options.
    */
-  public TachyonFile open(TachyonURI path) throws IOException, TachyonException {
+  public TachyonFile open(TachyonURI path) throws IOException, InvalidPathException,
+      TachyonException {
     return open(path, OpenOptions.defaults());
+  }
+
+  /**
+   * Convenience method for {@link #openIfExists(TachyonURI, OpenOptions)} with default options.
+   */
+  public TachyonFile openIfExists(TachyonURI path) throws IOException, TachyonException {
+    return openIfExists(path, OpenOptions.defaults());
   }
 
   /**

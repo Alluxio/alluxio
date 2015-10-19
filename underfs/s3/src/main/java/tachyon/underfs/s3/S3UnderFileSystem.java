@@ -74,6 +74,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public UnderFSType getUnderFSType() {
+    return UnderFSType.S3;
+  }
+
+  @Override
   public void close() throws IOException {
   }
 
@@ -360,7 +365,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * Gets the StorageObject representing the metadata of a key. If the key does not exist as a
    * file or folder, null is returned
    * @param key the key to get the object details of
-   * @return StorageObject of the key, or null if the key does not exist as a file or folder.
+   * @return StorageObject of the key, or null if the key does not exist as a file or folder
    */
   private StorageObject getObjectDetails(String key) {
     try {
