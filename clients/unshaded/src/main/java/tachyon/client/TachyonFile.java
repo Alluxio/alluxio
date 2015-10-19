@@ -124,7 +124,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException if the underlying file does not exist or its metadata is corrupted
    */
   public synchronized FileBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
-    return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
+    return mTachyonFS.getClientBlockInfo(mFileId, blockIndex);
   }
 
   /**
